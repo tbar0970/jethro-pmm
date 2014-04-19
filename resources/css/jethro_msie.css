@@ -1,0 +1,43 @@
+#jethro-nav, #body, .well {
+	position: relative;
+}
+.view-person img {
+	float: none;
+	position: absolute;
+	right: 10px;
+	width: 200px;
+	margin-left: 15px;
+}
+.user-detail {
+	float: none;
+	position: absolute;
+	right: 0px;
+}
+.pull-right {
+	float: none !important;
+	position: absolute;
+	right: 10px;
+	width: auto;
+}
+.homepage-3-col {
+	min-width: 1000px;
+}
+.homepage-box {
+	position: relative;
+	height: auto;
+	padding-bottom: 20px;
+	display: table-cell;
+}
+.homepage .homepage-box.search-forms {
+	position: absolute;
+	right: 0px;
+}
+.msie-only {
+	display: inherit;
+}
+#body table.roster thead th, #body table.roster tfoot th {
+	/* http://stackoverflow.com/questions/3465346/table-cell-loses-border-when-css-gradient-filter-is-applied-in-ie8 */
+	position: relative;
+	z-index: -1;
+}
+

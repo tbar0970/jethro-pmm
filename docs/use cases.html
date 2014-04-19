@@ -1,0 +1,292 @@
+<html>
+<head>
+	<title>St John's Church Management System Project - Use Cases</title>
+	<style>
+		body {
+			background: #ffffdd;
+		}
+		h1 {
+			color: #440000;
+		}
+		h2 {
+			color: #440000;
+			font-weight: bold;
+			margin-top: 4ex;
+		}
+		h3 {
+			margin-bottom: 3px;
+		}
+		ol {
+			margin-top: 1px;
+		}
+
+	</style>
+</head>
+<body>
+
+<h1>St John's Church Management System Project<br />Use Cases</h1>
+
+<h2>Families and Persons</h2>
+
+<h3><a name="add-family">Add Family</a></h3>
+<ol>
+<li>Merina has received a communication card in the "7pm" box from a couple whose names she does not recognise</li>
+<li>She searches for their name (see <a href="#search-for-name">Search For Name</a>) and finds no matches, so she knows this is a new Family</li>
+<li>Merina clicks on the "add family" link in the main navigation, and the system shows her the "add family" form</li>
+<li>Merina fills in the family name and any supplied data relevant to the family as a whole (home tel, postal address etc)</li>
+<li>Merina fills in the details of the Persons who will be members of this family, including their names and the congregation they attended (7pm).  The 'surname' field for each Person is pre-poplated with the family name but she can change it if necessary</li>
+<li>Merina enters an initial note for the family (this field is compulsory), indicating that they filled in a communication card and what boxes they ticked</li>
+<li>Merina clicks the 'submit' button.  The system creates the Family record, the two Person records and a Family Note record.  For each of these, the user who created them and the date on which they were created is recorded.  The status of the Family Note is set to 'awaiting action' and its subject is set to 'New Family'.  (NB If the family contained only one member, the note would be created as a person note because of the business rule that says family notes can only be added to familys with more than one member)</li>
+</ol>
+
+
+<h3><a name="search-for-name">Search For Name</a></h3>
+<ol>
+<li>Andrew has met someone on Sunday whose first name was Robert but whose last name he doesn't remember.  Robert told him that he'd come to church a couple of times before and had filled in a card.</li>
+<li>Andrew enters the name 'Robert' into the 'name search' box on the home page and clicks the 'search' button</li>
+<li>The system lists all the familys with family names like 'Robert' and all the Persons with first name or surname like 'Robert'.  Next to each entry there are links to perform various actions on each Family / Person (eg <a href="#view-family-record">View Family Record</a>, <a href="#edit-person-record">Edit Person Record</a>, <a href="#add-family-note">Add Family Note</a>).</li>
+<li>Andrew quickly scans the short list and the only entry he doesn't recognise is 'Robert Jones'.  He concludes that it was Robert Jones he spoke to on Sunday.</li>
+</ol>
+
+<h3><a name="view-family-record">View Family Record</a></h3>
+<ol>
+<li>Merina needs to post a roster to Sarah Smith, who does not have email</li>
+<li>Merina searches for the name 'Sarah Smith' (see <a href="#search-for-name">Search For Name</a>)</li>
+<li>Merina clicks the 'View Family Record' link next to the relevant entry in the search result list</li>
+<li>The system displays the Family Record for the family that Sarah Smith belongs to, including the postal address, family notes and person notes for all the members of the family</li>
+<li>Merina sees the address and uses it as required</li>
+</ol>
+
+<h3><a name="edit-family-record">Edit Family Record</a></h3>
+<ol>
+<li>Merina has receieved a communication card from the Barrett family indicating that they have moved house</li>
+<li>She searches for 'Barrett' (see <a href="#search-for-name">Search For Name</a>) and clicks the 'Edit Family Record' link next to their entry in the search results</li>
+<li>The system acquires the lock on the Barrett Family record for Merina.  This means that nobody else can edit this family record until she's finished.  (Alternate path:  somebody else already has the lock on the Barrett Family record and the system asks Merina to wait til they are finished)</li>
+<li>The system shows Merina the 'Edit Family' form, with the current values of the family fields filled in</li>
+<li>Merina replaces the values of the 'street address', 'suburb' and 'postcode' fields with the new address and clicks the 'Save' button</li>
+<li>The system saves the new values in the Barrett Family record, logs the event of Merina making these changes to the Barrett Family record, and releases the lock</li>
+</ol>
+
+<h3><a name="view-person-record">View Person Record</a></h3>
+<ol>
+<li>Andrew wants to talk to Joe about Joe's ideas for repainting the sanctuary, that they were talking about on Sunday</li>
+<li>Andrew searches for the name 'Joe' (see <a href="#search-for-name">Search For Name</a>) and clicks the 'View Person Record' link next to the relevant entry in the search results list</li>
+<li>The system shows all the details for Joe, including details from his Family record, all his person notes and all his Family Notes.</li>
+<li>Andrew notices that the 'contact notes' field indicates Joe is only contactable on his mobile during business hours, so he dials the number shown in the 'mobile number' field.</li>
+</ol>
+
+<h3><a name="edit-person-record">Edit Person Record</a></h3>
+<ol>
+<li>While Andrew is talking to Joe about what colour they should paint the communion table (see <a href="#view-person-record">View Person Record</a>), Joe mentions that he can email through some images of his past work.  Andrew sees that there is currently no email address in Joe's person record</li>
+<li>From the screen showing Joe's Person Record, Andrew clicks the 'Edit this Person' link</li>
+<li>The system acquires the lock on Joe's Person record for Andrew.  This means that nobody else can edit this family record until she's finished.  (Alternate path:  somebody else already has the lock on the record and the system asks Andrew to wait til they are finished)</li>
+<li>The system shows Andrew the "Edit Person" form</li>
+<li>Andrew enters the email address Joe has just dictated to him into the 'email address' field and clicks 'Save'</li>
+<li>The system updates Joe's Person Record, logs the event of Andrew making these changes to the Joe's Person record,  and releases the lock on it</li>
+</ol>
+
+<h3><a name="move-person-to-other-family">Move Person to a different family</a></h3>
+<ol>
+<li>Alison Smith has just got married to Stuart Jones.  They both exist in the system as separate one-member familys.  Merina wants to record the marriage in the system.</li>
+<li>Merina opens the Jones family record and notes that the family ID is 678.</li>
+<li>Merina opens the Alison Smith's person record and clicks the "move this person to another family" link</li>
+<li>The system acquires the lock on Alison's Person Record and shows Merina the "move person to different family" form.</li>
+<li>Merina enters the Jones family ID (678) into the "destination family ID" box and clicks "Move"</li>
+<li>The system adds Alison as a member of the Jones family.</li>
+<li>Because there are no members left in the Smith family record, this record removed.  If any family notes are present, they are attached to the Jones family instead and their subjects are prefixed with "[Added to Smith family]".  </li>
+<li>Note: The manual copying of Family ID is used here to save development time on an infrequently performed task</li>
+</ol>
+
+<h3><a name="move-person-to-new-family">Move Person to a New family</a></h3>
+<ol>
+<li>Johan Carr has just moved out of home and is no longer living with his parents.  He has submitted a communication card indicating this and his new address</li>
+<li>Upon receiving the card, Merina opens Johan's person record and clicks the "create a new family for this person" link. She clicks "yes, I'm sure".</li>
+<li>The system creates a new family record with the same core details as Johan's current family.  It links Johan to this new family and unlinks him from the old one.  The system shows Merina the "edit family" form for the new family it has just created.</li>
+<li>Merina changes the values of the relevant fields, removing the value of the home tel field since Johan doesn't have a landline in his new home.  She clicks 'save'</li>
+<li>The system saves the details of Johan's new family record.  When listing all familys, two "Carr" entries appear, one with Johan's first name only and one with his parents' names only.
+</ol>
+
+<h3><a name="add-person-to-family">Add Person To Existing Family</a></h3>
+<ol>
+<li>Some time has passed, and Alison and Stuart Smith-Jones have had a baby called John.  Bill is aware of this and wants to record it in the system</li>
+<li>Bill searches for Smith-Jones and views their family details</li>
+<li>Bill clicks on the "add member to family" link</li>
+<li>The system shows Bill the "Add member to family" form</li>
+<li>Bill fills in the details that he knows about John and clicks "Save"</li>
+<li>The system adds a Person record for John, attached to the Smith-Jones family record.</li>
+</ol>
+
+
+<h2>Notes</h2>
+
+<h3><a name="add-family-note">Add Note for Family</a></h3>
+<ol>
+<li>Robert and Sandra Jones, who Andrew met on Sunday, told Andrew that they are both shiftworkers and will often be unable to attend church on Sundays.  Andrew wants to note this on their record.</li>
+<li>Andrew searches for Jones (see <a href="#search-for-name">Search For Name</a>) and clicks the "Add Family Note" link next to "Jones, Robert and Sandra"</li>
+<li>The system shows Andrew the "Add Note to Family" form</li>
+<li>Andrew enters 'shiftworker' into the 'subject' field, and elaborates in the 'details' field.  He sets the 'status' field to 'no action required' and leaves the 'assignee' field as 'nobody'.  The 'action date' field is disabled because no action is required.  He clicks the 'submit' button</li>
+<li>The system saves the note against the Jones' Family record.  The system records the date on which the note was added, and the person who added it.</li>
+</ol>
+
+<h3><a name="add-person-note">Add Note for Person</a></h3>
+<ol>
+<li>Jane Doe, who is married to George Doe, has submitted a communication card indicating she'd like to talk to someone about maybe joining the mothers' group. </li>
+<li>Merina opens Jane Doe's record and clicks the "Add note to person" link</li>
+<li>The system shows Merina the "Add Note to Person" form</li>
+<li>Merina fills in the details of Jane's interest, sets the status to "requiring action" and selects June Brown, the staff member who works with the mothers group, as the assignee.  She clicks "save"</li>
+<li>The system saves the note against Jane Doe's person record.  The system records the date on which the note was added, the person who added it</li>
+<li>Next time June Brown logs in, the note indicating that Jane needs to be called re te mothers group, is in her "to-do" list on the homepage.</li>
+</ol>
+
+<h3><a name="add-future-person-note">Add Note for Person with future action</a></h3>
+<ol>
+<li>Bill has just baptised baby Bob Browning.  Bob's parents are not members of the church and have not responded to Bill's invitations to join so far.  Bill wants to make sure he invites them to come back on the anniversary of the baptism next year.</li>
+<li>Bill opens the Browning family record and clicks the "Add note to family" link.</li>
+<li>The system shows Bill the "add note to family" form.</li>
+<li>Bill fills in the subject field with "contact re baptism anniversary" and the details field with "Baby Bob baptised 29/11/06".</li>
+<li>Bill sets the status to "requiring action" and sets the "action date" field to 29/10/07".  He clicks "save"</li>
+<li>The system saves the note against the family record.  </li>
+<li>When Bill looks at his "to-do" list on the home page, nothing new appears until 29th October 2007, when the "contact re baptism anniversary" note appears.</li>
+</ol>
+
+
+<h3><a name="assign-note">Assign Note</a></h3>
+<ol>
+<li>Bill, the senior minister, logs in and sees new entries in the "unassigned notes requiring action" list on the home page.  He clicks on one and the system shows him the note details.</li>
+<li>Bill sees that the note concerns a new person in the 7pm service, and decides to assign the note to Fred, the  Pastoral Ministry Assistance Specialist</li>
+<li>Bill clicks the "assign this note" link</li>
+<li>The system acquires the lock on this note for Bill and shows him the "Edit Note" form</li>
+<li>Bill chooses Fred's name in the "assign to" field and clicks "save"</li>
+<li>The system saves the changes to the Note and releases the lock</li>
+</ol>
+
+
+<h3><a name="">Comment on Note</a></h3>
+<ol>
+<li>Fred, the Pastoral Ministry Assistance Specialist, logs in and sees a new entry labelled "New Family - Yeow" in the "to do" list on his home page. He clicks on it and the system shows him the note details</li>
+<li>Fred sees that the note concerns a new person in the 7pm service and decides it would be good to call this person</li>
+<li>Fred clicks on the "show person record" link inside the note, finds the new person's phone number, and calls them.  There is no answer</li>
+<li>Returning to the "view note" screen, Fred clicks the "add comment" link.  The system shows him the "Add comment to note" form</li>
+<li>Fred fills in the comment field with "tried to call, no answer" and clicks "save"</li>
+<li>The system saves Fred's comment against the note, along with the date on which he added it.</li>
+</ol>
+
+<h3><a name="">Resolve Note</a></h3>
+<ol>
+<li>Fred, the Pastoral Ministry Assistance Specialist, logs in and sees that the "New Family - Yeow" note is still in his "to do" list. </li>
+<li>Fred clicks on the entry and the system shows him the details for the note, including the 5 notes he has now added all saying "tried to call, no answer"</li>
+<li>Fred concludes that calling this person is not going to work, and since there are no other contact details listed he can do no more</li>
+<li>Fred clicks the "change status" link in the note.  The system acquires the lock on this note for Fred and shows him the "Edit Note" form.</li>
+<li>Fred changes the "status" field to "failed" and clicks "save"</li>
+<li>The system saves the changes to the Note and releases the lock.  This note no longer appears in Fred's "to do" list</li>
+</ol>
+
+<h2>Groups</h2>
+
+<h3><a name="create-group">Create Group</a></h3>
+<ol>
+<li>A new group has been formed that will handle technical requirements for the 8am service.  Fred wants to record who will be involved in this group</li>
+<li>Fred clicks "add group" in the main navigation</li>
+<li>The system shows Fred the "Add Group" form</li>
+<li>Fred enters the name for the group and clicks "save"</li>
+<li>The group is created</li>
+</ol>
+
+<h3><a name="view-group">View Group Details</a></h3>
+<ol>
+<li>Bill wants to know who is involved in the new 8am techos group.</li>
+<li>Bill clicks on the "List Groups" link in the main navaigation</li>
+<li>Bill sees the "8am techos" group in the list and clicks on it</li>
+<li>The system shows bill the name of the group and the list of members.</li>
+</ol>
+
+<h3><a name="">Add Persons to Group in bulk</a></h3>
+<ol>
+<li>Fred wants to add all the interested people to the 8am techos group in one go</li>
+<li>Fred opens the "8am congregation" report and the system shows him a list of names with tickboxes next to them</li>
+<li>Fred clicks the tickboxes next to the interested people</li>
+<li>Fred click the "add selected to cart" button at the bottom of the screen.  His cart now contains these person IDs.  He can view his cart by clicking "view cart" from the main navigation.</li>
+<li>Fred opens the "8am techos" group (see <a href="#view-group">View Group</a>) which is currently empty</li>
+<li>Fred clicks the "add cart to group" button</li>
+<li>The system adds the persons from the cart to the group, and redisplays the group with the new members</li>
+<li>Fred clicks the "empty cart" link in the main navigation to clear his cart</li>
+</ol>
+
+<h3><a name="">Add Person to Group Individually</a></h3>
+<ol>
+<li>While viewing the group, Bill remembers that Josephine Bloggs wants to join the 8am techos group but notices she is not shown</li>
+<li>Bill types "Josephine" into the textbox labelled "add new member to this group" and clicks "Search"</li>
+<li>The system shows Bill a list of the 3 Josephines in the church</li>
+<li>Bill clicks on Josephine Bloggs' name and clicks "Add"</li>
+<li>The system adds Josephine Bloggs to the group and re-displays the list of group memmbers which now includes her</li>
+</ol>
+
+<h3><a name="">Remove Person from Group</a></h3>
+<ol>
+<li>George Fraser no longer wants to be a part of the 8am techos group.  Bill wants to take him out of this group in the system.</li>
+<li>Bill opens the group (see <a href="#view-group">View Group</a>) and finds George's name in the list</li>
+<li>Bill clicks the tickbox next to George's name and then clicks the "Remove selected from group" button at the bottom</li>
+<li>Bill clicks "yes, I'm sure"</li>
+<li>The system removes George from the group, and re-displays the list of group members which no longer includes George</li>
+</ol>
+
+<h2>Attendance Tracking</h2>
+<h3>Record Attendance for a Service</h3>
+<ol>
+<li>Fred wants to record who attended the 7pm service yesterday</li>
+<li>Fred logs in to the system and clicks the "Record Service Attendance" link in the main navigation</li>
+<li>The system asks Fred what congregation he wants to record attendance for, and the date of the service for which he is recording attendance.  Fred enters these details</li>
+<li>The system lists all persons who belong to the selected congregation, with a dropdown box next to each.  The options in the dropdown box are "present", "absent" and blank.  Each dropdown box is initially blank but cannot be returned to blank once some other value has been entered</li>
+<li>Using keyboard shortcuts, Fred goes down the list and sets each dropdown box to "present" or "absent" (P sets it to present, A sets it to absent)</li>
+<li>When finished, Fred clicks submit and the system saves the attendance for that service</li>
+</ol>
+
+<h3>Update Attendance for a Service</h3>
+<ol>
+<li>Fred has remembered that somebody he thought was absent was actually present at 7pm yesterday</li>
+<li>Fred logs in to the system and clicks the "Record Service Attendance" link in the main navigation</li>
+<li>The system asks Fred what congregation he wants to record attendance for, and the date of the service for which he is recording attendance.  Fred enters these details</li>
+<li>The system shows a notice indicating that attendance has already been filled in for the selected service, and that he may now edit the specified attendance.  Beneath the notice is a list of all persons who belong to the congretation, with the dropdown boxes populated with the present/absent values previously entered</li>
+<li>Fred finds the person who he remembered was present, changes the dropdown box to "present", and clicks "save"</li>
+<li>The system saves the updated attendance info for that service</li>
+</ol>
+
+<h3>View Attendance for an individual</h3>
+<ol>
+<li>Bill wants to see how often Josephine Bloggs has been to church recently.</li>
+<li>Bill opens Josephine's person record (see <a href="#view-person-record">View Person Record</a>).</li>
+<li>Within Josephine's person record is an "attendance" section.  It indicates how many times Josephine has attended in the last month, the last 2 months, the last 6 months, and the percentage of Sundays she has attended since her person record was created (eg if her person record was created a year ago and she has attended 26 times it would show 50%).</li>
+</ol>
+
+
+<h2>Reports</h2>
+<h3><a name="">List Persons by Congregation</a></h3>
+<ol>
+<li>Choose a congregation and certain person fields</li>
+<li>The system shows the persons in that congregation, with the values of the selected fields</li>
+</ol>
+
+<h3><a name="">List Persons by Membership Status</a></h3>
+<ol>
+<li>Choose a membership status value and certain person fields</li>
+<li>The system shows the persons with that status, with the values of the selected fields</li>
+</ol>
+
+<h3><a name="">List All Families</a></h3>
+<ol>
+<li>Choose a list of family fields.</li>
+<li>The system shows all familys in the church, with the names of members and values of the selected fields</li>
+</ol>
+
+<h3><a name="">List Members of Multiple Groups</a></h3>
+<ol>
+<li>Select several groups and certain person fields</li>
+<li>The system shows the members of the groups, under group name headings, with the values of the selected fields</li>
+</ol>
+
+<h3><a name="">Show attendance trends for a congregation</a></h3>
+<ol>
+<li>Choose a congregation and a date range</li>
+<li>The system shows the number of attenders recorded for each of that congregation's services within the date range</li>
+
+</body>

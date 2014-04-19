@@ -1,0 +1,272 @@
+<html>
+<head>
+	<title>St John's Church Management System Project - Data Structures</title>
+	<style>
+		body {
+			background: #ffffdd;
+		}
+		h1 {
+			color: #440000;
+		}
+		h2 {
+			color: #440000;
+			font-weight: bold;
+			margin-top: 4ex;
+		}
+		h3 {
+			margin-bottom: 3px;
+		}
+		table {
+			border-collapse: collapse;
+			border: 1px solid #440000;
+			width: 80ex;
+		}
+		table td {
+			border: 1px solid #440000;
+			padding: 2px;
+			width: 50%;
+			white-space: nowrap;
+		}
+	</style>
+</head>
+<body>
+
+<h1>St John's Church Management System Project<br />Data Structures</h1>
+
+<h2>Family</h2>
+<table>
+	<tr>
+		<td>Family ID</td>
+		<td>Sequential Number, auto-generated</td>
+	</tr>
+	<tr>
+		<td>Family Name</td>
+		<td>Text, required</td>
+	</tr>
+	<tr>
+		<td>Home Address - Street</td>
+		<td>Text</td>
+	</tr>
+	<tr>
+		<td>Home Address - Suburb</td>
+		<td>Text</td>
+	</tr>
+	<tr>
+		<td>Home Address - Postcode</td>
+		<td>Numeric Text(4)</td>
+	</tr>
+	<tr>
+		<td>Home Tel</td>
+		<td>Numeric Text(8)</td>
+	</tr>
+	<tr>
+		<td><b>Family Status</b></td>
+		<td>Select (current, archived)</td>
+	</tr>
+	<tr>
+		<td>Date Created</td>
+		<td>Date/Time, auto-populated</td>
+	</tr>
+	<tr>
+		<td>Creator ID</td>
+		<td>(reference to Staff Member record, cannot be null, auto-populated)</td>
+	</tr>
+	<tr>
+		<td>History</td>
+		<td>Serialised Data, auto-populated</td>
+	</tr>
+</table>
+
+
+<h2>Person</h2>
+<table>
+	<tr>
+		<td>Person ID</td>
+		<td>Sequential Number, auto-generated</td>
+	</tr>
+	<tr>
+		<td>First Name</td>
+		<td>Text, required</td>
+	</tr>
+	<tr>
+		<td>Surname</td>
+		<td>Text, required</td>
+	</tr>
+	<tr>
+		<td>Email Address</td>
+		<td>Email Text</td>
+	</tr>
+	<tr>
+		<td>Mobile Tel</td>
+		<td>Numeric Text(10)</td>
+	</tr>
+	<tr>
+		<td>Work Tel</td>
+		<td>Numeric Text(8)</td>
+	</tr>
+	<tr>
+		<td>Contact Notes</td>
+		<td>Text</td>
+	</tr>
+	<tr>
+		<td>Membership Status</td>
+		<td>Select (core, crowd, community, contact, <b>archived</b>)</td>
+	</tr>
+	<tr>
+		<td>Family ID</td>
+		<td>(reference to Family record, cannot be null)</td>
+	</tr>
+	<tr>
+		<td>Congregation ID</td>
+		<td>(reference to Congregation record, <b>may be null only if status = 'contact' or 'archived'</b>)</td>
+	</tr>
+	<tr>
+		<td>Date Created</td>
+		<td>Date/Time, auto-populated</td>
+	</tr>
+	<tr>
+		<td>Creator ID</td>
+		<td>(reference to Staff Member record, cannot be null, auto-populated)</td>
+	</tr>
+	<tr>
+		<td>History</td>
+		<td>Serialised Data, auto-populated</td>
+	</tr>
+</table>
+
+<h2>Generic Note</h2>
+<table>
+	<tr>
+		<td>Note ID</td>
+		<td>Sequential Number, auto-generated</td>
+	</tr>
+	<tr>
+		<td>Subject</td>
+		<td>Text, required</td>
+	</tr>
+	<tr>
+		<td>Details</td>
+		<td>Text</td>
+	</tr>
+	<tr>
+		<td>Assignee ID</td>
+		<td>(reference to Staff Member record, may be null)</td>
+	</tr>
+	<tr>
+		<td>Creator ID</td>
+		<td>(reference to Staff Member record, cannot be null, auto-populated)</td>
+	</tr>
+	<tr>
+		<td>Status</td>
+		<td>Select (no action required, requiring action, failed, completed)</td>
+	</tr>
+	<tr>
+		<td>Date Created</td>
+		<td>Date/Time, auto-populated</td>
+	</tr>
+	<tr>
+		<td>Action Date</td>
+		<td>Date</td>
+	</tr>
+	<tr>
+		<td>History</td>
+		<td>Serialised Data, auto-populated</td>
+	</tr>
+</table>
+
+
+<h2>Family Note</h2>
+<table>
+	<tr>
+		<td>Note ID</td>
+		<td>(reference to Note record, cannot be null)</td>
+	</tr>	
+	<tr>
+		<td>Family ID</td>
+		<td>(reference to Family record, cannot be null)</td>
+	</tr>
+</table>
+
+<h2>Person Note</h2>
+<table>
+	<tr>
+		<td>Note ID</td>
+		<td>(reference to Note record, cannot be null)</td>
+	</tr>	
+	<tr>
+		<td>Person ID</td>
+		<td>(reference to Person record, cannot be null)</td>
+	</tr>
+</table>
+
+<p>(NB there is never a Generic Note record without an accompanying Family Note or Person Note record)</p>
+
+<h2>Note Comment</h2>
+<table>
+	<tr>
+		<td>Note ID</td>
+		<td>(reference to a Note record)</td>
+	</tr>
+	<tr>
+		<td>Contents</td>
+		<td>Text</td>
+	</tr>
+	<tr>
+		<td>Creator ID</td>
+		<td>(reference to Staff Member record, cannot be null)</td>
+	</tr>
+	<tr>
+		<td>Date Created</td>
+		<td>Date/Time</td>
+	</tr>
+</table>
+
+
+<h2>Group</h2>
+<table>
+	<tr>
+		<td>Group ID</td>
+		<td>Sequential Number, auto-generated</td>
+	</tr>
+	<tr>
+		<td>Name</td>
+		<td>Text</td>
+	</tr>
+</table>
+
+<h2>Congregation</h2>
+<table>
+	<tr>
+		<td>Congregation ID</td>
+		<td>Sequential Number, auto-generated</td>
+	</tr>
+	<tr>
+		<td>Name</td>
+		<td>Text</td>
+	</tr>
+	<tr>
+		<td>Meeting Time Code</td>
+		<td>Text</td>
+	</tr>
+</table>
+
+<h2>Staff Member</h2>
+<table>
+	<tr>
+		<td>Person ID</td>
+		<td>(reference to their Person record)</td>
+	</tr>
+	<tr>
+		<td>Username</td>
+		<td>Text</td>
+	</tr>
+	<tr>
+		<td>Password</td>
+		<td>Encrypted Text</td>
+	</tr>
+</table>
+
+<p>(NB There will never be a Staff Member record without an accompanying Person record)</p>
+
+</body>
+</html>

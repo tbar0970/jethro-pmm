@@ -1,0 +1,7 @@
+i { background-image: url(jethro-icons.png); margin-right: 5px; width: 18px; height: 14px; display: inline-block; background-repeat: no-repeat; }
+i.icon-user-add{ background-position: 0 0;  } 
+i.icon-family{ background-position: 0 -63px;  } 
+i.icon-notes{ background-position: 0 -126px;  } 
+i.icon-group{ background-position: 0 -192px;  } 
+i.icon-table{ background-position: 0 -255px;  } 
+

@@ -1,0 +1,48 @@
+<html>
+	<head>
+		<title>Jethro Pastoral Ministry Manager - Readme</title>
+		<link rel="stylesheet" href="resources/main.css" />
+	</head>
+	<body>
+		<div id="header">
+			<h1>Jethro Pastoral Ministry Manager v1.2 - Readme</h1>
+		</div>
+
+		<div id="body">
+			<h3>Installation Instructions</h3>
+			<p>There are just five steps to get Jethro up and running:</p>
+			<ol>
+				<li>Copy all files to a web-accessible directory on your web host</li>
+				<li>Create a mysql database for your system to use</li>
+				<li>Copy the appropriate sample configuration file for your country (eg conf.php.sample.au) to conf.php</li>
+				<li>Edit conf.php and fill in the essential details (system name, URL, database details).  Further explanation is given inside the file.</li>
+				<li>Point your web browser to the system's URL; the installer will start automatically and will prompt you for details to create the initial staff member account.  When the installer is finished it will prompt you to log in to the installed system.</li>
+			</ol>
+			<p>Once the system is running it's a good idea to delete this readme.html file from the server, so as to avoid providing system details to any would-be intruders.  </p>
+
+			<h3>How Jethro stores data</h3>
+			<p>The following is a quick summary of what things Jethro stores, and how they relate to each other</p>
+			<ul>
+				<li>Each <b>person</b> belongs to exactly one <b>family</b>.  A <b>family</b> is a group of one or more <b>persons</b> who live at the same address and are in some sense related to each other.</li>
+				<li>Address and home telephone number are stored per family (since a <b>family</b> must live at the same address).  Email, mobile and work telephone numbers are stored per <b>person</b></li>
+				<li><b>Persons</b> have a status field indicating their relationship to the church.  Their status may be "archived" in which case they are not normally shown in lists.</p>
+				<li><b>Families</b> have a status field indicating their currency in the system.  Their status may be "archived" in which case they are not normally shown in lists.</p>
+				<li>Each <b>person </b>belongs to exactly one <b>congregation</b>, unless their status is "contact" in which case they can be congregation-less</li>
+				<li>Each <b>person </b>is a member of zero or more <b>groups</b></li>
+				<li>Each <b>person has</b> zero or more <b>person notes</b></li>
+				<li>Each <b>family</b> has zero or more <b>family notes</b></li>
+				<li>A <b>family note </b>or <b>person note</b> can be assigned to a <b>staff member</b> for action</li>
+				<li>A <b>jethro user</b> is a <b>person</b> who can log into the system and have notes assigned to them</li>
+				<li>A <b>system administrator</b> is a <b>user</b> with full permissions, who can create and edit user accounts and congregations</li>
+				<li><b>Attendance </b>(present, absent or blank) can be recorded for any <b>person</b> for a particular date. </li>
+				<li>A <b>person report</b> is a stored set of parameters which can be executed to display a list of <b>persons</b> filtered and displayed according to various criteria</li>
+			</ul>
+
+			<h3>Why Jethro PMM is called Jethro PMM</h3>
+			<p>Jethro is designed to facilitate efficient team ministry, so it's named after Moses' father-in-law, who in Exodus 18:13-23 introduced Moses to the concept of delegation.  </p>
+
+			<h3>Further information and assistance</h3>
+			<p>Visit the <a href="http://jethro-pmm.sourceforge.net">Jethro Website</a> for further assistance and the latest documentation</p>
+		</div>
+	</body>
+</html>
