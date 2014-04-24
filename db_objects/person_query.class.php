@@ -170,7 +170,7 @@ class Person_Query extends DB_Object
 			}
 			
 			?>
-			<h4>Who have date fields...</h4>
+			<h4>who have date fields...</h4>
 			<table class="table expandable indent-left">
 			<?php
 			$values = array_get($params, 'dates', Array());
