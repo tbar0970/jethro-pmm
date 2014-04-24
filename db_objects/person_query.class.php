@@ -3,7 +3,7 @@ include_once 'include/db_object.class.php';
 class Person_Query extends DB_Object
 {
 	var $_field_details = Array();
-	var $_query_fields = Array('p.status', 'p.congregationid', 'p.age_bracket', 'p.gender', 'f.address_suburb', 'f.address_state', 'f.address_postcode', 'p.creator', 'p.created', 'p.status_last_changed', 'f.created');
+	var $_query_fields = Array('p.status', 'p.congregationid', 'p.age_bracket', 'p.gender', 'f.address_suburb', 'f.address_state', 'f.address_postcode', 'p.creator', 'p.created', 'p.status_last_changed');
 	var $_show_fields = Array(
 		'p.first_name', 'p.last_name', 'f.family_name', 'p.age_bracket', 'p.gender', 'p.status', 'p.congregationid', NULL,
 		'p.email', 'p.mobile_tel', 'p.work_tel', 'f.home_tel', 'p.remarks',
@@ -158,53 +158,68 @@ class Person_Query extends DB_Object
 				<?php
 			}
 		}
+		?>
+		</table>
+		
+		<?php
+		// DATE FIELD RULES
 		if ($GLOBALS['system']->featureEnabled('DATES')) {
-			$value = array_get($params['rules'], 'date', Array('anniversary' => 1, 'typeid' => null, 'from' => '2000-01-01', 'to' => date('Y-m-d')));
+			if (empty($params['dates']) && !empty($params['rules']['date'])) {
+				$params['dates'][] = $params['rules']['date'] + Array('criteria' => 'between');
+				unset($params['rules']['date']);
+			}
+			
 			?>
-			<tr>
-				<td>
-					
-					<label class="checkbox">
-						<input type="checkbox" name="enable_rule[]" value="date" id="enable_rule_date" class="select-rule-toggle" <?php if (isset($params['rules']['date'])) echo 'checked="checked" '; ?>/>
-						has a <strong>date field</strong>...
-					</label>
-				</td>
-				<td>
-					<div class="select-rule-options nowrap" <?php if (!isset($params['rules']['date'])) echo 'style="display: none" '; ?>>
+			<h4>Who have date fields...</h4>
+			<table class="table expandable indent-left">
+			<?php
+			$values = array_get($params, 'dates', Array());
+			if (empty($values)) {
+				$values[] = Array('typeid' => NULL, 'criteria' => 'any', 'anniversary' => TRUE, 'from' => '2000-01-01', 'to' => date('Y-m-d'));
+			}
+			foreach ($values as $i => $value) {
+				?>
+				<tr>
+					<td>
 						<?php					
-						print_widget('params_date_typeid', Array('type' => 'select', 'options' => Person::getDateTypes()), (string)$value['typeid']);
+						print_widget('params_date_'.$i.'_typeid', Array('type' => 'select', 'options' => Array(0 => '--Choose--') + Person::getDateTypes()), (string)$value['typeid']);
+						?>
+					</td>
+					<td>
+						<?php
 						$cs = Array('any' => '', 'empty' => '', 'between' => '');
-						if (!empty($params['rules']['date']) && !empty($params['rules']['date']['criteria'])) {
-							$cs[$params['rules']['date']['criteria']] = 'checked="checked"';
+						if (!empty($value['criteria'])) {
+							$cs[$value['criteria']] = 'checked="checked"';
 						} else {
 							$cs['any'] = 'checked="checked"';
 						}
 						?>
-						<br />
 						<label class="radio">
-							<input type="radio" name="params_date_criteria" value="any" <?php echo $cs['any']; ?> />
+							<input type="radio" name="params_date_<?php echo $i; ?>_criteria" value="any" <?php echo $cs['any']; ?> />
 							filled in with any value
 						</label>
 						<label class="radio">
-							<input type="radio" name="params_date_criteria" value="empty" <?php echo $cs['empty']; ?> />
+							<input type="radio" name="params_date_<?php echo $i; ?>_criteria" value="empty" <?php echo $cs['empty']; ?> />
 							not filled in with any value
 						</label>
 						<label class="radio">
-							<input type="radio" name="params_date_criteria" value="between" <?php echo $cs['between']; ?> />
+							<input type="radio" name="params_date_<?php echo $i; ?>_criteria" value="between" <?php echo $cs['between']; ?> />
 							with
-							<?php print_widget('params_date_anniversary', Array('type' => 'select', 'options' => Array('exact value', 'exact value or anniversary')), (string)$value['anniversary']); ?>
+							<?php print_widget('params_date_'.$i.'_anniversary', Array('type' => 'select', 'options' => Array('exact value', 'exact value or anniversary')), (string)$value['anniversary']); ?>
 							between
-							<?php print_widget('params_date_from', Array('type' => 'date'), $value['from']); ?>
+							<?php print_widget('params_date_'.$i.'_from', Array('type' => 'date'), $value['from']); ?>
 							and
-							<?php print_widget('params_date_to', Array('type' => 'date'), $value['to']); ?>
+							<?php print_widget('params_date_'.$i.'_to', Array('type' => 'date'), $value['to']); ?>
 						</label>
-					</div>
-				</td>
-			</tr>
+					</td>
+				</tr>
+				<?php
+			}
+			?>
+			</table>
 			<?php
 		}
 		?>
-		</table>
 
 		<h4>who <strong>are</strong> in one or more of these groups:</h4>
 		<div class="indent-left">
@@ -343,7 +358,7 @@ class Person_Query extends DB_Object
 					$options['view_link'] = 'A link to view their person record';
 					$options['edit_link'] = 'A link to edit their person record';
 					$options['checkbox'] = 'A checkbox for bulk actions';
-					print_widget('show_fields[]', Array('options' => $options, 'type' => 'select', 'disabled-prefix' => '--'), $chosen_field);
+					print_widget('show_fields[]', Array('options' => $options, 'type' => 'select', 'disabled_prefix' => '--'), $chosen_field);
 					?>
 				</td>
 				<td class="nowrap">
@@ -469,6 +484,22 @@ class Person_Query extends DB_Object
 			}
 		}
 		$params['rules'] = $rules;
+		
+		// DATE RULES
+		$i = 0;
+		$params['dates'] = Array();
+		while (array_key_exists('params_date_'.$i.'_typeid', $_REQUEST)) {
+			if (!empty($_REQUEST['params_date_'.$i.'_typeid'])) {
+				$params['dates'][] = Array(
+					'typeid' => (int)$_REQUEST['params_date_'.$i.'_typeid'],
+					'criteria' => $_REQUEST['params_date_'.$i.'_criteria'],
+					'anniversary' => (int)$_REQUEST['params_date_'.$i.'_anniversary'],
+					'from' => process_widget('params_date_'.$i.'_from', Array('type' => 'date')),
+					'to' => process_widget('params_date_'.$i.'_to', Array('type' => 'date')),
+				);
+			}
+			$i++;
+		}
 
 		// GROUP RULES
 		$params['include_groups'] = $this->_removeEmpties($_POST['include_groupids']);
@@ -504,26 +535,18 @@ class Person_Query extends DB_Object
 	function _processRuleDetails($field)
 	{
 		$res = Array();
-		if ($field == 'date') {
-			$res['typeid'] =  (int)$_POST['params_date_typeid'];
-			$res['criteria'] = $_POST['params_date_criteria'];
-			$res['anniversary'] = (bool)$_POST['params_date_anniversary'];
-			$res['from'] = process_widget('params_date_from', Array('type' => 'date'));
-			$res['to'] = process_widget('params_date_to', Array('type' => 'date'));
-		} else {
-			switch ($this->_field_details[$field]['type']) {
-				case 'datetime':
-					$res['from'] = process_widget('params_'.str_replace('.', '_', $field).'_from', Array('type' => 'date'));
-					$res['to'] = process_widget('params_'.str_replace('.', '_', $field).'_to', Array('type' => 'date'));
-					break;
-				case 'select':
-				case 'reference':
-					$res = $this->_removeEmpties(array_get($_POST, 'params_'.str_replace('.', '_', $field), Array()));
-					break;
-				default:
-					$res = array_get($_POST, 'params_'.str_replace('.', '_', $field));
+		switch ($this->_field_details[$field]['type']) {
+			case 'datetime':
+				$res['from'] = process_widget('params_'.str_replace('.', '_', $field).'_from', Array('type' => 'date'));
+				$res['to'] = process_widget('params_'.str_replace('.', '_', $field).'_to', Array('type' => 'date'));
 				break;
-			}
+			case 'select':
+			case 'reference':
+				$res = $this->_removeEmpties(array_get($_POST, 'params_'.str_replace('.', '_', $field), Array()));
+				break;
+			default:
+				$res = array_get($_POST, 'params_'.str_replace('.', '_', $field));
+			break;
 		}
 		return $res;
 	}
@@ -588,39 +611,16 @@ class Person_Query extends DB_Object
 		$query['from'] = 'person p 
 						JOIN family f ON p.familyid = f.id
 						';
-		$query['order_by'] = $params['sort_by'];
+		$query['order_by'] = $this->_quoteAliasAndColumn($params['sort_by']);
+		if ($params['sort_by'] == 'f.family_name') {
+			$query['order_by'] .= ', f.id';
+		}
 		$query['where'] = Array();
 
 		// BASIC FILTERS
 		foreach ($params['rules'] as $field => $values) {
 			if ($field == 'date') {
-				switch ($values['criteria']) {
-					case 'empty':
-						$query['from'] .= ' LEFT JOIN person_date pd ON pd.personid = p.id AND pd.typeid = '.(int)$values['typeid']."\n";						
-						$query['where'][] = 'pd.personid IS NULL';
-						break;
-					
-					case 'between':
-						$between = 'BETWEEN '.$db->quote($values['from']).' AND '.$db->quote($values['to']);
-						$w = Array();
-						$w[] = '(pd.`date` NOT LIKE "-%" 
-								AND pd.`date` '.$between.')';
-						if ($values['anniversary']) {
-							// Anniversary matches either have no year or a year before the 'to' year
-							// AND their month-day fits the range either in the from year or the to year.
-							$fromyearbetween = 'CONCAT('.$db->quote(substr($values['from'], 0, 4)).', RIGHT(pd.`date`, 6)) '.$between;
-							$toyearbetween = 'CONCAT('.$db->quote(substr($values['to'], 0, 4)).', RIGHT(pd.`date`, 6)) '.$between;
-							$w[] = '(pd.`date` LIKE "-%" AND '.$fromyearbetween.')';
-							$w[] = '(pd.`date` LIKE "-%" AND '.$toyearbetween.')';
-							$w[] = '(pd.`date` NOT LIKE "-%" AND pd.`date` < '.$db->quote($values['to']).' AND '.$fromyearbetween.')';
-							$w[] = '(pd.`date` NOT LIKE "-%" AND pd.`date` < '.$db->quote($values['to']).' AND '.$toyearbetween.')';
-						}
-						$query['where'][] = '('.implode(' OR ', $w).')';
-						// deliberate fallthrough...
-
-					case 'any':
-						$query['from'] .= ' JOIN person_date pd ON pd.personid = p.id AND pd.typeid = '.(int)$values['typeid']."\n";						
-				}
+				continue;
 		
 			} else if (isset($values['from'])) {
 				if (($this->_field_details[$field]['type'] == 'datetime') && (strlen($values['from']) == 10)) {
@@ -645,6 +645,41 @@ class Person_Query extends DB_Object
 						}
 						$query['where'][] = $field.' IN ('.implode(', ', $quoted_vals).')';
 				}
+			}
+		}
+		
+		// DATE FIELD FILTERS
+		if (empty($params['dates']) && !empty($params['rules']['date'])) {
+			$params['dates'][] = $params['rules']['date'] + Array('criteria' => 'between');
+		}
+		
+		foreach (array_get($params, 'dates', Array()) as $i => $values) {
+			switch ($values['criteria']) {
+				case 'empty':
+					$query['from'] .= ' LEFT JOIN person_date pd'.$i.' ON pd'.$i.'.personid = p.id AND pd'.$i.'.typeid = '.(int)$values['typeid']."\n";						
+					$query['where'][] = 'pd'.$i.'.personid IS NULL';
+					break;
+
+				case 'between':
+					$between = 'BETWEEN '.$db->quote($values['from']).' AND '.$db->quote($values['to']);
+					$w = Array();
+					$w[] = '(pd'.$i.'.`date` NOT LIKE "-%" 
+							AND pd'.$i.'.`date` '.$between.')';
+					if ($values['anniversary']) {
+						// Anniversary matches either have no year or a year before the 'to' year
+						// AND their month-day fits the range either in the from year or the to year.
+						$fromyearbetween = 'CONCAT('.$db->quote(substr($values['from'], 0, 4)).', RIGHT(pd'.$i.'.`date`, 6)) '.$between;
+						$toyearbetween = 'CONCAT('.$db->quote(substr($values['to'], 0, 4)).', RIGHT(pd'.$i.'.`date`, 6)) '.$between;
+						$w[] = '(pd'.$i.'.`date` LIKE "-%" AND '.$fromyearbetween.')';
+						$w[] = '(pd'.$i.'.`date` LIKE "-%" AND '.$toyearbetween.')';
+						$w[] = '(pd'.$i.'.`date` NOT LIKE "-%" AND pd'.$i.'.`date` < '.$db->quote($values['to']).' AND '.$fromyearbetween.')';
+						$w[] = '(pd'.$i.'.`date` NOT LIKE "-%" AND pd'.$i.'.`date` < '.$db->quote($values['to']).' AND '.$toyearbetween.')';
+					}
+					$query['where'][] = '('.implode(' OR ', $w).')';
+					// deliberate fallthrough...
+
+				case 'any':
+					$query['from'] .= ' JOIN person_date pd'.$i.' ON pd'.$i.'.personid = p.id AND pd'.$i.'.typeid = '.(int)$values['typeid']."\n";						
 			}
 		}
 
@@ -843,8 +878,7 @@ class Person_Query extends DB_Object
 								$query['select'][] = 'pd'.$dateid.'.`date` as '.$db->quote('DATE---'.$types[$dateid])."\n";
 							}
 						} else {
-							list ($t, $f) = explode('.', $field);
-							$query['select'][] = $db->quoteIdentifier($t).'.'.$db->quoteIdentifier($f).' as '.$db->quote($field);
+							$query['select'][] = $this->_quoteAliasAndColumn($field).' AS '.$db->quote($field);
 						}
 				}
 			}
@@ -1173,6 +1207,13 @@ class Person_Query extends DB_Object
 		}
 		$classes = empty($class_list) ? '' : ' class="'.implode(' ', $class_list).'"';
 		return $classes;
+	}
+	
+	private function _quoteAliasAndColumn($field)
+	{
+		$db = $GLOBALS['db'];
+		list ($t, $f) = explode('.', $field);
+		return $db->quoteIdentifier($t).'.'.$db->quoteIdentifier($f);
 	}
 
 
