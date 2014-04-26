@@ -1163,13 +1163,27 @@ table.service-details td table td input {
 		margin: 5px;
 		overflow: hidden;
 		white-space: nowrap !important;
+		
+		-webkit-touch-callout: none;
+		-webkit-user-select: none;
+		-khtml-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
 	}
+	
 
-	.radio-button-group label {
+	.radio-button-group div {
 		background-image: none;
 		margin: 2px;
+		-webkit-touch-callout: none;
+		-webkit-user-select: none;
+		-khtml-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;		
 	}
-	.radio-button-group label.active {
+	.radio-button-group div.active {
 		border: 2px solid #333333;
 		margin: 0px !important;
 		color: white;
@@ -1180,22 +1194,22 @@ table.service-details td table td input {
 		position: absolute; 
 		top:-9999px;
 	}
-	.radio-button-group label.value-present {
+	.radio-button-group div.value-present {
 		background-color: #A9C7A9;
 	}
-	.radio-button-group label.value-present.active, td.present {
+	.radio-button-group div.value-present.active, td.present{
 		background-color: #17A317 !important;
 	}
-	.radio-button-group label.value-absent {
+	.radio-button-group div.value-absent {
 		background-color: #BD8986;
 	}
-	.radio-button-group label.value-absent.active, td.absent {
+	.radio-button-group div.value-absent.active, td.absent{
 		background-color: #bd362f !important;
 	}
-	.radio-button-group label.value-unknown {
+	.radio-button-group div.value-unknown {
 		background-color: #CFA66C;
 	}
-	.radio-button-group label.value-unknown.active, td.unknown {
+	.radio-button-group div.value-unknown.active, td.unknown {
 		background-color: #EA8B06 !important;
 	}
 

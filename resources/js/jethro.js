@@ -270,34 +270,40 @@ $(document).ready(function() {
 		
 	/****** Radio buttons *****/
 
-	$('.radio-button-group input[checked=checked]').parents('label').addClass('active');
-
-	// for some reason, only the first registered handler for touchstart will run.
-	// So we define this one first and let the general case work as a fallthrough.
-	$('.attendance .radio-button-group label').on('touchstart', function() {
-		$(this).parents('.radio-button-group').find('label').removeClass('active');
-		$(this).addClass('active');
-		$('tr.hovered').removeClass('hovered');
-		$(this).parents('tr:first').addClass('hovered');
-		$(this).attr('touched', 1);
-	});
-
-	$('.radio-button-group label').on('touchstart', function() {
-		$(this).parents('.radio-button-group').find('label').removeClass('active');
-		$(this).addClass('active');
-		$(this).attr('touched', 1);
-	})
-	$('.radio-button-group label').click(function() {
-		if (!$(this).attr('touched')) {
-			$(this).parents('.radio-button-group').find('label').removeClass('active');
+	
+	$('.radio-button-group div')
+		.on('touchstart', function(event) {
 			$(this).addClass('active');
-		}
-		$(this).attr('touched', 0);
-	});
+			var t = $(this);
+			t.attr('touched', 1);
+			onRadioButtonActivated.apply(t);
+			event.stopPropagation();
+			event.cancelDefault();
+		})
+		.on('click', function() {
+			var t = $(this);
+			if (!t.attr('touched')) onRadioButtonActivated.apply(t);
+			t.attr('touched', 0);
 
+		});
+	
+	function onRadioButtonActivated(event) {
+		this.siblings('div').removeClass('active');
+		this.addClass('active');
+		this.parents('.radio-button-group').find('input').val(this.attr('data-val'));
+		//this.fadeOut(100).fadeIn(100);
+	}
+	
+	
+	$('.attendance .radio-button-group div').click(function(e) {
+		var thisRow = $(this).parents('tr:first');
+		thisRow.removeClass('hovered');
+		thisRow.next('tr').find('.radio-button-group').focus();
+	});
+	
 	$('.radio-button-group').keypress(function(e) {
 		var char = String.fromCharCode(e.which).toUpperCase();
-		$(this).find('label').each(function() {
+		$(this).find('div').each(function() {
 			if ($(this).text().trim() == char) {
 				this.click();
 			}
@@ -309,15 +315,13 @@ $(document).ready(function() {
 		if (e.which == 38) $(this).parents('tr:first').prev('tr').find('.radio-button-group').focus();
 	});
 
-	$('.attendance .radio-button-group label').click(function(e) {
-		var thisRow = $(this).parents('tr:first');
-		thisRow.next('tr').find('.radio-button-group').focus();
-	});
 
 	$('.attendance .radio-button-group').focus(function() {
 		$('tr.hovered').removeClass('hovered');
 		$(this).parents('tr:first').addClass('hovered');
 	});
+	
+	// MULTI-SELECT
 		
 	$('div.multi-select label input').change(function() {
 		if (this.checked) {
@@ -326,8 +330,12 @@ $(document).ready(function() {
 			$(this.parentNode).removeClass('active');
 		}
 	}).change();
+	
+	// FAMILY PHOTOS
 
 	handleFamilyPhotosLayout();
+	
+	// NARROW COLUMNS
 
 	setTimeout( "applyNarrowColumns(); ", 30);
 

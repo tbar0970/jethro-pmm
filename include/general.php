@@ -186,16 +186,24 @@ function print_widget($name, $params, $value)
 			if (array_get($params, 'style', 'dropbox') == 'colour-buttons') {
 				// the empty onclick below is to make labels work on iOS
 				// see http://stackoverflow.com/questions/5421659/html-label-command-doesnt-work-in-iphone-browser
+		
+		
 				?>
-				<div class="radio-button-group <?php echo $classes; ?>" tabindex="0" onclick="" <?php echo $attrs; ?> >
+				<div class="radio-button-group" tabindex="1">
+				<input type="hidden" name="<?php echo $name; ?>" value="<?php echo reset($our_val); ?>" />
 				<?php
 				foreach ($params['options'] as $k => $v) {
-					$checked_exp = in_array("$k", $our_val, true) ? ' checked="checked"' : '';
+					$classes = 'btn value-'.$k;
+					if (in_array("$k", $our_val, true)) $classes .= ' active';
 					?>
-					<label class="btn value-<?php echo $k; ?>" title="<?php echo htmlentities($v); ?>">
-						<input type="radio" name="<?php echo $name; ?>" value="<?php echo $k; ?>" <?php echo $checked_exp; ?> />
+					<div 
+						class="<?php echo $classes; ?>" 
+						title="<?php echo $v; ?>"
+						data-val="<?php echo $k; ?>"
+						tabindex="-1"
+					>
 						<?php echo strtoupper($v[0]); ?>
-					</label>
+					</div>
 					<?php
 				}
 				?>
