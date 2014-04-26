@@ -189,7 +189,7 @@ function print_widget($name, $params, $value)
 		
 		
 				?>
-				<div class="radio-button-group" tabindex="1">
+				<div class="radio-button-group <?php echo array_get($params, 'class', ''); ?>" tabindex="1">
 				<input type="hidden" name="<?php echo $name; ?>" value="<?php echo reset($our_val); ?>" />
 				<?php
 				foreach ($params['options'] as $k => $v) {
