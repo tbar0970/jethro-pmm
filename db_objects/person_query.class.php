@@ -576,6 +576,18 @@ class Person_Query extends DB_Object
 				$int_groupids[] = (int)$groupid;
 			}
 		}
+		
+		if (!empty($int_categoryids)) {
+			// Add the IDs of subcategories too
+			$prevsubids = $int_categoryids;
+			do {
+				$sql = 'SELECT id FROM person_group_category WHERE parent_category IN ('.implode(',', $prevsubids).')';
+				$subids = $db->queryCol($sql);
+				check_db_result($subids);
+				foreach ($subids as $id) $int_categoryids[] = (int)$id;
+				$prevsubids = $subids;
+			} while (!empty($subids));
+		}
 
 		// assemble the SQL clause to restrict group and category IDs
 		$groupid_comps = Array();
