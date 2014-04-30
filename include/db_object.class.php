@@ -422,6 +422,7 @@ class db_object
 				trigger_error(htmlentities($value).' is not a valid phone number for field "'.$name.'", and has not been set', E_USER_NOTICE);
 				return;
 			}
+			$value = clean_phone_number($value);
 		}
 		if (!empty($this->fields[$name]['maxlength']) && (strlen($value) > $this->fields[$name]['maxlength'])) {
 			$value = substr($value, 0, $this->fields[$name]['maxlength']);
