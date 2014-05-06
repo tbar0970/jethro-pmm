@@ -32,7 +32,7 @@ if (!isset($show_actions)) $show_actions = TRUE;
 
 if ($show_actions) {
 	?>
-	<form method="post" action="" class="bulk-person-action">
+	<form method="post" enctype="multipart/form-data" action="" class="bulk-person-action">
 	<?php
 }
 ?>

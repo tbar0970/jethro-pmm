@@ -6,10 +6,13 @@ class Call_ODF_Merge extends Call
 	{
 		$source_file = array_get($_FILES, 'source_document');
 		$content = null;
-		if ($source_file) {
-			$source_file = $source_file['tmp_name'];
-			$content = ODF_Tools::getXML($source_file);
+		if (empty($source_file['tmp_name'])) {
+			trigger_error('Template file does not seem to have been uploaded');
+			return;
 		}
+		$source_file = $source_file['tmp_name'];
+		$content = ODF_Tools::getXML($source_file);
+		
 		if (empty($content)) {
 			trigger_error('File does not seem to be an ODT file');
 			return;
