@@ -399,7 +399,7 @@ class Attendance_Record_Set
 		while ($row = $res->fetchRow()) {
 			$dates[$row['date']] = 1;
 			foreach (Array('last_name', 'first_name', 'membership_status', 'status') as $f) {
-				if (isset($row[$f])) $attendances[$row['id']][$f] = $row[$f];
+				if (array_key_exists($f, $row)) $attendances[$row['id']][$f] = $row[$f];
 			}
 			$attendances[$row['id']][$row['date']] = $row['present'];
 		}
