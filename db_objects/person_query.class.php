@@ -512,7 +512,7 @@ class Person_Query extends DB_Object
 		$params['note_phrase'] = array_get($_POST, 'note_phrase');
 
 		// ATTENDANCE RULES
-		$params['attendance_groupid'] = $_POST['attendance_groupid'];
+		$params['attendance_groupid'] = array_get($_POST, 'attendance_groupid');
 		$params['attendance_operator'] = array_get($_POST, 'attendance_operator');
 		$params['attendance_percent'] = array_get($_POST, 'attendance_percent');
 		$params['attendance_weeks'] = array_get($_POST, 'attendance_weeks');
