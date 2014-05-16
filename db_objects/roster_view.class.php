@@ -585,7 +585,7 @@ class roster_view extends db_object
 							$names = Array();
 							foreach (array_get($ddetail['assignments'], $mdetail['role_id'], Array()) as $personid => $vs) {
 								if (!$public) {
-									$n = '<a href="'.BASE_URL.'?view=persons&personid='.$personid.'" title="Assigned by '.htmlentities($vs['assigner']).' on '.format_datetime($vs['assignedon']).'">'.nbsp($vs['name']).'</a>';
+									$n = '<a href="'.BASE_URL.'?view=persons&personid='.$personid.'" title="Assigned by '.htmlentities($vs['assigner']).' on '.format_datetime($vs['assignedon']).'">'.nbsp(htmlentities($vs['name'])).'</a>';
 									if (empty($vs['email'])) $n .= '&nbsp;<img src="'.BASE_URL.'resources/img/no_email.png" style="display:inline" title="No Email Address" />';
 									$names[] = $n;
 								} else {

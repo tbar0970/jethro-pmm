@@ -1158,7 +1158,7 @@ class Person_Query extends DB_Object
 								} else if (substr($label, 0, 7) == 'DATE---') {
 									echo $val ? format_date($val) : '';
 								} else {
-									echo $val;
+									echo htmlentities($val);
 								}
 						}
 						?>
