@@ -91,7 +91,7 @@ class View_Groups extends View
 
 			<div class="modal hide fade autosize" id="email-modal" role="dialog" aria-hidden="true">
 				<div class="modal-header">
-					<h4>Email members of <?php echo htmlentities($this->_group->getValue('name')); ?></h4>
+					<h4>Email members of <?php echo ents($this->_group->getValue('name')); ?></h4>
 				</div>
 				<div class="modal-body">
 					<!-- to be populated with ajax -->

@@ -52,7 +52,7 @@ if (empty($_REQUEST['raw'])) {
 			dump_messages(); 
 
 			if ($title = $GLOBALS['system']->getTitle()) {
-				echo '<h1>'.htmlentities($title).'</h1>';
+				echo '<h1>'.ents($title).'</h1>';
 			}
 }
 

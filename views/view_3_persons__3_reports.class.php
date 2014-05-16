@@ -81,10 +81,10 @@ class View_Persons__Reports extends View
 			<hr />
 			<div class="row-fluid no-print">
 				<div class="span4">
-					<a href="?view=<?php echo htmlentities($_REQUEST['view']); ?>"><i class="icon-chevron-left"></i>Back to list of reports</a>
+					<a href="?view=<?php echo ents($_REQUEST['view']); ?>"><i class="icon-chevron-left"></i>Back to list of reports</a>
 				</div>
 				<div class="span4 align-centre">
-					<a href="?view=<?php echo htmlentities($_REQUEST['view']); ?>&queryid=<?php echo $this->_query->id; ?>"><i class="icon-wrench"></i>Reconfigure this report</a>
+					<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $this->_query->id; ?>"><i class="icon-wrench"></i>Reconfigure this report</a>
 				</div>
 				<div class="span4 align-right">
 					<a href="?call=report_csv&queryid=<?php echo $this->_query->id; ?>"><i class="icon-download-alt"></i>Download CSV</a>
@@ -101,7 +101,7 @@ class View_Persons__Reports extends View
 				<h3>&nbsp</h3>
 				<input type="submit" class="btn" name="execute" value="Save and view results" />
 				<input type="submit" class="btn" name="return" value="Save and return to report list" />
-				<a class="btn" href="?view=<?php echo htmlentities($_REQUEST['view']); ?>">Cancel and return to report list</a>
+				<a class="btn" href="?view=<?php echo ents($_REQUEST['view']); ?>">Cancel and return to report list</a>
 
 			</form>
 			<?php
@@ -145,8 +145,8 @@ class View_Persons__Reports extends View
 							<td>-</td>
 							<td><i>Last ad-hoc query</i></td>
 							<td class="action-cell">
-								<a href="?view=<?php echo htmlentities($_REQUEST['view']); ?>&queryid=TEMP"><i class="icon-wrench"></i>Configure</a> &nbsp;
-								<a href="?view=<?php echo htmlentities($_REQUEST['view']); ?>&queryid=TEMP&execute=1"><i class="icon-list"></i>View Results</a> &nbsp;
+								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=TEMP"><i class="icon-wrench"></i>Configure</a> &nbsp;
+								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=TEMP&execute=1"><i class="icon-list"></i>View Results</a> &nbsp;
 							</td>
 							<td>&nbsp;</td>
 						<?php
@@ -169,14 +169,14 @@ class View_Persons__Reports extends View
 							<td class="narrow"><?php echo (int)$id; ?></td>
 							<td><?php echo $details['name']; ?></td>
 							<td class="action-cell narrow">
-								<a href="?view=<?php echo htmlentities($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>"><i class="icon-wrench"></i>Configure</a> &nbsp;
-								<a href="?view=<?php echo htmlentities($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>&execute=1"><i class="icon-list"></i>View</a> &nbsp;
+								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>"><i class="icon-wrench"></i>Configure</a> &nbsp;
+								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>&execute=1"><i class="icon-list"></i>View</a> &nbsp;
 								<a href="?call=email&queryid=<?php echo $id; ?>" class="hidden-frame"><i class="icon-email">@</i>Email</a>
 							<?php
 							if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
 								?>
 								&nbsp;
-								<a href="?view=<?php echo htmlentities($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>&delete=1" class="double-confirm-title" title="Delete this report"><i class="icon-trash"></i>Delete</a>
+								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>&delete=1" class="double-confirm-title" title="Delete this report"><i class="icon-trash"></i>Delete</a>
 								<?php
 							}
 							?>

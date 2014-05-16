@@ -55,7 +55,7 @@ class View_Groups__Manage_Categories extends View
 			foreach ($this_level as $id => $details) {
 				?>
 				<tr>
-					<td style="padding-left: <?php echo 10+$indent*30; ?>px"><a href="?view=groups__list_all#cat<?php echo $id; ?>"><?php echo htmlentities($details['name']); ?></a></td>
+					<td style="padding-left: <?php echo 10+$indent*30; ?>px"><a href="?view=groups__list_all#cat<?php echo $id; ?>"><?php echo ents($details['name']); ?></a></td>
 					<td class="action-cell narrow">
 						<form class="min" style="clear: both" method="post" onsubmit="return confirm('Are you sure you want to delete this category?')">
 							<a href="?view=_edit_group_category&categoryid=<?php echo (int)$id;?>"><i class="icon-wrench"></i>Edit</a>

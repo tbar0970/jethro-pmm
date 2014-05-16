@@ -49,8 +49,8 @@ class View_Rosters__Define_Roster_Views extends View
 		foreach ($views as $id => $details) {
 			?>
 			<tr>
-				<td class="nowrap"><?php echo htmlentities($details['name']); ?></td>
-				<td><?php echo htmlentities($details['members']); ?></td>
+				<td class="nowrap"><?php echo ents($details['name']); ?></td>
+				<td><?php echo ents($details['members']); ?></td>
 				<td class="nowrap">
 					<a href="?view=_edit_roster_view&roster_viewid=<?php echo $id; ?>"><i class="icon-wrench"></i>Edit</a> &nbsp;
 					<a href="<?php echo build_url(Array('delete_viewid'=>$id)); ?>"><i class="icon-trash"></i>Delete</a>

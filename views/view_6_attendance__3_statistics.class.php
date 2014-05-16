@@ -76,7 +76,7 @@ class View_Attendance__Statistics extends View
 			if (isset($stats[$k])) {
 				?>
 				<tr>
-					<th><?php echo htmlentities($v); ?></th>
+					<th><?php echo ents($v); ?></th>
 					<td style="width: 5ex"><?php echo $stats[$k] ?>%</td>
 				</tr>
 				<?php

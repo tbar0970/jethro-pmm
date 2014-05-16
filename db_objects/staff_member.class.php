@@ -139,7 +139,7 @@ class Staff_Member extends Person
 						<?php
 						if (!empty($value['congregation'])) {
 							foreach ($GLOBALS['system']->getDBObjectData('congregation', Array('(id' => $value['congregation'])) as $cong) {
-								echo htmlentities($cong['name']).'<br />';
+								echo ents($cong['name']).'<br />';
 							}
 						} else {
 							echo '(None)';
@@ -150,7 +150,7 @@ class Staff_Member extends Person
 						<?php
 						if (!empty($value['group'])) {
 							foreach ($GLOBALS['system']->getDBObjectData('person_group', Array('(id' => $value['group'])) as $group) {
-								echo htmlentities($group['name']).'<br />';
+								echo ents($group['name']).'<br />';
 							}
 						} else {
 							echo '(None)';

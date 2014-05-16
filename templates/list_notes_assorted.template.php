@@ -38,8 +38,8 @@ if ($reassigning) {
 		?>
 		<tr>
 			<td><?php echo $id; ?></td>
-			<td class="nowrap"><i class="icon-<?php echo $icon; ?>"></i> <?php echo htmlentities($notee_name); ?></td>
-			<td><?php echo htmlentities($note['subject']); ?></td>
+			<td class="nowrap"><i class="icon-<?php echo $icon; ?>"></i> <?php echo ents($notee_name); ?></td>
+			<td><?php echo ents($note['subject']); ?></td>
 			<td class="nowrap">
 				<?php
 				if ($reassigning) {
@@ -52,14 +52,14 @@ if ($reassigning) {
 						echo '<p class="alert alert-error">This note is locked by another user and cannot be edited at this time.</p>';
 					}
 				} else {
-					echo htmlentities($note['assignee_fn'].' '.$note['assignee_ln']); 
+					echo ents($note['assignee_fn'].' '.$note['assignee_ln']); 
 				}
 				?>
 			</td>
 			<td class="nowrap"><?php echo format_date($note['action_date']); ?></td>
 			<td class="nowrap action-cell">
 				<a href="<?php echo $view_url; ?>"><i class="icon-pencil"></i>View</a> &nbsp;
-				<a href="?view=_edit_note&note_type=<?php echo $type; ?>&noteid=<?php echo $id; ?>&back_to=<?php echo htmlentities($_REQUEST['view']); ?>"><i class="icon-wrench"></i>Edit/Comment</a>
+				<a href="?view=_edit_note&note_type=<?php echo $type; ?>&noteid=<?php echo $id; ?>&back_to=<?php echo ents($_REQUEST['view']); ?>"><i class="icon-wrench"></i>Edit/Comment</a>
 			</td>
 		</tr>
 		<?php

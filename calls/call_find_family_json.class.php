@@ -19,8 +19,8 @@ class Call_Find_Family_JSON extends Call
 				$arr[] = '
 					{
 						id: '.$i.',
-						value: "'.addcslashes(htmlentities($details['family_name']), '"').'",
-						info: "'.addcslashes(htmlentities($details['members']), '"').'"
+						value: "'.addcslashes(ents($details['family_name']), '"').'",
+						info: "'.addcslashes(ents($details['members']), '"').'"
 					}
 				';
 			}

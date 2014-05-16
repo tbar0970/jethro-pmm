@@ -290,8 +290,8 @@ class Action_Plan extends DB_Object
 				$selected = $plan['default_on_add_person'];
 			}
 			$res[] = '<label class="checkbox">
-						<input type="checkbox" name="'.htmlentities($name).'[]"  value="'.(int)$id.'" id="'.$name.'_'.$id.'" '.($selected ? 'checked="checked"' : '').'>
-						'.htmlentities($plan['name']).'
+						<input type="checkbox" name="'.ents($name).'[]"  value="'.(int)$id.'" id="'.$name.'_'.$id.'" '.($selected ? 'checked="checked"' : '').'>
+						'.ents($plan['name']).'
 					</label>
 					';
 		}

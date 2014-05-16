@@ -14,8 +14,8 @@ foreach ($families as $id => $details) {
 	?>
 	<tr<?php echo $tr_class; ?>>
 		<td><?php echo (int)$id; ?></td>
-		<td><?php echo htmlentities($details['family_name']); ?></td>
-		<td><?php echo htmlentities($details['members']); ?></td>
+		<td><?php echo ents($details['family_name']); ?></td>
+		<td><?php echo ents($details['members']); ?></td>
 		<td class="action-cell narrow">
 			<a href="?view=families&familyid=<?php echo $id; ?>"><i class="icon-user"></i>View</a> &nbsp;
 		<?php

@@ -19,7 +19,7 @@ class View_Documents extends View
 		static $i = 0;
 		foreach ($this->_messages as $msg) {
 			?>
-			<div id="msg-<?php echo $i; ?>" class="alert alert-success document-message" ><?php echo htmlentities($msg); ?></div>
+			<div id="msg-<?php echo $i; ?>" class="alert alert-success document-message" ><?php echo ents($msg); ?></div>
 			<?php
 			$i++;
 		}
@@ -239,7 +239,7 @@ class View_Documents extends View
 						<h4>Rename this folder:</h4>
 					</div>
 					<div class="modal-body">
-						Folder name: <input type="text" name="renamefolder" value="<?php echo htmlentities(basename($this->getPrintedDir())); ?>" />
+						Folder name: <input type="text" name="renamefolder" value="<?php echo ents(basename($this->getPrintedDir())); ?>" />
 					</div>
 					<div class="modal-footer">
 						<button type="submit" class="btn" accesskey="s">Go</button>
@@ -341,7 +341,7 @@ class View_Documents extends View
 				$printed_dir = $this->getPrintedDir($fileinfo->getPath().'/'.$fileinfo->getFilename());
 				$sel = ($printed_dir == $currentprinted) ? ' selected="seelected"' : '';
 				?>
-				<option value="<?php echo htmlentities($printed_dir); ?>"<?php echo $sel; ?>><?php echo nbsp(htmlentities($indent.$fileinfo->getFilename())); ?></option>
+				<option value="<?php echo ents($printed_dir); ?>"<?php echo $sel; ?>><?php echo nbsp(ents($indent.$fileinfo->getFilename())); ?></option>
 				<?php
 				if (strlen($indent) < 3) {
 					// going too far down into the tree is too slow, limit ourselves to depth 4
@@ -374,7 +374,7 @@ class View_Documents extends View
 				?>
 				<li>
 					<div <?php echo $id; ?>>
-					<a href="<?php echo build_url(Array('dir'=>$printed_dir, 'editfile'=>NULL)); ?>"><?php echo htmlentities(basename($dirpath)); ?></a>
+					<a href="<?php echo build_url(Array('dir'=>$printed_dir, 'editfile'=>NULL)); ?>"><?php echo ents(basename($dirpath)); ?></a>
 					</div>
 					<?php
 					if (0 === strpos($currentprinted, $printed_dir)) {
@@ -405,7 +405,7 @@ class View_Documents extends View
 		} else {
 			?>
 			<input type="hidden" name="savefile" value="<?php echo $this->_editfile; ?>" />
-			<h3><?php echo htmlentities($this->_editfile); ?></h3>
+			<h3><?php echo ents($this->_editfile); ?></h3>
 			<?php
 			$content = file_get_contents($this->_realdir.'/'.$this->_editfile);
 		}
@@ -518,7 +518,7 @@ class View_Documents extends View
 				<tr>
 					<td class="filename middle">
 						<a href="<?php echo build_url(array('call'=>null, 'view' => 'documents', 'dir' => $this->getPrintedDir().'/'.$dirname)); ?>" target="_parent">
-						<img src="resources/img/folder.png" style="margin-right: 5px" /><?php echo htmlentities($dirname); ?></a>
+						<img src="resources/img/folder.png" style="margin-right: 5px" /><?php echo ents($dirname); ?></a>
 					</td>
 					<td class="file-detail">&nbsp;</td>
 					<td class="file-detail"><?php echo format_datetime($dirinfo[$dirname]['mtime']); ?></td>
@@ -530,7 +530,7 @@ class View_Documents extends View
 			foreach ($filelist as $filename) {
 				?>
 				<tr>
-					<td class="filename"><a href="<?php echo $this->_getFileURL($filename); ?>"><?php echo htmlentities($filename); ?></a></td>
+					<td class="filename"><a href="<?php echo $this->_getFileURL($filename); ?>"><?php echo ents($filename); ?></a></td>
 					<td class="file-detail"><?php echo $this->_getFriendlySize($fileinfo[$filename]['size']); ?></td>
 					<td class="file-detail"><?php echo format_datetime($fileinfo[$filename]['mtime']); ?></td>
 				<?php
@@ -541,7 +541,7 @@ class View_Documents extends View
 						<span class="clickable replace-file"><i class="icon-upload"></i>Replace</span> &nbsp;
 						<span class="clickable move-file"><i class="icon-random"></i>Move</span> &nbsp;
 						<form method="post" class="min">
-							<input type="hidden" name="deletefile[]" value="<?php echo htmlentities($filename);?>" ?>
+							<input type="hidden" name="deletefile[]" value="<?php echo ents($filename);?>" ?>
 							<button type="submit" class="btn btn-link confirm-title" title="Delete this file">
 								<i class="icon-trash"></i>Delete</button>
 						</form>&nbsp;
@@ -599,7 +599,7 @@ class View_Documents extends View
 					?>
 					<html>
 						<head>
-							<title><?php echo htmlentities($filename); ?></title>
+							<title><?php echo ents($filename); ?></title>
 						</head>
 						<body>
 							<img src="<?php echo build_url(Array('bin'=>1)); ?>" style="max-width: 100%" />

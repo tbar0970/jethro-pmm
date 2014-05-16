@@ -39,7 +39,7 @@ class View_Rosters__Define_Roster_Roles extends View
 		}
 		foreach ($allroles as $cid => $roles) {
 			?>
-			<h3><?php echo htmlentities($congs[$cid]['name']); ?> Roles</h3>
+			<h3><?php echo ents($congs[$cid]['name']); ?> Roles</h3>
 			<?php
 			?>
 			<table class="table table-striped table-hover table-min-width">
@@ -57,11 +57,11 @@ class View_Rosters__Define_Roster_Roles extends View
 					?>
 					<tr<?php if (!$rdetails['active']) echo ' class="archived"'; ?>>
 						<td class="narrow"><?php echo $rid; ?></td>
-						<td><?php echo htmlentities($rdetails['title']); ?></td>
+						<td><?php echo ents($rdetails['title']); ?></td>
 						<td>
 							<?php
 							if (!empty($rdetails['volunteer_group'])) {
-								echo '<a target="jethro" href="'.BASE_URL.'?view=groups&groupid='.$rdetails['volunteer_group'].'">'.htmlentities($rdetails['volunteer_group_name'].' (#'.$rdetails['volunteer_group'].')').'</a>'; 
+								echo '<a target="jethro" href="'.BASE_URL.'?view=groups&groupid='.$rdetails['volunteer_group'].'">'.ents($rdetails['volunteer_group_name'].' (#'.$rdetails['volunteer_group'].')').'</a>'; 
 							}
 							?>
 						</td>

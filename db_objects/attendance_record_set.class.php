@@ -153,15 +153,15 @@ class Attendance_Record_Set
 				<?php
 			}
 			?>
-				<td><?php echo htmlentities($details['last_name']); ?></td>
-				<td><?php echo htmlentities($details['first_name']); ?></td>
+				<td><?php echo ents($details['last_name']); ?></td>
+				<td><?php echo ents($details['first_name']); ?></td>
 			<?php 
 			if (!SizeDetector::isNarrow()) {
 				?>
 				<td>
 					<?php
 					if ($this->groupid) {
-						echo htmlentities($details['membership_status']);
+						echo ents($details['membership_status']);
 					} else {
 						$dummy->printFieldValue('status'); 
 					}

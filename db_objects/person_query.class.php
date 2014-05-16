@@ -406,7 +406,7 @@ class Person_Query extends DB_Object
 				<?php
 			} else {
 				?>
-				<option value="<?php echo $name; ?>"<?php if ($sb == $name) echo ' selected="selected"'; ?>><?php echo htmlentities($this->_field_details[$name]['label']); ?></option>
+				<option value="<?php echo $name; ?>"<?php if ($sb == $name) echo ' selected="selected"'; ?>><?php echo ents($this->_field_details[$name]['label']); ?></option>
 				<?php
 			}
 		}
@@ -421,7 +421,7 @@ class Person_Query extends DB_Object
 			<?php
 			foreach (Person::getDateTypes() as $typeid => $name) {
 				?>
-				<option value="date---<?php echo $typeid; ?>"<?php if ($sb == 'date---'.$typeid) echo ' selected="selected"'; ?>><?php echo htmlentities($name); ?> date</option>
+				<option value="date---<?php echo $typeid; ?>"<?php if ($sb == 'date---'.$typeid) echo ' selected="selected"'; ?>><?php echo ents($name); ?> date</option>
 				<?php
 			}
 		}
@@ -1158,7 +1158,7 @@ class Person_Query extends DB_Object
 								} else if (substr($label, 0, 7) == 'DATE---') {
 									echo $val ? format_date($val) : '';
 								} else {
-									echo htmlentities($val);
+									echo ents($val);
 								}
 						}
 						?>

@@ -205,8 +205,8 @@ class Person extends DB_Object
 				?>
 				<tr>
 					<td class="nowrap"><?php echo format_date($d['date']); ?></td>
-					<td><?php echo htmlentities($d['type']); ?></td>
-					<td><i><?php echo htmlentities($d['note']); ?></i></td>
+					<td><?php echo ents($d['type']); ?></td>
+					<td><i><?php echo ents($d['note']); ?></i></td>
 				</tr>
 				<?php
 			}
@@ -217,11 +217,11 @@ class Person extends DB_Object
 		}
 		if (is_null($value)) $value = $this->getValue($name);
 		if ($name == 'name') {
-			echo htmlentities($this->getValue('first_name')).'&nbsp;'.htmlentities($this->getValue('last_name'));
+			echo ents($this->getValue('first_name')).'&nbsp;'.ents($this->getValue('last_name'));
 			return;
 		}
 		if (($name == 'email') && !empty($value) && ($value == $this->values['email'])) {
-			echo '<a href="'.get_mailto_url($this->values[$name], $this->values['first_name'].' '.$this->values['last_name']).'">'.htmlentities($this->values[$name]).'</a>';
+			echo '<a href="'.get_mailto_url($this->values[$name], $this->values['first_name'].' '.$this->values['last_name']).'">'.ents($this->values[$name]).'</a>';
 		} else {
 			parent::printFieldValue($name, $value);
 		}
@@ -456,7 +456,7 @@ class Person extends DB_Object
 		}
 		$displayname = $currentid ? $currentname.' (#'.$currentid.')' : '';
 		?>
-		<input type="text" placeholder="Search persons" id="<?php echo $name; ?>-input" class="person-search-single" value="<?php echo htmlentities($displayname); ?>" />
+		<input type="text" placeholder="Search persons" id="<?php echo $name; ?>-input" class="person-search-single" value="<?php echo ents($displayname); ?>" />
 		<input type="hidden" name="<?php echo $name; ?>" value="<?php echo $currentid; ?>" />
 		<?php
 	}

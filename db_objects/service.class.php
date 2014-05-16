@@ -229,19 +229,19 @@ class service extends db_object
 				
 			case 'format_title':
 			case 'topic_title':
-				echo htmlentities($this->values[$fieldname]);
+				echo ents($this->values[$fieldname]);
 				break;
 				
 			case 'summary':
 				?>
-				<i><?php echo htmlentities($this->values['topic_title']); ?></i><br />
+				<i><?php echo ents($this->values['topic_title']); ?></i><br />
 				<?php $this->printFieldValue('bible_all'); ?><br />
 				<?php
-				echo htmlentities($this->values['format_title']); 
+				echo ents($this->values['format_title']); 
 				if (!empty($this->values['notes'])) {
 					?>
 					&nbsp;<span class="clickable" onclick="$(this).next('div.hide').toggle()"><i class="icon-chevron-down"></i></span>
-					<div class="smallprint hide"><?php echo nl2br(htmlentities($this->values['notes'])); ?></div>
+					<div class="smallprint hide"><?php echo nl2br(ents($this->values['notes'])); ?></div>
 					<?php
 				}
 				break;

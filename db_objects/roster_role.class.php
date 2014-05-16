@@ -112,7 +112,7 @@ class Roster_Role extends db_object
 	function _printUnlistedAlloceeOption($personid, $name)
 	{
 		?>
-		<option value="<?php echo (int)$personid; ?>" class="unlisted-allocee" selected="selected" title="This person is no longer in the volunteer group for this role"><?php echo htmlentities($name); ?></option>
+		<option value="<?php echo (int)$personid; ?>" class="unlisted-allocee" selected="selected" title="This person is no longer in the volunteer group for this role"><?php echo ents($name); ?></option>
 		<?php
 	}
 
@@ -137,7 +137,7 @@ class Roster_Role extends db_object
 					if (!empty($id) && !isset($volunteers[$id])) $this->_printUnlistedAlloceeOption($id, $name);
 					foreach ($volunteers as $vid => $name) {
 						?>
-						<option value="<?php echo $vid; ?>"<?php if ($vid == $id) echo ' selected="selected"'; ?>><?php echo htmlentities($name); ?></option>
+						<option value="<?php echo $vid; ?>"<?php if ($vid == $id) echo ' selected="selected"'; ?>><?php echo ents($name); ?></option>
 						<?php
 					}
 					?>
@@ -158,7 +158,7 @@ class Roster_Role extends db_object
 				if (!empty($currentID) && !isset($volunteers[$currentID])) $this->_printUnlistedAlloceeOption($currentID, $currentName);
 				foreach ($volunteers as $id => $name) {
 					?>
-					<option value="<?php echo $id; ?>"<?php if ($currentID == $id) echo ' selected="selected"'; ?>><?php echo htmlentities($name); ?></option>
+					<option value="<?php echo $id; ?>"<?php if ($currentID == $id) echo ' selected="selected"'; ?>><?php echo ents($name); ?></option>
 					<?php
 				}
 				?>

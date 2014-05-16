@@ -43,7 +43,7 @@ class View_Families__Contact_List extends View
 		$dummy_person->fields['age_bracket']['allow_multiple'] = true;
 		?>
 		<form method="get">
-		<input type="hidden" name="view" value="<?php echo htmlentities($_REQUEST['view']); ?>" />
+		<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
 		<table>
 			<tr>
 				<th>Opt-in group</th>
@@ -167,12 +167,12 @@ class View_Families__Contact_List extends View
 			if ($first_member['home_tel']) {
 				$dummy_family->setValue('home_tel', $first_member['home_tel']);
 				echo '<tr><td colspan="4"><h3 style="border: 0px; margin: 0px; padding: 0px">';
-				echo htmlentities($dummy_family->getFormattedValue('home_tel'));
+				echo ents($dummy_family->getFormattedValue('home_tel'));
 				echo '</h3></td></tr>';
 			}
 			if (!empty($_REQUEST['include_address']) && $first_member['address_street']) {
-				echo '<tr><td colspan="4">'.nl2br(htmlentities($first_member['address_street'])).'<br />';
-				echo htmlentities($first_member['address_suburb'].' '.$first_member['address_state'].' '.$first_member['address_postcode']);
+				echo '<tr><td colspan="4">'.nl2br(ents($first_member['address_street'])).'<br />';
+				echo ents($first_member['address_suburb'].' '.$first_member['address_state'].' '.$first_member['address_postcode']);
 				echo '</td></tr>';
 			}
 			$fn = $with_links ? 'printFieldValue' : 'getFormattedValue';
@@ -180,10 +180,10 @@ class View_Families__Contact_List extends View
 				$dummy_person->populate($adult['id'], $adult);
 				?>
 				<tr>
-					<td><?php echo htmlentities($adults_use_full ? $adult['first_name'].' '.$adult['last_name'] : $adult['first_name']); ?></td>
-					<td><?php echo htmlentities($adult['congname']); ?></td>
-					<td><?php if ($all_member_details || in_array($adult['id'], $signups)) echo htmlentities($dummy_person->getFormattedValue('mobile_tel')); ?></td>
-					<td><?php if ($all_member_details || in_array($adult['id'], $signups)) echo htmlentities($dummy_person->$fn('email')); ?></td>
+					<td><?php echo ents($adults_use_full ? $adult['first_name'].' '.$adult['last_name'] : $adult['first_name']); ?></td>
+					<td><?php echo ents($adult['congname']); ?></td>
+					<td><?php if ($all_member_details || in_array($adult['id'], $signups)) echo ents($dummy_person->getFormattedValue('mobile_tel')); ?></td>
+					<td><?php if ($all_member_details || in_array($adult['id'], $signups)) echo ents($dummy_person->$fn('email')); ?></td>
 				</tr>
 				<?php
 			}
@@ -194,7 +194,7 @@ class View_Families__Contact_List extends View
 			if ($child_names) {
 				?>
 				<tr>
-					<td colspan="4"><?php echo htmlentities(implode(', ', $child_names)); ?></td
+					<td colspan="4"><?php echo ents(implode(', ', $child_names)); ?></td
 				</tr>
 				<?php
 			}

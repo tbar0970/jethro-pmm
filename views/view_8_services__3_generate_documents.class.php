@@ -229,10 +229,10 @@ class View_Services__Generate_Documents extends View
 			?>
 			<th>
 				<?php
-				echo htmlentities($congregation['name']);
+				echo ents($congregation['name']);
 				foreach ($congregation['filenames'] as $file) {
 					echo '<br />';
-					echo htmlentities($file);
+					echo ents($file);
 				}
 				?>
 			</th>
@@ -253,8 +253,8 @@ class View_Services__Generate_Documents extends View
 				foreach ($this->_replacements[$congid] as $keyword => $value) {
 					?>
 					<tr>
-					<td><?php echo htmlentities($keyword); ?></td>
-					<td><input type="text" name="replacements[<?php echo (int)$congid; ?>][<?php echo htmlentities($keyword); ?>]" value="<?php echo htmlentities($value); ?>" /></td>
+					<td><?php echo ents($keyword); ?></td>
+					<td><input type="text" name="replacements[<?php echo (int)$congid; ?>][<?php echo ents($keyword); ?>]" value="<?php echo ents($value); ?>" /></td>
 					</tr>
 					<?php
 				}
@@ -280,7 +280,7 @@ class View_Services__Generate_Documents extends View
 			Files created:
 			<ul>";
 			foreach ($this->_generated_files as $file) {
-				$str .= "<li>".htmlentities($file).'</li>';
+				$str .= "<li>".ents($file).'</li>';
 			}
 			$str .= '</ul>';
 			add_message($str, 'success', true);
@@ -312,7 +312,7 @@ class View_Services__Generate_Documents extends View
 				$default_date = array_get($_REQUEST, 'service_date', date('Y-m-d', strtotime('Sunday')));
 				?>
 				<form method="post">
-				<input type="hidden" name="view" value="<?php echo htmlentities($_GET['view']); ?>" />
+				<input type="hidden" name="view" value="<?php echo ents($_GET['view']); ?>" />
 				<table>
 					<tr>
 						<th class="nowrap">Service date</th>
@@ -499,7 +499,7 @@ class View_Services__Generate_Documents extends View
 				?>
 				<th>
 					<?php
-					echo htmlentities($congregation['name'].' ('.$congregation['meeting_time'].')');
+					echo ents($congregation['name'].' ('.$congregation['meeting_time'].')');
 					?>
 				</th>
 				<?php
@@ -521,8 +521,8 @@ class View_Services__Generate_Documents extends View
 					foreach ($this->_replacements[$congid] as $keyword => $value) {
 						?>
 						<tr>
-						<td><?php echo htmlentities($keyword); ?></td>
-						<td><input type="text" name="replacements[<?php echo (int)$congid; ?>][<?php echo htmlentities($keyword); ?>]" value="<?php echo htmlentities($value); ?>" /></td>
+						<td><?php echo ents($keyword); ?></td>
+						<td><input type="text" name="replacements[<?php echo (int)$congid; ?>][<?php echo ents($keyword); ?>]" value="<?php echo ents($value); ?>" /></td>
 						</tr>
 						<?php
 					}

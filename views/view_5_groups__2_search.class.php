@@ -5,7 +5,7 @@ class View_Groups__Search extends View
 
 	function getTitle()
 	{
-		return 'Group Search Results for "'.htmlentities(array_get($_REQUEST, 'name', '')).'"';
+		return 'Group Search Results for "'.ents(array_get($_REQUEST, 'name', '')).'"';
 	}
 
 	function processView()

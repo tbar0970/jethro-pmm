@@ -26,13 +26,13 @@ class View_Display_Role_Description extends View
 		} else {
 			foreach ($GLOBALS['system']->getDBObjectdata('congregation', Array('!meeting_time' => ''), 'AND', 'meeting_time') as $congid => $cong_details) {
 				?>
-				<h3><?php echo htmlentities($cong_details['name']); ?></h3>
+				<h3><?php echo ents($cong_details['name']); ?></h3>
 				<ul>
 				<?php
 				$roles = $GLOBALS['system']->getDBObjectData('roster_role', Array('!details' => '', 'congregationid' => $congid), 'AND', 'title');
 				foreach ($roles as $id => $detail) {
 					?>
-					<li><a href="<?php echo build_url(Array('role' => $id)); ?>"><?php echo htmlentities($detail['title']); ?></a></li>
+					<li><a href="<?php echo build_url(Array('role' => $id)); ?>"><?php echo ents($detail['title']); ?></a></li>
 					<?php
 				}
 				?>
@@ -46,7 +46,7 @@ class View_Display_Role_Description extends View
                         $roles = $GLOBALS['system']->getDBObjectData('roster_role', Array('!details' => '', 'congregationid' => 0), 'AND', 'title');
                         foreach ($roles as $id => $detail) {
                                 ?>
-                                <li><a href="<?php echo build_url(Array('role' => $id)); ?>"><?php echo htmlentities($detail['title']); ?></a></li>
+                                <li><a href="<?php echo build_url(Array('role' => $id)); ?>"><?php echo ents($detail['title']); ?></a></li>
                                 <?php
                         }
                         ?>

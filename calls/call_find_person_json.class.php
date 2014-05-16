@@ -24,8 +24,8 @@ class Call_Find_Person_JSON extends Call
 				$arr[] = '
 					{
 						id: '.$i.',
-						value: "'.addcslashes(htmlentities($details['first_name'].' '.$details['last_name']), '"').'",
-						info: "'.addcslashes(htmlentities($dummy->getFormattedValue('status').', '.$dummy->getFormattedValue('congregationid')), '"').'"
+						value: "'.addcslashes(ents($details['first_name'].' '.$details['last_name']), '"').'",
+						info: "'.addcslashes(ents($dummy->getFormattedValue('status').', '.$dummy->getFormattedValue('congregationid')), '"').'"
 					}
 				';
 			}

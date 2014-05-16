@@ -21,11 +21,11 @@ $type = (!empty($entry['familyid']) ? 'family' : 'person');
 	?>
 	<i class="icon-<?php echo $type == 'family' ? 'home' : 'user'; ?>"></i>
 	<blockquote>
-		<p class="subject"><?php echo htmlentities($entry['subject']); ?></p>
+		<p class="subject"><?php echo ents($entry['subject']); ?></p>
 	<?php
 	if (strlen($entry['details'])) {
 		?>
-		<p class="content"><?php echo nl2br(htmlentities($entry['details'])); ?></p>
+		<p class="content"><?php echo nl2br(ents($entry['details'])); ?></p>
 		<?php
 	}
 	?>
@@ -37,7 +37,7 @@ $type = (!empty($entry['familyid']) ? 'family' : 'person');
 			if ($entry['editor']) {
 				$editor = $GLOBALS['system']->getDBObject('person', $entry['editor']);
 				$name = $editor ? $editor->toString() : '(restricted user)';
-				echo ". Edited by ".htmlentities($name)." (#{$entry['editor']}) ".format_datetime($entry['edited']);
+				echo ". Edited by ".ents($name)." (#{$entry['editor']}) ".format_datetime($entry['edited']);
 			}
 			?>
 		</small>
@@ -50,7 +50,7 @@ $type = (!empty($entry['familyid']) ? 'family' : 'person');
 		foreach ($entry['comments'] as $comment) {
 			?>
 			<blockquote>
-				<p><?php echo nl2br(htmlentities(trim($comment['contents']))); ?></p>
+				<p><?php echo nl2br(ents(trim($comment['contents']))); ?></p>
 				<small class="author">
 					Added by 
 					<?php echo $comment['creator_fn'].' '.$comment['creator_ln'].' (#'.$entry['creator'].')'; ?>

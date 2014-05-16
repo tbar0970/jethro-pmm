@@ -263,7 +263,7 @@ class Abstract_Note extends DB_Object
 				<label class="control-label">Action Date</label>
 				<div class="controls">
 					<?php echo $this->printFieldInterface('action_date'); ?>
-					<div class="help-inline"><?php echo htmlentities($this->fields['action_date']['note']); ?></div>
+					<div class="help-inline"><?php echo ents($this->fields['action_date']['note']); ?></div>
 				</div>
 			</div>
 			<div class="control-group">

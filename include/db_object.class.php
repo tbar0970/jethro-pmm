@@ -298,7 +298,7 @@ class db_object
 			foreach ($this->_old_values as $name => $old_val) {
 				if ($name == 'history') continue;
 				if ($name == 'password') continue;
-				$changes[] = $this->getFieldLabel($name).' changed from "'.htmlentities($this->getFormattedValue($name, $old_val)).'" to "'.htmlentities($this->getFormattedValue($name)).'"';
+				$changes[] = $this->getFieldLabel($name).' changed from "'.ents($this->getFormattedValue($name, $old_val)).'" to "'.ents($this->getFormattedValue($name)).'"';
 			}
 			$user = $GLOBALS['user_system']->getCurrentUser();
 			$this->values['history'][time()] = 'Updated by '.$user['first_name'].' '.$user['last_name'].' (#'.$user['id'].")\n".implode("\n", $changes);
@@ -398,7 +398,7 @@ class db_object
 	public function setValue($name, $value)
 	{
 		if (!isset($this->fields[$name])) {
-			trigger_error('Cannot set value for field '.htmlentities($name).' - field does not exist', E_USER_WARNING);
+			trigger_error('Cannot set value for field '.ents($name).' - field does not exist', E_USER_WARNING);
 			return FALSE;
 		}
 		if (array_get($this->fields[$name], 'readonly')) {
@@ -413,13 +413,13 @@ class db_object
 		}
 		if ($this->fields[$name]['type'] == 'select') {
 			if (!isset($this->fields[$name]['options'][$value])) {
-				trigger_error(htmlentities($value).' is not a valid value for field "'.$name.'", and has not been set', E_USER_NOTICE);
+				trigger_error(ents($value).' is not a valid value for field "'.$name.'", and has not been set', E_USER_NOTICE);
 				return;
 			}
 		}
 		if (($this->fields[$name]['type'] == 'phone') && ($value != '')) {
 			if (!is_valid_phone_number($value, $this->fields[$name]['formats'])) {
-				trigger_error(htmlentities($value).' is not a valid phone number for field "'.$name.'", and has not been set', E_USER_NOTICE);
+				trigger_error(ents($value).' is not a valid phone number for field "'.$name.'", and has not been set', E_USER_NOTICE);
 				return;
 			}
 			$value = clean_phone_number($value);
@@ -433,7 +433,7 @@ class db_object
 				for ($i=0; $i < strlen($strval); $i++) {
 					$char = $strval[$i];
 					if ((int)$char != $char) {
-						trigger_error(htmlentities($value).' is not a valid value for integer field "'.$name.'" and has not been set', E_USER_NOTICE);
+						trigger_error(ents($value).' is not a valid value for integer field "'.$name.'" and has not been set', E_USER_NOTICE);
 						return;
 					}
 				}
@@ -522,7 +522,7 @@ class db_object
 	public function getFormattedValue($name, $value=null)
 	{
 		if (!isset($this->fields[$name])) {
-			trigger_error('Cannot get value for field '.htmlentities($name).' - field does not exist', E_USER_WARNING);
+			trigger_error('Cannot get value for field '.ents($name).' - field does not exist', E_USER_WARNING);
 			return NULL;
 		}
 		if (is_null($value)) $value = array_get($this->values, $name, NULL);
@@ -577,7 +577,7 @@ class db_object
 	public function printFieldValue($name, $value=null)
 	{
 		if (!isset($this->fields[$name])) {
-			trigger_error('Cannot get value for field '.htmlentities($name).' - field does not exist', E_USER_WARNING);
+			trigger_error('Cannot get value for field '.ents($name).' - field does not exist', E_USER_WARNING);
 			return NULL;
 		}
 		if (is_null($value)) $value = $this->values[$name];
@@ -589,7 +589,7 @@ class db_object
 				?>
 				<tr>
 					<th class="narrow"><?php echo format_datetime($time); ?></th>
-					<td><?php echo nl2br(htmlentities($detail)); ?></td>
+					<td><?php echo nl2br(ents($detail)); ?></td>
 				</tr>
 				<?php
 			}
@@ -606,18 +606,18 @@ class db_object
 				$checked_exp = (($value & (int)$k) == $k) ? 'checked="checked"' : '';
 				?>
 				<label class="checkbox">
-					<input type="checkbox" disabled="disabled" name="<?php echo htmlentities($name); ?>[]" value="<?php echo htmlentities($k); ?>" id="<?php echo htmlentities($name.'_'.$k); ?>" <?php echo $checked_exp; ?>>
-					<?php echo nbsp(htmlentities($v)); ?>
+					<input type="checkbox" disabled="disabled" name="<?php echo ents($name); ?>[]" value="<?php echo ents($k); ?>" id="<?php echo ents($name.'_'.$k); ?>" <?php echo $checked_exp; ?>>
+					<?php echo nbsp(ents($v)); ?>
 				</label>
 				<?php
 			}
 		} else if (($this->fields[$name]['type'] == 'text') 
 					&& (array_get($this->fields[$name], 'height', 1) > 1)) {
-			echo nl2br(htmlentities($this->getFormattedValue($name, $value)));
+			echo nl2br(ents($this->getFormattedValue($name, $value)));
 		} else if ($this->fields[$name]['type'] == 'phone') {
-			echo '<a href="tel:'.$value.'">'.htmlentities($this->getFormattedValue($name, $value)).'</a>';
+			echo '<a href="tel:'.$value.'">'.ents($this->getFormattedValue($name, $value)).'</a>';
 		} else {
-			echo htmlentities($this->getFormattedValue($name, $value));
+			echo ents($this->getFormattedValue($name, $value));
 		}
 	}
 

@@ -105,7 +105,7 @@ if (!$accordion) {
 	$current_tab = 'basic';
 	foreach ($tabs as $id => $label) {
 		?>
-		<li <?php if ($current_tab == $id) echo 'class="active"'; ?>><a data-toggle="tab" href="#<?php echo $id; ?>"><?php echo htmlentities($label); ?></a></li>
+		<li <?php if ($current_tab == $id) echo 'class="active"'; ?>><a data-toggle="tab" href="#<?php echo $id; ?>"><?php echo ents($label); ?></a></li>
 		<?php
 	}
 	?>
@@ -267,10 +267,10 @@ if (isset($tabs['groups'])) {
 				?>
 				<tr<?php echo $trclass; ?>>
 					<td><?php echo $id; ?></td>
-					<td><a href="?view=groups&groupid=<?php echo $id; ?>"><?php echo htmlentities($details['name']); ?></a></td>
-					<td><?php echo htmlentities($details['membership_status']); ?></td>
+					<td><a href="?view=groups&groupid=<?php echo $id; ?>"><?php echo ents($details['name']); ?></a></td>
+					<td><?php echo ents($details['membership_status']); ?></td>
 					<td><?php echo format_datetime($details['created']); ?></td>
-					<td><form class="min" method="post" action="?view=_edit_group&action=remove_member&groupid=<?php echo $id; ?>&back_to=persons" ><input type="hidden" name="personid" value="<?php echo $person->id; ?>"><label class="clickable submit confirm-title" title="Remove <?php $person->printFieldValue('name'); ?> from <?php echo htmlentities($details['name']); ?>"><i class="icon-remove-sign"></i>Remove</label></form></td>
+					<td><form class="min" method="post" action="?view=_edit_group&action=remove_member&groupid=<?php echo $id; ?>&back_to=persons" ><input type="hidden" name="personid" value="<?php echo $person->id; ?>"><label class="clickable submit confirm-title" title="Remove <?php $person->printFieldValue('name'); ?> from <?php echo ents($details['name']); ?>"><i class="icon-remove-sign"></i>Remove</label></form></td>
 				</tr>
 				<?php
 			}
@@ -323,7 +323,7 @@ if (isset($tabs['attendance'])) {
 				<?php
 			} else {
 				?>
-				<p><i>Attendance at <?php echo htmlentities($group_name); ?>:</i></p>
+				<p><i>Attendance at <?php echo ents($group_name); ?>:</i></p>
 				<?php
 			}
 			?>
@@ -381,7 +381,7 @@ if (isset($tabs['rosters'])) {
 			<h5><?php echo date('j M', strtotime($date)); ?></h5>
 			<?php
 			foreach ($allocs as $alloc) {
-				echo htmlentities($alloc['cong'].' '.$alloc['title']).'<br />';
+				echo ents($alloc['cong'].' '.$alloc['title']).'<br />';
 			}
 		}
 	}

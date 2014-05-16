@@ -82,6 +82,16 @@ function nbsp($x)
 	return str_replace(' ', '&nbsp;', $x);
 }
 
+/**
+ * Multibyte-aware version of htmlentities. Also has a shorter name.
+ * @param string $str  The string to entitise
+ * @return string
+ */
+function ents($str)
+{
+	return htmlspecialchars($str, ENT_QUOTES, "UTF-8", false);
+}
+
 function redirect($view, $params=Array(), $hash='')
 {
 	$params['view'] = $view;
@@ -109,7 +119,7 @@ function print_message($msg, $class='success', $html=FALSE)
 {
 	if ($class == 'failure') $class='error';
 	?>
-	<div class="alert alert-<?php echo $class; ?>"><?php echo $html ? $msg : htmlentities($msg); ?></div>
+	<div class="alert alert-<?php echo $class; ?>"><?php echo $html ? $msg : ents($msg); ?></div>
 	<?php
 }
 
@@ -123,7 +133,7 @@ function print_widget($name, $params, $value)
 	}
 	$attrs = Array();
 	foreach (array_get($params, 'attrs', Array()) as $attr => $val) {
-		$attrs[] = $attr.'="'.htmlentities($val).'"';
+		$attrs[] = $attr.'="'.ents($val).'"';
 	}
 	$attrs = implode(' ', $attrs);
 	switch ($params['type']) {
@@ -146,7 +156,7 @@ function print_widget($name, $params, $value)
 			if (array_get($params, 'height', 1) > 1) {
 				$cols_exp = empty($params['width']) ? '' : 'cols="'.$params['width'].'"';
 				?>
-				<textarea name="<?php echo $name; ?>" rows="<?php echo $params['height']; ?>" <?php echo $cols_exp; ?> class="<?php echo trim($classes); ?>" <?php echo $maxlength_exp; ?>><?php echo htmlentities($value); ?></textarea>
+				<textarea name="<?php echo $name; ?>" rows="<?php echo $params['height']; ?>" <?php echo $cols_exp; ?> class="<?php echo trim($classes); ?>" <?php echo $maxlength_exp; ?>><?php echo ents($value); ?></textarea>
 				<?php
 			} else {
 				$width_exp = empty($params['width']) ? '' : 'size="'.$params['width'].'"';
@@ -223,9 +233,9 @@ function print_widget($name, $params, $value)
 						$checked_exp = in_array("$k", $our_val, true) ? ' checked="checked"' : '';
 						$disabled_exp = (!empty($params['disabled_prefix']) && (strpos($k, $params['disabled_prefix']) === 0)) ? ' disabled="disabled" ' : '';
 						?>
-						<label class="checkbox" title="<?php echo htmlentities($v); ?>">
+						<label class="checkbox" title="<?php echo ents($v); ?>">
 							<input type="checkbox" name="<?php echo $name; ?>" value="<?php echo $k; ?>" <?php echo $checked_exp.$disabled_exp; ?>>
-							<?php echo htmlentities($v); ?>
+							<?php echo ents($v); ?>
 						</label>
 						<?php
 					}
@@ -245,7 +255,7 @@ function print_widget($name, $params, $value)
 						$selected_exp = in_array("$k", $our_val, true) ? ' selected="selected"' : '';
 						$disabled_exp = (!empty($params['disabled_prefix']) && (strpos($k, $params['disabled_prefix']) === 0)) ? ' disabled="disabled" ' : '';
 						?>
-						<option value="<?php echo $k; ?>"<?php echo $selected_exp.$disabled_exp; ?>><?php echo htmlentities($v); ?></option>
+						<option value="<?php echo $k; ?>"<?php echo $selected_exp.$disabled_exp; ?>><?php echo ents($v); ?></option>
 						<?php
 					}
 					?>
@@ -332,8 +342,8 @@ function print_widget($name, $params, $value)
 				// see http://stackoverflow.com/questions/5421659/html-label-command-doesnt-work-in-iphone-browser
 				?>
 				<label class="checkbox" onclick="">
-					<input type="checkbox" name="<?php echo htmlentities($name); ?>[]" value="<?php echo htmlentities($k); ?>" <?php echo $checked_exp; ?>>
-					<?php echo nbsp(htmlentities($v)); ?>
+					<input type="checkbox" name="<?php echo ents($name); ?>[]" value="<?php echo ents($k); ?>" <?php echo $checked_exp; ?>>
+					<?php echo nbsp(ents($v)); ?>
 				</label>
 				<?php
 				if ($percol && (++$i % $percol == 0)) {
@@ -492,7 +502,7 @@ function print_hidden_fields($arr, $prefix='', $suffix='')
 		if (is_array($val)) {
 			print_hidden_fields($val, $id.'[', ']');
 		} else {
-			echo '<input type="hidden" name="'.htmlentities($prefix.$id.$suffix).'" value="'.htmlentities($val).'" />'."\n";
+			echo '<input type="hidden" name="'.ents($prefix.$id.$suffix).'" value="'.ents($val).'" />'."\n";
 		}
 	}
 }

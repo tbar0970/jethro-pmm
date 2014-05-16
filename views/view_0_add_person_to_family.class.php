@@ -56,7 +56,7 @@ class View__Add_Person_To_Family extends View
 		?>
 		<form method="post" id="add-family">
 			<input type="hidden" name="new_person_submitted" value="1" />
-			<input type="hidden" name="familyid" value="<?php echo htmlentities($_REQUEST['familyid']); ?>" />
+			<input type="hidden" name="familyid" value="<?php echo ents($_REQUEST['familyid']); ?>" />
 			<h3>New Person Details</h3>
 			<?php
 			$this->_person->printForm();

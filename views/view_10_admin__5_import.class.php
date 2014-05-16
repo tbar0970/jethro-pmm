@@ -276,7 +276,7 @@ class View_Admin__Import extends View
 				foreach ($_SESSION['import']['families'] as $family) {
 					foreach ($family['members'] as $k => &$v) unset($v['note']);
 					?>
-					<h3><?php echo htmlentities($family['family_name']); ?> family</h3>
+					<h3><?php echo ents($family['family_name']); ?> family</h3>
 					<?php
 					$this->_dummy_family->populate(0, $family);
 					$this->_dummy_family->printSummary(FALSE, $family['members']);

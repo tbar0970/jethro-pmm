@@ -194,7 +194,7 @@ class View_Admin__System_Configuration extends View {
 								}
 								?>
 							</td>
-							<td><input type="text" name="membership_status_<?php echo $i; ?>_label" value="<?php echo htmlentities($label); ?>" /></td>
+							<td><input type="text" name="membership_status_<?php echo $i; ?>_label" value="<?php echo ents($label); ?>" /></td>
 							<td><input type="radio" name="membership_status_default_rank" value="<?php echo $i; ?>" <?php if ($id == $default) echo 'checked="checked"'; ?> /></td>
 							<td>
 								<?php

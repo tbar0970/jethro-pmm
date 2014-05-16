@@ -70,7 +70,7 @@ class View_Admin__Date_Types extends View
 				<tr>
 					<td><?php echo $id; ?></td>
 					<td>
-						<input name="datetypename[<?php echo $id ? $id : '_new_]['; ?>]" value="<?php echo htmlentities($name); ?>" />
+						<input name="datetypename[<?php echo $id ? $id : '_new_]['; ?>]" value="<?php echo ents($name); ?>" />
 					</td>
 					<td>
 						<i class="icon-trash clickable delete-row"></i>

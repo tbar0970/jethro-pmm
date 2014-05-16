@@ -72,7 +72,7 @@ class Person_Group_Category extends db_object
 			if ($cat['parent_category'] != $parent) continue;
 			$sel = ($id == $value) ? ' selected="selected"' : '';
 			?>
-			<option value="<?php echo $id; ?>"<?php echo $sel; ?>><?php echo $indent.htmlentities($cat['name']); ?></option>
+			<option value="<?php echo $id; ?>"<?php echo $sel; ?>><?php echo $indent.ents($cat['name']); ?></option>
 			<?php
 			self::_printChooserOptions($all_cats, $value, $id, $indent.'&nbsp;&nbsp;&nbsp;&nbsp;');
 		}

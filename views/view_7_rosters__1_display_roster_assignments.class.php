@@ -56,7 +56,7 @@ class View_Rosters__Display_Roster_Assignments extends View
 			$viewid = ($this->_view) ? $this->_view->id : null;
 			?>
 			<form method="get" class="well well-small no-print">
-			<input type="hidden" name="view" value="<?php echo htmlentities($_REQUEST['view']); ?>" />
+			<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
 			<table>
 				<tr>
 					<th>Roster view</th>

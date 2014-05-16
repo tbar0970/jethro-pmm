@@ -162,7 +162,7 @@ class View_Attendance__Record extends View
 			// STEP 2 - enter attendances
 			?>
 			<form method="post" class="attendance warn-unsaved" action="?view=attendance__record">
-				<input type="hidden" name="for_type" value="<?php echo htmlentities($_REQUEST['for_type']); ?>" />
+				<input type="hidden" name="for_type" value="<?php echo ents($_REQUEST['for_type']); ?>" />
 				<input type="hidden" name="attendance_date" value="<?php echo $this->_attendance_date; ?>" />
 				<input type="hidden" name="age_bracket" value="<?php echo $this->_age_bracket; ?>" />
 				<input type="hidden" name="enter_attendance_token" value="<?php echo $_SESSION['enter_attendance_token']; ?>" />
@@ -193,7 +193,7 @@ class View_Attendance__Record extends View
 						$title = $p->getFormattedValue('age_bracket').' in '.$title;
 					}
 					?>
-					<h3><?php echo htmlentities($title); ?></h3>
+					<h3><?php echo ents($title); ?></h3>
 					<div class="align-right width-really-auto">
 						<?php
 						$set->printForm($i);

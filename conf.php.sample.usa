@@ -134,6 +134,10 @@ define('SMS_SEND_LOGFILE', '');
 // LOCALE-SPECIFIC SETTINGS you may need to change if outside the USA:
 ////////////////////////////////////////////////////////////////////////
 
+// Enable the following option (by removing the two slashes)
+// if you have trouble with character sets such as chinese
+//ini_set('default_charset', 'UTF-8' );
+
 define('ENVELOPE_WIDTH_MM', 220);
 define('ENVELOPE_HEIGHT_MM', 110);
 

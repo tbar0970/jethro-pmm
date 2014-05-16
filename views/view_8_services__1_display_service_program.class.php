@@ -92,7 +92,7 @@ class View_Services__Display_Service_Program extends View
 				foreach ($this->_congregations as $congid) {
 					$cong = $GLOBALS['system']->getDBObject('congregation', (int)$congid);
 					?>
-					<th width="<?php echo floor(100 / count($this->_congregations)); ?>%"><?php echo htmlentities($cong->getValue('name')); ?></th>
+					<th width="<?php echo floor(100 / count($this->_congregations)); ?>%"><?php echo ents($cong->getValue('name')); ?></th>
 					<?php
 				}
 				?>
@@ -147,7 +147,7 @@ class View_Services__Display_Service_Program extends View
 		}
 		?>
 		<form method="get" class="well well-small">
-		<input type="hidden" name="view" value="<?php echo htmlentities($_REQUEST['view']); ?>" />
+		<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
 		<table>
 			<tr>
 				<td rowspan="3" class="nowrap" style="padding-right: 2ex">
@@ -160,7 +160,7 @@ class View_Services__Display_Service_Program extends View
 							<input type="checkbox" name="congregations[]" 
 								<?php if (in_array($id, $this->_congregations)) echo 'checked="checked" '; ?>
 								value="<?php echo $id; ?>" id="congregations_<?php echo $id; ?>" />
-							<?php echo htmlentities($details['name']); ?>
+							<?php echo ents($details['name']); ?>
 						</label>
 						<?php
 					}

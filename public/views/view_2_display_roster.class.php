@@ -30,7 +30,7 @@ class View_Display_Roster extends View
 			$views = $GLOBALS['system']->getDBObjectData('roster_view', Array('is_public' => TRUE), 'AND', 'name');
 			foreach ($views as $id => $detail) {
 				?>
-				<li><a href="<?php echo build_url(Array('roster_view' => $id)); ?>"><?php echo htmlentities($detail['name']); ?></a></li>
+				<li><a href="<?php echo build_url(Array('roster_view' => $id)); ?>"><?php echo ents($detail['name']); ?></a></li>
 				<?php
 			}
 			?>

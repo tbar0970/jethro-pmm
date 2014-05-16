@@ -256,7 +256,7 @@ class family extends db_object
 						<?php
 						foreach ($persons as $personid => $details) {
 							?>
-							<a href="?view=persons&personid=<?php echo (int)$personid; ?>"><img title="<?php echo htmlentities($details['first_name'].' '.$details['last_name']); ?>" src="?call=person_photo&personid=<?php echo (int)$personid; ?>" /></a>
+							<a href="?view=persons&personid=<?php echo (int)$personid; ?>"><img title="<?php echo ents($details['first_name'].' '.$details['last_name']); ?>" src="?call=person_photo&personid=<?php echo (int)$personid; ?>" /></a>
 							<?php
 						}
 						?>
@@ -275,7 +275,7 @@ class family extends db_object
 						$tr_class = ($person['status'] == 'archived') ? ' class="archived"' : '';
 						?>
 						<tr<?php echo $tr_class; ?>>
-							<td class="nowrap"><a href="?view=persons&personid=<?php echo $id; ?>"><?php echo htmlentities($dummy_person->toString()); ?></a></td>
+							<td class="nowrap"><a href="?view=persons&personid=<?php echo $id; ?>"><?php echo ents($dummy_person->toString()); ?></a></td>
 							<td><?php $dummy_person->printFieldValue('gender'); ?></td>
 							<td><?php $dummy_person->printFieldValue('age_bracket'); ?></td>
 						</tr>
@@ -482,7 +482,7 @@ class family extends db_object
 		}
 		$displayname = $currentid ? $currentname.' (#'.$currentid.')' : '';
 		?>
-		<input type="text" placeholder="Search families" id="<?php echo $name; ?>-input" class="family-search-single" value="<?php echo htmlentities($displayname); ?>" />
+		<input type="text" placeholder="Search families" id="<?php echo $name; ?>-input" class="family-search-single" value="<?php echo ents($displayname); ?>" />
 		<input type="hidden" name="<?php echo $name; ?>" value="<?php echo $currentid; ?>" />
 		<?php
 	}

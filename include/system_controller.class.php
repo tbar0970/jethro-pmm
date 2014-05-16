@@ -67,7 +67,7 @@ class System_Controller
 				$call_obj = new $classname;
 				$call_obj->run();
 			} else {
-				trigger_error('Unknown call '.htmlentities($_REQUEST['call']), E_USER_WARNING);
+				trigger_error('Unknown call '.ents($_REQUEST['call']), E_USER_WARNING);
 			}
 		} else {
 			$this->initErrorHandler();

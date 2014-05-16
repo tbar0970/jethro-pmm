@@ -88,8 +88,8 @@ class View_Home extends View
 								$icon = ($task['type'] == 'person') ? 'user' : 'home';
 								?>
 								<tr>
-									<td class="narrow"><i class="icon-<?php echo $icon; ?>"></i> <?php echo htmlentities($task['name']); ?></td>
-									<td><a href="?view=<?php echo $view; ?>&<?php echo $task['type']; ?>id=<?php echo $task[$task['type'].'id']; ?>#note_<?php echo $id; ?>"><?php echo htmlentities($task['subject']); ?></a></td>
+									<td class="narrow"><i class="icon-<?php echo $icon; ?>"></i> <?php echo ents($task['name']); ?></td>
+									<td><a href="?view=<?php echo $view; ?>&<?php echo $task['type']; ?>id=<?php echo $task[$task['type'].'id']; ?>#note_<?php echo $id; ?>"><?php echo ents($task['subject']); ?></a></td>
 								</tr>
 								<?php
 							}

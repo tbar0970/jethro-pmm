@@ -39,9 +39,9 @@ class View_Admin__Congregations extends View
 				?>
 				<tr>
 					<td><?php echo $id; ?></td>
-					<td><?php echo htmlentities($cong['long_name']); ?></td>
-					<td><?php echo htmlentities($cong['name']); ?></td>
-					<td><?php echo htmlentities($cong['meeting_time']); ?></td>
+					<td><?php echo ents($cong['long_name']); ?></td>
+					<td><?php echo ents($cong['name']); ?></td>
+					<td><?php echo ents($cong['meeting_time']); ?></td>
 					<td><?php echo (int)($cong['print_quantity']); ?></td>
 					<td class="action-cell"><a href="?view=_edit_congregation&congregationid=<?php echo $id; ?>"><i class="icon-wrench"></i>Edit</a></td>
 				</tr>

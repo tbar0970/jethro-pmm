@@ -22,7 +22,7 @@ class View_Groups__List_All extends View
 		foreach ($this->_category_data as $cid => $cat) {
 			if ($cat['parent_category'] != $parentid) continue;
 			?>
-			<h3><?php echo htmlentities($cat['name']); ?></h3>
+			<h3><?php echo ents($cat['name']); ?></h3>
 			<?php 
 			$this->_printGroupsForCategory($cid);
 			?>

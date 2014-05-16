@@ -22,7 +22,7 @@ class View_Persons__Statistics extends View
 		foreach ($stats as $status_name => $count) {
 			?>
 			<tr>
-				<th><?php echo htmlentities($status_name); ?></th>
+				<th><?php echo ents($status_name); ?></th>
 				<td><?php echo (int)$count; ?></td>
 			</tr>
 			<?php

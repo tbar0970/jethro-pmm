@@ -45,7 +45,7 @@ class View__Add_Note_To_Family extends View
 		?>
 		<form method="post" class="form-horizontal">
 			<input type="hidden" name="new_note_submitted" value="1" />
-			<input type="hidden" name="familyid" value="<?php echo htmlentities($_REQUEST['familyid']); ?>" />
+			<input type="hidden" name="familyid" value="<?php echo ents($_REQUEST['familyid']); ?>" />
 			<h3>New Note Details</h3>
 			<?php
 			$this->_note->printForm();

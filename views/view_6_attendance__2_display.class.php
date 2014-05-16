@@ -180,12 +180,12 @@ class View_Attendance__Display extends View
 			foreach ($attendances as $personid => $record) {
 				?>
 				<tr>
-					<td><?php echo htmlentities($record['last_name']); ?></td>
-					<td><?php echo htmlentities($record['first_name']); ?></td>
+					<td><?php echo ents($record['last_name']); ?></td>
+					<td><?php echo ents($record['first_name']); ?></td>
 					<td>
 						<?php
 						if ($this->groupid) {
-							echo htmlentities($record['membership_status']);
+							echo ents($record['membership_status']);
 						} else {
 							$dummy->printFieldValue('status', $record['status']);
 						}

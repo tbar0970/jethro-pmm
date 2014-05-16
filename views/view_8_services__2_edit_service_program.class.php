@@ -232,7 +232,7 @@ class View_Services__Edit_Service_Program extends View_Services__Display_Service
 				foreach ($this->_congregations as $congid) {
 					$cong = $GLOBALS['system']->getDBObject('congregation', (int)$congid);
 					?>
-					<th colspan="3"><?php echo htmlentities($cong->getValue('name')); ?></th>
+					<th colspan="3"><?php echo ents($cong->getValue('name')); ?></th>
 					<?php
 				}
 				?>
@@ -374,7 +374,7 @@ class View_Services__Edit_Service_Program extends View_Services__Display_Service
 			<tr>
 				<th>Topic</th>
 				<td class="topic">
-					<input type="text" name="topic_title[<?php echo $congid; ?>][<?php echo $date; ?>]" size="36" value="<?php echo htmlentities(array_get($data, 'topic_title')); ?>" />
+					<input type="text" name="topic_title[<?php echo $congid; ?>][<?php echo $date; ?>]" size="36" value="<?php echo ents(array_get($data, 'topic_title')); ?>" />
 				</td>
 			</tr>
 			<tr>
@@ -390,7 +390,7 @@ class View_Services__Edit_Service_Program extends View_Services__Display_Service
 						?>
 						<tr>
 							<td>
-								<input type="text" name="bible_refs[<?php echo $congid; ?>][<?php echo $date; ?>][]" class="bible-ref" value="<?php echo htmlentities($this->_formatBible(array_get($reading, 'bible_ref', ''))); ?>" />
+								<input type="text" name="bible_refs[<?php echo $congid; ?>][<?php echo $date; ?>][]" class="bible-ref" value="<?php echo ents($this->_formatBible(array_get($reading, 'bible_ref', ''))); ?>" />
 							</td>
 							<td class="bible-options">
 								
@@ -432,7 +432,7 @@ class View_Services__Edit_Service_Program extends View_Services__Display_Service
 			</tr>
 			<tr class="hide">
 				<th>Notes</th>
-				<td><textarea class="full-width-input" name="notes[<?php echo $congid; ?>][<?php echo $date; ?>]"><?php echo htmlentities(array_get($data, 'notes')); ?></textarea></td>
+				<td><textarea class="full-width-input" name="notes[<?php echo $congid; ?>][<?php echo $date; ?>]"><?php echo ents(array_get($data, 'notes')); ?></textarea></td>
 			</tr>
 		</table>
 		<?php

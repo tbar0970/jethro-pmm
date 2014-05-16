@@ -354,7 +354,7 @@ class Person_Group extends db_object
 		}
 		?>
 		<select name="<?php echo $fieldname; ?>">
-			<option value=""><?php echo htmlentities($empty_text); ?></option>
+			<option value=""><?php echo ents($empty_text); ?></option>
 			<?php
 			self::_printChooserOptions($cats, $groups, $value, $allow_category_select);
 			if ($allow_category_select) {
@@ -384,13 +384,13 @@ class Person_Group extends db_object
 			if ($allow_category_select) {
 				$sel = ($value === 'c'.$cid) ? ' selected="selected"' : '';
 				?>
-				<option value="c<?php echo $cid; ?>" class="strong"<?php echo $sel; ?>><?php echo $prefix.htmlentities($cat['name']); ?> (ALL)</option>
+				<option value="c<?php echo $cid; ?>" class="strong"<?php echo $sel; ?>><?php echo $prefix.ents($cat['name']); ?> (ALL)</option>
 				<?php
 				self::_printChooserGroupOptions($groups, $cid, $value, $prefix.'&nbsp;&nbsp;&nbsp;');
 				self::_printChooserOptions($cats, $groups, $value, $allow_category_select, $cid, $prefix.'&nbsp;&nbsp;');
 			} else {
 				?>
-				<optgroup label="<?php echo $prefix.htmlentities($cat['name']); ?>">
+				<optgroup label="<?php echo $prefix.ents($cat['name']); ?>">
 				<?php
 				self::_printChooserGroupOptions($groups, $cid, $value);
 				self::_printChooserOptions($cats, $groups, $value, $allow_category_select, $cid, $prefix.'&nbsp;&nbsp;');
@@ -407,7 +407,7 @@ class Person_Group extends db_object
 			if ($group['categoryid'] != $catid) continue;
 			$sel = ($gid == $value) ? ' selected="selected"' : '';
 			?>
-			<option value="<?php echo (int)$gid; ?>"<?php echo $sel; ?>><?php echo $prefix.htmlentities($group['name']); ?></option>
+			<option value="<?php echo (int)$gid; ?>"<?php echo $sel; ?>><?php echo $prefix.ents($group['name']); ?></option>
 			<?php
 		}
 	}

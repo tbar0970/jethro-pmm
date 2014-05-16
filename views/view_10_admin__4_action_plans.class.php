@@ -100,11 +100,11 @@ class View_Admin__Action_Plans extends View
 						?>
 						<tr>
 							<td><?php echo (int)$id; ?></td>
-							<td class="nowrap"><?php echo htmlentities($details['name']); ?></td>
+							<td class="nowrap"><?php echo ents($details['name']); ?></td>
 							<td class="nowrap"><?php $dummy_plan->printFieldValue('modified'); ?> by <?php echo $dummy_plan->printFieldValue('modifier'); ?></td>
 							<td class="narrow action-cell">
-								<a href="?view=<?php echo htmlentities($_REQUEST['view']); ?>&planid=<?php echo $id; ?>"><i class="icon-wrench"></i>Edit</a> &nbsp;
-								<a href="?view=<?php echo htmlentities($_REQUEST['view']); ?>&planid=<?php echo $id; ?>&delete=1" class="confirm-title" title="Delete this action plan"><i class="icon-trash"></i>Delete</a>
+								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&planid=<?php echo $id; ?>"><i class="icon-wrench"></i>Edit</a> &nbsp;
+								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&planid=<?php echo $id; ?>&delete=1" class="confirm-title" title="Delete this action plan"><i class="icon-trash"></i>Delete</a>
 							</td>
 						</tr>
 						<?php

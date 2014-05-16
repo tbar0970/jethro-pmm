@@ -153,12 +153,12 @@ class roster_view extends db_object
 								if ($details['congregation_name'] != $last_cong) {
 									if ($last_cong) echo '</optgroup>';
 									?>
-									<optgroup label="<?php echo htmlentities($details['congregation_name']); ?>">
+									<optgroup label="<?php echo ents($details['congregation_name']); ?>">
 									<?php
 									$last_cong = $details['congregation_name'];
 								}
 								?>
-								<option value="role-<?php echo $id; ?>"<?php if ($id == $member_details['role_id']) echo 'selected="selected" '; ?>><?php echo htmlentities($details['congregation_name'].' '.$details['title']); ?></option>
+								<option value="role-<?php echo $id; ?>"<?php if ($id == $member_details['role_id']) echo 'selected="selected" '; ?>><?php echo ents($details['congregation_name'].' '.$details['title']); ?></option>
 								<?php
 							}
 							?>
@@ -170,12 +170,12 @@ class roster_view extends db_object
 							<?php
 							foreach ($GLOBALS['system']->getDBObjectData('congregation', Array('!meeting_time' => ''), 'AND', 'meeting_time') as $congid => $cong_details) {
 								?>
-								<optgroup label="<?php echo htmlentities($cong_details['name']); ?>">
+								<optgroup label="<?php echo ents($cong_details['name']); ?>">
 								<?php
 								foreach (Service::getDisplayFields() as $k => $v) {
 									$selected = (($member_details['congregationid'] == $congid) && ($member_details['service_field'] == $k)) ? 'selected="selected"' : '';
 									?>
-									<option value="service-<?php echo $congid.'-'.$k; ?>" <?php echo $selected; ?>><?php echo htmlentities($cong_details['name'].' '.$v); ?></option>
+									<option value="service-<?php echo $congid.'-'.$k; ?>" <?php echo $selected; ?>><?php echo ents($cong_details['name'].' '.$v); ?></option>
 									<?php
 								}
 								?>
@@ -585,7 +585,7 @@ class roster_view extends db_object
 							$names = Array();
 							foreach (array_get($ddetail['assignments'], $mdetail['role_id'], Array()) as $personid => $vs) {
 								if (!$public) {
-									$n = '<a href="'.BASE_URL.'?view=persons&personid='.$personid.'" title="Assigned by '.htmlentities($vs['assigner']).' on '.format_datetime($vs['assignedon']).'">'.nbsp(htmlentities($vs['name'])).'</a>';
+									$n = '<a href="'.BASE_URL.'?view=persons&personid='.$personid.'" title="Assigned by '.ents($vs['assigner']).' on '.format_datetime($vs['assignedon']).'">'.nbsp(ents($vs['name'])).'</a>';
 									if (empty($vs['email'])) $n .= '&nbsp;<img src="'.BASE_URL.'resources/img/no_email.png" style="display:inline" title="No Email Address" />';
 									$names[] = $n;
 								} else {
@@ -713,17 +713,17 @@ class roster_view extends db_object
 				if ($details['role_id']) {
 					if ($editing) {
 						if (!empty($details['volunteer_group'])) {
-							echo '<a title="Click to edit volunteer group" href="'.BASE_URL.'?view=groups&groupid='.(int)$details['volunteer_group'].'">'.htmlentities($details['role_title']).'</a>';
+							echo '<a title="Click to edit volunteer group" href="'.BASE_URL.'?view=groups&groupid='.(int)$details['volunteer_group'].'">'.ents($details['role_title']).'</a>';
 						} else {
-							echo htmlentities($details['role_title']);
+							echo ents($details['role_title']);
 						}
 						if (!empty($details['readonly'])) echo '<br /><b>[LOCKED]</b>';
 					} else {
-						echo '<a class="med-popup" title="Click for role description" href="'.BASE_URL.'/public/?view=display_role_description&role='.$details['role_id'].'">'.htmlentities($details['role_title']).'</a>';
+						echo '<a class="med-popup" title="Click for role description" href="'.BASE_URL.'/public/?view=display_role_description&role='.$details['role_id'].'">'.ents($details['role_title']).'</a>';
 					}
 				} else {
 					$dummy_service = new Service();
-					echo htmlentities($dummy_service->getFieldLabel($details['service_field'], true));
+					echo ents($dummy_service->getFieldLabel($details['service_field'], true));
 				}
 				?>
 			</th>

@@ -46,7 +46,7 @@ class View__Mixed_Search extends View
 			foreach ($this->_person_data as $id => $values) {
 				?>
 				<tr>
-					<td><?php echo htmlentities($values['first_name']).' '.htmlentities($values['last_name']); ?></td>
+					<td><?php echo ents($values['first_name']).' '.ents($values['last_name']); ?></td>
 					<td class="narrow">
 						<a href="?view=persons&personid=<?php echo $id; ?>"><i class="icon-user"></i>View</a> &nbsp;
 						<a href="?view=_edit_person&personid=<?php echo $id; ?>"><i class="icon-wrench"></i>Edit</a>
@@ -59,7 +59,7 @@ class View__Mixed_Search extends View
 			foreach ($this->_family_data as $id => $values) {
 				?>
 				<tr>
-					<td><?php echo htmlentities($values['family_name']); ?> Family</td>
+					<td><?php echo ents($values['family_name']); ?> Family</td>
 					<td class="narrow">
 						<a href="?view=families&familyid=<?php echo $id; ?>"><i class="icon-home"></i>View</a> &nbsp;
 						<a href="?view=_edit_family&familyid=<?php echo $id; ?>"><i class="icon-wrench"></i>Edit</a>
