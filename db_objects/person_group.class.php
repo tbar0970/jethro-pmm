@@ -185,7 +185,7 @@ class Person_Group extends db_object
 		$sql = 'SELECT g.id, g.name, gm.created, g.is_archived, g.categoryid, pgms.label as membership_status
 				FROM person_group_membership gm 
 				JOIN person_group g ON gm.groupid = g.id
-				JOIN person_group_membership_status pgms ON pgms.id = gm.membership_status
+				LEFT JOIN person_group_membership_status pgms ON pgms.id = gm.membership_status
 				WHERE gm.personid = '.$db->quote((int)$personid).'
 				'.($includeArchived ? '' : ' AND NOT g.is_archived').'
 				ORDER BY g.name';
