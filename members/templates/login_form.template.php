@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<?php include 'head.template.php' ?>
+	<?php include dirname(dirname(dirname(__FILE__))).'/templates/head.template.php' ?>
 </head>
 <body id="login">
 	<form method="post" id="login-box" class="well">
@@ -10,7 +10,7 @@
 		SizeDetector::printFormFields();
 		?>
 		<div id="login-header">
-			<h1><span>Jethro PMM </span> <?php echo ents(SYSTEM_NAME); ?></h1>
+			<h1><?php echo ents(SYSTEM_NAME); ?></h1>
 		</div>
 		<div id="login-body" class="form-horizontal">
 			<noscript>
@@ -20,28 +20,37 @@
 			if (!empty($this->_error)) {
 				echo '<div class="alert alert-error">'.$this->_error.'</div>';
 			} else {
-				echo ' <h3>Login</h3>';
+				echo ' <h3>Member Login</h3>';
 			}
 			?>
 			<div class="control-group">
-				<label class="control-label login-box-label" for="username">Username</label>
-				<div class="controls login-box-controls">
-					<input type="text" name="username" id="username" value="" placeholder="Username" />
+				<label class="control-label nowrap">My email address is: </label>
+				<div class="controls">
+					<input type="text" name="username" autofocus="autofocus" id="email" value="" placeholder="Username" />
 				</div>
 			</div>
 			<div class="control-group">
-				<label class="control-label login-box-label" for="password">Password</label>
-				<div class="controls login-box-controls">
+				<label class="control-label radio">
+					<input type="radio" checked="checked" name="action" value="login">
+					I have a password:
+				</label>
+				<div class="controls input-append">
 					<input type="password" name="password" id="password" value="" placeholder="Password" />
+					<input type="submit" class="btn" value="Log in" />
+				</div>
+			</div>
+			
+			<div class="control-group">
+				<label class="control-label radio">
+					<input type="radio" name="action" value="register">
+					Please send me a new password
+				</label>
+				<div class="controls">
+					<input class="btn" type="submit" value="Send" />
 				</div>
 			</div>
 
-			<div class="control-group">
-				<div class="controls">
-					<input type="submit" value="Log In" class="btn" />
-					<input type="hidden" name="login_key" value="<?php echo $login_key; ?>" />
-				</div>
-			</div>
+
 		</div>
 	</form>
 </body>

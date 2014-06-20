@@ -84,6 +84,11 @@ class User_System
 		return (bool)$res;
 	}
 
+	/**
+	 * Get details of the currently-authorised *user account* (staff member)
+	 * @param string $field	Particular field to return; null=return all fields
+	 * @return mixed
+	 */
 	public function getCurrentUser($field='')
 	{
 		if (empty($_SESSION['user'])) {
@@ -97,6 +102,16 @@ class User_System
 		}
 
 	}//end getCurrentUser()
+	
+	/**
+	 * Get details of the currently-authorised *member* account
+	 */
+	public function getCurrentMember() {
+		if ($user = $this->getCurrentUser()) return $user;
+		
+		return array_get($_SESSION, 'authorised_member');
+		
+	}
 
 	public function getCurrentRestrictions()
 	{

@@ -95,11 +95,11 @@ img:["glyphicons-halflings.png","glyphicons-halflings-white.png"]
 	margin-bottom: 20px;
 	margin-top: 0px;
 }
-#login-box label {
+.login-box-label {
 	width: 6em;
 	text-align: left;
 }
-#login-box .controls {
+.login-box .controls {
 	margin-left: 6em;
 }
 @media (max-width: 640px) {

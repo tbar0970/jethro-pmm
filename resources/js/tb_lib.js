@@ -10,11 +10,17 @@ $(document).ready(function() {
 
 	if ($('.stop-js').length) return; /* Classname flag for big pages that don't want JS to run */
 
-	if ($('.initial-focus, .autofocus, [autofocus]').length) {
-		setTimeout("$('.initial-focus, .autofocus, [autofocus]').get(0).focus()", 200);
-	} else {
-		// Focus the first visible input
-		setTimeout("try { $('body input[type!=checkbox]:visible:first').not('.btn-link').not('.no-autofocus *').focus(); } catch (e) {}", 200);
+	
+	var i = document.createElement('input');
+	if (!('autofocus' in i) || $('[autofocus]').length == 0) {
+		// native autofocus is not supported, or no element is using it
+		if ($('.initial-focus, .autofocus, [autofocus]').length) {
+			console.log($('.initial-focus, .autofocus, [autofocus]'))
+			setTimeout("$('.initial-focus, .autofocus, [autofocus]').get(0).focus()", 200);
+		} else {
+			// Focus the first visible input
+			setTimeout("try { $('body input[type!=checkbox]:visible').not('.btn-link, [type=checkbox], [type=radio]').not('.no-autofocus *').focus(); } catch (e) {}", 200);
+		}
 	}
 
 	//// VALIDATION ////
