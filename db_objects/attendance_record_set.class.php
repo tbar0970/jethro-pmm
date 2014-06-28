@@ -201,7 +201,7 @@ class Attendance_Record_Set
 		$this->_attendance_records = Array();
 		if (isset($_POST['attendances']) && isset($_POST['attendances'][$prefix])) {
 			foreach ($_POST['attendances'][$prefix] as $personid => $present) {
-				if ($present != 'unknown') {
+				if (!empty($present) && ($present != 'unknown')) {
 					$this->_attendance_records[$personid] = (int)($present == 'present');
 				}
 			}
