@@ -24,14 +24,14 @@
 			}
 			?>
 			<div class="control-group">
-				<label class="control-label login-box-label" for="username">Username</label>
-				<div class="controls login-box-controls">
+				<label class="control-label" for="username">Username</label>
+				<div class="controls">
 					<input type="text" name="username" id="username" value="" placeholder="Username" />
 				</div>
 			</div>
 			<div class="control-group">
-				<label class="control-label login-box-label" for="password">Password</label>
-				<div class="controls login-box-controls">
+				<label class="control-label" for="password">Password</label>
+				<div class="controls">
 					<input type="password" name="password" id="password" value="" placeholder="Password" />
 				</div>
 			</div>

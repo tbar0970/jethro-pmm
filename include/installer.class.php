@@ -285,7 +285,7 @@ class Installer
 		You can now:
 		<ul>
 			<li><a target="_blank" href="<?php echo BASE_URL; ?>/readme.html">View the readme file</a> for further information</li>
-			<li><a target="_blank" href="<?php echo BASE_URL; ?>">Log in to the system</a> to start work</li>
+			<li><a href="<?php echo BASE_URL; ?>">Log in to the system</a> to start work</li>
 		</ul>
 		<?php
 	}

@@ -5,6 +5,7 @@
 </head>
 <body id="login">
 	<form method="post" id="login-box" class="well">
+		<input type="hidden" name="login_key" value="<?php echo $login_key; ?>" />
 		<?php 
 		require_once 'include/size_detector.class.php';
 		SizeDetector::printFormFields();
@@ -12,7 +13,7 @@
 		<div id="login-header">
 			<h1><?php echo ents(SYSTEM_NAME); ?></h1>
 		</div>
-		<div id="login-body" class="form-horizontal">
+		<div id="login-body">
 			<noscript>
 				<div class="alert"><strong>Error: Javascript is Disabled</strong><br />For Jethro to function correctly you must enable javascript, which is done most simply by lowering the security level your browser uses for this website</div>
 			</noscript>
@@ -23,32 +24,26 @@
 				echo ' <h3>Member Login</h3>';
 			}
 			?>
-			<div class="control-group">
-				<label class="control-label nowrap">My email address is: </label>
-				<div class="controls">
-					<input type="text" name="username" autofocus="autofocus" id="email" value="" placeholder="Username" />
-				</div>
-			</div>
-			<div class="control-group">
-				<label class="control-label radio">
-					<input type="radio" checked="checked" name="action" value="login">
-					I have a password:
-				</label>
-				<div class="controls input-append">
-					<input type="password" name="password" id="password" value="" placeholder="Password" />
-					<input type="submit" class="btn" value="Log in" />
-				</div>
-			</div>
+			<label class="">
+			What is your email address? <br />
+			<input type="email" name="email" autofocus="autofocus" class="compulsory" value="<?php echo ents(array_get($_REQUEST, 'email', '')); ?>" placeholder="Username" />
+			</label>
 			
-			<div class="control-group">
-				<label class="control-label radio">
-					<input type="radio" name="action" value="register">
-					Please send me a new password
-				</label>
-				<div class="controls">
-					<input class="btn" type="submit" value="Send" />
+		
+			<label>
+				If you already have an account, enter your password:
+				<div class=" input-append">
+					<input type="password" name="password" value="" placeholder="Password" />
+					<input type="submit" name="login-request" class="btn" value="Log in" />
 				</div>
-			</div>
+			</label>
+			
+			<label>
+				If you don't have an account, we can send you an email to create one:
+				<input class="btn" type="submit" name="password-request" value="Email me now" />
+			</label>
+
+
 
 
 		</div>

@@ -582,4 +582,74 @@ function get_mailto_url($addresses, $name) {
 		return 'mailto:'.urlencode(str_replace(' ', '%20', $name)).' <'.$addresses.'>';
 	}
 }
+
+// From http://stackoverflow.com/questions/1182584/secure-random-number-generation-in-php
+// get 128 pseudorandom bits in a string of 16 bytes
+function generate_random_string($chars=16)
+{
+	$pr_bits = '';
+	
+	if (function_exists('openssl_random_pseudo_bytes')) {
+		return base64_encode(openssl_random_pseudo_bytes($chars));
+	}
+
+	// Unix/Linux platform?
+	$fp = @fopen('/dev/urandom','rb');
+	if ($fp !== FALSE) {
+		$pr_bits .= @fread($fp,$chars);
+		@fclose($fp);
+	}
+
+	// MS-Windows platform?
+	if (@class_exists('COM')) {
+		// http://msdn.microsoft.com/en-us/library/aa388176(VS.85).aspx
+		try {
+			$CAPI_Util = new COM('CAPICOM.Utilities.1');
+			$pr_bits .= $CAPI_Util->GetRandom($chars,0);
+
+			// if we ask for binary data PHP munges it, so we
+			// request base64 return value.  We squeeze out the
+			// redundancy and useless ==CRLF by hashing...
+			if ($pr_bits) { $pr_bits = md5($pr_bits,TRUE); }
+		} catch (Exception $ex) {
+			// echo 'Exception: ' . $ex->getMessage();
+		}
+	}
+	
+	if (empty($pr_bits)) {
+		trigger_error("Could not genereate random string", E_USER_ERROR);
+	}
+
+	if (strlen($pr_bits) < $chars) {
+		trigger_error("Generated random string not long enough (only ".strlen($pr_bits));
+	}
+	
+	return $pr_bits;
+}
+
+function jethro_password_hash($str)
+{
+	if (function_exists('password_hash')) {
+		return password_hash($str, PASSWORD_DEFAULT);
+	} else {
+		$salt = NULL;
+		if (defined('CRYPT_BLOWFISH') && CRYPT_BLOWFISH) {
+			$salt = '$2y$15$'.generate_random_string(22);
+		} else if (defined('CRYPT_SHA512') && CRYPT_SHA512) {
+			$salt = '$6$'.generate_random_string(16);
+		} else if (defined('CRYPT_SHA256') && CRYPT_SHA256) {
+			$salt = '$5$'.generate_random_string(16);
+		}
+		return crypt($str, $salt);
+	}
+}
+
+function jethro_password_verify($password, $hash)
+{
+	if (function_exists('password_verify')) {
+		return password_verify($password, $hash);
+	} else {
+		return (crypt($password, $hash) == $hash);
+	}
+}
 ?>

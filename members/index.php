@@ -31,20 +31,26 @@ set_include_path(get_include_path().PATH_SEPARATOR.dirname(THIS_DIR));
 
 // Load configuration
 require_once dirname(THIS_DIR).'/conf.php';
-define('DSN', MEMBERS_DSN);
-define('IS_PUBLIC', true);
+
+// Check if member access is enabled
+if (!defined('MEMBER_LOGIN_ENABLED') || !MEMBER_LOGIN_ENABLED) {
+	?>
+	<p>Member Login is not enabled for this Jethro System.  You may like to view the <a href="<?php echo BASE_URL; ?>/public">public site</a>
+	<?php
+	exit;
+}
 
 // Initialise system
+define('DSN', MEMBERS_DSN);
+define('IS_PUBLIC', true);
 require_once JETHRO_ROOT.'/include/init.php';
 
 // Set up the user system
-require_once JETHRO_ROOT.'/include/user_system.class.php';
-require_once JETHRO_ROOT.'/include/system_controller.class.php';
-$GLOBALS['user_system'] = new User_System();
-if ($GLOBALS['user_system']->getCurrentMember() == NULL) {
-	// Nobody is logged in, so show login screen or installer
-	$GLOBALS['user_system']->printLogin();
-} else {
+require_once THIS_DIR.'/include/member_user_system.class.php';
+$GLOBALS['member_user_system'] = new Member_User_System();
+$GLOBALS['member_user_system']->run();
+
+if ($GLOBALS['member_user_system']->getCurrentMember() != NULL) {
 	require_once 'include/system_controller.class.php';
 	$GLOBALS['system'] = new System_Controller(THIS_DIR);
 	$GLOBALS['system']->run();

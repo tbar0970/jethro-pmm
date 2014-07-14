@@ -102,16 +102,6 @@ class User_System
 		}
 
 	}//end getCurrentUser()
-	
-	/**
-	 * Get details of the currently-authorised *member* account
-	 */
-	public function getCurrentMember() {
-		if ($user = $this->getCurrentUser()) return $user;
-		
-		return array_get($_SESSION, 'authorised_member');
-		
-	}
 
 	public function getCurrentRestrictions()
 	{
@@ -151,22 +141,10 @@ class User_System
 
 	public function printLogin()
 	{
-		$_SESSION['login_key'] = $login_key = $this->_generateLoginKey();
+		$_SESSION['login_key'] = $login_key = generate_random_string(32);
 		require TEMPLATE_DIR.'/login_form.template.php';
 
 	}//end printLogin()
-
-
-	private function _generateLoginKey()
-	{
-		$res = '';
-		for ($i=0; $i < 256; $i++) {
-			$res .= ord(rand(32, 126));
-		}
-		return $res;
-
-	}//end _generateLoginKey()
-
 
 	private function _findUser($username, $password)
 	{
@@ -181,7 +159,7 @@ class User_System
 				GROUP BY p.id';
 		$row = $db->queryRow($sql);
 		check_db_result($row);
-		if (!empty($row) && crypt($password, $row['password']) == $row['password']) {
+		if (!empty($row) && jethro_password_verify($password, $row['password'])) {
 			$row['congregation_restrictions'] = empty($row['congregation_restrictions']) ? Array() : explode(',', $row['congregation_restrictions']);
 			$row['group_restrictions'] = empty($row['group_restrictions']) ? Array() : explode(',', $row['group_restrictions']);
 			return $row;

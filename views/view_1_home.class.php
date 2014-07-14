@@ -20,48 +20,20 @@ class View_Home extends View
 		<div class="homepage homepage-<?php echo $num_cols; ?>-col">
 
 		<div class="homepage-box search-forms">
-			<h3>Search</h3>
-
-			<label class="msie-only">Persons</label>
-			<form method="get">
-				<input type="hidden" name="view" value="persons__search" />
-				<div class="input-prepend input-append">
-					<span class="add-on"><i class="icon-user"></i></span>
-					<input type="text" name="name" id="search-name" class="" placeholder="Person" /> 
-					<button type="submit" class="btn">Go</button>
-				</div>
-			</form>
-
-			<label class="msie-only">Families</label>
-			<form method="get">
-				<input type="hidden" name="view" value="families__search" />
-				<span class="input-prepend input-append">
-					<span class="add-on"><i class="icon-home"></i></span>
-					<input type="text" name="name" id="search-family" class="" placeholder="Family" /> 
-					<button type="submit" class="btn">Go</button>
-				</span>
-			</form>
-
-			<label class="msie-only">Groups</label>
-			<form method="get">
-				<input type="hidden" name="view" value="groups__search" />
-				<span class="input-prepend input-append">
-					<span class="add-on"><i class="icon-th"></i></span>
-					<input type="text" name="name" class="" placeholder="Group" /> 
-					<button type="submit" class="btn">Go</button>
-				</span>
-			</form>
-
-			<label class="msie-only">Look up phone number</label>
+			<h3>
+				<a class="pull-right" href="javascript:window.location='<?php echo BASE_URL; ?>?view=_mixed_search&search='+prompt('Search <?php echo SYSTEM_NAME; ?> for: ')">
+					Bookmark
+				</a>
+				System-Wide Search</h3>
+			<label class="msie-only">Enter a person, family or group name, or phone number or email:</label>
 			<form method="get">
 				<input type="hidden" name="view" value="_mixed_search" />
 				<span class="input-prepend input-append">
-					<span class="add-on"><i class="icon-signal"></i></span>
-					<input type="text" name="tel" class="" placeholder="Phone #" /> 
+					<span class="add-on"><i class="icon-search"></i></span>
+					<input type="text" name="search" class="" placeholder="Name, Phone or Email" /> 
 					<button type="submit" class="btn">Go</button>
 				</span>
 			</form>
-
 		</div>
 
 		<?php

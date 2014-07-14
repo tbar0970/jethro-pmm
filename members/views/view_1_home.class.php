@@ -12,12 +12,7 @@ class View_Home extends View
 	
 	function printView()
 	{
-		?>
-		<p></p>
-		<p><i>Use the menu above to view rosters and role descriptions for <?php echo SYSTEM_NAME; ?></i><p>
-		<?php
-
-
+		
 
 	}
 

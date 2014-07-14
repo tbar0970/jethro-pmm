@@ -36,23 +36,27 @@ class View_Groups extends View
 			<h3>Group Details</h3>
 			<table class="table-full-width">
 				<tr>
-					<th class="narrow">Category</th>
-					<td class="narrow"><?php $this->_group->printFieldValue('categoryid'); ?>&nbsp;&nbsp;</td>
+					<th class="narrow" style="padding-bottom: 10px">Category</th>
+					<td><?php $this->_group->printFieldValue('categoryid'); ?>&nbsp;&nbsp;</td>
+					<th class="narrow hidden-phone">Record Attendance?</th>
+					<td class="hidden-phone"><?php $this->_group->printFieldValue('can_record_attendance'); ?></td>
 					<td class="align-right">
 						<a class="link-collapse" href="?view=_edit_group&groupid=<?php echo $this->_group->id; ?>"><i class="icon-wrench"></i>Edit group details</a>
 					</td>
 				</tr>
 				<tr>
 					<th class="narrow">Status</th>
-					<td class=""><?php $this->_group->printFieldValue('is_archived'); ?></td>
-						<td class="align-right">
-							<form class="min" method="post" action="?view=_edit_group&groupid=<?php echo $this->_group->id; ?>">
-								<button class="btn-link double-confirm-title link-collapse" type="submit" title="Delete this group">
-									<i class="icon-trash"></i>Delete group
-								</button>
-							</form>
-						</td>
-					</tr>
+					<td><?php $this->_group->printFieldValue('is_archived'); ?></td>
+					<th class="narrow hidden-phone">Share Member Details?</th>
+					<td class="hidden-phone"><?php $this->_group->printFieldValue('share_member_details'); ?></td>
+					<td class="align-right">
+						<form class="min" method="post" action="?view=_edit_group&groupid=<?php echo $this->_group->id; ?>">
+							<button class="btn-link double-confirm-title link-collapse" type="submit" title="Delete this group">
+								<i class="icon-trash"></i>Delete group
+							</button>
+						</form>
+					</td>
+				</tr>
 			</table>
 
 			<div class="modal hide fade" id="action-plan-modal" role="dialog" aria-hidden="true">

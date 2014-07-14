@@ -180,7 +180,7 @@ class Staff_Member extends Person
 					?>
 					<input type="password" class="password-strength-check" autocomplete="off" name="<?php echo $prefix.$name.'1'; ?>" /><br />
 					<input type="password" autocomplete="off" name="<?php echo $prefix.$name.'2'; ?>" /><br />
-					<p class="help-inline">Enter once, then again to confirm. Passwords must be at least 6 characters and contain letters and numbers</p>
+					<p class="help-inline">Enter once, then again to confirm. Passwords must be at least <?php echo (int)$this->getMinPasswordLength(); ?> characters and contain letters and numbers</p>
 					<?php
 				} else {
 					?>
@@ -257,10 +257,12 @@ class Staff_Member extends Person
 					$val = $_REQUEST[$prefix.$name.'1'];
 					if ($val != $_REQUEST[$prefix.$name.'2']) {
 						trigger_error('Password and password confirmation do not match; Password not saved.');
-					} else if (strlen($val) < 6) {
-						trigger_error('Password is too short - must be at least 6 characters; Password not saved.');
+					} else if (strlen($val) < $this->getMinPasswordLength()) {
+						trigger_error('Password is too short - must be at least '.$this->getMinPasswordLength().' characters; Password not saved.');
+					} else if (!preg_match('/[0-9]+/', $val) || !preg_match('/[^0-9]+/', $val)) {
+						trigger_error('Password is too simple - it must contain letters and numbers; Password not saved.');
 					} else {
-						$this->setValue($name, crypt($val));
+						$this->setValue($name, jethro_password_hash($val));
 						$this->_tmp['raw_password'] = $val; // only saved in this script execution
 					}
 				}
@@ -274,6 +276,12 @@ class Staff_Member extends Person
 			default:
 				parent::processFieldInterface($name, $prefix);
 		}
+	}
+	
+	private function getMinPasswordLength() {
+		$minLen = defined('PASSWORD_MIN_LENGTH') ? (int)PASSWORD_MIN_LENGTH : 0;
+		$minLen = max($minLen, 8);
+		return $minLen;
 	}
 
 	function processForm($prefix='', $fields=NULL)

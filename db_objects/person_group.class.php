@@ -31,6 +31,11 @@ class Person_Group extends db_object
 									'type'		=> 'select',
 									'options'	=> Array('No', 'Yes'),
 									),
+			'share_member_details' => Array(
+									'type' => 'select',
+									'options' => Array('No', 'Yes'),
+									'note' => 'If set to yes, members of this group will be able to see other members\' details when they log in to the <a href="'.BASE_URL.'members">member portal</a>'
+								),
 		);
 	}
 
