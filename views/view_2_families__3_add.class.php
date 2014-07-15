@@ -165,7 +165,7 @@ class View_Families__Add extends View
 		?>
 		<form method="post" id="add-family" class="form-horizontal">
 			<input type="hidden" name="new_family_submitted" value="1" />
-			<div class="autofocus">
+			<div class="">
 
 			<label>Family Name:</label>
 			<?php $this->_family->printFieldInterface('family_name'); ?>

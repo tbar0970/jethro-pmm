@@ -9,9 +9,9 @@ class Person extends DB_Object
 	const MAX_PHOTO_WIDTH = 200;
 	const MAX_PHOTO_HEIGHT = 200;
 
-	function person($id=0)
+	function __construct($id=0)
 	{
-		if ($id == $GLOBALS['user_system']->getCurrentUser('id')) {
+		if ($id == $this->getCurrentUser('id')) {
 			$this->_save_permission_level = 0;
 		}
 		return $this->db_object($id);
@@ -220,11 +220,7 @@ class Person extends DB_Object
 			echo ents($this->getValue('first_name')).'&nbsp;'.ents($this->getValue('last_name'));
 			return;
 		}
-		if (($name == 'email') && !empty($value) && ($value == $this->values['email'])) {
-			echo '<a href="'.get_mailto_url($this->values[$name], $this->values['first_name'].' '.$this->values['last_name']).'">'.ents($this->values[$name]).'</a>';
-		} else {
-			parent::printFieldValue($name, $value);
-		}
+		parent::printFieldValue($name, $value);
 	}
 
 	function printSummary() {

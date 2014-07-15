@@ -1,20 +1,32 @@
-ALTER TABLE _person
-ADD COLUMN password VARCHAR(255) DEFAULT NULL;
+<?php
+include_once JETHRO_ROOT.'/include/db_object.class.php';
+include_once JETHRO_ROOT.'/db_objects/person.class.php';
+include_once JETHRO_ROOT.'/db_objects/family.class.php';
+class Member extends DB_Object
+{
 
-ALTER TABLE _person
-ADD COLUMN resethash VARCHAR(255) DEFAULT NULL;
 
-ALTER TABLE _person 
-ADD COLUMN resetexpires DATETIME DEFAULT NULL;
+	function _getFields()
+	{
+		$memberFields = Array('first_name', 'last_name', 'gender', 'age_bracket', 'congregationid', 'email', 'mobile_tel', 'work_tel', 'familyid', 'family_name', 'address_street', 'address_suburb', 'address_state', 'address_postcode', 'home_tel');
+		
+		$p = new Person();
+		foreach ($p->_getFields() as $k => $v) {
+			if (in_array($k, $memberFields)) $res[$k] = $v;
+		}
+		$f = new Family();
+		foreach ($f->_getFields() as $k => $v) {
+			if (in_array($k, $memberFields)) $res[$k] = $v;
+		}
+		return $res;
+	}
 
-ALTER TABLE _person_group
-ADD COLUMN share_member_details varchar(255) default 0;
 
-ALTER VIEW person_group
-AS select `g`.* from `_person_group` `g` where ((`getCurrentUserID`() is not null) and ((not(exists(select 1 from `account_group_restriction` `gr` where (`gr`.`personid` = `getCurrentUserID`())))) or `g`.`id` in (select `gr`.`groupid` from `account_group_restriction` `gr` where (`gr`.`personid` = `getCurrentUserID`()))))
-
-DROP VIEW IF EXISTS member;
-CREATE VIEW member AS
+// TODO: this is likely to fail on an install because member will come before person etc
+	function getInitSQL()
+	{
+		return Array(
+			'CREATE VIEW member AS
 SELECT mp.id, mp.first_name, mp.last_name, mp.gender, mp.age_bracket, mp.congregationid,
 mp.email, mp.mobile_tel, mp.work_tel, mp.familyid,
 mf.family_name, mf.address_street, mf.address_suburb, mf.address_state, mf.address_postcode, mf.home_tel
@@ -34,4 +46,13 @@ FROM _person mp
 JOIN family mf ON mf.id = mp.familyid
 JOIN _person self ON self.familyid = mp.familyid
 WHERE self.id = getCurrentUserID()
-;
+;'
+		);
+	}
+	
+
+
+	
+
+}
+?>

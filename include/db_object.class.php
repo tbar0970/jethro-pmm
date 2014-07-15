@@ -22,7 +22,7 @@ class db_object
 
 	public function db_object($id=0)
 	{
-		if (!$GLOBALS['user_system']->havePerm($this->_load_permission_level)) {
+		if (!$this->checkPerm($this->_load_permission_level)) {
 			trigger_error('Current user has insufficient permission level to load a '.get_class($this).' object', E_USER_ERROR);
 		}
 
@@ -144,7 +144,7 @@ class db_object
 
 	public function create()
 	{
-		if (!$GLOBALS['user_system']->havePerm($this->_save_permission_level)) {
+		if (!$this->checkPerm($this->_save_permission_level)) {
 			trigger_error('Current user has insufficient permission level to create a '.get_class($this).' object', E_USER_ERROR);
 		}
 
@@ -154,7 +154,7 @@ class db_object
 		}
 		$GLOBALS['system']->setFriendlyErrors(FALSE);
 		if (isset($this->fields['creator']) && empty($this->values['creator'])) {
-			$userid = $GLOBALS['user_system']->getCurrentUser('id');
+			$userid = $this->getCurrentUser('id');
 			if (!is_null($userid)) {
 				$this->values['creator'] = $userid;
 			}
@@ -212,7 +212,7 @@ class db_object
 
 	public function createFromChild(&$child)
 	{
-		if (!$GLOBALS['user_system']->havePerm($this->_save_permission_level)) {
+		if (!$this->checkPerm($this->_save_permission_level)) {
 			trigger_error('Current user has insufficient permission level to create a '.get_class($this).' object', E_USER_ERROR);
 		}
 		$this->populate($child->id, $child->values);
@@ -276,7 +276,7 @@ class db_object
 
 	public function save()
 	{
-		if (!$GLOBALS['user_system']->havePerm($this->_save_permission_level)) {
+		if (!$this->checkPerm($this->_save_permission_level)) {
 			trigger_error('Current user has insufficient permission level to save a '.get_class($this).' object', E_USER_ERROR);
 		}
 		$GLOBALS['system']->setFriendlyErrors(TRUE);
@@ -300,7 +300,7 @@ class db_object
 				if ($name == 'password') continue;
 				$changes[] = $this->getFieldLabel($name).' changed from "'.ents($this->getFormattedValue($name, $old_val)).'" to "'.ents($this->getFormattedValue($name)).'"';
 			}
-			$user = $GLOBALS['user_system']->getCurrentUser();
+			$user = $this->getCurrentUser();
 			$this->values['history'][time()] = 'Updated by '.$user['first_name'].' '.$user['last_name'].' (#'.$user['id'].")\n".implode("\n", $changes);
 			$this->_old_values['history'] = 1;
 		}
@@ -616,6 +616,9 @@ class db_object
 			echo nl2br(ents($this->getFormattedValue($name, $value)));
 		} else if ($this->fields[$name]['type'] == 'phone') {
 			echo '<a href="tel:'.$value.'">'.ents($this->getFormattedValue($name, $value)).'</a>';
+		} else if (($this->fields[$name]['type'] == 'email')) {
+			$personName = ($this->values[$name] == $value) ? $this->values['first_name'].' '.$this->values['last_name'] : '';
+			echo '<a href="'.get_mailto_url($value, $personName).'">'.ents($value).'</a>';
 		} else {
 			echo ents($this->getFormattedValue($name, $value));
 		}
@@ -697,6 +700,27 @@ class db_object
 
 
 //--        PERMISSIONS AND LOCKING        --//
+	
+	protected function getCurrentUser($field='')
+	{
+		if (!empty($GLOBALS['member_user_system'])) {
+			$userid = $GLOBALS['member_user_system']->getCurrentMember($field);
+		} else {
+			$userid = $GLOBALS['user_system']->getCurrentUser($field);
+		}
+		return $userid;		
+	}
+	
+	protected function checkPerm($perm)
+	{
+		if ($perm == 0) return TRUE;
+		if (!empty($GLOBALS['user_system'])) {
+			return $GLOBALS['user_system']->havePerm($perm);
+		} else {
+			bam("Checking if we have permission $perm");
+			return TRUE;
+		}
+	}
 
 	public function haveLock($type='')
 	{
@@ -708,7 +732,7 @@ class db_object
 					WHERE object_type = '.$db->quote(strtolower(get_class($this))).'
 						AND objectid = '.$db->quote($this->id).'
 						AND lock_type = '.$db->quote($type).'
-						AND userid = '.$GLOBALS['user_system']->getCurrentUser('id').'
+						AND userid = '.$this->getCurrentUser('id').'
 						AND expires > '.$db->quote(MDB2_Date::unix2Mdbstamp(time()));
 			$this->_held_locks[$type] = $db->queryOne($sql);
 			check_db_result($this->_held_locks[$type]);
@@ -729,7 +753,7 @@ class db_object
 						AND expires > '.$db->quote(MDB2_Date::unix2Mdbstamp(time()));
 			$res = $db->queryOne($sql);
 			check_db_result($res);
-			if ($res == $GLOBALS['user_system']->getCurrentUser('id')) {
+			if ($res == $this->getCurrentUser('id')) {
 				$this->_acquirable_locks[$type] = TRUE; // already got it, what the heck
 				$this->_held_locks[$type] = TRUE;
 			} else {
@@ -749,7 +773,7 @@ class db_object
 					'.$db->quote($this->id).',
 					'.$db->quote(strtolower(get_class($this))).',
 					'.$db->quote($type).',
-					'.$db->quote($GLOBALS['user_system']->getCurrentUser('id')).',
+					'.$db->quote($this->getCurrentUser('id')).',
 					'.$db->quote(MDB2_Date::unix2Mdbstamp(strtotime('+'.LOCK_LENGTH))).')';
 		$res = $db->query($sql);
 		check_db_result($res);
@@ -771,7 +795,7 @@ class db_object
 	{
 		$db =& $GLOBALS['db'];
 		$sql = 'DELETE FROM db_object_lock
-				WHERE userid = '.$db->quote($GLOBALS['user_system']->getCurrentUser('id')).'
+				WHERE userid = '.$db->quote($this->getCurrentUser('id')).'
 					AND objectid = '.$db->quote($this->id).'
 					AND lock_type = '.$db->quote($type).'
 					AND object_type = '.$db->quote(strtolower(get_class($this)));

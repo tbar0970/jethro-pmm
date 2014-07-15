@@ -32,8 +32,13 @@ class System_Controller
 				}
 				if ($classname) {
 					include_once($this->_base_dir.'/views/'.$filename);
-					$view_perm = call_user_func(Array($classname, 'getMenuPermissionLevel'));
-					if (empty($view_perm) || $GLOBALS['user_system']->havePerm($view_perm)) {
+					$showView = TRUE;
+					if ($view_perm = call_user_func(Array($classname, 'getMenuPermissionLevel'))) {
+						$showView = !empty($GLOBALS['user_system']) && $GLOBALS['user_system']->havePerm($view_perm);
+					} else if ($view_feature = call_user_func(Array($classname, 'getMenuRequiredFeature'))) {
+						$showView = $this->featureEnabled($view_feature);
+					}
+					if ($showView) {
 						if (preg_match('/^view_([0-9]*)_(.*)__([0-9]*)_(.*)\.class\.php/', $filename, $matches)) {
 							$_SESSION['views'][$base_dir][$matches[2]]['children'][$matches[4]]['filename'] = $filename;
 						} else if (preg_match('/^view_([0-9]*)_(.*)\.class\.php/', $filename, $matches)) {

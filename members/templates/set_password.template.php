@@ -16,9 +16,9 @@
 				echo ' <h3>Set Password</h3>';
 			}
 			?>
-			<p>Great - your email address has been verified. </p>
+			<p>Great - your email address has now been verified. </p>
 			
-			<p>Now we just need you to choose a password to use in future.</p>
+			<p>Now we just need you to choose a password to use next time you log in.</p>
 			
 			<label>Password:</label>		
 			<input type="password" name="password1" />

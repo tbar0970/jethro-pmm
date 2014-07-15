@@ -11,7 +11,7 @@
 		<div id="login-body">
 			<h3>Email sent</h3>
 
-			<p>Please read the email that we have sent you, and click the link in it to finish creating your account.</p>
+			<p>Please read the email that we have sent you, and click the link inside the email to finish creating your account.</p>
 
 			<p>If the email hasn't arrived after a few minutes, please check your junk or spam folders.</p>
 

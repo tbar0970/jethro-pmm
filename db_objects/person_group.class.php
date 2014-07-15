@@ -110,6 +110,26 @@ class Person_Group extends db_object
 		}
 		return $res;
 	}
+	
+	function getMemberIDs($incl_archived=TRUE)
+	{
+		$db =& $GLOBALS['db'];
+		$sql = 'SELECT p.id
+				FROM person_group_membership gm 
+				JOIN person p ON gm.personid = p.id
+				LEFT JOIN congregation c ON c.id = p.congregationid
+				LEFT JOIN person_group_membership_status ms ON ms.id = gm.membership_status
+				WHERE gm.groupid = '.$db->quote((int)$this->id).'
+				';
+		if (!$incl_archived) {
+			$sql .= ' AND p.status <> "archived"
+					';
+		}
+		$sql .= 'ORDER BY p.last_name, p.first_name';
+		$res = $db->queryCol($sql);
+		check_db_result($res);
+		return $res;		
+	}
 
 	function addMember($personid, $membership_status=NULL, $overwrite_existing=FALSE)
 	{
@@ -184,7 +204,7 @@ class Person_Group extends db_object
 	}
 
 
-	static function getGroups($personid, $includeArchived=FALSE)
+	static function getGroups($personid, $includeArchived=FALSE, $whichShareMemberDetails=NULL)
 	{
 		$db =& $GLOBALS['db'];
 		$sql = 'SELECT g.id, g.name, gm.created, g.is_archived, g.categoryid, pgms.label as membership_status
@@ -193,6 +213,7 @@ class Person_Group extends db_object
 				LEFT JOIN person_group_membership_status pgms ON pgms.id = gm.membership_status
 				WHERE gm.personid = '.$db->quote((int)$personid).'
 				'.($includeArchived ? '' : ' AND NOT g.is_archived').'
+				'.(is_null($whichShareMemberDetails) ? '' : ' AND g.share_member_details = '.(int)$whichShareMemberDetails).' 
 				ORDER BY g.name';
 		$res = $db->queryAll($sql, null, null, true);
 		check_db_result($res);

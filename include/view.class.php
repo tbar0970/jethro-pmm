@@ -5,6 +5,11 @@ abstract class View
 	{
 		return 0;
 	}
+	
+	public static function getMenuRequiredFeature()
+	{
+		return NULL;
+	}
 
 	public function processView()
 	{

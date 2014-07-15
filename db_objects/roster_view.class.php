@@ -86,7 +86,7 @@ class roster_view extends db_object
 									'type'		=> 'select',
 									'options'	=> Array(0 => 'No', 1 => 'Yes'),
 									'default'	=> 0,
-									'note' => 'Public roster views are available to non-logged-in users via the <a href="'.BASE_URL.'/public/">public site</a>',
+									'note' => 'Public roster views are available to non-logged-in users via the <a href="'.BASE_URL.'/public/">public site</a> and to church members via the <a href="'.BASE_URL.'/members/">member portal</a>',
 								),
 		);
 		return $fields;
@@ -390,9 +390,15 @@ class roster_view extends db_object
 		$this_sunday = date('Y-m-d', strtotime('Sunday'));
 
 		if (empty($to_print)) {
-			?>
-			<div class="alert alert-error">There are no services during the date range specified.  Please try a different date range, or create some services using the 'Edit service program' page.</div>
-			<?php
+			if ($public) {
+				?>
+				<div class="alert alert-error">This roster is empty for the current date range.</div>
+				<?php				
+			} else {
+				?>
+				<div class="alert alert-error">There are no services during the date range specified.  Please try a different date range, or create some services using the 'Edit service program' page.</div>
+				<?php
+			}
 			return;
 		}
 

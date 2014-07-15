@@ -16,10 +16,11 @@ if (empty($_REQUEST['raw'])) {
 
 			<div id="jethro-nav-toprow">
 
-				<div class="user-detail pull-right">
-					<div>
-						<a href="<?php echo build_url(Array('raw' => 1)); ?>">Raw View</a>
-					</div>
+				<div class="user-detail pull-right" style="line-height: 40px">
+					<form class="min" method="post" action="<?php echo BASE_URL; ?>/members/">
+						<input type="hidden" name="logout" value="1" />
+						<button class="btn-link" type="submit">Log out</button>
+					</form>
 				</div>
 
 				<!-- narrow-style nav dropdown -->
@@ -42,6 +43,7 @@ if (empty($_REQUEST['raw'])) {
 				<div class="collapse nav-collapse">
 					<ul class="nav">
 					<?php $GLOBALS['system']->printNavigation(); ?>
+					<li class="visible-phone"><a href="?logout=1">Log out</a></li>
 					</ul>
 				</div><!--/.nav-collapse -->
 			</div><!--/.navbar-->

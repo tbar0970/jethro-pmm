@@ -10,12 +10,12 @@ class Staff_Member extends Person
 	var $_restrictions = Array();
 	var $_old_restrictions = NULL;
 
-	function staff_member($id=0)
+	function __construct($id=0)
 	{
 		if ($id == $GLOBALS['user_system']->getCurrentUser('id')) {
 			$this->_save_permission_level = 0;
 		}
-		return $this->person($id);
+		return parent::__construct($id);
 	}
 
 	function load($id)

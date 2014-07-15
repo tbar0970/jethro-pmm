@@ -863,8 +863,6 @@ Otherwise they go beneath each other
 	margin-right: 0px;
 }
 
-
-
 @media (min-width: 641px) and (max-width: 900px) {
 	/* reduce homepage to 2 cols for portrait tablet and below */
 	.homepage-3-col .homepage-box {
@@ -896,6 +894,24 @@ Otherwise they go beneath each other
 		min-width: 1300px;
 	}
 }
+
+/*************** MEMBERS HOME PAGE ******************/
+
+.member-homepage-box {
+	float: left; 
+	margin-right: 30px;
+	margin-bottom: 15px;
+}
+
+@media (max-width: 640px) {
+	/* reduce homepage to 1 col for landscape phone and below */
+	#body .member-homepage-box {
+		width: 100%;
+		margin: 0px;
+		float: none !important;
+	}
+}
+
 
 
 

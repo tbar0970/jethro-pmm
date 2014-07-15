@@ -4,7 +4,7 @@
 	<?php include dirname(dirname(dirname(__FILE__))).'/templates/head.template.php' ?>
 </head>
 <body id="login">
-	<form method="post" id="login-box" class="well">
+	<form method="post" id="login-box" class="well" action="<?php echo build_url(Array('logout' => NULL)); ?>">
 		<input type="hidden" name="login_key" value="<?php echo $login_key; ?>" />
 		<?php 
 		require_once 'include/size_detector.class.php';
@@ -31,7 +31,7 @@
 			
 		
 			<label>
-				If you already have an account, enter your password:
+				<p>If you already have an account, enter your password:</p>
 				<div class=" input-append">
 					<input type="password" name="password" value="" placeholder="Password" />
 					<input type="submit" name="login-request" class="btn" value="Log in" />
@@ -39,8 +39,8 @@
 			</label>
 			
 			<label>
-				If you don't have an account, we can send you an email to create one:
-				<input class="btn" type="submit" name="password-request" value="Email me now" />
+				<p>If you don't have an account or have lost your password, click below to create a new account:</p>
+				<input class="btn" type="submit" name="password-request" value="Create New Account" />
 			</label>
 
 

@@ -145,7 +145,7 @@ class family extends db_object
 		$postcode_url = POSTCODE_LOOKUP_URL;
 		if (($name == 'address_suburb') && !empty($postcode_url)) {
 			?>
-			<a class="smallprint hidden-phone" href="<?php echo POSTCODE_LOOKUP_URL; ?>" class="postcode-lookup" tabindex="-1">Look up <?php echo strtolower(defined('ADDRESS_POSTCODE_LABEL') ? constant('ADDRESS_POSTCODE_LABEL') : 'postcode'); ?></a>
+			<a class="smallprint hidden-phone postcode-lookup" href="<?php echo POSTCODE_LOOKUP_URL; ?>" tabindex="-1">Look up <?php echo strtolower(defined('ADDRESS_POSTCODE_LABEL') ? constant('ADDRESS_POSTCODE_LABEL') : 'postcode'); ?></a>
 			<?php
 		}
 	}
@@ -215,10 +215,18 @@ class family extends db_object
 		}
 		parent::printSummary();
 	}
+	
+	function printCustomSummary($showMembersCallback)
+	{
+		$this->_tmp['show_member_callback'] = $showMembersCallback;
+		parent::printSummary();
+		unset($this->_tmp['show_member_callback']);
+	}
 
 	function _printSummaryRows()
 	{
 		parent::_printSummaryRows();
+		
 		include_once 'include/size_detector.class.php';
 		if (SizeDetector::isNarrow()) {
 			?>
@@ -237,7 +245,11 @@ class family extends db_object
 
 				$persons = $this->getMemberData();
 				$show_actions = !empty($this->id); // hide actions if this is a "draft" family
-				if (empty($this->_tmp['abbreviate_member_list'])) {
+				
+				if (isset($this->_tmp['show_member_callback'])) {
+					call_user_func($this->_tmp['show_member_callback'], $persons);
+					
+				} else if (empty($this->_tmp['abbreviate_member_list'])) {
 					?>
 					<div style="float: left" id="member-details-container">
 					<?php

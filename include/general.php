@@ -579,7 +579,7 @@ function get_mailto_url($addresses, $name) {
 	if (empty($name) || $is_chrome_mac) {
 		return 'mailto:'.$addresses;
 	} else {
-		return 'mailto:'.urlencode(str_replace(' ', '%20', $name)).' <'.$addresses.'>';
+		return 'mailto:'.rawurlencode($name).' <'.$addresses.'>';
 	}
 }
 

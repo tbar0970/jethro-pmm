@@ -9,6 +9,17 @@ class Member_User_System
 	}
 
 	public function run() {
+		if (!empty($_REQUEST['logout'])) {
+			$this->_clearAuthMember();
+		} else if (empty($_SESSION['member']) && !empty($_REQUEST['login-request'])) {
+			$this->handleLoginRequest();
+		} else if (!empty($_REQUEST['password-request']) && !empty($_REQUEST['email'])) {
+			$this->handleAccountRequest();
+		} else if (!empty($_REQUEST['verify'])) {
+			$this->processEmailVerification();
+		} else if (!empty($_REQUEST['set-password'])) {
+			$this->processSetPassword();
+		}
 		
 		if (!empty($_SESSION['member'])) {
 			if (defined('SESSION_TIMEOUT_MINS') && constant('SESSION_TIMEOUT_MINS')) {
@@ -27,26 +38,16 @@ class Member_User_System
 
 			}
 			$_SESSION['last_activity_time'] = time();
-
+			
 			$res = $GLOBALS['db']->query('SET @current_user_id = '.(int)$_SESSION['member']['id']);
 			if (PEAR::isError($res)) trigger_error('Failed to set user id in database', E_USER_ERROR);
-		}
-
-		if (!empty($_REQUEST['logout'])) {
-			$this->_clearAuthMember();
-			$this->printLogin();
 			
-		} else if (!empty($_REQUEST['login-request'])) {
-			$this->handleLoginRequest();
-			
-		} else if (!empty($_REQUEST['password-request']) && !empty($_REQUEST['email'])) {
-			$this->handleAccountRequest();
-			
-		} else if (!empty($_REQUEST['verify'])) {
-			$this->processEmailVerification();
-			
-		} else if (!empty($_REQUEST['set-password'])) {
-			$this->processSetPassword();
+			include JETHRO_ROOT.'/include/permission_levels.php';
+			foreach ($PERM_LEVELS as $i => $detail) {
+				list($define_symbol, $desc, $feature_code) = $detail;
+				define('PERM_'.$define_symbol, $i);
+			}
+			return;
 			
 		} else {
 			$this->printLogin();
@@ -59,13 +60,11 @@ class Member_User_System
 			// process the login form
 			if (array_get($_SESSION, 'login_key', NULL) != $_POST['login_key']) {
 				$this->_error = 'Login Key Incorrect.  Please try again.';
-				$this->printLogin();
 				return;
 			}
 			$user_details = $this->_findAuthMember($_POST['email'], $_POST['password']);
 			if (is_null($user_details)) {
 				$this->_error = 'Incorrect email address or password';
-				$this->printLogin();
 				return;
 			} else {
 				// Log the member in
@@ -115,13 +114,11 @@ If you didn't request an account, you can just ignore this email";
 					return;
 				} else {
 					$this->_error = 'Could not send to the specified address.  Your email server may be experiencing problems.';
-					$this->printLogin();
 					return;
 				}
 				
 			} else if (!Emailer::validateAddress($_REQUEST['email'])) {
 				$this->_error = 'You have entered an invalid email address.  Please check the address and try again.';
-				$this->printLogin();
 				
 			} else if (($person == -1) && !empty(MEMBER_REGO_FAILURE_EMAIL)) {
 				// This email address is in use by two or more persons from *different families*.
@@ -170,7 +167,6 @@ If you didn't request an account, you can just ignore this email";
 			exit;
 		} else {
 			$this->_error = 'The account request is not valid.  You may have used an out-of-date link.  Please try registering again.';
-			$this->printLogin();
 		}
 	}
 	
@@ -319,11 +315,12 @@ If you didn't request an account, you can just ignore this email";
 		$sql = 'SELECT p.*
 				FROM _person p
 				WHERE p.email  = '.$db->quote($email).' AND member_password IS NOT NULL';
-		$res = $db->queryAll($sql, null, null, true);
+		$res = $db->queryAll($sql);
 		check_db_result($res);
 		foreach ($res as $row) {
 			if (jethro_password_verify($password, $row['member_password'])) {
 				unset($row['member_password']);
+				unset($row['history']);
 				return $row;
 			}
 		}
