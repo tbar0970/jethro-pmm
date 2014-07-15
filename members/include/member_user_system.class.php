@@ -77,6 +77,7 @@ class Member_User_System
 
 			$person = $this->_findCandidateMember($_REQUEST['email']);
 			require_once 'include/emailer.class.php';
+			$failureEmail = MEMBER_REGO_FAILURE_EMAIL;
 			
 			if (is_array($person)) {
 				// Send them an email
@@ -111,7 +112,7 @@ If you didn't request an account, you can just ignore this email";
 				
 				if (TRUE == $res) {
 					require_once 'templates/account_request_received.template.php';
-					return;
+					exit;
 				} else {
 					$this->_error = 'Could not send to the specified address.  Your email server may be experiencing problems.';
 					return;
@@ -120,7 +121,7 @@ If you didn't request an account, you can just ignore this email";
 			} else if (!Emailer::validateAddress($_REQUEST['email'])) {
 				$this->_error = 'You have entered an invalid email address.  Please check the address and try again.';
 				
-			} else if (($person == -1) && !empty(MEMBER_REGO_FAILURE_EMAIL)) {
+			} else if (($person == -1) && !empty($failureEmail)) {
 				// This email address is in use by two or more persons from *different families*.
 				// Therefore this address cannot be used for member access.
 				
@@ -138,8 +139,9 @@ If you didn't request an account, you can just ignore this email";
 				// Show the user the generic "thanks" page - because we do not want
 				// to tell strangers whether an email is or isn't known.
 				require_once 'templates/account_request_received.template.php';
+				exit;
 				
-			} else {
+			} else if (!empty($failureEmail)) {
 				// This email address doesn't match any person record.
 				// Send the administrator an email
 				
@@ -157,6 +159,7 @@ If you didn't request an account, you can just ignore this email";
 				// Show the user the generic "thanks" page - because we do not want
 				// to tell strangers whether an email is or isn't known.
 				require_once 'templates/account_request_received.template.php';
+				exit;
 			}		
 	}
 	

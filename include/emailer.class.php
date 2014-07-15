@@ -21,7 +21,7 @@ class Emailer
 			$transport = Swift_SmtpTransport::newInstance(SMTP_SERVER, $port);
 			if (defined('SMTP_USERNAME') && SMTP_USERNAME) $transport->setUsername(SMTP_USERNAME);
 			if (defined('SMTP_PASSWORD') && SMTP_PASSWORD) $transport->setPassword(SMTP_PASSWORD);
-			if (defined('SMTP_ENCRYPTION') && SMTP_ENCRYPTION) $transport->setEncription(SMTP_ENCRYPTION);
+			if (defined('SMTP_ENCRYPTION') && SMTP_ENCRYPTION) $transport->setEncryption(SMTP_ENCRYPTION);
 		} else {
 			$transport = Swift_MailTransport::newInstance();
 		}
