@@ -25,11 +25,13 @@
 			}
 			?>
 			<label class="">
-			What is your email address? <br />
-			<input type="email" name="email" autofocus="autofocus" class="compulsory" value="<?php echo ents(array_get($_REQUEST, 'email', '')); ?>" placeholder="Username" />
+				<p>What is your email address? </p>
+				<input type="email" name="email" autofocus="autofocus" class="compulsory" value="<?php echo ents(array_get($_REQUEST, 'email', '')); ?>" placeholder="Username" />
 			</label>
 			
 		
+			<ul>
+				<li>
 			<label>
 				<p>If you already have an account, enter your password:</p>
 				<div class=" input-append">
@@ -37,11 +39,16 @@
 					<input type="submit" name="login-request" class="btn" value="Log in" />
 				</div>
 			</label>
+					
+				</li>
+				<li>
 			
 			<label>
 				<p>If you don't have an account or have lost your password, click below to create a new account:</p>
 				<input class="btn" type="submit" name="password-request" value="Create New Account" />
 			</label>
+				</li>
+			</ul>
 
 
 
