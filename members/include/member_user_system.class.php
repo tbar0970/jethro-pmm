@@ -197,7 +197,11 @@ If you didn't request an account, you can just ignore this email";
 			$res = $db->exec($sql);
 			check_db_result($res);
 			
-			add_message('Welcome!  Your account is complete and you are now logged in.');
+			if (!empty($_REQUEST['isreset'])) {
+				add_message('Your password has been successfully changed.');
+			} else {
+				add_message('Welcome!  Your account is complete and you are now logged in.');		
+			}
 		}	
 		
 	}

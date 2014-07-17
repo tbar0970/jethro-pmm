@@ -16,11 +16,22 @@ if (empty($_REQUEST['raw'])) {
 
 			<div id="jethro-nav-toprow">
 
-				<div class="user-detail pull-right" style="line-height: 40px">
-					<form class="min" method="post" action="<?php echo BASE_URL; ?>/members/">
+				<div class="user-detail pull-right">
+					<div>
 						<input type="hidden" name="logout" value="1" />
-						<button class="btn-link" type="submit">Log out</button>
-					</form>
+						Logged in as 
+						<span class="dropdown">
+						<a class="dropdown-toggle" id="user-menu" data-toggle="dropdown" href="#">
+							<?php echo $GLOBALS['member_user_system']->getCurrentMember('first_name').' '.$GLOBALS['member_user_system']->getCurrentMember('last_name'); ?>
+							<i class="caret"></i> 
+						</a>
+						<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="user-menu">
+							<li><a href="?view=_change_password">Change Password</a></li>
+							<li><a href="<?php echo BASE_URL; ?>members?logout=1" data-method="post">Log out</a></li>
+						</ul>
+						</span>
+					</div>				
+				
 				</div>
 
 				<!-- narrow-style nav dropdown -->
