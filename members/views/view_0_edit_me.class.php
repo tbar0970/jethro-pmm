@@ -1,6 +1,10 @@
 <?php
 class View__Edit_Me extends View
 {
+	private $family = NULL;
+	private $persons = Array();
+	private $hasAdult = FALSE;
+	
 	function getTitle()
 	{
 		if ($this->family) return "Editing ".$this->family->getValue('family_name')." Family";
@@ -10,8 +14,12 @@ class View__Edit_Me extends View
 	{
 		$this->family = $GLOBALS['system']->getDBOBject('family', $GLOBALS['member_user_system']->getCurrentMember('familyid'));
 		foreach ($this->family->getMemberData() as $id => $member) {
-			$this->persons[] = $GLOBALS['system']->getDBObject('person', $id);
+			$p = $GLOBALS['system']->getDBObject('person', $id);
+			$this->persons[] = $p;
+			if ($p->getValue('age_bracket') == 'adult') $this->hasAdult = TRUE;
 		}
+		
+
 		
 		if (!empty($_POST)) {
 			$this->family->processForm();
@@ -32,14 +40,22 @@ class View__Edit_Me extends View
 	}
 	
 	function printView()
-	{		
+	{
+		if (($GLOBALS['member_user_system']->getCurrentMember('age_bracket') != 'adult')
+			&& (count($this->persons) > 1)
+			&& $hasAdult
+		) {
+			print_message("Sorry, only adults are able to edit this family.", 'error');
+			return;
+		}		
+		
 		$ok = $this->family->acquireLock();
 		foreach ($this->persons as $p) {
 			$ok = $ok && $p->acquireLock();
 		}
 		
 		if (!$ok) {
-			print_message("Your family cannot be edited right now.  Please try later");
+			print_message("Your family cannot be edited right now.  Please try later", 'error');
 			
 		} else {
 			
