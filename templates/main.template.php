@@ -28,20 +28,14 @@
 						<input type="hidden" name="logout" value="1" />
 						Logged in as 
 						<span class="dropdown">
-						<a class="dropdown-toggle" id="user-menu" data-toggle="dropdown" href="#">
-							<?php echo $GLOBALS['user_system']->getCurrentUser('first_name').' '.$GLOBALS['user_system']->getCurrentUser('last_name'); ?>
-							<i class="caret"></i> 
-						</a>
-						<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="user-menu">
-							<li><a href="?view=_edit_me">Edit me</a></li>
-							<li><a href="#">
-								<form class="min" method="post" action="<?php echo BASE_URL; ?>">
-									<input type="hidden" name="logout" value="1" />
-									<button class="btn-link" type="submit">Log out</button>
-								</form>
-								</a>
-							</li>
-						</ul>
+							<a class="dropdown-toggle" id="user-menu" data-toggle="dropdown" href="#">
+								<?php echo $GLOBALS['user_system']->getCurrentUser('first_name').' '.$GLOBALS['user_system']->getCurrentUser('last_name'); ?>
+								<i class="caret"></i> 
+							</a>
+							<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="user-menu">
+								<li><a href="?view=_edit_me">Edit me</a></li>
+								<li><a href="?logout=1" data-method="post">Log out</a></li>
+							</ul>
 						</span>
 
 					<?php

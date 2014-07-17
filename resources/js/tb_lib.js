@@ -256,8 +256,21 @@ $(document).ready(function() {
 			subs.removeClass('icon-chevron-down').addClass('icon-chevron-up');
 		}
 	});
-
-
+	
+	$('a[data-method=post]').click(function() {
+		var p = $(this).attr('href').split('?');
+		var action = p[0];
+		var params = p[1].split('&');
+		var pform = $(document.createElement('form')).attr('action', action);
+		$('body').append(pform);
+		for (var i in params) {
+			var tmp= params[i].split('=');
+			var key = tmp[0], value = tmp[1];
+			$(document.createElement('input')).attr('type', 'hidden').attr('name', key).attr('value', value).appendTo(pform);
+		}
+		pform.submit();
+		return false;
+	});
 });
 
 
@@ -632,7 +645,7 @@ TBLib.handleFormSubmit = function()
 TBLib.invalidEmailField = null;
 TBLib.handleEmailBlur = function()
 {
-	var rx = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*\.(\w{2}|(com|net|org|edu|int|mil|gov|arpa|biz|aero|name|coop|info|pro|museum))$/
+	var rx = /^\w+([\.+-]?\w+)*@\w+([\.-]?\w+)*\.(\w{2}|(com|net|org|edu|int|mil|gov|arpa|biz|aero|name|coop|info|pro|museum))$/
 	this.value = this.value.trim();
 	if (this.value != '' && !this.value.match(rx)) {
 		this.focus();
