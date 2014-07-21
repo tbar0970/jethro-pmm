@@ -21,8 +21,11 @@ class View_Home extends View
 
 		<div class="homepage-box search-forms">
 			<h3>
-				<a class="pull-right" href="javascript:window.location='<?php echo BASE_URL; ?>?view=_mixed_search&search='+prompt('Search <?php echo SYSTEM_NAME; ?> for: ')">
-					Bookmark
+				<a class="pull-right hide-phone" 
+				   href="javascript:if (sp = prompt('Search <?php echo SYSTEM_NAME; ?> for: ')) window.location='<?php echo BASE_URL; ?>?view=_mixed_search&search='+sp"
+				   onclick="prompt('To create a search-jethro button in your browser, save the following code as a bookmark/favourite: ', this.href); return false"
+				>
+					<small>Bookmark</small>
 				</a>
 				System-Wide Search</h3>
 			<label class="msie-only">Enter a person, family or group name, or phone number or email:</label>
