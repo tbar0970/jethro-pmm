@@ -4,7 +4,7 @@
 	<?php include dirname(dirname(dirname(__FILE__))).'/templates/head.template.php' ?>
 </head>
 <body id="login">
-	<form method="post" id="login-box" class="well" action="<?php echo build_url(Array('logout' => NULL)); ?>">
+	<form method="post" id="login-box" class="well disable-submit-buttons" action="<?php echo build_url(Array('logout' => NULL)); ?>">
 		<input type="hidden" name="login_key" value="<?php echo $login_key; ?>" />
 		<?php 
 		require_once 'include/size_detector.class.php';

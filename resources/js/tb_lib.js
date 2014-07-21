@@ -35,6 +35,12 @@ $(document).ready(function() {
 	$('input[regex]').change(TBLib.handleRegexInputBlur);
 	$('.optional .compulsory').removeClass('compulsory');
 	$('form').submit(TBLib.handleFormSubmit);
+	$('form.disable-submit-buttons input[type=submit]').click(function() {
+		// The submit button itself will be disabled on submit, so we
+		// create a hidden element to preserve its value in the request
+		var h = '<input type="hidden" name="'+this.name+'" value="'+this.value+'" />';
+		$(this).after(h);
+	})
 
 	//// POPUPS ETC ////
 	// handler for hidden-frame links
@@ -264,7 +270,7 @@ $(document).ready(function() {
 		var pform = $(document.createElement('form')).attr('action', action);
 		$('body').append(pform);
 		for (var i in params) {
-			var tmp= params[i].split('=');
+			var tmp= (""+params[i]).split('=');
 			var key = tmp[0], value = tmp[1];
 			$(document.createElement('input')).attr('type', 'hidden').attr('name', key).attr('value', value).appendTo(pform);
 		}
@@ -559,9 +565,10 @@ TBLib.handleFormSubmit = function()
 					return;
 				}
 			}
-			if (this.value.length < 6) {
+			var minLength = $(this).attr('data-minlength');
+			if (minLength && (this.value.length < minLength)) {
 				TBLib.markErroredInput(this);
-				alert('The password you entered is too short - passwords must be at least 6 characters');
+				alert('The password you entered is too short - it must be at least '+minLength+' characters');
 				this.select();
 				passwordsOK = false;
 				return;
@@ -638,6 +645,10 @@ TBLib.handleFormSubmit = function()
 		}
 	});
 	if (!ok) return false;
+	
+	if ($(this).hasClass('disable-submit-buttons')) {
+		$(this).find('input[type=submit]').attr('disabled', 'disabled');
+	}
 
 	return true;
 }

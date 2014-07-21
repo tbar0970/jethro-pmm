@@ -245,7 +245,9 @@ class System_Controller
 		</div>
 		<?php
 		if ($send_email && defined('ERRORS_EMAIL_ADDRESS') && constant('ERRORS_EMAIL_ADDRESS')) {
-			$content = "$errstr \nLine $errline of $errfile\n\nCurrent user: ".print_r($GLOBALS['user_system']->getCurrentUser('username'),1)."\n\nRequest: ".print_r($_REQUEST,1)."\n\n".print_r($bt, 1);
+			$content = "$errstr \nLine $errline of $errfile\n\n";
+			if (!empty($GLOBALS['user_system'])) $content .= "Current user: ".$GLOBALS['user_system']->getCurrentUser('username');
+			$content .= "\n\nRequest: ".print_r($_REQUEST,1)."\n\n".print_r($bt, 1);
 			@mail(constant('ERRORS_EMAIL_ADDRESS'), 'Jethro Error from '.build_url(array()), $content);
 		}
 		if ($send_email) error_log("$errstr - Line $errline of $errfile");

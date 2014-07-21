@@ -69,6 +69,8 @@ class Member_User_System
 			} else {
 				// Log the member in
 				$this->_setAuthMember($user_details);
+				redirect('home');
+				exit;
 			}		
 	}
 	
@@ -90,7 +92,7 @@ class Member_User_System
 				$res = $GLOBALS['db']->exec($SQL);
 				check_db_result($res);
 				
-				$url = BASE_URL.'/members/?email='.$person['email'].'&verify='.urlencode($hash);
+				$url = BASE_URL.'/members/?email='.rawurlencode($person['email']).'&verify='.rawurlencode($hash);
 				
 				$body = "Hi %s,
 							
@@ -151,7 +153,7 @@ If you didn't request an account, you can just ignore this email";
 				  ->setTo(MEMBER_REGO_FAILURE_EMAIL)
 				  ->setBody("Hi, \n\nThis is an automated message from the Jethro system at ".BASE_URL.".\n\n"
 						  ."Somebody has used the form at ".BASE_URL."/members to request member-access to this Jethro system. \n\n"
-						  ."The email address they specified was ".$_REQUEST['email']." but there is no person record in the Jethro system with that address.\n\n"
+						  ."The email address they specified was ".$_REQUEST['email']." but there is no current person record in the Jethro system with that address. (There could be an archived record).\n\n"
 						  ."If you believe this person is a church member, please add their email address to their person record and then ask them to try registering again.\n\n");
 
 				$res = Emailer::send($message);

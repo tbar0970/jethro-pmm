@@ -178,9 +178,9 @@ class Staff_Member extends Person
 			case 'password':
 				if (($GLOBALS['user_system']->getCurrentUser('id') == $this->id) || $GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 					?>
-					<input type="password" class="password-strength-check" autocomplete="off" name="<?php echo $prefix.$name.'1'; ?>" /><br />
-					<input type="password" autocomplete="off" name="<?php echo $prefix.$name.'2'; ?>" /><br />
-					<p class="help-inline">Enter once, then again to confirm. Passwords must be at least <?php echo (int)$this->getMinPasswordLength(); ?> characters and contain letters and numbers</p>
+					<input type="password" data-minlength="<?php echo (int)$this->getMinPasswordLength(); ?>" autocomplete="off" name="<?php echo $prefix.$name.'1'; ?>" /><br />
+					<input type="password" data-minlength="<?php echo (int)$this->getMinPasswordLength(); ?>" autocomplete="off" name="<?php echo $prefix.$name.'2'; ?>" /><br />
+					<p class="help-inline">Enter once, then again to confirm. Passwords must be at least <?php echo (int)$this->getMinPasswordLength(); ?> characters and contain 2 letters and 2 numbers</p>
 					<?php
 				} else {
 					?>

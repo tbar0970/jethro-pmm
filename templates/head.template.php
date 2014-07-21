@@ -1,4 +1,10 @@
-	<title>Jethro PMM - <?php echo SYSTEM_NAME.(isset($GLOBALS['system']) ? ' - '.$GLOBALS['system']->getTitle() : ''); ?></title>
+	<title>
+		<?php
+		if (!IS_PUBLIC) echo 'Jethro PMM -';
+		echo SYSTEM_NAME;
+		if (isset($GLOBALS['system']) && ($title = $GLOBALS['system']->getTitle())) echo ' - '.$title;
+		?>
+	</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<!--[if IE]>

@@ -9,19 +9,26 @@ class View__Edit_Me extends View
 	{
 		if ($this->family) return "Editing ".$this->family->getValue('family_name')." Family";
 	}
-
+	
+	function canEdit()
+	{
+		// Non-adults can only edit if there are no adults in the family
+		return 
+			($GLOBALS['member_user_system']->getCurrentMember('age_bracket') == '0')
+			|| !$this->hasAdult
+		;
+	}
+	
 	function processView()
 	{
 		$this->family = $GLOBALS['system']->getDBOBject('family', $GLOBALS['member_user_system']->getCurrentMember('familyid'));
 		foreach ($this->family->getMemberData() as $id => $member) {
 			$p = $GLOBALS['system']->getDBObject('person', $id);
 			$this->persons[] = $p;
-			if ($p->getValue('age_bracket') == 'adult') $this->hasAdult = TRUE;
+			if ($p->getValue('age_bracket') == '0') $this->hasAdult = TRUE;
 		}
 		
-
-		
-		if (!empty($_POST)) {
+		if (!empty($_POST) && $this->canEdit()) {
 			$this->family->processForm();
 			$this->family->save();
 			$this->family->releaseLock();
@@ -41,10 +48,7 @@ class View__Edit_Me extends View
 	
 	function printView()
 	{
-		if (($GLOBALS['member_user_system']->getCurrentMember('age_bracket') != 'adult')
-			&& (count($this->persons) > 1)
-			&& $hasAdult
-		) {
+		if (!$this->canEdit()) {
 			print_message("Sorry, only adults are able to edit this family.", 'error');
 			return;
 		}		
@@ -58,6 +62,13 @@ class View__Edit_Me extends View
 			print_message("Your family cannot be edited right now.  Please try later", 'error');
 			
 		} else {
+
+				if (defined('MEMBER_REGO_HELP_EMAIL')) {
+				?>
+				<p><i>If you need to change names or other details which are not listed in this form, please contact  <a href="<?php echo ents(MEMBER_REGO_HELP_EMAIL); ?>"><?php echo ents(MEMBER_REGO_HELP_EMAIL); ?></a>.</i></p>
+				<?php
+			}			
+
 			
 			?>
 			<form method="post">
@@ -69,7 +80,7 @@ class View__Edit_Me extends View
 				echo '<h3>'.$person->getValue('first_name').' '.$person->getValue('last_name').'</h3>';
 				$person->printForm('person_'.$person->id, Array('gender', 'age_bracket', 'email', 'mobile_tel', 'work_tel'));
 			}
-			
+				
 			?>
 			<button class="btn" type="submit">Save</button>
 			<a class="btn" href="?view=">Cancel</a>

@@ -590,38 +590,46 @@ function generate_random_string($chars=16)
 	$pr_bits = '';
 	
 	if (function_exists('openssl_random_pseudo_bytes')) {
-		return base64_encode(openssl_random_pseudo_bytes($chars));
-	}
+		$pr_bits = openssl_random_pseudo_bytes($chars);
+	} else {
 
-	// Unix/Linux platform?
-	$fp = @fopen('/dev/urandom','rb');
-	if ($fp !== FALSE) {
-		$pr_bits .= @fread($fp,$chars);
-		@fclose($fp);
-	}
+		// Unix/Linux platform?
+		$fp = @fopen('/dev/urandom','rb');
+		if ($fp !== FALSE) {
+			$pr_bits .= @fread($fp,$chars);
+			@fclose($fp);
+		}
 
-	// MS-Windows platform?
-	if (@class_exists('COM')) {
-		// http://msdn.microsoft.com/en-us/library/aa388176(VS.85).aspx
-		try {
-			$CAPI_Util = new COM('CAPICOM.Utilities.1');
-			$pr_bits .= $CAPI_Util->GetRandom($chars,0);
+		// MS-Windows platform?
+		if (@class_exists('COM')) {
+			// http://msdn.microsoft.com/en-us/library/aa388176(VS.85).aspx
+			try {
+				$CAPI_Util = new COM('CAPICOM.Utilities.1');
+				$pr_bits .= $CAPI_Util->GetRandom($chars,0);
 
-			// if we ask for binary data PHP munges it, so we
-			// request base64 return value.  We squeeze out the
-			// redundancy and useless ==CRLF by hashing...
-			if ($pr_bits) { $pr_bits = md5($pr_bits,TRUE); }
-		} catch (Exception $ex) {
-			// echo 'Exception: ' . $ex->getMessage();
+				// if we ask for binary data PHP munges it, so we
+				// request base64 return value.  We squeeze out the
+				// redundancy and useless ==CRLF by hashing...
+				if ($pr_bits) { $pr_bits = md5($pr_bits,TRUE); }
+			} catch (Exception $ex) {
+				// echo 'Exception: ' . $ex->getMessage();
+			}
 		}
 	}
 	
 	if (empty($pr_bits)) {
-		trigger_error("Could not genereate random string", E_USER_ERROR);
+		trigger_error("Could not generate random string", E_USER_ERROR);
 	}
 
 	if (strlen($pr_bits) < $chars) {
 		trigger_error("Generated random string not long enough (only ".strlen($pr_bits));
+	}
+	
+	$validChars = array_merge(range(0,9), range('A', 'Z'), range('a', 'z'));
+	for ($i=0; $i < strlen($pr_bits); $i++) {
+		if (!preg_match('/[A-Za-z0-9]/', $pr_bits[$i])) {
+			$pr_bits[$i] = $validChars[ord($pr_bits[$i]) % count($validChars)];
+		}
 	}
 	
 	return $pr_bits;
@@ -634,13 +642,17 @@ function jethro_password_hash($str)
 	} else {
 		$salt = NULL;
 		if (defined('CRYPT_BLOWFISH') && CRYPT_BLOWFISH) {
-			$salt = '$2y$15$'.generate_random_string(22);
+			$salt = '$2y$10$'.generate_random_string(22);
 		} else if (defined('CRYPT_SHA512') && CRYPT_SHA512) {
 			$salt = '$6$'.generate_random_string(16);
 		} else if (defined('CRYPT_SHA256') && CRYPT_SHA256) {
 			$salt = '$5$'.generate_random_string(16);
 		}
-		return crypt($str, $salt);
+		$res = crypt($str, $salt);
+		if (strlen($res) < 4) {
+			trigger_error("Crypt function returned invalid result $res for salt $salt", E_USER_ERROR);
+		}
+		return $res;
 	}
 }
 
