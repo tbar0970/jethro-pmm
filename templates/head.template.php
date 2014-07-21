@@ -1,6 +1,6 @@
 	<title>
 		<?php
-		if (!IS_PUBLIC) echo 'Jethro PMM -';
+		if (!defined('IS_PUBLIC')) echo 'Jethro PMM - ';
 		echo SYSTEM_NAME;
 		if (isset($GLOBALS['system']) && ($title = $GLOBALS['system']->getTitle())) echo ' - '.$title;
 		?>

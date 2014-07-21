@@ -267,12 +267,14 @@ $(document).ready(function() {
 		var p = $(this).attr('href').split('?');
 		var action = p[0];
 		var params = p[1].split('&');
-		var pform = $(document.createElement('form')).attr('action', action);
+		var pform = $(document.createElement('form'));
 		$('body').append(pform);
-		for (var i in params) {
+		pform.attr('action', action);
+		pform.attr('method', 'post');
+		for (var i=0; i < params.length; i++) {
 			var tmp= (""+params[i]).split('=');
 			var key = tmp[0], value = tmp[1];
-			$(document.createElement('input')).attr('type', 'hidden').attr('name', key).attr('value', value).appendTo(pform);
+			pform.append('<input type="hidden" name="'+key+'" value="'+value+'" />');
 		}
 		pform.submit();
 		return false;
