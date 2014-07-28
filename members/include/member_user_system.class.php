@@ -213,6 +213,7 @@ If you didn't request an account, you can just ignore this email";
 	{
 		$_SESSION['login_key'] = $login_key = generate_random_string(32);
 		require TEMPLATE_DIR.'/login_form.template.php';
+		exit;
 
 	}//end printLogin()	
 

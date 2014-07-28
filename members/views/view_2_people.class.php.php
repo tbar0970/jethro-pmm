@@ -33,6 +33,13 @@ class View_People extends View
 						if (!empty($member['home_tel'])) {
 							$dummy->printFieldValue('home_tel');
 						}
+						if (defined('MEMBERS_SHARE_ADDRESS')
+							&& MEMBERS_SHARE_ADDRESS
+							&& !empty($member['address_suburb'])
+						) {
+							echo '<br />'.nl2br(ents($member['address_street'])).'<br />';
+							echo ents($member['address_suburb'].' '.$member['address_state'].' '.$member['address_postcode']);
+						}
 						?>
 					</td>
 				</tr>
@@ -43,7 +50,7 @@ class View_People extends View
 					<td>
 						<?php echo ents($member['first_name'].' '.$member['last_name']); ?>
 					</td>
-					<td>
+					<td class="hidden-phone">
 						<?php $dummy->printFieldValue('congregationid'); ?>
 					</td>
 					<td>
