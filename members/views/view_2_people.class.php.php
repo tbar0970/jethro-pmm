@@ -15,7 +15,7 @@ class View_People extends View
 		?>
 		<table class="table">
 			<?php
-		$order = 'family_name, age_bracket ASC, gender DESC';
+		$order = 'family_name, family_id, age_bracket ASC, gender DESC';
 		$list = $GLOBALS['system']->getDBObjectData('member', Array(), 'OR', $order);
 		
 		
