@@ -47,6 +47,13 @@ class Person extends DB_Object
 									'default'		=> '0',
 									'allow_empty'	=> false,
 							   ),
+			'familyid'	=> Array(
+								'divider_before' => true,
+								'type'	=> 'reference',
+								'references'	=> 'family',
+								'label'			=> 'Family',
+								'show_in_summary'	=> false,
+						   ),
 			'congregationid'	=> Array(
 									'type'				=> 'reference',
 									'references'		=> 'congregation',
@@ -65,6 +72,7 @@ class Person extends DB_Object
 								'allow_empty'	=> false,
 						   ),
 			'email'			=> Array(
+									'divider_before' => true,
 									'type'		=> 'email',
 									'width'		=> 40,
 									'maxlength'	=> 255,
@@ -88,12 +96,6 @@ class Person extends DB_Object
 									'label'		=> 'Contact Remarks',
 									'initial_cap'	=> true,
 							),
-			'familyid'	=> Array(
-								'type'	=> 'reference',
-								'references'	=> 'family',
-								'label'			=> 'Family',
-								'show_in_summary'	=> false,
-						   ),
 			'status_last_changed' => Array(
 									'type'			=> 'datetime',
 									'show_in_summary' => false,
@@ -231,38 +233,6 @@ class Person extends DB_Object
 		parent::printSummary();
 		unset($this->fields['dates']);
 	}
-/*
-	function _printSummaryRows()
-	{
-		$rowspan = 0;
-		foreach ($this->fields as $name => $details) {
-			if (!array_get($details, 'show_in_summary', true)) continue;
-			$rowspan++;
-		}
-		$first_row = TRUE;
-		foreach ($this->fields as $name => $details) {
-			if (!array_get($details, 'show_in_summary', true)) continue;
-			?>
-			<tr>
-				<th>
-					<?php echo array_get($details, 'label', ucwords(str_replace('_', ' ', $name))); ?>
-				</th>
-				<td>
-					<?php $this->printFieldValue($name); ?>
-				</td>
-				<?php
-				if ($first_row && $GLOBALS['system']->featureEnabled('PHOTOS')) {
-					?>
-					<td rowspan="<?php echo $rowspan; ?>" class="person-photo-container"><img width="<?php echo self::MAX_PHOTO_WIDTH; ?>" src="?call=person_photo&personid=<?php echo (int)$this->id; ?>" /></td>
-					<?php
-					$first_row = FALSE;
-				}
-				?>
-			</tr>
-			<?php
-		}
-	}*/
-
 
 
 	function getNotesHistory()
@@ -516,11 +486,16 @@ class Person extends DB_Object
 	function printForm($prefix='', $fields=NULL)
 	{
 		include_once 'include/size_detector.class.php';
-		if ($GLOBALS['system']->featureEnabled('PHOTOS') 
+
+		if ($GLOBALS['system']->featureEnabled('DATES') && (is_null($fields) || in_array('dates', $fields))) {
+			$this->fields['dates'] = Array('divider_before' => true); // fake field for interface purposes
+		}
+
+		if ($GLOBALS['system']->featureEnabled('PHOTOS')
 			&& (is_null($fields) || in_array('photo', $fields))
 			&& !SizeDetector::isNarrow()
 		) {
-			$this->fields['photo'] = Array(); // fake field for interface purposes
+			$this->fields['photo'] = Array('divider_before' => true); // fake field for interface purposes
 			if ($this->id) {
 				?>
 				<div class="person-photo-container">
@@ -528,10 +503,6 @@ class Person extends DB_Object
 				</div>
 				<?php
 			}
-		}
-
-		if ($GLOBALS['system']->featureEnabled('DATES') && (is_null($fields) || in_array('dates', $fields))) {
-			$this->fields['dates'] = Array(); // fake field for interface purposes
 		}
 
 		if (!$this->id) unset($this->fields['familyid']);
