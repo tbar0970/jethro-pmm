@@ -83,6 +83,9 @@ define('ROSTER_WEEKS_DEFAULT', 8);
 // How many columns should a roster be to have the date repeated on the right hand side?
 define('REPEAT_DATE_THRESHOLD', 10);
 
+// Whether to include service notes in a public roster (including the print/email version)
+define('SHOW_SERVICE_NOTES_PUBLICLY', TRUE);
+
 // If you want Jethro to use a different timezone to the server it runs on,
 // enter one here.  See  php.net/manual/en/timezones.php for valid timezones.
 define('TIMEZONE', '');

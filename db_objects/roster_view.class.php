@@ -388,7 +388,6 @@ class roster_view extends db_object
 		ksort($to_print);
 		$role_objects = Array();
 		$this_sunday = date('Y-m-d', strtotime('Sunday'));
-
 		if (empty($to_print)) {
 			if ($public) {
 				?>
@@ -602,7 +601,10 @@ class roster_view extends db_object
 						}
 					} else {
 						if (!empty($ddetail['service'][$mdetail['congregationid']])) {
-							if ($public) unset($ddetail['service'][$mdetail['congregationid']]['notes']); // no notes in public view
+							if ($public && (!defined('SHOW_SERVICE_NOTES_PUBLICLY') || !SHOW_SERVICE_NOTES_PUBLICLY)) {
+								// no notes in public view
+								unset($ddetail['service'][$mdetail['congregationid']]['notes']); 
+							}
 							$dummy_service->populate(0, $ddetail['service'][$mdetail['congregationid']]);
 							$dummy_service->printFieldvalue($mdetail['service_field']);
 						}
