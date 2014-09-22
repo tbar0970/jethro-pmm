@@ -201,7 +201,12 @@ class family extends db_object
 	{
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
 		$res['select'][] = 'GROUP_CONCAT(p.first_name ORDER BY p.age_bracket ASC, p.gender DESC SEPARATOR \', \') as members';
-		$res['from'] .= ' JOIN person p ON family.id = p.familyid'; // Families with no visible members will be excluded
+		if (array_get($params, '!status') == 'archived') {
+			// If we are excluding archived families, exclude archived members too
+			$res['from'] .= ' JOIN person p ON family.id = p.familyid AND p.status <> "archived"'; // Families with no visible members will be excluded
+		} else {
+			$res['from'] .= ' JOIN person p ON family.id = p.familyid'; // Families with no visible members will be excluded
+		}
 		$res['group_by'] = 'family.id';
 		return $res;
 	}
