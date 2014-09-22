@@ -33,6 +33,7 @@ class Person_Query extends DB_Object
 				if ($i == 'familyid') continue;
 				if (empty($v['label'])) $v['label'] = $this->_dummy_person->getFieldLabel($i);
 				$this->_field_details['p.'.$i] = $v;
+				$this->_field_details['p.'.$i]['allow_empty'] = true;
 			}
 			foreach ($this->_dummy_family->fields as $i => $v) {
 				if ($v['type'] == 'serialise') {
@@ -43,6 +44,7 @@ class Person_Query extends DB_Object
 					$v['label'] = "Family's ".$v['label'];
 				}
 				$this->_field_details['f.'.$i] = $v;
+				$this->_field_details['f.'.$i]['allow_empty'] = true;
 			}
 		}
 		return $this->DB_Object($id);
@@ -698,7 +700,7 @@ class Person_Query extends DB_Object
 		// GROUP MEMBERSHIP FILTERS
 		if (!empty($params['include_groups'])) {
 
-			$include_groupids_clause = $this->_getGroupAndCategoryRestrictionSQL($params['include_groups'], $params['group_join_date_from'], $params['group_join_date_to'], $params['group_membership_status']);
+			$include_groupids_clause = $this->_getGroupAndCategoryRestrictionSQL($params['include_groups'], $params['group_join_date_from'], $params['group_join_date_to'], array_get($params, 'group_membership_status'));
 			$group_members_sql = 'SELECT personid 
 								FROM person_group_membership pgm 
 								JOIN person_group pg ON pgm.groupid = pg.id
@@ -898,7 +900,7 @@ class Person_Query extends DB_Object
 		}
 
 		// Order by
-		if (substr($query['order_by'], 0, 7) == 'date---') {
+		if (substr($params['sort_by'], 0, 7) == 'date---') {
 			$query['from'] .= 'LEFT JOIN person_date pdorder ON pdorder.personid = p.id AND pdorder.typeid = '.$db->quote(substr($query['order_by'], 7))."\n";
 			// we want persons with a full date first, in chronological order.  Then persons with a yearless date, in order.  Then persons with no date.
 			$query['order_by'] = 'IF (pdorder.`date` IS NULL, 3, IF (pdorder.`date` LIKE "-%", 2, 1)), pdorder.`date`';
@@ -1224,8 +1226,13 @@ class Person_Query extends DB_Object
 	private function _quoteAliasAndColumn($field)
 	{
 		$db = $GLOBALS['db'];
-		list ($t, $f) = explode('.', $field);
-		return $db->quoteIdentifier($t).'.'.$db->quoteIdentifier($f);
+		$bits = explode('.', $field);
+		if (count($bits) == 1) {
+			return $db->quoteIdentifier($field);
+		} else {
+			list ($t, $f) = $bits;
+			return $db->quoteIdentifier($t).'.'.$db->quoteIdentifier($f);
+		}
 	}
 
 
