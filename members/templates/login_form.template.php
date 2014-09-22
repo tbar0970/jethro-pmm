@@ -26,7 +26,7 @@
 			?>
 			<label class="">
 				<p>What is your email address? </p>
-				<input type="email" name="email" autofocus="autofocus" class="compulsory" value="<?php echo ents(array_get($_REQUEST, 'email', '')); ?>" placeholder="Username" />
+				<input type="email" name="email" autofocus="autofocus" class="compulsory" value="<?php echo ents(array_get($_REQUEST, 'email', '')); ?>" placeholder="Email" />
 			</label>
 			
 		
