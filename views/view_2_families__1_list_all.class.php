@@ -43,9 +43,9 @@ class View_Families__List_All extends View
 		}
 
 		if (empty($_REQUEST['show_archived'])) {
-			echo '<p class="pull-right hidden-phone"><a href="'.build_url(Array('show_archived' => 1)).'">Include Archived families</a></p>';
+			echo '<p class="pull-right hidden-phone"><a href="'.build_url(Array('show_archived' => 1)).'">Include Archived</a></p>';
 		} else {
-			echo '<p class="pull-right hidden-phone"><a href="'.build_url(Array('show_archived' => NULL)).'">Exclude Archived families</a></p>';
+			echo '<p class="pull-right hidden-phone"><a href="'.build_url(Array('show_archived' => NULL)).'">Exclude Archived</a></p>';
 		}
 
 
