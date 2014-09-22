@@ -344,5 +344,87 @@ class service extends db_object
 			return $GLOBALS['system']->getDBObject('service', $serviceid);
 		}
 	}
+
+	public function saveItems($itemList)
+	{
+		$db = $GLOBALS['db'];
+		$res = $db->exec('DELETE FROM service_item WHERE serviceid = '.(int)$this->id);
+		check_db_result($res);
+
+		if (!empty($itemList)) {
+			$SQL = 'INSERT INTO service_item
+					(serviceid, rank, componentid, length_mins, note, heading_text)
+					VALUES
+					';
+			$sets = Array();
+			foreach ($itemList as $rank => $item) {
+				$sets[] = '('.(int)$this->id.', '.(int)$rank.', '.(int)$item['componentid'].', '.(int)$item['length_mins'].', '.$db->quote(array_get($item, 'note')).', '.$db->quote(array_get($item, 'heading_text')).')';
+			}
+			$SQL .= implode(",\n", $sets);
+			$res = $db->exec($SQL);;
+			check_db_result($res);
+		}
+	}
+
+	public function getItems()
+	{
+		$SQL = 'SELECT si.*, sc.title, sc.alt_title, sc.is_numbered, 
+					IF(LENGTH(sc.runsheet_title_format) = 0, scc.runsheet_title_format, sc.runsheet_title_format) AS runsheet_title_format
+				FROM service_item si
+				LEFT JOIN service_component sc ON si.componentid = sc.id
+				LEFT JOIN service_component_category scc ON sc.categoryid = scc.id
+				WHERE si.serviceid = '.(int)$this->id.' ORDER BY rank';
+		$res = $GLOBALS['db']->queryAll($SQL);
+		check_db_result($res);
+		return $res;
+	}
+
+	public function printServicePlan()
+	{
+		?>
+		<table
+			<?php if (empty($_REQUEST['view'])) echo 'border="1"'; ?>
+			class="table table-bordered"
+		>
+			<thead>
+				<tr>
+					<th class="narrow">Start</th>
+					<th class="narrow">#</th>
+					<th>Item</th>
+				</tr>
+			</thead>
+			<tbody>
+			<?php
+			$num = 1;
+			$items = $this->getItems();
+			$cong = $GLOBALS['system']->getDBObject('congregation', $this->getValue('congregationid'));
+			$time = strtotime(preg_replace('[^0-9]', '', $cong->getValue('meeting_time')));
+			foreach ($items as $item) {
+				if ($item['heading_text']) {
+					?>
+					<tr>
+						<td colspan="4"><b><?php echo ents($item['heading_text']); ?></b></td>
+					</tr>
+					<?php
+				}
+				?>
+				<tr>
+					<td><?php echo date('Hi', $time); ?></td>
+					<td><?php if ($item['is_numbered']) echo $num++; ?></td>
+					<td>
+						<?php
+						echo ents(str_replace('%title%', $item['title'], $item['runsheet_title_format']));
+						if ($item['note']) echo '<br /><i><small>'.nl2br(ents($item['note'])).'</small></i>';
+						?>
+					</td>
+				</tr>
+				<?php
+				$time += $item['length_mins']*60;
+			}
+			?>
+			</tbody>
+		</table>
+		<?php
+	}
 }
 ?>

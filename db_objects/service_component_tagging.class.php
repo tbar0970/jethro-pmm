@@ -1,17 +1,32 @@
 <?php
 include_once 'include/db_object.class.php';
-class roster_view_role_membership extends db_object
+class Service_Component_Tagging extends db_object
 {
-	// NB This class only exists for the following SQL
-	// It has no ID
-	function getInitSql()
+	function _getFields()
 	{
-		return 'create table roster_view_role_membership (
-					roster_role_id int(5) not null,
-					roster_view_id int(5) not null,
-					order_num int(5) not null,
-					constraint primary key (roster_role_id, roster_view_id)
-				) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;';
+
+		$fields = Array(
+			'tagid'	=> Array(
+									'type'				=> 'reference',
+									'references'		=> 'service_component_tag',
+									'label'				=> 'Tag',
+									'show_id'			=> TRUE,
+								   ),	
+			'componentid'	=> Array(
+									'type'				=> 'reference',
+									'references'		=> 'service_component',
+									'label'				=> 'Component',
+									'show_id'			=> TRUE,
+								   ),
+			);
+		return $fields;
 	}
+	
+	function _getUniqueKeys()
+	{
+		return Array(
+				'comptag' => Array('tagid', 'componentid'),
+			   );
+	}	
 }
 ?>

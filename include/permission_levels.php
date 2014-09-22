@@ -25,8 +25,8 @@ $PERM_LEVELS = Array(
 16384 =>	Array('VIEWSERVICE',		'Services - view',						'ROSTERS&SERVICES'),
 49152 =>	Array('EDITSERVICE',		'Services - edit individual',			'SERVICEDETAILS'),
 114688 =>	Array('BULKSERVICE',		'Services - edit service program',		'ROSTERS&SERVICES'),
-180224 =>	Array('MANAGESERVICES',		'Services - manage component repertoire','SERVICEDETAILS'),
-311296 =>	Array('MANAGESONGS',		'Services - manage song repertoire',	'SERVICEDETAILS'),
+180224 =>	Array('SERVICECOMPS',		'Services - manage service components','SERVICEDETAILS'),
+/*311296 =>	Array('MANAGESONGS',		'Services - manage song repertoire',	'SERVICEDETAILS'),*/
 
 524288 =>	Array('EDITREC',			'Sermon recordings - manage',			'SERMONRECORDINGS'),
 

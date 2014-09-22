@@ -48,7 +48,7 @@ img:["glyphicons-halflings.png","glyphicons-halflings-white.png"]
 	-moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(256, 0, 0, 0.9);
 	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(256, 0, 0, 0.9);
 }
-.hovered, .hovered td {
+.hovered, .hovered td, tr#selected td {
 	background: #d3d6e1 !important;
 }
 
@@ -378,7 +378,7 @@ body {
 .user-detail .dropdown-menu {
 	min-width: 80px !important;
 }
-.user-detail a, .user-detail .btn-link {
+.user-detail a, .user-detail .btn-link, #body .dropdown-menu li a {
 	color: #fff19b !important;
 	text-decoration: none !important;
 }
@@ -389,7 +389,7 @@ body {
 .user-detail li .btn-link {
 	border: 0px !important;
 }
-.user-detail li a:hover .btn-link, .user-detail li a:hover {
+.user-detail li a:hover .btn-link, .user-detail li a:hover, #body .dropdown-menu li a:hover  {
 	color: #333 !important;
 }
 .user-detail .restrictions {
@@ -434,6 +434,12 @@ h5,h6 {
 }
 
 /*********** GENERAL ********************/
+
+hr {
+	border-top-color: #E8E8FF !important;
+	border-bottom-color: #e4E4Fa !important;
+
+}
 input[type=image] {
 	height: auto !important;
 	padding: 0px !important;
@@ -675,6 +681,10 @@ input.btn-link, button.btn-link {
 }
 .input-prepend .add-on {
 	margin-left: 1px; /* work around a bug where the left margin gets cut off on homepage */
+}
+
+#body h1 small, #body h2 small {
+	font-size: 14px;
 }
 
 /************* REPORTS **************/
@@ -966,7 +976,7 @@ ul.nav-tabs {
 	padding: 15px;
 	border-radius: 0px 0px 5px 5px;
 }
-.tab-content, .nav-tabs > .active > a, .nav-tabs > .active > a:hover, .nav-tabs > .active > a:focus {
+.preview-pane, .tab-content, .nav-tabs > .active > a, .nav-tabs > .active > a:hover, .nav-tabs > .active > a:focus {
 	background: #FFFFF0; /* lighter yellow */
 }
 #body .accordion-heading a {
@@ -1485,6 +1495,83 @@ table.system-config th {
 }*/
 table.system-config td small {
 	font-style: italic;
+}
+
+/*************** SERVICE PLANNING ****************/
+
+#service-planner .nav-tabs * {
+	font-size: 90%;
+	font-weight: bold;
+}
+#service-planner .tab-pane {
+	overflow: auto;
+}
+
+#service-planner .comp-dragging tr.drop-hover td {
+	border-top: 3px solid;
+}
+
+.component-in-transit {
+	background: #eee;
+}
+.component-in-transit td.hide-in-transit {
+	display: none;
+}
+.alt-title {
+	color: #888;
+	font-size: 70%;
+}
+#service-plan .tools {
+	padding: 0px;
+	vertical-align: middle;
+	text-align: center;
+}
+#service-plan .tools ul {
+	text-align: left;
+}
+#service-plan .tools .dropdown-toggle {
+	display: block;
+	padding: 7px 3px;
+}
+
+#service-plan textarea.unfocused, #service-plan input.unfocused {
+	background: transparent;
+	border-color: transparent;
+	outline: 0px;
+	box-shadow: 0px;
+	-webkit-box-shadow: none;
+}
+
+#service-item-template, #service-heading-template {
+	display: none;
+}
+
+.service-heading {
+	font-weight: bold;
+	width: 100%;
+}
+
+#service-plan input {
+	margin: 0px !important;
+	padding: 1px 3px;
+}
+
+#service-plan textarea {
+	display: block;
+	font-size: 70%;
+	line-height: 110%;
+	width: 100%;
+	margin: 0px;
+}
+
+#service-comps th {
+	padding-right: 15px;
+}
+
+#service-comps th .icon-arrow-up, #service-comps th .icon-arrow-down {
+	float: right;
+	margin-right: -11px;
+	margin-top: 3px;
 }
 
 

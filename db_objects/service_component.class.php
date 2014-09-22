@@ -1,11 +1,6 @@
 <?php
-include_once 'include/db_object.class.php';
-require_once 'include/bible_ref.class.php';
-class service extends db_object
+class Service_Component extends db_object
 {
-	var $_readings = Array(); // bible readings for the service, fetched from the service_bible_reading table
-	var $_old_readings = Array();
-
 	var $_load_permission_level = 0; // want PERM_VIEWSERVICE | PERM_VIEWROSTER
 	var $_save_permission_level = 0; // FUTURE: PERM_EDITSERVICE;
 
@@ -13,336 +8,211 @@ class service extends db_object
 	{
 
 		$fields = Array(
-			'date'				=> Array(
-									'type'		=> 'date',
-									'allow_empty'	=> FALSE,
-									'default' => '0000-00-00',
-								   ),
-			'congregationid'	=> Array(
+			'categoryid'	=> Array(
 									'type'				=> 'reference',
-									'references'		=> 'congregation',
-									'label'				=> 'Congregation',
+									'references'		=> 'service_component_category',
+									'label'				=> 'Category',
 									'show_id'			=> FALSE,
-									'class'				=> 'person-congregation',
 								   ),
-			'format_title'		=> Array(
+			'title'		=> Array(
 									'type'		=> 'text',
 									'width'		=> 80,
-									'maxlength'	=> 128,
 									'initial_cap'	=> TRUE,
+									'class' => 'autofocus',
+									'allow_empty' => false,
 								   ),
-			'topic_title'		=> Array(
+			'alt_title'		=> Array(
 									'type'		=> 'text',
 									'width'		=> 80,
-									'maxlength'	=> 128,
 									'initial_cap'	=> TRUE,
 								   ),
-			'notes'		=> Array(
+			'length_mins'		=> Array(
+									'type'		=> 'int',
+									'label'		=> 'Length (mins)',
+									'divider_before' => true,
+								   ),
+			'is_numbered'		=> Array(
+									'type'		=> 'select',
+									'options'  => Array('No', 'Yes'),
+									'label'    => 'Numbered?'
+								   ),
+			'runsheet_title_format'	=> Array(
 									'type'		=> 'text',
 									'width'		=> 80,
-									'height'	=> 4,
 									'initial_cap'	=> TRUE,
+									'note' => 'Leave this blank to use the category default',
+								   ),
+			'handout_title_format'	=> Array(
+									'type'		=> 'text',
+									'width'		=> 80,
+									'initial_cap'	=> TRUE,
+									'note' => 'Leave this blank to use the category default',
+									'editable' => false,
+									'show_in_summary' => false,
+								   ),
+			'show_in_handout'		=> Array(
+									'type'		=> 'select',
+									'options'  => Array('No', 'Yes'),
+									'label'    => 'Show on Handout?',
+									'editable' => false,
+									'show_in_summary' => false,
+								   ),
+			'show_on_slide'		=> Array(
+									'type'		=> 'select',
+									'options'  => Array('No', 'Yes'),
+									'label'    => 'Show on Slide',
+									'editable' => false,
+									'show_in_summary' => false,
+								   ),
+			'content_html'		=> Array(
+									'divider_before' => true,
+									'type'		=> 'html',
+									'label'     => 'Content'
+								   ),
+			'credits'		=> Array(
+									'type'		=> 'text',
+									'width'		=> 80,
+									'height'    => 3,
+									'initial_cap'	=> TRUE,
+								   ),
+			'ccli_number'		=> Array(
+									'type'		=> 'int',
 								   ),
 		);
 		return $fields;
 	}
-
-	function _getUniqueKeys()
-	{
-		return Array(
-				'datecong' => Array('date', 'congregationid'),
-			   );
-	}
 	
-	function _createFinal()
+	function getInstancesQueryComps($params, $logic, $order)
 	{
-		if (parent::_createFinal()) {
-			$this->__insertBibleReadings();
-			return true;
-		} else {
-			return false;
+		$congid = array_get($params, 'congregationid');
+		unset($params['congregationid']);
+		$res = parent::getInstancesQueryComps($params, $logic, $order);
+
+		foreach ($res['select'] as $k => $v) {
+			if (substr($v, -12) == 'content_html') unset($res['select'][$k]);
 		}
-	}
-
-	function load($id)
-	{
-		$res = parent::load($id);
-		$this->__loadBibleReadings();
-		return $res;
-	}
-
-	function populate($id, $values)
-	{
-		parent::populate($id, $values);
-		if (isset($values['readings'])) {
-			$this->_readings = $values['readings'];
-			$this->_old_readings = $this->_readings;
+		$res['select'][] = 'GROUP_CONCAT(DISTINCT cong.name SEPARATOR ", ") as congregations';
+		$res['from'] .= ' JOIN service_component_category cat ON cat.id = service_component.categoryid';
+		$res['from'] .= ' LEFT JOIN congregation_service_component csc ON csc.componentid = service_component.id ';
+		$res['from'] .= ' LEFT JOIN congregation cong ON cong.id = csc.congregationid ';
+		$res['from'] .=  ' LEFT JOIN service_item si ON si.componentid = service_component.id ';
+		$res['from'] .=  ' LEFT JOIN service svc ON svc.id = si.serviceid AND svc.congregationid = cong.id ';
+		$res['select'][] = 'IF (LENGTH(service_component.runsheet_title_format) = 0, cat.runsheet_title_format, service_component.runsheet_title_format) as runsheet_title_format ';
+//		$res['select'][] = 'SUM(..) as usagescore';
+		$res['select'][] = 'MAX(svc.date) as lastused';
+		$res['group_by'] = 'service_component.id';
+		if ($congid === 0) {
+			$res['where'] .= ' AND cong.id IS NULL';
+		} else if ($congid !== NULL) {
+			$res['where'] .= ' AND cong.id = '.(int)$congid;
 		} else {
-			$this->__loadBibleReadings();
-		}
-	}
-
-	function save()
-	{
-		$res = parent::save();
-		if ($this->_readings != $this->_old_readings) {
-			$this->__deleteBibleReadings();
-			$this->__insertBibleReadings();
+			$res['where'] .= ' AND cong.id IS NOT NULL';
 		}
 		return $res;
 	}
-
-	function delete()
+	
+	protected function _printSummaryRows()
 	{
-		$res = parent::delete();
-		$this->__deleteBibleReadings();
-	}
-
-	function __loadBibleReadings()
-	{
-		$sql = 'SELECT order_num, bible_ref, to_read, to_preach
-				FROM service_bible_reading
-				WHERE service_id = '.(int)$this->id.'
-				ORDER BY order_num ASC';
-		$this->_readings = $GLOBALS['db']->queryAll($sql, null, null, true);
-		$this->_old_readings = $this->_readings;
-		check_db_result($this->_readings);
+		parent::_printSummaryRows();
+		?>
+		<tr>
+			<th>Used by</th>
+			<td>
+				<?php
+				$congs = $GLOBALS['system']->getDBObjectData('congregation_service_component', Array('componentid' => $this->id));
+				$names = Array();
+				foreach ($congs as $cong) {
+					$names[] = $cong['name'];
+				}
+				echo ents(implode(', ', $names));
+				?>
+			</td>
+		</tr>
+		<?php
+	
 	}
 	
-	function __deleteBibleReadings()
-	{
-		$sql = 'DELETE FROM service_bible_reading
-				WHERE service_id = '.(int)$this->id;
-		$res = $GLOBALS['db']->query($sql);
-		check_db_result($res);
-	}
 
-	function __insertBibleReadings()
-	{
-		$i = 0;
-		$values = Array();
-		foreach ($this->_readings as $order_num => $reading) {
-			$values[] = '('.(int)$this->id.', '.(int)$order_num.', '.$GLOBALS['db']->quote($reading['bible_ref']).', '.(int)$reading['to_read'].', '.(int)$reading['to_preach'].')';
-			$i++;
-		}
-		if (!empty($values)) {
-			$sql = 'INSERT INTO service_bible_reading (service_id, order_num, bible_ref, to_read, to_preach)
-				VALUES '.implode(', ', $values);
-			$res = $GLOBALS['db']->query($sql);
-			check_db_result($res);
-		}
-		$this->_old_readings = $this->_readings;
-	}
-
-	function addReading($ref, $to_read, $to_preach)
-	{
-		$this->_readings[] = Array('bible_ref' => $ref, 'to_read' => $to_read, 'to_preach' => $to_preach);
-	}
-	
-	function clearReadings()
-	{
-		$this->_readings = Array();
-	}
-
-	function getRawBibleReadings($type='all')
-	{
-		$candidate_readings = Array();
-		foreach ($this->_readings as $reading) {
-			if (($type == 'all') || ($reading['to_'.$type])) {
-				$candidate_readings[] = $reading;
-			}
-		}
-		return $candidate_readings;
-	}
-
-	function getValue($field)
-	{
-		if (0 === strpos($field, 'bible_')) {
-			// eg bible_read_1  or bible_preach_all
-			list($bible, $type, $number) = explode('_', $field);
-			$candidate_readings = $this->getRawBibleReadings($type);
-			if ($number == 'all') {
-				$res = Array();
-				foreach ($candidate_readings as $reading) {
-					$br = new Bible_Ref($reading['bible_ref']);
-					$res[] = $br->toString();
-				}
-				return implode(', ', $res);
-			} else {
-				$bc = array_get($candidate_readings, $number-1);
-				if ($bc) {
-					$br = new Bible_Ref($bc['bible_ref']);
-					return $br->toString();
-				} else {
-					return '';
-				}
-			}
-		} else {
-			return parent::getValue($field);
-		}
-	}
 
 	function toString()
 	{
-		return $this->getFormattedValue('congregationid').' Service on '.$this->getFormattedValue('date');
+		return $this->values['title'];
 	}
 
-	static function shiftServices($congids, $after_date, $shift_by)
+	public function printForm($prefix='', $fields=NULL)
 	{
-		$sql = 'UPDATE service
-				SET date = DATE_ADD(date, INTERVAL '.(int)$shift_by.' DAY)
-				WHERE date >= '.$GLOBALS['db']->quote($after_date).'
-				AND congregationid IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congids)).')
-				ORDER BY date '.(($shift_by > 0) ? 'DESC' : 'ASC');
-		$res = $GLOBALS['db']->query($sql);
-		check_db_result($res);
-	}
-
-	function printFieldValue($fieldname)
-	{
-		// a few special cases
-		switch ($fieldname) {
-			case 'bible_to_read':
-			case 'bible_to_preach':
-				$type = substr($fieldname, strlen('bible_to_'));
-				$readings = $this->getRawBibleReadings('read');
-				$res = Array();
-				foreach ($readings as $reading) {
-					$br = new Bible_Ref($reading['bible_ref']);
-					$res[] = $br->getLinkedShortString();
-				}
-				echo implode(', ', $res);
-				break;
-
-			case 'bible_all':
-				$readings = $this->getRawBibleReadings();
-				$res = Array();
-				foreach ($readings as $reading) {
-					$br = new Bible_Ref($reading['bible_ref']);
-					$entry = $br->getLinkedShortString();
-					if (!$reading['to_read']) $entry = '('.$entry.')';
-					if ($reading['to_preach']) $entry = '<strong>'.$entry.'</strong>';
-					$res[] = $entry;
-				}
-				echo implode(', ', $res);
-				break;
-				
-			case 'format_title':
-			case 'topic_title':
-				echo ents($this->values[$fieldname]);
-				break;
-				
-			case 'summary':
-				?>
-				<i><?php echo ents($this->values['topic_title']); ?></i><br />
-				<?php $this->printFieldValue('bible_all'); ?><br />
-				<?php
-				echo ents($this->values['format_title']); 
-				if (!empty($this->values['notes'])) {
-					?>
-					&nbsp;<span class="clickable" onclick="$(this).next('div.hide').toggle()"><i class="icon-chevron-down"></i></span>
-					<div class="smallprint hide"><?php echo nl2br(ents($this->values['notes'])); ?></div>
-					<?php
-				}
-				break;
-			default:
-				parent::printFieldvalue($fieldname);
-		}
-
-	}
-
-	function getFieldLabel($id, $short=FALSE)
-	{
-		$display_fields = $short ? $this->getDisplayFieldsShort() : $this->getDisplayFields();
-		if (isset($display_fields[$id])) {
-			return $display_fields[$id];
-		}
-		return parent::getFieldLabel($id);
-
-	}
-
-	static function getDisplayFields()
-	{
-		return Array(
-				'topic_title' => 'Topic',
-				'bible_all'	=> 'Bible texts (all)',
-				'bible_to_read' => 'Bible texts to read',
-				'bible_to_preach' => 'Bible texts to preach on',
-				'format_title'	=> 'Format',
-				'notes'			=> 'Notes',
-				'summary'	=> 'Summary of topic, texts, format and notes'
-			);
-	}
-
-
-	static function getDisplayFieldsShort()
-	{
-		return Array(
-				'topic_title' => 'Topic',
-				'bible_all'	=> 'Bible Texts',
-				'bible_to_read'	=> 'Bible Readings',
-				'bible_to_preach'	=> 'Sermon Texts',
-				'format_title'	=> 'Format',
-				'notes' => 'Notes',
-				'summary'	=> 'Summary',
-			);
-	}
-
-
-	function getInstancesQueryComps($params, $logic, $order)
-	{
-		$res = parent::getInstancesQueryComps($params, $logic, $order);
-		$res['select'][] = 'GROUP_CONCAT(CONCAT(sbr.bible_ref, "=", sbr.to_read, "=", sbr.to_preach) ORDER BY sbr.order_num SEPARATOR ";") as readings';
-		$res['from'] .= ' LEFT OUTER JOIN service_bible_reading sbr ON service.id = sbr.service_id';
-		$res['group_by'] = 'service.id';
-		return $res;
-	}
-
-	function getInstancesData($params, $logic='OR', $order='')
-	{
-		$res = parent::getInstancesData($params, $logic, $order);
-		foreach ($res as $i => $v) {
-			$res[$i]['readings'] = Array();
-			if (!empty($v['readings'])) {
-				$readings = explode(';', $v['readings']);
-				foreach ($readings as $r) {
-					list($ref, $to_read, $to_preach) = explode('=', $r);
-					$res[$i]['readings'][] = Array('bible_ref' => $ref, 'to_read' => $to_read, 'to_preach' => $to_preach);
+		$oldFields = $this->fields;
+		$this->fields = Array();
+		foreach ($oldFields as $k => $v) {
+			$this->fields[$k] = $v;
+			if ($k == 'categoryid') {
+				$this->fields['congregationids'] = Array(
+					'type' => 'reference',
+					'label' => 'Used By',
+					'references' => 'congregation',
+					'order_by'			=> 'meeting_time',
+					'allow_empty'		=> FALSE,
+					'allow_multiple'	=> TRUE,
+					'filter'			=> create_function('$x', '$y = $x->getValue("meeting_time"); return !empty($y);'),
+				);
+				if (empty($this->id) && !empty($_REQUEST['congregationid'])) {
+					$this->setValue('congregationids', Array($_REQUEST['congregationid']));
 				}
 			}
 		}
+		parent::printForm($prefix, $fields);
+	}
+
+	public function processForm($prefix='', $fields=NULL) {
+		$res = parent::processForm($prefix, $fields);
+		$this->_tmp['congregationids'] = array_get($_REQUEST, $prefix.'congregationids', Array());
 		return $res;
 	}
 
-	function getPersonnelByRoleTitle($role_title)
+	public function create()
 	{
-		$sql = 'SELECT *
-			FROM person
-				JOIN roster_role_assignment rra ON rra.personid = person.id
-				JOIN roster_role rr ON rra.roster_role_id = rr.id
-			WHERE LOWER(REPLACE(rr.title, \' \', \'_\')) = '.$GLOBALS['db']->quote($role_title).'
-				AND rr.congregationid = '.$GLOBALS['db']->quote($this->getValue('congregationid')).'
-				AND rra.assignment_date = '.$GLOBALS['db']->quote($this->getValue('date'));
-		$assignments =  $GLOBALS['db']->queryAll($sql, null, null, false);
-		$role_ids = Array();
-		$names = Array();
-		foreach ($assignments as $assignment) {
-			$role_id = $assignment['roster_role_id'];
-			$role_ids[$role_id] = 1;
-			$names[] = $assignment['first_name'].' '.$assignment['last_name'];
+		$res = parent::create();
+		if ($res && $this->id) {
+			$this->_saveCongregations();
 		}
-		if (count($role_ids) != 1) return ''; // either no role found or ambigious role title
-		return implode(', ', $names);
+		return $res;
 	}
 
-	static function findByDateAndCong($date, $congregationid)
+	public function load($id)
 	{
-		$serviceid = key($GLOBALS['system']->getDBObjectData('service', Array('date' => $date, 'congregationid' => $congregationid), 'AND'));
-		if (empty($serviceid)) {
-			return null;
-		} else {
-			return $GLOBALS['system']->getDBObject('service', $serviceid);
+		$res = parent::load($id);
+		if ($this->id) {
+			$SQL = 'SELECT congregationid FROM congregation_service_component WHERE componentid = '.(int)$this->id;
+			$this->values['congregationids'] = $GLOBALS['db']->queryCol($SQL);
+		}
+		return $res;
+	}
+
+	public function save()
+	{
+		$res = parent::save();
+		if ($res) {
+			check_db_result($GLOBALS['db']->exec('DELETE FROM congregation_service_component WHERE componentid = '.(int)$this->id));
+			$this->_saveCongregations();
+		}
+		return $res;
+	}
+
+	private function _saveCongregations()
+	{
+		$sets = Array();
+		foreach (array_unique(array_get($this->_tmp, 'congregationids', Array())) as $congid) {
+			$sets[] = '('.(int)$this->id.', '.(int)$congid.')';
+		}
+		bam($sets);
+		if (!empty($sets)) {
+			$SQL = 'INSERT INTO congregation_service_component
+					(componentid, congregationid)
+					VALUES
+					'.implode(",\n", $sets);
+			$x = $GLOBALS['db']->exec($SQL);
+			check_db_result($x);
 		}
 	}
+
 }
-?>

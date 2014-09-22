@@ -279,6 +279,8 @@ $(document).ready(function() {
 		pform.submit();
 		return false;
 	});
+
+	TBLib.anchorBottom('.anchor-bottom');
 });
 
 
@@ -520,6 +522,18 @@ TBLib.handleFormSubmit = function()
 			return false;
 		}
 	}
+	var multiOK = true;
+	$('.compulsory.multi-select').each(function() {
+		if ($(this).find('input:checked').length==0) {
+			TBLib.markErroredInput(this);
+			alert('A mandatory field has been left blank');
+			this.focus();
+			multiOK = false;
+			return false;
+		}
+	})
+	if (!multiOK) return false;
+	
 	// Check phone numbers are OK
 	var phoneInputs = ($(this).find('input.phone-number'));
 	for (var i=0; i < phoneInputs.size(); i++) {
@@ -822,3 +836,16 @@ Array.prototype.contains = function(element)
 	}
 	return false;
 };
+
+TBLib.anchorBottom = function(exp) {
+	var elts = $(exp);
+	elts.css('overflow', 'auto');
+	elts.height(1);
+	var totalBodyHeight = $('body').height();
+	var margin = 50;
+	elts.each(function() {
+		var $t = $(this);
+		var padding = parseInt($t.css('padding-top'), 10) +  parseInt($t.css('padding-bottom'), 10);
+		$t.height(totalBodyHeight - $t.position().top - margin - padding);
+	});
+}

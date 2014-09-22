@@ -87,6 +87,9 @@ class db_object
 					$type = 'timestamp';
 					$default = 'CURRENT_TIMESTAMP';
 					break;
+				case 'html':
+					$type = 'text';
+					break;
 				case 'text':
 					if (array_get($details, 'height', 1) != 1) {
 						$type = 'text';
@@ -550,6 +553,10 @@ class db_object
 				if (empty($value) && array_get($field, 'allow_empty')) return '';
 				return format_datetime($value);
 				break;
+			case 'date':
+				if (empty($value) && array_get($field, 'allow_empty')) return '';
+				return format_date($value);
+				break;
 			case 'bibleref':
 				require_once 'bible_ref.class.php';
 				$br = new bible_ref($value);
@@ -619,6 +626,8 @@ class db_object
 		} else if (($this->fields[$name]['type'] == 'email')) {
 			$personName = ($this->values[$name] == $value) ? $this->values['first_name'].' '.$this->values['last_name'] : '';
 			echo '<a href="'.get_mailto_url($value, $personName).'">'.ents($value).'</a>';
+		} else if (($this->fields[$name]['type'] == 'html')) {
+			echo $this->getFormattedValue($name, $value);
 		} else {
 			echo ents($this->getFormattedValue($name, $value));
 		}
@@ -631,6 +640,12 @@ class db_object
 		<div class="form-horizontal">
 		<?php
 		foreach ($this->fields as $name => $details) {
+			if (array_get($details, 'divider_before')) {
+				?>
+				<hr />
+				<?php
+			}
+
 			if (!is_null($fields) && !in_array($name, $fields)) continue;
 			if (array_get($details, 'readonly')) continue;
 			if (!array_get($details, 'editable', true)) continue;

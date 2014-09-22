@@ -339,8 +339,314 @@ $(document).ready(function() {
 
 	setTimeout( "applyNarrowColumns(); ", 30);
 
+	if (document.getElementById('service-planner')) {
+		JethroServicePlanner.init();
+	}
+
+	if (document.getElementById('service-program-editor')) {
+		JethroServiceProgram.init();
+	}
+
 
 });
+
+var JethroServiceProgram = {};
+
+JethroServiceProgram.init = function() {
+
+		$('.confirm-shift').click(function() {
+			$('#'+this.name).val(this.value);
+			$('#shift-confirm-popup').modal('show');
+			return false;
+		});
+		$('.confirm-delete').click(function() {
+			return confirm("Really delete service?");
+		});
+
+		$('.notes-icon').click(function() {
+			$(this).parents('tr:first').next('tr:first').toggle();
+		});
+		$('.copy-left').click(function() {
+			var targetCell = $(this).parents('td:first').prev('td:first').prev('td:first');
+			var sourceCell = $(this).parents('td:first').next('td:first');
+			JethroServiceProgram.copyServiceDetails(sourceCell, targetCell);
+		});
+		$('.copy-right').click(function() {
+			var targetCell = $(this).parents('td:first').next('td:first').next('td:first');
+			var sourceCell = $(this).parents('td:first').prev('td:first');
+			JethroServiceProgram.copyServiceDetails(sourceCell, targetCell);
+		});
+};
+	/*
+	function cancelShiftConfirmPopup()
+	{
+		$('#delete_all_date').val('');
+	}
+*/
+JethroServiceProgram.copyServiceDetails = function(sourceCell, targetCell) {
+	// copy by transplanting the whole table and re-naming the inputs
+	var topicTitlePrefix = 'topic_title';
+	var targetCellFieldnameSuffix = targetCell.find('input[name^='+topicTitlePrefix+']:first').attr('name').substr(topicTitlePrefix.length);
+	var sourceCellFieldnameSuffix = sourceCell.find('input[name^='+topicTitlePrefix+']:first').attr('name').substr(topicTitlePrefix.length);
+	var targetTable = targetCell.find('table.service-details');
+	var replacementTable = sourceCell.find('table.service-details').clone(true);
+	replacementTable.find('input, textarea').each(function() {
+		if (this.name) {
+			this.name = this.name.replace(sourceCellFieldnameSuffix, targetCellFieldnameSuffix);
+		}
+	});
+
+	targetTable.after(replacementTable);
+	targetTable.remove();
+}
+
+
+
+var JethroServicePlanner = {};
+
+JethroServicePlanner.draggedComp = null;
+
+JethroServicePlanner._getTRDragHelper = function(event, tr) {
+	var helper = tr.clone();
+	var originals = tr.children();
+	helper.children().each(function(index) {
+		$(this).width(originals.eq(index).width())
+	});
+	return helper;
+}
+
+JethroServicePlanner.init = function() {
+
+	// COMPONENTS TABLES:
+
+	TBLib.anchorBottom('#service-comps, #service-plan-container');
+
+    $("#service-comps tr").draggable({
+		containment: "#service-planner",
+		helper: "clone",
+		cursor: "move",
+		start: function(event, ui) {
+			$('#service-plan').addClass('comp-dragging');
+			ui.helper.addClass('component-in-transit');
+			JethroServicePlanner.draggedComp = $(this);
+		},
+		stop: function(event, ui) {
+			$('#service-plan').removeClass('comp-dragging');
+			ui.helper.removeClass('component-in-transit');
+		}
+    });
+
+	$("#component-search input").keypress(function() {
+		if (event.charCode == 13) JethroServicePlanner.beginComponentFiltering();
+	})
+	$("#component-search button[data-action=search]").click(JethroServicePlanner.beginComponentFiltering)
+	$("#component-search button[data-action=clear]").click(JethroServicePlanner.endComponentFiltering);
+
+    $("#service-comps tbody tr").on('dblclick', function() {
+		JethroServicePlanner.addFromComponent($(this));
+	})
+
+	$("#service-comps td, #service-plan td").css('cursor', 'default').disableSelection();
+
+
+	$('#service-comps table').stupidtable().bind('aftertablesort', function(event, data) {
+		$(this).find('th .icon-arrow-up, th .icon-arrow-down').remove();
+		var cn = (data.direction === "asc") ? 'up' : 'down';
+		$(this).find('th').eq(data.column).append('<i class="icon-arrow-'+cn+'"></i>');
+	})
+
+	// SERVICE PLAN TABLE:
+
+	$("#service-plan tbody tr").droppable({
+        drop: JethroServicePlanner.onItemDrop,
+		hoverClass: 'drop-hover',
+    });
+
+	$("#service-plan tfoot tr").droppable({
+        drop: JethroServicePlanner.onItemDrop,
+		hoverClass: 'drop-hover',
+    });
+
+    $("#service-plan tbody").sortable(	{
+		cursor: "move",
+		stop: JethroServicePlanner.onItemReorder,
+		helper: JethroServicePlanner._getTRDragHelper,
+		appendTo: "#service-plan tbody",
+		containment: "parent"
+    })
+
+	$('#service-plan').on('focus', 'textarea, input', function() {
+		$(this).removeClass('unfocused');
+	})
+
+	$('#service-plan').on('blur', 'textarea, input', function() {
+		JethroServicePlanner.isChanged = true;
+		$(this).addClass('unfocused');
+	})
+
+	$('#service-plan').on('keypress', 'textarea', function(event) {
+		JethroServicePlanner.isChanged = true;
+		if (event.charCode == 13) this.rows += 1;
+	})
+	$('#service-plan').on('keypress', 'input.service-heading', function(event) {
+		if (event.charCode == 13) {
+			this.blur();
+			return false;
+		}
+	})
+
+	$('#service-plan button[type=submit]').click(JethroServicePlanner.onSubmit)
+
+	$('#service-plan').on('click', '.tools a[data-action]', function() {
+		var action = $(this).attr('data-action');
+		JethroServicePlanner.Item[action]($(this).parents('tr:first'));
+	})
+
+	JethroServicePlanner.refreshNumbersAndTimes();
+
+	// WARN UNSAVED
+
+	window.onbeforeunload = JethroServicePlanner.onBeforeUnload;
+
+	$('#service-plan-container').submit(function() {
+			c
+	});
+
+
+}
+
+JethroServicePlanner.isChanged = false;
+
+JethroServicePlanner.onBeforeUnload = function() {
+	if (JethroServicePlanner.isChanged) return 'You have unsaved changes which will be lost if you don\'t save first';
+}
+
+JethroServicePlanner.beginComponentFiltering = function() {
+	var url = document.location.href.substr(0, document.location.href.indexOf('?'));
+	url += '?call=search_service_components_json';
+	url += '&search='+$("#component-search input").val();
+	$.ajax(url, {
+		dataType: 'json',
+		success: JethroServicePlanner.filterComponents
+	});
+}
+
+JethroServicePlanner.filterComponents = function(resultIDs) {
+	$('#service-comps tbody tr').each(function() {
+		this.style.display = resultIDs.contains($(this).attr('data-componentid')) ? '' : 'none';
+	})
+}
+JethroServicePlanner.endComponentFiltering = function() {
+	$('#service-comps tbody tr').css('display', '');
+	$('#component-search input').val('');
+}
+
+JethroServicePlanner.onSubmit = function() {
+	// Disable the templates
+	$('#service-item-template *, #service-heading-template *').attr('disabled', 'disabled');
+
+	// Add a heading_text field to each item and populate it accordingly
+	var lastHeading = '';
+	$('#service-plan tr').each(function() {
+		var headingBox = $(this).find('input.service-heading')
+		if (headingBox.length) {
+			lastHeading = headingBox.val();
+		} else if ($(this).hasClass('service-item')) {
+			$(this).find('td:first').append('<input type="hidden" name="heading_text[]" value="'+lastHeading+'" />');
+			lastHeading = '';
+		}
+	})
+
+	JethroServicePlanner.isChanged = false;
+}
+
+JethroServicePlanner.Item = {};
+
+JethroServicePlanner.Item.addHeading = function($tr) {
+	var newRow = $('#service-heading-template').clone().attr('id', '');
+	$tr.before(newRow);
+	newRow.find('input.service-heading').focus();
+}
+
+JethroServicePlanner.Item.addNote = function($tr) {
+	$tr.find('textarea').show().focus();
+}
+
+JethroServicePlanner.Item.remove = function($tr) {
+	if (confirm('Sure?')) $tr.remove();
+}
+
+JethroServicePlanner.onItemDrop = function(event, ui) {
+	if (JethroServicePlanner.draggedComp) {
+		JethroServicePlanner.addFromComponent(JethroServicePlanner.draggedComp, this);
+		JethroServicePlanner.draggedComp = null;
+	}
+}
+
+JethroServicePlanner.addFromComponent = function(componentTR, beforeItem) {
+	JethroServicePlanner.isChanged = true;
+
+	var newTR = $('#service-item-template').clone().attr('id', '');
+	newTR.css('display', '').addClass('service-item');
+	var attrs = ['componentid', 'is_numbered', 'length_mins'];
+	var titleFormat = componentTR.attr('data-runsheet_title_format');
+	var newTitle = componentTR.find('.title').html();
+	if (titleFormat) newTitle = titleFormat.replace('%title%', newTitle);
+	newTR.find('td.item span').html(newTitle);
+	for (var i=0; i < attrs.length; i++) {
+		newTR.find('td.item').append('<input type="hidden" class="'+attrs[i]+'" name="'+attrs[i]+'[]" value="'+componentTR.attr('data-'+attrs[i])+'" />');
+	}
+
+	if (!beforeItem || $(beforeItem).is('tfoot')) {
+		beforeItem = "#service-plan tbody tr:last";
+	}
+	$(beforeItem).before(newTR);
+	$('#service-plan-placeholder').remove();
+
+	JethroServicePlanner.refreshNumbersAndTimes();
+	newTR.droppable({
+		drop: JethroServicePlanner.onItemDrop,
+		hoverClass: 'drop-hover',
+	});
+}
+
+JethroServicePlanner.onItemReorder = function() {
+	JethroServicePlanner.isChanged = true;
+	JethroServicePlanner.refreshNumbersAndTimes();
+}
+
+JethroServicePlanner.refreshNumbersAndTimes = function() {
+	var sp = $('#service-plan');
+	sp.find('td.number, td.start').html('');
+	var currentNumber = 1;
+	var currentTime = sp.attr('data-starttime');
+	sp.find('tr.service-item').each(function() {
+		$(this).find('td.start').html(currentTime);
+		currentTime = JethroServicePlanner._addTime(currentTime, $(this).find("input.length_mins").val());
+		if ($(this).find('input.is_numbered').val() == 1) {
+			$(this).find('td.number').html(currentNumber++);
+		}
+	});
+}
+
+
+JethroServicePlanner._addTime = function(clockTime, addMins) {
+	var hours = parseInt(clockTime.substr(0, 2), 10);
+	var mins = parseInt(clockTime.substr(2, 2), 10);
+	addMins = parseInt(addMins, 10);
+	if (!isNaN(addMins)) {
+		mins += parseInt(addMins, 10);
+		if (mins > 60) {
+			mins = mins % 60;
+			hours++;
+		}
+		if (hours < 10) hours = "0"+hours;
+		if (mins < 10) mins = "0"+mins;
+		return ""+hours+mins;
+	}
+}
+
+
 
 
 function handleFamilyPhotosLayout() {

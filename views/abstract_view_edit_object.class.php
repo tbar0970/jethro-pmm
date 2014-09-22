@@ -95,6 +95,7 @@ class Abstract_View_Edit_Object extends View
 			<form method="post" enctype="multipart/form-data" id="edit-<?php echo $this->_editing_type; ?>" class="<?php echo $this->_form_classnames; ?>">
 				<input type="hidden" name="edit_object_submitted" value="1" />
 				<?php $this->_edited_object->printForm(); ?>
+				<hr />
 				<div class="form form-horizontal"><div class="control-group"><div class="controls">
 					<button class="btn"><?php echo $this->_submit_button_label; ?></button>
 				<?php
