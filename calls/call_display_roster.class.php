@@ -48,6 +48,10 @@ class Call_Display_Roster extends Call
 					table {
 						border-collapse: collapse;
 					}
+					.smallprint {
+						margin-top: 1ex;
+						font-size: 75%;
+					}
 				</style>
 			</head>
 			<body>
