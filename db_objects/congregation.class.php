@@ -46,7 +46,10 @@ class Congregation extends db_object
 	public function getInstancesQueryComps($params, $logic, $order)
 	{
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
-		$restrictions = $GLOBALS['user_system']->getCurrentRestrictions();
+		$restrictions = Array();
+		if (!empty($GLOBALS['user_system'])) {
+			$restrictions = $GLOBALS['user_system']->getCurrentRestrictions();
+		}
 		if (!empty($restrictions['congregation'])) {
 			$oldwhere = $res['where'];
 			$res['where'] = 'congregation.id IN ('.implode(',', array_map(Array($GLOBALS['db'], 'quote'), $restrictions['congregation'])).')
