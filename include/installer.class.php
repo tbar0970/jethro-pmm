@@ -167,7 +167,7 @@ class Installer
 			JOIN _person_group pg ON pg.id = pgm1.groupid AND pg.share_member_details = 1
 			JOIN person_group_membership pgm2 ON pgm2.groupid = pg.id
 			JOIN _person up ON up.id = pgm2.personid
-			WHERE up.personid = getCurrentUserID() AND up.status <> "archived"
+			WHERE up.id = getCurrentUserID() AND up.status <> "archived"
 			/* archived persons cannot see members of any group */
 			UNION
 
