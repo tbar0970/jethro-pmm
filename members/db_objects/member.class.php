@@ -21,5 +21,38 @@ class Member extends DB_Object
 		return $res;
 	}
 
+	static function getCongregations()
+	{
+		$SQL = 'SELECT c.id, c.name
+				from congregation c
+				join member m on m.congregationid = c.id
+				group by c.id';
+		$res = $GLOBALS['db']->queryAll($SQL, null, null, true, false);
+		check_db_result($res);
+		return $res;
+
+	}
+
+	static function getList($search=NULL, $congregationid=NULL)
+	{
+		$t = new Member();
+		$order = 'family_name, familyid, age_bracket ASC, gender DESC';
+		$conds = Array();
+		if (!empty($search)) {
+			$conds['first_name'] = $search.'%';
+			$conds['last_name'] = $search.'%';
+			$conds['family_name'] = $search.'%';
+		}
+		$query_bits = $t->getInstancesQueryComps($conds, 'OR', $order);
+		if (!empty($congregationid)) {
+			if (strlen(trim($query_bits['where']))) {
+				$query_bits['where'] = "(\n".$query_bits['where'].")\n AND congregationid = ".(int)$congregationid;
+			} else {
+				$query_bits['where'] = "congregationid = ".(int)$congregationid;
+			}
+		}
+		return $t->_getInstancesData($query_bits);
+	}
+
 }
 ?>
