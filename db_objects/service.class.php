@@ -159,13 +159,15 @@ class service extends db_object
 	{
 		if (0 === strpos($field, 'bible_')) {
 			// eg bible_read_1  or bible_preach_all
-			list($bible, $type, $number) = explode('_', $field);
+			$bits = explode('_', $field);
+			list($bible, $type, $number) = $bits;
+			$short = (array_get($bits, 3) == 'short');
 			$candidate_readings = $this->getRawBibleReadings($type);
 			if ($number == 'all') {
 				$res = Array();
 				foreach ($candidate_readings as $reading) {
 					$br = new Bible_Ref($reading['bible_ref']);
-					$res[] = $br->toString();
+					$res[] = $br->toString($short);
 				}
 				return implode(', ', $res);
 			} else {
@@ -314,6 +316,34 @@ class service extends db_object
 		return $res;
 	}
 
+	public function replaceKeywords($text)
+	{
+		$matches = Array();
+		preg_match_all('/%([a-zA-Z0-9_]*)%/', $text, $matches);
+		foreach ($matches[1] as $keyword) {
+			$text = str_replace('%'.$keyword.'%', $this->getKeywordReplacement($keyword), $text);
+		}
+		return $text;
+	}
+
+	public function getKeywordReplacement($keyword)
+	{
+		if (0 === strpos($keyword, 'NAME_OF_')) {
+			$role_title = substr($keyword, strlen('NAME_OF_'));
+			return $this->getPersonnelByRoleTitle($role_title);
+		} else if (0 === strpos($keyword, 'SERVICE_')) {
+			$service_field = strtolower(substr($keyword, strlen('SERVICE_')));
+			$res = $this->getValue($service_field);
+			if ($service_field == 'date') {
+				// make a friendly date
+				$res = date('j F Y', strtotime($res));
+			}
+			return $res;
+		} else {
+			return '';
+		}
+	}
+
 	function getPersonnelByRoleTitle($role_title)
 	{
 		$sql = 'SELECT *
@@ -335,7 +365,7 @@ class service extends db_object
 		return implode(', ', $names);
 	}
 
-	static function findByDateAndCong($date, $congregationid)
+	public static function findByDateAndCong($date, $congregationid)
 	{
 		$serviceid = key($GLOBALS['system']->getDBObjectData('service', Array('date' => $date, 'congregationid' => $congregationid), 'AND'));
 		if (empty($serviceid)) {
@@ -366,9 +396,9 @@ class service extends db_object
 		}
 	}
 
-	public function getItems()
+	public function getItems($withContent=FALSE)
 	{
-		$SQL = 'SELECT si.*, sc.title, sc.alt_title, sc.is_numbered, 
+		$SQL = 'SELECT si.*, sc.title, sc.alt_title, sc.is_numbered, '.($withContent ? 'sc.content_html, ' : '').'
 					IF(LENGTH(sc.runsheet_title_format) = 0, scc.runsheet_title_format, sc.runsheet_title_format) AS runsheet_title_format
 				FROM service_item si
 				LEFT JOIN service_component sc ON si.componentid = sc.id
@@ -413,7 +443,10 @@ class service extends db_object
 					<td><?php if ($item['is_numbered']) echo $num++; ?></td>
 					<td>
 						<?php
-						echo ents(str_replace('%title%', $item['title'], $item['runsheet_title_format']));
+						$title = $item['runsheet_title_format'];
+						$title = str_replace('%title%', $item['title'], $title);
+						$title = $this->replaceKeywords($title);
+						echo ents($title);
 						if ($item['note']) echo '<br /><i><small>'.nl2br(ents($item['note'])).'</small></i>';
 						?>
 					</td>
@@ -425,6 +458,28 @@ class service extends db_object
 			</tbody>
 		</table>
 		<?php
+	}
+
+	public function printServiceContent()
+	{
+		$items = $this->getItems(TRUE);
+		$num = 1;
+		foreach ($items as $k => $i) {
+			if ($i['heading_text']) {
+				?>
+				<h3><?php echo ents($i['heading_text']); ?></h3>
+				<?php
+			}
+			if (!$i['is_numbered']) continue;
+			?>
+			<h4 id="item<?php echo $k; ?>">
+				<?php
+				echo ($num++).'. '.ents($i['title']);
+				?>
+			</h4>
+			<?php echo $i['content_html']; ?>
+			<?php
+		}
 	}
 }
 ?>

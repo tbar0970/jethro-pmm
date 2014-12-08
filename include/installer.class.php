@@ -82,6 +82,9 @@ class Installer
 			if (($filename[0] == '.') || is_dir($filename)) continue;
 			$filenames[] = $filename;
 		}
+
+		$fks  = Array();
+		
 		sort($filenames);
 		foreach ($filenames as $filename) {
 			$classname = str_replace('.class.php', '', $filename);
@@ -96,6 +99,9 @@ class Installer
 						check_db_result($r);
 					}
 				}
+
+				$f = $data_obj->getForeignKeys();
+				if ($f) $fks[$classname] = $f;
 			}
 		}
 
@@ -109,7 +115,7 @@ class Installer
 			  KEY `objectid` (`objectid`),
 			  KEY `userid` (`userid`),
 			  KEY `object_type` (`object_type`)
-			) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;",
+			) ENGINE=InnoDB ;",
 
 			"CREATE FUNCTION getCurrentUserID() RETURNS INTEGER NO SQL RETURN @current_user_id;",
 
@@ -160,7 +166,7 @@ class Installer
 			'CREATE VIEW member AS
 			SELECT mp.id, mp.first_name, mp.last_name, mp.gender, mp.age_bracket, mp.congregationid,
 			mp.email, mp.mobile_tel, mp.work_tel, mp.familyid,
-			mf.family_name, mf.addresss_street, mf.address_suburb, mf.address_state, mf.address_postcode, mf.home_tel
+			mf.family_name, mf.address_street, mf.address_suburb, mf.address_state, mf.address_postcode, mf.home_tel
 			FROM _person mp
 			JOIN family mf ON mf.id = mp.familyid
 			JOIN person_group_membership pgm1 ON pgm1.personid = mp.id
@@ -185,6 +191,17 @@ class Installer
 		foreach ($sql as $s) {
 			$r = $GLOBALS['db']->query($s);
 			check_db_result($r);
+		}
+
+		foreach ($fks as $table => $keys) {
+			foreach ($keys as $from => $to) {
+				$name = $from;
+				$SQL = 'ALTER TABLE '.$table.'
+						ADD CONSTRAINT `'.$name.'`
+						FOREIGN KEY ('.$from.') REFERENCES '.$to;
+				$r = $GLOBALS['db']->query($SQL);
+				check_db_result($r);
+			}
 		}
 	}
 

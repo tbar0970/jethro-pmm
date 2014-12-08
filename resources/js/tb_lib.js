@@ -222,13 +222,18 @@ $(document).ready(function() {
 
 	setTimeout('setupUnsavedWarnings()', 400);
 
+
 	$('.input-prepend input[type=text], .input-append input[type=text]').css('min-width', '0px');
 	$('.input-prepend, .input-append').width('99%').each(function() {
 		var t = $(this);
 		var box = t.find('input[type=text]');
 		box.width('0px');
 		var childWidths = 0;
-		t.children().each(function() { childWidths += $(this).outerWidth(); });
+		t.children().each(function() {
+			if ($(this).offset()['top'] == box.offset()['top']) {
+				childWidths += $(this).outerWidth();
+			}
+		});
 		box.width(t.width() - childWidths);
 	}).each(function() {
 		// yes we do it all again to work around a stupid webkit bug
@@ -236,7 +241,11 @@ $(document).ready(function() {
 		var box = t.find('input[type=text]');
 		box.width('0px');
 		var childWidths = 0;
-		t.children().each(function() { childWidths += $(this).outerWidth(); });
+		t.children().each(function() {
+			if ($(this).offset()['top'] == box.offset()['top']) {
+				childWidths += $(this).outerWidth();
+			}
+		});
 		box.width(t.width() - childWidths);
 	});
 
@@ -839,7 +848,7 @@ Array.prototype.contains = function(element)
 
 TBLib.anchorBottom = function(exp) {
 	var elts = $(exp);
-	elts.css('overflow', 'auto');
+	elts.css('overflow-y', 'auto');
 	elts.height(1);
 	var totalBodyHeight = $('body').height();
 	var margin = 50;

@@ -11,7 +11,15 @@ class View_Services__Service_Details extends View
 		$this->editing = !empty($_REQUEST['editing']) && $GLOBALS['user_system']->havePerm(PERM_EDITSERVICE);
 		if (!empty($_REQUEST['congregationid'])) $this->congregationid = (int)$_REQUEST['congregationid'];
 		$this->date = process_widget('date', Array('type' => 'date'));
+		if (empty($this->date) && !empty($_SESSION['service_date'])) {
+			$this->date = $_SESSION['service_date'];
+		}
+		if (empty($this->congregationid) && !empty($_SESSION['service_congregationid'])) {
+			$this->congregationid = $_SESSION['service_congregationid'];
+		}
 		if ($this->congregationid && $this->date) {
+			$_SESSION['service_date'] = $this->date;
+			$_SESSION['service_congregationid'] = $this->congregationid;
 			$this->service = NULL;
 			$serviceData = $GLOBALS['system']->getDBOBjectData('service', Array(
 				'congregationid' => $this->congregationid,
@@ -58,7 +66,7 @@ class View_Services__Service_Details extends View
 	function printView()
 	{
 		?>
-		<form method="get" class="well">
+		<form method="get" class="well well-small form-inline">
 			<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
 			<select name="editing">
 				<option value="0">View</option>
@@ -72,7 +80,6 @@ class View_Services__Service_Details extends View
 			), $this->congregationid); ?>
 			service on 
 			<?php 
-			// TODO: sticky dates (mmm)
 			print_widget('date', Array('type' => 'date'), $this->date); ?>
 			<button type="submit" class="btn">Go</button>
 		</form>	
@@ -96,8 +103,32 @@ class View_Services__Service_Details extends View
 				</div>
 				<?php
 			} else {
-				echo '<h1>'.$this->service->toString().'</h1>';
-				$this->service->printServicePlan();
+				?>
+				<h1>
+					<span class="pull-right">
+							<small>
+								<a href="<?php echo build_url(Array('editing' => 1)); ?>"><i class="icon-wrench"></i>Edit</a> &nbsp;
+								&nbsp;
+								<a class="med-popup" href="?call=service_plan&serviceid=<?php echo $this->service->id; ?>"><i class="icon-print"></i>Printable</a>
+							</small>
+					</span>
+					<?php echo ents($this->service->toString()); ?>
+				</h1>
+				<div class="row-fluid">
+					<div class="span6">
+						<?php
+						$this->service->printServicePlan();
+						?>
+					</div>
+					<div class="span6 anchor-bottom">
+						<?php
+						$this->service->printServiceContent();
+						?>
+
+					</div>
+				</div>
+				<?php
+				
 			}
 
 		}
@@ -112,9 +143,8 @@ class View_Services__Service_Details extends View
 		$cong = $GLOBALS['system']->getDBObject('congregation', $this->congregationid);
 		$startTime = preg_replace('/[^0-9]/', '', $cong->getValue('meeting_time'))
 		?>
-		<div class="span6"s>
+		<div class="span6">
 			<h1>
-				<a class="pull-right med-popup" href="?call=service_plan&serviceid=<?php echo $this->service->id; ?>"><small>Printable</small></a>
 				<?php echo ents($this->service->toString()); ?>
 			</h1>
 			<form method="post" id="service-plan-container">
@@ -172,7 +202,10 @@ class View_Services__Service_Details extends View
 								<span>
 								<?php
 								if (!empty($item['runsheet_title_format'])) {
-									echo ents(str_replace('%title%', $item['title'], $item['runsheet_title_format']));
+									$title = $item['runsheet_title_format'];
+									$title = str_replace('%title%', $item['title'], $title);
+									$title = $this->service->replaceKeywords($title);
+									echo ents($title);
 								} else {
 									echo ents($item['title']);
 								}
@@ -255,8 +288,12 @@ class View_Services__Service_Details extends View
 		?>
 		<div class="span6">
 			<h1>Available Components</h1>
-			<div id="component-search" class="input-append">
+			<div id="component-search" class="input-append input-prepend">
+				<span class="add-on"><i class="icon-search"></i></span>
 				<input type="text" placeholder="Enter search terms">
+				<?php
+				print_widget('tag', Array('type' => 'reference', 'references' => 'service_component_tag', 'allow_empty' => TRUE, 'empty_text' => '-- Choose Tag --'), NULL);
+				?>
 				<button data-action="search" class="btn" type="button">Filter</button>
 				<button data-action="clear" class="btn" type="button">Clear</button>
 			</div>
@@ -279,29 +316,37 @@ class View_Services__Service_Details extends View
 					$comps = $GLOBALS['system']->getDBObjectData('service_component', Array(
 						'cong.id' => $this->congregationid,
 						'categoryid' => $catid
-					), 'AND', 'title');
+					), 'AND', 'usage_12m');
 					?>
 					<div class="tab-pane <?php echo $active; ?>" id="cat<?php echo (int)$catid; ?>">
-						<table class="table table-bordered">
+						<table class="table table-bordered" title="Double-click or drag to add to service">
 							<thead>
 								<tr>
-									<th data-sort="string">Title <i class="icon-arrow-up"></i></th>
+									<th data-sort="string">Title</th>
 									<th data-sort="string" class="narrow">Last Used</th>
+									<th data-sort="int" class="narrow" title="Number of usages in last month">1m</th>
+									<th data-sort="int" class="narrow" title="Number of usages in last 12 months">12m<i class="icon-arrow-up"></i></th>
 								</tr>
 							</thead>
 							<tbody>
 							<?php
 							foreach ($comps as $compid => $comp) {
+								$runsheetTitle = $comp['runsheet_title_format'];
+								if (strlen($runsheetTitle)) {
+									$runsheetTitle = str_replace('%title%', $comp['title'], $runsheetTitle);
+									$runsheetTitle = $this->service->replaceKeywords($runsheetTitle);
+								}
+
 								?>
 								<tr data-componentid="<?php echo (int)$compid; ?>"
 									data-is_numbered="<?php echo (int)$comp['is_numbered']; ?>"
 									data-length_mins="<?php echo (int)$comp['length_mins']; ?>"
-									data-runsheet_title_format="<?php echo ents($comp['runsheet_title_format']); ?>">
+									data-runsheet_title="<?php echo ents($runsheetTitle); ?>">
 									<td>
 										<span class="title"><?php echo ents($comp['title']); ?></span>
 										<?php
 										if ($comp['alt_title']) {
-											echo ' <span class="alt-title">('.ents($comp['alt_title']).')</span>';
+											echo ' <span class="alt-title">'.ents($comp['alt_title']).'</span>';
 										}
 										?>
 									</td>
@@ -309,6 +354,12 @@ class View_Services__Service_Details extends View
 										<?php
 										if ($comp['lastused']) echo format_date($comp['lastused']);
 										?>
+									</td>
+									<td>
+										<?php echo $comp['usage_1m']; ?>
+									</td>
+									<td>
+										<?php echo $comp['usage_12m']; ?>
 									</td>
 								</tr>
 								<?php

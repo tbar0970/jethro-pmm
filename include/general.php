@@ -306,6 +306,7 @@ function print_widget($name, $params, $value)
 						}
 					}
 				}
+				$params['options'] = Array();
 				foreach ($options as $k => $details) {
 					$dummy->populate($k, $details);
 					$params['options'][$k] = $dummy->toString();

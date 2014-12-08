@@ -21,6 +21,11 @@ class View__Add_Service_Component extends Abstract_View_Add_Object
 		parent::processView();
 	}
 
+	protected function _doSuccessRedirect()
+	{
+		redirect($this->_on_success_view, Array(), 'cat'.array_get($_REQUEST, 'categoryid'));
+	}
+
 	public function printView()
 	{
 		if ((!$this->_new_object->id) && !empty($_REQUEST['categoryid'])) {
@@ -43,7 +48,7 @@ class View__Add_Service_Component extends Abstract_View_Add_Object
 			<div class="controls">
 				<input class="btn" type="submit" value="Save" />
 				<input class="btn" name="create_another" type="submit" value="Save and add another" />
-				<a href="<?php echo build_url(Array('view' => 'services__manage_service_components')); ?>" class="btn">Cancel</a>
+				<a href="<?php echo build_url(Array('view' => 'services__service_components')); ?>" class="btn">Cancel</a>
 			</div>
 		</form>
 		<?php

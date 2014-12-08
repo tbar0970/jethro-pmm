@@ -27,6 +27,18 @@ class Service_Component_Tagging extends db_object
 		return Array(
 				'comptag' => Array('tagid', 'componentid'),
 			   );
-	}	
+	}
+
+	public function getForeignKeys()
+	{
+		return Array('tagid' => 'service_component_tag(id) ON DELETE CASCADE');
+	}
+
+	function getInstancesQueryComps($params, $logic, $order) {
+		$res = parent::getInstancesQueryComps($params, $logic, $order);
+		$res['from'] .= ' JOIN service_component_tag sct ON sct.id = tagid ';
+		$res['select'][] = 'sct.tag';
+		return $res;
+	}
 }
 ?>

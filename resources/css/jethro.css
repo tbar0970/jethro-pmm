@@ -413,6 +413,7 @@ h1, h2 {
 }
 h3 {
   font-size: 17.5px;
+  line-height: 1.4;
   font-weight: normal;
   border-bottom: 1px solid;
 }
@@ -426,7 +427,11 @@ h5,h6 {
   font-size: 14px;
   margin-bottom: 0px;
 }
-
+/*
+h3:first-child, h4:first-child, h5:first-child {
+	margin-top: 0;
+}
+*/
 @media (max-width: 480px) {
 	h1, h1 {
 		font-size: 20px;
@@ -636,6 +641,11 @@ table.object-summary > tbody > tr > th {
 
 table.object-summary td, table.object-summary th {
 	padding: 4px;
+	border-width: 0px;
+}
+table.object-summary tr.divider-before td, table.object-summary tr.divider-before th {
+	border-top-width: 2px;
+	border-top-color: #E8E8FF !important;
 }
 #body tr.archived td, #body tr.archived a, #body tr.archived .btn-link {
 	color: #bbb;
@@ -922,6 +932,23 @@ Otherwise they go beneath each other
 	}
 }
 
+/*************** PERSON LIST IN MEMBER INTERFACE *************/
+#member-list {
+	max-width: 90ex;
+	margin-left: 0px;
+	margin-top: 15px;
+}
+#member-list form {
+	margin-bottom: 10px;
+}
+#member-list .row-fluid [class*="span"] {
+	min-height: 1px;
+}
+
+#member-list .row-fluid {
+	margin-bottom: 10px;
+}
+
 
 
 
@@ -1061,20 +1088,18 @@ table.service-program td.right-tools, table.service-program td.service  {
 	border-left-width: 0px !important;
 }
 #body table.service-program td.left-tools, #body table.service-program td.right-tools {
-	width: 13px;
 	padding: 0px !important;
 	height: 100%;
-}
-table.service-program td.service, table.service-details {
-	width: 30ex;
+	width: 3ex /* NB */;
+	text-align: center;
 }
 #body table.service-program > tbody > tr > td.service-date {
-	width: 19ex !important;
 	white-space: nowrap;
 	text-align: center;
-	padding-left: 0px;
-	padding-right: 0px;
+	padding-left: 2px;
+	padding-right: 2px;
 	text-align: center;
+	width: 11ex;
 }
 
 table.service-details td, table.service-details th {
@@ -1082,6 +1107,14 @@ table.service-details td, table.service-details th {
 	padding: 1px 2px !important;
 	border: 0px !important;
 	font-weight: normal !important;
+}
+table.service-details th {
+	width: 6.4ex; /* NB */
+	text-align: right;
+	font-size: 85%;
+}
+table.service-details td {
+	width: 28ex; /* NB */
 }
 #body table.service-details td table td {
 	/* bible readings */
@@ -1093,15 +1126,18 @@ table.service-details td, table.service-details th {
 	padding-left: 0px !important;
 }
 #body table.service-details input.bible-ref {
-	width: 17ex;
+	width: 95%;
 }
 #body table.service-details td table td.bible-options {
-	width: 1%;
 	white-space: nowrap;
-	padding-left: 0px !important;
+	padding-left: 5px !important;
+	width: 12ex;
 }
 #body table.service-details td.format input {
-	width: 87%;
+	width: 24.5ex; /* NB */
+}
+#body table.service-details td.topic input {
+	width: 99%;
 }
 #body table.service-details td.format i.got-notes {
 	background-color: #bbffbb;
@@ -1113,6 +1149,10 @@ table.service-details td, table.service-details th {
 table.service-details td table td label {
 	padding: 0px !important;
 	display: inline !important;
+	-webkit-user-select: none;  /* Chrome all / Safari all */
+	-moz-user-select: none;     /* Firefox all */
+	-ms-user-select: none;      /* IE 10+ */
+	user-select: none;
 }
 table.service-details td table td input {
 	margin: 0px 3px 0px 0px !important;
@@ -1499,12 +1539,17 @@ table.system-config td small {
 
 /*************** SERVICE PLANNING ****************/
 
-#service-planner .nav-tabs * {
+#service-comp-manager .tab-content {
+	overflow-y: auto;
+}
+
+#service-planner .nav-tabs *, #service-comp-manager .nav-tabs * {
 	font-size: 90%;
 	font-weight: bold;
 }
 #service-planner .tab-pane {
-	overflow: auto;
+	/*overflow: auto;*/
+	max-width: 100%;
 }
 
 #service-planner .comp-dragging tr.drop-hover td {
@@ -1520,6 +1565,7 @@ table.system-config td small {
 .alt-title {
 	color: #888;
 	font-size: 70%;
+	font-style: italic;
 }
 #service-plan .tools {
 	padding: 0px;

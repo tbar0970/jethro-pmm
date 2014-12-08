@@ -131,7 +131,7 @@ class db_object
 				";
 		}
 		$res .= "PRIMARY KEY (`id`)".$indexes."
-			) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;";
+			) ENGINE=InnoDB";
 		return $res;
 	}
 
@@ -141,6 +141,15 @@ class db_object
 	}
 
 	protected function _getUniqueKeys()
+	{
+		return Array();
+	}
+
+	/**
+	 *
+	 * @return Array (columnName => referenceExpression) eg 'tagid' => 'tagoption.id ON DELETE CASCADE'
+	 */
+	public function getForeignKeys()
 	{
 		return Array();
 	}
@@ -348,7 +357,6 @@ class db_object
 			$sql = 'UPDATE '.strtolower(get_class($this)).'
 					SET '.implode("\n, ", $sets).'
 					WHERE id = '.$db->quote($this->id);
-			error_log($sql);
 			$res = $db->query($sql);
 			check_db_result($res);
 		}
@@ -503,8 +511,12 @@ class db_object
 	{
 		foreach ($this->fields as $name => $details) {
 			if (!array_get($details, 'show_in_summary', true)) continue;
+			$c = '';
+			if (array_get($details, 'divider_before')) {
+				$c = ' class="divider-before"';
+			}
 			?>
-			<tr>
+			<tr<?php echo $c; ?>>
 				<th>
 					<?php echo array_get($details, 'label', ucwords(str_replace('_', ' ', $name))); ?>
 				</th>
@@ -917,8 +929,13 @@ class db_object
 
 	public function getInstancesData($params, $logic='OR', $order='')
 	{
-		$db =& $GLOBALS['db'];
 		$query_bits = $this->getInstancesQueryComps($params, $logic, $order);
+		return $this->_getInstancesData($query_bits);
+	}
+
+	protected function _getInstancesData($query_bits)
+	{
+		$db = $GLOBALS['db'];
 		$sql = 'SELECT '.implode(', ', $query_bits['select']).'
 				FROM '.$query_bits['from'];
 		if (!empty($query_bits['where'])) {
@@ -933,7 +950,7 @@ class db_object
 			$sql .= '
 					ORDER BY '.$query_bits['order_by'];
 		}
-		$res = $db->queryAll($sql, null, null, true);
+		$res = $db->queryAll($sql, null, null, true, true); // 5th param forces array even if one col
 		check_db_result($res);
 		return $res;
 

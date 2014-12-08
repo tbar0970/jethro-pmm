@@ -52,14 +52,12 @@ class Service_Component_Category extends db_object
 	{
 		$res = (array)parent::getInitSQL();
 		$res[] = 'INSERT INTO service_component_category
-				  (category_name, title_format, length_mins_default)
+				  (category_name, runsheet_title_format, length_mins_default)
 				  VALUES 
 				  ("Songs", "Song: %title%", 3),
-				  ("Confessions", "Confession of Sins", 2),
-				  ("Thanksgivings", "Prayer of Thanksgiving", 2),
+				  ("Prayers", "%title%", 2),
 				  ("Creeds", "The %title%", 2),
-				  ("Sermon", "Sermon: %topic% (%name_of_preacher%)", 25),
-				  ("Misc", "%title%", 1);';
+				  ("Other", "%title%", 1);';
 		return $res;
 		
 	}

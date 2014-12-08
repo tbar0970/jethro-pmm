@@ -1,26 +1,21 @@
 <?php
-class View_Admin__Date_Types extends View
+class View__Manage_Service_Component_Tags extends View
 {
 	static function getMenuPermissionLevel()
 	{
-		$features = explode(',', ENABLED_FEATURES);
-		if (in_array('DATES', $features)) {
-			return PERM_SYSADMIN;
-		} else {
-			return -1;
-		}
+		return PERM_SERVICECOMPS;
 	}
 
 	function getTitle()
 	{
-		return 'Configure Date Types';
+		return 'Configure Service Component Tags';
 	}
 
 	function processView()
 	{
-		if (!empty($_POST['datetypename'])) {
+		if (!empty($_POST['tagname'])) {
 			$to_add = $to_delete = $to_update = Array();
-			foreach ($_POST['datetypename'] as $id => $name) {
+			foreach ($_POST['tagname'] as $id => $name) {
 				if ($id == '_new_') {
 					foreach ($name as $n) {
 						if ($n) $to_add[] = $n;
@@ -30,33 +25,32 @@ class View_Admin__Date_Types extends View
 				}
 			}
 			foreach ($to_update as $id => $name) {
-				$SQL = 'UPDATE date_type
-						SET name = '.$GLOBALS['db']->quote($name).'
+				$SQL = 'UPDATE service_component_tag
+						SET tag = '.$GLOBALS['db']->quote($name).'
 						WHERE id = '.(int)$id;
 				$res = $GLOBALS['db']->query($SQL);
 				check_db_result($res);
 			}
-			$res = $GLOBALS['db']->query('DELETE FROM date_type WHERE id NOT IN ('.implode(',', array_merge(array_keys($to_update))).')');
+			$res = $GLOBALS['db']->query('DELETE FROM service_component_tag WHERE id NOT IN ('.implode(',', array_merge(array_keys($to_update))).')');
 			foreach ($to_add as $name) {
-				$SQL = 'INSERT INTO date_type (name)
+				$SQL = 'INSERT INTO service_component_tag (tag)
 						VALUES ('.$GLOBALS['db']->quote($name).')';
 				$res = $GLOBALS['db']->query($SQL);
 				check_db_result($res);
 			}
-			add_message("Date types updated");
+			add_message("Tags updated");
 		}
 	}
 
 	function printView()
 	{
-		$GLOBALS['system']->includeDBClass('person');
-		$types = Person::getDateTypes();
-		if (empty($types)) {
+		$tags = $GLOBALS['system']->getDBObjectData('service_component_tag');
+		if (empty($tags)) {
 			?>
-			<p><i>No date types have been set up in the system yet.</i></p>
+			<p><i>No tags have been set up in the system yet.</i></p>
 			<?php
 		}
-		$types += Array('' => '');
+		$tags += Array('' => Array('tag' => ''));
 		?>
 		<form method="post">
 		<table class="expandable valign-middle">
@@ -65,12 +59,12 @@ class View_Admin__Date_Types extends View
 			<tbody>
 			<?php
 			$i = 0;
-			foreach ($types as $id => $name) {
+			foreach ($tags as $id => $tagdata) {
 				?>
 				<tr>
 					<td><?php echo $id; ?></td>
 					<td>
-						<input name="datetypename[<?php echo $id ? $id : '_new_]['; ?>]" value="<?php echo ents($name); ?>" />
+						<input name="tagname[<?php echo $id ? $id : '_new_]['; ?>]" value="<?php echo ents($tagdata['tag']); ?>" />
 					</td>
 					<td>
 						<i class="icon-trash clickable delete-row"></i>

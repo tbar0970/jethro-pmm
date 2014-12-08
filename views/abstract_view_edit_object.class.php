@@ -32,8 +32,13 @@ class Abstract_View_Edit_Object extends View
 		if (!$this->_initEditedObject()) return false;
 		if ($this->_processObjectEditing()) {
 			add_message($this->getEditingTypeFriendly().' Updated');
-			redirect($this->_on_success_view, Array($this->_editing_type.'id' => $this->_edited_object->id)); // exits
+			$this->_doSuccessRedirect();
 		}
+	}
+
+	protected function _doSuccessRedirect()
+	{
+		redirect($this->_on_success_view, Array($this->_editing_type.'id' => $this->_edited_object->id)); // exits
 	}
 
 	function _processObjectEditing()

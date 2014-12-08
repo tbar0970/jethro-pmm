@@ -20,12 +20,17 @@ class Abstract_View_Add_Object extends View
 			if ($this->_new_object->create()) {
 				$this->_afterCreate();
 				add_message($this->_success_message);
-				redirect($this->_on_success_view, Array($this->_create_type.'id' => $this->_new_object->id));
+				$this->_doSuccessRedirect();
 			} else {
 				$this->_new_object->id = 0;
 				add_message($this->_failure_message, 'failure');
 			}
 		}
+	}
+
+	protected function _doSuccessRedirect()
+	{
+		redirect($this->_on_success_view, Array($this->_create_type.'id' => $this->_new_object->id));
 	}
 
 

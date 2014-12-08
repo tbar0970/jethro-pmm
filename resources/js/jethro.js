@@ -236,6 +236,17 @@ $(document).ready(function() {
 		}
 	});
 
+	/********************** TAGGING ******************/
+
+	$('select.tag-chooser').change(function() {
+		if (this.value == '_new_') {
+			$(this).next('input').show().select();
+		} else {
+			$(this).next('input').show().hide();
+
+		}
+	});
+
 	/************* HIGHLIGHT NOTE *****************/
 	if (document.location.hash) {
 		$(document.location.hash).filter('.notes-history-entry').addClass('highlight');
@@ -252,12 +263,15 @@ $(document).ready(function() {
 	// Make sure the width doesn't bounce around when we change tabs
 	var tabPanes = $('.tab-pane');
 	if (tabPanes.length) {
+		/*
+		// This caused problems with the half-width tabs in service comps page
 		var maxWidth = 0;
 		tabPanes.each(function() {
 			var w = $(this).width();
 			if (w > maxWidth) maxWidth = w;
 		});
 		$('.tab-content').width(maxWidth);
+		*/
 
 		if (document.location.hash) {
 			var targetTab = $('a[name='+document.location.hash.substr(1)+']').parents('.tab-pane');
@@ -337,7 +351,7 @@ $(document).ready(function() {
 	
 	// NARROW COLUMNS
 
-	setTimeout( "applyNarrowColumns(); ", 30);
+	setTimeout( "applyNarrowColumns('body'); ", 30);
 
 	if (document.getElementById('service-planner')) {
 		JethroServicePlanner.init();
@@ -509,7 +523,7 @@ JethroServicePlanner.init = function() {
 	window.onbeforeunload = JethroServicePlanner.onBeforeUnload;
 
 	$('#service-plan-container').submit(function() {
-			c
+			
 	});
 
 
@@ -524,6 +538,7 @@ JethroServicePlanner.onBeforeUnload = function() {
 JethroServicePlanner.beginComponentFiltering = function() {
 	var url = document.location.href.substr(0, document.location.href.indexOf('?'));
 	url += '?call=search_service_components_json';
+	url += '&tagid='+$("#component-search select").val();
 	url += '&search='+$("#component-search input").val();
 	$.ajax(url, {
 		dataType: 'json',
@@ -538,7 +553,7 @@ JethroServicePlanner.filterComponents = function(resultIDs) {
 }
 JethroServicePlanner.endComponentFiltering = function() {
 	$('#service-comps tbody tr').css('display', '');
-	$('#component-search input').val('');
+	$('#component-search input, #component-search select').val('');
 }
 
 JethroServicePlanner.onSubmit = function() {
@@ -589,9 +604,8 @@ JethroServicePlanner.addFromComponent = function(componentTR, beforeItem) {
 	var newTR = $('#service-item-template').clone().attr('id', '');
 	newTR.css('display', '').addClass('service-item');
 	var attrs = ['componentid', 'is_numbered', 'length_mins'];
-	var titleFormat = componentTR.attr('data-runsheet_title_format');
-	var newTitle = componentTR.find('.title').html();
-	if (titleFormat) newTitle = titleFormat.replace('%title%', newTitle);
+	var runsheetTitle = componentTR.attr('data-runsheet_title');
+	var newTitle = runsheetTitle ? runsheetTitle: componentTR.find('.title').html();
 	newTR.find('td.item span').html(newTitle);
 	for (var i=0; i < attrs.length; i++) {
 		newTR.find('td.item').append('<input type="hidden" class="'+attrs[i]+'" name="'+attrs[i]+'[]" value="'+componentTR.attr('data-'+attrs[i])+'" />');
@@ -662,13 +676,13 @@ function handleFamilyPhotosLayout() {
 	}
 }
 
-var applyNarrowColumns = function() { 
+var applyNarrowColumns = function(root) {
 	// All of this is because in Chrome, if you set a width on a TD,
 	// there is no way to stop the overall table from being width 100% OF THE WINDOW
 	// (even if its parent is less than 100% width).
 	// We want the whole table to be as wide as it needs to be but no wider.
 	var expr = 'td.narrow, th.narrow, table.object-summary th'
-	var cells = $(expr);
+	var cells = $(root).find(expr);
 	var parents = cells.parents('table:visible');
 	parents.each(function() {
 		var table = $(this);

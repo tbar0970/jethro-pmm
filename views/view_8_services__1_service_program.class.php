@@ -236,6 +236,7 @@ class View_Services__Service_Program extends View
 	{
 		if (empty($this->_congregations)) return;
 		?>
+		<p class="pull-right"><a href="<?php echo build_url(Array('editing' => 1)); ?>"><i class="icon-wrench"></i>Edit</a></p>
 		<table class="table roster service-program table-auto-width">
 			<thead>
 				<tr>
@@ -244,7 +245,7 @@ class View_Services__Service_Program extends View
 				foreach ($this->_congregations as $congid) {
 					$cong = $GLOBALS['system']->getDBObject('congregation', (int)$congid);
 					?>
-					<th width="<?php echo floor(100 / count($this->_congregations)); ?>%"><?php echo ents($cong->getValue('name')); ?></th>
+					<th><?php echo ents($cong->getValue('name')); ?></th>
 					<?php
 				}
 				?>
@@ -372,7 +373,8 @@ class View_Services__Service_Program extends View
 		<input type="hidden" name="delete_single" value="" id="delete_single" />
 		<input type="hidden" name="delete_all_date" value="" id="delete_all_date" />
 
-		<table class="table roster table-width-auto service-program" id="service-program-editor">
+		<table id="service-program-editor" class="table roster service-program table-auto-width" style="table-layout: fixed;">
+
 			<thead>
 				<tr>
 					<th>Date</th>
@@ -409,7 +411,7 @@ class View_Services__Service_Program extends View
 				}
 
 				// Now print the service we actually have
-				$class_clause = ($date == $this_sunday) ? 'class="tblib-hover"' : '';
+				$class_clause = ($date == $this_sunday) ? 'class="hovered"' : '';
 				?>
 				<tr class="copy-details">
 					<td>
@@ -425,6 +427,7 @@ class View_Services__Service_Program extends View
 				}
 				?>
 				</tr>
+
 				<tr <?php echo $class_clause; ?>>
 					<td class="service-date"><strong><?php echo date('j M y', strtotime($date)); ?></strong><br />
 					<input type="image" name="delete_all_date" value="<?php echo $date; ?>" src="<?php echo BASE_URL; ?>/resources/img/cross_red.png" class="confirm-shift" title="Delete all services on this date" /></td>
@@ -522,7 +525,7 @@ class View_Services__Service_Program extends View
 			<tr>
 				<th>Topic</th>
 				<td class="topic">
-					<input type="text" name="topic_title[<?php echo $congid; ?>][<?php echo $date; ?>]" size="36" value="<?php echo ents(array_get($data, 'topic_title')); ?>" />
+					<input type="text" name="topic_title[<?php echo $congid; ?>][<?php echo $date; ?>]" value="<?php echo ents(array_get($data, 'topic_title')); ?>" />
 				</td>
 			</tr>
 			<tr>
