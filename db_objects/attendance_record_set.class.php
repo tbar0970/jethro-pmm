@@ -33,8 +33,13 @@ class Attendance_Record_Set
 			  `groupid` int(11) NOT NULL default '0',
 			  `present` tinyint(1) unsigned NOT NULL default '0',
 			  PRIMARY KEY  (`date`,`personid`,`groupid`)
-			) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
+			) ENGINE=InnoDB ;
 		";
+	}
+	
+	public function getForeignKeys()
+	{
+		return Array();
 	}
 
 	function load($date, $age_bracket, $congregationid=0, $groupid=0)
