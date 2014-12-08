@@ -139,17 +139,7 @@ class View_Services__Generate_Documents extends View
 						if (isset($_POST['replacements'][$congid][$keyword])) {
 							$this->_replacements[$congid][$keyword] = $_POST['replacements'][$congid][$keyword];
 						} else {
-							if (0 === strpos($keyword, 'NAME_OF_')) {
-								$role_title = substr($keyword, strlen('NAME_OF_'));
-								$this->_replacements[$congid][$keyword] = $service->getPersonnelByRoleTitle($role_title);
-							} else if (0 === strpos($keyword, 'SERVICE_')) {
-								$service_field = strtolower(substr($keyword, strlen('SERVICE_')));
-								$this->_replacements[$congid][$keyword] = $service->getValue($service_field);
-								if ($service_field == 'date') {
-									// make a friendly date
-									$this->_replacements[$congid][$keyword] = date('j F Y', strtotime($this->_replacements[$congid][$keyword]));
-								}
-							} else if (0 === strpos($keyword, 'NEXT_SERVICE_')) {
+							if (0 === strpos($keyword, 'NEXT_SERVICE_')) {
 								if (!empty($next_service)) {
 									$service_field = strtolower(substr($keyword, strlen('NEXT_SERVICE_')));
 									$this->_replacements[$congid][$keyword] = $next_service->getValue($service_field);
@@ -158,14 +148,14 @@ class View_Services__Generate_Documents extends View
 										$this->_replacements[$congid][$keyword] = date('j M', strtotime($this->_replacements[$congid][$keyword]));
 									}
 								} else {
-									add_warning("NEXT_SERVICE_ keyword could not be replaced because no next service was found for ".$congregation['name'], 'warning');
+									add_message("NEXT_SERVICE_ keyword could not be replaced because no next service was found for ".$congregation['name'], 'warning');
 									$this->_replacements[$congid][$keyword] = '';
 								}
 							} else if (0 === strpos($keyword, 'CONGREGATION_')) {
 								$cong_field = strtolower(substr($keyword, strlen('CONGREGATION_')));
-								$this->_replacements[$congid][$keyword] = $cong[$cong_field];
+								$this->_replacements[$congid][$keyword] = $congregation[$cong_field];
 							} else {
-								$this->_replacements[$congid][$keyword] = '';
+								$this->_replacements[$congid][$keyword] = $service->getKeywordReplacement($keyword);
 							}
 						}
 					}
@@ -332,7 +322,7 @@ class View_Services__Generate_Documents extends View
 										<b>Initiate</b> - create a file for each service using templates<br />
 										<div class="smallprint alert-info">For each congregation with a code name, this will look in
 										<ul><li><?php echo implode('</li><li>', array_map(Array($this, '_cleanDirName'), $this->_dirs['populate'])); ?></ul>
-										for a file named "_template_CODENAME.odt" <br />and make a copy named "<?php echo $default_date; ?>_CODENAME.odt" (using the date specified above).</div>
+										for a file named "_template_CODENAME.ott" <br />and make a copy named "<?php echo $default_date; ?>_CODENAME.odt" (using the date specified above).</div>
 										</label>
 									</td>
 								</tr>
@@ -367,6 +357,7 @@ class View_Services__Generate_Documents extends View
 							}
 							?>
 							</table>
+							<p>(See the <a href="<?php echo BASE_URL; ?>/resources/sample_service_doc.ott">sample file</a> for details of what keywords etc are available.)</p>
 						</td>
 					</tr>
 					<tr>
