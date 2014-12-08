@@ -12,7 +12,7 @@ class roster_view_service_field extends db_object
 					service_field varchar(32) not null,
 					order_num int(5) not null,
 					constraint primary key (congregationid, roster_view_id, service_field)
-				) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;';
+				) ENGINE=InnoDB ;';
 	}
 }
 ?>

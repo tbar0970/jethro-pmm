@@ -11,7 +11,7 @@ class roster_view_role_membership extends db_object
 					roster_view_id int(5) not null,
 					order_num int(5) not null,
 					constraint primary key (roster_role_id, roster_view_id)
-				) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;';
+				) ENGINE=InnoDB ;';
 	}
 }
 ?>

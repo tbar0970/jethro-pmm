@@ -16,7 +16,7 @@ class roster_role_assignment extends db_object
 					constraint foreign key rra_assiger (assigner) references _person(id),
 					constraint foreign key rra_personid (personid) references _person(id),
 					constraint foreign key rra_roster_role_id (roster_role_id) references roster_role(id)
-				) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;';
+				) ENGINE=InnoDB ;';
 	}
 
 	static function getUpcomingAssignments($personid, $timeframe='4 weeks')

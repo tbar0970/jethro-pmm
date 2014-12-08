@@ -60,7 +60,7 @@ class Person_Query extends DB_Object
 			  `created` timestamp NOT NULL default CURRENT_TIMESTAMP,
 			  `params` text collate latin1_general_ci NOT NULL,
 			  PRIMARY KEY  (`id`)
-			) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
+			) ENGINE=InnoDB ;
 		";
 	}
 

@@ -118,7 +118,7 @@ class family extends db_object
 			  `history` text collate latin1_general_ci NOT NULL,
 			  PRIMARY KEY  (`id`),
 			  KEY `family_name` (`family_name`,`address_suburb`,`address_postcode`,`home_tel`,`status`)
-			) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
+			) ENGINE=InnoDB;
 		";
 	}
 

@@ -23,7 +23,7 @@ class Person_Note extends Abstract_Note
 			  `personid` int(11) NOT NULL default '0',
 			  `id` int(11) NOT NULL default '0',
 			  PRIMARY KEY  (`personid`,`id`)
-			) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
+			) ENGINE=InnoDB ;
 		";
 	}
 

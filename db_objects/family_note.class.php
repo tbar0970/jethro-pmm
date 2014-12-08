@@ -23,7 +23,7 @@ class Family_Note extends Abstract_Note
 			  `familyid` int(11) NOT NULL default '0',
 			  `id` int(11) NOT NULL default '0',
 			  PRIMARY KEY  (`familyid`,`id`)
-			) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
+			) ENGINE=InnoDB;
 		";
 	}
 

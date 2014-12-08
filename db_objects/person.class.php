@@ -163,7 +163,7 @@ class Person extends DB_Object
 			  KEY `work_tel` (`work_tel`),
 			  KEY `status` (`status`),
 			  KEY `familyid` (`familyid`)
-			) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;",
+			) ENGINE=InnoDB ;",
 
 			"CREATE TABLE person_photo (
 			   personid int(11) not null,

@@ -44,7 +44,7 @@ class Note_Comment extends DB_Object
 			  `created` timestamp NOT NULL default CURRENT_TIMESTAMP,
 			  `contents` text collate latin1_general_ci NOT NULL,
 			  PRIMARY KEY  (`id`)
-			) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
+			) ENGINE=InnoDB ;
 		";
 	}
 

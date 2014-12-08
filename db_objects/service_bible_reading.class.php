@@ -13,7 +13,7 @@ class service_bible_reading extends db_object
 					to_read tinyint(1) unsigned,
 					to_preach tinyint(1) unsigned,
 					constraint primary key (service_id, order_num)
-				) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;';
+				) ENGINE=InnoDB ;';
 	}
 }
 ?>
