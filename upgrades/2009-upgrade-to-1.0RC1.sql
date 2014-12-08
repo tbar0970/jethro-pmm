@@ -20,7 +20,7 @@ CREATE TABLE person_group_category (
   `name` varchar(255) not null,
   `parent_category` int(11) not null default 0,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
+) ENGINE=InnoDB ;
 
 ########################################
 # add archiving and categorisation to groups

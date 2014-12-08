@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS `roster_role` (
   `assign_multiple` varchar(255) collate latin1_general_ci NOT NULL default '0',
   `active` varchar(255) collate latin1_general_ci NOT NULL default '1',
   PRIMARY KEY  (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
+) ENGINE=InnoDB  ;
 
 CREATE TABLE IF NOT EXISTS `roster_role_assignment` (
   `assignment_date` date NOT NULL,
@@ -90,14 +90,14 @@ CREATE TABLE IF NOT EXISTS `roster_role_assignment` (
   PRIMARY KEY  (`roster_role_id`,`assignment_date`,`personid`),
   KEY `rra_assiger` (`assigner`),
   KEY `rra_personid` (`personid`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
+) ENGINE=InnoDB ;
 
 CREATE TABLE IF NOT EXISTS `roster_view` (
   `id` int(11) NOT NULL auto_increment,
   `name` varchar(255) collate latin1_general_ci NOT NULL default '',
   `is_public` varchar(255) collate latin1_general_ci NOT NULL default '0',
   PRIMARY KEY  (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
+) ENGINE=InnoDB  ;
 
 
 CREATE TABLE IF NOT EXISTS `roster_view_role_membership` (
@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS `roster_view_role_membership` (
   `roster_view_id` int(5) NOT NULL,
   `order_num` int(5) NOT NULL,
   PRIMARY KEY  (`roster_role_id`,`roster_view_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
+) ENGINE=InnoDB ;
 
 
 CREATE TABLE IF NOT EXISTS `roster_view_service_field` (
@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS `roster_view_service_field` (
   `service_field` varchar(32) collate latin1_general_ci NOT NULL,
   `order_num` int(5) NOT NULL,
   PRIMARY KEY  (`congregationid`,`roster_view_id`,`service_field`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
+) ENGINE=InnoDB ;
 
 
 CREATE TABLE IF NOT EXISTS `service` (
@@ -126,7 +126,7 @@ CREATE TABLE IF NOT EXISTS `service` (
   `notes` text collate latin1_general_ci NOT NULL,
   PRIMARY KEY  (`id`),
   UNIQUE KEY `datecong` (`date`,`congregationid`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
+) ENGINE=InnoDB  ;
 
 
 CREATE TABLE IF NOT EXISTS `service_bible_reading` (
@@ -136,4 +136,4 @@ CREATE TABLE IF NOT EXISTS `service_bible_reading` (
   `to_read` tinyint(1) unsigned default NULL,
   `to_preach` tinyint(1) unsigned default NULL,
   PRIMARY KEY  (`service_id`,`order_num`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
+) ENGINE=InnoDB ;
