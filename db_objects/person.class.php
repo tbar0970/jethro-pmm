@@ -14,7 +14,7 @@ class Person extends DB_Object
 		if ($id == $this->getCurrentUser('id')) {
 			$this->_save_permission_level = 0;
 		}
-		return $this->db_object($id);
+		return parent::__construct($id);
 	}
 
 	function _getFields()

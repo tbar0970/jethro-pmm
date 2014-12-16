@@ -13,7 +13,7 @@ class Person_Query extends DB_Object
 	var $_dummy_person = NULL;
 	var $_group_chooser_options_cache = NULL;
 
-	function Person_Query($id=0)
+	function __construct($id=0)
 	{
 		if (!empty($GLOBALS['system'])) {
 			$GLOBALS['system']->includeDBClass('person');
@@ -47,7 +47,7 @@ class Person_Query extends DB_Object
 				$this->_field_details['f.'.$i]['allow_empty'] = true;
 			}
 		}
-		return $this->DB_Object($id);
+		return parent::__construct($id);
 	}
 
 	function getInitSQL()
