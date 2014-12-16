@@ -20,7 +20,7 @@ class db_object
 
 //--        CREATING, LOADING AND SAVING        --//
 
-	public function db_object($id=0)
+	public function __construct($id=0)
 	{
 		if (!$this->checkPerm($this->_load_permission_level)) {
 			trigger_error('Current user has insufficient permission level to load a '.get_class($this).' object', E_USER_ERROR);
