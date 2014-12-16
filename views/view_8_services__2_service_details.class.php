@@ -142,9 +142,6 @@ class View_Services__Service_Details extends View
 
 	private function printServicePlan()
 	{
-
-		// TODO: Lock expiry warning
-
 		$cong = $GLOBALS['system']->getDBObject('congregation', $this->congregationid);
 		$startTime = preg_replace('/[^0-9]/', '', $cong->getValue('meeting_time'))
 		?>
@@ -269,9 +266,11 @@ class View_Services__Service_Details extends View
 				</tfoot>
 			</table>
 			</form>
-
-
-		</div>
+			<script type="text/javascript">
+				setTimeout('showLockExpiryWarning()', <?php echo max(1000,(strtotime('+'.LOCK_LENGTH, 0)-60)*1000); ?>);
+				setTimeout('showLockExpiredWarning()', <?php echo (strtotime('+'.LOCK_LENGTH, 0))*1000; ?>);
+			</script>
+ 		</div>
 		<?php
 	}
 
