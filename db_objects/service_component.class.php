@@ -59,15 +59,15 @@ class Service_Component extends db_object
 									'width'		=> 80,
 									'initial_cap'	=> TRUE,
 									'note' => 'Leave this blank to use the category default',
-									'editable' => false,
-									'show_in_summary' => false,
+									'editable' => true,
+									'show_in_summary' => true,
 								   ),
 			'show_in_handout'		=> Array(
 									'type'		=> 'select',
 									'options'  => Array('No', 'Yes'),
 									'label'    => 'Show on Handout?',
-									'editable' => false,
-									'show_in_summary' => false,
+									'editable' => true,
+									'show_in_summary' => true,
 								   ),
 			'show_on_slide'		=> Array(
 									'type'		=> 'select',
@@ -94,15 +94,11 @@ class Service_Component extends db_object
 		return $fields;
 	}
 
-	function search($keyword, $tagid, $congregationid)
+	function search($keyword, $tagid, $congregationid, $categoryid=NULL)
 	{
 		$conds = Array();
 		if (!empty($keyword)) {
-			$conds += Array(
-						'title' => '%'.$keyword.'%',
-						'alt_title' => '%'.$keyword.'%',
-						'content_html' => '%'.$keyword.'%',
-					);
+			$conds['keyword'] = $keyword;
 		}
 		if (!empty($tagid)) {
 			$conds['tagid'] = (int)$tagid;
@@ -110,7 +106,10 @@ class Service_Component extends db_object
 		if (!empty($congregationid)) {
 			$conds['congregationid'] = (int)$congregationid;
 		}
-		return $GLOBALS['system']->getDBObjectData('service_component', $conds, 'OR');
+		if (!empty($categoryid)) {
+			$conds['categoryid'] = (int)$categoryid;
+		}
+		return $GLOBALS['system']->getDBObjectData('service_component', $conds, 'AND', 'title');
 	}
 
 	/**
@@ -123,6 +122,9 @@ class Service_Component extends db_object
 
 		$tagid = array_get($params, 'tagid');
 		unset($params['tagid']);
+
+		$keyword = array_get($params, 'keyword');
+		unset($params['keyword']);
 
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
 
@@ -146,15 +148,19 @@ class Service_Component extends db_object
 		if ($res['where'] == '') $res['where'] = '1=1';
 		$res['where']  = '('.$res['where'].') ';
 		if ($congid === 0) {
-			$res['where'] .=  'AND cong.id IS NULL';
+			$res['where'] .=  $logic.' cong.id IS NULL';
 		} else if ($congid !== NULL) {
-			$res['where'] .=  'AND cong.id = '.(int)$congid;
+			$res['where'] .=  $logic.' cong.id = '.(int)$congid;
 		} else {
-			$res['where'] .=  'AND cong.id IS NOT NULL';
+			$res['where'] .=  $logic.' cong.id IS NOT NULL';
 		}
 		if ($tagid) {
 			$res['from'] .= ' LEFT JOIN service_component_tagging sct ON sct.componentid = service_component.id AND sct.tagid = '.(int)$tagid;
-			$res['where'] .= ' AND sct.tagid IS NOT NULL';
+			$res['where'] .= $logic.' sct.tagid IS NOT NULL';
+		}
+		if ($keyword) {
+			$qk = $GLOBALS['db']->quote("${$keyword}%");
+			$res['where'] .= $logic.' (title LIKE '.$qk.' OR alt_title LIKE '.$qk.' OR content_html LIKE '.$qk.')';
 		}
 
 		return $res;
@@ -176,8 +182,6 @@ class Service_Component extends db_object
 		parent::_printSummaryRows();
 		unset($this->fields['congregationids']);
 		unset($this->fields['tags']);
-
-		parent::_printSummaryRows();
 	}
 
 	public function printFieldValue($name)
@@ -218,19 +222,27 @@ class Service_Component extends db_object
 		$this->fields = Array();
 		foreach ($oldFields as $k => $v) {
 			$this->fields[$k] = $v;
+			$congs = $GLOBALS['system']->getDBObjectData('congregation', Array('!meeting_time' => ''), 'AND');
+			$options = Array();
+			foreach ($congs as $id => $detail) {
+				$options[$id] = $detail['name'];
+			}
 			if ($k == 'categoryid') {
 				$this->fields['congregationids'] = Array(
-					'type' => 'reference',
+					'type' => 'select',
 					'label' => 'Used By',
-					'references' => 'congregation',
+					'options' => $options,
 					'order_by'			=> 'meeting_time',
-					'allow_empty'		=> FALSE,
+					'allow_empty'		=> TRUE,
 					'allow_multiple'	=> TRUE,
-					'filter'			=> create_function('$x', '$y = $x->getValue("meeting_time"); return !empty($y);'),
 					'note'				=> 'If a component is no longer used by any congregation, unselect all options',
 				);
-				if (empty($this->id) && !empty($_REQUEST['congregationid'])) {
-					$this->setValue('congregationids', Array($_REQUEST['congregationid']));
+				if (empty($this->id)) {
+					if (!empty($_REQUEST['congregationid'])) {
+						$this->setValue('congregationids', Array($_REQUEST['congregationid']));
+					} else {
+						$this->values['congregationids'] = array_keys($congs);
+					}
 				}
 			}
 			if ($k == 'alt_title') {
