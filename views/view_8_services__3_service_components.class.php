@@ -23,9 +23,6 @@ class View_Services__Service_Components extends View
 			print_message("To edit services you must first go to admin > congregations and set the 'code name' for the relevant congregations", 'failure');
 			return;
 		}
-/*			<div id="component-search" class="input-append input-prepend">
-				<span class="add-on"><i class="icon-search"></i></span>
-*/
 		?>
 		<form class="well well-small form-inline" style="line-height: 35px">
 			<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
@@ -90,7 +87,7 @@ class View_Services__Service_Components extends View
 								<tbody>
 								<?php
 								$GLOBALS['system']->includeDBClass('service_component');
-								$comps = Service_Component::search(array_get($_REQUEST, 'search'), array_get($_REQUEST, 'tagid'), array_get($_REQUEST, 'congregationid'));
+								$comps = Service_Component::search(array_get($_REQUEST, 'search'), array_get($_REQUEST, 'tagid'), array_get($_REQUEST, 'congregationid'), $catid);
 								foreach ($comps as $compid => $comp) {
 									?>
 									<tr data-id="<?php echo (int)$compid; ?>">
