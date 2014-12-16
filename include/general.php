@@ -163,7 +163,7 @@ function print_widget($name, $params, $value)
 				$regex_exp = empty($params['regex']) ? '' : 'regex="'.trim($params['regex'], '/ ').'"';
 				$autocomplete_exp = isset($params['autocomplete']) ? 'autocomplete='.($params['autocomplete'] ? 'on' : 'off').'"' : '';
 				?>
-				<input type="<?php echo $params['type']; ?>" name="<?php echo $name; ?>" value="<?php echo $value; ?>" class="<?php echo trim($classes); ?>" <?php echo implode(' ', Array($maxlength_exp, $width_exp, $regex_exp, $autocomplete_exp)); ?> <?php echo $attrs; ?> />
+				<input type="<?php echo $params['type']; ?>" name="<?php echo $name; ?>" value="<?php echo ents($value); ?>" class="<?php echo trim($classes); ?>" <?php echo implode(' ', Array($maxlength_exp, $width_exp, $regex_exp, $autocomplete_exp)); ?> <?php echo $attrs; ?> />
 				<?php
 			}
 			break;
@@ -193,6 +193,7 @@ function print_widget($name, $params, $value)
 			break;
 		case 'select':
 			$our_val = is_array($value) ? $value : (($value === '') ? Array() : Array("$value"));
+			foreach ($our_val as $k => $v) $our_val[$k] = "$v";
 			if (array_get($params, 'style', 'dropbox') == 'colour-buttons') {
 				// the empty onclick below is to make labels work on iOS
 				// see http://stackoverflow.com/questions/5421659/html-label-command-doesnt-work-in-iphone-browser
