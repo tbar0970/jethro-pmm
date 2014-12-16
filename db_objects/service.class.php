@@ -409,7 +409,8 @@ class service extends db_object
 	public function getItems($withContent=FALSE)
 	{
 		$SQL = 'SELECT si.*, sc.title, sc.alt_title, sc.is_numbered, '.($withContent ? 'sc.content_html, ' : '').'
-					IF(LENGTH(sc.runsheet_title_format) = 0, scc.runsheet_title_format, sc.runsheet_title_format) AS runsheet_title_format
+					IF(LENGTH(sc.runsheet_title_format) = 0, scc.runsheet_title_format, sc.runsheet_title_format) AS runsheet_title_format,
+					IF(LENGTH(sc.handout_title_format) = 0, scc.handout_title_format, sc.handout_title_format) AS handout_title_format
 				FROM service_item si
 				LEFT JOIN service_component sc ON si.componentid = sc.id
 				LEFT JOIN service_component_category scc ON sc.categoryid = scc.id
@@ -484,7 +485,11 @@ class service extends db_object
 			?>
 			<h4 id="item<?php echo $k; ?>">
 				<?php
-				echo ($num++).'. '.ents($i['title']);
+				echo ($num++).'. ';
+				$title = $i['handout_title_format'];
+				$title = str_replace('%title%', $i['title'], $title);
+				$title = $this->replaceKeywords($title);
+				echo ents($title);
 				?>
 			</h4>
 			<?php echo $i['content_html']; ?>
