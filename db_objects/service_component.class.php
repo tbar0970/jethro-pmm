@@ -1,8 +1,8 @@
 <?php
 class Service_Component extends db_object
 {
-	var $_load_permission_level = 0; // want PERM_VIEWSERVICE | PERM_VIEWROSTER
-	var $_save_permission_level = 0; // FUTURE: PERM_EDITSERVICE;
+	var $_load_permission_level = PERM_VIEWSERVICE;
+	var $_save_permission_level = PERM_EDITSERVICE;
 
 	function __construct($id=0)
 	{
@@ -93,7 +93,29 @@ class Service_Component extends db_object
 		);
 		return $fields;
 	}
-	
+
+	function search($keyword, $tagid, $congregationid)
+	{
+		$conds = Array();
+		if (!empty($keyword)) {
+			$conds += Array(
+						'title' => '%'.$keyword.'%',
+						'alt_title' => '%'.$keyword.'%',
+						'content_html' => '%'.$keyword.'%',
+					);
+		}
+		if (!empty($tagid)) {
+			$conds['tagid'] = (int)$tagid;
+		}
+		if (!empty($congregationid)) {
+			$conds['congregationid'] = (int)$congregationid;
+		}
+		return $GLOBALS['system']->getDBObjectData('service_component', $conds, 'OR');
+	}
+
+	/**
+	 * Funny behaviour here:  tagid and congregationid are always ANDed even if $logic=or
+	 */
 	function getInstancesQueryComps($params, $logic, $order)
 	{
 		$congid = array_get($params, 'congregationid');
@@ -122,7 +144,7 @@ class Service_Component extends db_object
 		$res['group_by'] = 'service_component.id';
 
 		if ($res['where'] == '') $res['where'] = '1=1';
-		$res['where'] .= ' ';
+		$res['where']  = '('.$res['where'].') ';
 		if ($congid === 0) {
 			$res['where'] .=  'AND cong.id IS NULL';
 		} else if ($congid !== NULL) {
@@ -132,8 +154,9 @@ class Service_Component extends db_object
 		}
 		if ($tagid) {
 			$res['from'] .= ' LEFT JOIN service_component_tagging sct ON sct.componentid = service_component.id AND sct.tagid = '.(int)$tagid;
-			$res['where'] .= ' '.$logic.' sct.tagid IS NOT NULL';
+			$res['where'] .= ' AND sct.tagid IS NOT NULL';
 		}
+
 		return $res;
 	}
 	

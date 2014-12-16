@@ -6,8 +6,8 @@ class service extends db_object
 	var $_readings = Array(); // bible readings for the service, fetched from the service_bible_reading table
 	var $_old_readings = Array();
 
-	var $_load_permission_level = 0; // want PERM_VIEWSERVICE | PERM_VIEWROSTER
-	var $_save_permission_level = 0; // FUTURE: PERM_EDITSERVICE;
+	var $_load_permission_level = PERM_VIEWSERVICE;
+	var $_save_permission_level = PERM_EDITSERVICE;
 
 	function _getFields()
 	{

@@ -23,11 +23,19 @@ class View_Services__Service_Components extends View
 			print_message("To edit services you must first go to admin > congregations and set the 'code name' for the relevant congregations", 'failure');
 			return;
 		}
-
+/*			<div id="component-search" class="input-append input-prepend">
+				<span class="add-on"><i class="icon-search"></i></span>
+*/
 		?>
-		<form class="well well-small form-inline">
+		<form class="well well-small form-inline" style="line-height: 35px">
 			<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
-			Show components used by
+			Show components containing
+			<input type="text" name="search" placeholder="Enter search terms" value="<?php echo ents(array_get($_REQUEST, 'search')); ?>">
+			<span style="white-space: nowrap">
+				tagged with&nbsp;
+				<?php print_widget('tagid', Array('type' => 'reference', 'references' => 'service_component_tag', 'allow_empty' => TRUE, 'empty_text' => '-- Choose Tag --'), array_get($_REQUEST, 'tagid')); ?>
+			</span>
+			 used by 
 			<?php
 			$options = Array('' => 'Any Congregation');
 			foreach ($congs as $id => $cong) $options[$id] = $cong['name'];
@@ -37,6 +45,7 @@ class View_Services__Service_Components extends View
 				'options' => $options,
 			), array_get($_REQUEST, 'congregationid')); ?>
 			<button type="submit" class="btn">Go</button>
+			<a href="?view=<?php echo ents($_REQUEST['view']); ?>" class="btn">Clear</a>
 		</form>
 
 		<div class="row-fluid">
@@ -80,7 +89,8 @@ class View_Services__Service_Components extends View
 								</thead>
 								<tbody>
 								<?php
-								$comps = $GLOBALS['system']->getDBObjectData('service_component', Array('categoryid' => $catid)+$congRestriction, 'AND');
+								$GLOBALS['system']->includeDBClass('service_component');
+								$comps = Service_Component::search(array_get($_REQUEST, 'search'), array_get($_REQUEST, 'tagid'), array_get($_REQUEST, 'congregationid'));
 								foreach ($comps as $compid => $comp) {
 									?>
 									<tr data-id="<?php echo (int)$compid; ?>">

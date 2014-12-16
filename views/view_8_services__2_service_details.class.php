@@ -5,6 +5,11 @@ class View_Services__Service_Details extends View
 	private $congregationid = NULL;
 	private $service = FALSE;
 	private $editing = FALSE;
+
+	static function getMenuPermissionLevel()
+	{
+		return PERM_EDITSERVICE;
+	}
 	
 	function processView()
 	{
