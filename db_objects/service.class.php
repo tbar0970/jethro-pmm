@@ -9,6 +9,16 @@ class service extends db_object
 	var $_load_permission_level = PERM_VIEWSERVICE;
 	var $_save_permission_level = PERM_EDITSERVICE;
 
+	public function __construct($id=0)
+	{
+		if (!$GLOBALS['system']->featureEnabled('SERVICEDETAILS')) {
+			// WHen the SERVICEDETAILS feature is not enabled, PERM_EDITSERVICE
+			// does not exist, so nobody has access!
+			$this->_save_permission_level = PERM_BULKSERVICE;
+		}
+		return parent::__construct($id);
+	}
+
 	function _getFields()
 	{
 
