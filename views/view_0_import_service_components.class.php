@@ -1,58 +1,176 @@
 <?php
 require_once 'abstract_view_add_object.class.php';
-class View__Add_Service_Component extends Abstract_View_Add_Object
+class View__Import_Service_Components extends View
 {
-	var $_create_type = 'service_component';
-	var $_success_message = 'New component saved';
-	var $_on_success_view = 'services__service_components';
-	var $_failure_message = 'Error creating component';
-	var $_submit_label = 'Save';
-	var $_title = 'Add Service Component';
+	private $errors = Array();
+	private $category = null;
 
 	static function getMenuPermissionLevel()
 	{
 		return PERM_SERVICECOMPS;
 	}
 
-	function processView() {
-		if (!empty($_REQUEST['create_another'])) {
-			$this->_on_success_view = $_REQUEST['view'];
+	function processView()
+	{
+		$GLOBALS['system']->includeDBClass('service_component_category');
+		$this->category = new Service_Component_Category($_REQUEST['categoryid']);
+		if (!empty($_FILES['datafile'])) {
+			$GLOBALS['system']->doTransaction('BEGIN');
+			$GLOBALS['system']->includeDBClass('service_component');
+			$comp = new Service_Component();
+			$fp = fopen($_FILES['datafile']['tmp_name'], 'r');
+			$toprow = fgetcsv($fp, 0, ",", '"');
+			$rowNum = 1;
+			$all_ccli = Service_Component::getAllByCCLINumber();
+			while ($row = fgetcsv($fp, 0, ",", '"')) {
+				$comp->populate(0, Array());
+				$this->_captureErrors();
+				$data = Array();
+				foreach ($row as $k => $v) {
+					$data[strtolower($toprow[$k])] = $v;
+				}
+				if (isset($data['content'])) {
+					$c = trim($data['content']);
+					$c = str_replace("\r", "", $c);
+					$c = str_replace("\n\n", "</p><p>", $c);
+					$c = str_replace("\n", "<br />", $c);
+					$data['content_html'] = '<p>'.$c.'</p>';
+					unset($data['content']);
+				}
+				foreach (Array('is_numbered', 'show_on_handout') as $k) {
+					if (isset($data[$k])) {
+						if (strtolower($data[$k]) == 'y') {
+							$data[$k] = 1;
+						} else {
+							$data[$k] = (int)$data[$k];
+						}
+					}
+				}
+
+				if (!empty($_REQUEST['dupe-match'])
+					&& !empty($data['ccli_number'])
+					&& isset($all_ccli[$data['ccli_number']])
+				) {
+					$comp->load($all_ccli[$data['ccli_number']]);
+					$comp->fromCSVRow($data);
+					foreach ($_REQUEST['congregationids'] as $congid) {
+						$comp->addCongregation($congid);
+					}
+					$comp->save();
+
+				} else {
+					$comp->fromCSVRow($data);
+					$comp->setValue('categoryid', $_REQUEST['categoryid']);
+					if ($errors = $this->_getErrors()) {
+						$this->errors[$rowNum] = $errors;
+					} else {
+						foreach ($_REQUEST['congregationids'] as $congid) {
+							$comp->addCongregation($congid);
+						}
+						$comp->create();
+					}
+				}
+				$rowNum++;
+			}
+			if (empty($this->errors)) {
+				$GLOBALS['system']->doTransaction('COMMIT');
+				add_message(($rowNum-1).' rows imported successfully');
+				redirect('services__service_components'); // exits
+			} else {
+				add_message("Errors were found in the CSV file.  Import has not been performed.  Please correct the errors and try again", 'error');
+				$GLOBALS['system']->doTransaction('ROLLBACK');
+			}
+			fclose($fp);
 		}
-		parent::processView();
 	}
 
-	protected function _doSuccessRedirect()
+	public function getTitle()
 	{
-		redirect($this->_on_success_view, Array(), 'cat'.array_get($_REQUEST, 'categoryid'));
+		return 'Import '.$this->category->toString();
 	}
 
 	public function printView()
 	{
-		if ((!$this->_new_object->id) && !empty($_REQUEST['categoryid'])) {
-			$cat = $GLOBALS['system']->getDBObject('service_component_category', (int)$_REQUEST['categoryid']);
-			if ($cat) {
-				$this->_new_object->setValue('categoryid', array_get($_REQUEST, 'categoryid'));
-				foreach (Array('length_mins', 'is_numbered', 'show_in_handout', 'show_on_slide') as $k) {
-					$this->_new_object->setValue($k, $cat->getValue($k.'_default'));
-				}
+		if ($this->errors) {
+			echo 'Errors found: <br />';
+			foreach ($this->errors as $rowNum => $errors) {
+				echo 'Row #'.$rowNum.':';
+				echo '<ul><li>'.implode('</li></li>', $errors).'</li></ul>';
 			}
 		}
-
+		
 		?>
-		<form method="post" class="form-horizontal" id="add-<?php echo $this->_create_type; ?>">
-			<input type="hidden" name="new_<?php echo $this->_create_type; ?>_submitted" value="1" />
-			<?php
-			$this->_new_object->printForm();
-			?>
-			<hr />
-			<div class="controls">
-				<input class="btn" type="submit" value="Save" />
-				<input class="btn" name="create_another" type="submit" value="Save and add another" />
-				<a href="<?php echo build_url(Array('view' => 'services__service_components')); ?>" class="btn">Cancel</a>
+
+		<form method="post" enctype="multipart/form-data">
+			<div class="form-horizontal">
+				<div class="control-group">
+					<label class="control-label">
+						Data file
+					</label>
+					<div class="controls">
+						<input type="file" name="datafile" />
+						(<a href="resources/sample_service_comp_import.csv">Sample file</a>)
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">
+						Congregations
+					</label>
+					<div class="controls">
+						<?php
+						print_widget('congregationids', Array(
+									'type'				=> 'reference',
+									'references'		=> 'congregation',
+									'show_id'			=> FALSE,
+									'order_by'			=> 'meeting_time',
+									'allow_empty'		=> false,
+									'allow_multiple'	=> true,
+									'filter'			=> create_function('$x', '$y = $x->getValue("meeting_time"); return !empty($y);'),
+							), Array());
+						?>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">
+						Duplicate Matching
+					</label>
+					<div class="controls">
+						<label class="checkbox">
+							<input type="checkbox" checked="checked" name="dupe-match" value="1">Re-use existing components with matching CCLI numbers</label>
+							<p class="help-inline">This option means that when a row's CCLI number matches an existing component, a new component will not be created.  Instead, the existing component will be updated from the CSV and will be linked to the congregations selected above.</p>
+						</label>
+					</div>
+				</div>
+				<div class="control-group">
+					<div class="controls">
+						<input type="hidden" name="categoryid" value="<?php echo (int)$this->category->id; ?>" />
+						<input type="submit" class="btn" value="Import" />
+					</div>
+				</div>
 			</div>
 		</form>
 		<?php
 	}
-	
+
+	function _captureErrors()
+	{
+		$this->_captured_errors = Array();
+		set_error_handler(Array($this, '_handleError'));
+	}
+
+	function _handleError($errno, $errstr, $errfile, $errline)
+	{
+		if (in_array($errno, array(E_USER_NOTICE, E_USER_WARNING, E_NOTICE, E_WARNING))) {
+			$this->_captured_errors[] = $errstr;
+		}
+	}
+
+	function _getErrors()
+	{
+		$res = $this->_captured_errors;
+		$this->_captured_errors = Array();
+		restore_error_handler();
+		return $res;
+	}
 }
 ?>
