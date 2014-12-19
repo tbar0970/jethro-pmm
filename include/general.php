@@ -441,7 +441,7 @@ function process_widget($name, $params)
 		case 'html':
 			if (isset($_REQUEST[$name])) {
 				require_once 'htmLawed.php';
-				$value = htmLawed($_REQUEST[$name], array('safe'=>1));
+				$value = htmLawed($_REQUEST[$name], array('deny_attribute' => '*', 'safe'=>1));
 			}
 			break;
 		default:
