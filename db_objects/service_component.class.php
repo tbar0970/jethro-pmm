@@ -25,6 +25,7 @@ class Service_Component extends db_object
 									'references'		=> 'service_component_category',
 									'label'				=> 'Category',
 									'show_id'			=> FALSE,
+									'allow_empty'		=> FALSE,
 								   ),
 			'title'		=> Array(
 									'type'		=> 'text',
@@ -52,15 +53,7 @@ class Service_Component extends db_object
 									'type'		=> 'text',
 									'width'		=> 80,
 									'initial_cap'	=> TRUE,
-									'note' => 'Leave this blank to use the category default',
-								   ),
-			'handout_title_format'	=> Array(
-									'type'		=> 'text',
-									'width'		=> 80,
-									'initial_cap'	=> TRUE,
-									'note' => 'Leave this blank to use the category default',
-									'editable' => true,
-									'show_in_summary' => true,
+									'note' => 'How should this component be shown on the run sheet.  Can include replacements such as the component\'s %title%, %SERVICE_TOPIC% or %NAME_OF_SOMEROSTERROLE%.  Leave blank to use the category\'s default.',
 								   ),
 			'show_in_handout'		=> Array(
 									'type'		=> 'select',
@@ -68,6 +61,12 @@ class Service_Component extends db_object
 									'label'    => 'Show on Handout?',
 									'editable' => true,
 									'show_in_summary' => true,
+								   ),
+			'handout_title_format'	=> Array(
+									'type'		=> 'text',
+									'width'		=> 80,
+									'initial_cap'	=> TRUE,
+									'note' => 'How should this component be shown on the handout.  Can include replacements such as the component\'s %title%, %SERVICE_TOPIC% or %NAME_OF_SOMEROSTERROLE%.  Leave blank to use the category\'s default.',
 								   ),
 			'show_on_slide'		=> Array(
 									'type'		=> 'select',
@@ -79,7 +78,8 @@ class Service_Component extends db_object
 			'content_html'		=> Array(
 									'divider_before' => true,
 									'type'		=> 'html',
-									'label'     => 'Content'
+									'label'     => 'Content',
+									'note' => 'When typing in lyrics, use Ctrl+Enter between lines and normal Enter between verses. Don\'t worry if pasted lyrics contain odd fonts etc; these will be stripped on save.'
 								   ),
 			'credits'		=> Array(
 									'type'		=> 'text',
@@ -163,6 +163,15 @@ class Service_Component extends db_object
 			$res['where'] .= $logic.' (title LIKE '.$qk.' OR alt_title LIKE '.$qk.' OR content_html LIKE '.$qk.')';
 		}
 
+		return $res;
+	}
+
+	public static function getAllByCCLINumber()
+	{
+		$SQL = 'SELECT ccli_number, id
+				FROM service_component';
+		$res = $GLOBALS['db']->queryAll($SQL, null, null, true, false);
+		check_db_result($res);
 		return $res;
 	}
 	
@@ -302,7 +311,7 @@ class Service_Component extends db_object
 
 	public function processForm($prefix='', $fields=NULL) {
 		$res = parent::processForm($prefix, $fields);
-		$this->_tmp['congregationids'] = array_get($_REQUEST, $prefix.'congregationids', Array());
+		$this->values['congregationids'] = array_get($_REQUEST, $prefix.'congregationids', Array());
 		$this->_tmp['tagids'] = Array();
 		if (!empty($_REQUEST['tags'])) {
 			foreach ($_REQUEST['tags'] as $tagid) {
@@ -367,7 +376,7 @@ class Service_Component extends db_object
 			check_db_result($GLOBALS['db']->exec('DELETE FROM congregation_service_component WHERE componentid = '.(int)$this->id));
 		}
 		$sets = Array();
-		foreach (array_unique(array_get($this->_tmp, 'congregationids', Array())) as $congid) {
+		foreach (array_unique(array_get($this->values, 'congregationids', Array())) as $congid) {
 			$sets[] = '('.(int)$this->id.', '.(int)$congid.')';
 		}
 		if (!empty($sets)) {
@@ -398,6 +407,12 @@ class Service_Component extends db_object
 			check_db_result($x);
 		}
 
+	}
+
+	public function addCongregation($newCong)
+	{
+		$this->values['congregationids'][] = $newCong;
+		$this->values['congregationids'] = array_unique($this->values['congregationids']);
 	}
 
 }
