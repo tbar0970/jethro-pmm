@@ -995,7 +995,7 @@ class db_object
 						$val = array_get($field, 'default', key($field['options']));
 					}
 				}
-				$this->setValue($fieldname, $val);
+				if ($val != '') $this->setValue($fieldname, $val);
 			}
 		}
 		$this->validateFields();
