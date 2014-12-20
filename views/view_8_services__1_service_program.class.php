@@ -398,7 +398,9 @@ class View_Services__Service_Program extends View
 			}
 			$last_cong = count($this->_congregations) -1;
 			$this_sunday = date('Y-m-d', strtotime('Sunday'));
-			$last_date = key($this->_grouped_services);
+			if ($this->_grouped_services) {
+				$last_date = key($this->_grouped_services);
+			}
 			$new_service_i = 0;
 			foreach ($this->_grouped_services as $date => $services) {
 				// first, print a blank one if necessary
