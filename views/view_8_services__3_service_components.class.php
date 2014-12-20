@@ -69,10 +69,7 @@ class View_Services__Service_Components extends View
 					foreach ($cats as $catid => $cat) {
 						?>
 						<div class="tab-pane<?php echo $c; ?>" id="cat<?php echo $catid; ?>">
-							<p class="pull-right">
-								<a href="?view=_import_service_components&categoryid=<?php echo (int)$catid; ?>"><i class="icon-upload"></i>Import</a> &nbsp;
-								<a href="?view=_add_service_component&categoryid=<?php echo (int)$catid; ?>"><i class="icon-plus-sign"></i>Add</a>
-							</p>
+							<a class="pull-right" href="?view=_add_service_component&categoryid=<?php echo (int)$catid; ?>"><i class="icon-plus-sign"></i>Add</a>
 
 							<table style="width: 100%;" class="table table-bordered service-comps clickable-rows">
 								<thead>

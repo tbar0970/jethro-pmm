@@ -1113,7 +1113,7 @@ table.service-details th {
 	text-align: right;
 	font-size: 85%;
 }
-table.service-details td {
+table.service-details td, td.service-details {
 	width: 28ex; /* NB */
 }
 #body table.service-details td table td {
