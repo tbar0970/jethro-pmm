@@ -376,6 +376,7 @@ class roster_view extends db_object
 		$to_print = Array();
 		foreach ($services as $id => $service_details) {
 			$to_print[$service_details['date']]['service'][$service_details['congregationid']] = $service_details;
+			$to_print[$service_details['date']]['service'][$service_details['congregationid']]['id'] = $id;
 			$to_print[$service_details['date']]['assignments'] = Array();
 		}
 		foreach ($this->getAssignments($start_date, $end_date) as $date => $date_assignments) {
