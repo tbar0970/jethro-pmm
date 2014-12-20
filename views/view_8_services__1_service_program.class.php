@@ -373,7 +373,7 @@ class View_Services__Service_Program extends View
 		<input type="hidden" name="delete_single" value="" id="delete_single" />
 		<input type="hidden" name="delete_all_date" value="" id="delete_all_date" />
 
-		<table id="service-program-editor" class="table roster service-program table-auto-width"je>
+		<table id="service-program-editor" class="table roster service-program table-auto-width" style="table-layout: fixed">
 
 			<thead>
 				<tr>
