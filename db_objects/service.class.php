@@ -210,6 +210,52 @@ class service extends db_object
 		check_db_result($res);
 	}
 
+	function getFormattedValue($fieldname)
+	{
+		switch ($fieldname) {
+
+			case 'bible_to_read':
+			case 'bible_to_preach':
+				$type = substr($fieldname, strlen('bible_to_'));
+				$readings = $this->getRawBibleReadings('read');
+				$res = Array();
+				foreach ($readings as $reading) {
+					$br = new Bible_Ref($reading['bible_ref']);
+					$res[] = $br->toShortString();
+				}
+				return implode(', ', $res);
+				break;
+
+			case 'bible_all':
+				$readings = $this->getRawBibleReadings();
+				$res = Array();
+				foreach ($readings as $reading) {
+					$br = new Bible_Ref($reading['bible_ref']);
+					$entry = $br->toShortString();
+					if (!$reading['to_read']) $entry = '('.$entry.')';
+					if ($reading['to_preach']) $entry = '<strong>'.$entry.'</strong>';
+					$res[] = $entry;
+				}
+				return implode(', ', $res);
+				break;
+
+			case 'format_title':
+			case 'topic_title':
+				return $this->values[$fieldname];
+				break;
+
+			case 'summary':
+				$res = Array();
+				if ($this->values['topic_title']) $res[] = $this->values['topic_title'];
+				if ($b = $this->getFormattedValue('bible_all')) $res[] = $b;
+				if ($this->values['format_title']) $res[] = $this->values['format_title'];
+				if ($this->values['notes']) $res[] = $this->values['notes'];
+				return implode("\n", $res);
+				break;
+			default:
+				return parent::getFormattedValue($fieldname);
+		}	}
+
 	function printFieldValue($fieldname)
 	{
 		// a few special cases

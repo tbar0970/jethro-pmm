@@ -321,8 +321,8 @@ class roster_view extends db_object
 	{
 		$roleids = $this->getRoleIds();
 		if (empty($roleids)) return Array();
-		if (is_null($start_date)) $start_date = date('Y-m-d');
-		if (is_null($end_date)) $end_date = date('Y-m-d', strtotime('+1 year'));
+		if (empty($start_date)) $start_date = date('Y-m-d');
+		if (empty($end_date)) $end_date = date('Y-m-d', strtotime('+1 year'));
 		$sql = 'SELECT roster_role_id, assignment_date, rra.personid,
 				CONCAT(assignee.first_name, " ", assignee.last_name) as assignee,
 				assignee.email as email,
@@ -360,6 +360,77 @@ class roster_view extends db_object
 		$rows = $GLOBALS['db']->queryAll($sql);
 		check_db_result($rows);
 		return $rows;
+	}
+	
+	public function printCSV($start_date=NULL, $end_date=NULL)
+	{
+		$GLOBALS['system']->includeDBClass('service');
+		$dummy_service = new Service();
+
+		if (empty($start_date)) $start_date = date('Y-m-d');
+		$service_params = Array('congregationid' => $this->getCongregations(), '>date' => date('Y-m-d', strtotime($start_date.' -1 day')));
+		if (!empty($end_date)) $service_params['<date'] = date('Y-m-d', strtotime($end_date.' +1 day'));
+		$services = $GLOBALS['system']->getDBObjectData('service', $service_params, 'AND', 'date');
+
+		$to_print = Array();
+		foreach ($services as $id => $service_details) {
+			$to_print[$service_details['date']]['service'][$service_details['congregationid']] = $service_details;
+			$to_print[$service_details['date']]['assignments'] = Array();
+		}
+		foreach ($this->getAssignments($start_date, $end_date) as $date => $date_assignments) {
+			$to_print[$date]['assignments'] = $date_assignments;
+		}
+		ksort($to_print);
+		$role_objects = Array();
+
+		$fp = fopen('php://output', 'w');
+		
+		// Headers
+		$row = Array('');
+		$lastCong = '';
+		foreach ($this->_members as $id => $details) {
+			if ($details['congregation_name'] != $lastCong) {
+				$row[] = $details['congregation_name'];
+				$lastCong = $details['congregation_name'];
+			} else {
+				$row[] = '';
+			}
+		}
+		fputcsv($fp, $row);
+		
+		$row = Array('Date');
+		$dummy_service = new Service();
+		foreach ($this->_members as $id => $details) {
+			if ($details['role_id']) {
+				$row[] = $details['role_title'];
+			} else {
+				$row[] = $dummy_service->getFieldLabel($details['service_field'], true);
+			}
+		}
+		fputcsv($fp, $row);	
+
+		foreach ($to_print as $date => $ddetail) {
+			$row = Array(format_date($date));
+			foreach ($this->_members as $id => $mdetail) {
+				if (empty($mdetail)) continue;
+
+				if (!empty($mdetail['role_id'])) {
+					$names = Array();
+					foreach (array_get($ddetail['assignments'], $mdetail['role_id'], Array()) as $personid => $vs) {
+						$names[] = $vs['name'];
+					}
+					$row[] = implode("\n", $names);;
+				} else {
+					if (!empty($ddetail['service'][$mdetail['congregationid']])) {
+						$dummy_service->populate(0, $ddetail['service'][$mdetail['congregationid']]);
+						$row[] = $dummy_service->getFormattedValue($mdetail['service_field']);
+					}
+				}
+			}
+			fputcsv($fp, $row);
+
+		}
+		fclose($fp);
 	}
 
 
