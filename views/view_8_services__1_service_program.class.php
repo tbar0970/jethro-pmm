@@ -200,7 +200,7 @@ class View_Services__Service_Program extends View
 
 	function getTitle()
 	{
-		return 'Display Service Program';
+		return ($this->_editing ? 'Edit' : 'View').' Service Program';
 
 	}
 
@@ -267,7 +267,7 @@ class View_Services__Service_Program extends View
 					<?php
 					foreach ($this->_congregations as $i => $congid) {
 						?>
-						<td>
+						<td class="service-details">
 							<?php $this->_printServiceViewCell($congid, $date, array_get($services, $congid, Array())); ?>
 						</td>
 						<?php
@@ -373,7 +373,7 @@ class View_Services__Service_Program extends View
 		<input type="hidden" name="delete_single" value="" id="delete_single" />
 		<input type="hidden" name="delete_all_date" value="" id="delete_all_date" />
 
-		<table id="service-program-editor" class="table roster service-program table-auto-width" style="table-layout: fixed;">
+		<table id="service-program-editor" class="table roster service-program table-auto-width"je>
 
 			<thead>
 				<tr>
