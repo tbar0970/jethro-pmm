@@ -37,7 +37,7 @@ class View__Import_Service_Components extends View
 					$data['content_html'] = '<p>'.$c.'</p>';
 					unset($data['content']);
 				}
-				foreach (Array('is_numbered', 'show_on_handout') as $k) {
+				foreach (Array('is_numbered', 'show_in_handout') as $k) {
 					if (isset($data[$k])) {
 						if (strtolower($data[$k]) == 'y') {
 							$data[$k] = 1;
