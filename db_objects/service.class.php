@@ -252,8 +252,18 @@ class service extends db_object
 				if ($this->values['notes']) $res[] = $this->values['notes'];
 				return implode("\n", $res);
 				break;
+				
 			default:
-				return parent::getFormattedValue($fieldname);
+				if (strpos($fieldname, 'comps_') === 0) {
+					$compCatID = (int)substr($fieldname, 6);
+					$res = Array();
+					foreach ($this->getItems(FALSE, $compCatID) as $item) {
+						$res[] = ents($item['title']);
+					}
+					return implode("\n", $res);
+				} else {
+					return parent::getFormattedValue($fieldname);
+				}
 		}	}
 
 	function printFieldValue($fieldname)
