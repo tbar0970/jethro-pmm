@@ -82,6 +82,7 @@ class View_Services__Service_Details extends View
 				'type' => 'reference',
 				'references' => 'congregation',
 				'allow_empty' => false,
+				'filter'			=> create_function('$x', '$y = $x->getValue("meeting_time"); return !empty($y);'),
 			), $this->congregationid); ?>
 			service on 
 			<?php 
