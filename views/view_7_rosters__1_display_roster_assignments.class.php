@@ -93,6 +93,7 @@ class View_Rosters__Display_Roster_Assignments extends View
 						echo '<a href="'.build_url(Array('view' => 'rosters__edit_roster_assignments')).'"><i class="icon-wrench"></i>Edit these assignments</a> &nbsp;  ';
 					}
 					echo '<a target="print-roster" class="med-newwin" href="'.BASE_URL.'?call=display_roster&viewid='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'"><i class="icon-print"></i>Show the print/email version</a> &nbsp; ';
+					echo '<a href="?call=roster_csv&roster_view='.$viewid.'"><i class="icon-download-alt"></i>Download CSV</a> &nbsp; ';
 					echo '<a href="?call=email&roster_view='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'" class="hidden-frame"><i class="icon-email">@</i>Email all listed persons</a>';
 				}
 				?>
