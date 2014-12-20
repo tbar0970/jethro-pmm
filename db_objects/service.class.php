@@ -304,7 +304,16 @@ class service extends db_object
 				}
 				break;
 			default:
-				parent::printFieldvalue($fieldname);
+				if (strpos($fieldname, 'comps_') === 0) {
+					$compCatID = (int)substr($fieldname, 6);
+					$res = Array();
+					foreach ($this->getItems(FALSE, $compCatID) as $item) {
+						$res[] = ents($item['title']);
+					}
+					echo implode('<br />', $res);
+				} else {
+					parent::printFieldvalue($fieldname);
+				}
 		}
 
 	}
@@ -321,7 +330,7 @@ class service extends db_object
 
 	static function getDisplayFields()
 	{
-		return Array(
+		$res = Array(
 				'topic_title' => 'Topic',
 				'bible_all'	=> 'Bible texts (all)',
 				'bible_to_read' => 'Bible texts to read',
@@ -330,12 +339,18 @@ class service extends db_object
 				'notes'			=> 'Notes',
 				'summary'	=> 'Summary of topic, texts, format and notes'
 			);
+		$compCats = $GLOBALS['system']->getDBObjectData('service_component_category');
+		foreach ($compCats as $id => $details) {
+			$res['comps_'.$id] = 'All '.$details['category_name'];
+		}
+
+		return $res;
 	}
 
 
 	static function getDisplayFieldsShort()
 	{
-		return Array(
+		$res = Array(
 				'topic_title' => 'Topic',
 				'bible_all'	=> 'Bible Texts',
 				'bible_to_read'	=> 'Bible Readings',
@@ -344,6 +359,12 @@ class service extends db_object
 				'notes' => 'Notes',
 				'summary'	=> 'Summary',
 			);
+		$compCats = $GLOBALS['system']->getDBObjectData('service_component_category');
+		foreach ($compCats as $id => $details) {
+			$res['comps_'.$id] = $details['category_name'];
+		}
+		return $res;
+
 	}
 
 
@@ -452,7 +473,7 @@ class service extends db_object
 		}
 	}
 
-	public function getItems($withContent=FALSE)
+	public function getItems($withContent=FALSE, $ofCategoryID=NULL)
 	{
 		$SQL = 'SELECT si.*, sc.title, sc.alt_title, sc.is_numbered, '.($withContent ? 'sc.content_html, ' : '').'
 					IF(LENGTH(sc.runsheet_title_format) = 0, scc.runsheet_title_format, sc.runsheet_title_format) AS runsheet_title_format,
@@ -460,7 +481,10 @@ class service extends db_object
 				FROM service_item si
 				LEFT JOIN service_component sc ON si.componentid = sc.id
 				LEFT JOIN service_component_category scc ON sc.categoryid = scc.id
-				WHERE si.serviceid = '.(int)$this->id.' ORDER BY rank';
+				WHERE si.serviceid = '.(int)$this->id.'
+				';
+		if (!empty($ofCategoryID)) $SQL .= ' AND sc.categoryid = '.(int)$ofCategoryID."\n";
+		$SQL .= ' ORDER BY rank';
 		$res = $GLOBALS['db']->queryAll($SQL);
 		check_db_result($res);
 		return $res;

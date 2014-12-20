@@ -303,10 +303,11 @@ class roster_view extends db_object
 								)
 								UNION
 								(
-									SELECT rvdi.roster_view_id as roster_view_id, CONCAT(dic.name, " ", rvdi.service_field) as member_name, rvdi.order_num as order_num
+									SELECT rvdi.roster_view_id as roster_view_id, CONCAT(dic.name, " ", COALESCE(scc.category_name, rvdi.service_field)) as member_name, rvdi.order_num as order_num
 									FROM
 									roster_view_service_field rvdi
 										JOIN congregation dic ON rvdi.congregationid = dic.id
+										LEFT JOIN service_component_category scc ON ((rvdi.service_field LIKE "comps_%") AND (scc.id = SUBSTRING(rvdi.service_field, 7)))
 								)
 								ORDER BY order_num
 							) res
@@ -422,7 +423,7 @@ class roster_view extends db_object
 					$row[] = implode("\n", $names);;
 				} else {
 					if (!empty($ddetail['service'][$mdetail['congregationid']])) {
-						$dummy_service->populate(0, $ddetail['service'][$mdetail['congregationid']]);
+						$dummy_service->populate($ddetail['service'][$mdetail['congregationid']]['id'], $ddetail['service'][$mdetail['congregationid']]);
 						$row[] = $dummy_service->getFormattedValue($mdetail['service_field']);
 					}
 				}
@@ -450,6 +451,7 @@ class roster_view extends db_object
 
 		$to_print = Array();
 		foreach ($services as $id => $service_details) {
+			$service_details['id'] = $id;
 			$to_print[$service_details['date']]['service'][$service_details['congregationid']] = $service_details;
 			$to_print[$service_details['date']]['assignments'] = Array();
 		}
@@ -676,7 +678,7 @@ class roster_view extends db_object
 								// no notes in public view
 								unset($ddetail['service'][$mdetail['congregationid']]['notes']); 
 							}
-							$dummy_service->populate(0, $ddetail['service'][$mdetail['congregationid']]);
+							$dummy_service->populate($ddetail['service'][$mdetail['congregationid']]['id'], $ddetail['service'][$mdetail['congregationid']]);
 							$dummy_service->printFieldvalue($mdetail['service_field']);
 						}
 					}
