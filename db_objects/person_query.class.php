@@ -504,10 +504,10 @@ class Person_Query extends DB_Object
 		}
 
 		// GROUP RULES
-		$params['include_groups'] = $this->_removeEmpties($_POST['include_groupids']);
+		$params['include_groups'] = $this->_removeEmpties(array_get($_POST, 'include_groupids', Array()));
 		$params['group_join_date_from'] = empty($_POST['enable_group_join_date']) ? NULL : process_widget('group_join_date_from', Array('type' => 'date'));
 		$params['group_join_date_to'] = empty($_POST['enable_group_join_date']) ? NULL : process_widget('group_join_date_to', Array('type' => 'date'));
-		$params['exclude_groups'] = $this->_removeEmpties($_POST['exclude_groupids']);
+		$params['exclude_groups'] = $this->_removeEmpties(array_get($_POST, 'exclude_groupids', Array()));
 		$params['group_membership_status'] = array_get($_POST, 'group_membership_status');
 
 		// NOTE RULES
