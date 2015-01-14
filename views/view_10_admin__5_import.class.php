@@ -141,7 +141,12 @@ class View_Admin__Import extends View
 
 			// read the csv and save to session
 			$fp = fopen($_FILES['import']['tmp_name'], 'r');
-
+			if (!$fp) {
+				add_message("There was a problem reading your CSV file.  Please try again.", 'error');
+				$this->stage = 'begin';
+				return;
+			}
+			
 			$map = fgetcsv($fp, 0, ",", '"');
 
 			$_SESSION['import']['groupid'] = (int)$_POST['groupid'];
