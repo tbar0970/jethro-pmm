@@ -213,6 +213,18 @@ class Service_Component extends db_object
 				}
 				break;
 
+			case 'ccli_number':
+				if (defined('CCLI_DETAIL_URL')) {
+					// Can't just use class=med-popup because it's loaded in an AJAX frame so the window.onload has already run
+					echo '<a href="'.str_replace('__NUMBER__', $this->getValue($name), CCLI_DETAIL_URL).'" onclick="return TBLib.handleMedPopupLinkClick(this)">';
+				}
+				echo $this->getValue($name);
+				if (defined('CCLI_DETAIL_URL')) {
+					echo '</a>';
+				}
+				break;
+
+
 			default:
 				return parent::printFieldValue($name);
 		}
@@ -305,7 +317,14 @@ class Service_Component extends db_object
 			<p class="help-inline"><a href="?view=_manage_service_component_tags">Manage tag library</a></p>
 			<?php
 		} else {
-			return parent::printFieldInterface($name, $prefix);
+			parent::printFieldInterface($name, $prefix);
+		}
+		if ($name == 'ccli_number') {
+			if (defined('CCLI_SEARCH_URL')) {
+				?>
+				&nbsp; <a class="smallprint ccli-lookup" href="<?php echo CCLI_SEARCH_URL; ?>">Search CCLI</a>
+				<?php
+			}
 		}
 	}
 

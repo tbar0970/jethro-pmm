@@ -57,6 +57,17 @@ $(document).ready(function() {
 		}
 		return false;
 	});
+
+	$('a.ccli-lookup').click(function() {
+		var title = $('[name=title]').val();
+		if (title == '') return false;
+		var url = this.href.replace('__TITLE__', title);
+		var ccliWindow = window.open(url, 'ccli', 'height=320,width=800,location=no,menubar=no,titlebar=no,toolbar=no,resizable=yes,statusbar=no,scrollbars=yes');
+		if (!ccliWindow) {
+			alert('Jethro tried but could not open a popup window - you probably have a popup blocker enabled.  Please disable your popup blocker for this site, reload the page and try again.');
+		}
+		return false;
+	});
 	
 	$('a.map').click(function() {
 		var mapWindow = window.open(this.href, 'map', 'height='+parseInt($(window).height()*0.9, 10)+',width='+parseInt($(window).width()*0.9, 10)+',location=no,menubar=no,titlebar=no,toolbar=no,resizable=yes,statusbar=no');

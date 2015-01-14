@@ -390,9 +390,10 @@ TBLib.handleYearBoxBlur = function()
 
 
 TBLib.medLinkPopupWindow = null;
-TBLib.handleMedPopupLinkClick = function()
+TBLib.handleMedPopupLinkClick = function(elt)
 {
-	TBLib.medLinkPopupWindow = window.open(this.href, this.target ? this.target : 'medpopup', 'height=480,width=750,resizable=yes,scrollbars=yes');
+	if (!elt) elt = this;
+	TBLib.medLinkPopupWindow = window.open(elt.href, elt.target ? elt.target : 'medpopup', 'height=480,width=750,resizable=yes,scrollbars=yes');
 	if (TBLib.medLinkPopupWindow) {
 		TBLib.medLinkPopupWindow.focus();
 	} else {
