@@ -4,7 +4,7 @@ class Call_csv extends Call
 {
 	function run() 
 	{
-		
+		$fp = fopen('php://output', 'w');
 		header('Content-type: application/force-download');
 		header("Content-Type: application/download");
 		header('Content-type: text/csv');
@@ -19,22 +19,24 @@ class Call_csv extends Call
 				break;
 			case 'person':
 			default:
-				$merge_data = $GLOBALS['system']->getDBObjectData('person', Array('id' => $_POST['personid']));
+				$merge_data = $GLOBALS['system']->getDBObjectData('person', Array('id' => (int)$_POST['personid']));
 				$dummy = new Person();
 				$dummy_family = new Family();
 				break;
 		}
 		$headerrow = Array('ID');
 		foreach (array_keys(reset($merge_data)) as $header) {
-			$headerrow[] = strtoupper($header);
+			if ($header == 'familyid') continue;
+			$headerrow[] = strtoupper($dummy->getFieldLabel($header));
 		}
-		echo get_csv_row($headerrow);
+		fputcsv($fp, $headerrow);
 		
 		foreach ($merge_data as $id => $row) {
 			@$dummy->populate($id, $row);
 			$outputrow = Array($id);
 			foreach ($row as $k => $v) {
 				if ($k == 'history') continue;
+				if ($k == 'familyid') continue;
 				if ($dummy->hasField($k)) {
 					$outputrow[] = $dummy->getFormattedValue($k, $v); // pass value to work around read-only fields
 				} else if ($dummy_family && $dummy_family->hasField($k)) {
@@ -43,8 +45,9 @@ class Call_csv extends Call
 					$outputrow[] = $v;
 				}
 			}
-			echo get_csv_row($outputrow);
+			fputcsv($fp, $outputrow);
 		}
+		fclose($fp);
 	}
 }
 

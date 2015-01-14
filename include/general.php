@@ -509,14 +509,6 @@ function print_hidden_fields($arr, $prefix='', $suffix='')
 	}
 }
 
-function get_csv_row($x)
-{
-	foreach ($x as $i => &$v) {
-		$v = '"'.str_replace('"', '""', $v).'"';
-	}
-	return implode(',', $x)."\r\n";
-}
-
 function get_valid_phone_number_lengths($formats)
 {
 	foreach (explode("\n", $formats) as $format) {
