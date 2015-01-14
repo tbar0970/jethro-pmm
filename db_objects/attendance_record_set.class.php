@@ -121,8 +121,8 @@ class Attendance_Record_Set
 	function printForm($prefix=0)
 	{
 		require_once 'include/size_detector.class.php';
+		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : 'status ASC, family_name, familyid, age_bracket ASC, gender DESC';
 		if ($this->congregationid) {
-			$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : 'status ASC, last_name ASC, familyid, age_bracket ASC, gender DESC';
 			$conds = Array('congregationid' => $this->congregationid, '!status' => 'archived');
 			if (strlen($this->age_bracket)) {
 				$conds['age_bracket'] = $this->age_bracket;
@@ -130,7 +130,7 @@ class Attendance_Record_Set
 			$members = $GLOBALS['system']->getDBObjectData('person', $conds, 'AND', $order);
 		} else {
 			$group =& $GLOBALS['system']->getDBObject('person_group', $this->groupid);
-			$members =& $group->getMembers();
+			$members =& $group->getMembers(FALSE, $order);
 			if (strlen($this->age_bracket)) {
 				// Not the most efficient but it's a problem when it's a problem
 				foreach ($members as $i => $person) {
@@ -324,52 +324,6 @@ class Attendance_Record_Set
 		return $stats;
 	}
 
-	function getPersonsByAttendance($target_percent, $cutoff_ts, $congregation=0, $operator='<', $groupid=0)
-	{
-		if ($operator <> '<') $operator = '>';
-		$db =& $GLOBALS['db'];
-		$sql = 'SELECT ar.personid, p.*, CONCAT(ROUND(SUM(ar.present) * 100 / COUNT(ar.date)), '.$db->quote('%').') as percent_present
-				FROM 
-					person p 
-					JOIN attendance_record ar ON p.id = ar.personid
-					JOIN family f ON p.familyid = f.id
-				WHERE UNIX_TIMESTAMP(ar.date) >= '.$db->quote((int)$cutoff_ts).'
-				AND ar.groupid = '.(int)$groupid.'
-				AND p.status <> '.$db->quote('archived');
-		if ($congregation) {
-			$sql .= '
-				AND p.congregationid = '.$db->quote((int)$congregation);
-		}
-		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : 'status ASC, last_name ASC, age_bracket ASC, gender DESC';
-		$sql .= '
-				GROUP BY p.id, p.first_name, p.last_name, p.congregationid
-				HAVING percent_present '.$operator.' '.$db->quote((int)$target_percent).'
-				ORDER BY '.$order;
-		$persons_res = $db->queryAll($sql, null, null, true);
-		check_db_result($persons_res);
-
-		if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
-
-			$notes_res = Array();
-			if (!empty($persons_res)) {
-				$sql = 'SELECT pn.personid, GROUP_CONCAT(an.subject SEPARATOR '.$db->quote(', ').') 
-						FROM abstract_note an JOIN person_note pn ON an.id = pn.id
-						WHERE an.status = '.$db->quote('pending').'
-							AND an.action_date <= NOW()
-							AND pn.personid IN ('.implode(',', array_map(Array($db, 'quote'), array_keys($persons_res))).')
-						GROUP BY pn.personid';
-				$notes_res = $db->queryAll($sql, null, null, true);
-				check_db_result($notes_res);
-			}
-
-			foreach ($persons_res as $personid => $result) {
-				$persons_res[$personid]['outstanding_notes'] = array_get($notes_res, $personid, '');
-			}
-		}
-
-		return $persons_res;
-	}
-
 	function getAttendances($congregationids, $groupid, $age_bracket, $start_date, $end_date)
 	{
 		$SQL = 'SELECT p.id, p.last_name, p.first_name, '.($groupid ? 'pgms.label AS membership_status' : 'p.status').', ar.date, ar.present
@@ -395,7 +349,14 @@ class Attendance_Record_Set
 			 $SQL .= '
 				 AND p.congregationid IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congregationids)).') ';
 		}
-		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : 'status ASC, last_name ASC, age_bracket ASC, gender DESC';
+		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : 'p.status ASC, family_name ASC, familyid, age_bracket ASC, gender DESC';
+		$order = explode(',', $order);
+		foreach ($order as $i => $o) {
+			$o = trim($o);
+			if ($o == 'status') $o = 'p.status';
+			$order[$i] = $o;
+		}
+		$order = implode(', ', $order);
 		$SQL .= '
 				ORDER BY '.$order;
 		$dates = Array();
