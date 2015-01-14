@@ -29,7 +29,7 @@ class View_Persons__Reports extends View
 			}
 			if ($can_delete) {
 				$this->_query->delete();
-				add_message('Reqport deleted');
+				add_message('Report deleted');
 				$this->_query = NULL;
 			}
 		}
