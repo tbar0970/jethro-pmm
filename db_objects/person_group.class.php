@@ -88,12 +88,19 @@ class Person_Group extends db_object
 		return $this->values['name'];
 	}
 
-	function getMembers($incl_archived=TRUE)
+	function getMembers($incl_archived=TRUE, $order_by=NULL)
 	{
 		$db =& $GLOBALS['db'];
 		$sql = 'SELECT p.*, gm.membership_status AS membership_status_id, ms.label as membership_status, gm.created as joined_group, c.name as congregation
 				FROM person_group_membership gm 
 				JOIN person p ON gm.personid = p.id
+				';
+		if ($order_by != NULL) {
+			$sql .= '
+				JOIN family f ON f.id = p.familyid
+			';
+		}
+		$sql .= '
 				LEFT JOIN congregation c ON c.id = p.congregationid
 				LEFT JOIN person_group_membership_status ms ON ms.id = gm.membership_status
 				WHERE gm.groupid = '.$db->quote((int)$this->id).'
@@ -102,7 +109,18 @@ class Person_Group extends db_object
 			$sql .= ' AND p.status <> "archived"
 					';
 		}
-		$sql .= 'ORDER BY p.last_name, p.first_name';
+		if ($order_by == NULL) {
+			$order_by = 'p.last_name, p.first_name';
+		} else {
+			$order_by = explode(',', $order_by);
+			foreach ($order_by as $i => $o) {
+				$o = trim($o);
+				if ($o == 'status') $o = 'p.status';
+				$order_by[$i] = $o;
+			}
+			$order_by = implode(', ', $order_by);
+		}
+		$sql .= 'ORDER BY '.$order_by;
 		$res = $db->queryAll($sql, null, null, true);
 		check_db_result($res);
 		foreach ($res as $k => &$v) {
