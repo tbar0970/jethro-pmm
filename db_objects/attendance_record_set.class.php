@@ -392,7 +392,8 @@ class Attendance_Record_Set
 				AND p.age_bracket = '.$GLOBALS['db']->quote($age_bracket);
 		}
 		if ($congregationids) {
-			 $SQL .= 'AND p.congregationid IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congregationids)).') ';
+			 $SQL .= '
+				 AND p.congregationid IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congregationids)).') ';
 		}
 		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : 'status ASC, last_name ASC, age_bracket ASC, gender DESC';
 		$SQL .= '
