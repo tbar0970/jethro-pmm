@@ -114,6 +114,14 @@ define('BIBLE_URL', 'http://www.biblestudytools.com/nrs/passage.aspx?q=__REFEREN
 // Depends on the SMTP mail server your users are using.
 define('EMAIL_CHUNK_SIZE', 25);
 
+// URL for looking up CCLI numbers.  Use the keyword __TITLE__ to add the song title.
+define('CCLI_SEARCH_URL', 'http://us.search.ccli.com/search/results?SearchTerm=__TITLE__');
+
+// URL for looking up detailed CCLI records.  Use the keyword __NUMBER__ for the CCLI song number.
+// If you have a songselect account, use https://au.songselect.com/songs/__NUMBER__
+// Otherwise you can use songsearch:  http://us.search.ccli.com/songs/__NUMBER__
+define('CCLI_DETAIL_URL', 'https://au.songselect.com/songs/__NUMBER__');
+
 // SMS GATEWAY:
 // ------------
 
