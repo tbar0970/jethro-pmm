@@ -670,8 +670,8 @@ class Person_Query extends DB_Object
 		foreach (array_get($params, 'dates', Array()) as $i => $values) {
 			switch ($values['criteria']) {
 				case 'empty':
-					$query['from'] .= ' LEFT JOIN person_date pd'.$i.' ON pd'.$i.'.personid = p.id AND pd'.$i.'.typeid = '.(int)$values['typeid']."\n";						
-					$query['where'][] = 'pd'.$i.'.personid IS NULL';
+					$query['from'] .= ' LEFT JOIN person_date pde'.$i.' ON pde'.$i.'.personid = p.id AND pde'.$i.'.typeid = '.(int)$values['typeid']."\n";
+					$query['where'][] = 'pde'.$i.'.personid IS NULL';
 					break;
 
 				case 'between':
@@ -888,8 +888,8 @@ class Person_Query extends DB_Object
 							$types = Person::getDateTypes();
 							$dateid = substr($field, 7);
 							if (isset($types[$dateid])) {
-								$query['from'] .= 'LEFT JOIN person_date pd'.$dateid.' ON pd'.$dateid.'.personid = p.id AND pd'.$dateid.'.typeid = '.$db->quote($dateid)."\n";
-								$query['select'][] = 'pd'.$dateid.'.`date` as '.$db->quote('DATE---'.$types[$dateid])."\n";
+								$query['from'] .= 'LEFT JOIN person_date pdd'.$dateid.' ON pdd'.$dateid.'.personid = p.id AND pdd'.$dateid.'.typeid = '.$db->quote($dateid)."\n";
+								$query['select'][] = 'pdd'.$dateid.'.`date` as '.$db->quote('DATE---'.$types[$dateid])."\n";
 							}
 						} else {
 							$query['select'][] = $this->_quoteAliasAndColumn($field).' AS '.$db->quote($field);
@@ -1020,53 +1020,53 @@ class Person_Query extends DB_Object
 
 	function _printResultSetCsv($x, $groupingname)
 	{
+		$fp = fopen('php://output', 'w');
 		if (empty($x)) return;
 		static $headerprinted = false;
 		if (!$headerprinted) {
+			$hr = Array();
 			foreach (array_keys(reset($x)) as $heading) {
 				if (in_array($heading, Array('view_link', 'edit_link', 'checkbox'))) continue;
-				echo '"';
 				switch($heading) {
 					case 'person_groups':
-						echo 'Groups';
+						$hr[] = 'Groups';
 						break;
 					case 'notes.subjects':
 					case 'actionnotes.subjects':
-						echo 'Notes';
+						$hr[] = 'Notes';
 						break;
 					default:
 						if (isset($this->_field_details[$heading])) {
-							echo $this->_field_details[$heading]['label'];
+							$hr[] = $this->_field_details[$heading]['label'];
 						} else if (substr($heading, 0, 7) == 'DATE---') {
-							echo ucfirst(substr($heading, 7));
+							$hr[] = ucfirst(substr($heading, 7));
 						} else {
-							echo ucfirst($heading);
+							$hr[] = ucfirst($heading);
 						}
 				}
-				echo '",';
 			}
-			if ($groupingname) echo 'GROUPING';
-			echo "\r\n";
+			if ($groupingname) $hr[] = 'GROUPING';
+			fputcsv($fp, $hr);
 			$headerprinted = TRUE;
 		}
 		foreach ($x as $row) {
+			$r = Array();
 			foreach ($row as $label => $val) {
 				if (in_array($label, Array('view_link', 'edit_link', 'checkbox'))) continue;
-				echo '"';
 				if (isset($this->_field_details[$label])) {
 					$var = $label[0] == 'p' ? '_dummy_person' : '_dummy_family';
 					$fieldname = substr($label, 2);
-					echo str_replace('"', '""', $this->$var->getFormattedValue($fieldname, $val));
+					$r[] = $this->$var->getFormattedValue($fieldname, $val);
 				} else if (substr($label, 0, 7) == 'DATE---') {
-					echo $val ? format_date($val) : '';
+					$r[] = $val ? format_date($val) : '';
 				} else {
-					echo str_replace('"', '""', $val);
+					$r[] = $val;
 				}
-				echo '",';
 			}
-			if ($groupingname) echo str_replace('"', '""', $groupingname);
-			echo "\r\n";
+			if ($groupingname) $r[] = str_replace('"', '""', $groupingname);
+			fputcsv($fp, $r);
 		}
+		fclose($fp);
 	}
 
 	function _printResultSetHtml($x, $heading)
