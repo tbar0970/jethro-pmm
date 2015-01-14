@@ -45,7 +45,7 @@ class View__Mixed_Search extends View
 				redirect('persons', Array('search' => NULL, 'personid' => key($this->_person_data)));				
 			} else if (!empty($this->_family_data)) {
 				add_message("One matching family found");
-				redirect('families', Array('search' => NULL, 'familyid' => key($this->_person_data)));				
+				redirect('families', Array('search' => NULL, 'familyid' => key($this->_family_data)));
 			} else if (!empty($this->_group_data)) {
 				add_message("One matching group found");
 				redirect('groups', Array('search' => NULL, 'groupid' => key($this->_group_data)));		
