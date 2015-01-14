@@ -148,19 +148,19 @@ class Service_Component extends db_object
 		if ($res['where'] == '') $res['where'] = '1=1';
 		$res['where']  = '('.$res['where'].') ';
 		if ($congid === 0) {
-			$res['where'] .=  $logic.' cong.id IS NULL';
+			$res['where'] .=  ' '.$logic.' cong.id IS NULL';
 		} else if ($congid !== NULL) {
-			$res['where'] .=  $logic.' cong.id = '.(int)$congid;
+			$res['where'] .=  ' '.$logic.' cong.id = '.(int)$congid;
 		} else {
-			$res['where'] .=  $logic.' cong.id IS NOT NULL';
+			$res['where'] .=  ' '.$logic.' cong.id IS NOT NULL';
 		}
 		if ($tagid) {
 			$res['from'] .= ' LEFT JOIN service_component_tagging sct ON sct.componentid = service_component.id AND sct.tagid = '.(int)$tagid;
-			$res['where'] .= $logic.' sct.tagid IS NOT NULL';
+			$res['where'] .= ' '.$logic.' sct.tagid IS NOT NULL';
 		}
 		if ($keyword) {
-			$qk = $GLOBALS['db']->quote("${$keyword}%");
-			$res['where'] .= $logic.' (title LIKE '.$qk.' OR alt_title LIKE '.$qk.' OR content_html LIKE '.$qk.')';
+			$qk = $GLOBALS['db']->quote("%{$keyword}%");
+			$res['where'] .= ' '.$logic.' (title LIKE '.$qk.' OR alt_title LIKE '.$qk.' OR content_html LIKE '.$qk.')';
 		}
 
 		return $res;
