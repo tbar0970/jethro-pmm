@@ -392,7 +392,8 @@ TBLib.handleYearBoxBlur = function()
 TBLib.medLinkPopupWindow = null;
 TBLib.handleMedPopupLinkClick = function(elt)
 {
-	if (!elt) elt = this;
+	if (!elt.tagName) elt = this;
+	console.log(elt);
 	TBLib.medLinkPopupWindow = window.open(elt.href, elt.target ? elt.target : 'medpopup', 'height=480,width=750,resizable=yes,scrollbars=yes');
 	if (TBLib.medLinkPopupWindow) {
 		TBLib.medLinkPopupWindow.focus();
