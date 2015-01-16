@@ -1,5 +1,5 @@
 <?php
-class Call_Service_Plan extends Call
+class Call_Service_Content extends Call
 {
 	/**
 	 * Execute this call
@@ -38,11 +38,25 @@ class Call_Service_Plan extends Call
 					table {
 						border-collapse: collapse;
 					}
+					h3 {
+						text-transform: uppercase;
+						text-align: center;
+						color: #888;
+					}
+					small {
+						font-style: italic;
+					}
+					p, small {
+						margin: 10px 0;
+					}
+					h4 {
+						margin: 20px 0 10px 0;
+					}
 				</style>
 			</head>
 			<body>
 				<h1><?php echo ents($service->toString()); ?></h1>
-				<?php $service->printServicePlan(); ?>
+				<?php $service->printServiceContent(); ?>
 			</body>
 		</html>
 		<?php

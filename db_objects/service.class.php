@@ -485,7 +485,7 @@ class service extends db_object
 
 	public function getItems($withContent=FALSE, $ofCategoryID=NULL)
 	{
-		$SQL = 'SELECT si.*, sc.title, sc.alt_title, sc.is_numbered, '.($withContent ? 'sc.content_html, ' : '').'
+		$SQL = 'SELECT si.*, sc.title, sc.alt_title, sc.is_numbered, '.($withContent ? 'sc.content_html, sc.credits, ' : '').'
 					IF(LENGTH(sc.runsheet_title_format) = 0, scc.runsheet_title_format, sc.runsheet_title_format) AS runsheet_title_format,
 					IF(LENGTH(sc.handout_title_format) = 0, scc.handout_title_format, sc.handout_title_format) AS handout_title_format
 				FROM service_item si
@@ -573,6 +573,9 @@ class service extends db_object
 				?>
 			</h4>
 			<?php echo $i['content_html']; ?>
+			<small>
+				<?php echo nl2br(ents($i['credits'])); ?>
+			</small>
 			<?php
 		}
 	}

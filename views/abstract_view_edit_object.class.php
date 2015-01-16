@@ -106,7 +106,7 @@ class Abstract_View_Edit_Object extends View
 				<?php
 				if ($this->_on_cancel_view) {
 					?>
-					<a class="btn" href="?view=<?php echo $this->_on_cancel_view; ?>&<?php echo $this->_editing_type; ?>id=<?php echo $this->_edited_object->id; ?>">Cancel</a>
+					<a class="btn cancel" href="?view=<?php echo $this->_on_cancel_view; ?>&<?php echo $this->_editing_type; ?>id=<?php echo $this->_edited_object->id; ?>">Cancel</a>
 					<?php
 				}
 				?>

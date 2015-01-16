@@ -67,11 +67,14 @@ function format_datetime($d)
 	return date('j M Y g:ia', $d); 
 }
 
-function format_date($d)
+function format_date($d, $includeYear=NULL)
 {
 	$yearless = is_string($d) && ($d[0] == '-');
 	if (!is_int($d)) {
 		$d = strtotime($yearless ? "2012{$d}" : $d);
+	}
+	if ($includeYear === FALSE) {
+		if (date('Y') == date('Y', $d)) $yearless = TRUE;
 	}
 	$format = $yearless ? 'j M' : 'j M Y';
 	return date($format, $d);

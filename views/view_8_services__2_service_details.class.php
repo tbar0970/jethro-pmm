@@ -110,29 +110,45 @@ class View_Services__Service_Details extends View
 				<?php
 			} else {
 				?>
-				<h1>
-					<span class="pull-right">
-							<small>
-								<a href="<?php echo build_url(Array('editing' => 1)); ?>"><i class="icon-wrench"></i>Edit</a> &nbsp;
-								&nbsp;
-								<a class="med-popup" href="?call=service_plan&serviceid=<?php echo $this->service->id; ?>"><i class="icon-print"></i>Printable</a>
-							</small>
-					</span>
-					<?php echo ents($this->service->toString()); ?>
-				</h1>
+				<h1><?php echo ents($this->service->toString()); ?></h1>
 				<div class="row-fluid">
 					<div class="span6">
+						<h3>
+							<span class="pull-right">
+									<small>
+										<a href="<?php echo build_url(Array('editing' => 1)); ?>"><i class="icon-wrench"></i>Edit</a> &nbsp;
+										&nbsp;
+										<a class="med-popup" href="?call=service_plan&serviceid=<?php echo $this->service->id; ?>"><i class="icon-print"></i>Printable</a>
+									</small>
+							</span>
+							Run Sheet
+						</h3>
+					</div>
+					<div class="span6">
+						<h3>
+							<span class="pull-right">
+									<small>
+										<a class="med-popup" href="?call=service_content&serviceid=<?php echo $this->service->id; ?>"><i class="icon-print"></i>Printable</a>
+									</small>
+							</span>
+							Full content
+						</h3>
+					</div>
+				</div>
+				<div class="row-fluid">
+					<div class="span6 anchor-bottom">
 						<?php
 						$this->service->printServicePlan();
 						?>
 					</div>
-					<div class="span6 anchor-bottom">
+					<div class="span6 well well-small anchor-bottom preview-pane">
 						<?php
 						$this->service->printServiceContent();
 						?>
-
 					</div>
 				</div>
+
+
 				<?php
 				
 			}
@@ -282,6 +298,8 @@ class View_Services__Service_Details extends View
 		<ul class="dropdown-menu pull-right">
 			<li><a href="javascript:;" data-action="addHeading">Add heading above</a></li>
 			<li><a href="javascript:;" data-action="addNote">Add note</a></li>
+			<li><a href="javascript:;" data-action="viewCompDetail">View component detail</a>
+
 			<li><a href="javascript:;" data-action="remove">Remove</a></li>
 		</ul>
 		</div><?php
@@ -328,9 +346,10 @@ class View_Services__Service_Details extends View
 							<thead>
 								<tr>
 									<th data-sort="string">Title</th>
-									<th data-sort="string" class="narrow">Last Used</th>
+									<th data-sort="string" class="narrow" title="Date when this component was last used in a service">Last</th>
 									<th data-sort="int" class="narrow" title="Number of usages in last month">1m</th>
 									<th data-sort="int" class="narrow" title="Number of usages in last 12 months">12m<i class="icon-arrow-up"></i></th>
+									<th class="narrow"></th>
 								</tr>
 							</thead>
 							<tbody>
@@ -357,7 +376,7 @@ class View_Services__Service_Details extends View
 									</td>
 									<td class="hide-in-transit nowrap" data-sort-value="<?php echo ents($comp['lastused']); ?>">
 										<?php
-										if ($comp['lastused']) echo format_date($comp['lastused']);
+										if ($comp['lastused']) echo format_date($comp['lastused'], FALSE);
 										?>
 									</td>
 									<td>
@@ -365,6 +384,9 @@ class View_Services__Service_Details extends View
 									</td>
 									<td>
 										<?php echo $comp['usage_12m']; ?>
+									</td>
+									<td class="tools">
+										<a href="?call=service_comp_detail&id=<?php echo $compid; ?>&head=1" class="med-popup" title="View component detail"><i class="icon-eye-open"> </i></a>
 									</td>
 								</tr>
 								<?php
