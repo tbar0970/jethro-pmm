@@ -242,8 +242,9 @@ class View_Admin__Import extends View
 				}
 				?>
 				<p>This page allows you to import persons, families and notes from a CSV file.</p>
-				<p>The CSV file must be in a format like this <a href="<?php echo BASE_URL; ?>/resources/sample_import.csv">sample file</a>. (The order of columns is flexible but the first row must be a header with these column names).</p>
-				<p>A new person record will be created for each row in the file. A new family record will be created whenever a new row contains a change in family name or family details.  However, changing to or from a blank value in a field does not create a new family unless the whole row is blank.</p>
+				<p>The CSV file must be in a format like this <a href="<?php echo BASE_URL; ?>/resources/sample_import.csv">sample file</a>. <br />(The order of columns is flexible but the first row must be a header with these column names).</p>
+				<p>A new person record will be created for each row in the file. </p>
+				<p>A new family record will be created whenever a new row contains a change in family name or family details.  <br />However, changing to or from a blank value in a field does not create a new family unless the whole row is blank.</p>
 				<p>All the imported persons will be added to the group you choose below.</p>
 				<form method="post" enctype="multipart/form-data">
 				<table>
@@ -257,7 +258,7 @@ class View_Admin__Import extends View
 					</tr>
 					<tr>
 						<td>&nbsp;</td>
-						<td class="compulsory"><input type="submit" value="Go" /></td>
+						<td class="compulsory"><input type="submit" class="btn" value="Go" /></td>
 					</tr>
 				</table>
 				</form>
