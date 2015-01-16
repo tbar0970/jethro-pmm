@@ -405,10 +405,10 @@ body {
 
 /**************** HEADINGS ********************/
 h1 {
-	margin: 15px 0;
+	margin: 15px 0 10px 0;
 }
 h1, h2 {
-  font-size: 24.5px;
+  font-size: 20px;
   line-height: 120%;
 }
 h3 {
@@ -643,9 +643,9 @@ table.object-summary td, table.object-summary th {
 	padding: 4px;
 	border-width: 0px;
 }
-table.object-summary tr.divider-before td, table.object-summary tr.divider-before th {
-	border-top-width: 2px;
-	border-top-color: #E8E8FF !important;
+table.object-summary tr.divider-before > td, table.object-summary tr.divider-before > th {
+	border-top-width: 1px;
+	border-top-color: #DDDDDD !important;
 }
 #body tr.archived td, #body tr.archived a, #body tr.archived .btn-link {
 	color: #bbb;
@@ -1578,6 +1578,15 @@ table.system-config td small {
 #service-plan .tools .dropdown-toggle {
 	display: block;
 	padding: 7px 3px;
+}
+
+#service-plan tbody * {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 #service-plan textarea.unfocused, #service-plan input.unfocused {
