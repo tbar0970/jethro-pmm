@@ -55,7 +55,9 @@ $(document).ready(function() {
 		document.body.appendChild(iframe);
 	}
 
-	$('a.med-popup').click(TBLib.handleMedPopupLinkClick).attr('title', '(Opens in a new window)');
+	$('a.med-popup').click(TBLib.handleMedPopupLinkClick).each(function() {
+		if (!this.title) this.title = '(Opens in a new window)';
+	});
 	$('a.med-newwin').click(TBLib.handleMedNewWinLinkClick).attr('title', '(Opens in a new window)');
 
 	//// CLICKABLE THINGS ETC ////
@@ -392,8 +394,7 @@ TBLib.handleYearBoxBlur = function()
 TBLib.medLinkPopupWindow = null;
 TBLib.handleMedPopupLinkClick = function(elt)
 {
-	if (!elt.tagName) elt = this;
-	console.log(elt);
+	if (!elt.href) elt = this;
 	TBLib.medLinkPopupWindow = window.open(elt.href, elt.target ? elt.target : 'medpopup', 'height=480,width=750,resizable=yes,scrollbars=yes');
 	if (TBLib.medLinkPopupWindow) {
 		TBLib.medLinkPopupWindow.focus();

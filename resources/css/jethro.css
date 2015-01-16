@@ -1567,7 +1567,7 @@ table.system-config td small {
 	font-size: 70%;
 	font-style: italic;
 }
-#service-plan .tools {
+#service-plan .tools, #service-comps .tools {
 	padding: 0px;
 	vertical-align: middle;
 	text-align: center;

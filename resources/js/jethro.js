@@ -77,7 +77,7 @@ $(document).ready(function() {
 		return false;
 	});	
 	
-	$('input.cancel').click(function() {
+	$('input.cancel, a.cancel').click(function() {
 		if (window.opener) {
 			try {
 				// If we are a popup, close ourselves if possible
@@ -601,7 +601,12 @@ JethroServicePlanner.Item.addNote = function($tr) {
 }
 
 JethroServicePlanner.Item.remove = function($tr) {
-	if (confirm('Sure?')) $tr.remove();
+	$tr.remove();
+}
+
+JethroServicePlanner.Item.viewCompDetail = function($tr) {
+	var href="?call=service_comp_detail&head=1&id="+($tr.find('input.componentid').val());
+	TBLib.handleMedPopupLinkClick({'href' : href});
 }
 
 JethroServicePlanner.onItemDrop = function(event, ui) {
