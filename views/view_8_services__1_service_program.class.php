@@ -349,6 +349,15 @@ class View_Services__Service_Program extends View
 	function _printServiceViewCell($congid, $date, $data)
 	{
 		if (empty($data)) return;
+		if ($data['has_items']) {
+			?>
+			<a class="pull-right" title="View service run sheet" href="?view=services__service_details&date=<?php echo $date; ?>&congregationid=<?php echo $congid; ?>"><i class="icon-list"></i></a>
+			<?php
+		} else {
+			?>
+			<a class="pull-right" title="Create service run sheet" href="?view=services__service_details&editing=1&date=<?php echo $date; ?>&congregationid=<?php echo $congid; ?>"><i class="icon-plus-sign"></i></a>
+			<?php
+		}
 		$this->_dummy_service->populate($data['id'], $data);
 		$this->_dummy_service->printFieldValue('summary');
 

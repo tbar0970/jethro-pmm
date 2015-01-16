@@ -43,7 +43,7 @@ class View_Services__Service_Details extends View
 						return;
 					}
 					$newItems = Array();
-					foreach ($_POST['componentid'] as $rank => $compid) {
+					foreach (array_get($_POST, 'componentid', Array()) as $rank => $compid) {
 						$newItem = Array(
 							'componentid' => $compid,
 							'is_numbered' => $_POST['is_numbered'][$rank],
