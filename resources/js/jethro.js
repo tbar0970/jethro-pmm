@@ -446,7 +446,7 @@ JethroServicePlanner.init = function() {
 
 	TBLib.anchorBottom('#service-comps, #service-plan-container');
 
-    $("#service-comps tr").draggable({
+    $("#service-comps tbody tr").draggable({
 		containment: "#service-planner",
 		helper: "clone",
 		cursor: "move",
@@ -496,8 +496,10 @@ JethroServicePlanner.init = function() {
 		cursor: "move",
 		stop: JethroServicePlanner.onItemReorder,
 		helper: JethroServicePlanner._getTRDragHelper,
-		appendTo: "#service-plan tbody",
-		containment: "parent"
+		appendTo: "#service-plan",
+		containment: "parent",
+		revert: 100,
+		opacity: 1,
     })
 
 	$('#service-plan').on('focus', 'textarea, input', function() {
@@ -621,8 +623,7 @@ JethroServicePlanner.addFromComponent = function(componentTR, beforeItem) {
 	for (var i=0; i < attrs.length; i++) {
 		newTR.find('td.item').append('<input type="hidden" class="'+attrs[i]+'" name="'+attrs[i]+'[]" value="'+componentTR.attr('data-'+attrs[i])+'" />');
 	}
-
-	if (!beforeItem || $(beforeItem).is('tfoot')) {
+	if (!beforeItem || $(beforeItem).parents('tfoot').length) {
 		beforeItem = "#service-plan tbody tr:last";
 	}
 	$(beforeItem).before(newTR);
