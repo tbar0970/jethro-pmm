@@ -17,6 +17,19 @@ class family extends db_object
 									'class'			=> 'family-name',
 									'trim'			=> TRUE,
 								   ),
+			'status'			=> Array(
+									'type'			=> 'select',
+									'options'		=> Array(
+														'current'	=> 'Current',
+														'archived'	=> 'Archived',
+													   ),
+									'default'		=> 'current',
+								   ),
+			'home_tel'			=> Array(
+									'type'			=> 'phone',
+									'formats'		=> defined('HOME_TEL_FORMATS') ? constant('HOME_TEL_FORMATS') : 'XXXX-XXXX',
+									'allow_empty'	=> TRUE,
+								   ),
 			'address_street'	=> Array(
 									'type'		=> 'text',
 									'width'		=> 40,
@@ -24,6 +37,7 @@ class family extends db_object
 									'maxlength'	=> 255,
 									'label'		=> 'Street Address',
 									'trim'			=> TRUE,
+									'divider_before' => TRUE,
 								   ),
 			'address_suburb'	=> Array(
 									'type'		=> 'text',
@@ -43,19 +57,6 @@ class family extends db_object
 									'width'			=> defined('ADDRESS_POSTCODE_WIDTH') ? constant('ADDRESS_POSTCODE_WIDTH') : 4,
 									'allow_empty'	=> TRUE,
 									'label'		=> defined('ADDRESS_POSTCODE_LABEL') ? constant('ADDRESS_POSTCODE_LABEL') : 'Postcode',
-								   ),
-			'home_tel'			=> Array(
-									'type'			=> 'phone',
-									'formats'		=> defined('HOME_TEL_FORMATS') ? constant('HOME_TEL_FORMATS') : 'XXXX-XXXX',
-									'allow_empty'	=> TRUE,
-								   ),
-			'status'			=> Array(
-									'type'			=> 'select',
-									'options'		=> Array(
-														'current'	=> 'Current',
-														'archived'	=> 'Archived',
-													   ),
-									'default'		=> 'current',
 								   ),
 			'created'			=> Array(
 									'type'			=> 'datetime',
@@ -242,7 +243,7 @@ class family extends db_object
 
 		} else {
 			?>
-			<tr>
+			<tr class="divider-before">
 				<th>Members</th>
 				<td id="family-members-container">
 			<?php

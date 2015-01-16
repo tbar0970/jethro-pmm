@@ -40,6 +40,7 @@ class Person extends DB_Object
 									'type'			=> 'select',
 									'options'		=> Array('male' => 'Male', 'female' => 'Female', '' => 'Unknown'),
 									'default'		=> '',
+									'divider_before'	=> true,
 							   ),
 			'age_bracket'	=> Array(
 									'type'			=> 'select',
@@ -229,7 +230,7 @@ class Person extends DB_Object
 	}
 
 	function printSummary() {
-		if ($GLOBALS['system']->featureEnabled('DATES')) $this->fields['dates'] = Array();
+		if ($GLOBALS['system']->featureEnabled('DATES')) $this->fields['dates'] = Array('divider_before' => true);
 		parent::printSummary();
 		unset($this->fields['dates']);
 	}
