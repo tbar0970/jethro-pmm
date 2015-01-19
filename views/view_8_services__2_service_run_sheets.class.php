@@ -1,5 +1,5 @@
 <?php
-class View_Services__Service_Details extends View
+class View_services__service_run_sheets extends View
 {
 	private $date = NULL;
 	private $congregationid = NULL;
@@ -84,7 +84,7 @@ class View_Services__Service_Details extends View
 				'allow_empty' => false,
 				'filter'			=> create_function('$x', '$y = $x->getValue("meeting_time"); return !empty($y);'),
 			), $this->congregationid); ?>
-			service on 
+			service on
 			<?php 
 			print_widget('date', Array('type' => 'date'), $this->date); ?>
 			<button type="submit" class="btn">Go</button>

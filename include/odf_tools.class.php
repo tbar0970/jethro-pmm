@@ -12,22 +12,39 @@ Class ODF_Tools
 		$res = str_replace('<', '&lt;', $res);
 		return $res;
 	}
+	
+	static function getDefaultXMLPath($filename)
+	{
+		$ext = strtolower(end(explode('.', $filename)));
+		switch ($ext) {
+			case 'odt':
+			case 'ott':
+			case 'odp':
+			case 'otp':
+				return 'content.xml';
+			case 'docx':
+				return 'word/document.xml';
+		}	
+	}
 
 	// get the content of the XML file within the ODF
-	static function getXML($filename, $xml_filename='content.xml')
+	static function getXML($filename, $xml_filename=NULL)
 	{
 		if (!file_exists($filename)) {
-			trigger_error("ODT file does not exist $filename");
+			trigger_error("Document file does not exist $filename");
 			return;
+		}
+		if ($xml_filename === NULL) {
+			$xml_filename = self::getDefaultXMLPath($filename);
 		}
 		$inzip = new ZipArchive;
 		if (TRUE !== $inzip->open($filename)) {
-			trigger_error("Could not open ODT file $filename");
+			trigger_error("Could not open document file $filename");
 			return;
 		}
 		$content = $inzip->getFromName($xml_filename);
 		if (!$content) {
-			trigger_error("Could not find content.xml inside $filename");
+			trigger_error("Could not find $xml_filename inside $filename");
 			return;
 		}
 		$inzip->close();
@@ -35,20 +52,23 @@ Class ODF_Tools
 	}
 
 	// Set the content of the XML file within the ODF
-	static function setXML($filename, $content, $xml_filename='content.xml')
+	static function setXML($filename, $content, $xml_filename=NULL)
 	{
+		if ($xml_filename === NULL) {
+			$xml_filename = self::getDefaultXMLPath($filename);
+		}
 		if (!is_writeable($filename)) {
-			trigger_error("ODT file is not writeable $filename");
+			trigger_error("Document file is not writeable $filename");
 			return;
 		}
 		$outzip = new ZipArchive;
 		if (TRUE !== $outzip->open($filename, ZipArchive::CREATE)) {
-			trigger_error("Could not open ODT file $filename");
+			trigger_error("Could not open document file $filename");
 			return;
 		}
 
 		if (!$outzip->addFromString($xml_filename, $content)) {
-			trigger_error("Could not write content.xml back to file");
+			trigger_error("Could not write xml back to document file");
 			return;
 		}
 
@@ -59,6 +79,31 @@ Class ODF_Tools
 
 		return TRUE;
 	}
+	
+	static function getHeaderEnd($filename) 
+	{
+		$ext = strtolower(end(explode('.', $filename)));
+		switch ($ext) {
+			case 'odt':
+			case 'ott':
+				return '</text:sequence-decls>';
+			case 'docx':
+				// TODO
+		}	
+	}		
+
+	static function getFooterStart($filename) 
+	{
+		$ext = strtolower(end(explode('.', $filename)));
+		switch ($ext) {
+			case 'odt':
+			case 'ott':
+				return '</office:text>';
+			case 'docx':
+				// TODO
+		}	
+	}
+	
 
 	// Replace keywords within the XML files within the ODF
 	static function replaceKeywords($filename, $replacements, $xml_filenames=NULL)

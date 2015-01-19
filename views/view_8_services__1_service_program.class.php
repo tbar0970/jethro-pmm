@@ -29,6 +29,8 @@ class View_Services__Service_Program extends View
 			$_SESSION['service_congs'] = $this->_congregations;
 		} else if (!empty($_SESSION['service_congs'])) {
 			$this->_congregations = $_SESSION['service_congs'];
+		} else {
+			$this->_congregations = array_keys($GLOBALS['system']->getDBObjectData('congregation', Array('!meeting_time' => ''), 'OR', 'meeting_time'));
 		}
 		$this->_start_date = process_widget('start_date', Array('type' => 'date'), NULL);
 		$this->_end_date = process_widget('end_date', Array('type' => 'date'), NULL);
@@ -351,11 +353,11 @@ class View_Services__Service_Program extends View
 		if (empty($data)) return;
 		if ($data['has_items']) {
 			?>
-			<a class="pull-right" title="View service run sheet" href="?view=services__service_details&date=<?php echo $date; ?>&congregationid=<?php echo $congid; ?>"><i class="icon-list"></i></a>
+			<a class="pull-right" title="View service run sheet" href="?view=services__service_run_sheets&date=<?php echo $date; ?>&congregationid=<?php echo $congid; ?>"><i class="icon-list"></i></a>
 			<?php
 		} else {
 			?>
-			<a class="pull-right" title="Create service run sheet" href="?view=services__service_details&editing=1&date=<?php echo $date; ?>&congregationid=<?php echo $congid; ?>"><i class="icon-plus-sign"></i></a>
+			<a class="pull-right" title="Create service run sheet" href="?view=services__service_run_sheets&editing=1&date=<?php echo $date; ?>&congregationid=<?php echo $congid; ?>"><i class="icon-plus-sign"></i></a>
 			<?php
 		}
 		$this->_dummy_service->populate($data['id'], $data);
