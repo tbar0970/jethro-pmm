@@ -17,11 +17,10 @@ class Call_ODF_Merge extends Call
 			trigger_error('File does not seem to be an ODT file');
 			return;
 		}
-
-		$header_end = ODF_TOOLS::getHeaderEnd($filename);
-		$footer_start = ODF_TOOLS::getFooterStart($filename);
-		$middle_start_pos = strpos($content, $header_end)+strlen($header_end);
-		$middle_end_pos = strpos($content, $footer_start);
+		define('HEADER_END', '</text:sequence-decls>');
+		define('FOOTER_START', '</office:text>');
+		$middle_start_pos = strpos($content, HEADER_END)+strlen(HEADER_END);
+		$middle_end_pos = strpos($content, FOOTER_START);
 		if ((NULL === $middle_start_pos) || (NULL === $middle_end_pos)) {
 			trigger_error('Cannot locate body content of the file');
 			return;
@@ -71,6 +70,3 @@ class Call_ODF_Merge extends Call
 
 	}
 }
-
-
-?>
