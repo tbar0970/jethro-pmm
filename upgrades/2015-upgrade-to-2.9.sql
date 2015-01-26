@@ -32,6 +32,14 @@ CREATE TABLE `service_component_category` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB;
 
+INSERT INTO service_component_category
+				  (category_name, runsheet_title_format, handout_title_format, length_mins_default)
+				  VALUES 
+				  ("Songs", "Song: %title%", "Song: %title%", 3),
+				  ("Prayers", "%title%", "%title%", 2),
+				  ("Creeds", "The %title%", "The %title%", 2),
+				  ("Other", "%title%", "%title%", 1);
+
 
 CREATE TABLE `service_component_tag` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -62,7 +70,7 @@ CREATE TABLE `service_item` (
 
 ALTER TABLE `service_component_tagging`
   ADD CONSTRAINT `tagid` FOREIGN KEY (`tagid`) REFERENCES `service_component_tag` (`id`) ON DELETE CASCADE;
-
+Ø
 
 CREATE TABLE IF NOT EXISTS `congregation_service_component` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -71,3 +79,40 @@ CREATE TABLE IF NOT EXISTS `congregation_service_component` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `congcomp` (`congregationid`,`componentid`)
 ) ENGINE=InnoDB;
+
+-- fix all the collations to avoid trouble with unions...
+ ALTER TABLE _person convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE _person_group convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE abstract_note convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE account_congregation_restriction convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE account_group_restriction convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE action_plan convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE action_plan_note convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE attendance_record convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE congregation convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE congregation_service_component convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE date_type convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE db_object_lock convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE family convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE family_note convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE note_comment convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE person_date convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE person_group_category convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE person_group_membership convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE person_group_membership_status convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE person_note convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE person_photo convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE person_query convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE roster_role convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE roster_role_assignment convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE roster_view convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE roster_view_role_membership convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE roster_view_service_field convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE service convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE service_bible_reading convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE service_component convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE service_component_category convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE service_component_tag convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE service_component_tagging convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE service_item convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+ ALTER TABLE staff_member convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
