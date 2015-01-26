@@ -11,6 +11,7 @@ Jethro is the software that powers online services such as [Easy Jethro](http://
 Download the latest version of Jethro from the [releases page](https://github.com/tbar0970/jethro-pmm/releases)
 
 The steps to install are:
+
 1. Unzip the files into a web-accessible folder on your web server
 2. Create a mysql database and database user for your jethro system to use
 3. Edit Jethro's configuration file conf.php and fill in the essential details (system name, URL, database details).  Further explanation can be found inside the file.
