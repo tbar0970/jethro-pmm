@@ -23,6 +23,7 @@ define('SYSTEM_NAME', "St Demo's Smithsville");
 // Ref: http://en.wikipedia.org/wiki/Database_Source_Name
 define('PUBLIC_DSN', "mysql://USERNAME:PASSWORD@localhost/DB_NAME");
 define('PRIVATE_DSN', "mysql://USERNAME:PASSWORD@localhost/DB_NAME");
+define('MEMBERS_DSN', "mysql://USERNAME:PASSWORD@localhost/DB_NAME");
 
 // The URL jethro will be running at.  NB The final slash is important!!
 define('BASE_URL', 'http://example.com/jethro/');
@@ -102,6 +103,34 @@ define('SYSADMIN_HREF', '');
 
 // Where to email errors to
 define('ERRORS_EMAIL_ADDRESS', '');
+
+////////////////////////////////////////////////////////////////
+// MEMBER LOGIN SETTINGS - Regarding the /members/ sub-site
+////////////////////////////////////////////////////////////////
+
+// Whether members should be allowed to log in at all - set to TRUE to enable
+define('MEMBER_LOGIN_ENABLED', TRUE);
+
+// Subject line to use for the account-verification email
+define('MEMBER_REGO_EMAIL_SUBJECT', 'Setting up your Member Account');
+
+// Email address which account-verification emails should appear to come from, eg office@mychurch.com
+define('MEMBER_REGO_EMAIL_FROM_ADDRESS', '');
+
+// Name which account-verification emails should appear to come from
+define('MEMBER_REGO_EMAIL_FROM_NAME', "St Demo's Church");
+
+// Email Address to CC in account-verification emails (if you want to know what's going on)
+define('MEMBER_REGO_EMAIL_CC', '');
+
+// Address to notify if an unknown person tries to activate an account, eg office@mychurch.com
+define('MEMBER_REGO_FAILURE_EMAIL', '');
+
+// Address to which people are directed if they have trouble with account registration, eg office@mychurch.com
+define('MEMBER_REGO_HELP_EMAIL', '');
+
+// Minimum password length when members register an account
+define('MEMBER_PASSWORD_MIN_LENGTH', '7');
 
 
 ////////////////////////////////////////////////////////////////
