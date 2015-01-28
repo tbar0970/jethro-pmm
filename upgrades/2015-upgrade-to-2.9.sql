@@ -87,7 +87,6 @@ CREATE TABLE IF NOT EXISTS `congregation_service_component` (
  ALTER TABLE account_congregation_restriction convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
  ALTER TABLE account_group_restriction convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
  ALTER TABLE action_plan convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
- ALTER TABLE action_plan_note convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
  ALTER TABLE attendance_record convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
  ALTER TABLE congregation convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
  ALTER TABLE congregation_service_component convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
@@ -116,3 +115,7 @@ CREATE TABLE IF NOT EXISTS `congregation_service_component` (
  ALTER TABLE service_component_tagging convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
  ALTER TABLE service_item convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
  ALTER TABLE staff_member convert to CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+
+/* this table should not exist but is present in some systems */
+DROP TABLE IF EXISTS action_plan_note ;
+ 
