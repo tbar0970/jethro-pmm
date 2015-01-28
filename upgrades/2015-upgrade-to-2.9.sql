@@ -70,7 +70,6 @@ CREATE TABLE `service_item` (
 
 ALTER TABLE `service_component_tagging`
   ADD CONSTRAINT `tagid` FOREIGN KEY (`tagid`) REFERENCES `service_component_tag` (`id`) ON DELETE CASCADE;
-Ø
 
 CREATE TABLE IF NOT EXISTS `congregation_service_component` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
