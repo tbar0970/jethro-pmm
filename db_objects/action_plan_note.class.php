@@ -14,6 +14,10 @@ class Action_Plan_Note extends Abstract_Note {
 		return $action_note_data;
 	}
 
+	function getInitSQL()
+	{
+		return '';
+	}
 
 	function _getFields()
 	{
