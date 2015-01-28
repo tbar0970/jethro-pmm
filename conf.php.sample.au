@@ -23,6 +23,7 @@ define('SYSTEM_NAME', "St Demo's Smithsville");
 // Ref: http://en.wikipedia.org/wiki/Database_Source_Name
 define('PUBLIC_DSN', "mysql://USERNAME:PASSWORD@localhost/DB_NAME");
 define('PRIVATE_DSN', "mysql://USERNAME:PASSWORD@localhost/DB_NAME");
+define('MEMBERS_DSN', "mysql://USERNAME:PASSWORD@localhost/DB_NAME");
 
 // The URL jethro will be running at.  NB The final slash is important!!
 define('BASE_URL', 'http://example.com/jethro/');
@@ -127,6 +128,8 @@ define('MEMBER_REGO_FAILURE_EMAIL', '');
 // Address to which people are directed if they have trouble with account registration, eg office@mychurch.com
 define('MEMBER_REGO_HELP_EMAIL', '');
 
+// Minimum password length when members register an account
+define('MEMBER_PASSWORD_MIN_LENGTH', '7');
 
 
 ////////////////////////////////////////////////////////////////
