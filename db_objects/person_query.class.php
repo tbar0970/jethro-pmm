@@ -971,7 +971,7 @@ class Person_Query extends DB_Object
 		if (is_null($sql)) return;
 
 		if ($format == 'html' && in_array('checkbox', $params['show_fields'])) {
-			echo '<form method="post" class="bulk-person-action">';
+			echo '<form method="post" enctype="multipart/form-data" class="bulk-person-action">';
 		}
 		
 		$grouping_field = $params['group_by'];
