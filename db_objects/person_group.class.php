@@ -112,13 +112,7 @@ class Person_Group extends db_object
 		if ($order_by == NULL) {
 			$order_by = 'p.last_name, p.first_name';
 		} else {
-			$order_by = explode(',', $order_by);
-			foreach ($order_by as $i => $o) {
-				$o = trim($o);
-				if ($o == 'status') $o = 'p.status';
-				$order_by[$i] = $o;
-			}
-			$order_by = implode(', ', $order_by);
+			$order_by = preg_replace("/(^|[^.])status($| |,)/", '\\1p.status\\2', $order_by);
 		}
 		$sql .= 'ORDER BY '.$order_by;
 		$res = $db->queryAll($sql, null, null, true);

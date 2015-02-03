@@ -9,6 +9,8 @@ class Attendance_Record_Set
 	var $groupid = NULL;
 	var $age_bracket = NULL;
 	var $_attendance_records = Array();
+	
+	const LIST_ORDER_DEFAULT = 'status ASC, family_name ASC, familyid, age_bracket ASC, gender DESC';
 
 //--        CREATING, LOADING AND SAVING        --//
 
@@ -121,7 +123,7 @@ class Attendance_Record_Set
 	function printForm($prefix=0)
 	{
 		require_once 'include/size_detector.class.php';
-		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : 'status ASC, family_name, familyid, age_bracket ASC, gender DESC';
+		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
 		if ($this->congregationid) {
 			$conds = Array('congregationid' => $this->congregationid, '!status' => 'archived');
 			if (strlen($this->age_bracket)) {
@@ -349,14 +351,8 @@ class Attendance_Record_Set
 			 $SQL .= '
 				 AND p.congregationid IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congregationids)).') ';
 		}
-		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : 'p.status ASC, family_name ASC, familyid, age_bracket ASC, gender DESC';
-		$order = explode(',', $order);
-		foreach ($order as $i => $o) {
-			$o = trim($o);
-			if ($o == 'status') $o = 'p.status';
-			$order[$i] = $o;
-		}
-		$order = implode(', ', $order);
+		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
+		$order = preg_replace("/(^|[^.])status($| |,)/", '\\1p.status\\2', $order);
 		$SQL .= '
 				ORDER BY '.$order;
 		$dates = Array();
