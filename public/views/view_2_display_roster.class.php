@@ -22,7 +22,11 @@ class View_Display_Roster extends View
 	function printView()
 	{
 		if ($this->_roster_view) {
-			$this->_roster_view->printView(NULL, NULL, FALSE, TRUE);
+			$end_date = NULL;
+			if (!empty($_REQUEST['weeks'])) {
+				$end_date = date('Y-m-d', strtotime('+'.(((int)$_REQUEST['weeks']*7)+1).' days'));
+			}
+			$this->_roster_view->printView(NULL, $end_date, FALSE, TRUE);
 		} else {
 			?>
 			<ul>
