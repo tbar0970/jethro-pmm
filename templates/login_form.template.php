@@ -26,13 +26,17 @@
 			<div class="control-group">
 				<label class="control-label" for="username">Username</label>
 				<div class="controls">
-					<input type="text" name="username" id="username" value="" placeholder="Username" />
+					<input type="text" name="username" id="username" placeholder="Username"
+					<?php if (defined('PREFILL_USERNAME')) echo 'value="'.PREFILL_USERNAME.'"'; ?>						   
+					/>
 				</div>
 			</div>
 			<div class="control-group">
 				<label class="control-label" for="password">Password</label>
 				<div class="controls">
-					<input type="password" name="password" id="password" value="" placeholder="Password" />
+					<input type="password" name="password" id="password" 
+		   			<?php if (defined('PREFILL_PASSWORD')) echo 'value="'.PREFILL_PASSWORD.'"'; ?>
+					placeholder="Password" />
 				</div>
 			</div>
 
