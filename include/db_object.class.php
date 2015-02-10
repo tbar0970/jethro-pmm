@@ -744,7 +744,6 @@ class db_object
 		if (!empty($GLOBALS['user_system'])) {
 			return $GLOBALS['user_system']->havePerm($perm);
 		} else {
-			bam("Checking if we have permission $perm");
 			return TRUE;
 		}
 	}
@@ -995,7 +994,7 @@ class db_object
 						$val = array_get($field, 'default', key($field['options']));
 					}
 				}
-				if ($val != '') $this->setValue($fieldname, $val);
+				if ($val !== '') $this->setValue($fieldname, $val);
 			}
 		}
 		$this->validateFields();
