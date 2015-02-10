@@ -724,8 +724,9 @@ TBLib.handleIntBoxKeyPress = function(event)
 			return false;
 		}
 	}
-	validKeys = new Array(8, 9, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 97, 98, 99, 100, 101, 102, 103, 104, 105, 96, 46, 36, 35);
+	validKeys = new Array(8, 9, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 97, 98, 99, 100, 101, 102, 103, 104, 105, 96, 46, 36, 35,37, 39);
 	if (!validKeys.contains(keyCode)) {
+		console.log(keyCode);
 		return false;
 	}
 }
