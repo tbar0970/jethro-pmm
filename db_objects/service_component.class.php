@@ -89,6 +89,7 @@ class Service_Component extends db_object
 								   ),
 			'ccli_number'		=> Array(
 									'type'		=> 'int',
+									'width'		=> 8,
 								   ),
 		);
 		return $fields;
@@ -324,7 +325,7 @@ class Service_Component extends db_object
 				?>
 				&nbsp; <a class="smallprint ccli-lookup" href="<?php echo CCLI_SEARCH_URL; ?>">Search CCLI</a>
 				<?php
-			}
+	}
 		}
 	}
 
