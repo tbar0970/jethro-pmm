@@ -31,3 +31,7 @@ if (JETHRO_VERSION != 'DEV') {
 	<?php
 }
 
+if (defined('EXTRA_HEAD_HTML')) {
+	echo EXTRA_HEAD_HTML;
+}
+

@@ -212,3 +212,7 @@ define('SMS_MAX_LENGTH', 160);
 
 // the chunk size to aim for when dividing lists (of persons or families) into pages
 define('CHUNK_SIZE', 100);
+
+// Extra HTML to add to the <head> of every page such as additional CSS
+// For example <link rel="stylesheet" type="text/css" href="/extrastuff/jethro-extra.css" >
+// define('EXTRA_HEAD_HTML', '');
