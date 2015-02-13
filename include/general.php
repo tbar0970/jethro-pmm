@@ -661,4 +661,13 @@ function jethro_password_verify($password, $hash)
 		return (crypt($password, $hash) == $hash);
 	}
 }
-?>
+
+function print_csv($rows, $separator=',', $enclosure='"', $newLine="\n")
+{
+	foreach ($rows as $row) {
+		foreach ($row as $cell) {
+			echo $enclosure.(str_replace($enclosure, $enclosure.$enclosure, $cell)).$enclosure.$separator;
+		}
+		echo $newLine;
+	}
+}

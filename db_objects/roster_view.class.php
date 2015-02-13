@@ -385,7 +385,7 @@ class roster_view extends db_object
 		ksort($to_print);
 		$role_objects = Array();
 
-		$fp = fopen('php://output', 'w');
+		$csvData = Array();
 		
 		// Headers
 		$row = Array('');
@@ -398,7 +398,7 @@ class roster_view extends db_object
 				$row[] = '';
 			}
 		}
-		fputcsv($fp, $row);
+		$csvData[] = $row;
 		
 		$row = Array('Date');
 		$dummy_service = new Service();
@@ -409,7 +409,7 @@ class roster_view extends db_object
 				$row[] = $dummy_service->getFieldLabel($details['service_field'], true);
 			}
 		}
-		fputcsv($fp, $row);	
+		$csvData[] = $row;
 
 		foreach ($to_print as $date => $ddetail) {
 			$row = Array(format_date($date));
@@ -426,13 +426,14 @@ class roster_view extends db_object
 					if (!empty($ddetail['service'][$mdetail['congregationid']])) {
 						$dummy_service->populate($ddetail['service'][$mdetail['congregationid']]['id'], $ddetail['service'][$mdetail['congregationid']]);
 						$row[] = $dummy_service->getFormattedValue($mdetail['service_field']);
+					} else {
+						$row[] = '';
 					}
 				}
 			}
-			fputcsv($fp, $row);
-
+			$csvData[] = $row;
 		}
-		fclose($fp);
+		print_csv($csvData);
 	}
 
 
