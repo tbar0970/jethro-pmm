@@ -62,7 +62,7 @@ class View_Attendance__Display extends View
 	function _printParams()
 	{
 		?>
-		<form method="get" class="well clearfix">
+		<form method="get" class="well well-small clearfix">
 			<input type="hidden" name="view" value="<?php echo $_REQUEST['view']; ?>" />
 			<table class="attendance-config-table valign-middle">
 				<tr>
