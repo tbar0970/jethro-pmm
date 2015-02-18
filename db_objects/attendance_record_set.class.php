@@ -201,6 +201,7 @@ class Attendance_Record_Set
 		?>
 		</table>
 		<?php
+		return count($members);
 	}
 
 	function processForm($prefix)

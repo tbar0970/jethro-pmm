@@ -160,6 +160,7 @@ class View_Attendance__Record extends View
 		} else if (empty($_POST['attendances_submitted'])) {
 			$_SESSION['enter_attendance_token'] = md5(time());
 			// STEP 2 - enter attendances
+			ob_start();
 			?>
 			<form method="post" class="attendance warn-unsaved" action="?view=attendance__record">
 				<input type="hidden" name="for_type" value="<?php echo ents($_REQUEST['for_type']); ?>" />
@@ -170,6 +171,7 @@ class View_Attendance__Record extends View
 
 				<p class="visible-desktop smallprint">For greatest speed, press P for present and A for absent.  The cursor will automatically progress to the next person.  To go back, use the arrow keys.</p>
 				<?php
+				$totalPrinted = 0;
 				foreach ($this->_record_sets as $i => $set) {
 					if ((int)$set->congregationid) {
 						?>
@@ -196,7 +198,7 @@ class View_Attendance__Record extends View
 					<h3><?php echo ents($title); ?></h3>
 					<div class="align-right width-really-auto">
 						<?php
-						$set->printForm($i);
+						$totalPrinted += $set->printForm($i);
 						?>
 						<input type="submit" class="btn" value="Save All Attendances" />
 						<a href="?view=attendance__record" class="btn">Cancel</a>
@@ -207,6 +209,16 @@ class View_Attendance__Record extends View
 				?>
 			</form>
 			<?php
+			if ($totalPrinted > ini_get('max_input_vars')) {
+				ob_end_clean();
+				print_message("The parameters you have selected will list more persons "
+							. "than your server can process.  Please narrow down your parameters, "
+							. "or ask your server administrator to increase the PHP max_input_vars setting"
+							. " (currently ".ini_get('max_input_vars').')', 'error');
+			
+			} else {
+				ob_flush();
+			}
 
 		} else {
 			// STEP 3 - confirmation
