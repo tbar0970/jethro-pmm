@@ -185,10 +185,9 @@ function print_widget($name, $params, $value)
 			$classes .= ' int-box';
 			$width_exp = '';
 			if (!empty($params['width'])) {
-				$classes .= ' exact-width';
-				$width_exp = 'size="'.$params['width'].'" maxlength="'.$params['width'].'"';
+				$width_exp = 'size="'.$params['width'].'" ';
 			} else {
-				$width_exp = 'size="3"';
+				$width_exp = 'size="3" ';
 			}
 			?>
 			<input type="text" name="<?php echo $name; ?>" value="<?php echo $value; ?>" class="<?php echo trim($classes); ?>" <?php echo $width_exp; ?> <?php echo $attrs; ?> />
@@ -662,12 +661,26 @@ function jethro_password_verify($password, $hash)
 	}
 }
 
+/**
+ * Writes a CSV file.  Unlike php's native fputcsv, it encloses every non-empty cell with the enclosure
+ * - not just the ones it thinks need it.
+ * @param array $rows	data to put in the CSV
+ * @param string $separator	optional
+ * @param string $enclosure	optional
+ * @param string $newLine	optional
+ */
 function print_csv($rows, $separator=',', $enclosure='"', $newLine="\n")
 {
 	foreach ($rows as $row) {
+		$thisRow = Array();
 		foreach ($row as $cell) {
-			echo $enclosure.(str_replace($enclosure, $enclosure.$enclosure, $cell)).$enclosure.$separator;
+			if (($cell !== '') && ($cell !== NULL)) {
+				$thisRow[] = $enclosure.(str_replace($enclosure, $enclosure.$enclosure, $cell)).$enclosure;
+			} else {
+				$thisRow[] = '';
+			}
 		}
+		echo implode($separator, $thisRow);
 		echo $newLine;
 	}
 }
