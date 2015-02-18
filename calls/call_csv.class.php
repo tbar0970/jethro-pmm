@@ -19,7 +19,7 @@ class Call_csv extends Call
 				break;
 			case 'person':
 			default:
-				$merge_data = $GLOBALS['system']->getDBObjectData('person', Array('id' => (int)$_POST['personid']));
+				$merge_data = $GLOBALS['system']->getDBObjectData('person', Array('id' => (array)$_POST['personid']));
 				$dummy = new Person();
 				$dummy_family = new Family();
 				break;
