@@ -901,7 +901,7 @@ class Person_Query extends DB_Object
 
 		// Order by
 		if (substr($params['sort_by'], 0, 7) == 'date---') {
-			$query['from'] .= 'LEFT JOIN person_date pdorder ON pdorder.personid = p.id AND pdorder.typeid = '.$db->quote(substr($query['order_by'], 7))."\n";
+			$query['from'] .= 'LEFT JOIN person_date pdorder ON pdorder.personid = p.id AND pdorder.typeid = '.$db->quote(substr($query['order_by'], 8))."\n";
 			// we want persons with a full date first, in chronological order.  Then persons with a yearless date, in order.  Then persons with no date.
 			$query['order_by'] = 'IF (pdorder.`date` IS NULL, 3, IF (pdorder.`date` LIKE "-%", 2, 1)), pdorder.`date`';
 
