@@ -583,6 +583,15 @@ function get_mailto_url($addresses, $name) {
 // get 128 pseudorandom bits in a string of 16 bytes
 function generate_random_string($chars=16)
 {
+	if (defined('USE_POOR_RANDOMS')) {
+		$options = array_merge(range('a', 'b'), range('A', 'Z'), range(0, 9));
+		$res = '';
+		for ($i=0; $i < $chars; $i++) {
+			$res .= $options[rand(0, count($options)-1)];
+		}
+		return $res;
+	}
+	
 	$pr_bits = '';
 	
 	if (function_exists('openssl_random_pseudo_bytes')) {
