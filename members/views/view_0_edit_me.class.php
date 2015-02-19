@@ -65,7 +65,7 @@ class View__Edit_Me extends View
 
 				if (defined('MEMBER_REGO_HELP_EMAIL')) {
 				?>
-				<p><i>If you need to change names or other details which are not listed in this form, please contact  <a href="<?php echo ents(MEMBER_REGO_HELP_EMAIL); ?>"><?php echo ents(MEMBER_REGO_HELP_EMAIL); ?></a>.</i></p>
+				<p><i>If you need to change names or other details which are not listed in this form, please contact  <a href="mailto:<?php echo ents(MEMBER_REGO_HELP_EMAIL); ?>"><?php echo ents(MEMBER_REGO_HELP_EMAIL); ?></a>.</i></p>
 				<?php
 			}			
 
