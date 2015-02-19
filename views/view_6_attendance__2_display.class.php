@@ -31,7 +31,8 @@ class View_Attendance__Display extends View
 			}
 
 		} else {
-			$this->age_bracket = $_SESSION['attendance']['age_bracket'] = (int)$_REQUEST['age_bracket'];
+			$this->age_bracket = $_SESSION['attendance']['age_bracket'] = $_REQUEST['age_bracket'];
+			if ($this->age_bracket != '') $this->age_bracket = (int)$this->age_bracket;
 			if (!empty($_REQUEST['congregationid']) && is_array($_REQUEST['congregationid'])) {
 				foreach ($_REQUEST['congregationid'] as $congid) {
 					$this->congregationids[] = (int)$congid;

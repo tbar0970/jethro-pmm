@@ -344,7 +344,7 @@ class Attendance_Record_Set
 		}
 		$SQL .= '
 				WHERE ar.date BETWEEN '.$GLOBALS['db']->quote($start_date).' AND '.$GLOBALS['db']->quote($end_date);
-		if ($age_bracket) {
+		if ($age_bracket !== '') {
 			$SQL .= '
 				AND p.age_bracket = '.$GLOBALS['db']->quote($age_bracket);
 		}
