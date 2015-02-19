@@ -4,7 +4,7 @@ Jethro Pastoral Ministry Manager is a web-based tool which helps churches keep t
 
 The Jethro software is free and open source (GPL) and runs on a standard [LAMP](http://en.wikipedia.org/wiki/LAMP_%28software_bundle%29) web server.  Jethro's real advantages come to the fore when it's running on a proper web server, but it can also be run on a single PC using [XAMPP](XAMPP).
 
-Jethro is the software that powers online services such as [Easy Jethro](http://easyjethro.com.au) who also offer a [demo system](http://easyjethro.com.au/demo/).
+Jethro PMM is the software that powers online services such as [Easy Jethro](http://easyjethro.com.au) who also offer a [demo system](http://easyjethro.com.au/demo/).
 
 # Download and install
 
@@ -29,6 +29,8 @@ If you're having trouble with Jethro and think you might have found a bug, pleas
 If you have an idea for a new feature, please [look if somebody has already requested it](https://github.com/tbar0970/jethro-pmm/issues?q=is%3Aopen+is%3Aissue+label%3Afeature-request) and if not, [open a new issue](https://github.com/tbar0970/jethro-pmm/issues/new).
 
 General questions about Jethro and how to use it can also be done in github issues, but the better place to do it is on our [facebook wall](https://www.facebook.com/pages/Jethro-PMM/188904087848113)
+
+(Historical discussions can be seen at our older [Sourceforge forums](https://sourceforge.net/p/jethro-pmm/discussion/))
 
 The Jethro developers try to respond to issues in a timely manner, but for real-time support you may need to sign up for a hosting service such as [Easy Jethro](http://easyjethro.com.au).
  
