@@ -21,6 +21,17 @@ The steps to install are:
 pear install MDB2_Driver_mysql</code>
 If you don't have command line access you can unzip [this ZIP file](http://sourceforge.net/project/showfiles.php?group_id=192555&package_id=247862&release_id=544189) into your Jethro folder.
 6. In your web browser, the Jethro installer will start automatically and will prompt you for details to create the initial user account.  When the installer completes, it will prompt you to log into the installed system.
+7. 
+
+# Documentation
+
+## User Documentation
+
+Some documentation articles are hosted by [Easy Jethro](http://easyjethro.com.au/support/)
+
+## Technical Documentation
+
+* [Mailchimp Setup Guide](https://wiki.coastec.net.au/display/COAST/Configuring+Mailchimp+integration+in+Jethro) provided by Jeff Turner
 
 # Support and Discussion
 
