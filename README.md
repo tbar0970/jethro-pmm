@@ -4,7 +4,7 @@ Jethro Pastoral Ministry Manager is a web-based tool which helps churches keep t
 
 The Jethro software is free and open source (GPL) and runs on a standard [LAMP](http://en.wikipedia.org/wiki/LAMP_%28software_bundle%29) web server.  Jethro's real advantages come to the fore when it's running on a proper web server, but it can also be run on a single PC using [XAMPP](XAMPP).
 
-Jethro is the software that powers online services such as [Easy Jethro](http://easyjethro.com.au) who also offer a [demo system](http://easyjethro.com.au/demo/).
+Jethro PMM is the software that powers online services such as [Easy Jethro](http://easyjethro.com.au) who also offer a [demo system](http://easyjethro.com.au/demo/).
 
 # Download and install
 
@@ -21,10 +21,29 @@ The steps to install are:
 pear install MDB2_Driver_mysql</code>
 If you don't have command line access you can unzip [this ZIP file](http://sourceforge.net/project/showfiles.php?group_id=192555&package_id=247862&release_id=544189) into your Jethro folder.
 6. In your web browser, the Jethro installer will start automatically and will prompt you for details to create the initial user account.  When the installer completes, it will prompt you to log into the installed system.
+7. 
 
-# Support
+# Documentation
 
-Help with installing and using Jethro is available via the [Jethro PMM Forums](https://sourceforge.net/p/jethro-pmm/discussion/?source=navbar).  The Jethro developers try to respond to forum posts in a timely manner, but for real-time support you may need to sign up for a hosting service such as [Easy Jethro](http://easyjethro.com.au).
+## User Documentation
+
+Some documentation articles are hosted by [Easy Jethro](http://easyjethro.com.au/support/)
+
+## Technical Documentation
+
+* [Mailchimp Setup Guide](https://wiki.coastec.net.au/display/COAST/Configuring+Mailchimp+integration+in+Jethro) provided by Jeff Turner
+
+# Support and Discussion
+
+If you're having trouble with Jethro and think you might have found a bug, please [open an issue on github](https://github.com/tbar0970/jethro-pmm/issues/new).
+
+If you have an idea for a new feature, please [look if somebody has already requested it](https://github.com/tbar0970/jethro-pmm/issues?q=is%3Aopen+is%3Aissue+label%3Afeature-request) and if not, [open a new issue](https://github.com/tbar0970/jethro-pmm/issues/new).
+
+General questions about Jethro and how to use it can also be done in github issues, but the better place to do it is on our [facebook wall](https://www.facebook.com/pages/Jethro-PMM/188904087848113)
+
+(Historical discussions can be seen at our older [Sourceforge forums](https://sourceforge.net/p/jethro-pmm/discussion/))
+
+The Jethro developers try to respond to issues in a timely manner, but for real-time support you may need to sign up for a hosting service such as [Easy Jethro](http://easyjethro.com.au).
  
 # Data Model
 The following is a high-level overview of the objects in Jethro and how they relate.
