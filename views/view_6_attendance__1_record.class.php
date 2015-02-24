@@ -209,13 +209,12 @@ class View_Attendance__Record extends View
 				?>
 			</form>
 			<?php
-			if ($totalPrinted > ini_get('max_input_vars')) {
+			if (ini_get('max_input_vars') && ($totalPrinted > ini_get('max_input_vars'))) {
 				ob_end_clean();
 				print_message("The parameters you have selected will list more persons "
 							. "than your server can process.  Please narrow down your parameters, "
 							. "or ask your server administrator to increase the PHP max_input_vars setting"
 							. " (currently ".ini_get('max_input_vars').')', 'error');
-			
 			} else {
 				ob_flush();
 			}
