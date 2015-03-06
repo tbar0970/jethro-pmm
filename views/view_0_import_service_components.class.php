@@ -14,11 +14,15 @@ class View__Import_Service_Components extends View
 	{
 		$GLOBALS['system']->includeDBClass('service_component_category');
 		$this->category = new Service_Component_Category($_REQUEST['categoryid']);
-		if (!empty($_FILES['datafile'])) {
+		if (!empty($_FILES['datafile']) && !empty($_FILES['datafile']['tmp_name'])) {
 			$GLOBALS['system']->doTransaction('BEGIN');
 			$GLOBALS['system']->includeDBClass('service_component');
 			$comp = new Service_Component();
 			$fp = fopen($_FILES['datafile']['tmp_name'], 'r');
+			if (!$fp) {
+				trigger_error("Your data file could not be read.  Please check the file and try again");
+				return;
+			}
 			$toprow = fgetcsv($fp, 0, ",", '"');
 			$rowNum = 1;
 			$all_ccli = Service_Component::getAllByCCLINumber();
