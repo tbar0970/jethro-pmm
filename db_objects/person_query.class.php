@@ -636,7 +636,7 @@ class Person_Query extends DB_Object
 			if ($field == 'date') {
 				continue;
 		
-			} else if (isset($values['from'])) {
+			} else if (is_array($values) && isset($values['from'])) {
 				if (($this->_field_details[$field]['type'] == 'datetime') && (strlen($values['from']) == 10)) {
 					// we're searching on a datetime field using only date values
 					// so extend them to prevent boundary errors
