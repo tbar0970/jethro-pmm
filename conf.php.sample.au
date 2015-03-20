@@ -197,7 +197,7 @@ define('WORK_TEL_FORMATS', 'XXXX-XXXX
 (XX) XXXX-XXXX');
 define('MOBILE_TEL_FORMATS', 'XXXX XXX XXX');
 
-define('POSTCODE_LOOKUP_URL','http://auspost.com.au/postcode/__SUBURB__');
+define('POSTCODE_LOOKUP_URL','https://m.auspost.com.au/view/findpostcode/__SUBRURB__');
 define('MAP_LOOKUP_URL', 'http://maps.google.com.au?q=__ADDRESS_STREET__,%20__ADDRESS_SUBURB__,%20__ADDRESS_STATE__,%20__ADDRESS_POSTCODE__');
 
 
