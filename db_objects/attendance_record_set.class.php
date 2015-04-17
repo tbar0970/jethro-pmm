@@ -227,6 +227,7 @@ class Attendance_Record_Set
 				}
 			}
 		}
+		return count($this->_attendance_records);
 	}
 
 	public function getStats()
@@ -274,9 +275,9 @@ class Attendance_Record_Set
 					<b>
 					<?php
 					if ((int)$this->congregationid) {
-						$headcount = Congregation_Headcount::fetch($this->date, $this->congregationid);
+						$headcount = Headcount::fetch('congregation', $this->date, $this->congregationid);
 					} else {
-						$headcount = Person_Group_Headcount::fetch($this->date, $this->groupid);
+						$headcount = Headcount::fetch('person_group', $this->date, $this->groupid);
 					}
 					echo $headcount;
 					?>
