@@ -508,7 +508,7 @@ form.min {
 #body .table-condensed select, #body .table select, #body .table-condensed input[type=text], #body label select, #body label input[type=text] {
 	margin: 0px;
 }
-#body .valign-middle, #body table.valign-middle td {
+#body .valign-middle, #body table.valign-middle td, #body table.valign-middle th {
 	vertical-align: middle;
 }
 #body .valign-top, #body table.valign-top td {
@@ -1260,16 +1260,18 @@ table.service-details td table td input {
 		position: absolute; 
 		top:-9999px;
 	}
-	.radio-button-group div.value-present {
+	.radio-button-group div.value-present, .attendance-stats .present * {
 		background-color: #A9C7A9;
+		background-image: none;
 	}
-	.radio-button-group div.value-present.active, td.present{
+	.radio-button-group div.value-present.active, td.present, th.present {
 		background-color: #17A317 !important;
 	}
-	.radio-button-group div.value-absent {
+	.radio-button-group div.value-absent, .attendance-stats .absent * {
 		background-color: #BD8986;
+		background-image: none;
 	}
-	.radio-button-group div.value-absent.active, td.absent{
+	.radio-button-group div.value-absent.active, td.absent, th.absent {
 		background-color: #bd362f !important;
 	}
 	.radio-button-group div.value-unknown {
@@ -1277,6 +1279,26 @@ table.service-details td table td input {
 	}
 	.radio-button-group div.value-unknown.active, td.unknown {
 		background-color: #EA8B06 !important;
+	}
+
+	td.present, td.absent, td.unknown {
+		text-align: center;
+	}
+
+	.attendance-stats .headcount * {
+		background: #CCCCCC;
+	}
+
+	.attendance-stats .extras * {
+		background: #EEEEEE;
+	}
+
+	tfoot.attendance-stats th {
+		text-align: right !important;
+	}
+	tfoot.attendance-stats td {
+		/*font-weight: bold;*/
+		text-align: center;
 	}
 
 /******* MULTI SELECT WIDGET *******/
