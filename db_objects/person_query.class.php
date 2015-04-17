@@ -13,6 +13,9 @@ class Person_Query extends DB_Object
 	var $_dummy_person = NULL;
 	var $_group_chooser_options_cache = NULL;
 
+	const DATE_SEP = '__nextdate__';
+	const DATE_NOTE_SEP = '__note:__';
+
 	function __construct($id=0)
 	{
 		if (!empty($GLOBALS['system'])) {
@@ -575,6 +578,18 @@ class Person_Query extends DB_Object
 		return $res;
 	}
 
+	private function _formatDateResult($str)
+	{
+		$out = Array();
+		if (empty($str)) return '';
+		$rows = explode(self::DATE_SEP, $str);
+		foreach ($rows as $row) {
+			list ($d, $n) = explode(self::DATE_NOTE_SEP, $row);
+			$out[] = format_date($d). ($n ? ' ('.ents($n).')' : '');
+		}
+		return implode("\n", $out);
+	}
+
 	function _getGroupAndCategoryRestrictionSQL($submitted_groupids, $from_date=NULL, $to_date=NULL, $membership_status=NULL)
 	{
 		global $db;
@@ -908,7 +923,7 @@ class Person_Query extends DB_Object
 							$dateid = substr($field, 7);
 							if (isset($types[$dateid])) {
 								$query['from'] .= 'LEFT JOIN person_date pdd'.$dateid.' ON pdd'.$dateid.'.personid = p.id AND pdd'.$dateid.'.typeid = '.$db->quote($dateid)."\n";
-								$query['select'][] = 'pdd'.$dateid.'.`date` as '.$db->quote('DATE---'.$types[$dateid])."\n";
+								$query['select'][] = 'GROUP_CONCAT(DISTINCT CONCAT(pdd'.$dateid.'.`date`, "'.self::DATE_NOTE_SEP.'", pdd'.$dateid.'.`note`) ORDER BY pdd'.$dateid.'.`date` SEPARATOR "'.self::DATE_SEP.'") as '.$db->quote('DATE---'.$types[$dateid])."\n";
 							}
 						} else {
 							$query['select'][] = $this->_quoteAliasAndColumn($field).' AS '.$db->quote($field);
@@ -1077,7 +1092,7 @@ class Person_Query extends DB_Object
 					$fieldname = substr($label, 2);
 					$r[] = $this->$var->getFormattedValue($fieldname, $val);
 				} else if (substr($label, 0, 7) == 'DATE---') {
-					$r[] = $val ? format_date($val) : '';
+					$r[] = $this->_formatDateResult($val);
 				} else {
 					$r[] = $val;
 				}
@@ -1177,7 +1192,7 @@ class Person_Query extends DB_Object
 									$this->$var->setValue($fieldname, $val);
 									$this->$var->printFieldValue($fieldname);
 								} else if (substr($label, 0, 7) == 'DATE---') {
-									echo $val ? format_date($val) : '';
+									echo nl2br($this->_formatDateResult($val));
 								} else {
 									echo ents($val);
 								}
