@@ -279,7 +279,7 @@ class Action_Plan extends DB_Object
 	static function getMultiChooser($name, $value_or_context)
 	{
 		$res = Array();
-		$plans = $GLOBALS['system']->getDBObjectData('action_plan', Array());
+		$plans = $GLOBALS['system']->getDBObjectData('action_plan', Array(), 'OR', 'name');
 		foreach ($plans as $id => $plan) {
 			$selected = false;
 			if (is_array($value_or_context)) {
