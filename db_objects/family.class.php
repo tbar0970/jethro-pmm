@@ -236,9 +236,9 @@ class family extends db_object
 		include_once 'include/size_detector.class.php';
 		if (SizeDetector::isNarrow()) {
 			?>
-			<tr>
+			<tr class="divider-before">
 				<td colspan="2" id="family-members-container">
-				<h4>Members:</h4>
+				<h4>&nbsp;Members:</h4>
 			<?php
 
 		} else {
