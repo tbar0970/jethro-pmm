@@ -60,13 +60,6 @@ if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
 	<?php
 }
 
-// SEND SMS MODAL
-if (!SizeDetector::isNarrow()) {
-	?>
-
-	<?php
-}
-
 // -------- CHECK PERMISSIONS AND ASSEMBLE DATA ------------- //
 
 $accordion = SizeDetector::getWidth() && SizeDetector::isNarrow();

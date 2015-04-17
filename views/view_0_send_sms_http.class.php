@@ -145,6 +145,11 @@ class View__Send_SMS_HTTP extends View
 			$include_special_fields = FALSE;
 			require 'templates/person_list.template.php';
 		}
+		if (empty($archived) && empty($blanks)) {
+			?>
+			<a href="javascript:window.history.back()" class="btn"><i class="icon-chevron-left"></i> Back</a>
+			<?php
+		}
 	}
 
 	function logSuccess($recip_count, $message) {
