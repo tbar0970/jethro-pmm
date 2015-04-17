@@ -172,7 +172,15 @@ class Person_Query extends DB_Object
 			}
 			
 			?>
-			<h4>who have date fields...</h4>
+			<h4>who have
+				<?php
+				$dlParams = Array(
+					'type' => 'select',
+					'options' => Array('OR' => 'any', 'AND' => 'all'),
+				);
+				print_widget('params_date_logic', $dlParams, array_get($params, 'date_logic', 'AND'));
+				?>
+				 the following date fields...</h4>
 			<table class="table expandable indent-left">
 			<?php
 			$values = array_get($params, 'dates', Array());
@@ -502,6 +510,9 @@ class Person_Query extends DB_Object
 			}
 			$i++;
 		}
+		if (!empty($_REQUEST['params_date_logic'])) {
+			$params['date_logic'] = $_REQUEST['params_date_logic'] == 'OR' ? 'OR' : 'AND';
+		}
 
 		// GROUP RULES
 		$params['include_groups'] = $this->_removeEmpties(array_get($_POST, 'include_groupids', Array()));
@@ -666,12 +677,13 @@ class Person_Query extends DB_Object
 		if (empty($params['dates']) && !empty($params['rules']['date'])) {
 			$params['dates'][] = $params['rules']['date'] + Array('criteria' => 'between');
 		}
-		
+
+		$dateWheres = Array();
 		foreach (array_get($params, 'dates', Array()) as $i => $values) {
 			switch ($values['criteria']) {
 				case 'empty':
 					$query['from'] .= ' LEFT JOIN person_date pde'.$i.' ON pde'.$i.'.personid = p.id AND pde'.$i.'.typeid = '.(int)$values['typeid']."\n";
-					$query['where'][] = 'pde'.$i.'.personid IS NULL';
+					$dateWheres[] = 'pde'.$i.'.personid IS NULL';
 					break;
 
 				case 'between':
@@ -689,12 +701,19 @@ class Person_Query extends DB_Object
 						$w[] = '(pd'.$i.'.`date` NOT LIKE "-%" AND pd'.$i.'.`date` < '.$db->quote($values['to']).' AND '.$fromyearbetween.')';
 						$w[] = '(pd'.$i.'.`date` NOT LIKE "-%" AND pd'.$i.'.`date` < '.$db->quote($values['to']).' AND '.$toyearbetween.')';
 					}
-					$query['where'][] = '('.implode(' OR ', $w).')';
-					// deliberate fallthrough...
+					$query['from'] .= ' LEFT JOIN person_date pd'.$i.' ON pd'.$i.'.personid = p.id AND pd'.$i.'.typeid = '.(int)$values['typeid']."\n";
+					$dateWheres[] = '('.implode(' OR ', $w).')';
+					break;
 
 				case 'any':
-					$query['from'] .= ' JOIN person_date pd'.$i.' ON pd'.$i.'.personid = p.id AND pd'.$i.'.typeid = '.(int)$values['typeid']."\n";						
+					$query['from'] .= ' LEFT JOIN person_date pd'.$i.' ON pd'.$i.'.personid = p.id AND pd'.$i.'.typeid = '.(int)$values['typeid']."\n";
+					$dateWheres[] = 'pd'.$i.'.`date` IS NOT NULL';
+
 			}
+		}
+		if (!empty($dateWheres)) {
+			$logic = array_get($params, 'date_logic', 'AND');
+			$query['where'][] = '(('.implode(') '.$logic.' (', $dateWheres).'))';
 		}
 
 		// GROUP MEMBERSHIP FILTERS
