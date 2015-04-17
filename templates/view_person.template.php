@@ -1,5 +1,5 @@
 <?php
-
+include_once 'size_detector.class.php';
 // ------------------------ MODALS --------------------------
 
 // -------ACTION PLAN MODAL --------- //
@@ -24,7 +24,6 @@ if ($plan_chooser) {
 	</div>
 	<?php
 }
-
 
 // -------ADD TO GROUP MODAL --------- //
 $can_add_group = FALSE;
@@ -61,8 +60,15 @@ if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
 	<?php
 }
 
+// SEND SMS MODAL
+if (!SizeDetector::isNarrow()) {
+	?>
+
+	<?php
+}
+
 // -------- CHECK PERMISSIONS AND ASSEMBLE DATA ------------- //
-include_once 'include/size_detector.class.php';
+
 $accordion = SizeDetector::getWidth() && SizeDetector::isNarrow();
 
 $tabs = Array(
@@ -146,7 +152,7 @@ printf($panel_header, 'basic', 'Basic Details', 'active');
 
 if (!$accordion && $GLOBALS['system']->featureEnabled('PHOTOS')) {
 	?>
-	<img width="<?php echo Person::MAX_PHOTO_WIDTH; ?>" src="?call=person_photo&personid=<?php echo (int)$person->id; ?>" />
+	<img class="person-photo" width="<?php echo Person::MAX_PHOTO_WIDTH; ?>" src="?call=person_photo&personid=<?php echo (int)$person->id; ?>" />
 	<div class="person-details-withphoto">
 	<?php
 } else {

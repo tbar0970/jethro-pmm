@@ -499,6 +499,12 @@ form.min {
 	color: black;
 	font-weight: bold;
 }
+#body .btn-mini [class*="icon-"] {
+	padding-right: 0px !important;
+}
+.icon-phone {
+	background: url(../img/phone.png) no-repeat !important;
+}
 .modal form {
 	margin: 0px;
 }
@@ -744,7 +750,7 @@ Otherwise they go beneath each other
 
 */
 
-.view-person img {
+.view-person img.person-photo {
 	float: right;
 	width: 200px;
 	margin: 0px;
