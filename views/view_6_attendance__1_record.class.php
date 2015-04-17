@@ -15,7 +15,13 @@ class View_Attendance__Record extends View
 
 	function getTitle()
 	{
-		return 'Record Attendance';
+		if (!empty($_POST['attendances_submitted'])) {
+			return 'Attendance recorded for '.format_date($this->_attendance_date);
+		} else if (!empty($this->_attendance_date)) {
+			return 'Record Attendance for '.format_date($this->_attendance_date);
+		} else {
+			return 'Record Attendance';
+		}
 	}
 
 	function processView()
@@ -34,12 +40,13 @@ class View_Attendance__Record extends View
 			$this->_attendance_date = process_widget('attendance_date', Array('type' => 'date'));
 			$this->_age_bracket = $_SESSION['attendance']['age_bracket'] = array_get($_REQUEST, 'age_bracket');
 
+			$status = NULL; // TODO
 			if ($_REQUEST['for_type'] == 'congregationid') {
 				$cids = process_widget('congregationid', Array('type' => 'reference', 'references' => 'congregation', 'multiple' => true));
 				foreach ($cids as $cid) {
 					if ($cid && !in_array($cid, $this->_congregationids)) {
 						$this->_congregationids[] = $cid;
-						$this->_record_sets[] = new Attendance_Record_Set($this->_attendance_date, $this->_age_bracket, $cid, 0);
+						$this->_record_sets[] = new Attendance_Record_Set($this->_attendance_date, $this->_age_bracket, $status, $cid, 0);
 					}
 				}
 				$_SESSION['attendance']['congregationids'] = $this->_congregationids;
@@ -47,7 +54,7 @@ class View_Attendance__Record extends View
 			} else {
 				$this->_groupid = process_widget('groupid', Array('type' => 'reference', 'references' => 'person_group', 'allow_empty' => false));
 				if ($this->_groupid) {
-					$this->_record_sets[] = new Attendance_Record_Set($this->_attendance_date, $this->_age_bracket, NULL, $this->_groupid);
+					$this->_record_sets[] = new Attendance_Record_Set($this->_attendance_date, $this->_age_bracket, $status, NULL, $this->_groupid);
 					$_SESSION['attendance']['congregationids'] = Array();
 					$_SESSION['attendance']['groupid'] = $this->_groupid;
 				}
@@ -65,8 +72,14 @@ class View_Attendance__Record extends View
 
 				// Process the form
 				foreach ($this->_record_sets as $i => $set) {
-					$set->processForm($i);
-					$set->save();
+					if ($set->processForm($i)) {
+						$set->save();
+						if ((int)$set->congregationid) {
+							Headcount::save('congregation', $this->_attendance_date, $set->congregationid, $_REQUEST['headcount']['congregation'][$set->congregationid]);
+						} else {
+							Headcount::save('person_group', $this->_attendance_date, $set->groupid, $_REQUEST['headcount']['group'][$set->groupid]);
+						}
+					}
 				}
 			} else {
 				trigger_error('Could not save attendances - synchronizer token does not match.  This probably means the request was duplicated somewhere along the line.  If you see your changes below, they have been saved by the other request');
@@ -178,10 +191,10 @@ class View_Attendance__Record extends View
 						<input type="hidden" name="congregationid[]" value="<?php echo $set->congregationid; ?>" />
 						<?php
 						$congregation = $GLOBALS['system']->getDBObject('congregation', (int)$set->congregationid);
-						$title = '"'.$congregation->getValue('name').'" congregation, '.date('j M Y', strtotime($this->_attendance_date));
+						$title = $congregation->getValue('name').' Congregation';
 					} else if ($set->groupid) {
 						$group =& $GLOBALS['system']->getDBObject('person_group', $set->groupid);
-						$title = '"'.$group->getValue('name').'" group, '.date('j M Y', strtotime($this->_attendance_date));
+						$title = $group->getValue('name').' Group';
 						?>
 						<input type="hidden" name="groupid" value="<?php echo $set->groupid; ?>" />
 						<?php
@@ -196,12 +209,36 @@ class View_Attendance__Record extends View
 					}
 					?>
 					<h3><?php echo ents($title); ?></h3>
-					<div class="align-right width-really-auto">
+					<div class="width-really-auto form-inline">
 						<?php
-						$totalPrinted += $set->printForm($i);
+						$setPrinted = $set->printForm($i);
+						if ($setPrinted > 0) {
+							$totalPrinted += $setPrinted;
+							if ((int)$set->congregationid) {
+								$headcountFieldName = 'headcount[congregation]['.$set->congregationid.']';
+								$headcountValue = Headcount::fetch('congregation', $this->_attendance_date, $set->congregationid);
+							} else {
+								$headcountFieldName = 'headcount[group]['.$set->groupid.']';
+								$headcountValue = Headcount::fetch('person_group', $this->_attendance_date, $set->groupid);
+							}
+							?>
+							<div class="container row-fluid control-group">
+								<div class="span6">
+									Total headcount:
+									<input type="text" class="int-box" name="<?php echo $headcountFieldName; ?>" value="<?php echo $headcountValue; ?>" size="5" />
+								</div>
+								<div class="span6 align-right nowrap">
+									<input type="submit" class="btn" value="Save All Attendances" />
+									<a href="?view=attendance__record" class="btn">Cancel</a>
+								</div>
+							</div>
+							<?php
+						} else {
+							?>
+							<i>(No persons in this listing)</i>
+							<?php
+						}
 						?>
-						<input type="submit" class="btn" value="Save All Attendances" />
-						<a href="?view=attendance__record" class="btn">Cancel</a>
 					</div>
 					<?php
 
@@ -224,12 +261,12 @@ class View_Attendance__Record extends View
 			foreach ($this->_record_sets as $set) {
 				if ($set->congregationid) {
 					$congregation = $GLOBALS['system']->getDBObject('congregation', (int)$set->congregationid);
-					$title = 'Attendance recorded for the "'.$congregation->getValue('name').'" congregation on '.date('j M Y', strtotime($this->_attendance_date));
+					$title = $congregation->getValue('name').' congregation';
 				} else {
 					$group =& $GLOBALS['system']->getDBObject('person_group', $set->groupid);
-					$title = 'Attendance recorded for the "'.$group->getValue('name').'" group on '.date('j M Y', strtotime($this->_attendance_date));
+					$title = $group->getValue('name').' group';
 				}
-				echo '<h4>'.$title.'</h4>';
+				echo '<h3>'.$title.'</h3>';
 				$set->printStats();
 			}
 			?>

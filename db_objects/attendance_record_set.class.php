@@ -14,10 +14,10 @@ class Attendance_Record_Set
 
 //--        CREATING, LOADING AND SAVING        --//
 
-	function Attendance_Record_Set($date=NULL, $age_bracket=NULL, $congregationid=NULL, $groupid=NULL)
+	function Attendance_Record_Set($date=NULL, $age_bracket=NULL, $status=NULL, $congregationid=NULL, $groupid=NULL)
 	{
 		if ($date && ($congregationid || $groupid)) {
-			$this->load($date, $age_bracket, $congregationid, $groupid);
+			$this->load($date, $age_bracket, $status, $congregationid, $groupid);
 		}
 	}
 
@@ -44,12 +44,13 @@ class Attendance_Record_Set
 		return Array();
 	}
 
-	function load($date, $age_bracket, $congregationid=0, $groupid=0)
+	function load($date, $age_bracket, $status, $congregationid=0, $groupid=0)
 	{
 		$this->date = $date;
 		$this->congregationid = $congregationid;
 		$this->groupid = $groupid;
 		$this->age_bracket = $age_bracket;
+		$this->status = $status;
 		$db =& $GLOBALS['db'];
 		$sql = 'SELECT personid, present 
 					FROM attendance_record ar
@@ -59,6 +60,10 @@ class Attendance_Record_Set
 		if ($this->congregationid) {
 			$sql .= '
 				AND p.congregationid = '.$db->quote($this->congregationid);
+		}
+		if ($this->status) {
+			$sql .= '
+				AND p.status = '.$db->quote($this->status);
 		}
 		if (strlen($this->age_bracket)) {
 			$sql .= '
@@ -103,10 +108,18 @@ class Attendance_Record_Set
 			}
 			$sql .= ')';
 		}
-		if (strlen($this->age_bracket)) {
+		if (strlen($this->age_bracket) || ($this->status !== NULL)) {
 			$sql .= '
-					AND (personid IN (SELECT id FROM person WHERE age_bracket = '.$db->quote($this->age_bracket).')) ';
+					AND (personid IN (SELECT id FROM person WHERE 1=1 ';
+			if (strlen($this->age_bracket)) {
+				' AND age_bracket = '.$db->quote($this->age_bracket).' ';
+			}
+			if (!is_null($this->status)) {
+				' AND status = '.$db->quote($this->status);
+			}
+			$sql .= ' )) ';
 		}
+
 		$res = $db->query($sql);
 		check_db_result($res);
 	}
@@ -216,79 +229,100 @@ class Attendance_Record_Set
 		}
 	}
 
-	function printStats()
+	public function getStats()
 	{
-		$freqs = array_count_values($this->_attendance_records);
-		$db =& $GLOBALS['db'];
-		$sql = 'SELECT status, COUNT(id)
-				FROM person
-				WHERE id IN
-					(SELECT personid 
-					FROM attendance_record 
-					WHERE date = '.$db->quote($this->date).' 
-						AND present = __PRESENT__
-						AND groupid = '.$db->quote($this->groupid).'
-					)';
+		$db = $GLOBALS['db'];
+		$groupingField = ((int)$this->congregationid) ? 'p.status' : 'pgm.membership_status';
+		$SQL = 'SELECT present, '.$groupingField.' AS status, count(p.id) AS total
+				FROM attendance_record ar
+				JOIN person p ON ar.personid = p.id
+				LEFT JOIN person_group pg ON pg.id = ar.groupid
+				LEFT JOIN person_group_membership pgm ON pgm.personid = p.id AND pgm.groupid = pg.id
+				LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status
+				WHERE date = '.$db->quote($this->date).'
+				AND ar.groupid = '.$db->quote($this->groupid).'
+				';
 		if ($this->congregationid) {
-			$sql .= '
-				AND congregationid = '.$db->quote($this->congregationid);
+			$SQL .= '
+				AND p.congregationid = '.$db->quote($this->congregationid);
 		}
-		$sql .= '
-				GROUP BY status';
-
-		$present_sql = str_replace('__PRESENT__', '1', $sql);
-		$present_breakdown = $db->queryAll($present_sql, null, null, true);
-		check_db_result($present_breakdown);
-
-		$absent_sql = str_replace('__PRESENT__', '0', $sql);
-		$absent_breakdown = $db->queryAll($absent_sql, null, null, true);
-		check_db_result($absent_breakdown);
-
-		$GLOBALS['system']->includeDBClass('person');
+		$SQL .= '
+				GROUP BY present, '.$groupingField.'
+				ORDER BY present, '.$groupingField;
+		$res = $db->queryAll($SQL);
+		check_db_result($res);
+		$totals = Array(0 => 0, 1 => 0);
+		$breakdowns = Array(0 => Array(), 1 => Array());
 		$dummy = new Person();
+		foreach ($res as $r) {
+			if ($this->congregationid) $r['status'] = $dummy->getFormattedValue('status', $r['status']);
+			$totals[$r['present']] += $r['total'];
+			$breakdowns[$r['present']][] = $r;
+		}
+		return Array($totals, $breakdowns);
+	}
+
+	public function printStats()
+	{
+		list($totals, $breakdowns) = $this->getStats();
 
 		?>
-		<table class="table table-bordered table-auto-width">
-			<tr>
-				<th>Present</th>
-				<td>
-					<?php echo array_get($freqs, 1, 0); ?> persons
-					<table class="table table-striped table-bordered" style="margin: 3px">
+		<table class="table valign-middle attendance-stats table-bordered" style="width: 40ex">
+			<tr class="headcount">
+				<th>Total Headcount</th>
+				<td colspan="3">
+					<b>
 					<?php
-					foreach ($present_breakdown as $status => $number) {
-						$dummy->setValue('status', $status);
-						?>
-						<tr>
-							<th><?php $dummy->printFieldValue('status'); ?></th>
-							<td><?php echo $number; ?></td>
-						</tr>
-						<?php
+					if ((int)$this->congregationid) {
+						$headcount = Congregation_Headcount::fetch($this->date, $this->congregationid);
+					} else {
+						$headcount = Person_Group_Headcount::fetch($this->date, $this->groupid);
 					}
+					echo $headcount;
 					?>
-					</table>
+					</b>
 				</td>
 			</tr>
-			<tr>
-				<th>Absent</th>
-				<td>
-					<?php echo array_get($freqs, 0, 0); ?> persons
-					<table class="table table-striped table-bordered" style="margin: 3px">
-					<?php
-					foreach ($absent_breakdown as $status => $number) {
-						$dummy->setValue('status', $status);
-						?>
-						<tr>
-							<th><?php $dummy->printFieldValue('status'); ?></th>
-							<td><?php echo $number; ?></td>
-						</tr>
-						<?php
-					}
-					?>
-					</table>
+		<?php
+		foreach (Array(1 => 'Present', 0 => 'Absent') as $present => $label) {
+			?>
+			<tr class="<?php echo strtolower($label); ?>">
+				<th rowspan="<?php echo count($breakdowns[$present]); ?>">Marked <?php echo $label; ?></th>
+				<td rowspan="<?php echo count($breakdowns[$present]); ?>">
+					<b><?php echo $totals[$present]; ?></b>
 				</td>
+			<?php
+			if (!empty($breakdowns[$present])) {
+				?>
+				<td><?php echo $breakdowns[$present][0]['status']; ?></td>
+				<td><?php echo $breakdowns[$present][0]['total']; ?></td>
+				<?php
+			} else {
+				?>
+				<td>&nbsp;</td>
+				<td>&nbsp;</td>
+				<?php
+			}
+			?>
+			</tr>
+			<?php
+			for ($i = 1; $i < count($breakdowns[$present]); $i++) {
+				?>
+				<tr class="<?php echo strtolower($label); ?>">
+					<td><?php echo $breakdowns[$present][$i]['status']; ?></td>
+					<td><?php echo $breakdowns[$present][$i]['total']; ?></td>
+				</tr>
+				<?php
+			}
+		}
+		?>
+			<tr class="extras">
+				<th>Extras</th>
+				<td colspan="3"><b><?php echo ($headcount - $totals[1]); ?></b></td>
 			</tr>
 		</table>
 		<?php
+
 	}
 
 	function getCongregationalAttendanceStats($start_date, $end_date, $congregations=Array())
@@ -358,6 +392,7 @@ class Attendance_Record_Set
 				ORDER BY '.$order;
 		$dates = Array();
 		$attendances = Array();
+		$totals = Array();
 		$res = $GLOBALS['db']->query($SQL);
 		check_db_result($res);
 		while ($row = $res->fetchRow()) {
@@ -366,10 +401,14 @@ class Attendance_Record_Set
 				if (array_key_exists($f, $row)) $attendances[$row['id']][$f] = $row[$f];
 			}
 			$attendances[$row['id']][$row['date']] = $row['present'];
+			if (!isset($totals[$row['date']]) || !isset($totals[$row['date']][$row['present']])) {
+				$totals[$row['date']][$row['present']] = 0;
+			}
+			$totals[$row['date']][$row['present']]++;
 		}
 		$dates = array_keys($dates);
 		sort($dates);
-		return Array($dates, $attendances);
+		return Array($dates, $attendances, $totals);
 	}
 
 

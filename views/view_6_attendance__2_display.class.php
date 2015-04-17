@@ -146,14 +146,38 @@ class View_Attendance__Display extends View
 	{
 		$GLOBALS['system']->includeDBClass('attendance_record_set');
 		$GLOBALS['system']->includeDBClass('person');
-		list ($dates, $attendances) = Attendance_Record_Set::getAttendances($this->congregationids, $this->groupid, $this->age_bracket, $this->start_date, $this->end_date);
+
+		if (!empty($this->congregationids)) {
+			foreach ($this->congregationids as $congid) {
+				$this->_printResultSet($congid, NULL);
+			}
+		} else if (!empty($this->groupid)) {
+			$this->_printResultSet(NULL, $this->groupid);
+		}
+	}
+
+	function _printResultSet($congid, $groupid)
+	{
+		echo '<h3>';
+		if ($congid) {
+			$cong = $GLOBALS['system']->getDBObject('congregation', $congid);
+			$cong->printFieldValue('name');
+			echo ' Congregation';
+		} else {
+			$group = $GLOBALS['system']->getDBObject('person_group', $groupid);
+			$group->printFieldValue('name');
+			echo ' Group';
+		}
+		echo '</h3>';
+
+		list ($dates, $attendances, $totals) = Attendance_Record_Set::getAttendances((array)$congid, $groupid, $this->age_bracket, $this->start_date, $this->end_date);
 		if (empty($attendances)) {
 			?>
 			<p><i>No attendance records found.  Try adjusting your criteria.</i></p>
 			<?php
 			return;
 		}
-
+		$headcounts = Headcount::fetchRange(($congid ? 'congregation' : 'person_group'), $congid ? $congid : $groupid, $this->start_date, $this->end_date);
 		$letters = Array(0 => 'A', 1 => 'P', '?' => '?');
 		$classes = Array(0 => 'absent', 1 => 'present', '?' => 'unknown');
 		$dummy = new Person();
@@ -220,6 +244,64 @@ class View_Attendance__Display extends View
 			}
 			?>
 			</tbody>
+			<tfoot class="attendance-stats">
+				<tr class="headcount">
+					<th colspan="3">Total Headcount</th>
+				<?php
+				foreach ($dates as $date) {
+					?>
+					<td>
+						<?php echo array_get($headcounts, $date); ?>
+					</td>
+					<?php
+				}
+				?>
+					<td colspan="2">&nbsp;</td>
+				</tr>
+				<tr class="present">
+					<th colspan="3">Total Present</th>
+				<?php
+				foreach ($dates as $date) {
+					?>
+					<td>
+						<?php echo array_get($totals[$date], 1, 0); ?>
+					</td>
+					<?php
+				}
+				?>
+					<td colspan="2">&nbsp;</td>
+				</tr>
+				<tr class="absent">
+					<th colspan="3">Total Absent</th>
+				<?php
+				foreach ($dates as $date) {
+					?>
+					<td>
+						<?php echo array_get($totals[$date], 0, 0); ?>
+					</td>
+					<?php
+				}
+				?>
+					<td colspan="2">&nbsp;</td>
+				</tr>
+				<tr class="extras">
+					<th colspan="3">Extras</th>
+				<?php
+				foreach ($dates as $date) {
+					?>
+					<td>
+						<?php
+						if (isset($headcounts[$date])) {
+							echo ($headcounts[$date] - array_get($totals[$date], 1, 0));
+						}
+						?>
+					</td>
+					<?php
+				}
+				?>
+					<td colspan="2">&nbsp;</td>
+				</tr>
+			</tfoot>
 		</table>
 		<?php
 		include 'templates/bulk_actions.template.php';
