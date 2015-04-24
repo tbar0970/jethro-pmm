@@ -43,7 +43,9 @@ class Call_ODF_Merge extends Call
 				$dummy = new Person();
 				break;
 		}
-		foreach ($merge_data as $id => $row) {
+		foreach ($_POST['personid'] as $id) {
+			$row = array_get($merge_data, (int)$id);
+			if (empty($row)) continue;
 			$this_middle = $middle_template;
 			@$dummy->populate($id, $row);
 			foreach ($row as $k => $v) {
