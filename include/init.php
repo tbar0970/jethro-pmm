@@ -9,7 +9,7 @@ $path_sep = defined('PATH_SEPARATOR') ? PATH_SEPARATOR : ((FALSE === strpos($_EN
 set_include_path(ini_get('include_path').$path_sep.JETHRO_ROOT.$path_sep.JETHRO_ROOT.'/include/'.$path_sep.JETHRO_ROOT.'/db_objects/');
 
 function __autoload($class_name) {
-	 include_once $class_name . '.class.php';
+	 include_once strtolower($class_name) . '.class.php';
 }
 
 // set error level such that we cope with PHP versions before and after 5.3 when E_DEPRECATED was introduced.
