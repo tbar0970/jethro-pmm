@@ -23,7 +23,7 @@ class View_Admin__Upgrade extends View
 			$.ajax('https://api.github.com/repos/tbar0970/jethro-pmm/tags', {
 				dataType: 'json'
 			}).done(function (data) {
-				if (data[0].name == '<?php echo JETHRO_VERSION; ?>') {
+				if (data[0].name.replace('v', '') == '<?php echo JETHRO_VERSION; ?>') {
 					$('#message').html('<i class="icon-ok"></i> Your system is up to date on version '+data[0].name);
 				} else {
 					$('#message').html('<i class="icon-warning-sign"></i>Your system is running <?php echo JETHRO_VERSION; ?> but <a href="https://github.com/tbar0970/jethro-pmm/releases" target="_blank">'+data[0].name + '</a> is available');
