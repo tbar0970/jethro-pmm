@@ -104,6 +104,10 @@ define('SYSADMIN_HREF', '');
 // Where to email errors to
 define('ERRORS_EMAIL_ADDRESS', '');
 
+// Whether to include a "groups" column in standard person lists.
+// Warning - do not enable this if you have lots of people in lots of groups.
+define('PERSON_LIST_SHOW_GROUPS', FALSE);
+
 ////////////////////////////////////////////////////////////////
 // MEMBER LOGIN SETTINGS - Regarding the /members/ sub-site
 ////////////////////////////////////////////////////////////////

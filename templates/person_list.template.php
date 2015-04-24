@@ -38,27 +38,7 @@ if ($show_actions) {
 ?>
 <table class="table table-hover table-striped <?php if (empty($callbacks)) echo 'clickable-rows'; ?>">
 	<thead>
-		<tr>
-			<th class="narrow">ID</th>
-			<th>Name</th>
-		<?php
-		foreach ($special_fields as $field) {
-			?>
-			<th><?php echo ucwords(str_replace('_', ' ', $field)); ?></th>
-			<?php
-		}?>
-			<th>Status</th>
-			<th>Age</th>
-			<th>Gender</th>
-		<?php
-		if ($show_actions) {
-			?>
-			<th>Actions</th>
-			<th class="narrow selector form-inline"><input type="checkbox" class="select-all" title="Select all" /></th>
-			<?php
-		}
-		?>
-		</tr>
+		<?php include 'person_list_header_footer.template.php'; ?>
 	</thead>
 	<tbody>
 	<?php
@@ -86,6 +66,28 @@ if ($show_actions) {
 			<td><?php $dummy_person->printFieldValue('status'); ?></td>
 			<td><?php $dummy_person->printFieldValue('age_bracket'); ?></td>
 			<td><?php $dummy_person->printFieldValue('gender'); ?></td>
+			<?php 
+				if (defined('PERSON_LIST_SHOW_GROUPS') && PERSON_LIST_SHOW_GROUPS) {
+				?>
+					<td>  
+				  	  <?php 
+				  	  	$gstr = '';
+				  	  	foreach (Person_Group::getGroups($id) as $gid => $gdetail) {
+				  	  		if (strlen($gstr)) $gstr .= ', ';
+				  	  		$gstr = $gstr . $gdetail['name'];
+				  	  	}
+						if (strlen($gstr)) {
+							?>
+							<a title="<?php echo ents($gstr); ?>" href="?view=persons&personid=<?php echo $id; ?>#groups">	
+								<?php echo ents(substr($gstr, 0, 45)) . '...' ; ?>
+							</a>
+							<?php
+						}
+						?>
+				  	</td>
+				 <?php
+				 }
+				 ?>
 		<?php
 		if ($show_actions) {
 
@@ -114,13 +116,22 @@ if ($show_actions) {
 	}
 	?>
 	</tbody>
+<?php
+// Add a footer when there is enough rows to justify it.
+if (count($persons) > 30) {
+	?>
+	<tfoot>
+		<?php include 'person_list_header_footer.template.php'; ?>
+	</tfoot>
+	<?php
+}
+?>
 </table>
+		
 <?php
 if ($show_actions) {
 	include 'templates/bulk_actions.template.php';
-}
 
-if ($show_actions) {
 	?>
 	</form>
 	<?php
