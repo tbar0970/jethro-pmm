@@ -684,7 +684,7 @@ TBLib.handleFormSubmit = function()
 TBLib.invalidEmailField = null;
 TBLib.handleEmailBlur = function()
 {
-	var rx = /^\w+([\.+-]?\w+)*@\w+([\.-]?\w+)*\.(\w{2}|(com|net|org|edu|int|mil|gov|arpa|biz|aero|name|coop|info|pro|museum))$/
+	var rx = /^[^@]+@\w+([\.-]\w+)+$/
 	this.value = this.value.trim();
 	if (this.value != '' && !this.value.match(rx)) {
 		this.focus();
