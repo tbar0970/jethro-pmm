@@ -539,12 +539,18 @@ class Person_Query extends DB_Object
 		// GROUP BY
 		$params['group_by'] = $_POST['group_by'];
 		if (empty($params['include_groups']) && ($params['group_by'] == 'groupid')) {
-			add_message('No groups were chosen, so results will be shown all together');
+			add_message('No groups were chosen, so results will be shown all together', 'error');
 			$params['group_by'] = '';
 		}
 
 		// SORT BY
 		$params['sort_by'] = $_POST['sort_by'];
+		if (in_array($params['sort_by'], Array('attendance_percent', 'attendance_numabsences'))) {
+			if (!in_array($params['sort_by'], $params['show_fields'])) {
+				add_message("In order to sort by attendance/absence, it will also be displayed as a column", 'error');
+				$params['show_fields'][] = $params['sort_by'];
+			}
+		}
 		$this->setValue('params', $params);
 	}
 
