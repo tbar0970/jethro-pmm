@@ -266,25 +266,29 @@ class Attendance_Record_Set
 	public function printStats()
 	{
 		list($totals, $breakdowns) = $this->getStats();
+		if ((int)$this->congregationid) {
+			$headcount = Headcount::fetch('congregation', $this->date, $this->congregationid);
+		} else {
+			$headcount = Headcount::fetch('person_group', $this->date, $this->groupid);
+		}
 
 		?>
 		<table class="table valign-middle attendance-stats table-bordered" style="width: 40ex">
+		<?php
+		if ($headcount) {
+			?>
 			<tr class="headcount">
 				<th>Total Headcount</th>
 				<td colspan="3">
 					<b>
 					<?php
-					if ((int)$this->congregationid) {
-						$headcount = Headcount::fetch('congregation', $this->date, $this->congregationid);
-					} else {
-						$headcount = Headcount::fetch('person_group', $this->date, $this->groupid);
-					}
 					echo $headcount;
 					?>
 					</b>
 				</td>
 			</tr>
-		<?php
+			<?php
+		}
 		foreach (Array(1 => 'Present', 0 => 'Absent') as $present => $label) {
 			?>
 			<tr class="<?php echo strtolower($label); ?>">
@@ -316,11 +320,15 @@ class Attendance_Record_Set
 				<?php
 			}
 		}
-		?>
+		if ($headcount) {
+			?>
 			<tr class="extras">
 				<th>Extras</th>
 				<td colspan="3"><b><?php echo ($headcount - $totals[1]); ?></b></td>
 			</tr>
+			<?php
+		}
+		?>
 		</table>
 		<?php
 
