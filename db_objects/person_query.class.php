@@ -337,13 +337,13 @@ class Person_Query extends DB_Object
 						}
 					}
 
-					if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
+					if ($GLOBALS['user_system']->havePerm(PERM_VIEWATTENDANCE)) {
 						$options['--Z'] = '-----';
 						$options['attendance_percent'] = 'Attendance rate during specified period';
 						$options['attendance_numabsences'] = 'Number of absences since last marked present';
 					}
 
-					if ($GLOBALS['user_system']->havePerm(PERM_VIEWATTENDANCE)) {
+					if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
 						$options['--Y'] = '-----';
 						$options['notes.subjects'] = 'Notes matching the phrase above';
 						$options['actionnotes.subjects'] = 'Notes requiring action';
@@ -426,7 +426,7 @@ class Person_Query extends DB_Object
 		?>
 		<option disabled="disabled">------</option>
 		<option value="attendance_percent"<?php if ($sb == "attendance_percent") echo ' selected="selected"'; ?>>Attendance rate during the specified period</option>
-		<option value="attendance_numabsences""<?php if ($sb == "attendance_percent") echo ' selected="selected"'; ?>>Number of absences since last marked present</option>
+		<option value="attendance_numabsences""<?php if ($sb == "attendance_numabsences") echo ' selected="selected"'; ?>>Number of absences since last marked present</option>
 		<?php
 		if ($GLOBALS['system']->featureEnabled('DATES')) {
 			?>
@@ -941,7 +941,7 @@ class Person_Query extends DB_Object
 
 		}
 
-		if ($query['order_by'] == 'attendance_percent') {
+		if ($query['order_by'] == '`attendance_percent`') {
 			if (in_array('attendance_percent', $params['show_fields'])) {
 				$query['order_by'] = '`Attendance` ASC';
 			} else {
@@ -949,7 +949,7 @@ class Person_Query extends DB_Object
 				$query['order_by'] = 'p.last_name';
 			}
 		}
-		if ($query['order_by'] == 'attendance_numabsences') {
+		if ($query['order_by'] == '`attendance_numabsences`') {
 			if (in_array('attendance_numabsences', $params['show_fields'])) {
 				$query['order_by'] = '`Running Absences` DESC';
 			} else {
