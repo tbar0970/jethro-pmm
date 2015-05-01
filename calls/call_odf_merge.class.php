@@ -48,11 +48,16 @@ class Call_ODF_Merge extends Call
 		// NB THIS FILE HAS BEEN CHANGED!
 		require_once 'include/phpword/src/PhpWord/Autoloader.php';
 		\PhpOffice\PhpWord\Autoloader::register();
+		\PhpOffice\PhpWord\Settings::setTempDir(dirname($source_file));
 		$templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor($source_file);
 
 		$data = array_values($this->getMergeData());
 
-		$block = $templateProcessor->cloneBlock('MERGEBLOCK', count($data));
+		if (!$templateProcessor->cloneBlock('MERGEBLOCK', count($data))) {
+			$vars = $templateProcessor->getVariables();
+			$templateProcessor->cloneRow(reset($vars), count($data));
+			
+		}
 		foreach ($data as $num => $row) {
 			foreach ($row as $k => $v) {
 				$templateProcessor->setValue(strtoupper($k).'#'.($num+1), $this->xmlEntities($v));
