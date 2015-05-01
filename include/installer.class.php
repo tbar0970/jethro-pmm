@@ -195,6 +195,9 @@ class Installer
 
 		foreach ($fks as $table => $keys) {
 			foreach ($keys as $from => $to) {
+				if (FALSE !== strpos($from, '.')) {
+					list($table, $from) = explode('.', $from);
+				}
 				$name = $from;
 				$SQL = 'ALTER TABLE '.$table.'
 						ADD CONSTRAINT `'.$name.'`

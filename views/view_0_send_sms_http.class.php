@@ -55,79 +55,81 @@ class View__Send_SMS_HTTP extends View
 		}
 
 		if (empty($recips)) {
-			trigger_error("No recipients found", E_USER_ERROR);
-		}
-		
-		$mobile_tels = array();
-		foreach ($recips as $recip) {
-			$mobile_tels[$recip['mobile_tel']] = 1;
-		}
-		$mobile_tels = array_keys($mobile_tels);
+			print_message("Did not find any recipients with mobile numbers.  Message not sent.", 'error');
+		} else {
 
-		$message = $_POST['message'];
-		if (empty($message) || strlen($message) > SMS_MAX_LENGTH) {
-			trigger_error("Your message is empty or too long", E_USER_ERROR);
-		}
+			$mobile_tels = array();
+			foreach ($recips as $recip) {
+				$mobile_tels[$recip['mobile_tel']] = 1;
+			}
+			$mobile_tels = array_keys($mobile_tels);
 
-		$content = SMS_HTTP_POST_TEMPLATE;
-		$content = str_replace('_USER_MOBILE_', urlencode($GLOBALS['user_system']->getCurrentUser('mobile_tel')), $content);
-		$content = str_replace('_USER_EMAIL_', urlencode($GLOBALS['user_system']->getCurrentUser('email')), $content);
-		$content = str_replace('_MESSAGE_', urlencode($message), $content);
-		$content = str_replace('_RECIPIENTS_COMMAS_', urlencode(implode(',', $mobile_tels)), $content);
-		$content = str_replace('_RECIPIENTS_NEWLINES_', urlencode(implode("\n", $mobile_tels)), $content);
-		
-		$opts = Array(
-			'http' => Array(
-				'method'	=> 'POST',
-				'content'	=> $content,
-				'header'	=> "Content-Length: ".strlen($content)."\r\n"
-								."Content-Type: application/x-www-form-urlencoded\r\n"
-			)
-		);
-		$response = '';
-		$fp = fopen(SMS_HTTP_URL, 'r', false, stream_context_create($opts));
-		if ($fp) {
-			$response = stream_get_contents($fp);
-			fclose($fp);
-		}
+			$message = $_POST['message'];
+			if (empty($message) || strlen($message) > SMS_MAX_LENGTH) {
+				print_message("Your message is empty or too long", "error");
+				return;
+			}
 
-		if (empty($response)) {
-			add_message('Failed communicating with SMS server - please check your config', 'failure');
-			return;
-		}
+			$content = SMS_HTTP_POST_TEMPLATE;
+			$content = str_replace('_USER_MOBILE_', urlencode($GLOBALS['user_system']->getCurrentUser('mobile_tel')), $content);
+			$content = str_replace('_USER_EMAIL_', urlencode($GLOBALS['user_system']->getCurrentUser('email')), $content);
+			$content = str_replace('_MESSAGE_', urlencode($message), $content);
+			$content = str_replace('_RECIPIENTS_COMMAS_', urlencode(implode(',', $mobile_tels)), $content);
+			$content = str_replace('_RECIPIENTS_NEWLINES_', urlencode(implode("\n", $mobile_tels)), $content);
 
-		$response = str_replace("\r", '', $response);
-		if (SMS_HTTP_RESPONSE_OK_REGEX) {
-			foreach ($recips as $id => $recip) {
-				$pattern = '/'.str_replace('_RECIPIENT_', preg_quote($recip['mobile_tel']), SMS_HTTP_RESPONSE_OK_REGEX).'/m';
-		
-				if (preg_match($pattern, $response)) { 
-					$successes[$id] = $recip;
-				} else {
-					$failures[$id] = $recip;
+			$opts = Array(
+				'http' => Array(
+					'method'	=> 'POST',
+					'content'	=> $content,
+					'header'	=> "Content-Length: ".strlen($content)."\r\n"
+									."Content-Type: application/x-www-form-urlencoded\r\n"
+				)
+			);
+			$response = '';
+			$fp = fopen(SMS_HTTP_URL, 'r', false, stream_context_create($opts));
+			if ($fp) {
+				$response = stream_get_contents($fp);
+				fclose($fp);
+			}
+
+			if (empty($response)) {
+				add_message('Failed communicating with SMS server - please check your config', 'failure');
+				return;
+			}
+
+			$response = str_replace("\r", '', $response);
+			if (SMS_HTTP_RESPONSE_OK_REGEX) {
+				foreach ($recips as $id => $recip) {
+					$pattern = '/'.str_replace('_RECIPIENT_', preg_quote($recip['mobile_tel']), SMS_HTTP_RESPONSE_OK_REGEX).'/m';
+
+					if (preg_match($pattern, $response)) { 
+						$successes[$id] = $recip;
+					} else {
+						$failures[$id] = $recip;
+					}
 				}
-			}
-			if (!empty($successes)) {
-				print_message('SMS sent successfully to '.count($successes).' recipients');
-				$this->logSuccess(count($successes), $message);
-			}
-			if (!empty($failures)) {
-				print_message('SMS sending failed for '.count($failures).' recipients', 'failure');
+				if (!empty($successes)) {
+					print_message('SMS sent successfully to '.count($successes).' recipients');
+					$this->logSuccess(count($successes), $message);
+				}
+				if (!empty($failures)) {
+					print_message('SMS sending failed for '.count($failures).' recipients', 'failure');
+					?>
+					<p><b>Sending an SMS to the following recipients failed.  <span class="clickable" onclick="$('#response').toggle()">Show server response</span></b></p>
+					<div class="hidden standard" id="response"><?php bam($response); ?></div>
+					<?php
+					$persons = $failures;
+					require 'templates/person_list.template.php';
+				}
+			} else {
+				// No check of the response - give a less confident success message
+				print_message('SMS sent to '.count($recips).' recipients');
+				$this->logSuccess(count($recips), $message);
 				?>
-				<p><b>Sending an SMS to the following recipients failed.  <span class="clickable" onclick="$('#response').toggle()">Show server response</span></b></p>
+				<span class="clickable" onclick="$('#response').toggle()">Show SMS server response</span></b></p>
 				<div class="hidden standard" id="response"><?php bam($response); ?></div>
 				<?php
-				$persons = $failures;
-				require 'templates/person_list.template.php';
 			}
-		} else {
-			// No check of the response - give a less confident success message
-			print_message('SMS sent to '.count($recips).' recipients');
-			$this->logSuccess(count($recips), $message);
-			?>
-			<span class="clickable" onclick="$('#response').toggle()">Show SMS server response</span></b></p>
-			<div class="hidden standard" id="response"><?php bam($response); ?></div>
-			<?php
 		}
 
 		if (!empty($archived)) {
@@ -139,7 +141,7 @@ class View__Send_SMS_HTTP extends View
 		if (!empty($blanks)) {
 			?>
 			<h4>Recipients with blank mobile number</h4>
-			<p style="clear:both">The following persons were not sent the message because they don't have a mobile number specified:</b>
+			<p style="clear:both">The following persons were not sent the message because they don't have a mobile number recorded:</b>
 			<?php
 			$persons = $blanks;
 			$include_special_fields = FALSE;

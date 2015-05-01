@@ -1,23 +1,31 @@
 <?php
 class Headcount
 {
-	public static function getInitSQL()
+	public function getInitSQL()
 	{
 		return Array(
 			'CREATE TABLE congregation_headcount (
 					`date` DATE NOT NULL,
 					`congregationid` INT(11) NOT NULL,
 					`number` INT(11) NOT NULL,
-					PRIMARY KEY (`date`, `congregationid`),
-					CONSTRAINT FOREIGN KEY (`congregationid`) REFERENCES `congregation` (`id`)
+					PRIMARY KEY (`date`, `congregationid`)
+					/* CONSTRAINT FOREIGN KEY (`congregationid`) REFERENCES `congregation` (`id`) */
 				) Engine=InnoDB;',
 			 'CREATE TABLE person_group_headcount (
 					`date` DATE NOT NULL,
 					`person_groupid` INT(11) NOT NULL,
 					`number` INT(11) NOT NULL,
-					PRIMARY KEY (`date`, `person_groupid`),
-					CONSTRAINT FOREIGN KEY (`person_groupid`) REFERENCES `_person_group` (`id`)
+					PRIMARY KEY (`date`, `person_groupid`)
+					/* CONSTRAINT FOREIGN KEY (`person_groupid`) REFERENCES `_person_group` (`id`) */
 				) Engine=InnoDB;'
+		);
+	}
+	
+	public function getForeignKeys()
+	{
+		return Array(
+			'congregation_headcount.congregationid' => 'congregation(id) ON DELETE CASCADE',
+			'person_group_headcount.person_groupid' => '_person_group(id) ON DELETE CASCADE',
 		);
 	}
 

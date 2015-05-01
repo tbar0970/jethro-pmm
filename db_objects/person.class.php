@@ -200,7 +200,6 @@ class Person extends DB_Object
 	function printFieldValue($name, $value=null)
 	{
 		if ($name == 'dates') {
-			return; // TEMP
 			if (is_null($value)) $value = $this->getDates();
 			if (empty($value)) {
 				echo '<i>(None)</i>';
@@ -229,6 +228,8 @@ class Person extends DB_Object
 				echo ents($this->getValue('first_name')).'&nbsp;'.ents($this->getValue('last_name'));
 				return;
 			case 'mobile_tel':
+				
+				if (!strlen($value)) return;
 				echo ents($this->getFormattedValue($name, $value));
 
 				if (SizeDetector::isNarrow()) {

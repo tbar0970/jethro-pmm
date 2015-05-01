@@ -653,6 +653,10 @@ table.object-summary tr.divider-before > td, table.object-summary tr.divider-bef
 	border-top-width: 1px;
 	border-top-color: #DDDDDD !important;
 }
+/* make the table of person dates and family members line up with its label */
+table.object-summary td table tr:first-child td {
+	padding-top: 0px !important;
+}
 #body tr.archived td, #body tr.archived a, #body tr.archived .btn-link {
 	color: #bbb;
 }
