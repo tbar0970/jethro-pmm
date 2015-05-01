@@ -27,7 +27,7 @@ Class ODF_Tools
 		}
 		$content = $inzip->getFromName($xml_filename);
 		if (!$content) {
-			trigger_error("Could not find content.xml inside $filename");
+			trigger_error("Could not find ".$xml_filename." inside $filename");
 			return;
 		}
 		$inzip->close();
