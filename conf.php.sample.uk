@@ -142,7 +142,7 @@ define('MEMBER_PASSWORD_MIN_LENGTH', '7');
 ////////////////////////////////////////////////////////////////
 
 // URL for bible passage links - NB needs to include __REFERENCE__ keyword
-define('BIBLE_URL', 'http://www.biblestudytools.com/nrs/passage.aspx?q=__REFERENCE__');
+define('BIBLE_URL', 'https://www.biblegateway.com/passage/?search=__REFERENCE__&version=NIVUK');
 
 // The maximum number of email addresses to send to at once.
 // Depends on the SMTP mail server your users are using.
