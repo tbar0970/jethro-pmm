@@ -167,7 +167,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 				<label class="control-label">Source Document</label>
 				<div class="controls">
 					<input class="compulsory" type="file" name="source_document" />
-					<p class="help-inline">(Must be in <a href="http://en.wikipedia.org/wiki/OpenDocument">ODT</a> format.)</p> 
+					<p class="help-inline">(ODT or DOCX format)</p> 
 				</div>
 			</div>
 			<div class="control-group">
@@ -176,12 +176,20 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 						<label class="radio">
 							<input class="compulsory" type="radio" name="merge_type" value="person" id="merge_type_person" checked="checked" />
 							each of the selected persons
-							<a class="smallprint" href="<?php echo BASE_URL; ?>/resources/sample_mail_merge.odt">(sample file)</a>
+							<span class="smallprint">
+								(Sample file: 
+								<a href="<?php echo BASE_URL; ?>/resources/sample_mail_merge.odt">ODT</a>, 
+								<a href="<?php echo BASE_URL; ?>/resources/sample_mail_merge.docx">DOCX</a>)
+							</span>
 						</label>
 						<label class="radio">
 							<input type="radio" name="merge_type" value="family" id="merge_type_family" />
 							each of the families that the selected persons belong to
-							<a class="smallprint" href="<?php echo BASE_URL; ?>/resources/sample_mail_merge_family.odt">(sample file)</a>
+							<span class="smallprint">
+								(Sample file: 
+								<a href="<?php echo BASE_URL; ?>/resources/sample_mail_merge_family.odt">ODT</a>,
+								<a href="<?php echo BASE_URL; ?>/resources/sample_mail_merge_family.docx">DOCX</a>)
+							</span>
 						</label>
 				</div>
 			</div>

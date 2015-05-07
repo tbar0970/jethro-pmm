@@ -52,9 +52,12 @@ class Call_ODF_Merge extends Call
 		$templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor($source_file);
 
 		$data = array_values($this->getMergeData());
-
 		if (!$templateProcessor->cloneBlock('MERGEBLOCK', count($data))) {
 			$vars = $templateProcessor->getVariables();
+			if (empty($vars)) {
+				trigger_error("You don't seem to have included any \${keywords} in your file; cannot merge");
+				return;
+			}
 			$templateProcessor->cloneRow(reset($vars), count($data));
 			
 		}
@@ -133,6 +136,7 @@ class Call_ODF_Merge extends Call
 				if ($dummy->hasField($k)) {
 					$merge_data[$id][$k] = $dummy->getFormattedValue($k);
 				}
+				if ($k == 'selected_firstnames') $merge_data[$id]['selected_members'] = $v;
 			}
 		}
 		return $merge_data;
