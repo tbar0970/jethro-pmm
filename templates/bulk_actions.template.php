@@ -20,6 +20,9 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 						<option value="add-to-group">Add to a group</option>
 						<?php
 					}
+					?>
+					<option value="update-field">Update field(s)</option>
+					<?php
 				}
 				if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
 					?>
@@ -38,6 +41,13 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 				?>
 					<option value="envelopes">Print envelopes</option>
 					<option value="csv">Export as CSV</option>
+					<?php 
+					if ($GLOBALS['system']->featureEnabled('RTFREPORTS')){
+					?>
+i						<option value="qreports">Quick document (RTF) reports</option>
+					<?php
+					}
+					?>
 					<option value="vcf">Export as vCard</option>
 				<?php
 				if (version_compare(PHP_VERSION, '5.2', '>=')) {
@@ -61,6 +71,24 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 		<span class="bulk-action" id="remove-from-group">
 			<input type="submit" class="btn " value="Go" data-set-form-action="<?php echo BASE_URL; ?>?view=_edit_group&action=remove_members&groupid=<?php echo $groupid; ?>" />
 		</span>
+		
+		
+		<div class="bulk-action well" id="update-field">
+			<table>
+			<?php
+			$dummy = new Person();
+			foreach (Array('congregationid', 'status', 'age_bracket') as $field) {
+				$dummy->fields[$field]['allow_empty'] = TRUE;
+				$dummy->fields[$field]['empty_text'] = '(No change)';
+				$dummy->setValue($field, NULL);
+				echo '<tr><td>Set '.$dummy->getFieldLabel($field).' to: </td><td>';
+				$dummy->printFieldInterface($field);
+				echo '</td></tr>';
+			}
+			?>
+			</table>
+			<input type="submit" class="btn" onclick="return confirm('Are you sure you want to bulk-update these persons?')" value="Go" data-set-form-action="<?php echo BASE_URL; ?>?view=_persons_bulk_update&backto=<?php echo urlencode(http_build_query($_GET)); ?>" />
+		</div>
 
 		<?php
 		$verbs = Array('add');
@@ -201,7 +229,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 
 			
 		</div>
-		<?php
+ 		<?php
 	}
 	?>
 		<div class="bulk-action well" id="email">

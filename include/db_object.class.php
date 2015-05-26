@@ -297,7 +297,13 @@ class db_object
 		}
 		$GLOBALS['system']->setFriendlyErrors(FALSE);
 
-		if (!$this->haveLock() && !$this->acquireLock()) {
+		$acquiredLock = FALSE;
+		if (!$this->haveLock()) {
+			if ($this->acquireLock()) {
+				$acquiredLock = TRUE;
+			}
+		}
+		if (!$this->haveLock()) {
 			trigger_error('Cannot save values for '.get_class($this).' #'.$this->id.' because someone else has the lock', E_USER_NOTICE);
 			return FALSE;
 		}
@@ -362,6 +368,8 @@ class db_object
 		}
 
 		$this->_old_values = Array();
+		
+		if ($acquiredLock) $this->releaseLock();
 
 		return TRUE;
 	}
@@ -402,7 +410,6 @@ class db_object
 
 
 
-
 //--        GETTING AND SETTING FIELD VALUES        --//
 
 
@@ -423,7 +430,7 @@ class db_object
 			$value = trim($value, ",;. \t\n\r\0\x0B");
 		}
 		if ($this->fields[$name]['type'] == 'select') {
-			if (!isset($this->fields[$name]['options'][$value])) {
+			if (!isset($this->fields[$name]['options'][$value]) && !(array_get($this->fields[$name], 'allow_empty', 1) && empty($value))) {
 				trigger_error(ents($value).' is not a valid value for field "'.$name.'", and has not been set', E_USER_NOTICE);
 				return;
 			}
