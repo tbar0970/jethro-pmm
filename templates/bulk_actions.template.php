@@ -41,13 +41,6 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 				?>
 					<option value="envelopes">Print envelopes</option>
 					<option value="csv">Export as CSV</option>
-					<?php 
-					if ($GLOBALS['system']->featureEnabled('RTFREPORTS')){
-					?>
-i						<option value="qreports">Quick document (RTF) reports</option>
-					<?php
-					}
-					?>
 					<option value="vcf">Export as vCard</option>
 				<?php
 				if (version_compare(PHP_VERSION, '5.2', '>=')) {
@@ -61,6 +54,10 @@ i						<option value="qreports">Quick document (RTF) reports</option>
 					?>
 					<option value="execute-plan">Execute an action plan</option>
 					<?php
+				}
+				
+				if (function_exists('custom_bulk_action_options')) {
+					custom_bulk_action_options();
 				}
 				?>
 				
@@ -308,3 +305,8 @@ i						<option value="qreports">Quick document (RTF) reports</option>
 		<input type="submit" value="Go" class="btn" data-set-form-action="<?php echo BASE_URL; ?>?call=vcf" />
 	</div>
 </div>
+
+<?php
+if (function_exists('custom_bulk_action_bodies')) {
+	custom_bulk_action_bodies();
+}
