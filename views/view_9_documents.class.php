@@ -73,6 +73,8 @@ class View_Documents extends View
 								$this->_addMessage('File "'.$name.'" saved');
 							}
 						}
+					} else {
+						trigger_error("There was an error ($error) uploading a file");
 					}
 				}
 			}
