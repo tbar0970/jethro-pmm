@@ -232,10 +232,12 @@ class Person extends DB_Object
 				if (!strlen($value)) return;
 				echo ents($this->getFormattedValue($name, $value));
 
+				$smsLink = '';
 				if (SizeDetector::isNarrow()) {
-					// Probably a phone
+					// Probably a phone - use a plain sms: link
 					$smsLink = 'href="sms:'.ents($value).'"';
-				} else {
+				} else if (defined('SMS_HTTP_URL') && constant('SMS_HTTP_URL') && $GLOBALS['user_system']->havePerm(PERM_SENDSMS)) {
+					// Provide a link to send SMS through the SMS gateway
 					?>
 					<div id="send-sms-modal" class="modal hide fade" role="dialog" aria-hidden="true">
 						<form method="post" action="?view=_send_sms_http">
@@ -260,7 +262,13 @@ class Person extends DB_Object
 				?>
 				<span class="nowrap">
 					<a href="tel:<?php echo ents($value); ?>" class="btn btn-mini"><i class="icon-phone"></i></a>
+				<?php
+				if ($smsLink) {
+					?>
 					<a <?php echo $smsLink; ?> class="btn btn-mini"><i class="icon-envelope"></i></a>
+					<?php
+				}
+				?>
 				</span>
 				<?php
 				return;
