@@ -83,7 +83,7 @@ $family->printSummary($accordion ? TRUE : FALSE);
 	}
 	$all_emails = $family->getAllEmailAddrs();
 	if (!empty($all_emails)) {
-		$links[] = '<a href="mailto: '.implode(', ', $all_emails).'"><i class="icon-email">@</i>Email All</a>';
+		$links[] = '<a href="'.get_email_href($all_emails).'" '.email_link_extras().'><i class="icon-email">@</i>Email All</a>';
 	}
 	echo implode(' &nbsp; ', $links);
 	?>

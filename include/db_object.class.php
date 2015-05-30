@@ -644,7 +644,7 @@ class db_object
 			echo '<a href="tel:'.$value.'">'.ents($this->getFormattedValue($name, $value)).'</a>';
 		} else if (($this->fields[$name]['type'] == 'email')) {
 			$personName = ($this->values[$name] == $value) ? $this->values['first_name'].' '.$this->values['last_name'] : '';
-			echo '<a href="'.get_mailto_url($value, $personName).'">'.ents($value).'</a>';
+			echo '<a href="'.get_email_href($value, $personName).'" '.email_link_extras().'>'.ents($value).'</a>';
 		} else if (($this->fields[$name]['type'] == 'html')) {
 			echo $this->getFormattedValue($name, $value);
 		} else {

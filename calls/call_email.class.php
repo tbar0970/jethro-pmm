@@ -56,12 +56,9 @@ class Call_email extends Call
 		} else if ((count($emails) > EMAIL_CHUNK_SIZE) || !empty($blanks)) {
 			$this->launchPopupFromHiddenIframe($blanks);
 		} else if (count($emails) > 0) {
-			$my_email = $GLOBALS['user_system']->getCurrentUser('email');
-			$public = array_get($_REQUEST, 'method') == 'public';	
-			$to = implode(',', $emails);
-			if (!$public) $to = $my_email.'?bcc='.$to;
+			$public = array_get($_REQUEST, 'method') == 'public';
 			?>
-			<a id="mailto" href="mailto:<?php echo $to; ?>" target="_parent">Send email</a>
+			<a id="mailto" href="<?php echo $this->getHref($emails, $public); ?>" target="_parent" <?php echo email_link_extras(); ?>>Send email</a>
 			<script>document.getElementById('mailto').click();</script>
 			<?php
 		} else {
@@ -71,21 +68,26 @@ class Call_email extends Call
 		}
 	}
 
-	private function getPrivateTo($emails) {
-		$my_email = $GLOBALS['user_system']->getCurrentUser('email');
-		return $my_email.'?bcc='.implode(',', array_diff($emails, Array($my_email)));
+	private function getHref($emails, $public) {
+		if ($public) {
+			$href = get_email_href($emails);
+		} else {
+			$my_email = $GLOBALS['user_system']->getCurrentUser('email');
+			$href = get_email_href($my_email, NULL, array_diff($emails, Array($my_email)));
+		}
+		return $href;
 	}
 
 	private function printModal($emails, $archived, $blanks) {
-		$my_email = $GLOBALS['user_system']->getCurrentUser('email');
 		$chunks = array_chunk($emails, EMAIL_CHUNK_SIZE);
 		$this->printArchivedWarning($archived);
+
 		if (count($chunks) == 1) {
 			?>
 			<p>
-			<a href="mailto:<?php echo $this->getPrivateTo($emails); ?>" class="btn btn-primary">Email privately</a>
+			<a href="<?php echo $this->getHref($emails, FALSE); ?>" class="btn btn-primary" <?php echo email_link_extras(); ?>>Email privately</a>
 			&nbsp;
-			<a href="mailto:<?php echo implode(',', $emails); ?>" class="btn btn-danger" title="WARNING: this will let all group membes see each other's addresses, and should be used with care">Email publicly</a>
+			<a href="<?php echo $this->getHref($emails, TRUE); ?>" class="btn btn-danger" <?php echo email_link_extras(); ?> title="WARNING: this will let all group members see each other's addresses, and should be used with care">Email publicly</a>
 			</p>
 			<?php
 		} else {
@@ -94,7 +96,7 @@ class Call_email extends Call
 			<?php
 			foreach ($chunks as $i => $chunk) {
 				?>
-				<a href="mailto:<?php echo $this->getPrivateTo($chunk); ?>" class="btn"  onclick="this.style.textDecoration='line-through'">Email Batch #<?php echo $i; ?></a>
+				<a href="<?php echo $this->getHref($chunk, FALSE); ?>" class="btn" onclick="this.style.textDecoration='line-through'" <?php echo email_link_extras(); ?>>Email Batch #<?php echo $i; ?></a>
 				<?php
 			}
 			?>
@@ -121,10 +123,9 @@ class Call_email extends Call
 				$chunks = array_chunk($emails, EMAIL_CHUNK_SIZE);
 				if (count($chunks) == 1) {
 					$this->printArchivedWarning($archived);
-					$to = $public ? implode(',', $emails) : $this->getPrivateTo($emails);
 					?>
 					<br />
-					<div class="align-center"><a class="btn btn-primary" href="mailto:<?php echo $to ?>">Email selected persons now</a></div>
+					<div class="align-center"><a class="btn btn-primary" href="<?php echo $this->getHref($emails, $public); ?>" <?php echo email_link_extras(); ?>>Email selected persons now</a></div>
 					<?php
 				} else {
 					?>
@@ -133,9 +134,8 @@ class Call_email extends Call
 					<p style="line-height: 50px">
 					<?php
 					foreach ($chunks as $i => $chunk) {
-						$to = $public ? implode(',', $chunk) : $this->getPrivateTo($chunk);
 						?>
-						<a class="btn" href="mailto:<?php echo $to; ?>" onclick="this.style.textDecoration='line-through'">Email Batch #<?php echo ($i+1); ?></a>&nbsp;&nbsp;
+						<a class="btn" href="<?php echo $this->getHref($emails, $public); ?>" onclick="this.style.textDecoration='line-through'" <?php echo email_link_extras(); ?>>Email Batch #<?php echo ($i+1); ?></a>&nbsp;&nbsp;
 						<?php
 					}
 					?>

@@ -603,7 +603,7 @@ class roster_view extends db_object
 							if (!empty($emails)) {
 								?>
 								<p class="smallprint no-print">
-									<a href="mailto:<?php echo $my_email; ?>?bcc=<?php echo implode(',', $emails); ?>&subject=<?php echo (date('jS F', strtotime($date))); ?>">Email All</a>
+									<a href="<?php echo get_email_href($my_email, NULL, $emails, date('jS F', strtotime($date))); ?>" <?php echo email_link_extras(); ?>>Email All</a>
 									<?php
 									if (defined('SMS_HTTP_URL') && constant('SMS_HTTP_URL') && $GLOBALS['user_system']->havePerm(PERM_SENDSMS)) {
 										?>

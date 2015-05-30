@@ -568,15 +568,47 @@ function format_phone_number($x, $formats)
 	}
 }
 
-function get_mailto_url($addresses, $name) {
+/**
+ * Generates a mailto href that can be clicked to send an email.
+ * Can be overridden by defining custom_email_href($to, $name, $bcc, $subject)
+ * @param array|string $to
+ * @param string|null $name	Only applicable if a single to-address is specified
+ * @param array|string $bcc optional
+ * @param string $subject optional
+ * @return string
+ */
+function get_email_href($to, $name=NULL, $bcc=NULL, $subject=NULL)
+{
+	$sep = defined('MULTI_EMAIL_SEPARATOR') ? MULTI_EMAIL_SEPARATOR : ';';
+	if (!empty($to)) $to = implode($sep, (array)$to);
+	if (!empty($bcc)) $bcc = implode($sep, (array)$bcc);
+	
+	if (function_exists('custom_email_href')) return custom_email_href($to, $name, $bcc, $subject);
+
 	// Chrome on mac with mac:mail as the mailto handler cannot cope with fullname in the address
 	$is_chrome_mac = (FALSE !== strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'chrome/'))
 						&& (FALSE !== strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'macintosh'));
-	if (empty($name) || $is_chrome_mac) {
-		return 'mailto:'.$addresses;
+
+	if (!$is_chrome_mac && !empty($name) && empty($bcc) && empty($subject)) {
+		$res = rawurlencode($name).' <'.rawurlencode($to).'>';
 	} else {
-		return 'mailto:'.rawurlencode($name).' <'.$addresses.'>';
+		$res = rawurlencode($to);
+		$extras = Array();
+		if ($bcc) $extras[] = 'bcc='.rawurlencode($bcc);
+		if ($subject) $extras[] = 'subject='.rawurlencode($subject);
+		if ($extras) $res .= '?'.implode('&', $extras);
 	}
+	return 'mailto:'.$res;
+}
+
+/**
+ * Returns any additional attributes to be added to an email link, eg target=blank
+ * Can be overridden by defining custom_email_extras()
+ * @return string
+ */
+function email_link_extras()
+{
+	if (function_exists('custom_email_extras')) return custom_email_extras();
 }
 
 // From http://stackoverflow.com/questions/1182584/secure-random-number-generation-in-php

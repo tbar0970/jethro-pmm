@@ -12,11 +12,11 @@ class View_Groups extends View
 
 	function processView()
 	{
+		if (!empty($_REQUEST['person_groupid'])) {
+			$_REQUEST['groupid'] = $_REQUEST['person_groupid'];
+		}
 		if (!empty($_REQUEST['groupid'])) {
 			$this->_group =& $GLOBALS['system']->getDBObject('person_group', (int)$_REQUEST['groupid']);
-		}
-		if (!empty($_REQUEST['person_groupid'])) {
-			$this->_group =& $GLOBALS['system']->getDBObject('person_group', (int)$_REQUEST['person_groupid']);
 		}
 		if (isset($_REQUEST['show_archived'])) {
 			$_SESSION['show_archived_group_members'] = (int)$_REQUEST['show_archived'];
@@ -133,7 +133,7 @@ class View_Groups extends View
 				if (!empty($persons)) {
 					?>
 					<div class="email-link">
-						<a href="<?php echo build_url(Array('view' => NULL, 'call' => 'email', 'show_modal' => 1)); ?>" data-target="#email-modal" data-toggle="modal"><i class="icon-email">@</i>Email members</a>
+						<a href="<?php echo build_url(Array('view' => NULL, 'call' => 'email', 'groupid' => $this->_group->id, 'show_modal' => 1)); ?>" data-target="#email-modal" data-toggle="modal"><i class="icon-email">@</i>Email members</a>
 					</div>
 					<?php
 				}
