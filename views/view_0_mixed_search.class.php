@@ -9,7 +9,7 @@ class View__Mixed_Search extends View
 	{
 		$GLOBALS['system']->includeDBClass('person');
 		$this->_search_params = Array();
-		$search = array_get($_REQUEST, 'search', array_get($_REQUEST, 'tel', ''));
+		$search = trim(array_get($_REQUEST, 'search', array_get($_REQUEST, 'tel', '')));
 		$tel = preg_replace('/[^0-9]/', '', $search);
 		
 		if ($search == '') return;
