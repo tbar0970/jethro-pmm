@@ -26,6 +26,19 @@ class View_Families__Search extends View
 			add_message('One matching family found');
 			redirect('families', Array('familyid' => key($this->_family_data), 'name' => NULL)); //exits
 		}
+
+		// Put all the archived ones last
+		$archiveds = Array();
+		foreach ($this->_family_data as $k => $v) {
+			if ($v['status'] == 'archived') {
+				$archiveds[$k] = $v;
+				unset($this->_family_data[$k]);
+			}
+		}
+		foreach ($archiveds as $k => $v) {
+			$this->_family_data[$k] = $v;
+		}
+
 	}
 	
 	function getTitle()

@@ -40,8 +40,9 @@ class View_Groups__Search extends View
 			<tbody>
 			<?php
 			foreach ($this->_group_data as $id => $details) {
+				$class = ($details['is_archived']) ? 'class="archived"' : '';
 				?>
-				<tr>
+				<tr <?php echo $class; ?>>
 					<td class="narrow"><a href="?view=groups&groupid=<?php echo $id; ?>"><?php echo $id; ?></a></td>
 					<td><?php echo $details['name']; ?></td>
 					<td class="narrow"><?php echo $details['member_count']; ?></td>
