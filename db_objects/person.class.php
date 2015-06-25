@@ -311,21 +311,49 @@ class Person extends DB_Object
 	}
 
 
-	function getRecentAttendance($num_weeks)
+	function getAttendance($from='1970-01-01', $to='2999-01-01', $groupid=-1)
 	{
-		$since = date('Y-m-d', strtotime('-'.$num_weeks.' weeks'));
 		$db =& $GLOBALS['db'];
-		$sql = 'SELECT g.name, date, present
+		$sql = 'SELECT g.id, date, present
 				FROM attendance_record ar
 					LEFT OUTER JOIN person_group g ON ar.groupid = g.id
 				WHERE personid = '.$db->quote($this->id).'
-					AND date >= '.$db->quote($since).'
-					AND ((groupid = 0) OR (g.name <> ""))
+					AND date BETWEEN '.$db->quote($from).' AND '.$db->quote($to).'
+				';
+		if ($groupid != -1) {
+			$sql .= ' AND groupid = '.(int)$groupid;
+		} else {
+			$sql .= 'AND ((groupid = 0) OR (g.name <> ""))';
+		}
+		$sql .= '
 				GROUP BY groupid, date
 				ORDER BY groupid, date';
 		$attendances = $db->queryAll($sql, null, null, true, true, true);
+		if ($groupid != -1) $attendances = reset($attendances);
 		check_db_result($attendances);
 		return $attendances;
+	}
+
+	function saveAttendance($attendances, $groupid) {
+		$db =& $GLOBALS['db'];
+
+		$SQL = 'DELETE FROM attendance_record
+				WHERE personid = '.(int)$this->id.'
+				AND date IN ('.implode(',', array_map((Array($db, 'quote')), array_keys($attendances))).')
+				AND groupid = '.(int)$groupid;
+		$res = $db->exec($SQL);
+		check_db_result($res);
+
+		$SQL = 'INSERT INTO attendance_record (personid, groupid, date, present)
+				VALUES ';
+		foreach ($attendances as $date => $present) {
+			if ($present == '?' || $present == 'unknown') continue;
+			$sets[] = '('.(int)$this->id.', '.(int)$groupid.', '.$db->quote($date).', '.(($present == 1 || $present == 'present') ? 1 : 0).')';
+		}
+		$SQL .= implode(",\n", $sets);
+		$res = $db->exec($SQL);
+		check_db_result($res);
+		
 	}
 
 	function getPersonsByName($name, $include_archived=true)
