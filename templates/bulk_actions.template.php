@@ -21,7 +21,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 						<?php
 					}
 					?>
-					<option value="update-field">Update field(s)</option>
+					<option value="update-field">Set field(s)</option>
 					<?php
 				}
 				if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
@@ -71,7 +71,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 		
 		
 		<div class="bulk-action well" id="update-field">
-			<table>
+			<table class="valign-middle">
 			<?php
 			$dummy = new Person();
 			foreach (Array('congregationid', 'status', 'age_bracket') as $field) {
@@ -82,7 +82,15 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 				$dummy->printFieldInterface($field);
 				echo '</td></tr>';
 			}
+			$dateFieldParams = Person::getDateSubfieldParams();
+			$dateFieldParams['type']['empty_text'] = '(Choose type)';
 			?>
+				<tr>
+					<td>Add date value:</td>
+					<td><?php print_widget('date_typeid', $dateFieldParams['type'], NULL); ?></td>
+					<td><?php print_widget('date_val', $dateFieldParams['date'], date('Y-m-d')); ?></td>
+					<td><?php print_widget('date_note', $dateFieldParams['note'], ''); ?></td>
+				</tr>
 			</table>
 			<input type="submit" class="btn" onclick="return confirm('Are you sure you want to bulk-update these persons?')" value="Go" data-set-form-action="<?php echo BASE_URL; ?>?view=_persons_bulk_update&backto=<?php echo urlencode(http_build_query($_GET)); ?>" />
 		</div>

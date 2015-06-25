@@ -206,13 +206,13 @@ class Person extends DB_Object
 				return;
 			}
 			?>
-			<table class="borderless">
+			<table class="borderless table-auto-width">
 			<?php
 			foreach ($value as $d) {
 				?>
 				<tr>
-					<td class="nowrap"><?php echo format_date($d['date']); ?></td>
 					<td><?php echo ents($d['type']); ?></td>
+					<td class="nowrap"><?php echo format_date($d['date']); ?></td>
 					<td><i><?php echo ents($d['note']); ?></i></td>
 				</tr>
 				<?php
@@ -680,41 +680,49 @@ class Person extends DB_Object
 		}
 	}
 
+	static function getDateSubfieldParams()
+	{
+		return Array(
+			'type' => Array(
+				'type' => 'select',
+				'options' => Array(NULL => '') + self::getDateTypes(),
+				'class' => 'datetype'
+			),
+			'date' => Array(
+				'type' => 'date',
+				'allow_empty' => true,
+				'allow_blank_year' => true,
+			),
+			'note' => Array(
+				'type' => 'text',
+				'width' => 40,
+				'class' => 'datenote',
+			)
+		);
+	}
+
 	static function printDatesInterface($prefix, $dates)
 	{
 		if (empty($dates)) $dates[] = Array('id' => '', 'typeid' => null, 'date' => '---', 'note' => '');
-		$typeparams = Array(
-			'type' => 'select',
-			'options' => Array(NULL => '') + self::getDateTypes(),
-			'class' => 'datetype'
-		);
-		$dateparams = Array(
-			'type' => 'date',
-			'allow_empty' => true,
-			'allow_blank_year' => true,
-		);
-		$noteparams = Array(
-			'type' => 'text',
-			'width' => 60,
-			'class' => 'datenote',
-		);
+
 		?>
 		<table class="expandable person-dates">
 			<thead>
 				<tr>
-					<th>Date</th>
 					<th>Type</th>
+					<th>Date</th>
 					<th>Note</th>
 				</tr>
 			</thead>
 			<tbody>
 			<?php
+			$params = self::getDateSubfieldParams();
 			foreach ($dates as $i => $d) {
 				?>
 				<tr>
-					<td><?php print_widget($prefix.'dateval[_'.$i.'_]', $dateparams, $d['date']); ?></td>
-					<td><?php print_widget($prefix.'date[_'.$i.'_][typeid]', $typeparams, $d['typeid']); ?></td>
-					<td><?php print_widget($prefix.'date[_'.$i.'_][note]', $noteparams, $d['note']); ?></td>
+					<td><?php print_widget($prefix.'date[_'.$i.'_][typeid]', $params['type'], $d['typeid']); ?></td>
+					<td><?php print_widget($prefix.'dateval[_'.$i.'_]', $params['date'], $d['date']); ?></td>
+					<td><?php print_widget($prefix.'date[_'.$i.'_][note]', $params['note'], $d['note']); ?></td>
 				</tr>
 				<?php
 			}
@@ -765,7 +773,7 @@ class Person extends DB_Object
 		return $res;
 	}
 
-	function addDate($date, $typeid, $note)
+	public function addDate($date, $typeid, $note)
 	{
 		if (is_null($this->_dates_to_save)) {
 			foreach ($this->getDates() as $d) {

@@ -20,8 +20,13 @@ class View__Persons_Bulk_Update extends View
 			if (array_get($_POST, $field, '') == '') unset($_POST[$field]);
 		}
 		
-		if (count(array_intersect(array_keys($_POST), $this->_allowedFields)) == 0) {
-			trigger_error("Cannot update; no new values assigned");
+		if (empty($_POST['date_typeid']) && count(array_intersect(array_keys($_POST), $this->_allowedFields)) == 0) {
+			add_message("Cannot update; no new values were specified", 'error');
+			if (!empty($_REQUEST['backto'])) {
+				parse_str($_REQUEST['backto'], $back);
+				unset($back['backto']);
+				redirect($back['view'], $back);
+			}
 			return;
 		}
 		
@@ -41,6 +46,15 @@ class View__Persons_Bulk_Update extends View
 					$this->_person->setValue($field, $_POST[$field]);
 				}
 			}
+			if (!empty($_POST['date_typeid'])) {
+				$params = Person::getDateSubfieldParams();
+				$dateval = process_widget('date_val', $params['date']);
+				if (!$dateval) {
+					trigger_error("Invalid date value; cannot set date field");
+					return;
+				}
+				$this->_person->addDate($dateval, $_POST['date_typeid'], $_POST['date_note']);
+			}
 			if ($this->_person->validateFields() && $this->_person->save()) {
 				$success++;
 			}
@@ -54,6 +68,7 @@ class View__Persons_Bulk_Update extends View
 		}
 		if (!empty($_REQUEST['backto'])) {
 			parse_str($_REQUEST['backto'], $back);
+			unset($back['backto']);
 			redirect($back['view'], $back);
 		}
 		
