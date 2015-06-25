@@ -553,6 +553,7 @@ th label input[type="checkbox"] {
 /* nested tables - see list of family members within single person view */
 .table td table {
 	width: 100%;
+	background: transparent !important;
 }
 .table td table tr:first-child td {
 	border-top: 0px;
@@ -654,7 +655,7 @@ table.object-summary tr.divider-before > td, table.object-summary tr.divider-bef
 	border-top-color: #DDDDDD !important;
 }
 /* make the table of person dates and family members line up with its label */
-table.object-summary td table tr:first-child td {
+table.object-summary td table.borderless tr:first-child td {
 	padding-top: 0px !important;
 }
 #body tr.archived td, #body tr.archived a, #body tr.archived .btn-link {
