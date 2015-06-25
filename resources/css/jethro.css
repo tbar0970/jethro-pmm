@@ -537,6 +537,9 @@ th label {
 th label input[type="checkbox"] {
 	margin: 0;
 }
+input[type="radio"] {
+	margin-top: 1px !important;
+}
 #body table.table-auto-width {
 	width: auto !important;
 }
@@ -713,6 +716,7 @@ table.query-results {
 	margin-bottom: 2px; /*  so the X persons listed text can snuggle underneath */
 }
 
+
 /************** USER ACCOUNT ****************/
 .bitmask-boxes div {
 	padding-right: 20px;
@@ -720,6 +724,9 @@ table.query-results {
 }
 .bitmask-boxes {
 	overflow: auto;
+}
+.datefield-rule-period {
+	margin-top: 7px;
 }
 
 /************* VIEW GROUP **************/

@@ -184,7 +184,7 @@ class Person_Query extends DB_Object
 				print_widget('params_date_logic', $dlParams, array_get($params, 'date_logic', 'AND'));
 				?>
 				 the following date fields...</h4>
-			<table class="table expandable indent-left">
+			<table class="table expandable indent-left" id="datefield-rules">
 			<?php
 			$values = array_get($params, 'dates', Array());
 			if (empty($values)) {
@@ -193,37 +193,61 @@ class Person_Query extends DB_Object
 			foreach ($values as $i => $value) {
 				?>
 				<tr>
-					<td>
+					<td class="narrow">
 						<?php					
 						print_widget('params_date_'.$i.'_typeid', Array('type' => 'select', 'options' => Array(0 => '--Choose--') + Person::getDateTypes()), (string)$value['typeid']);
 						?>
 					</td>
 					<td>
 						<?php
-						$cs = Array('any' => '', 'empty' => '', 'between' => '');
-						if (!empty($value['criteria'])) {
-							$cs[$value['criteria']] = 'checked="checked"';
-						} else {
-							$cs['any'] = 'checked="checked"';
+
+						// backwards compatibility:
+						if (array_get($value, 'criteria') == 'between') {
+							$value['criteria'] = $value['anniversary'] ? 'anniversary' : 'exact';
 						}
+						$cparams = Array(
+									'type' => 'select',
+									'options' => Array(
+										'any' => 'filled with any value',
+										'empty' => 'not filled in',
+										'exact' => 'with exact value within...',
+										'anniversary' => 'with exact value or anniversary within...',
+									),
+									'class' => 'datefield-rule-criteria',
+								);
+						print_widget('params_date_'.$i.'_criteria', $cparams, $value['criteria']);
+						$pts = Array('fixed' => '', 'relative' => '');
+						$pts[array_get($value, 'periodtype', 'fixed')] = 'checked="checked"';
 						?>
-						<label class="radio">
-							<input type="radio" name="params_date_<?php echo $i; ?>_criteria" value="any" <?php echo $cs['any']; ?> />
-							filled in with any value
-						</label>
-						<label class="radio">
-							<input type="radio" name="params_date_<?php echo $i; ?>_criteria" value="empty" <?php echo $cs['empty']; ?> />
-							not filled in with any value
-						</label>
-						<label class="radio">
-							<input type="radio" name="params_date_<?php echo $i; ?>_criteria" value="between" <?php echo $cs['between']; ?> />
-							with
-							<?php print_widget('params_date_'.$i.'_anniversary', Array('type' => 'select', 'options' => Array('exact value', 'exact value or anniversary')), (string)$value['anniversary']); ?>
-							between
-							<?php print_widget('params_date_'.$i.'_from', Array('type' => 'date'), $value['from']); ?>
-							and
-							<?php print_widget('params_date_'.$i.'_to', Array('type' => 'date'), $value['to']); ?>
-						</label>
+						<div class="datefield-rule-period">
+							<label class="checkbox">
+								<input type="radio" name="params_date_<?php echo $i; ?>_periodtype" value="fixed" <?php echo $pts['fixed']; ?> />
+								the period from
+								<?php print_widget('params_date_'.$i.'_from', Array('type' => 'date'), $value['from']); ?>
+								to
+								<?php print_widget('params_date_'.$i.'_to', Array('type' => 'date'), $value['to']); ?>
+							</label>
+							<label class="checkbox">
+								<input type="radio" name="params_date_<?php echo $i; ?>_periodtype" value="relative"<?php echo $pts['relative']; ?> />
+								the
+								<?php print_widget('params_date_'.$i.'_periodlength', Array('type' => 'int'), array_get($value, 'periodlength', 14)); ?>
+								day period
+								<?php print_widget('params_date_'.$i.'_periodanchor',
+										Array(
+											'type' => 'select',
+											'options' => Array(
+															'before' => 'before',
+															'ending' => 'ending on',
+															'starting' => 'starting on',
+															'after' => 'after',
+														)
+										),
+										array_get($value, 'periodanchor', 'ending')
+								); ?>
+								the day the report is executed
+							</label>
+
+						</div>
 					</td>
 				</tr>
 				<?php
@@ -506,7 +530,9 @@ class Person_Query extends DB_Object
 				$params['dates'][] = Array(
 					'typeid' => (int)$_REQUEST['params_date_'.$i.'_typeid'],
 					'criteria' => $_REQUEST['params_date_'.$i.'_criteria'],
-					'anniversary' => (int)$_REQUEST['params_date_'.$i.'_anniversary'],
+					'periodtype' => $_REQUEST['params_date_'.$i.'_periodtype'],
+					'periodlength' => $_REQUEST['params_date_'.$i.'_periodlength'],
+					'periodanchor' => $_REQUEST['params_date_'.$i.'_periodanchor'],
 					'from' => process_widget('params_date_'.$i.'_from', Array('type' => 'date')),
 					'to' => process_widget('params_date_'.$i.'_to', Array('type' => 'date')),
 				);
@@ -701,18 +727,40 @@ class Person_Query extends DB_Object
 
 		$dateWheres = Array();
 		foreach (array_get($params, 'dates', Array()) as $i => $values) {
+			if ($values['criteria'] == 'between') {
+				$values['criteria'] = $values['anniversary'] ? 'anniversary' : 'exact';
+			}
 			switch ($values['criteria']) {
+				case 'any':
+					$query['from'] .= ' LEFT JOIN person_date pd'.$i.' ON pd'.$i.'.personid = p.id AND pd'.$i.'.typeid = '.(int)$values['typeid']."\n";
+					$dateWheres[] = 'pd'.$i.'.`date` IS NOT NULL';
+					break;
+
 				case 'empty':
 					$query['from'] .= ' LEFT JOIN person_date pde'.$i.' ON pde'.$i.'.personid = p.id AND pde'.$i.'.typeid = '.(int)$values['typeid']."\n";
 					$dateWheres[] = 'pde'.$i.'.personid IS NULL';
 					break;
 
-				case 'between':
-					$between = 'BETWEEN '.$db->quote($values['from']).' AND '.$db->quote($values['to']);
+				case 'exact':
+				case 'anniversary':
+
+					if (array_get($values, 'periodtype') == 'relative') {
+						$length = $values['periodlength'];
+						$offsets = Array(
+							'before' => Array(-$length-1, -1),
+							'ending' => Array(-$length, 0),
+							'starting' => Array(0, $length),
+							'after' => Array(1, $length+1)
+						);
+						list($so, $eo) = $offsets[$values['periodanchor']];
+						$between = 'BETWEEN CURDATE() + INTERVAL '.$so.' DAY AND CURDATE() + INTERVAL '.$eo.' DAY';
+					} else {
+						$between = 'BETWEEN '.$db->quote($values['from']).' AND '.$db->quote($values['to']);
+					}
 					$w = Array();
 					$w[] = '(pd'.$i.'.`date` NOT LIKE "-%" 
 							AND pd'.$i.'.`date` '.$between.')';
-					if ($values['anniversary']) {
+					if ($values['criteria'] == 'anniversary') {
 						// Anniversary matches either have no year or a year before the 'to' year
 						// AND their month-day fits the range either in the from year or the to year.
 						$fromyearbetween = 'CONCAT('.$db->quote(substr($values['from'], 0, 4)).', RIGHT(pd'.$i.'.`date`, 6)) '.$between;
@@ -726,9 +774,6 @@ class Person_Query extends DB_Object
 					$dateWheres[] = '('.implode(' OR ', $w).')';
 					break;
 
-				case 'any':
-					$query['from'] .= ' LEFT JOIN person_date pd'.$i.' ON pd'.$i.'.personid = p.id AND pd'.$i.'.typeid = '.(int)$values['typeid']."\n";
-					$dateWheres[] = 'pd'.$i.'.`date` IS NOT NULL';
 
 			}
 		}
