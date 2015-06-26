@@ -28,7 +28,8 @@ class Congregation extends db_object
 									'width'		=> 10,
 									'maxlength'	=> 255,
 									'label'		=> 'Code Name',
-									'note'		=> 'Used for filenames and sorting - must be filled in to use services and rosters for this congregation',
+									'regex'		=> '/^[^0-9]*[0-2]\d[0-5]\d[^0-9]*$/',
+									'note'		=> 'Used for filenames and sorting.  Fill this field in to enable service planning and rosters for this congregation.  An HHMM time must be present within the value (eg ash_0930_late).',
 								   ),
 			'print_quantity' => Array(
 									'type'		=> 'int',
