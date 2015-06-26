@@ -24,6 +24,17 @@ class View_Persons__Search extends View
 			add_message('One matching person found');
 			redirect('persons', Array('name' => NULL, 'personid' => key($this->_person_data)));
 		}
+
+		$archiveds = Array();
+		foreach ($this->_person_data as $k => $v) {
+			if ($v['status'] == 'archived') {
+				$archiveds[$k] = $v;
+				unset($this->_person_data[$k]);
+			}
+		}
+		foreach ($archiveds as $k => $v) {
+			$this->_person_data[$k] = $v;
+		}
 	}
 
 	

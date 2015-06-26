@@ -206,13 +206,13 @@ class Person extends DB_Object
 				return;
 			}
 			?>
-			<table class="borderless">
+			<table class="borderless table-auto-width">
 			<?php
 			foreach ($value as $d) {
 				?>
 				<tr>
-					<td class="nowrap"><?php echo format_date($d['date']); ?></td>
 					<td><?php echo ents($d['type']); ?></td>
+					<td class="nowrap"><?php echo format_date($d['date']); ?></td>
 					<td><i><?php echo ents($d['note']); ?></i></td>
 				</tr>
 				<?php
@@ -311,21 +311,72 @@ class Person extends DB_Object
 	}
 
 
-	function getRecentAttendance($num_weeks)
+	function getAttendance($from='1970-01-01', $to='2999-01-01', $groupid=-1)
 	{
-		$since = date('Y-m-d', strtotime('-'.$num_weeks.' weeks'));
 		$db =& $GLOBALS['db'];
-		$sql = 'SELECT g.name, date, present
-				FROM attendance_record ar
-					LEFT OUTER JOIN person_group g ON ar.groupid = g.id
-				WHERE personid = '.$db->quote($this->id).'
-					AND date >= '.$db->quote($since).'
-					AND ((groupid = 0) OR (g.name <> ""))
-				GROUP BY groupid, date
-				ORDER BY groupid, date';
+		$datesSQL = '
+			SELECT groupid, `date` FROM attendance_record
+			WHERE date BETWEEN '.$db->quote($from).' AND '.$db->quote($to).'
+		';
+		if ($groupid != -1) {
+			$datesSQL .= ' AND groupid = '.(int)$groupid;
+		} else {
+			$datesSQL .= ' AND ((groupid = 0)
+								OR (groupid IN (
+									select groupid from person_group_membership
+									WHERE personid ='.$db->quote($this->id).'
+								))
+							)';
+
+		}
+		$datesSQL .= '
+			GROUP BY groupid, `date`';
+
+		$sql = 'SELECT g.id, recorded.`date`, present
+				FROM (
+					'.$datesSQL.'
+					) recorded
+					LEFT JOIN attendance_record ar
+						ON ar.`date` = recorded.`date`
+						AND ar.groupid = recorded.groupid
+						AND ar.personid = '.$db->quote($this->id).'
+					LEFT JOIN person_group g ON recorded.groupid = g.id
+				WHERE 
+				';
+		if ($groupid != -1) {
+			$sql .= ' recorded.groupid = '.(int)$groupid;
+		} else {
+			$sql .= '((recorded.groupid = 0) OR (g.name <> ""))';
+		}
+		$sql .= '
+				GROUP BY recorded.groupid, recorded.date
+				ORDER BY recorded.groupid, recorded.date';
 		$attendances = $db->queryAll($sql, null, null, true, true, true);
+		if ($groupid != -1) $attendances = reset($attendances);
 		check_db_result($attendances);
 		return $attendances;
+	}
+
+	function saveAttendance($attendances, $groupid) {
+		$db =& $GLOBALS['db'];
+
+		$SQL = 'DELETE FROM attendance_record
+				WHERE personid = '.(int)$this->id.'
+				AND date IN ('.implode(',', array_map((Array($db, 'quote')), array_keys($attendances))).')
+				AND groupid = '.(int)$groupid;
+		$res = $db->exec($SQL);
+		check_db_result($res);
+
+		$SQL = 'INSERT INTO attendance_record (personid, groupid, date, present)
+				VALUES ';
+		foreach ($attendances as $date => $present) {
+			if ($present == '' || $present == '?' || $present == 'unknown') continue;
+			$sets[] = '('.(int)$this->id.', '.(int)$groupid.', '.$db->quote($date).', '.(($present == 1 || $present == 'present') ? 1 : 0).')';
+		}
+		$SQL .= implode(",\n", $sets);
+		$res = $db->exec($SQL);
+		check_db_result($res);
+		
 	}
 
 	function getPersonsByName($name, $include_archived=true)
@@ -652,41 +703,49 @@ class Person extends DB_Object
 		}
 	}
 
+	static function getDateSubfieldParams()
+	{
+		return Array(
+			'type' => Array(
+				'type' => 'select',
+				'options' => Array(NULL => '') + self::getDateTypes(),
+				'class' => 'datetype'
+			),
+			'date' => Array(
+				'type' => 'date',
+				'allow_empty' => true,
+				'allow_blank_year' => true,
+			),
+			'note' => Array(
+				'type' => 'text',
+				'width' => 40,
+				'class' => 'datenote',
+			)
+		);
+	}
+
 	static function printDatesInterface($prefix, $dates)
 	{
 		if (empty($dates)) $dates[] = Array('id' => '', 'typeid' => null, 'date' => '---', 'note' => '');
-		$typeparams = Array(
-			'type' => 'select',
-			'options' => Array(NULL => '') + self::getDateTypes(),
-			'class' => 'datetype'
-		);
-		$dateparams = Array(
-			'type' => 'date',
-			'allow_empty' => true,
-			'allow_blank_year' => true,
-		);
-		$noteparams = Array(
-			'type' => 'text',
-			'width' => 60,
-			'class' => 'datenote',
-		);
+
 		?>
 		<table class="expandable person-dates">
 			<thead>
 				<tr>
-					<th>Date</th>
 					<th>Type</th>
+					<th>Date</th>
 					<th>Note</th>
 				</tr>
 			</thead>
 			<tbody>
 			<?php
+			$params = self::getDateSubfieldParams();
 			foreach ($dates as $i => $d) {
 				?>
 				<tr>
-					<td><?php print_widget($prefix.'dateval[_'.$i.'_]', $dateparams, $d['date']); ?></td>
-					<td><?php print_widget($prefix.'date[_'.$i.'_][typeid]', $typeparams, $d['typeid']); ?></td>
-					<td><?php print_widget($prefix.'date[_'.$i.'_][note]', $noteparams, $d['note']); ?></td>
+					<td><?php print_widget($prefix.'date[_'.$i.'_][typeid]', $params['type'], $d['typeid']); ?></td>
+					<td><?php print_widget($prefix.'dateval[_'.$i.'_]', $params['date'], $d['date']); ?></td>
+					<td><?php print_widget($prefix.'date[_'.$i.'_][note]', $params['note'], $d['note']); ?></td>
 				</tr>
 				<?php
 			}
@@ -737,7 +796,7 @@ class Person extends DB_Object
 		return $res;
 	}
 
-	function addDate($date, $typeid, $note)
+	public function addDate($date, $typeid, $note)
 	{
 		if (is_null($this->_dates_to_save)) {
 			foreach ($this->getDates() as $d) {

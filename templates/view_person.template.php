@@ -296,37 +296,40 @@ if (isset($tabs['attendance'])) {
 
 	printf($panel_header, 'attendance', 'Attendance', ''); 
 
-	$num_weeks = 12;
-	$attendances = $person->getRecentAttendance($num_weeks);
+	$attendances = $person->getAttendance(date('Y-m-d', strtotime('-12 weeks')));
 	if (empty($attendances)) {
 		?>
 		<p><i>No attendance has been recorded for <?php $person->printFieldValue('name'); ?></i></p>
 		<?php
 	} else {
-
-		$colours = Array(
-					'0'	=> 'Red',
-					'1'	=> 'Green',
-					'?' => 'Yellow'
+		$groups = Array();
+		$groupids = array_keys($attendances);
+		if (count($groupids) > 1 || reset($attendances) != '') {
+			$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('id' => $groupids));
+		}
+		$classes = Array(
+					'0'	=> 'absent',
+					'1'	=> 'present',
+					NULL => 'unknown'
 				   );
 		$labels = Array(
 					'0'	=> 'A',
 					'1'	=> 'P',
-					'?' => '?'
+					NULL => '?'
 				   );
-		$width = floor(100 / $num_weeks);
-		foreach ($attendances as $group_name => $group_attendances) {
-			if (empty($group_name)) {
-				?>
-				<p><i>Congregational Attendance:</i></p>
-				<?php
+		foreach ($attendances as $groupid => $group_attendances) {
+			$start = reset($group_attendances);
+			$end = end($group_attendances);
+			echo '<h4>';
+			echo '<a class="pull-right" href="?view=_edit_attendance&personid='.$person->id.'&groupid='.$groupid.'&startdate='.$start['date'].'&enddate='.$end['date'].'"><i class="icon-wrench"></i>Edit</a>';
+			if (empty($groupid)) {
+				echo 'Congregational Attendance';
 			} else {
-				?>
-				<p><i>Attendance at <?php echo ents($group_name); ?>:</i></p>
-				<?php
+				echo 'Attendance at '.ents($groups[$groupid]['name']);
 			}
+			echo '</h4>';
 			?>
-			<table class="table table-bordered table-auto-width">
+			<table class="table table-bordered table-condensed table-auto-width">
 				<thead>
 					<tr>
 					<?php
@@ -343,7 +346,7 @@ if (isset($tabs['attendance'])) {
 					<?php
 					foreach ($group_attendances as $att) {
 						?>
-						<td style="background-color: <?php echo $colours[$att['present']]; ?>;">
+						<td class="<?php echo $classes[$att['present']]; ?>">
 							<?php echo $labels[$att['present']]; ?>
 						</td>
 						<?php

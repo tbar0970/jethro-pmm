@@ -16,18 +16,20 @@ class View_Admin__System_Configuration extends View {
 		if (!empty($_POST['group_membership_statuses_submitted'])) {
 			$i = 0;
 			$saved_default = false;
+			$ranks = array_flip($_REQUEST['membership_status_ranking']);
 			while (isset($_POST['membership_status_'.$i.'_label'])) {
 				$sql = null;
 				$is_default = (int)($_POST['membership_status_default_rank'] == $i);
 				if (empty($_POST['membership_status_'.$i.'_id'])) {
 					if (!empty($_POST['membership_status_'.$i.'_label'])) {
-						$sql = 'INSERT INTO person_group_membership_status (label, is_default) 
-								VALUES ('.$db->quote($_POST['membership_status_'.$i.'_label']).', '.$is_default.')';
+						$sql = 'INSERT INTO person_group_membership_status (label, rank, is_default)
+								VALUES ('.$db->quote($_POST['membership_status_'.$i.'_label']).', '.(int)$ranks[$i].','.$is_default.')';
 					}
 				} else if (!in_array($_POST['membership_status_'.$i.'_id'], array_get($_POST, 'membership_status_delete', Array()))) {
 					$sql = 'UPDATE person_group_membership_status
 							SET label = '.$db->quote($_POST['membership_status_'.$i.'_label']).',
-							is_default = '.$is_default.'
+							is_default = '.$is_default.',
+							rank = '.(int)$ranks[$i].'
 							WHERE id = '.(int)$_POST['membership_status_'.$i.'_id'];
 				}
 				if ($sql) {
@@ -174,6 +176,7 @@ class View_Admin__System_Configuration extends View {
 								<th>ID</th>
 								<th>Label</th>
 								<th>Default?</th>
+								<th>Re-order</th>
 								<th>Delete?</th>
 							</tr>
 						</thead>
@@ -192,10 +195,15 @@ class View_Admin__System_Configuration extends View {
 									echo $id; 
 									echo '<input type="hidden" name="membership_status_'.$i.'_id" value="'.$id.'" />';
 								}
+								echo '<input type="hidden" name="membership_status_ranking[]" value="'.$i.'" />';
 								?>
 							</td>
 							<td><input type="text" name="membership_status_<?php echo $i; ?>_label" value="<?php echo ents($label); ?>" /></td>
 							<td><input type="radio" name="membership_status_default_rank" value="<?php echo $i; ?>" <?php if ($id == $default) echo 'checked="checked"'; ?> /></td>
+							<td>
+								<img src="<?php echo BASE_URL; ?>/resources/img/arrow_up_thin_black.png" class="icon move-row-up" title="Move this role up" />
+								<img src="<?php echo BASE_URL; ?>/resources/img/arrow_down_thin_black.png" class="icon move-row-down" title="Move this role down" />
+							</td>
 							<td>
 								<?php
 								if ($id) {
@@ -205,6 +213,7 @@ class View_Admin__System_Configuration extends View {
 								}
 								?>
 							</td>
+
 						</tr>
 						<?php
 						$i++;

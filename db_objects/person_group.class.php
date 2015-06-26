@@ -62,6 +62,7 @@ class Person_Group extends db_object
 				"CREATE TABLE person_group_membership_status (
 					id INT AUTO_INCREMENT PRIMARY KEY,
 					label VARCHAR(255) NOT NULL,
+					rank int not null default 0,
 					is_default TINYINT(1) UNSIGNED DEFAULT 0,
 					CONSTRAINT UNIQUE INDEX (label)
 				) ENGINE=InnoDB;",
@@ -110,7 +111,7 @@ class Person_Group extends db_object
 					';
 		}
 		if ($order_by == NULL) {
-			$order_by = 'p.last_name, p.first_name';
+			$order_by = 'ms.rank, p.last_name, p.first_name';
 		} else {
 			$order_by = preg_replace("/(^|[^.])status($| |,)/", '\\1p.status\\2', $order_by);
 		}
@@ -306,7 +307,7 @@ class Person_Group extends db_object
 
 	public static function getMembershipStatusOptionsAndDefault()
 	{
-		$sql = 'SELECT * FROM person_group_membership_status ORDER BY label';
+		$sql = 'SELECT * FROM person_group_membership_status ORDER BY rank';
 		$res = $GLOBALS['db']->queryAll($sql, null, null, true);
 		check_db_result($res);
 		$options = Array();

@@ -50,7 +50,22 @@ class View__Mixed_Search extends View
 				add_message("One matching group found");
 				redirect('groups', Array('search' => NULL, 'groupid' => key($this->_group_data)));		
 			}
-		}		
+		}
+		
+		// Put all archived results at the end of the list
+		foreach (Array('_person_data', '_family_data', '_group_data') as $var) {
+			$archiveds = Array();
+			$ref = &$this->$var;
+			foreach ($ref as $k => $v) {
+				if ($v['status'] == 'archived') {
+					$archiveds[$k] = $v;
+					unset($ref[$k]);
+				}
+				foreach ($archiveds as $k => $v) {
+					$ref[$k] = $v;
+				}
+			}
+		}
 	}
 
 	function getTitle()
@@ -73,9 +88,10 @@ class View__Mixed_Search extends View
 		<table class="table table-hover table-striped table-min-width clickable-rows">
 		<?php
 		if (!empty($this->_group_data)) {
+				$class = ($values['status'] == 'archived') ? 'class="archived"' : '';
 				foreach ($this->_group_data as $id => $values) {
 				?>
-				<tr>
+				<tr <?php echo $class; ?>>
 					<td><?php echo ents($values['name']); ?></td>
 					<td class="narrow">
 						<a href="?view=groups&groupid=<?php echo $id; ?>"><i class="icon-user"></i>View</a> &nbsp;
@@ -88,8 +104,9 @@ class View__Mixed_Search extends View
 		}
 		if (!empty($this->_person_data)) {
 			foreach ($this->_person_data as $id => $values) {
+				$class = ($values['status'] == 'archived') ? 'class="archived"' : '';
 				?>
-				<tr>
+				<tr <?php echo $class; ?>>
 					<td><?php echo ents($values['first_name']).' '.ents($values['last_name']); ?></td>
 					<td class="narrow">
 						<a href="?view=persons&personid=<?php echo $id; ?>"><i class="icon-user"></i>View</a> &nbsp;
@@ -100,9 +117,10 @@ class View__Mixed_Search extends View
 			}
 		}
 		if (!empty($this->_family_data)) {
+			$class = ($values['status'] == 'archived') ? 'class="archived"' : '';
 			foreach ($this->_family_data as $id => $values) {
 				?>
-				<tr>
+				<tr <?php echo $class; ?>>
 					<td><?php echo ents($values['family_name']); ?> Family</td>
 					<td class="narrow">
 						<a href="?view=families&familyid=<?php echo $id; ?>"><i class="icon-home"></i>View</a> &nbsp;

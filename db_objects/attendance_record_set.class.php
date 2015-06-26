@@ -8,6 +8,7 @@ class Attendance_Record_Set
 	var $congregationid = NULL;
 	var $groupid = NULL;
 	var $age_bracket = NULL;
+	var $show_photos = FALSE;
 	var $_attendance_records = Array();
 	
 	const LIST_ORDER_DEFAULT = 'status ASC, family_name ASC, familyid, age_bracket ASC, gender DESC';
@@ -156,7 +157,7 @@ class Attendance_Record_Set
 		$GLOBALS['system']->includeDBClass('person');
 		$dummy = new Person();
 		?>
-		<table class="table table-auto-width table-condensed valign-middle">
+		<table class="table table-condensed table-auto-width valign-middle">
 		<?php
 		$is_first = TRUE;
 		foreach ($members as $personid => $details) {
@@ -170,6 +171,13 @@ class Attendance_Record_Set
 			if (!SizeDetector::isNarrow()) {
 				?>
 				<td><?php echo $personid; ?></td>
+				<?php
+			}
+			if ($this->show_photos) {
+				?>
+				<td>
+					<img style="width: 50px; max-width: 50px" src="?call=person_photo&personid=<?php echo (int)$personid; ?>" />
+				</td>
 				<?php
 			}
 			?>
@@ -190,7 +198,7 @@ class Attendance_Record_Set
 				<?php
 			}
 			?>
-				<td>
+				<td class="narrow">
 					<?php print_widget(
 							'attendances['.$prefix.']['.$personid.']',
 							Array(
@@ -202,11 +210,17 @@ class Attendance_Record_Set
 							$v
 					); ?>
 				</td>
+			<?php
+			if (!SizeDetector::isNarrow()) {
+				?>
 				<td class="action-cell narrow">
 					<a class="med-popup" tabindex="-1" href="?view=persons&personid=<?php echo $personid; ?>"><i class="icon-user"></i>View</a> &nbsp;
 					<a class="med-popup" tabindex="-1" href="?view=_edit_person&personid=<?php echo $personid; ?>"><i class="icon-wrench"></i>Edit</a> &nbsp;
 					<a class="med-popup" tabindex="-1" href="?view=_add_note_to_person&personid=<?php echo $personid; ?>"><i class="icon-pencil"></i>Add Note</a>
 				</td>
+				<?php
+			}
+			?>
 			</tr>
 			<?php
 			$is_first = FALSE;
@@ -372,28 +386,32 @@ class Attendance_Record_Set
 
 	function getAttendances($congregationids, $groupid, $age_bracket, $start_date, $end_date)
 	{
-		$SQL = 'SELECT p.id, p.last_name, p.first_name, '.($groupid ? 'pgms.label AS membership_status' : 'p.status').', ar.date, ar.present
+		$SQL = 'SELECT p.id, p.last_name, p.first_name, '.($groupid ? 'pgms.label AS membership_status, ' : '').' p.status, ar.date, ar.present
 				FROM person p
 				JOIN family f ON p.familyid = f.id
-				JOIN attendance_record ar ON ar.personid = p.id ';
-		if ($congregationids) {
-			$SQL .= 'AND ar.groupid = 0';
-		}
+				';
 		if ($groupid) {
-			$SQL .= 'AND ar.groupid = '.(int)$groupid;
 			$SQL .= '
-				LEFT JOIN person_group_membership pgm ON pgm.personid = p.id AND pgm.groupid = ar.groupid
-				LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status';
+				JOIN person_group_membership pgm ON pgm.personid = p.id AND pgm.groupid = '.(int)$groupid;
 		}
 		$SQL .= '
-				WHERE ar.date BETWEEN '.$GLOBALS['db']->quote($start_date).' AND '.$GLOBALS['db']->quote($end_date);
+				LEFT JOIN attendance_record ar ON ar.personid = p.id
+					AND ar.date BETWEEN '.$GLOBALS['db']->quote($start_date).' AND '.$GLOBALS['db']->quote($end_date);
+		if ($congregationids) {
+			$SQL .= ' AND ar.groupid = 0';
+		}
+		if ($groupid) {
+			$SQL .= ' AND ar.groupid = '.(int)$groupid;
+			$SQL .= '
+				LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status';
+		}
 		if ($age_bracket !== '') {
 			$SQL .= '
 				AND p.age_bracket = '.$GLOBALS['db']->quote($age_bracket);
 		}
 		if ($congregationids) {
 			 $SQL .= '
-				 AND p.congregationid IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congregationids)).') ';
+				 WHERE p.congregationid IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congregationids)).') ';
 		}
 		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
 		$order = preg_replace("/(^|[^.])status($| |,)/", '\\1p.status\\2', $order);
@@ -405,7 +423,7 @@ class Attendance_Record_Set
 		$res = $GLOBALS['db']->query($SQL);
 		check_db_result($res);
 		while ($row = $res->fetchRow()) {
-			$dates[$row['date']] = 1;
+			if (!empty($row['date'])) $dates[$row['date']] = 1;
 			foreach (Array('last_name', 'first_name', 'membership_status', 'status') as $f) {
 				if (array_key_exists($f, $row)) $attendances[$row['id']][$f] = $row[$f];
 			}

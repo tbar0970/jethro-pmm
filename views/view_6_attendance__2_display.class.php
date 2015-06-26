@@ -178,8 +178,8 @@ class View_Attendance__Display extends View
 			return;
 		}
 		$headcounts = Headcount::fetchRange(($congid ? 'congregation' : 'person_group'), $congid ? $congid : $groupid, $this->start_date, $this->end_date);
-		$letters = Array(0 => 'A', 1 => 'P', '?' => '?');
-		$classes = Array(0 => 'absent', 1 => 'present', '?' => 'unknown');
+		$letters = Array(0 => 'A', 1 => 'P', '' => '?');
+		$classes = Array(0 => 'absent', 1 => 'present', '' => 'unknown');
 		$dummy = new Person();
 		?>
 		<form method="post" action="" class="bulk-person-action">
@@ -204,7 +204,7 @@ class View_Attendance__Display extends View
 			<?php
 			foreach ($attendances as $personid => $record) {
 				?>
-				<tr>
+				<tr <?php if ($record['status'] == 'archived') echo 'class="archived"'; ?>>
 					<td><?php echo ents($record['last_name']); ?></td>
 					<td><?php echo ents($record['first_name']); ?></td>
 					<td>
@@ -218,8 +218,8 @@ class View_Attendance__Display extends View
 					</td>
 				<?php
 				foreach ($dates as $date) {
-					$letter = $letters[array_get($record, $date, '?')];
-					$class = $classes[array_get($record, $date, '?')];
+					$letter = $letters[array_get($record, $date, '')];
+					$class = $classes[array_get($record, $date, '')];
 					echo '<td class="'.$class.'">'.$letter.'</td>';
 				}
 				?>
