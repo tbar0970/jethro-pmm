@@ -310,12 +310,12 @@ if (isset($tabs['attendance'])) {
 		$colours = Array(
 					'0'	=> 'Red',
 					'1'	=> 'Green',
-					'?' => 'Yellow'
+					NULL => '#e8e8e0'
 				   );
 		$labels = Array(
 					'0'	=> 'A',
 					'1'	=> 'P',
-					'?' => '?'
+					NULL => '?'
 				   );
 		foreach ($attendances as $groupid => $group_attendances) {
 			$start = reset($group_attendances);

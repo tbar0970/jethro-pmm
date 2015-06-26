@@ -314,20 +314,43 @@ class Person extends DB_Object
 	function getAttendance($from='1970-01-01', $to='2999-01-01', $groupid=-1)
 	{
 		$db =& $GLOBALS['db'];
-		$sql = 'SELECT g.id, date, present
-				FROM attendance_record ar
-					LEFT OUTER JOIN person_group g ON ar.groupid = g.id
-				WHERE personid = '.$db->quote($this->id).'
-					AND date BETWEEN '.$db->quote($from).' AND '.$db->quote($to).'
+		$datesSQL = '
+			SELECT groupid, `date` FROM attendance_record
+			WHERE date BETWEEN '.$db->quote($from).' AND '.$db->quote($to).'
+		';
+		if ($groupid != -1) {
+			$datesSQL .= ' AND groupid = '.(int)$groupid;
+		} else {
+			$datesSQL .= ' AND ((groupid = 0)
+								OR (groupid IN (
+									select groupid from person_group_membership
+									WHERE personid ='.$db->quote($this->id).'
+								))
+							)';
+
+		}
+		$datesSQL .= '
+			GROUP BY groupid, `date`';
+
+		$sql = 'SELECT g.id, recorded.`date`, present
+				FROM (
+					'.$datesSQL.'
+					) recorded
+					LEFT JOIN attendance_record ar
+						ON ar.`date` = recorded.`date`
+						AND ar.groupid = recorded.groupid
+						AND ar.personid = '.$db->quote($this->id).'
+					LEFT JOIN person_group g ON recorded.groupid = g.id
+				WHERE 
 				';
 		if ($groupid != -1) {
-			$sql .= ' AND groupid = '.(int)$groupid;
+			$sql .= ' recorded.groupid = '.(int)$groupid;
 		} else {
-			$sql .= 'AND ((groupid = 0) OR (g.name <> ""))';
+			$sql .= '((recorded.groupid = 0) OR (g.name <> ""))';
 		}
 		$sql .= '
-				GROUP BY groupid, date
-				ORDER BY groupid, date';
+				GROUP BY recorded.groupid, recorded.date
+				ORDER BY recorded.groupid, recorded.date';
 		$attendances = $db->queryAll($sql, null, null, true, true, true);
 		if ($groupid != -1) $attendances = reset($attendances);
 		check_db_result($attendances);
