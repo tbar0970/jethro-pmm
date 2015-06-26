@@ -468,7 +468,7 @@ class View_Services__Generate_Documents extends View
 					}
 				}
 				copy($filename, $new_filename);
-				ODF_Tools::replaceKeywords($new_filename, $_POST['replacements'][$congid]);
+				ODF_Tools::replaceKeywords($new_filename, array_get($_POST['replacements'], $congid, Array()));
 				chmod($new_filename, fileperms($filename));
 				$this->_generated_files[] = basename($pathinfo['dirname']).' / '.basename($new_dirname).' / '.$new_filename;
 			}
