@@ -30,3 +30,7 @@ CREATE VIEW member AS
 				AND ((self.status <> "archived") OR (mp.id = self.id))
 				/* archived persons can only see themselves, not any family members */
 			;
+
+/* ordering of group membership statuses */
+alter table person_group_membership_status
+add column rank int not null default 0;
