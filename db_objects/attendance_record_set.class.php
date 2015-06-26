@@ -386,28 +386,32 @@ class Attendance_Record_Set
 
 	function getAttendances($congregationids, $groupid, $age_bracket, $start_date, $end_date)
 	{
-		$SQL = 'SELECT p.id, p.last_name, p.first_name, '.($groupid ? 'pgms.label AS membership_status' : 'p.status').', ar.date, ar.present
+		$SQL = 'SELECT p.id, p.last_name, p.first_name, '.($groupid ? 'pgms.label AS membership_status, ' : '').' p.status, ar.date, ar.present
 				FROM person p
 				JOIN family f ON p.familyid = f.id
-				JOIN attendance_record ar ON ar.personid = p.id ';
-		if ($congregationids) {
-			$SQL .= 'AND ar.groupid = 0';
-		}
+				';
 		if ($groupid) {
-			$SQL .= 'AND ar.groupid = '.(int)$groupid;
 			$SQL .= '
-				LEFT JOIN person_group_membership pgm ON pgm.personid = p.id AND pgm.groupid = ar.groupid
-				LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status';
+				JOIN person_group_membership pgm ON pgm.personid = p.id AND pgm.groupid = '.(int)$groupid;
 		}
 		$SQL .= '
-				WHERE ar.date BETWEEN '.$GLOBALS['db']->quote($start_date).' AND '.$GLOBALS['db']->quote($end_date);
+				LEFT JOIN attendance_record ar ON ar.personid = p.id
+					AND ar.date BETWEEN '.$GLOBALS['db']->quote($start_date).' AND '.$GLOBALS['db']->quote($end_date);
+		if ($congregationids) {
+			$SQL .= ' AND ar.groupid = 0';
+		}
+		if ($groupid) {
+			$SQL .= ' AND ar.groupid = '.(int)$groupid;
+			$SQL .= '
+				LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status';
+		}
 		if ($age_bracket !== '') {
 			$SQL .= '
 				AND p.age_bracket = '.$GLOBALS['db']->quote($age_bracket);
 		}
 		if ($congregationids) {
 			 $SQL .= '
-				 AND p.congregationid IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congregationids)).') ';
+				 WHERE p.congregationid IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congregationids)).') ';
 		}
 		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
 		$order = preg_replace("/(^|[^.])status($| |,)/", '\\1p.status\\2', $order);
@@ -419,7 +423,7 @@ class Attendance_Record_Set
 		$res = $GLOBALS['db']->query($SQL);
 		check_db_result($res);
 		while ($row = $res->fetchRow()) {
-			$dates[$row['date']] = 1;
+			if (!empty($row['date'])) $dates[$row['date']] = 1;
 			foreach (Array('last_name', 'first_name', 'membership_status', 'status') as $f) {
 				if (array_key_exists($f, $row)) $attendances[$row['id']][$f] = $row[$f];
 			}
