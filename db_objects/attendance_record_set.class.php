@@ -8,6 +8,7 @@ class Attendance_Record_Set
 	var $congregationid = NULL;
 	var $groupid = NULL;
 	var $age_bracket = NULL;
+	var $show_photos = FALSE;
 	var $_attendance_records = Array();
 	
 	const LIST_ORDER_DEFAULT = 'status ASC, family_name ASC, familyid, age_bracket ASC, gender DESC';
@@ -156,7 +157,7 @@ class Attendance_Record_Set
 		$GLOBALS['system']->includeDBClass('person');
 		$dummy = new Person();
 		?>
-		<table class="table table-auto-width table-condensed valign-middle">
+		<table class="table table-condensed table-auto-width valign-middle">
 		<?php
 		$is_first = TRUE;
 		foreach ($members as $personid => $details) {
@@ -170,6 +171,13 @@ class Attendance_Record_Set
 			if (!SizeDetector::isNarrow()) {
 				?>
 				<td><?php echo $personid; ?></td>
+				<?php
+			}
+			if ($this->show_photos) {
+				?>
+				<td>
+					<img style="width: 50px; max-width: 50px" src="?call=person_photo&personid=<?php echo (int)$personid; ?>" />
+				</td>
 				<?php
 			}
 			?>
@@ -190,7 +198,7 @@ class Attendance_Record_Set
 				<?php
 			}
 			?>
-				<td>
+				<td class="narrow">
 					<?php print_widget(
 							'attendances['.$prefix.']['.$personid.']',
 							Array(
@@ -202,11 +210,17 @@ class Attendance_Record_Set
 							$v
 					); ?>
 				</td>
+			<?php
+			if (!SizeDetector::isNarrow()) {
+				?>
 				<td class="action-cell narrow">
 					<a class="med-popup" tabindex="-1" href="?view=persons&personid=<?php echo $personid; ?>"><i class="icon-user"></i>View</a> &nbsp;
 					<a class="med-popup" tabindex="-1" href="?view=_edit_person&personid=<?php echo $personid; ?>"><i class="icon-wrench"></i>Edit</a> &nbsp;
 					<a class="med-popup" tabindex="-1" href="?view=_add_note_to_person&personid=<?php echo $personid; ?>"><i class="icon-pencil"></i>Add Note</a>
 				</td>
+				<?php
+			}
+			?>
 			</tr>
 			<?php
 			$is_first = FALSE;

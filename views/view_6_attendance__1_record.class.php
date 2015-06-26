@@ -7,6 +7,7 @@ class View_Attendance__Record extends View
 	var $_age_bracket = NULL;
 	var $_congregationids = Array();
 	var $_groupid = NULL;
+	var $_show_photos = FALSE;
 
 	static function getMenuPermissionLevel()
 	{
@@ -31,6 +32,7 @@ class View_Attendance__Record extends View
 				$this->_age_bracket = array_get($_SESSION['attendance'], 'age_bracket');
 				$this->_congregationids = array_get($_SESSION['attendance'], 'congregationids');
 				$this->_groupid = array_get($_SESSION['attendance'], 'groupid');
+				$this->_show_photos =  array_get($_SESSION['attendance'], 'show_photos', FALSE);
 			}
 			// Default to last Sunday, unless today is Sunday
 			$this->_attendance_date = date('Y-m-d', ((date('D') == 'Sun') ? time() : strtotime('last Sunday')));
@@ -39,7 +41,7 @@ class View_Attendance__Record extends View
 		if (!empty($_REQUEST['params_submitted']) || !empty($_REQUEST['attendances_submitted'])) {
 			$this->_attendance_date = process_widget('attendance_date', Array('type' => 'date'));
 			$this->_age_bracket = $_SESSION['attendance']['age_bracket'] = array_get($_REQUEST, 'age_bracket');
-
+			$this->_show_photos = $_SESSION['attendance']['show_photos'] = array_get($_REQUEST, 'show_photos', FALSE);
 			$status = NULL; // TODO
 			if ($_REQUEST['for_type'] == 'congregationid') {
 				$cids = process_widget('congregationid', Array('type' => 'reference', 'references' => 'congregation', 'multiple' => true));
@@ -57,6 +59,11 @@ class View_Attendance__Record extends View
 					$this->_record_sets[] = new Attendance_Record_Set($this->_attendance_date, $this->_age_bracket, $status, NULL, $this->_groupid);
 					$_SESSION['attendance']['congregationids'] = Array();
 					$_SESSION['attendance']['groupid'] = $this->_groupid;
+				}
+			}
+			if ($this->_show_photos) {
+				foreach ($this->_record_sets as $set) {
+					$set->show_photos = TRUE;
 				}
 			}
 		}
@@ -164,6 +171,21 @@ class View_Attendance__Record extends View
 							print_widget('attendance_date', Array('type' => 'date'), $this->_attendance_date); ?>
 						</td>
 					</tr>
+				<?php
+				if ($GLOBALS['system']->featureEnabled('PHOTOS')) {
+					?>
+					<tr>
+						<th></th>
+						<td>
+							<label class="checkbox">
+								<input type="checkbox" name="show_photos" value="1" <?php if ($this->_show_photos) echo 'checked="checked"'; ?> />
+								Show photos
+							</label>
+						</td>
+					</tr>
+					<?php
+				}
+				?>
 				</table>
 				<button type="submit" class="btn attendance-config-submit">Continue <i class="icon-chevron-right"></i></button>
 				<input type="hidden" name="params_submitted" value="1" />
@@ -179,6 +201,7 @@ class View_Attendance__Record extends View
 				<input type="hidden" name="for_type" value="<?php echo ents($_REQUEST['for_type']); ?>" />
 				<input type="hidden" name="attendance_date" value="<?php echo $this->_attendance_date; ?>" />
 				<input type="hidden" name="age_bracket" value="<?php echo $this->_age_bracket; ?>" />
+				<input type="hidden" name="show_photos" value="<?php echo $this->_show_photos; ?>" />
 				<input type="hidden" name="enter_attendance_token" value="<?php echo $_SESSION['enter_attendance_token']; ?>" />
 				<input type="hidden" name="attendances_submitted" value="1" />
 
@@ -223,21 +246,21 @@ class View_Attendance__Record extends View
 							}
 							?>
 							<div class="container row-fluid control-group">
-								<div class="span6">
+								<p class="span6">
 									Total headcount:
 									<input type="text" class="int-box" name="<?php echo $headcountFieldName; ?>" value="<?php echo $headcountValue; ?>" size="5" />
-								</div>
-								<div class="span6 align-right nowrap">
+								</p>
+								<p class="span6 align-right nowrap">
 									<input type="submit" class="btn" value="Save All Attendances" />
 									<a href="?view=attendance__record" class="btn">Cancel</a>
-								</div>
+								</p>
 							</div>
 							<?php
 						} else {
 							?>
 							<i>(No persons in this listing)</i>
 							<?php
-						}
+						} 
 						?>
 					</div>
 					<?php

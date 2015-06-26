@@ -306,56 +306,58 @@ $(document).ready(function() {
 		
 	/****** Radio buttons *****/
 
-	
+	var attendanceUseKeyboard = ($(window).width() > 640);
+
 	$('.radio-button-group div')
 		.on('touchstart', function(event) {
-			$(this).addClass('active');
 			var t = $(this);
-			t.attr('touched', 1);
 			onRadioButtonActivated.apply(t);
+			event.preventDefault();
 			event.stopPropagation();
-			event.cancelDefault();
+			t.off('click');
+			return false;
 		})
 		.on('click', function() {
-			var t = $(this);
-			if (!t.attr('touched')) onRadioButtonActivated.apply(t);
-			t.attr('touched', 0);
+			alert('click');
+			onRadioButtonActivated.apply($(this));
 
 		});
 	
 	function onRadioButtonActivated(event) {
-		this.siblings('div').removeClass('active');
 		this.addClass('active');
+		this.siblings('div').removeClass('active');
 		this.parents('.radio-button-group').find('input').val(this.attr('data-val'));
-		//this.fadeOut(100).fadeIn(100);
+
+		if (attendanceUseKeyboard) {
+			var thisRow = $(this).parents('tr:first');
+			thisRow.removeClass('hovered');
+			thisRow.next('tr').find('.radio-button-group').focus();
+		}
 	}
-	
-	
-	$('.attendance .radio-button-group div').click(function(e) {
-		var thisRow = $(this).parents('tr:first');
-		thisRow.removeClass('hovered');
-		thisRow.next('tr').find('.radio-button-group').focus();
-	});
-	
-	$('.radio-button-group').keypress(function(e) {
-		var char = String.fromCharCode(e.which).toUpperCase();
-		$(this).find('div').each(function() {
-			if ($(this).text().trim() == char) {
-				this.click();
-			}
+
+	if (attendanceUseKeyboard) {
+		/* when a key is pressed while a button group is hovered, click the applicable button */
+		$('.radio-button-group').keypress(function(e) {
+			var char = String.fromCharCode(e.which).toUpperCase();
+			$(this).find('div').each(function() {
+				if ($(this).text().trim() == char) {
+					this.click();
+				}
+			});
 		});
-	});
 
-	$('.attendance .radio-button-group').keyup(function(e) {
-		if (e.which == 40) $(this).parents('tr:first').next('tr').find('.radio-button-group').focus();
-		if (e.which == 38) $(this).parents('tr:first').prev('tr').find('.radio-button-group').focus();
-	});
+		/* support up/down buttons for row navigation */
+		$('.attendance .radio-button-group').keyup(function(e) {
+			if (e.which == 40) $(this).parents('tr:first').next('tr').find('.radio-button-group').focus();
+			if (e.which == 38) $(this).parents('tr:first').prev('tr').find('.radio-button-group').focus();
+		});
 
-
-	$('.attendance .radio-button-group').focus(function() {
-		$('tr.hovered').removeClass('hovered');
-		$(this).parents('tr:first').addClass('hovered');
-	});
+		/* mark a row as hovered when the focus shifts to it */
+		$('.attendance .radio-button-group').focus(function() {
+			$('tr.hovered').removeClass('hovered');
+			$(this).parents('tr:first').addClass('hovered');
+		});
+	}
 	
 	// MULTI-SELECT
 		

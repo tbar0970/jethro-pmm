@@ -197,12 +197,12 @@ function print_widget($name, $params, $value)
 			$our_val = is_array($value) ? $value : (($value === '') ? Array() : Array("$value"));
 			foreach ($our_val as $k => $v) $our_val[$k] = "$v";
 			if (array_get($params, 'style', 'dropbox') == 'colour-buttons') {
-				// the empty onclick below is to make labels work on iOS
-				// see http://stackoverflow.com/questions/5421659/html-label-command-doesnt-work-in-iphone-browser
-		
-		
 				?>
-				<div class="radio-button-group <?php echo array_get($params, 'class', ''); ?>" tabindex="1">
+				<div class="radio-button-group <?php echo array_get($params, 'class', ''); ?>" 
+					 <?php
+					 if (!SizeDetector::isNarrow()) echo ' tabindex="1"';
+					 ?>
+				>
 				<input type="hidden" name="<?php echo $name; ?>" value="<?php echo reset($our_val); ?>" />
 				<?php
 				foreach ($params['options'] as $k => $v) {
@@ -213,7 +213,6 @@ function print_widget($name, $params, $value)
 						class="<?php echo $classes; ?>" 
 						title="<?php echo $v; ?>"
 						data-val="<?php echo $k; ?>"
-						tabindex="-1"
 					>
 						<?php echo strtoupper($v[0]); ?>
 					</div>

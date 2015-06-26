@@ -1564,6 +1564,15 @@ div.autosuggest ul li a .tl, div.autosuggest ul li a .tr {
 		margin-bottom: 0px;
 	}
 }
+@media (max-width: 500px) {
+	.attendance div.width-really-auto {
+		width: 100% !important;
+		display: block !important;
+	}
+	.attendance table {
+		width: 100% !important;
+	}
+}
 
 /**** SYSTEM CONFIG ************/
 
