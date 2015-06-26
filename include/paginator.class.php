@@ -17,6 +17,7 @@ class Paginator
 		$i = 1;
 		while (ord($x) <= ord('Z') && $i <= 26) {
 			$y = chr(ord($x) + $this->_slice_size- 1);
+			if (ord($y) > ord('Z')) $y = 'Z';
 			if ($i == $this->_slice_num) {
 				return Array($x, $y);
 			}
@@ -33,6 +34,7 @@ class Paginator
 		$i = 1;
 		while (ord($x) <= ord('Z') && $i <= 26) {
 			$y = chr(ord($x) + $this->_slice_size- 1);
+			if (ord($y) > ord('Z')) $y = 'Z';
 			if ($i != $this->_slice_num) {
 				echo '<li><a href="'.build_url(Array('slice_size' => round($this->_slice_size, 1), 'slice_num' => $i)).'">';
 			} else {
