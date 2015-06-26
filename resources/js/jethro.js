@@ -318,9 +318,7 @@ $(document).ready(function() {
 			return false;
 		})
 		.on('click', function() {
-			alert('click');
 			onRadioButtonActivated.apply($(this));
-
 		});
 	
 	function onRadioButtonActivated(event) {
