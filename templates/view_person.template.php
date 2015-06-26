@@ -307,10 +307,10 @@ if (isset($tabs['attendance'])) {
 		if (count($groupids) > 1 || reset($attendances) != '') {
 			$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('id' => $groupids));
 		}
-		$colours = Array(
-					'0'	=> 'Red',
-					'1'	=> 'Green',
-					NULL => '#e8e8e0'
+		$classes = Array(
+					'0'	=> 'absent',
+					'1'	=> 'present',
+					NULL => 'unknown'
 				   );
 		$labels = Array(
 					'0'	=> 'A',
@@ -329,7 +329,7 @@ if (isset($tabs['attendance'])) {
 			}
 			echo '</h4>';
 			?>
-			<table class="table table-bordered table-auto-width">
+			<table class="table table-bordered table-condensed table-auto-width">
 				<thead>
 					<tr>
 					<?php
@@ -346,7 +346,7 @@ if (isset($tabs['attendance'])) {
 					<?php
 					foreach ($group_attendances as $att) {
 						?>
-						<td style="background-color: <?php echo $colours[$att['present']]; ?>;">
+						<td class="<?php echo $classes[$att['present']]; ?>">
 							<?php echo $labels[$att['present']]; ?>
 						</td>
 						<?php

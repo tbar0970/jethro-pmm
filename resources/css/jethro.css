@@ -1259,6 +1259,11 @@ table.service-details td table td input {
 		-ms-user-select: none;
 		user-select: none;
 	}
+
+	div.radio-button-group.vertical {
+		white-space: normal !important;
+		width: 40px;
+	}
 	
 
 	.radio-button-group div {

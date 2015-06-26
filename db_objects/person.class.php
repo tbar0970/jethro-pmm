@@ -370,7 +370,7 @@ class Person extends DB_Object
 		$SQL = 'INSERT INTO attendance_record (personid, groupid, date, present)
 				VALUES ';
 		foreach ($attendances as $date => $present) {
-			if ($present == '?' || $present == 'unknown') continue;
+			if ($present == '' || $present == '?' || $present == 'unknown') continue;
 			$sets[] = '('.(int)$this->id.', '.(int)$groupid.', '.$db->quote($date).', '.(($present == 1 || $present == 'present') ? 1 : 0).')';
 		}
 		$SQL .= implode(",\n", $sets);

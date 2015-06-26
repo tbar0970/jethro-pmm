@@ -34,20 +34,17 @@ class View__Edit_Attendance extends View
 	function printView()
 	{
 		$attendances = $this->_person->getAttendance($_REQUEST['startdate'], $_REQUEST['enddate'], $_REQUEST['groupid']);
+		$map = Array(1 => 'present', '0' => 'absent', '' => 'unknown')
 		?>
 		<form method="post">
-		<?php
-		if (SizeDetector::isWide() && count($attendances) < 8) {
-			// horizontal layout
-			?>
-			<table class="table table-bordered table-auto-width">
+			<table class="table table-bordered table-condensed table-auto-width">
 				<thead>
 					<tr>
 					<?php
 					foreach ($attendances as $att) {
 						?>
 						<th>
-							<?php echo format_date($att['date']); ?>
+							<?php echo format_date($att['date'], FALSE); ?>
 						</th>
 						<?php
 					}
@@ -63,11 +60,12 @@ class View__Edit_Attendance extends View
 							<?php print_widget(
 									'attendances['.$att['date'].']',
 									Array(
-										'options' => Array('unknown' => '?', 'present' => 'Present', 'absent' => 'Absent'),
+										'options' => Array('present' => 'Present', 'unknown' => '?', 'absent' => 'Absent'),
 										'type' => 'select',
 										'style' => 'colour-buttons',
+										'class' => 'vertical',
 									),
-									$att['present'] ? 'present' : 'absent'
+									$map[$att['present']]
 							); ?>
 						</td>
 						<?php
@@ -76,40 +74,8 @@ class View__Edit_Attendance extends View
 					</tr>
 				</tbody>
 			</table>
-			<?php
-
-		} else {
-			// vertical layout
-			?>
-			<table class="table table-bordered table-auto-width valign-middle">
-				<tbody>
-				<?php
-				foreach ($attendances as $att) {
-					?>
-					<tr>
-						<th><?php echo format_date($att['date']); ?></th>
-						<td>
-								<?php print_widget(
-										'attendances['.$att['date'].']',
-										Array(
-											'options' => Array('unknown' => '?', 'present' => 'Present', 'absent' => 'Absent'),
-											'type' => 'select',
-											'style' => 'colour-buttons',
-										),
-										$att['present'] ? 'present' : 'absent'
-								); ?>
-						</td>
-					</tr>
-					<?php
-				}
-				?>
-				</tbody>
-			</table>
-			<?php
-		}
-		?>
-		<input type="submit" class="btn" value="Save" />
-		<a class="btn" href="?view=persons&personid=<?php echo $this->_person->id; ?>#attendance">Cancel</a>
+			<input type="submit" class="btn" value="Save" />
+			<a class="btn" href="?view=persons&personid=<?php echo $this->_person->id; ?>#attendance">Cancel</a>
 		</form>
 		<?php
 	}
