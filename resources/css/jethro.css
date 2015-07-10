@@ -511,7 +511,9 @@ form.min {
 .well {
 	background-color: #E8E8FF;
 }
-#body .table-condensed select, #body .table select, #body .table-condensed input[type=text], #body label select, #body label input[type=text] {
+#body .table-condensed select, #body .table-condensed input[type=text], 
+#body .table select,
+#body label select, #body label input[type=text] {
 	margin: 0px;
 }
 #body .valign-middle, #body table.valign-middle td, #body table.valign-middle th {
@@ -1312,6 +1314,10 @@ table.service-details td table td input {
 		text-align: center;
 	}
 
+	.attendance-stats th, .attendance-stats td {
+		white-space: nowrap;
+	}
+
 	.attendance-stats .headcount * {
 		background: #CCCCCC;
 	}
@@ -1558,6 +1564,18 @@ div.autosuggest ul li a .tl, div.autosuggest ul li a .tr {
 }
 .attendance-config-table {
 	display: inline-block;
+}
+.attendance-config-table select, .attendance-config-table input  {
+	margin: 0px;
+}
+
+.attendance-config-table > tbody  > tr > th {
+	padding: 10px 5px;
+}
+.attendance-config-table > tbody > tr > td {
+	padding: 5px !important;
+}
+.attendance-config-table > tbody > tr:last-child > td, .attendance-config-table > tbody  > tr:last-child > th {
 }
 @media (max-width: 640px) {
 	.attendance-config-table {

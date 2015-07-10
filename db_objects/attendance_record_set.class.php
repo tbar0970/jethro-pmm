@@ -6,7 +6,7 @@ class Attendance_Record_Set
 
 	var $date = NULL;
 	var $congregationid = NULL;
-	var $groupid = NULL;
+	var $groupid = 0;
 	var $age_bracket = NULL;
 	var $show_photos = FALSE;
 	var $_attendance_records = Array();
@@ -15,10 +15,10 @@ class Attendance_Record_Set
 
 //--        CREATING, LOADING AND SAVING        --//
 
-	function Attendance_Record_Set($date=NULL, $age_bracket=NULL, $status=NULL, $congregationid=NULL, $groupid=NULL)
+	function Attendance_Record_Set($date=NULL, $cohort=NULL, $age_bracket=NULL, $status=NULL)
 	{
-		if ($date && ($congregationid || $groupid)) {
-			$this->load($date, $age_bracket, $status, $congregationid, $groupid);
+		if ($date && $cohort) {
+			$this->load($date, $cohort, $age_bracket, $status);
 		}
 	}
 
@@ -45,11 +45,15 @@ class Attendance_Record_Set
 		return Array();
 	}
 
-	function load($date, $age_bracket, $status, $congregationid=0, $groupid=0)
+	function load($date, $cohort, $age_bracket, $status)
 	{
 		$this->date = $date;
-		$this->congregationid = $congregationid;
-		$this->groupid = $groupid;
+		list($cohortType, $cohortID) = explode('-', $cohort);
+		switch ($cohortType) {
+			case 'c': $this->congregationid = $cohortID; break;
+			case 'g': $this->groupid = $cohortID; break;
+			default: trigger_error("Invalid cohort $cohort"); return;
+		}
 		$this->age_bracket = $age_bracket;
 		$this->status = $status;
 		$db =& $GLOBALS['db'];
@@ -247,7 +251,7 @@ class Attendance_Record_Set
 	public function getStats()
 	{
 		$db = $GLOBALS['db'];
-		$groupingField = ((int)$this->congregationid) ? 'p.status' : 'pgm.membership_status';
+		$groupingField = ((int)$this->congregationid) ? 'p.status' : 'pgms.label';
 		$SQL = 'SELECT present, '.$groupingField.' AS status, count(p.id) AS total
 				FROM attendance_record ar
 				JOIN person p ON ar.personid = p.id
@@ -255,7 +259,7 @@ class Attendance_Record_Set
 				LEFT JOIN person_group_membership pgm ON pgm.personid = p.id AND pgm.groupid = pg.id
 				LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status
 				WHERE date = '.$db->quote($this->date).'
-				AND ar.groupid = '.$db->quote($this->groupid).'
+				AND ar.groupid = '.$db->quote((int)$this->groupid).'
 				';
 		if ($this->congregationid) {
 			$SQL .= '
@@ -409,10 +413,13 @@ class Attendance_Record_Set
 			$SQL .= '
 				AND p.age_bracket = '.$GLOBALS['db']->quote($age_bracket);
 		}
+		$SQL .= '
+				WHERE ((p.status <> "archived") OR (ar.present IS NOT NULL)) ';
 		if ($congregationids) {
 			 $SQL .= '
-				 WHERE p.congregationid IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congregationids)).') ';
+				 AND p.congregationid IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congregationids)).') AND ';
 		}
+
 		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
 		$order = preg_replace("/(^|[^.])status($| |,)/", '\\1p.status\\2', $order);
 		$SQL .= '
@@ -436,6 +443,39 @@ class Attendance_Record_Set
 		$dates = array_keys($dates);
 		sort($dates);
 		return Array($dates, $attendances, $totals);
+	}
+
+	static public function printCohortChooserRow($selectedValue)
+	{
+		?>
+		<tr>
+			<td>
+				<select name="cohortids[]">
+					<option value="">-- Choose --</option>
+					<optgroup label="Congregations">
+					<?php
+					foreach ($GLOBALS['system']->getDBObjectData('congregation', Array()) as $congid => $cong) {
+						$s = ($selectedValue == 'c-'.$congid) ? 'selected="selected"' : '';
+						?>
+						<option value="c-<?php echo $congid; ?>" <?php echo $s; ?>><?php echo ents($cong['name']); ?></option>
+						<?php
+					}
+					?>
+					</optgroup>
+					<optgroup label="Groups">
+					<?php
+					foreach ($GLOBALS['system']->getDBObjectData('person_group', Array()) as $groupid => $group) {
+						$s = ($selectedValue == 'g-'.$groupid) ? 'selected="selected"' : '';
+						?>
+						<option value="g-<?php echo $groupid; ?>" <?php echo $s; ?>><?php echo ents($group['name']); ?></option>
+						<?php
+					}
+					?>
+					</optgroup>
+				</select>
+			</td>
+		</tr>
+		<?php
 	}
 
 

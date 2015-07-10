@@ -5,9 +5,11 @@ class View_Attendance__Record extends View
 	var $_record_sets = Array();
 	var $_attendance_date = NULL;
 	var $_age_bracket = NULL;
-	var $_congregationids = Array();
-	var $_groupid = NULL;
+
+	var $_cohortids = Array();
+
 	var $_show_photos = FALSE;
+	var $_parallel_mode = FALSE;
 
 	static function getMenuPermissionLevel()
 	{
@@ -30,8 +32,7 @@ class View_Attendance__Record extends View
 		if (empty($_REQUEST['params_submitted']) && empty($_REQUEST['attendances_submitted'])) {
 			if (!empty($_SESSION['attendance'])) {
 				$this->_age_bracket = array_get($_SESSION['attendance'], 'age_bracket');
-				$this->_congregationids = array_get($_SESSION['attendance'], 'congregationids');
-				$this->_groupid = array_get($_SESSION['attendance'], 'groupid');
+				$this->_cohortids = array_get($_SESSION['attendance'], 'cohortids');
 				$this->_show_photos =  array_get($_SESSION['attendance'], 'show_photos', FALSE);
 			}
 			// Default to last Sunday, unless today is Sunday
@@ -42,25 +43,17 @@ class View_Attendance__Record extends View
 			$this->_attendance_date = process_widget('attendance_date', Array('type' => 'date'));
 			$this->_age_bracket = $_SESSION['attendance']['age_bracket'] = array_get($_REQUEST, 'age_bracket');
 			$this->_show_photos = $_SESSION['attendance']['show_photos'] = array_get($_REQUEST, 'show_photos', FALSE);
-			$status = NULL; // TODO
-			if ($_REQUEST['for_type'] == 'congregationid') {
-				$cids = process_widget('congregationid', Array('type' => 'reference', 'references' => 'congregation', 'multiple' => true));
-				foreach ($cids as $cid) {
-					if ($cid && !in_array($cid, $this->_congregationids)) {
-						$this->_congregationids[] = $cid;
-						$this->_record_sets[] = new Attendance_Record_Set($this->_attendance_date, $this->_age_bracket, $status, $cid, 0);
-					}
-				}
-				$_SESSION['attendance']['congregationids'] = $this->_congregationids;
-				$_SESSION['attendance']['groupid'] = null;
-			} else {
-				$this->_groupid = process_widget('groupid', Array('type' => 'reference', 'references' => 'person_group', 'allow_empty' => false));
-				if ($this->_groupid) {
-					$this->_record_sets[] = new Attendance_Record_Set($this->_attendance_date, $this->_age_bracket, $status, NULL, $this->_groupid);
-					$_SESSION['attendance']['congregationids'] = Array();
-					$_SESSION['attendance']['groupid'] = $this->_groupid;
-				}
+
+			foreach ($_REQUEST['cohortids'] as $id) {
+				if ($id) $this->_cohortids[] = $id;
+				$_SESSION['attendance']['cohortids'] = $this->_cohortids;
 			}
+
+			$status = NULL; // TODO
+			foreach ($this->_cohortids as $id) {
+				$this->_record_sets[$id] = new Attendance_Record_set($this->_attendance_date, $id, $this->_age_bracket, $status);
+			}
+
 			if ($this->_show_photos) {
 				foreach ($this->_record_sets as $set) {
 					$set->show_photos = TRUE;
@@ -106,7 +99,7 @@ class View_Attendance__Record extends View
 			?>
 			<form method="get" class="well well-small clearfix">
 				<input type="hidden" name="view" value="<?php echo $_REQUEST['view']; ?>" />
-				<table class="attendance-config-table valign-middle">
+				<table class="attendance-config-table">
 					<tr>
 						<th>For</th>
 						<td colspan="2" class="fill-me">
@@ -121,49 +114,21 @@ class View_Attendance__Record extends View
 						</td>
 					</tr>
 					<tr>
-						<th rowspan="2">In</th>
+						<th>In</th>
+
 						<td class="valign-top">
-							<label class="radio">
-								<input type="radio" name="for_type" 
-									value="congregationid" id="for_type_congregation" 
-									data-toggle="enable" data-target="#congregationchooser select"
-									<?php if (empty($this->_groupid)) echo 'checked="checked"'; ?>
-								>
-								Congregation(s) &nbsp;
-							</label>
-						</td>
-						<td class="fill-me">
-							<table id="congregationchooser" class="expandable table-condensed no-padding" cellspacing="0">
-						<?php
-						$congs = $this->_congregationids ? $this->_congregationids : Array(0);
-						foreach ($congs as $congid) {
-							?>
-							<tr>
-								<td>
-								<?php print_widget('congregationid[]', Array('type' => 'reference', 'references' => 'congregation', 'order_by' => 'name', 'allow_empty' => true, 'empty_text' => '-- Choose --'), $congid); ?>
-								</td>
-							</tr>
-							<?php
-						}
-						?>
+							<table class="expandable">
+								<?php
+								if (empty($this->_cohortids)) {
+									Attendance_Record_Set::printCohortChooserRow(NULL);
+								} else {
+									foreach ($this->_cohortids as $id) {
+										Attendance_Record_Set::printCohortChooserRow($id);
+									}
+								}
+								?>								
 							</table>
 						</td>
-					</tr>
-					<tr>
-						<td>
-							<label class="radio">
-								<input type="radio" name="for_type" 
-									value="groupid" id="for_type_group"
-									data-toggle="enable" data-target="#groupchooser select" 
-									<?php if (!empty($this->_groupid)) echo 'checked="checked"'; ?>
-								>
-								Group
-							</label>
-						</td>
-						<td class="fill-me" id="groupchooser">
-							<?php print_widget('groupid', Array('type' => 'reference', 'references' => 'person_group', 'filter' => Array('can_record_attendance' => '1', 'is_archived' => 0)), $this->_groupid); ?>
-						</td>
-					</tr>
 					<tr>
 						<th>On</th>
 						<td colspan="2">
@@ -180,6 +145,10 @@ class View_Attendance__Record extends View
 							<label class="checkbox">
 								<input type="checkbox" name="show_photos" value="1" <?php if ($this->_show_photos) echo 'checked="checked"'; ?> />
 								Show photos
+							</label>
+							<label class="checkbox">
+								<input type="checkbox" name="parallel_mode" value="1" <?php if ($this->_parallel_mode) echo 'checked="checked"'; ?> />
+								Show groups as columns
 							</label>
 						</td>
 					</tr>
@@ -198,29 +167,25 @@ class View_Attendance__Record extends View
 			ob_start();
 			?>
 			<form method="post" class="attendance warn-unsaved" action="?view=attendance__record">
-				<input type="hidden" name="for_type" value="<?php echo ents($_REQUEST['for_type']); ?>" />
 				<input type="hidden" name="attendance_date" value="<?php echo $this->_attendance_date; ?>" />
 				<input type="hidden" name="age_bracket" value="<?php echo $this->_age_bracket; ?>" />
 				<input type="hidden" name="show_photos" value="<?php echo $this->_show_photos; ?>" />
 				<input type="hidden" name="enter_attendance_token" value="<?php echo $_SESSION['enter_attendance_token']; ?>" />
 				<input type="hidden" name="attendances_submitted" value="1" />
+				<?php
+				print_hidden_fields(Array('cohortids' => $this->_cohortids));
+				?>
 
 				<p class="visible-desktop smallprint">For greatest speed, press P for present and A for absent.  The cursor will automatically progress to the next person.  To go back, use the arrow keys.</p>
 				<?php
 				$totalPrinted = 0;
 				foreach ($this->_record_sets as $i => $set) {
 					if ((int)$set->congregationid) {
-						?>
-						<input type="hidden" name="congregationid[]" value="<?php echo $set->congregationid; ?>" />
-						<?php
 						$congregation = $GLOBALS['system']->getDBObject('congregation', (int)$set->congregationid);
 						$title = $congregation->getValue('name').' Congregation';
 					} else if ($set->groupid) {
 						$group =& $GLOBALS['system']->getDBObject('person_group', $set->groupid);
 						$title = $group->getValue('name').' Group';
-						?>
-						<input type="hidden" name="groupid" value="<?php echo $set->groupid; ?>" />
-						<?php
 					} else {
 						return;
 					}
@@ -299,4 +264,3 @@ class View_Attendance__Record extends View
 		}
 	}
 }
-?>

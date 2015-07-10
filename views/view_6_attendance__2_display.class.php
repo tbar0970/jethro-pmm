@@ -2,8 +2,11 @@
 class View_Attendance__Display extends View
 {
 	private $age_bracket = null;
-	private $congregationids = Array();
+	private $cohortids = Array();
+	/*
+	private $cohortids = Array();
 	private $groupid = null;
+	*/
 	private $start_date = null;
 	private $end_date = null;
 
@@ -22,8 +25,7 @@ class View_Attendance__Display extends View
 		if (empty($_REQUEST['params_submitted'])) {
 			if (!empty($_SESSION['attendance'])) {
 				$this->age_bracket = array_get($_SESSION['attendance'], 'age_bracket');
-				$this->congregationids = array_get($_SESSION['attendance'], 'congregationids');
-				$this->groupid = array_get($_SESSION['attendance'], 'groupid');
+				$this->_cohortids = array_get($_SESSION['attendance'], 'cohortids');
 				$this->start_date = array_get($_SESSION['attendance'], 'start_date', date('Y-m-d', strtotime('-7 weeks')));
 				$this->end_date = array_get($_SESSION['attendance'], 'end_date');
 			} else {
@@ -33,20 +35,19 @@ class View_Attendance__Display extends View
 		} else {
 			$this->age_bracket = $_SESSION['attendance']['age_bracket'] = $_REQUEST['age_bracket'];
 			if ($this->age_bracket != '') $this->age_bracket = (int)$this->age_bracket;
-			if (!empty($_REQUEST['congregationid']) && is_array($_REQUEST['congregationid'])) {
-				foreach ($_REQUEST['congregationid'] as $congid) {
-					$this->congregationids[] = (int)$congid;
+			if (!empty($_REQUEST['cohortids']) && is_array($_REQUEST['cohortids'])) {
+				foreach ($_REQUEST['cohortids'] as $id) {
+					$this->_cohortids[] = $id;
 				}
-				$_SESSION['attendance']['congregationids'] = $this->congregationids;
+				$_SESSION['attendance']['cohortids'] = $this->_cohortids;
 			}
-			$this->groupid = $_SESSION['attendance']['groupid'] = array_get($_REQUEST, 'groupid');
 			$this->start_date = $_SESSION['attendance']['start_date'] = process_widget('start_date', Array('type' => 'date'));
 			$this->end_date = $_SESSION['attendance']['end_date'] = process_widget('end_date', Array('type' => 'date'));
 		}
 
 		// Make sure there are no empty congregation IDs, except the first one
-		for ($i = count($this->congregationids); $i > 0 ; $i--) {
-			if (empty($this->congregationids[$i])) unset($this->congregationids[$i]);
+		for ($i = count($this->_cohortids); $i > 0 ; $i--) {
+			if (empty($this->_cohortids[$i])) unset($this->_cohortids[$i]);
 		}
 
 	}
@@ -80,47 +81,19 @@ class View_Attendance__Display extends View
 					</td>
 				</tr>
 				<tr>
-					<th rowspan="2">at</th>
+					<th>at</th>
 					<td class="valign-top">
-						<label class="radio">
-							<input type="radio" name="for_type" 
-								value="congregationid" id="for_type_congregation" 
-								data-toggle="enable" data-target="#congregationchooser select"
-								<?php if (empty($this->groupid)) echo 'checked="checked"'; ?>
-							>
-							Congregation(s) &nbsp;
-						</label>
-					</td>
-					<td class="fill-me">
-						<table id="congregationchooser" class="expandable table-condensed no-padding" cellspacing="0">
-						<?php
-						$congs = $this->congregationids ? $this->congregationids : Array(0);
-						foreach ($congs as $congid) {
-							?>
-							<tr>
-								<td>
-								<?php print_widget('congregationid[]', Array('type' => 'reference', 'references' => 'congregation', 'order_by' => 'name', 'allow_empty' => true, 'empty_text' => '-- Choose --'), $congid); ?>
-								</td>
-							</tr>
+						<table class="expandable">
 							<?php
-						}
-						?>
+							if (empty($this->_cohortids)) {
+								Attendance_Record_Set::printCohortChooserRow(NULL);
+							} else {
+								foreach ($this->_cohortids as $id) {
+									Attendance_Record_Set::printCohortChooserRow($id);
+								}
+							}
+							?>
 						</table>
-					</td>
-				</tr>
-				<tr>
-					<td>
-						<label class="radio">
-							<input type="radio" name="for_type" 
-								value="groupid" id="for_type_group"
-								data-toggle="enable" data-target="#groupchooser select" 
-								<?php if (!empty($this->groupid)) echo 'checked="checked"'; ?>
-							>
-							Group
-						</label>
-					</td>
-					<td class="fill-me" id="groupchooser">
-						<?php print_widget('groupid', Array('type' => 'reference', 'references' => 'person_group', 'filter' => Array('can_record_attendance' => '1', 'is_archived' => 0)), $this->groupid); ?>
 					</td>
 				</tr>
 				<tr>
@@ -147,17 +120,20 @@ class View_Attendance__Display extends View
 		$GLOBALS['system']->includeDBClass('attendance_record_set');
 		$GLOBALS['system']->includeDBClass('person');
 
-		if (!empty($this->congregationids)) {
-			foreach ($this->congregationids as $congid) {
-				$this->_printResultSet($congid, NULL);
+		if (!empty($this->_cohortids)) {
+			foreach ($this->_cohortids as $cohortid) {
+				$this->_printResultSet($cohortid);
 			}
-		} else if (!empty($this->groupid)) {
-			$this->_printResultSet(NULL, $this->groupid);
 		}
 	}
 
-	function _printResultSet($congid, $groupid)
+	function _printResultSet($cohortid)
 	{
+		$congid = $groupid = NULL;
+		list($type, $id) = explode('-', $cohortid);
+		if ($type == 'c') $congid = $id;
+		if ($type == 'g') $groupid = $id;
+		
 		echo '<h3>';
 		if ($congid) {
 			$cong = $GLOBALS['system']->getDBObject('congregation', $congid);
@@ -188,7 +164,7 @@ class View_Attendance__Display extends View
 				<tr>
 					<th>Last Name</th>
 					<th>First Name</th>
-					<th><?php echo $this->groupid ? 'Membership Status' : 'Status'; ?></th>
+					<th><?php echo $groupid ? 'Membership Status' : 'Status'; ?></th>
 				<?php
 				foreach ($dates as $date) {
 					?>
@@ -209,7 +185,7 @@ class View_Attendance__Display extends View
 					<td><?php echo ents($record['first_name']); ?></td>
 					<td>
 						<?php
-						if ($this->groupid) {
+						if ($groupid) {
 							echo ents($record['membership_status']);
 						} else {
 							$dummy->printFieldValue('status', $record['status']);
