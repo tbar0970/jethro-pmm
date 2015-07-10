@@ -3,12 +3,12 @@ class View_Attendance__Display extends View
 {
 	private $age_bracket = null;
 	private $cohortids = Array();
-	/*
-	private $cohortids = Array();
-	private $groupid = null;
-	*/
 	private $start_date = null;
 	private $end_date = null;
+	private $format = 'sequential';
+
+	private $letters = Array(0 => 'A', 1 => 'P', '' => '?', '-1' => '');
+	private $classes = Array(0 => 'absent', 1 => 'present', '' => 'unknown', '-1' => '');
 
 	static function getMenuPermissionLevel()
 	{
@@ -25,9 +25,10 @@ class View_Attendance__Display extends View
 		if (empty($_REQUEST['params_submitted'])) {
 			if (!empty($_SESSION['attendance'])) {
 				$this->age_bracket = array_get($_SESSION['attendance'], 'age_bracket');
-				$this->_cohortids = array_get($_SESSION['attendance'], 'cohortids');
+				$this->cohortids = array_get($_SESSION['attendance'], 'cohortids');
 				$this->start_date = array_get($_SESSION['attendance'], 'start_date', date('Y-m-d', strtotime('-7 weeks')));
 				$this->end_date = array_get($_SESSION['attendance'], 'end_date');
+				$this->format = array_get($_SESSION['attendance'], 'format');
 			} else {
 				$this->start_date = date('Y-m-d', strtotime('-7 weeks'));
 			}
@@ -37,38 +38,43 @@ class View_Attendance__Display extends View
 			if ($this->age_bracket != '') $this->age_bracket = (int)$this->age_bracket;
 			if (!empty($_REQUEST['cohortids']) && is_array($_REQUEST['cohortids'])) {
 				foreach ($_REQUEST['cohortids'] as $id) {
-					$this->_cohortids[] = $id;
+					$this->cohortids[] = $id;
 				}
-				$_SESSION['attendance']['cohortids'] = $this->_cohortids;
+				$_SESSION['attendance']['cohortids'] = $this->cohortids;
 			}
 			$this->start_date = $_SESSION['attendance']['start_date'] = process_widget('start_date', Array('type' => 'date'));
 			$this->end_date = $_SESSION['attendance']['end_date'] = process_widget('end_date', Array('type' => 'date'));
+			$this->format = $_SESSION['attendance']['format'] = $_REQUEST['format'];
 		}
 
 		// Make sure there are no empty congregation IDs, except the first one
-		for ($i = count($this->_cohortids); $i > 0 ; $i--) {
-			if (empty($this->_cohortids[$i])) unset($this->_cohortids[$i]);
+		for ($i = count($this->cohortids); $i >= 0 ; $i--) {
+			if (empty($this->cohortids[$i])) unset($this->cohortids[$i]);
 		}
 
 	}
 	
-	function printView()
+	public function printView()
 	{
 		$this->_printParams();
 
 		if (!empty($_REQUEST['params_submitted'])) {
-			$this->_printResults();
+			if ($this->format == 'sequential') {
+				$this->_printResultsSequential();
+			} else {
+				$this->_printResultsTabular();
+			}
 		}
 	}
 
-	function _printParams()
+	private function _printParams()
 	{
 		?>
 		<form method="get" class="well well-small clearfix">
 			<input type="hidden" name="view" value="<?php echo $_REQUEST['view']; ?>" />
 			<table class="attendance-config-table valign-middle">
 				<tr>
-					<th>Show attendance for</th>
+					<th>For</th>
 					<td colspan="2" class="fill-me">
 						<?php
 						print_widget('age_bracket', Array(
@@ -81,14 +87,14 @@ class View_Attendance__Display extends View
 					</td>
 				</tr>
 				<tr>
-					<th>at</th>
+					<th>In</th>
 					<td class="valign-top">
 						<table class="expandable">
 							<?php
-							if (empty($this->_cohortids)) {
+							if (empty($this->cohortids)) {
 								Attendance_Record_Set::printCohortChooserRow(NULL);
 							} else {
-								foreach ($this->_cohortids as $id) {
+								foreach ($this->cohortids as $id) {
 									Attendance_Record_Set::printCohortChooserRow($id);
 								}
 							}
@@ -97,15 +103,33 @@ class View_Attendance__Display extends View
 					</td>
 				</tr>
 				<tr>
-					<th>between</th>
+					<th>Between</th>
 					<td colspan="2">
 						<?php print_widget('start_date', Array('type' => 'date'), $this->start_date); ?>
 					</td>
 				</tr>
 				<tr>
-					<th>and</th>
+					<th>And</th>
 					<td colspan="2">
 						<?php print_widget('end_date', Array('type' => 'date'), $this->end_date); ?>
+					</td>
+				</tr>
+				<tr>
+					<th>Format</th>
+					<td>
+						<?php
+						print_widget(
+							'format',
+							Array(
+								'type' => 'select',
+								'options' => Array(
+									'sequential' => 'Sequential',
+									'tabular' => 'Tabular',
+									'collapsed' => 'Date Totals',
+							)),
+							$this->format
+						);
+						?>
 					</td>
 				</tr>
 			</table>
@@ -115,19 +139,20 @@ class View_Attendance__Display extends View
 		<?php
 	}
 
-	function _printResults()
+	private function _printResultsSequential()
 	{
 		$GLOBALS['system']->includeDBClass('attendance_record_set');
 		$GLOBALS['system']->includeDBClass('person');
 
-		if (!empty($this->_cohortids)) {
-			foreach ($this->_cohortids as $cohortid) {
+		if (!empty($this->cohortids)) {
+			foreach ($this->cohortids as $cohortid) {
+				if (empty($cohortid)) continue;
 				$this->_printResultSet($cohortid);
 			}
 		}
 	}
 
-	function _printResultSet($cohortid)
+	private function _printResultSet($cohortid)
 	{
 		$congid = $groupid = NULL;
 		list($type, $id) = explode('-', $cohortid);
@@ -154,8 +179,6 @@ class View_Attendance__Display extends View
 			return;
 		}
 		$headcounts = Headcount::fetchRange(($congid ? 'congregation' : 'person_group'), $congid ? $congid : $groupid, $this->start_date, $this->end_date);
-		$letters = Array(0 => 'A', 1 => 'P', '' => '?');
-		$classes = Array(0 => 'absent', 1 => 'present', '' => 'unknown');
 		$dummy = new Person();
 		?>
 		<form method="post" action="" class="bulk-person-action">
@@ -194,8 +217,8 @@ class View_Attendance__Display extends View
 					</td>
 				<?php
 				foreach ($dates as $date) {
-					$letter = $letters[array_get($record, $date, '')];
-					$class = $classes[array_get($record, $date, '')];
+					$letter = $this->letters[array_get($record, $date, '')];
+					$class = $this->classes[array_get($record, $date, '')];
 					echo '<td class="'.$class.'">'.$letter.'</td>';
 				}
 				?>
@@ -284,6 +307,77 @@ class View_Attendance__Display extends View
 		?>
 		</form>
 		<?php
+	}
+
+	private function _printResultsTabular()
+	{
+		$GLOBALS['system']->includeDBClass('attendance_record_set');
+		$GLOBALS['system']->includeDBClass('person');
+
+		$all_dates = $all_attendances = $all_totals = $all_persons = Array();
+		if (!empty($this->cohortids)) {
+			foreach ($this->cohortids as $cohortid) {
+				$congid = $groupid = NULL;
+				list($type, $id) = explode('-', $cohortid);
+				if ($type == 'c') $congid = $id;
+				if ($type == 'g') $groupid = $id;
+				list ($cdates, $cattendances, $ctotals) = Attendance_Record_Set::getAttendances((array)$congid, $groupid, $this->age_bracket, $this->start_date, $this->end_date);
+				$all_dates = array_merge($all_dates, $cdates);
+				$all_totals[$cohortid] = $ctotals;
+				foreach ($cattendances as $personid => $cat) {
+					foreach ($cat as $k => $v) {
+						if (in_array($k, Array('first_name', 'last_name', 'membership_status', 'status'))) {
+							$all_persons[$personid][$k] = $v;
+						} else {
+							$all_attendances[$personid][$cohortid][$k] = $v;
+						}
+					}
+				}
+			}
+		}
+		$all_dates = array_unique($all_dates);
+bam($all_attendances);
+		?>
+		<table class="table table-condensed table-auto-width valign-middle">
+			<tr>
+				<th>Name</th>
+			<?php
+			foreach ($all_dates as $date) {
+				?>
+				<th><?php echo format_date($date); ?></th>
+				<?php
+			}
+			?>
+
+			</tr>
+
+		<?php
+
+
+		foreach ($all_persons as $personid => $details) {
+			?>
+			<tr>
+				<td>
+					<?php echo ents($details['first_name'].' '.$details['last_name']); ?>
+				</td>
+			<?php
+			foreach ($all_dates as $date) {
+				if ($this->format == 'totals') {
+
+				} else {
+					foreach ($this->cohortids as $cohortid) {
+						$catt = array_get($all_attendances[$personid], $cohortid, Array());
+						$v = array_get($catt, $date, -1);
+						$letter = $this->letters[$v];
+						$class = $this->classes[$v];
+						echo '<td class="'.$class.'">'.$letter.'</td>';
+					}
+				}
+			}
+			?>
+			</tr>
+			<?php
+		}
 	}
 }
 ?>

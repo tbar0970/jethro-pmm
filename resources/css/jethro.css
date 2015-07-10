@@ -631,6 +631,9 @@ td.narrow, th.narrow, .object-summary th {
 #body .align-centre, #body .center {
 	text-align: center;
 }
+.right {
+	text-align: right !important;
+}
 select, input, textarea {
 	width: auto;
 	max-width: 97%;
@@ -1250,7 +1253,7 @@ table.service-details td table td input {
 /********* ATTENDANCE AND COLOURED RADIO BUTTONS **********/
 
 	div.radio-button-group {
-		margin: 5px;
+		margin: 3px;
 		overflow: hidden;
 		white-space: nowrap !important;
 		
@@ -1332,6 +1335,11 @@ table.service-details td table td input {
 	tfoot.attendance-stats td {
 		/*font-weight: bold;*/
 		text-align: center;
+	}
+
+	td.parallel-attendance {
+		border-right: 1px solid #cccccc;
+		border-left: 1px solid #cccccc;
 	}
 
 /******* MULTI SELECT WIDGET *******/
@@ -1595,6 +1603,9 @@ div.autosuggest ul li a .tl, div.autosuggest ul li a .tr {
 	.attendance table {
 		width: 100% !important;
 	}
+}
+.attendance tr.headcount td, .attendance tr.headcount th {
+	background: #CCCCCC;
 }
 
 /**** SYSTEM CONFIG ************/

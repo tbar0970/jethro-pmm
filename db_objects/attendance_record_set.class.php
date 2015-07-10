@@ -9,6 +9,7 @@ class Attendance_Record_Set
 	var $groupid = 0;
 	var $age_bracket = NULL;
 	var $show_photos = FALSE;
+	var $_persons = NULL;
 	var $_attendance_records = Array();
 	
 	const LIST_ORDER_DEFAULT = 'status ASC, family_name ASC, familyid, age_bracket ASC, gender DESC';
@@ -76,6 +77,25 @@ class Attendance_Record_Set
 		}
 		$this->_attendance_records = $db->queryAll($sql, null, null, true);
 		check_db_result($this->_attendance_records);
+
+		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
+		if ($this->congregationid) {
+			$conds = Array('congregationid' => $this->congregationid, '!status' => 'archived');
+			if (strlen($this->age_bracket)) {
+				$conds['age_bracket'] = $this->age_bracket;
+			}
+			$this->_persons = $GLOBALS['system']->getDBObjectData('person', $conds, 'AND', $order);
+		} else {
+			$group =& $GLOBALS['system']->getDBObject('person_group', $this->groupid);
+			$this->_persons = $group->getMembers(FALSE, $order);
+			if (strlen($this->age_bracket)) {
+				// Not the most efficient but it's a problem when it's a problem
+				foreach ($this->_persons as $i => $person) {
+					if ($person['age_bracket'] != $this->age_bracket) unset($this->_persons[$i]);
+				}
+			}
+		}
+
 	}
 
 
@@ -138,36 +158,58 @@ class Attendance_Record_Set
 	{
 	}
 
+
+	public function printWidget($prefix, $personid)
+	{
+		static $is_first = TRUE;
+		if (isset($this->_persons[$personid])) {
+			$v = isset($this->_attendance_records[$personid])
+					? ($this->_attendance_records[$personid] ? 'present' : 'absent')
+					: (empty($this->_attendance_records) ? '' : 'unknown');
+			print_widget(
+				'attendances['.$prefix.']['.$personid.']',
+				Array(
+					'options' => Array('unknown' => '?', 'present' => 'Present', 'absent' => 'Absent'),
+					'type' => 'select',
+					'style' => 'colour-buttons',
+					'class' => $is_first ? 'autofocus' : '',
+				),
+				$v
+			);
+			$is_first = FALSE;
+			return 1;
+		}
+		return 0;
+	}
+
+	function &getPersons()
+	{
+		return $this->_persons;
+	}
+
+	function getCohortName()
+	{
+			if ((int)$this->congregationid) {
+				$congregation = $GLOBALS['system']->getDBObject('congregation', (int)$this->congregationid);
+				return $congregation->getValue('name').' Congregation';
+			} else if ($this->groupid) {
+				$group =& $GLOBALS['system']->getDBObject('person_group', $this->groupid);
+				return $group->getValue('name').' Group';
+			}
+	}
+
+
 	function printForm($prefix=0)
 	{
-		require_once 'include/size_detector.class.php';
-		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
-		if ($this->congregationid) {
-			$conds = Array('congregationid' => $this->congregationid, '!status' => 'archived');
-			if (strlen($this->age_bracket)) {
-				$conds['age_bracket'] = $this->age_bracket;
-			}
-			$members = $GLOBALS['system']->getDBObjectData('person', $conds, 'AND', $order);
-		} else {
-			$group =& $GLOBALS['system']->getDBObject('person_group', $this->groupid);
-			$members =& $group->getMembers(FALSE, $order);
-			if (strlen($this->age_bracket)) {
-				// Not the most efficient but it's a problem when it's a problem
-				foreach ($members as $i => $person) {
-					if ($person['age_bracket'] != $this->age_bracket) unset($members[$i]);
-				}
-			}
-		}
+		if (empty($this->_persons)) return 0;
+		
 		$GLOBALS['system']->includeDBClass('person');
 		$dummy = new Person();
 		?>
 		<table class="table table-condensed table-auto-width valign-middle">
 		<?php
 		$is_first = TRUE;
-		foreach ($members as $personid => $details) {
-			$v = isset($this->_attendance_records[$personid]) 
-					? ($this->_attendance_records[$personid] ? 'present' : 'absent') 
-					: (empty($this->_attendance_records) ? '' : 'unknown');
+		foreach ($this->_persons as $personid => $details) {
 			$dummy->populate($personid, $details);
 			?>
 			<tr>
@@ -180,13 +222,16 @@ class Attendance_Record_Set
 			if ($this->show_photos) {
 				?>
 				<td>
-					<img style="width: 50px; max-width: 50px" src="?call=person_photo&personid=<?php echo (int)$personid; ?>" />
+					<a class="med-popup" tabindex="-1" href="?view=persons&personid=<?php echo $personid; ?>">
+						<img style="width: 50px; max-width: 50px" src="?call=person_photo&personid=<?php echo (int)$personid; ?>" />
+					</a>
 				</td>
 				<?php
 			}
 			?>
-				<td><?php echo ents($details['last_name']); ?></td>
-				<td><?php echo ents($details['first_name']); ?></td>
+				<td>
+					<?php echo ents($details['first_name'].' '.$details['last_name']); ?>
+				</td>
 			<?php 
 			if (!SizeDetector::isNarrow()) {
 				?>
@@ -203,16 +248,7 @@ class Attendance_Record_Set
 			}
 			?>
 				<td class="narrow">
-					<?php print_widget(
-							'attendances['.$prefix.']['.$personid.']',
-							Array(
-								'options' => Array('unknown' => '?', 'present' => 'Present', 'absent' => 'Absent'),
-								'type' => 'select',
-								'style' => 'colour-buttons',
-								'class' => $is_first ? 'autofocus' : '',
-							),
-							$v
-					); ?>
+					<?php $this->printWidget($prefix, $personid); ?>
 				</td>
 			<?php
 			if (!SizeDetector::isNarrow()) {
@@ -232,7 +268,21 @@ class Attendance_Record_Set
 		?>
 		</table>
 		<?php
-		return count($members);
+		return count($this->_persons);
+	}
+
+	function printHeadcountField()
+	{
+		if ((int)$this->congregationid) {
+			$headcountFieldName = 'headcount[congregation]['.$this->congregationid.']';
+			$headcountValue = Headcount::fetch('congregation', $this->date, $this->congregationid);
+		} else {
+			$headcountFieldName = 'headcount[group]['.$this->groupid.']';
+			$headcountValue = Headcount::fetch('person_group', $this->date, $this->groupid);
+		}
+		?>
+		<input type="text" class="int-box" name="<?php echo $headcountFieldName; ?>" value="<?php echo $headcountValue; ?>" size="5" />
+		<?php
 	}
 
 	function processForm($prefix)
@@ -417,7 +467,7 @@ class Attendance_Record_Set
 				WHERE ((p.status <> "archived") OR (ar.present IS NOT NULL)) ';
 		if ($congregationids) {
 			 $SQL .= '
-				 AND p.congregationid IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congregationids)).') AND ';
+				 AND p.congregationid IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congregationids)).') ';
 		}
 
 		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
