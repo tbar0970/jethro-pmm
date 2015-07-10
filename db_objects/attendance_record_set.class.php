@@ -187,15 +187,15 @@ class Attendance_Record_Set
 		return $this->_persons;
 	}
 
-	function getCohortName()
+	public function getCohortName()
 	{
-			if ((int)$this->congregationid) {
-				$congregation = $GLOBALS['system']->getDBObject('congregation', (int)$this->congregationid);
-				return $congregation->getValue('name').' Congregation';
-			} else if ($this->groupid) {
-				$group =& $GLOBALS['system']->getDBObject('person_group', $this->groupid);
-				return $group->getValue('name').' Group';
-			}
+		if ((int)$this->congregationid) {
+			$congregation = $GLOBALS['system']->getDBObject('congregation', (int)$this->congregationid);
+			return $congregation->getValue('name').' Congregation';
+		} else if ($this->groupid) {
+			$group =& $GLOBALS['system']->getDBObject('person_group', $this->groupid);
+			return $group->getValue('name').' Group';
+		}
 	}
 
 

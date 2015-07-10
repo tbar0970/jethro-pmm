@@ -1341,6 +1341,14 @@ table.service-details td table td input {
 		border-right: 1px solid #cccccc;
 		border-left: 1px solid #cccccc;
 	}
+	
+	.parallel-attendance-report th {
+		min-width: 43px;
+	}
+	
+	.parallel-attendance-report .new-cohort {
+		border-left-width: 3px;
+	}
 
 /******* MULTI SELECT WIDGET *******/
 

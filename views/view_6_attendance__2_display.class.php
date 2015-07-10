@@ -125,7 +125,7 @@ class View_Attendance__Display extends View
 								'options' => Array(
 									'sequential' => 'Sequential',
 									'tabular' => 'Tabular',
-									'collapsed' => 'Date Totals',
+									'totals' => 'Date Totals',
 							)),
 							$this->format
 						);
@@ -221,23 +221,9 @@ class View_Attendance__Display extends View
 					$class = $this->classes[array_get($record, $date, '')];
 					echo '<td class="'.$class.'">'.$letter.'</td>';
 				}
+				$this->_printActionsAndSelector($personid);
 				?>
-					<td class="narrow action-cell">
-						<a class="med-popup" href="?view=persons&personid=<?php echo $personid; ?>"><i class="icon-user"></i>View</a> &nbsp;
-					<?php
-					if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
-						?>
-						<a class="med-popup" href="?view=_edit_person&personid=<?php echo $personid; ?>"><i class="icon-wrench"></i>Edit</a> &nbsp;
-						<?php
-					}
-					if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
-						?>
-						<a class="med-popup" href="?view=_add_note_to_person&personid=<?php echo $personid; ?>"><i class="icon-pencil"></i>Add Note</a>
-						<?php
-					}
-					?>
-					</td>
-					<td class="selector"><input name="personid[]" type="checkbox" value="<?php echo $personid; ?>" /></td>
+
 				</tr>
 				<?php
 			}
@@ -308,13 +294,35 @@ class View_Attendance__Display extends View
 		</form>
 		<?php
 	}
+	
+	private function _printActionsAndSelector($personid)
+	{
+		?>
+		<td class="narrow action-cell">
+			<a class="med-popup" href="?view=persons&personid=<?php echo $personid; ?>"><i class="icon-user"></i>View</a> &nbsp;
+		<?php
+		if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
+			?>
+			<a class="med-popup" href="?view=_edit_person&personid=<?php echo $personid; ?>"><i class="icon-wrench"></i>Edit</a> &nbsp;
+			<?php
+		}
+		if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
+			?>
+			<a class="med-popup" href="?view=_add_note_to_person&personid=<?php echo $personid; ?>"><i class="icon-pencil"></i>Add Note</a>
+			<?php
+		}
+		?>
+		</td>
+		<td class="selector"><input name="personid[]" type="checkbox" value="<?php echo $personid; ?>" /></td>
+		<?php
+	}
 
 	private function _printResultsTabular()
 	{
 		$GLOBALS['system']->includeDBClass('attendance_record_set');
 		$GLOBALS['system']->includeDBClass('person');
 
-		$all_dates = $all_attendances = $all_totals = $all_persons = Array();
+		$all_dates = $all_attendances = $all_totals = $all_persons = $all_headcounts = Array();
 		if (!empty($this->cohortids)) {
 			foreach ($this->cohortids as $cohortid) {
 				$congid = $groupid = NULL;
@@ -322,8 +330,10 @@ class View_Attendance__Display extends View
 				if ($type == 'c') $congid = $id;
 				if ($type == 'g') $groupid = $id;
 				list ($cdates, $cattendances, $ctotals) = Attendance_Record_Set::getAttendances((array)$congid, $groupid, $this->age_bracket, $this->start_date, $this->end_date);
+				$hc = Headcount::fetchRange(($congid ? 'congregation' : 'person_group'), $congid ? $congid : $groupid, $this->start_date, $this->end_date);
+				foreach ($hc as $date => $c) $all_headcounts[$date][$cohortid] = $c;
 				$all_dates = array_merge($all_dates, $cdates);
-				$all_totals[$cohortid] = $ctotals;
+				foreach ($ctotals as $date => $t) $all_totals[$date][$cohortid] = $t;
 				foreach ($cattendances as $personid => $cat) {
 					foreach ($cat as $k => $v) {
 						if (in_array($k, Array('first_name', 'last_name', 'membership_status', 'status'))) {
@@ -336,48 +346,180 @@ class View_Attendance__Display extends View
 			}
 		}
 		$all_dates = array_unique($all_dates);
-bam($all_attendances);
 		?>
-		<table class="table table-condensed table-auto-width valign-middle">
-			<tr>
-				<th>Name</th>
-			<?php
-			foreach ($all_dates as $date) {
+		<table class="table table-condensed table-auto-width valign-middle table-bordered parallel-attendance-report">
+			<thead>
+				<tr>
+					<th <?php if ($this->format != 'totals') echo 'rowspan="2"'; ?>>Name</th>
+				<?php
+				if ($this->format == 'totals') {
+					$colspan = 1;
+				} else {
+					$colspan = count($this->cohortids);
+				}
+				foreach ($all_dates as $date) {
+					?>
+					<th class="center nowrap new-cohort" colspan="<?php echo $colspan; ?>"><?php echo format_date($date); ?></th>
+					<?php
+				}
 				?>
-				<th><?php echo format_date($date); ?></th>
+					<th <?php if ($this->format != 'totals') echo 'rowspan="2"'; ?>></th>
+					<th class="narrow selector form-inline" rowspan="2"><input type="checkbox" class="select-all" title="Select all" /></th>					
+				</tr>
+
+			<?php
+			if ($this->format != 'totals') {
+				?>
+				<tr>
+				<?php
+				foreach ($all_dates as $date) {
+					$first = TRUE;
+					foreach ($this->cohortids as $cohortid) {
+						$name = '';
+						list ($type, $id) = explode('-', $cohortid);
+						if ($type == 'c') {
+							$congregation = $GLOBALS['system']->getDBObject('congregation', $id);
+							$name = $congregation->getValue('name');
+						} else if ($type == 'g') {
+							$group =& $GLOBALS['system']->getDBObject('person_group', $id);
+							$name = $group->getValue('name');
+						}
+						$short = reset(explode(' ', $name));
+						if ((strlen($short) > 5) && !preg_match('/[0-9]/', $short)) $short = substr($short, 0, 3).'…';
+						$class = $first ? 'new-cohort' : '';
+						?>
+						<th class="nowrap <?php echo $class; ?>" title="<?php echo ents($name); ?>"><?php echo ents($short); ?></th>
+						<?php
+						$first = FALSE;
+					}
+				}
+				?>
+
+				</tr>
 				<?php
 			}
 			?>
-
-			</tr>
-
-		<?php
-
-
-		foreach ($all_persons as $personid => $details) {
-			?>
-			<tr>
-				<td>
-					<?php echo ents($details['first_name'].' '.$details['last_name']); ?>
-				</td>
+			</thead>
+			<tbody>
 			<?php
-			foreach ($all_dates as $date) {
-				if ($this->format == 'totals') {
 
-				} else {
-					foreach ($this->cohortids as $cohortid) {
-						$catt = array_get($all_attendances[$personid], $cohortid, Array());
-						$v = array_get($catt, $date, -1);
-						$letter = $this->letters[$v];
-						$class = $this->classes[$v];
-						echo '<td class="'.$class.'">'.$letter.'</td>';
+			foreach ($all_persons as $personid => $details) {
+				?>
+				<tr>
+					<td class="nowrap">
+						<?php echo ents($details['first_name'].' '.$details['last_name']); ?>
+					</td>
+				<?php
+				foreach ($all_dates as $date) {
+					$first = TRUE;
+					if ($this->format == 'totals') {
+						$score = 0;
+						foreach ($this->cohortids as $cohortid) {
+							$catt = array_get($all_attendances[$personid], $cohortid, Array());
+							$score += (array_get($catt, $date, 0));
+						}
+						$class = ($score > 0) ? 'present' : 'absent';
+						echo '<td class="center '.$class.'">'.$score.'</td>';
+					} else {
+						foreach ($this->cohortids as $cohortid) {
+							$catt = array_get($all_attendances[$personid], $cohortid, Array());
+							$v = array_get($catt, $date, -1);
+							$letter = $this->letters[$v];
+							$class = $this->classes[$v];
+							if ($first) $class .= ' new-cohort';
+							echo '<td class="'.$class.'">'.$letter.'</td>';
+							$first = FALSE;
+						}
 					}
 				}
+				$this->_printActionsAndSelector($personid);
+				?>	
+				</tr>
+				<?php
 			}
+
 			?>
-			</tr>
+			</tbody>
+			<?php
+		if ($this->format != 'totals') { // headcounts don't make sense when we collapse groups down into totals
+			?>
+			<tfoot class="attendance-stats">
+				<tr class="headcount">
+					<th>Total Headcount</th>
+				<?php
+				foreach ($all_dates as $date) {
+					$hc = array_get($all_headcounts, $date, Array());
+					foreach ($this->cohortids as $cohortid) {
+						?>
+						<td>
+							<?php echo array_get($hc, $cohortid, ''); ?>
+						</td>
+						<?php
+					}
+				}
+				?>
+					<td colspan="2">&nbsp;</td>
+				</tr>
+				<tr class="present">
+					<th>Total Present</th>
+				<?php
+				foreach ($all_dates as $date) {
+					$tots = array_get($all_totals, $date, Array());
+					foreach ($this->cohortids as $cohortid) {
+						?>
+						<td>
+							<?php echo array_get(array_get($tots, $cohortid, Array()), 1, 0); ?>
+						</td>
+						<?php
+					}
+				}
+				?>
+					<td colspan="2">&nbsp;</td>
+				</tr>
+				<tr class="absent">
+					<th>Total Absent</th>
+				<?php
+				foreach ($all_dates as $date) {
+					$tots = array_get($all_totals, $date, Array());					
+					foreach ($this->cohortids as $cohortid) {
+						?>
+						<td>
+							<?php echo array_get(array_get($tots, $cohortid, Array()), 0, 0); ?>
+						</td>
+						<?php
+					}
+				}
+				?>
+					<td colspan="2">&nbsp;</td>
+				</tr>
+				<tr class="extras">
+					<th>Extras</th>
+				<?php
+				foreach ($all_dates as $date) {
+					$tots = array_get($all_totals, $date, Array());					
+					$hc = array_get($all_headcounts, $date, Array());
+					foreach ($this->cohortids as $cohortid) {
+						$present = array_get(array_get($tots, $cohortid, Array()), 1, 0);						
+						$absent = array_get(array_get($tots, $cohortid, Array()), 0, 0);
+						$headcount = array_get($hc, $cohortid, NULL);
+						?>
+						<td>
+							<?php if ($headcount) echo $headcount - $present - $absent; ?>
+						</td>
+						<?php
+					}
+				}
+				?>
+					<td colspan="2">&nbsp;</td>
+				</tr>
+			</tfoot>
 			<?php
 		}
+		?>
+		</table>
+		<?php
+		include 'templates/bulk_actions.template.php';
+		
 	}
 }
 ?>
