@@ -511,7 +511,9 @@ form.min {
 .well {
 	background-color: #E8E8FF;
 }
-#body .table-condensed select, #body .table select, #body .table-condensed input[type=text], #body label select, #body label input[type=text] {
+#body .table-condensed select, #body .table-condensed input[type=text], 
+#body .table select,
+#body label select, #body label input[type=text] {
 	margin: 0px;
 }
 #body .valign-middle, #body table.valign-middle td, #body table.valign-middle th {
@@ -628,6 +630,9 @@ td.narrow, th.narrow, .object-summary th {
 }
 #body .align-centre, #body .center {
 	text-align: center;
+}
+.right {
+	text-align: right !important;
 }
 select, input, textarea {
 	width: auto;
@@ -1248,7 +1253,7 @@ table.service-details td table td input {
 /********* ATTENDANCE AND COLOURED RADIO BUTTONS **********/
 
 	div.radio-button-group {
-		margin: 5px;
+		margin: 3px;
 		overflow: hidden;
 		white-space: nowrap !important;
 		
@@ -1312,6 +1317,10 @@ table.service-details td table td input {
 		text-align: center;
 	}
 
+	.attendance-stats th, .attendance-stats td {
+		white-space: nowrap;
+	}
+
 	.attendance-stats .headcount * {
 		background: #CCCCCC;
 	}
@@ -1326,6 +1335,11 @@ table.service-details td table td input {
 	tfoot.attendance-stats td {
 		/*font-weight: bold;*/
 		text-align: center;
+	}
+
+	td.parallel-attendance {
+		border-right: 1px solid #cccccc;
+		border-left: 1px solid #cccccc;
 	}
 
 /******* MULTI SELECT WIDGET *******/
@@ -1559,6 +1573,18 @@ div.autosuggest ul li a .tl, div.autosuggest ul li a .tr {
 .attendance-config-table {
 	display: inline-block;
 }
+.attendance-config-table select, .attendance-config-table input  {
+	margin: 0px;
+}
+
+.attendance-config-table > tbody  > tr > th {
+	padding: 10px 5px;
+}
+.attendance-config-table > tbody > tr > td {
+	padding: 5px !important;
+}
+.attendance-config-table > tbody > tr:last-child > td, .attendance-config-table > tbody  > tr:last-child > th {
+}
 @media (max-width: 640px) {
 	.attendance-config-table {
 		width: 100% !important;
@@ -1577,6 +1603,9 @@ div.autosuggest ul li a .tl, div.autosuggest ul li a .tr {
 	.attendance table {
 		width: 100% !important;
 	}
+}
+.attendance tr.headcount td, .attendance tr.headcount th {
+	background: #CCCCCC;
 }
 
 /**** SYSTEM CONFIG ************/
