@@ -434,32 +434,34 @@ class Attendance_Record_Set
 
 	}
 
-	function getCongregationalAttendanceStats($start_date, $end_date, $congregations=Array())
+	function getStatsForPeriod($start_date, $end_date, $cohortid)
 	{
 		$db =& $GLOBALS['db'];
-
+		
+		list($type, $id) = explode('-', $cohortid);
+		$groupid = ($type == 'g') ? $id : 0;
+		$status_col = ($type == 'g') ? 'pgms.id' : 'p.status';
 		$sql = '
-				SELECT status, AVG(percent_present) as avg_attendance FROM
+				SELECT status, rank, AVG(percent_present) as avg_attendance FROM
 				(
-					SELECT ar.personid, p.status as status, CONCAT(ROUND(SUM(ar.present) * 100 / COUNT(ar.date)), '.$db->quote('%').') as percent_present
+					SELECT ar.personid, '.$status_col.' AS status, pgms.rank, CONCAT(ROUND(SUM(ar.present) * 100 / COUNT(ar.date)), '.$db->quote('%').') as percent_present
 					FROM 
 						person p 
 						JOIN attendance_record ar ON p.id = ar.personid
+						LEFT JOIN person_group_membership pgm ON pgm.personid = p.id AND pgm.groupid = ar.groupid
+						LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status
 					WHERE 
 						ar.date BETWEEN '.$db->quote($start_date).' AND '.$db->quote($end_date).'
-						AND ar.groupid = 0
+						AND ar.groupid = '.$groupid.' 
 				';
-		if (!empty($congregations)) {
-			$int_congs = Array();
-			foreach ($congregations as $congid) {
-				$int_congs[] = (int)$congid;
-			}
-			$sql .= '	AND p.congregationid IN ('.implode(',', $int_congs).')';
+		if ($type == 'c') {
+			$sql .= '    AND p.congregationid = '.(int)$id;
 		}
 		$sql .=	'
-					GROUP BY ar.personid, p.status
+					GROUP BY ar.personid, '.$status_col.'
 				) indiv
-				GROUP BY status';
+				GROUP BY status
+				ORDER BY rank';
 		$res = $db->queryAll($sql);
 		check_db_result($res);
 
@@ -536,7 +538,7 @@ class Attendance_Record_Set
 					<option value="">-- Choose --</option>
 					<optgroup label="Congregations">
 					<?php
-					foreach ($GLOBALS['system']->getDBObjectData('congregation', Array()) as $congid => $cong) {
+					foreach ($GLOBALS['system']->getDBObjectData('congregation', Array(), 'OR', 'meeting_time') as $congid => $cong) {
 						$s = ($selectedValue == 'c-'.$congid) ? 'selected="selected"' : '';
 						?>
 						<option value="c-<?php echo $congid; ?>" <?php echo $s; ?>><?php echo ents($cong['name']); ?></option>
@@ -546,7 +548,8 @@ class Attendance_Record_Set
 					</optgroup>
 					<optgroup label="Groups">
 					<?php
-					foreach ($GLOBALS['system']->getDBObjectData('person_group', Array()) as $groupid => $group) {
+					$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('can_record_attendance' => 1, 'is_archived' => 0), 'AND');
+					foreach ($groups as $groupid => $group) {
 						$s = ($selectedValue == 'g-'.$groupid) ? 'selected="selected"' : '';
 						?>
 						<option value="g-<?php echo $groupid; ?>" <?php echo $s; ?>><?php echo ents($group['name']); ?></option>
