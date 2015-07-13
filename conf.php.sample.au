@@ -74,8 +74,8 @@ define('DEFAULT_PERMISSIONS', 7995391);
 define('REQUIRE_INITIAL_NOTE', true); 
 
 // The order in which persons are listed when marking or reporting on 
-// The default is by status (core first) then last name, age bracket (adults first), gender (male first)
-define('ATTENDANCE_LIST_ORDER', 'status ASC, last_name ASC, age_bracket ASC, gender DESC');
+// The default is by status (core first) then family name, age bracket (adults first), gender (male first)
+define('ATTENDANCE_LIST_ORDER', 'status ASC, family_name ASC, familyid, age_bracket ASC, gender DESC');
 
 // Number of weeks ahead to show in rosters by default
 define('ROSTER_WEEKS_DEFAULT', 8);

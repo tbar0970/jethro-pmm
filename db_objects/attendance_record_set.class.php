@@ -186,16 +186,48 @@ class Attendance_Record_Set
 	{
 		return $this->_persons;
 	}
-
+	
 	public function getCohortName()
 	{
 		if ((int)$this->congregationid) {
 			$congregation = $GLOBALS['system']->getDBObject('congregation', (int)$this->congregationid);
-			return $congregation->getValue('name').' Congregation';
+			return $congregation->getValue('name');
 		} else if ($this->groupid) {
 			$group =& $GLOBALS['system']->getDBObject('person_group', $this->groupid);
-			return $group->getValue('name').' Group';
+			return $group->getValue('name');
 		}
+	}
+	
+	public static function getPersonIDsForCohorts($cohortids)
+	{
+		$db = $GLOBALS['db'];
+		$groupids = $congids = Array();
+		foreach ($cohortids as $cid) {
+			list($type, $id) = explode('-', $cid);
+			if ($type == 'c') $congids[] = $id;
+			if ($type == 'g') $groupids[] = $id;
+		}
+		$SQL = 'SELECT p.id, p.first_name, p.last_name, c.id as congregationid, c.name as congregation, group_concat(pgm.groupid) as groupids
+				FROM person p
+				JOIN family f on p.familyid = f.id
+				LEFT JOIN congregation c ON p.congregationid = c.id
+				LEFT JOIN person_group_membership pgm 
+					ON pgm.personid = p.id 
+					AND pgm.groupid in ('.implode(', ', array_map(Array($db, 'quote'), $groupids)).')
+				WHERE ';
+		$wheres = Array();
+		if ($congids) $wheres[] = '(p.congregationid IN ('.implode(', ', array_map(Array($db, 'quote'), $congids)).'))';
+		if ($groupids) $wheres[] = '(pgm.groupid IS NOT NULL)';
+		$SQL .= implode(" OR ", $wheres);
+		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
+		$order = preg_replace("/(^|[^.])status($| |,)/", '\\1p.status\\2', $order);
+		$SQL .=  "GROUP BY p.id \n";
+		$SQL .= ' ORDER BY '.$order."\n";
+		$res= $db->queryAll($SQL, null, null, true);
+		check_db_result($res);
+		return $res;
+		
+		
 	}
 
 

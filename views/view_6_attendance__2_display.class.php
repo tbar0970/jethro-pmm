@@ -185,8 +185,7 @@ class View_Attendance__Display extends View
 		<table class="table table-hover table-auto-width nowrap table-bordered table-condensed">
 			<thead>
 				<tr>
-					<th>Last Name</th>
-					<th>First Name</th>
+					<th>Name</th>
 					<th><?php echo $groupid ? 'Membership Status' : 'Status'; ?></th>
 				<?php
 				foreach ($dates as $date) {
@@ -204,8 +203,7 @@ class View_Attendance__Display extends View
 			foreach ($attendances as $personid => $record) {
 				?>
 				<tr <?php if ($record['status'] == 'archived') echo 'class="archived"'; ?>>
-					<td><?php echo ents($record['last_name']); ?></td>
-					<td><?php echo ents($record['first_name']); ?></td>
+					<td><?php echo ents($record['first_name'].' '.$record['last_name']); ?></td>
 					<td>
 						<?php
 						if ($groupid) {
@@ -322,7 +320,8 @@ class View_Attendance__Display extends View
 		$GLOBALS['system']->includeDBClass('attendance_record_set');
 		$GLOBALS['system']->includeDBClass('person');
 
-		$all_dates = $all_attendances = $all_totals = $all_persons = $all_headcounts = Array();
+		$all_persons = Attendance_Record_Set::getPersonIDsForCohorts($this->cohortids);
+		$all_dates = $all_attendances = $all_totals = $all_headcounts = Array();
 		if (!empty($this->cohortids)) {
 			foreach ($this->cohortids as $cohortid) {
 				$congid = $groupid = NULL;
@@ -335,10 +334,9 @@ class View_Attendance__Display extends View
 				$all_dates = array_merge($all_dates, $cdates);
 				foreach ($ctotals as $date => $t) $all_totals[$date][$cohortid] = $t;
 				foreach ($cattendances as $personid => $cat) {
+					$all_persons[$personid]['cohortids'][] = $cohortid;
 					foreach ($cat as $k => $v) {
-						if (in_array($k, Array('first_name', 'last_name', 'membership_status', 'status'))) {
-							$all_persons[$personid][$k] = $v;
-						} else {
+						if (!in_array($k, Array('first_name', 'last_name', 'membership_status', 'status'))) {
 							$all_attendances[$personid][$cohortid][$k] = $v;
 						}
 					}
@@ -347,7 +345,7 @@ class View_Attendance__Display extends View
 		}
 		$all_dates = array_unique($all_dates);
 		?>
-		<table class="table table-condensed table-auto-width valign-middle table-bordered parallel-attendance-report">
+		<table class="table table-hover table-condensed table-auto-width valign-middle table-bordered parallel-attendance-report">
 			<thead>
 				<tr>
 					<th <?php if ($this->format != 'totals') echo 'rowspan="2"'; ?>>Name</th>
@@ -358,8 +356,10 @@ class View_Attendance__Display extends View
 					$colspan = count($this->cohortids);
 				}
 				foreach ($all_dates as $date) {
+					$classes = 'center nowrap';
+					if ($this->format != 'totals') $classes .= ' new-cohort';
 					?>
-					<th class="center nowrap new-cohort" colspan="<?php echo $colspan; ?>"><?php echo format_date($date); ?></th>
+					<th class="<?php echo $classes; ?>" colspan="<?php echo $colspan; ?>"><?php echo format_date($date); ?></th>
 					<?php
 				}
 				?>
@@ -394,7 +394,6 @@ class View_Attendance__Display extends View
 					}
 				}
 				?>
-
 				</tr>
 				<?php
 			}
@@ -413,19 +412,26 @@ class View_Attendance__Display extends View
 				foreach ($all_dates as $date) {
 					$first = TRUE;
 					if ($this->format == 'totals') {
-						$score = 0;
+						$score = '';
 						foreach ($this->cohortids as $cohortid) {
 							$catt = array_get($all_attendances[$personid], $cohortid, Array());
-							$score += (array_get($catt, $date, 0));
+							$x = (array_get($catt, $date, ''));
+							if (strlen($x)) $score = (int)$score + $x;
 						}
-						$class = ($score > 0) ? 'present' : 'absent';
+						$class = $this->classes[$score > 0 ? 1 : $score];
+						if ($score === '') $score = '?';
 						echo '<td class="center '.$class.'">'.$score.'</td>';
 					} else {
 						foreach ($this->cohortids as $cohortid) {
-							$catt = array_get($all_attendances[$personid], $cohortid, Array());
-							$v = array_get($catt, $date, -1);
-							$letter = $this->letters[$v];
-							$class = $this->classes[$v];
+							if (!in_array($cohortid, $all_persons[$personid]['cohortids'])) {
+								$class = 'disabled';
+								$letter = '';
+							} else {
+								$catt = array_get($all_attendances[$personid], $cohortid, Array());
+								$v = array_get($catt, $date, '');
+								$letter = $this->letters[$v];
+								$class = $this->classes[$v];
+							}
 							if ($first) $class .= ' new-cohort';
 							echo '<td class="'.$class.'">'.$letter.'</td>';
 							$first = FALSE;

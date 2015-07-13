@@ -219,11 +219,8 @@ class View_Attendance__Record extends View
 
 	private function printFormParallel()
 	{
+		$totalPersons = Attendance_Record_Set::getPersonIDsForCohorts($this->_cohortids);
 		$totalPrinted = 0;
-		$totalPersons = Array();
-		foreach ($this->_record_sets as $i => $set) {
-			$totalPersons += $set->getPersons();
-		}
 		?>
 		<table class="table table-condensed table-auto-width valign-middle">
 			<thead>

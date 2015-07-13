@@ -1316,6 +1316,9 @@ table.service-details td table td input {
 	td.present, td.absent, td.unknown {
 		text-align: center;
 	}
+	td.disabled {
+		background: #aaa;
+	}
 
 	.attendance-stats th, .attendance-stats td {
 		white-space: nowrap;
@@ -1342,7 +1345,7 @@ table.service-details td table td input {
 		border-left: 1px solid #cccccc;
 	}
 	
-	.parallel-attendance-report th {
+	.parallel-attendance-report th:not(.narrow) {
 		min-width: 43px;
 	}
 	
