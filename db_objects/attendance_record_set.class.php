@@ -538,7 +538,7 @@ class Attendance_Record_Set
 					<option value="">-- Choose --</option>
 					<optgroup label="Congregations">
 					<?php
-					foreach ($GLOBALS['system']->getDBObjectData('congregation', Array(), 'OR', 'meeting_time') as $congid => $cong) {
+					foreach ($GLOBALS['system']->getDBObjectData('congregation', Array('!attendance_recording_days' => 0), 'OR', 'meeting_time') as $congid => $cong) {
 						$s = ($selectedValue == 'c-'.$congid) ? 'selected="selected"' : '';
 						?>
 						<option value="c-<?php echo $congid; ?>" <?php echo $s; ?>><?php echo ents($cong['name']); ?></option>
@@ -548,7 +548,7 @@ class Attendance_Record_Set
 					</optgroup>
 					<optgroup label="Groups">
 					<?php
-					$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('can_record_attendance' => 1, 'is_archived' => 0), 'AND');
+					$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('!attendance_recording_days' => 0, 'is_archived' => 0), 'AND');
 					foreach ($groups as $groupid => $group) {
 						$s = ($selectedValue == 'g-'.$groupid) ? 'selected="selected"' : '';
 						?>

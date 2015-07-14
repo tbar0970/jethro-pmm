@@ -630,6 +630,7 @@ class db_object
 			$i = 0;
 			foreach ($this->fields[$name]['options'] as $k => $v) {
 				$checked_exp = (($value & (int)$k) == $k) ? 'checked="checked"' : '';
+				if (!array_get($this->fields[$name], 'show_unselected', TRUE) && empty($checked_exp)) continue;
 				?>
 				<label class="checkbox">
 					<input type="checkbox" disabled="disabled" name="<?php echo ents($name); ?>[]" value="<?php echo ents($k); ?>" id="<?php echo ents($name.'_'.$k); ?>" <?php echo $checked_exp; ?>>

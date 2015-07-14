@@ -310,7 +310,7 @@ class Person_Query extends DB_Object
 				'options' => Array(null => '(Nothing)', '__cong__' => 'their congregation'),
 				'attrs' => Array('data-toggle' => 'enable', 'data-target' => '.attendance-input'),
 			);
-			$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('can_record_attendance' => 1, 'is_archived' => 0), 'AND');
+			$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('!attendance_recording_days' => 0, 'is_archived' => 0), 'AND');
 			foreach ($groups as $id => $groupdata) {
 				$groupid_params['options'][$id] = $groupdata['name'];
 			}

@@ -55,14 +55,14 @@ class View_Attendance__Statistics extends View
 		$this->status_map = $dummy_person->getStatusOptions();
 		
 		ob_start();
-		$congs = $GLOBALS['system']->getDBObjectData('congregation', Array(), 'OR', 'meeting_time');
+		$congs = $GLOBALS['system']->getDBObjectData('congregation', Array('!attendance_recording_days' => 0), 'OR', 'meeting_time');
 		foreach ($congs as $id => $detail) {
 			$this->printSet('c-'.$id, $detail['name']);
 		}
 		$cong_content = ob_get_clean();
 		
 		ob_start();
-		$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('can_record_attendance' => 1, 'is_archived' => 0), 'AND');
+		$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('!attendance_recording_days' => 0, 'is_archived' => 0), 'AND');
 		foreach ($groups as $id => $detail) {
 			$this->printSet('g-'.$id, $detail['name']);
 		}

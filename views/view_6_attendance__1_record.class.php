@@ -39,7 +39,8 @@ class View_Attendance__Record extends View
 				$this->_parallel_mode =  array_get($_SESSION['attendance'], 'parallel_mode', FALSE);
 			}
 			// Default to last Sunday, unless today is Sunday
-			$this->_attendance_date = date('Y-m-d', ((date('D') == 'Sun') ? time() : strtotime('last Sunday')));
+			$default_day = defined('ATTENDANCE_DEFAULT_DAY') ? ATTENDANCE_DEFAULT_DAY : 'Sunday';
+			$this->_attendance_date = date('Y-m-d', ((date('l') == $default_day) ? time() : strtotime('last '.$default_day)));
 		}
 
 		if (!empty($_REQUEST['params_submitted']) || !empty($_REQUEST['attendances_submitted'])) {
@@ -158,6 +159,7 @@ class View_Attendance__Record extends View
 					<?php
 					if (!SizeDetector::isNarrow()) {
 						?>
+						<br />
 						<label class="checkbox" title="Tabular format means that multiple groups/congregations will be shown as columns in a combined table">
 							<input type="checkbox" name="parallel_mode" value="1" <?php if ($this->_parallel_mode) echo 'checked="checked"'; ?> />
 							Use tabular format
@@ -179,6 +181,23 @@ class View_Attendance__Record extends View
 	
 	private function printForm()
 	{
+		foreach ($this->_cohortids as $i => $cohortid) {
+			list($type, $id) = explode('-', $cohortid);
+			if ($type == 'g') {
+				$group = $GLOBALS['system']->getDBObject('person_group', $id);
+				if (!$group->canRecordAttendanceOn($this->_attendance_date)) {
+					print_message("Attendance for the group ".$group->getValue('name').' cannot be recorded on a '.date('l', strtotime($this->_attendance_date)), 'error');
+					unset($this->_record_sets[$cohortid]);
+				}
+			}
+			if ($type == 'c') {
+				$cong = $GLOBALS['system']->getDBObject('congregation', $id);
+				if (!$cong->canRecordAttendanceOn($this->_attendance_date)) {
+					print_message("Attendance for the congregation ".$cong->getValue('name').' cannot be recorded on a '.date('l', strtotime($this->_attendance_date)), 'error');
+					unset($this->_record_sets[$cohortid]);
+				}				
+			}
+		}
 
 		$_SESSION['enter_attendance_token'] = md5(time());
 		// STEP 2 - enter attendances

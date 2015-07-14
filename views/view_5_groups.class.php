@@ -39,7 +39,7 @@ class View_Groups extends View
 					<th class="narrow" style="padding-bottom: 10px">Category</th>
 					<td><?php $this->_group->printFieldValue('categoryid'); ?>&nbsp;&nbsp;</td>
 					<th class="narrow hidden-phone">Record Attendance?</th>
-					<td class="hidden-phone"><?php $this->_group->printFieldValue('can_record_attendance'); ?></td>
+					<td class="hidden-phone"><?php $this->_group->printFieldValue('attendance_recording_days'); ?></td>
 					<td class="align-right">
 						<a class="link-collapse" href="?view=_edit_group&groupid=<?php echo $this->_group->id; ?>"><i class="icon-wrench"></i>Edit group details</a>
 					</td>
