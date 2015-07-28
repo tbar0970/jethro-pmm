@@ -57,13 +57,13 @@ class View__Mixed_Search extends View
 			$archiveds = Array();
 			$ref = &$this->$var;
 			foreach ($ref as $k => $v) {
-				if ($v['status'] == 'archived') {
+				if ((array_get($v, 'status') == 'archived') || array_get($v, 'is_archived')) {
 					$archiveds[$k] = $v;
 					unset($ref[$k]);
 				}
-				foreach ($archiveds as $k => $v) {
-					$ref[$k] = $v;
-				}
+			}
+			foreach ($archiveds as $k => $v) {
+				$ref[$k] = $v;
 			}
 		}
 	}
@@ -88,13 +88,13 @@ class View__Mixed_Search extends View
 		<table class="table table-hover table-striped table-min-width clickable-rows">
 		<?php
 		if (!empty($this->_group_data)) {
-				$class = ($values['status'] == 'archived') ? 'class="archived"' : '';
-				foreach ($this->_group_data as $id => $values) {
+			foreach ($this->_group_data as $id => $values) {
+				$class = ($values['is_archived'])  ? 'class="archived"' : '';
 				?>
 				<tr <?php echo $class; ?>>
 					<td><?php echo ents($values['name']); ?></td>
 					<td class="narrow">
-						<a href="?view=groups&groupid=<?php echo $id; ?>"><i class="icon-user"></i>View</a> &nbsp;
+						<a href="?view=groups&groupid=<?php echo $id; ?>"><i class="icon-list"></i>View</a> &nbsp;
 						<a href="?view=_edit_group&groupid=<?php echo $id; ?>"><i class="icon-wrench"></i>Edit</a>
 					</td>
 				</tr>
@@ -117,8 +117,8 @@ class View__Mixed_Search extends View
 			}
 		}
 		if (!empty($this->_family_data)) {
-			$class = ($values['status'] == 'archived') ? 'class="archived"' : '';
 			foreach ($this->_family_data as $id => $values) {
+				$class = ($values['status'] == 'archived') ? 'class="archived"' : '';
 				?>
 				<tr <?php echo $class; ?>>
 					<td><?php echo ents($values['family_name']); ?> Family</td>
