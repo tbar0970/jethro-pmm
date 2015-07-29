@@ -18,7 +18,7 @@ if (count($_SERVER['argv']) == 3) {
 	exit(1);
 }
 
-$DEBUG = 1;
+$DEBUG = 0;
 $DRYRUN = FALSE;
 
 define('JETHRO_ROOT', dirname(dirname(__FILE__)));
@@ -145,15 +145,21 @@ if ($DEBUG && !empty($to_add)) {
 	
 }
 if (!empty($to_add) && !$DRYRUN) {
-	//$api->listBatchSubscribe($list_id, $to_add, false, true);
-	foreach ($to_add as $add) {
-		if (!$api->listSubscribe($list_id, $add['EMAIL'],$add, 'html', FALSE, TRUE, FALSE,false)) {
-			trigger_error("listSubscribe returned false");
+	if (count($to_add) > 15) {
+		$api->listBatchSubscribe($list_id, $to_add, false, true);
+		if (!empty($api->errorMessage)) {
+			trigger_error("Mailchimp API Error calling listBatchSubscribe(): ".$api->errorMessage, E_USER_ERROR);
+		}		
+	} else {
+		// listBatchSubscribe doesn't always update all the merge vars correctly (perhaps if there's a case variation 
+		// in the email address) so when there's not too many we call listSubscribe individually
+		foreach ($to_add as $add) {
+			if (!$api->listSubscribe($list_id, $add['EMAIL'],$add, 'html', FALSE, TRUE, FALSE,false)) {
+				trigger_error("listSubscribe returned false: ".$api->errorMessage);
+			}
 		}
 	}
-	if (!empty($api->errorMessage)) {
-		trigger_error("Mailchimp API Error calling listBatchSubscribe(): ".$api->errorMessage, E_USER_ERROR);
-	}
+
 }
 
 // Then, for all list members, check if they are in the report members list and if not add them to the "remove" list.
