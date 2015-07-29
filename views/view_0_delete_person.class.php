@@ -1,5 +1,5 @@
 <?php
-class View__Delete_Person extends View__Add_Roster_View
+class View__Delete_Person extends View
 {
 	private $_person = NULL;
 	private $_staff_member = NULL;
@@ -24,13 +24,21 @@ class View__Delete_Person extends View__Add_Roster_View
 			$this->_person = new Person((int)$_REQUEST['personid']);
 		}
 		if (empty($this->_person)) trigger_error("Person not found", E_USER_ERROR); // exits
-		$this->_staff_member = new Staff_Member($this->_person->id);
+		$this->_staff_member = $GLOBALS['system']->getDBObject('staff_member', $this->_person->id);
 		
-		if (!empty($_POST['confirm_delete'])) {
+		if (empty($this->_staff_member) && !empty($_POST['confirm_delete'])) {
 			// delete the person altogether
+			$this->_person->delete();
 			
 		} else if (!empty($_POST['confirm_archiveclean'])) {
 			// archive and anononmize the person
+			if (!$this->_person->aquireLock()) {
+				add_message('This person cannot be deleted because somebody else holds the lock.  Try again later.', 'error');
+				redirect('persons', Array('personid' => $this->_person->id)); // exits
+			}
+			$this->_person->archiveAndClean();
+			add_message($this->_person->toString().' has been archived and cleaned', 'success');
+			redirect('persons', Array('personid' => $this->_person->id)); // exits
 			
 		}
 	}
@@ -47,7 +55,7 @@ class View__Delete_Person extends View__Add_Roster_View
 					'archiveclean' => 'Archive and Clean',
 					);
 		
-		if ($acct) {
+		if ($this->_staff_member) {
 			?>
 			<p>This person has a user account and cannot be deleted altogether.</p>
 			<p>You can archive and clean this person, which will</p>
@@ -64,11 +72,11 @@ class View__Delete_Person extends View__Add_Roster_View
 		}
 		?>
 		<form method="post">
-			<input name="personid" value="<?php echo (int)$this->_person->id; ?>" />
+			<input type="hidden" name="personid" value="<?php echo (int)$this->_person->id; ?>" />
 		<?php
 		foreach ($buttons as $key => $label) {
 			?>
-			<input type="button" class="btn" name="confirm_<?php echo $key; ?>" value="<?php echo ents($label); ?>"</button>" />
+			<input type="button" class="btn" name="confirm_<?php echo $key; ?>" value="<?php echo ents($label); ?>" />
 			<?php
 		}
 		?>

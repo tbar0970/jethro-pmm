@@ -441,6 +441,10 @@ class Attendance_Record_Set
 		list($type, $id) = explode('-', $cohortid);
 		$groupid = ($type == 'g') ? $id : 0;
 		$status_col = ($type == 'g') ? 'pgms.id' : 'p.status';
+		$cohort_where = 'ar.groupid = '.(int)$groupid;
+		if ($type == 'c') {
+			$cohort_where .= ' AND p.congregationid = '.(int)$id;
+		}		
 		$sql = '
 				SELECT status, rank, AVG(percent_present) as avg_attendance FROM
 				(
@@ -452,23 +456,46 @@ class Attendance_Record_Set
 						LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status
 					WHERE 
 						ar.date BETWEEN '.$db->quote($start_date).' AND '.$db->quote($end_date).'
-						AND ar.groupid = '.$groupid.' 
+						AND '.$cohort_where.'
 				';
-		if ($type == 'c') {
-			$sql .= '    AND p.congregationid = '.(int)$id;
-		}
+
 		$sql .=	'
 					GROUP BY ar.personid, '.$status_col.'
 				) indiv
-				GROUP BY status
-				ORDER BY rank';
+				GROUP BY rank, status WITH ROLLUP';
 		$res = $db->queryAll($sql);
 		check_db_result($res);
-
+		
 		$stats = Array();
+		$stats[NULL]['rate'] = $stats[NULL]['avg_present'] = $stats[NULL]['avg_absent'] = 0;
+		
 		foreach ($res as $row) {
-			$stats[$row['status']] = round($row['avg_attendance']);
+			$stats[$row['status']]['rate'] = round($row['avg_attendance']);
+			$stats[$row['status']]['avg_present'] = 0;
+			$stats[$row['status']]['avg_absent'] = 0;	
 		}
+		
+		$sql = '
+				SELECT status, present, rank, AVG(count) as count FROM
+				(
+					SELECT ar.date, '.$status_col.' AS status, pgms.rank, present, count(*) as count
+					FROM 
+						person p 
+						JOIN attendance_record ar ON p.id = ar.personid
+						LEFT JOIN person_group_membership pgm ON pgm.personid = p.id AND pgm.groupid = ar.groupid
+						LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status
+					WHERE 
+						ar.date BETWEEN '.$db->quote($start_date).' AND '.$db->quote($end_date).'
+						AND '.$cohort_where.'
+					GROUP BY ar.date, status, present
+				) perdate GROUP BY status, present';
+		$res = $db->queryAll($sql);
+		check_db_result($res);
+		foreach ($res as $row) {
+			$key = $row['present'] ? 'avg_present' : 'avg_absent';
+			$stats[$row['status']][$key] = $row['count'];
+			$stats[NULL][$key] += (float)$row['count'];
+		}		
 		return $stats;
 	}
 
@@ -531,6 +558,15 @@ class Attendance_Record_Set
 
 	static public function printCohortChooserRow($selectedValue)
 	{
+		static $groups = NULL;
+		static $congregations = NULL;
+		if ($groups === NULL) {
+			$congregations = $GLOBALS['system']->getDBObjectData('congregation', Array('!attendance_recording_days' => 0), 'OR', 'meeting_time');
+			$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('!attendance_recording_days' => 0, 'is_archived' => 0), 'AND', 'category, name');
+			// need to preserve category too
+			uasort($groups, create_function('$x,$y', '$r = strnatcmp($x["category"], $y["category"]); if ($r == 0) strnatcmp($x["name"], $y["name"]); return $r;')); // to ensure natural sorting
+		}
+		$lastCategory = -1;
 		?>
 		<tr>
 			<td>
@@ -538,7 +574,7 @@ class Attendance_Record_Set
 					<option value="">-- Choose --</option>
 					<optgroup label="Congregations">
 					<?php
-					foreach ($GLOBALS['system']->getDBObjectData('congregation', Array('!attendance_recording_days' => 0), 'OR', 'meeting_time') as $congid => $cong) {
+					foreach ($congregations as $congid => $cong) {
 						$s = ($selectedValue == 'c-'.$congid) ? 'selected="selected"' : '';
 						?>
 						<option value="c-<?php echo $congid; ?>" <?php echo $s; ?>><?php echo ents($cong['name']); ?></option>
@@ -548,14 +584,20 @@ class Attendance_Record_Set
 					</optgroup>
 					<optgroup label="Groups">
 					<?php
-					$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('!attendance_recording_days' => 0, 'is_archived' => 0), 'AND');
 					foreach ($groups as $groupid => $group) {
+						if ($lastCategory != $group['category']) {
+							?>
+							<option disabled="disabled">-- <?php echo ents($group['category'] ? $group['category'] : 'Uncategorised'); ?>--</option>
+							<?php
+							$lastCategory = $group['category'];
+						}
 						$s = ($selectedValue == 'g-'.$groupid) ? 'selected="selected"' : '';
 						?>
 						<option value="g-<?php echo $groupid; ?>" <?php echo $s; ?>><?php echo ents($group['name']); ?></option>
 						<?php
 					}
 					?>
+					</optgroup>
 					</optgroup>
 				</select>
 			</td>

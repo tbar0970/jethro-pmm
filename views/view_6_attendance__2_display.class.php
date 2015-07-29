@@ -59,10 +59,14 @@ class View_Attendance__Display extends View
 		$this->_printParams();
 
 		if (!empty($_REQUEST['params_submitted'])) {
-			if ($this->format == 'sequential') {
-				$this->_printResultsSequential();
+			if (empty($this->cohortids)) {
+				print_message("Please choose a congregation or group", 'error');
 			} else {
-				$this->_printResultsTabular();
+				if ($this->format == 'sequential') {
+					$this->_printResultsSequential();
+				} else {
+					$this->_printResultsTabular();
+				}
 			}
 		}
 	}

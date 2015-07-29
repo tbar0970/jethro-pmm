@@ -27,8 +27,10 @@ class Headcount
 		);
 	}
 
-	private function checkEntityType($entityType)
+	private function checkEntityType(&$entityType)
 	{
+		if ($entityType == 'c') $entityType = 'congregation';
+		if ($entityType == 'g') $entityType = 'person_group';
 		if (!in_array($entityType, Array('congregation', 'person_group'))) {
 			trigger_error('Unknown entity type '.$entityType, E_USER_ERROR);
 		}
@@ -71,6 +73,19 @@ class Headcount
 		$res = $db->queryAll($SQL, null, null, true);
 		check_db_result($res);
 		return $res;
+	}
+	
+	public static function fetchAverage($entitytype, $entityid, $fromDate, $toDate)
+	{
+		self::checkEntityType($entitytype);
+		$db = $GLOBALS['db'];
+		$SQL = 'SELECT AVG(number) FROM '.$entitytype.'_headcount
+				WHERE (`date` BETWEEN '.$db->quote($fromDate).' AND '.$db->quote($toDate).')
+				AND '.$entitytype.'id = '.$db->quote($entityid);
+		$res = $db->queryOne($SQL);
+		check_db_result($res);
+		return $res;
+		
 	}
 
 

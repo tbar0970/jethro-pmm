@@ -37,13 +37,13 @@ class View_Attendance__Statistics extends View
 	function _printParams()
 	{
 		?>
-		<form method="get" style="line-height: 200%" class="well form-inline">
+		<form method="get" style="line-height: 200%" class="well well-small form-inline">
 		<input type="hidden" name="view" value="<?php echo $_REQUEST['view']; ?>" />
-		Show the average attendance rate, at all congregations and groups, for persons of each (current) status <br />
+		Show the attendance statistics for persons of each (current) status <br />
 		between <?php print_widget('start_date', Array('type' => 'date'), $this->_start_date); ?>
 		and  <?php print_widget('end_date', Array('type' => 'date'), $this->_end_date); ?>
 		<input type="submit" class="btn" value="Go" />
-		<p class="smallprint">Note: Any weeks where a person's attendance is left blank (neither present nor absent) are ignored when calculating attendance percentages</p>
+		<p class="smallprint">Note: Any weeks where a person's attendance is left blank (neither present nor absent) are ignored when calculating attendance percentages.</p>
 		</form>
 		<?php
 		
@@ -95,12 +95,17 @@ class View_Attendance__Statistics extends View
 			return FALSE;
 		}
 		?>
-		<div class="span3">
-		<table class="table table-bordered">
+		<div class="span4">
+		<table class="table table-bordered attendance-stats">
 			<thead>
 				<tr>
-					<th colspan="2"><?php echo ents($cohortname); ?></th>
-				</tr>	
+					<th colspan="4"><?php echo ents($cohortname); ?></th>
+				</tr>
+				<tr>
+					<th>Status</th>
+					<th title="Percentage of dates marked present rather than absent">Rate</th>
+					<th class="present" title="Average number marked present per date">Avg&nbsp;P</th>
+					<th class="absent" title="Average number marked absent per date">Avg&nbsp;A</th>
 			</thead>
 			<tbody>
 		<?php
@@ -114,12 +119,37 @@ class View_Attendance__Statistics extends View
 				?>
 				<tr>
 					<th><?php echo ents($v); ?></th>
-					<td style="width: 6ex; text-align: right"><?php echo $stats[$k] ?>%</td>
+					<td style="width: 6ex; text-align: right"><?php echo $stats[$k]['rate'] ?>%</td>
+					<td style="width: 6ex; text-align: right"><?php echo number_format($stats[$k]['avg_present'], 1) ?></td>
+					<td style="width: 6ex; text-align: right"><?php echo number_format($stats[$k]['avg_absent'], 1) ?></td>
 				</tr>
 				<?php
 			}
 		}
 		?>
+				<tr class="thick-top-border">
+					<th>Overall</th>
+					<td style="width: 6ex; text-align: right"><?php echo $stats[NULL]['rate'] ?>%</td>
+					<td style="width: 6ex; text-align: right"><?php echo number_format($stats[NULL]['avg_present'], 1) ?></td>
+					<td style="width: 6ex; text-align: right"><?php echo number_format($stats[NULL]['avg_absent'], 1) ?></td>
+				</tr>
+				<tr class="headcount">
+					<th colspan="2">
+						Avg&nbsp;Headcount
+					</th>
+					<td class="right">
+						<?php 
+						$bits = explode('-', $cohortid);
+						$hc = Headcount::fetchAverage($bits[0], $bits[1], $this->_start_date, $this->_end_date);
+						if ($hc) {
+							echo number_format($hc, 1);
+						} else {
+							echo 'N/A';
+						}
+						?>
+					</td>
+					<td colspan="2"></td>
+				</tr>
 			</tbody>
 		</table>
 		</div>
