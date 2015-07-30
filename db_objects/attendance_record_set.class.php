@@ -4,13 +4,14 @@
 class Attendance_Record_Set
 {
 
-	var $date = NULL;
-	var $congregationid = NULL;
-	var $groupid = 0;
-	var $age_bracket = NULL;
-	var $show_photos = FALSE;
-	var $_persons = NULL;
-	var $_attendance_records = Array();
+	public $date = NULL;
+	public $congregationid = NULL;
+	public $groupid = 0;
+	public $age_bracket = NULL;
+	public $show_photos = FALSE;
+	private $_persons = NULL;
+	private $_attendance_records = Array();
+	private $_cohort_object = NULL;
 	
 	const LIST_ORDER_DEFAULT = 'status ASC, family_name ASC, familyid, age_bracket ASC, gender DESC';
 
@@ -22,6 +23,49 @@ class Attendance_Record_Set
 			$this->load($date, $cohort, $age_bracket, $status);
 		}
 	}
+	
+	private function _getCohortObject()
+	{
+		if (!$this->_cohort_object) {
+			if ($this->groupid) {
+				$this->_cohort_object = $GLOBALS['system']->getDBObject('person_group', $this->groupid);
+			} else if ($this->congregationid) {
+				$this->_cohort_object = $GLOBALS['system']->getDBObject('congregation', $this->congregationid);
+			}			
+		}
+		return $this->_cohort_object;
+	}
+	
+	public function acquireLock()
+	{
+		$obj = $this->_getCohortObject();
+		if (!$obj) {
+			trigger_error("Could not get cohort object for lock");
+			return FALSE;
+		}
+		return $obj->acquireLock('attendance-'.$this->date);
+	}
+	
+	public function haveLock()
+	{
+		$obj = $this->_getCohortObject();
+		if (!$obj) {
+			trigger_error("Could not get cohort object for lock");
+			return FALSE;
+		}
+		return $obj->haveLock('attendance-'.$this->date);	
+	}
+	
+	public function releaseLock()
+	{
+		$obj = $this->_getCohortObject();
+		if (!$obj) {
+			trigger_error("Could not get cohort object for lock");
+			return FALSE;
+		}
+		return $obj->releaseLock('attendance-'.$this->date);	
+	}	
+	
 
 	function create()
 	{
@@ -103,6 +147,10 @@ class Attendance_Record_Set
 	{
 		if (empty($this->date)) {
 			trigger_error('Cannot save attendance record set with no date', E_USER_WARNING);
+			return;
+		}
+		if (!$this->haveLock()) {
+			trigger_error("Cannot save attendance record set - we do not have the lock");
 			return;
 		}
 		$db =& $GLOBALS['db'];
@@ -189,13 +237,15 @@ class Attendance_Record_Set
 	
 	public function getCohortName()
 	{
-		if ((int)$this->congregationid) {
-			$congregation = $GLOBALS['system']->getDBObject('congregation', (int)$this->congregationid);
-			return $congregation->getValue('name');
-		} else if ($this->groupid) {
-			$group =& $GLOBALS['system']->getDBObject('person_group', $this->groupid);
-			return $group->getValue('name');
-		}
+		$obj = $this->_getCohortObject();
+		if ($obj) return $obj->getValue('name');
+	}
+	
+	public function checkAllowedDate()
+	{
+		$obj = $this->_getCohortObject();
+		if (!$obj) return FALSE;
+		return $obj->canRecordAttendanceOn($this->date);
 	}
 	
 	public static function getPersonIDsForCohorts($cohortids)

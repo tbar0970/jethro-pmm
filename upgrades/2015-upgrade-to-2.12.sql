@@ -16,3 +16,6 @@ and ((not(exists(select 1 from `account_group_restriction` `gr` where (`gr`.`per
 
 ALTER TABLE congregation
 ADD COLUMN attendance_recording_days INT NOT NULL DEFAULT 1;
+
+ALTER TABLE db_object_lock
+MODIFY COLUMN lock_type VARCHAR(255);

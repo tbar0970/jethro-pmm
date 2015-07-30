@@ -60,6 +60,20 @@ class View_Attendance__Record extends View
 				if ($this->_show_photos) $this->_record_sets[$id]->show_photos = TRUE;
 			}
 		}
+		
+		foreach ($this->_record_sets as $cohortid => $set) {
+			if (!$set->checkAllowedDate()) {
+				add_message("Attendance for '".$set->getCohortName()."' cannot be recorded on a ".date('l', strtotime($this->_attendance_date)), 'error');
+				unset($this->_record_sets[$cohortid]);
+				$this->_cohortids = array_diff($this->_cohortids, Array($cohortid));
+			}
+			
+			if (!$set->acquireLock()) {
+				add_message("Another user is currently recording attendance for '".$set->getCohortName()."'.  Please wait until they finish then try again.", 'error');
+				unset($this->_record_sets[$cohortid]);
+				$this->_cohortids = array_diff($this->_cohortids, Array($cohortid));
+			}
+		}
 
 		if (!empty($_REQUEST['attendances_submitted'])) {
 			// Process step 2
@@ -72,12 +86,17 @@ class View_Attendance__Record extends View
 
 				// Process the form
 				foreach ($this->_record_sets as $i => $set) {
-					if ($set->processForm($i)) {
-						$set->save();
-						if ((int)$set->congregationid) {
-							Headcount::save('congregation', $this->_attendance_date, $set->congregationid, $_REQUEST['headcount']['congregation'][$set->congregationid]);
-						} else {
-							Headcount::save('person_group', $this->_attendance_date, $set->groupid, $_REQUEST['headcount']['group'][$set->groupid]);
+					if (!$set->haveLock() && !$set->acquireLock()) {
+						add_message("Unfortunately your lock on '".$set->getCohortName()."' has expired and been acquired by another user.  Please wait until they finish and try again.", 'error');
+					} else {
+						if ($set->processForm($i)) {
+							$set->save();
+							if ((int)$set->congregationid) {
+								Headcount::save('congregation', $this->_attendance_date, $set->congregationid, $_REQUEST['headcount']['congregation'][$set->congregationid]);
+							} else {
+								Headcount::save('person_group', $this->_attendance_date, $set->groupid, $_REQUEST['headcount']['group'][$set->groupid]);
+							}
+							$set->releaseLock();
 						}
 					}
 				}
@@ -181,24 +200,6 @@ class View_Attendance__Record extends View
 	
 	private function printForm()
 	{
-		foreach ($this->_cohortids as $i => $cohortid) {
-			list($type, $id) = explode('-', $cohortid);
-			if ($type == 'g') {
-				$group = $GLOBALS['system']->getDBObject('person_group', $id);
-				if (!$group->canRecordAttendanceOn($this->_attendance_date)) {
-					print_message("Attendance for the group ".$group->getValue('name').' cannot be recorded on a '.date('l', strtotime($this->_attendance_date)), 'error');
-					unset($this->_record_sets[$cohortid]);
-				}
-			}
-			if ($type == 'c') {
-				$cong = $GLOBALS['system']->getDBObject('congregation', $id);
-				if (!$cong->canRecordAttendanceOn($this->_attendance_date)) {
-					print_message("Attendance for the congregation ".$cong->getValue('name').' cannot be recorded on a '.date('l', strtotime($this->_attendance_date)), 'error');
-					unset($this->_record_sets[$cohortid]);
-				}				
-			}
-		}
-
 		$_SESSION['enter_attendance_token'] = md5(time());
 		// STEP 2 - enter attendances
 		ob_start();
