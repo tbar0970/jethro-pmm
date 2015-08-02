@@ -54,7 +54,7 @@ if ($GLOBALS['user_system']->getCurrentUser() == NULL) {
 	}
 } else {
 	// We have a user, so run the system
-	$GLOBALS['system'] = new System_Controller();
-	$GLOBALS['system']->run();
+	$GLOBALS['system'] = System_Controller::get();
+	System_Controller::get()->run();
 }
 ?>

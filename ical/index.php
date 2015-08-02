@@ -20,7 +20,7 @@
  * index.php - first stop for every request
  *
  * @author Ben Kelley <ben.kelley@gmail.com>
- * @version $Id: index.php,v 1.3 2013/03/20 11:03:53 tbar0970 Exp $
+ * @version $Id:$
  * @package jethro-pmm
  */
 
@@ -46,17 +46,21 @@ define('DSN', MEMBERS_DSN);
 define('IS_PUBLIC', true);
 require_once JETHRO_ROOT.'/include/init.php';
 
-// Set up
-//require_once 'include/system_controller.class.php';
-//$GLOBALS['system'] = new System_Controller(dirname(THIS_DIR));
-
 require_once THIS_DIR.'/include/ical_system.class.php';
-$GLOBALS['ical_system'] = new Ical_System();
-if (!$GLOBALS['ical_system']->featureEnabled('ROSTERS&SERVICES')) {
+if (!Ical_System::get()->featureEnabled('ROSTERS&SERVICES')) {
     	?>
 	<p>Rosters are not enabled for this Jethro System.  You may like to view the <a href="<?php echo BASE_URL; ?>/public">public site</a>
 	<?php
 	exit;
 }
 
-$GLOBALS['ical_system']->run();
+// Init user system but don't try to auth anyone
+require_once JETHRO_ROOT.'/include/user_system.class.php';
+$GLOBALS['user_system'] = new User_System();
+$GLOBALS['user_system']->setPublic();
+
+require_once 'include/system_controller.class.php';
+$GLOBALS['system'] = System_Controller::get(THIS_DIR);
+System_Controller::get()->run();
+
+Ical_System::get()->run();

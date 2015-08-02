@@ -77,6 +77,5 @@ class Congregation extends db_object
 	}
 
 
-
 }
 ?>
