@@ -27,10 +27,23 @@ class Person_Group extends db_object
 									'label' => 'Status',
 									'default'	=> 0,
 								),
-			'can_record_attendance' => Array(
-									'type'		=> 'select',
-									'options'	=> Array('No', 'Yes'),
+			'attendance_recording_days'	=> Array(
+									'type'		=> 'bitmask',
+									'options'	=> Array(
+													1	=> 'Sunday',
+													2	=> 'Monday',
+													4	=> 'Tuesday',
+													8	=> 'Wednesday',
+													16	=> 'Thursday',
+													32	=> 'Friday',
+													64	=> 'Saturday',
 									),
+									'default'	=> 0,
+									'label'		=> 'Attendance Recording Days',
+									'cols'		=> 2,
+									'note'		=> 'Select nothing if you do not plan to record attendance for this group',
+									'show_unselected' => FALSE,
+						   ),
 			'share_member_details' => Array(
 									'type' => 'select',
 									'options' => Array('No', 'Yes'),
@@ -263,8 +276,11 @@ class Person_Group extends db_object
 	function getInstancesQueryComps($params, $logic, $order)
 	{
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
-		$res['from'] = '('.$res['from'].') LEFT OUTER JOIN person_group_membership gm ON gm.groupid = person_group.id';
+		$res['from'] .= "\n LEFT JOIN person_group_membership gm ON gm.groupid = person_group.id ";
+		$res['from'] .= "\n LEFT JOIN person_group_category pgc ON person_group.categoryid = pgc.id ";
+		
 		$res['select'][] = 'COUNT(gm.personid) as member_count';
+		$res['select'][] = 'pgc.name as category';
 		$res['group_by'] = 'person_group.id';
 		return $res;
 
@@ -283,6 +299,18 @@ class Person_Group extends db_object
 	{
 		if (is_null($value)) $value = $this->values[$fieldname];
 		switch ($fieldname) {
+			case 'attendance_recording_days':
+				if ($value == 0) {
+					echo 'No';
+					return;
+				}
+				if ($value == 127) {
+					echo 'Yes, any day';
+					return;
+				}
+				return parent::printFieldValue($fieldname, $value);
+				break;
+				
 			case 'categoryid':
 				if ($value == 0) {
 					echo '<i>(Uncategorised)</i>';
@@ -381,9 +409,7 @@ class Person_Group extends db_object
 		<?php
 	}
 
-
-	static function printChooser($fieldname, $value, $exclude_groups=Array(), $allow_category_select=
-	FALSE, $empty_text='(Choose)')
+	static function printChooser($fieldname, $value, $exclude_groups=Array(), $allow_category_select=FALSE, $empty_text='(Choose)')
 	{
 		$cats = $GLOBALS['system']->getDBObjectData('person_group_category', Array(), 'OR', 'name');
 		$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('is_archived' => 0), 'OR', 'name');
@@ -449,6 +475,13 @@ class Person_Group extends db_object
 			<option value="<?php echo (int)$gid; ?>"<?php echo $sel; ?>><?php echo $prefix.ents($group['name']); ?></option>
 			<?php
 		}
+	}
+	
+	public function canRecordAttendanceOn($date)
+	{
+		$testIndex = array_search(date('l', strtotime($date)), $this->fields['attendance_recording_days']['options']);
+		return $testIndex & $this->getValue('attendance_recording_days');
+		
 	}
 
 

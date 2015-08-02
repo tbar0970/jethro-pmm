@@ -16,7 +16,12 @@ class View_Admin__System_Configuration extends View {
 		if (!empty($_POST['group_membership_statuses_submitted'])) {
 			$i = 0;
 			$saved_default = false;
-			$ranks = array_flip($_REQUEST['membership_status_ranking']);
+			$rankMap = $_REQUEST['membership_status_ranking'];
+			foreach ($rankMap as $k => $v) {
+				if ($v == '') $rankMap[$k] = max($rankMap)+1;
+			}
+			$ranks = array_flip($rankMap);
+			
 			while (isset($_POST['membership_status_'.$i.'_label'])) {
 				$sql = null;
 				$is_default = (int)($_POST['membership_status_default_rank'] == $i);

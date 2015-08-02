@@ -28,8 +28,26 @@ class Congregation extends db_object
 									'width'		=> 10,
 									'maxlength'	=> 255,
 									'label'		=> 'Code Name',
-									'note'		=> 'Used for filenames and sorting - must be filled in to use services and rosters for this congregation',
+									'regex'		=> '/^[^0-9]*[0-2]\d[0-5]\d[^0-9]*$/',
+									'note'		=> 'Used for filenames and sorting.  Fill this field in to enable service planning and rosters for this congregation.  An HHMM time must be present within the value (eg ash_0930_late).',
 								   ),
+			'attendance_recording_days'	=> Array(
+									'type'		=> 'bitmask',
+									'options'	=> Array(
+													1	=> 'Sunday',
+													2	=> 'Monday',
+													4	=> 'Tuesday',
+													8	=> 'Wednesday',
+													16	=> 'Thursday',
+													32	=> 'Friday',
+													64	=> 'Saturday',
+									),
+									'default'	=> 0,
+									'label'		=> 'Attendance Recording Days',
+									'cols'		=> 2,
+									'note'		=> 'Select nothing if you do not plan to record attendance for this congregation',
+									'show_unselected' => FALSE,
+						   ),			
 			'print_quantity' => Array(
 									'type'		=> 'int',
 									'hidden'	=> true
@@ -76,6 +94,11 @@ class Congregation extends db_object
 		return array_get($congs, $name);
 	}
 
+	public function canRecordAttendanceOn($date)
+	{
+		$testIndex = array_search(date('l', strtotime($date)), $this->fields['attendance_recording_days']['options']);
+		return $testIndex & $this->getValue('attendance_recording_days');
+	}
 
 }
 ?>

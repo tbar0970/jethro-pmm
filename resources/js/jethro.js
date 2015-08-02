@@ -327,9 +327,20 @@ $(document).ready(function() {
 		this.parents('.radio-button-group').find('input').val(this.attr('data-val'));
 
 		if (attendanceUseKeyboard) {
-			var thisRow = $(this).parents('tr:first');
-			thisRow.removeClass('hovered');
-			thisRow.next('tr').find('.radio-button-group').focus();
+			var thisCell = $(this).parents('td');
+			thisCell.closest('tr').removeClass('hovered');
+			var nextCell = thisCell;
+			var wentToNextRow = false;
+			do {
+				nextCell = nextCell.next('td');
+				if (!nextCell.length && !wentToNextRow) {
+					wentToNextRow = true;
+					nextCell = thisCell.parents('tr').next('tr').find('td').first();
+				}
+				
+			} while (nextCell.length && !nextCell.find('.radio-button-group').length);
+			
+			nextCell.find('.radio-button-group').focus();
 		}
 	}
 

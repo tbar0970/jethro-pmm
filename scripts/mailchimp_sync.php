@@ -18,7 +18,8 @@ if (count($_SERVER['argv']) == 3) {
 	exit(1);
 }
 
-$DEBUG = FALSE;
+$DEBUG = 0;
+$DRYRUN = FALSE;
 
 define('JETHRO_ROOT', dirname(dirname(__FILE__)));
 set_include_path(get_include_path().PATH_SEPARATOR.JETHRO_ROOT);
@@ -89,11 +90,11 @@ if (empty($report)) {
 // BUSINESS TIME
 
 $db =& $GLOBALS['db'];
-$sql = $report->getSQL('p.email, p.first_name, p.last_name, p.gender, p.age_bracket, p.status, p.congregationid');
+$sql = $report->getSQL('LOWER(p.email) as loweremail, p.email, p.first_name, p.last_name, p.gender, p.age_bracket, p.status, p.congregationid');
 $report_members = $db->queryAll($sql, null, null, true);
 check_db_result($report_members);
 unset($report_members['']); // with no email.
-if ($DEBUG) {
+if ($DEBUG > 1) {
 	bam("PERSONS FROM REPORT (excl email-less persons):");
 	bam($report_members);
 	bam("========================");
@@ -108,30 +109,57 @@ foreach (array_chunk($report_members, 49, true) as $chunk) {
 	if (!empty($api->errorMessage)) {
 		trigger_error("Mailchimp API Error calling listMemberInfo(): ".$api->errorMessage, E_USER_ERROR);
 	}
-	if ($DEBUG) bam($list_infos);
+	if ($DEBUG > 1) {
+		bam("LIST INFOS:");
+		bam($list_infos);
+		bam("========================");
+	}
+
 	foreach ($list_infos['data'] as $list_member) {
-		if (empty($list_member['error'])) {
-			$merge_vars = getMergeVars($chunk[$list_member['email']], $list_member['email']);
-			if ($merge_vars == $list_member['merges']) {
-				// nothing to add or update so delete from $chunk
-				unset($chunk[$list_member['email']]);
+		if (!empty($list_member['error'])) {
+			$to_add[] = getMergeVars($chunk[strtolower($list_member['email_address'])], $list_member['email_address']);
+		} else {
+			$merge_vars = getMergeVars($chunk[strtolower($list_member['email'])], $list_member['email']);
+			$do_update = FALSE;
+			foreach ($merge_vars as $k => $v) {
+				 if (trim($list_member['merges'][$k]) != trim($v)) {
+					if ($DEBUG) bam("Difference found for ".$list_member['email']);
+					if ($DEBUG > 1) {
+						bam("-------------\nJethro:");
+						bam($merge_vars);
+						bam("-------------\nMailchimp:");
+						bam($list_member);
+						bam("-------------");
+					}
+					$do_update = TRUE;
+				}
+			}
+			if ($do_update) $to_add[] = $merge_vars;
+		}
+	}
+}
+if ($DEBUG && !empty($to_add)) {
+	bam("TO ADD / UPDATE:");
+	bam($to_add);
+	bam("========================");
+	
+}
+if (!empty($to_add) && !$DRYRUN) {
+	if (count($to_add) > 15) {
+		$api->listBatchSubscribe($list_id, $to_add, false, true);
+		if (!empty($api->errorMessage)) {
+			trigger_error("Mailchimp API Error calling listBatchSubscribe(): ".$api->errorMessage, E_USER_ERROR);
+		}		
+	} else {
+		// listBatchSubscribe doesn't always update all the merge vars correctly (perhaps if there's a case variation 
+		// in the email address) so when there's not too many we call listSubscribe individually
+		foreach ($to_add as $add) {
+			if (!$api->listSubscribe($list_id, $add['EMAIL'],$add, 'html', FALSE, TRUE, FALSE,false)) {
+				trigger_error("listSubscribe returned false: ".$api->errorMessage);
 			}
 		}
 	}
-	// $chunk now only contains report members who need to be added or updated.
-	foreach ($chunk as $email => $data) {
-		$to_add[] = getMergeVars($data, $email);
-	}
-}
-if ($DEBUG) {
-	bam("TO ADD / UPDATE:");
-	bam($to_add);
-}
-if (!empty($to_add)) {
-	$api->listBatchSubscribe($list_id, $to_add, false, true);
-	if (!empty($api->errorMessage)) {
-		trigger_error("Mailchimp API Error calling listBatchSubscribe(): ".$api->errorMessage, E_USER_ERROR);
-	}
+
 }
 
 // Then, for all list members, check if they are in the report members list and if not add them to the "remove" list.
@@ -141,19 +169,23 @@ if (!empty($api->errorMessage)) {
 }
 $to_remove = array();
 foreach ($list_members['data'] as $member) {
-	if (!isset($report_members[$member['email']])) {
+	if (!isset($report_members[strtolower($member['email'])])) {
 		$to_remove[] = $member['email'];
 	}
 }
 
-if ($DEBUG) {
+if ($DEBUG > 1) {
 	bam("LIST MEMBERS:");
 	bam($list_members);
+	bam("==================");
+} 
+if ($DEBUG && !empty($to_remove)) {
 	bam("TO REMOVE:");
 	bam($to_remove);
+	bam("==================");
 }
 
-if (!empty($to_remove)) {
+if (!empty($to_remove)  && !$DRYRUN) {
 	$api->listBatchUnsubscribe($list_id, $to_remove, true, false, false); // delete them completely; don't send goodbye; don't send notification to admin.
 }
 if (!empty($api->errorMessage)) {
@@ -2665,5 +2697,3 @@ class MCAPI {
     }
 
 }
-
-?>

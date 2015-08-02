@@ -511,7 +511,9 @@ form.min {
 .well {
 	background-color: #E8E8FF;
 }
-#body .table-condensed select, #body .table select, #body .table-condensed input[type=text], #body label select, #body label input[type=text] {
+#body .table-condensed select, #body .table-condensed input[type=text], 
+#body .table select,
+#body label select, #body label input[type=text] {
 	margin: 0px;
 }
 #body .valign-middle, #body table.valign-middle td, #body table.valign-middle th {
@@ -628,6 +630,9 @@ td.narrow, th.narrow, .object-summary th {
 }
 #body .align-centre, #body .center {
 	text-align: center;
+}
+.right {
+	text-align: right !important;
 }
 select, input, textarea {
 	width: auto;
@@ -1248,7 +1253,7 @@ table.service-details td table td input {
 /********* ATTENDANCE AND COLOURED RADIO BUTTONS **********/
 
 	div.radio-button-group {
-		margin: 5px;
+		margin: 3px;
 		overflow: hidden;
 		white-space: nowrap !important;
 		
@@ -1287,18 +1292,18 @@ table.service-details td table td input {
 		position: absolute; 
 		top:-9999px;
 	}
-	.radio-button-group div.value-present, .attendance-stats .present * {
-		background-color: #A9C7A9;
-		background-image: none;
+	.radio-button-group div.value-present, .attendance-stats .present *, th.present {
+		background-color: #A9C7A9 !important;
+		background-image: none !important;
 	}
-	.radio-button-group div.value-present.active, td.present, th.present {
+	.radio-button-group div.value-present.active, td.present {
 		background-color: #17A317 !important;
 	}
-	.radio-button-group div.value-absent, .attendance-stats .absent * {
-		background-color: #BD8986;
-		background-image: none;
+	.radio-button-group div.value-absent, .attendance-stats .absent *, th.absent {
+		background-color: #BD8986 !important;
+		background-image: none !important;
 	}
-	.radio-button-group div.value-absent.active, td.absent, th.absent {
+	.radio-button-group div.value-absent.active, td.absent {
 		background-color: #bd362f !important;
 	}
 	.radio-button-group div.value-unknown {
@@ -1311,9 +1316,16 @@ table.service-details td table td input {
 	td.present, td.absent, td.unknown {
 		text-align: center;
 	}
+	td.disabled {
+		background: #aaa;
+	}
 
-	.attendance-stats .headcount * {
-		background: #CCCCCC;
+	.attendance-stats th, .attendance-stats td {
+		white-space: nowrap;
+	}
+
+	.attendance-stats .headcount *{
+		background: #CCCCCC !important;
 	}
 
 	.attendance-stats .extras * {
@@ -1326,6 +1338,23 @@ table.service-details td table td input {
 	tfoot.attendance-stats td {
 		/*font-weight: bold;*/
 		text-align: center;
+	}
+
+	td.parallel-attendance {
+		border-right: 1px solid #cccccc;
+		border-left: 1px solid #cccccc;
+	}
+	
+	.parallel-attendance-report th:not(.narrow) {
+		min-width: 43px;
+	}
+	
+	.parallel-attendance-report .new-cohort {
+		border-left-width: 3px;
+	}
+	
+	.thick-top-border, tr.thick-top-border td, tr.thick-top-border th  {	
+		border-top-width: 3px !important;	
 	}
 
 /******* MULTI SELECT WIDGET *******/
@@ -1554,10 +1583,22 @@ div.autosuggest ul li a .tl, div.autosuggest ul li a .tr {
 .attendance-config-submit {
 	/*line-height: 100%;*/
 	vertical-align: bottom;
-	margin-bottom: 10px;
+	margin-bottom: 5px;
 }
 .attendance-config-table {
 	display: inline-block;
+}
+.attendance-config-table select, .attendance-config-table input  {
+	margin: 0px;
+}
+
+.attendance-config-table > tbody  > tr > th {
+	padding: 10px 5px;
+}
+.attendance-config-table > tbody > tr > td {
+	padding: 5px !important;
+}
+.attendance-config-table > tbody > tr:last-child > td, .attendance-config-table > tbody  > tr:last-child > th {
 }
 @media (max-width: 640px) {
 	.attendance-config-table {
@@ -1577,6 +1618,9 @@ div.autosuggest ul li a .tl, div.autosuggest ul li a .tr {
 	.attendance table {
 		width: 100% !important;
 	}
+}
+.attendance tr.headcount td, .attendance tr.headcount th {
+	background: #CCCCCC;
 }
 
 /**** SYSTEM CONFIG ************/
