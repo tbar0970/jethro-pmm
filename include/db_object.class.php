@@ -800,7 +800,7 @@ class db_object
 	public function acquireLock($type='')
 	{
 		if ($this->haveLock($type)) return TRUE;
-		if (!$this->canAcquireLock()) return FALSE;
+		if (!$this->canAcquireLock($type)) return FALSE;
 		$db =& $GLOBALS['db'];
 		$sql = 'INSERT INTO db_object_lock (objectid, object_type, lock_type, userid, expires)
 				VALUES (
