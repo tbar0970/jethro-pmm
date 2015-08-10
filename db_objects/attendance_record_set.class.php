@@ -189,7 +189,6 @@ class Attendance_Record_Set
 		if ($this->status !== NULL) {
 			$sql .= ' AND status = '.$db->quote($this->status);
 		}
-		bam($sql);
 
 		$res = $db->query($sql);
 		check_db_result($res);
