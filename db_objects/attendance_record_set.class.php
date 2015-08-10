@@ -169,29 +169,27 @@ class Attendance_Record_Set
 	function delete()
 	{
 		$db =& $GLOBALS['db'];
-		$sql = 'DELETE FROM attendance_record
+		$sql = 'DELETE ar 
+				FROM attendance_record ar
+				JOIN person p ON ar.personid = p.id
 				WHERE date = '.$db->quote($this->date).'
-					AND (groupid = '.$db->quote((int)$this->groupid).')';
+					AND (ar.groupid = '.$db->quote((int)$this->groupid).')';
 		if ($this->congregationid) {
 			$sql .= '
-					AND (personid IN (SELECT id FROM person WHERE congregationid = '.$db->quote($this->congregationid).') ';
+					AND ((congregationid = '.$db->quote($this->congregationid).') ';
 			if (!empty($this->_attendance_records)) {
 				$our_personids = array_map(Array($GLOBALS['db'], 'quote'), array_keys($this->_attendance_records));
 				$sql .= ' OR personid IN ('.implode(', ', $our_personids).')';
 			}
 			$sql .= ')';
 		}
-		if (strlen($this->age_bracket) || ($this->status !== NULL)) {
-			$sql .= '
-					AND (personid IN (SELECT id FROM person WHERE 1=1 ';
-			if (strlen($this->age_bracket)) {
-				' AND age_bracket = '.$db->quote($this->age_bracket).' ';
-			}
-			if (!is_null($this->status)) {
-				' AND status = '.$db->quote($this->status);
-			}
-			$sql .= ' )) ';
+		if (strlen($this->age_bracket)) {
+			$sql .= ' AND age_bracket = '.$db->quote($this->age_bracket).' ';
 		}
+		if ($this->status !== NULL) {
+			$sql .= ' AND status = '.$db->quote($this->status);
+		}
+		bam($sql);
 
 		$res = $db->query($sql);
 		check_db_result($res);
