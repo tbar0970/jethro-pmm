@@ -135,4 +135,3 @@ class View__Mixed_Search extends View
 		<?php
 	}
 }
-?>
