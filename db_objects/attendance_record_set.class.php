@@ -570,15 +570,15 @@ class Attendance_Record_Set
 			$SQL .= '
 				LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status';
 		}
-		if ($age_bracket !== '') {
-			$SQL .= '
-				AND p.age_bracket = '.$GLOBALS['db']->quote($age_bracket);
-		}
 		$SQL .= '
 				WHERE ((p.status <> "archived") OR (ar.present IS NOT NULL)) ';
 		if ($congregationids) {
 			 $SQL .= '
 				 AND p.congregationid IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congregationids)).') ';
+		}
+		if ($age_bracket !== '') {
+			$SQL .= '
+				AND p.age_bracket = '.$GLOBALS['db']->quote($age_bracket);
 		}
 
 		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
