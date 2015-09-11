@@ -1,14 +1,13 @@
 <?php
-$personid = Ical_System::get()->getPersonId();
-
-    header('Content-type: text/calendar');
-    header('Content-Disposition: inline; filename=roster.ics'); ?>
+/** @var $rallocs
+ * @var $Personid
+ */
+?>
 BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Jethro/Jethro//NONSGML v1.0//EN
 <?php
-    $rallocs = Ical_System::get()->getRosterAssignments();
-    foreach ($rallocs as $date => $allocs) { 
+    foreach ($assignments as $date => $allocs) {
         foreach ($allocs as $alloc) {
             $uid = $personid . '_' . $alloc['id'] . "_" . date('Ymd', strtotime($date));
             $starttime = Service::getMeetingDateTime(strtotime($date), $alloc['meeting_time']);

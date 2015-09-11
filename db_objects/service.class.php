@@ -464,15 +464,15 @@ class service extends db_object
 		}
 	}
 
-        /**
-         * Find all services after a particular date.
-         * 
-         * If the congregationid is specified, then only services for this congregation are returned.
-         * @param date $date
-         * @param int $congregationid
-         * @return mixed Returns an array of service objects.
-         */
-	public static function findAllByDateAndCong($date, $congregationid = null)
+	/**
+	 * Find all services after a particular date.
+	 *
+	 * If the congregationid is specified, then only services for this congregation are returned.
+	 * @param date $date
+	 * @param int $congregationid
+	 * @return mixed Returns an array of service objects.
+	 */
+	public static function findAllAfterDate($date, $congregationid = null)
 	{
             $db =& $GLOBALS['db'];
             $sql = '';

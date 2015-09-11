@@ -1,78 +1,72 @@
 <?php
 class View__Edit_Ical extends View
 {
-        private $person = NULL;
-	private $person_uuid = NULL;
-	
 	function getTitle()
 	{
-		if ($this->person) return "iCal Enable/Disable";
+		return 'Manage Roster iCal Feed';
 	}
 	
 	function processView()
 	{
-            $this->person = $GLOBALS['member_user_system']->getCurrentMember();
-            $GLOBALS['system']->includeDBClass('person_uuid');
-            $temp_person_uuid = new Person_UUID();
-            $temp_person_uuid->values['personid'] = $this->person['id'];
-            $this->person_uuid = $temp_person_uuid->getUUID();
-
-            if (!empty($_POST)) {
-                if ($_POST['action'] == 'Disable') {
-                    $temp_person_uuid->delete();
-                    $message = 'iCal URL Disabled';
-                }
-                else if ($_POST['action'] == 'Enable') {
-                    $temp_person_uuid->generateUUID();
-                    $message = 'iCal URL Enabled';
-                }
-                else if ($_POST['action'] == 'Change') {
-                    $temp_person_uuid->generateUUID();                    
-                    $message = 'URL Changed';
-                }
-                $this->person_uuid = $temp_person_uuid->getUUID();
-                
-		add_message($message);
-		redirect('_edit_ical');			
-            }
+            $this->person = $GLOBALS['system']->getDBObject('person', $GLOBALS['member_user_system']->getCurrentMember('id'));
+			if (array_get($_POST, 'action')) {
+				if (!$this->person->acquireLock()) {
+					add_message("Could not adjust iCal feed at this time; please try again later", 'error');
+					return;
+				}
+				if ($_POST['action'] == 'enable') {
+					$this->person->setFeedUUID();
+					$message = 'iCal feed enabled';
+				} else if ($_POST['action'] == 'change') {
+					$this->person->setFeedUUID();
+					$message = 'iCal URL changed';
+				} else if ($_POST['action'] == 'disable') {
+					$this->person->setValue('feed_uuid', NULL);
+					$message = 'iCal feed disabled';
+				} else {
+					$message = 'Invalid action';
+				}
+				if (!$this->person->save(FALSE)) {
+					add_message("Could not adjust iCal feed at this time; please try again later", 'error');
+					return;
+				}
+				$this->person->releaseLock();
+				add_message($message);
+			}
 	}
 	
 	function printView()
 	{
-            ?>
-                <form method="POST" id="ical_form">
-<p>Roster iCal Subscription Options</p>
-<script>
-    function changeAction(newAction)
-    {
-        document.getElementById("user_action").value = newAction;
-        document.getElementById("ical_form").submit();
-    }
-</script>
-<input type="hidden" name="action" id="user_action" value=""/>
-            <?php
-            if ($this->person_uuid)
-            {
-                ?>
-<p>Subscription to your roster assignments by iCal is currently enabled. Your unique subscription URL is:</p>
-                <?php
-                $url = BASE_URL . 'ical/?mode=roster&uuid=' . rawurlencode($this->person_uuid);
-                echo '<p><a href="' . $url . '" target="_blank">' . $url . '</a></p>';
-                ?>
-                    <input type="button" value="Disable" onclick="changeAction('Disable');"/>
-                    <input type="button" value="Change URL" onclick="changeAction('Change');"/>
-                <?php
-            }
-            else
-            {
-                ?>
-<p>Subscription to your roster assignments by iCal is currently disabled. To enable this feature click the Enable button.</p>
-                    <input type="button" value="Enable" onclick="changeAction('Enable');"/>
-                <?php                
-            }
-            ?>
-                </form>
-            <?php
+		$uuid = $this->person->getValue('feed_uuid');
+		if ($uuid) {
+			$url = BASE_URL.'public/?call=roster_ical&uuid='.rawurlencode($uuid);
+			?>
+			<p>Your personalised roster assignments iCal feed is available at <br />
+				<a href="<?php echo $url; ?>" target="_blank"><?php echo $url; ?></a></p>
+
+			<p>To use the feed, enter this URL into Google Calendar, Microsoft Outlook, Apple iCal or another calendar tool which supports the iCalendar format.</p>
+
+			<p>To regenerate your personalised URL, click below.  Your old feed URL will then stop working.</p>
+			<form method="post" class="inline">
+				<input type="hidden" name="action" value="change" />
+				<input type="submit" class="btn" value="Generate New URL" />
+			</form>
+
+			<p>To disable your iCal feed altogether, click below.</p>
+			<form method="post" class="inline">
+				<input type="hidden" name="action" value="disable" />
+				<input type="submit" class="btn" value="Disable iCal feed" />
+			</form>
+			<?php
+		} else {
+			?>
+			<p>Jethro can publish an iCal feed of your roster assignments.  To enable your personal iCal feed, click below.</p>
+			<form method="post" class="form-inline">
+				<input type="hidden" name="action" value="enable" />
+				<input type="submit" class="btn" value="Enable iCal feed" />
+			</form>
+			<?php
+		}
 	}
 
 }
