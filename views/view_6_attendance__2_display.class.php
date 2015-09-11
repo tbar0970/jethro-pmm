@@ -427,7 +427,7 @@ class View_Attendance__Display extends View
 						echo '<td class="center '.$class.'">'.$score.'</td>';
 					} else {
 						foreach ($this->cohortids as $cohortid) {
-							if (!in_array($cohortid, $all_persons[$personid]['cohortids'])) {
+							if (!in_array($cohortid, array_get($all_persons[$personid], 'cohortids', Array()))) {
 								$class = 'disabled';
 								$letter = '';
 							} else {
