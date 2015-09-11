@@ -232,7 +232,7 @@ define('CHUNK_SIZE', 100);
 // define('EXTRA_HEAD_HTML', '');
 
 // Separator character used for combining multiple email addresses in a link
-// define('MULTI_EMAIL_SEPARATOR', ';');
+// define('MULTI_EMAIL_SEPARATOR', ',');
 
 // Custom function for building email URLs.
 // Write your own, or use the sample below to go direct to gmail.
