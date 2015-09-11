@@ -323,7 +323,8 @@ class View_Attendance__Display extends View
 	{
 		$GLOBALS['system']->includeDBClass('attendance_record_set');
 		$GLOBALS['system']->includeDBClass('person');
-
+		$dummy = new Person();
+		
 		$all_persons = Attendance_Record_Set::getPersonIDsForCohorts($this->cohortids);
 		$all_dates = $all_attendances = $all_totals = $all_headcounts = Array();
 		if (!empty($this->cohortids)) {
@@ -354,6 +355,11 @@ class View_Attendance__Display extends View
 				<tr>
 					<th <?php if ($this->format != 'totals') echo 'rowspan="2"'; ?>>Name</th>
 				<?php
+				if (SizeDetector::isWide()) {
+					?>
+					<th <?php if ($this->format != 'totals') echo 'rowspan="2"'; ?>>Status</th>
+					<?php
+				}
 				if ($this->format == 'totals') {
 					$colspan = 1;
 				} else {
@@ -413,6 +419,11 @@ class View_Attendance__Display extends View
 						<?php echo ents($details['first_name'].' '.$details['last_name']); ?>
 					</td>
 				<?php
+				if (SizeDetector::isWide()) {
+					?>
+					<td><?php $dummy->printFieldValue('status', $details['status']); ?></th>
+					<?php
+				}
 				foreach ($all_dates as $date) {
 					$first = TRUE;
 					if ($this->format == 'totals') {
