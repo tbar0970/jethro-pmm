@@ -29,7 +29,10 @@ class View_Home extends View
 		if ($GLOBALS['system']->featureEnabled('ROSTERS&SERVICES')) {
 			?>
 			<div class="member-homepage-box">
-			<h3>My Roster Allocations</h3>
+			<h3>
+                            <a class="pull-right" href="?view=_edit_ical">Subscribe</a>
+                            My Roster Allocations
+                        </h3>
 			<?php
 			$GLOBALS['system']->includeDBClass('roster_role_assignment');
 			$rallocs = Roster_Role_Assignment::getUpcomingAssignments($GLOBALS['member_user_system']->getCurrentMember('id'), NULL);

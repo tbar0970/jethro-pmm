@@ -100,5 +100,5 @@ class Congregation extends db_object
 		return $testIndex & $this->getValue('attendance_recording_days');
 	}
 
-
 }
+?>

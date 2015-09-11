@@ -464,6 +464,39 @@ class service extends db_object
 		}
 	}
 
+        /**
+         * Find all services after a particular date.
+         * 
+         * If the congregationid is specified, then only services for this congregation are returned.
+         * @param date $date
+         * @param int $congregationid
+         * @return mixed Returns an array of service objects.
+         */
+	public static function findAllByDateAndCong($date, $congregationid = null)
+	{
+            $db =& $GLOBALS['db'];
+            $sql = '';
+            if ($congregationid == null)
+            {
+                $sql = 'SELECT id FROM service where date >= ' . $db->quote(date('Y-m-d', $date));
+            }
+            else
+            {
+                $sql = 'SELECT id FROM service where date >= ' . $db->quote(date('Y-m-d', $date)) .
+                    ' and congregationid = ' . $db->quote($congregationid);
+            }
+            $res = $db->queryAll($sql);
+            check_db_result($res);
+            $services = Array();
+            foreach ($res as $row)
+            {
+                $service = System_Controller::get()->getDBObject('service', $row['id']);
+                $services[] = $service;
+            }
+
+            return $services;
+	}
+
 	public function saveItems($itemList)
 	{
 		$db = $GLOBALS['db'];
@@ -581,5 +614,24 @@ class service extends db_object
 			<?php
 		}
 	}
+        
+        /**
+         * Calculate the meeting date/time.
+         * 
+         * @param int $meetingDate The date of the meeting.
+         * @param string $meetingTime The meeting time is like "1000" for 10:00.
+         * @return int The meeting date/time.
+         */
+        public static function getMeetingDateTime($meetingDate, $meetingTime) {
+            $dateString = date('Y-m-d', $meetingDate);
+            if ($meetingTime != NULL && preg_match('/^\\d\\d\\d\\d$/', $meetingTime)) {
+                // Time is specified and valid.
+                $dateString .= ' ' . 
+                    substr($meetingTime, 0, 2) .
+                    ":" .
+                    substr($meetingTime, 2, 2) . ':00';
+            }
+            return strtotime($dateString);            
+        }
 }
 ?>

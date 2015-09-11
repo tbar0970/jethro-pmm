@@ -22,7 +22,7 @@ class roster_role_assignment extends db_object
 	static function getUpcomingAssignments($personid, $timeframe='4 weeks')
 	{
 		$end_date = date('Y-m-d', strtotime('+'.$timeframe));
-		$sql = 'SELECT rra.assignment_date, COALESCE(c.name, "") as cong, rr.title, rr.id
+		$sql = 'SELECT rra.assignment_date, COALESCE(c.name, "") as cong, rr.title, rr.id, c.meeting_time
 			FROM roster_role_assignment rra
 				JOIN roster_role rr ON rra.roster_role_id = rr.id
 				LEFT OUTER JOIN congregation c ON rr.congregationid = c.id
