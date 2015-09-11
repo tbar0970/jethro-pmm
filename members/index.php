@@ -52,6 +52,6 @@ $GLOBALS['member_user_system']->run();
 
 if ($GLOBALS['member_user_system']->getCurrentMember() != NULL) {
 	require_once 'include/system_controller.class.php';
-	$GLOBALS['system'] = new System_Controller(THIS_DIR);
-	$GLOBALS['system']->run();
+	$GLOBALS['system'] = System_Controller::get(THIS_DIR);
+	System_Controller::get()->run();
 }

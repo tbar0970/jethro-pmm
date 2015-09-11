@@ -5,6 +5,27 @@ class System_Controller
 	var $_view = NULL;
 	var $_friendly_errors = false;
 	var $_base_dir = '';
+	
+	static private $instance = NULL;
+
+	/**
+	 * Get the instance of the System Controller.
+	 *
+	 * Singleton pattern.
+	 *
+	 * @param type $base_dir The base directory.
+	 * @return \System_Controller
+	 */
+	public static function get($base_dir=NULL)
+	{
+		static $instance = null;
+
+		if ($instance == NULL) {
+			$instance = new System_Controller($base_dir);
+		}
+
+		return $instance;
+	}
 
 	public function __construct($base_dir=NULL)
 	{
