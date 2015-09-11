@@ -259,9 +259,12 @@ class Attendance_Record_Set
 				JOIN family f on p.familyid = f.id
 				LEFT JOIN congregation c ON p.congregationid = c.id
 				LEFT JOIN person_group_membership pgm 
-					ON pgm.personid = p.id 
-					AND pgm.groupid in ('.implode(', ', array_map(Array($db, 'quote'), $groupids)).')
-				WHERE ';
+					ON pgm.personid = p.id '
+					/*
+					 * Add groups to the query only if the user asked for groups to be displayed in the report.
+					 */
+					.(($groupids and count($groupids) > -1)?' AND pgm.groupid in ('.implode(', ', array_map(Array($db, 'quote'), $groupids)).')':'')
+				.' WHERE ';
 		$wheres = Array();
 		if ($congids) $wheres[] = '(p.congregationid IN ('.implode(', ', array_map(Array($db, 'quote'), $congids)).'))';
 		if ($groupids) $wheres[] = '(pgm.groupid IS NOT NULL)';

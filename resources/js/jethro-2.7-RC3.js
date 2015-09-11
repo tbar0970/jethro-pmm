@@ -1655,9 +1655,9 @@ $(document).ready(function() {
 	});
 
 	$('.radio-button-group').keypress(function(e) {
-		var char = String.fromCharCode(e.which).toUpperCase();
+		var theChar = String.fromCharCode(e.which).toUpperCase();
 		$(this).find('label').each(function() {
-			if ($(this).text().trim() == char) {
+			if ($(this).text().trim() == theChar) {
 				this.click();
 			}
 		});
