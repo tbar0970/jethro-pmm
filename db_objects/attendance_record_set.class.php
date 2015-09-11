@@ -254,17 +254,22 @@ class Attendance_Record_Set
 			if ($type == 'c') $congids[] = $id;
 			if ($type == 'g') $groupids[] = $id;
 		}
-		$SQL = 'SELECT p.id, p.first_name, p.last_name, p.status, c.id as congregationid, c.name as congregation, group_concat(pgm.groupid) as groupids
+		$SQL = 'SELECT p.id, p.first_name, p.last_name, p.status, c.id as congregationid, c.name as congregation, '
+				.($groupids ? 'group_concat(pgm.groupid) as groupids' : '"" AS groupids').'
 				FROM person p
 				JOIN family f on p.familyid = f.id
 				LEFT JOIN congregation c ON p.congregationid = c.id
+				';
+		if ($groupids) {
+			$SQL .= '
 				LEFT JOIN person_group_membership pgm 
-					ON pgm.personid = p.id '
-					/*
-					 * Add groups to the query only if the user asked for groups to be displayed in the report.
-					 */
-					.(($groupids and count($groupids) > -1)?' AND pgm.groupid in ('.implode(', ', array_map(Array($db, 'quote'), $groupids)).')':'')
-				.' WHERE ';
+					ON pgm.personid = p.id
+					AND pgm.groupid in ('.implode(', ', array_map(Array($db, 'quote'), $groupids)).')
+				';
+		}
+		$SQL .= '
+				WHERE
+				';
 		$wheres = Array();
 		if ($congids) $wheres[] = '(p.congregationid IN ('.implode(', ', array_map(Array($db, 'quote'), $congids)).'))';
 		if ($groupids) $wheres[] = '(pgm.groupid IS NOT NULL)';
