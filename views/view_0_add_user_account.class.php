@@ -21,11 +21,13 @@ class View__Add_User_Account extends View
 			}
 			$person =& $GLOBALS['system']->getDBObject('person', $_REQUEST['personid']);
 			$this->_sm->processForm('', $this->_sm_fields);
-			if ($this->_sm->createFromChild($person)) {
-				add_message('User account Added');
-				redirect('admin__user_accounts');
-			} else {
-				trigger_error('Failed to create user account');
+			if ($this->_sm->checkUniqueUsername()) {
+				if ($this->_sm->createFromChild($person)) {
+					add_message('User account Added');
+					redirect('admin__user_accounts');
+				} else {
+					trigger_error('Failed to create user account');
+				}
 			}
 		}
 	}
