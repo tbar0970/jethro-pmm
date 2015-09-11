@@ -254,7 +254,8 @@ class View_Attendance__Record extends View
 		$totalPersons = Attendance_Record_Set::getPersonIDsForCohorts($this->_cohortids);
 		$totalPrinted = 0;
 		$cancelURL = build_url(Array('*' => NULL, 'view' => 'attendance__record', 'cohortids' => $this->_cohortids, 'attendance_date' => $this->_attendance_date, 'release' => 1));
-
+		$dummy = new Person();
+		
 		?>
 		<table class="table table-condensed table-auto-width valign-middle">
 			<thead>
@@ -262,7 +263,7 @@ class View_Attendance__Record extends View
 			<?php
 			if (SizeDetector::isWide()) {
 				?>
-				<th></th>
+				<th>ID</th>
 				<?php
 			}
 			if ($this->_show_photos) {
@@ -274,6 +275,11 @@ class View_Attendance__Record extends View
 			?>
 					<th>Name</th>
 			<?php
+			if (SizeDetector::isWide()) {
+				?>
+				<th>Status</th>
+				<?php
+			}
 			foreach ($this->_record_sets as $prefix => $set) {
 				?>
 				<th class="center"><?php echo $set->getCohortName();?> </th>
@@ -312,6 +318,11 @@ class View_Attendance__Record extends View
 				?>
 					<td><?php echo ents($detail['first_name'].' '.$detail['last_name']); ?></td>
 				<?php
+				if (SizeDetector::isWide()) {
+					?>
+					<td class=""><?php $dummy->printFieldValue('status', $detail['status']); ?></td>
+					<?php
+				}
 				foreach ($this->_record_sets as $prefix => $set) {
 					?>
 					<td class="parallel-attendance">
@@ -336,7 +347,7 @@ class View_Attendance__Record extends View
 			}
 			?>
 				<tr class="headcount">
-					<th class="right" colspan="<?php echo 1+(int)SizeDetector::isWide()+(int)$this->_show_photos; ?>">Total Headcount: &nbsp;</th>
+					<th class="right" colspan="<?php echo 1+(2*(int)SizeDetector::isWide())+(int)$this->_show_photos; ?>">Total Headcount: &nbsp;</th>
 				<?php
 				foreach ($this->_record_sets as $prefix => $set) {
 					?>

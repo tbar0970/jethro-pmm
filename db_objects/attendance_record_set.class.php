@@ -254,7 +254,7 @@ class Attendance_Record_Set
 			if ($type == 'c') $congids[] = $id;
 			if ($type == 'g') $groupids[] = $id;
 		}
-		$SQL = 'SELECT p.id, p.first_name, p.last_name, c.id as congregationid, c.name as congregation, group_concat(pgm.groupid) as groupids
+		$SQL = 'SELECT p.id, p.first_name, p.last_name, p.status, c.id as congregationid, c.name as congregation, group_concat(pgm.groupid) as groupids
 				FROM person p
 				JOIN family f on p.familyid = f.id
 				LEFT JOIN congregation c ON p.congregationid = c.id
