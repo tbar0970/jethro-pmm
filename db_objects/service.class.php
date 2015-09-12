@@ -468,7 +468,7 @@ class service extends db_object
 	 * Find all services after a particular date.
 	 *
 	 * If the congregationid is specified, then only services for this congregation are returned.
-	 * @param date $date
+	 * @param string $date
 	 * @param int $congregationid
 	 * @return mixed Returns an array of service objects.
 	 */
@@ -478,11 +478,11 @@ class service extends db_object
             $sql = '';
             if ($congregationid == null)
             {
-                $sql = 'SELECT id FROM service where date >= ' . $db->quote(date('Y-m-d', $date));
+                $sql = 'SELECT id FROM service where date >= ' . $db->quote($date);
             }
             else
             {
-                $sql = 'SELECT id FROM service where date >= ' . $db->quote(date('Y-m-d', $date)) .
+                $sql = 'SELECT id FROM service where date >= ' . $db->quote($date) .
                     ' and congregationid = ' . $db->quote($congregationid);
             }
             $res = $db->queryAll($sql);

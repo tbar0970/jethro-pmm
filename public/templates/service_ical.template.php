@@ -1,13 +1,10 @@
 <?php
-$personid = Ical_System::get()->getPersonId();
-
-    header('Content-type: text/calendar');
-    header('Content-Disposition: inline; filename=services.ics'); ?>
+/** @var services **/
+?>
 BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Jethro/Jethro//NONSGML v1.0//EN
 <?php
-    $services = Ical_System::get()->getServices();
     foreach ($services as $service)
     {
         $uid = 'service_' . $service->id . '_' . $service->values['date'];

@@ -1,28 +1,16 @@
 <?php
-class Call_Roster_Ical extends Call
+class Call_Services_Ical extends Call
 {
 	function run()
 	{
-		if (empty($_REQUEST['uuid'])) {
-			http_response_code(400);
-			?><p>UUID not specified</p><?php
-			exit;			
-		}
-		
-		$personid = $this->_getPersonID($_REQUEST['uuid']);
-		if (empty($personid)) {
-			http_response_code(404);
-			?><p>Not registered</p><?php
-			exit;
-		}
-		
-		$assignments = Roster_Role_Assignment::getUpcomingAssignments($personid, NULL);
+		$congregationid = array_get($_REQUEST, 'congregationid');
+		$services = Service::findAllAfterDate(date('Y-m-d'), $congregationid);
 		
 		header('Content-type: text/calendar');
 		header('Content-Disposition: inline; filename=roster.ics'); 
 		//header('content-type: text/plain');
 
-		require_once 'templates/roster_ical.template.php';
+		require_once 'templates/service_ical.template.php';
 	}
 
 	/**
