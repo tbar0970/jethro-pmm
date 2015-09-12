@@ -4,14 +4,14 @@ class Call_Roster_Ical extends Call
 	function run()
 	{
 		if (empty($_REQUEST['uuid'])) {
-			http_response_code(400);
+			header("HTTP/1.0 400 Bad request");
 			?><p>UUID not specified</p><?php
 			exit;			
 		}
 		
 		$personid = $this->_getPersonID($_REQUEST['uuid']);
 		if (empty($personid)) {
-			http_response_code(404);
+			header("HTTP/1.0 404 Not Found");
 			?><p>Not registered</p><?php
 			exit;
 		}
