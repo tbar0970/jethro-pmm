@@ -746,6 +746,7 @@ class Person_Query extends DB_Object
 
 					if (array_get($values, 'periodtype') == 'relative') {
 						$length = $values['periodlength'];
+						if (!preg_match('/^[0-9]+$/', $length)) $length = 0;
 						$offsets = Array(
 							'before' => Array(-$length-1, -1),
 							'ending' => Array(-$length, 0),
