@@ -415,7 +415,7 @@ class View_Attendance__Display extends View
 			foreach ($all_persons as $personid => $details) {
 				if (!isset($all_attendances[$personid])) continue;
 				?>
-				<tr>
+				<tr <?php if ($details['status'] == 'archived') echo 'class="archived"'; ?>>
 					<td class="nowrap">
 						<?php echo ents($details['first_name'].' '.$details['last_name']); ?>
 					</td>
@@ -464,10 +464,11 @@ class View_Attendance__Display extends View
 			</tbody>
 			<?php
 		if ($this->format != 'totals') { // headcounts don't make sense when we collapse groups down into totals
+			$colspan = SizeDetector::isWide() ? 'colspan="2"' : '';
 			?>
 			<tfoot class="attendance-stats">
 				<tr class="headcount">
-					<th>Total Headcount</th>
+					<th <?php echo $colspan; ?>>Total Headcount</th>
 				<?php
 				foreach ($all_dates as $date) {
 					$hc = array_get($all_headcounts, $date, Array());
@@ -483,7 +484,7 @@ class View_Attendance__Display extends View
 					<td colspan="2">&nbsp;</td>
 				</tr>
 				<tr class="present">
-					<th>Total Present</th>
+					<th <?php echo $colspan; ?>>Total Present</th>
 				<?php
 				foreach ($all_dates as $date) {
 					$tots = array_get($all_totals, $date, Array());
@@ -499,7 +500,7 @@ class View_Attendance__Display extends View
 					<td colspan="2">&nbsp;</td>
 				</tr>
 				<tr class="absent">
-					<th>Total Absent</th>
+					<th <?php echo $colspan; ?>>Total Absent</th>
 				<?php
 				foreach ($all_dates as $date) {
 					$tots = array_get($all_totals, $date, Array());					
@@ -515,7 +516,7 @@ class View_Attendance__Display extends View
 					<td colspan="2">&nbsp;</td>
 				</tr>
 				<tr class="extras">
-					<th>Extras</th>
+					<th <?php echo $colspan; ?>>Extras</th>
 				<?php
 				foreach ($all_dates as $date) {
 					$tots = array_get($all_totals, $date, Array());					
