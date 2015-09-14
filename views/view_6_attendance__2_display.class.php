@@ -413,6 +413,7 @@ class View_Attendance__Display extends View
 			<?php
 
 			foreach ($all_persons as $personid => $details) {
+				if (!isset($all_attendances[$personid])) continue;
 				?>
 				<tr>
 					<td class="nowrap">
