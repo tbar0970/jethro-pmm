@@ -4,6 +4,7 @@
 BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Jethro/Jethro//NONSGML v1.0//EN
+X-WR-CALNAME:<?php echo SYSTEM_NAME; ?> Services
 <?php
     foreach ($services as $service)
     {
@@ -28,9 +29,9 @@ ORGANIZER;CN=<?php echo $fromName; ?>:MAILTO:<?php echo MEMBER_REGO_EMAIL_FROM_A
 <?php
             }
 ?>
-DTSTART;VALUE=DATE:<?php echo gmdate('Ymd\THis\Z', $starttime); ?>
+DTSTART:<?php echo gmdate('Ymd\THis\Z', $starttime); ?>
 
-DTEND;VALUE=DATE:<?php echo gmdate('Ymd\THis\Z', $endtime); ?>
+DTEND:<?php echo gmdate('Ymd\THis\Z', $endtime); ?>
 
 SUMMARY:<?php echo $congregation->getValue('name') . " Service";
 ?>
