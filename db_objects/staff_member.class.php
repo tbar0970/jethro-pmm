@@ -366,7 +366,7 @@ class Staff_Member extends Person
 	
 	public function checkUniqueUsername()
 	{
-		$others = $GLOBALS['system']->getDBObjectData('staff_member', Array('username' => $this->getValue('username')));
+		$others = $GLOBALS['system']->getDBObjectData('staff_member', Array('username' => $this->getValue('username'), '!id' => $this->id), 'AND');
 		if ($others) {
 			add_message("The username '".$this->getValue('username')."' is already in use.  Please choose a different username.", 'error');
 			return FALSE;
