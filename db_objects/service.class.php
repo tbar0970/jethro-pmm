@@ -464,25 +464,25 @@ class service extends db_object
 		}
 	}
 
-        /**
-         * Find all services after a particular date.
-         * 
-         * If the congregationid is specified, then only services for this congregation are returned.
-         * @param date $date
-         * @param int $congregationid
-         * @return mixed Returns an array of service objects.
-         */
-	public static function findAllByDateAndCong($date, $congregationid = null)
+	/**
+	 * Find all services after a particular date.
+	 *
+	 * If the congregationid is specified, then only services for this congregation are returned.
+	 * @param string $date
+	 * @param int $congregationid
+	 * @return mixed Returns an array of service objects.
+	 */
+	public static function findAllAfterDate($date, $congregationid = null)
 	{
             $db =& $GLOBALS['db'];
             $sql = '';
             if ($congregationid == null)
             {
-                $sql = 'SELECT id FROM service where date >= ' . $db->quote(date('Y-m-d', $date));
+                $sql = 'SELECT id FROM service where date >= ' . $db->quote($date);
             }
             else
             {
-                $sql = 'SELECT id FROM service where date >= ' . $db->quote(date('Y-m-d', $date)) .
+                $sql = 'SELECT id FROM service where date >= ' . $db->quote($date) .
                     ' and congregationid = ' . $db->quote($congregationid);
             }
             $res = $db->queryAll($sql);
@@ -624,7 +624,7 @@ class service extends db_object
          */
         public static function getMeetingDateTime($meetingDate, $meetingTime) {
             $dateString = date('Y-m-d', $meetingDate);
-            if ($meetingTime != NULL && preg_match('/^\\d\\d\\d\\d$/', $meetingTime)) {
+            if ($meetingTime != NULL && preg_match('/\\d\\d\\d\\d/', $meetingTime)) {
                 // Time is specified and valid.
                 $dateString .= ' ' . 
                     substr($meetingTime, 0, 2) .

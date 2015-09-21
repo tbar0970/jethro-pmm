@@ -1,7 +1,7 @@
 <?php
 class View_Persons__Search extends View
 {
-	var $_person_data;
+	var $_person_data = Array();
 	var $_search_terms = Array('first_name', 'last_name', 'email', 'mobile_tel', 'work_tel');
 
 	function processView()

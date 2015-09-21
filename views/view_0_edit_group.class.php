@@ -94,9 +94,12 @@ class View__Edit_Group extends Abstract_View_Edit_Object
 				if ($_POST['action'] == 'delete') { // must be POSTed
 					$GLOBALS['user_system']->checkPerm(PERM_EDITGROUP);
 					$name = $this->_edited_object->toString();
-					$this->_edited_object->delete();
-					add_message('Group "'.$name.'" deleted');
-					redirect('groups__list_all', Array('groupid' => NULL, 'action' => NULL)); // exits
+					if ($this->_edited_object->delete()) {
+						add_message('Group "'.$name.'" deleted');
+						redirect('groups__list_all', Array('groupid' => NULL, 'action' => NULL)); // exits
+					} else {
+						redirect('groups', Array('groupid' => $this->_edited_object->id));
+					}
 				}
 				break;
 		}

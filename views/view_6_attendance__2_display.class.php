@@ -323,7 +323,8 @@ class View_Attendance__Display extends View
 	{
 		$GLOBALS['system']->includeDBClass('attendance_record_set');
 		$GLOBALS['system']->includeDBClass('person');
-
+		$dummy = new Person();
+		
 		$all_persons = Attendance_Record_Set::getPersonIDsForCohorts($this->cohortids);
 		$all_dates = $all_attendances = $all_totals = $all_headcounts = Array();
 		if (!empty($this->cohortids)) {
@@ -354,6 +355,11 @@ class View_Attendance__Display extends View
 				<tr>
 					<th <?php if ($this->format != 'totals') echo 'rowspan="2"'; ?>>Name</th>
 				<?php
+				if (SizeDetector::isWide()) {
+					?>
+					<th <?php if ($this->format != 'totals') echo 'rowspan="2"'; ?>>Status</th>
+					<?php
+				}
 				if ($this->format == 'totals') {
 					$colspan = 1;
 				} else {
@@ -407,12 +413,18 @@ class View_Attendance__Display extends View
 			<?php
 
 			foreach ($all_persons as $personid => $details) {
+				if (!isset($all_attendances[$personid])) continue;
 				?>
-				<tr>
+				<tr <?php if ($details['status'] == 'archived') echo 'class="archived"'; ?>>
 					<td class="nowrap">
 						<?php echo ents($details['first_name'].' '.$details['last_name']); ?>
 					</td>
 				<?php
+				if (SizeDetector::isWide()) {
+					?>
+					<td><?php $dummy->printFieldValue('status', $details['status']); ?></th>
+					<?php
+				}
 				foreach ($all_dates as $date) {
 					$first = TRUE;
 					if ($this->format == 'totals') {
@@ -427,7 +439,7 @@ class View_Attendance__Display extends View
 						echo '<td class="center '.$class.'">'.$score.'</td>';
 					} else {
 						foreach ($this->cohortids as $cohortid) {
-							if (!in_array($cohortid, $all_persons[$personid]['cohortids'])) {
+							if (!in_array($cohortid, array_get($all_persons[$personid], 'cohortids', Array()))) {
 								$class = 'disabled';
 								$letter = '';
 							} else {
@@ -452,10 +464,11 @@ class View_Attendance__Display extends View
 			</tbody>
 			<?php
 		if ($this->format != 'totals') { // headcounts don't make sense when we collapse groups down into totals
+			$colspan = SizeDetector::isWide() ? 'colspan="2"' : '';
 			?>
 			<tfoot class="attendance-stats">
 				<tr class="headcount">
-					<th>Total Headcount</th>
+					<th <?php echo $colspan; ?>>Total Headcount</th>
 				<?php
 				foreach ($all_dates as $date) {
 					$hc = array_get($all_headcounts, $date, Array());
@@ -471,7 +484,7 @@ class View_Attendance__Display extends View
 					<td colspan="2">&nbsp;</td>
 				</tr>
 				<tr class="present">
-					<th>Total Present</th>
+					<th <?php echo $colspan; ?>>Total Present</th>
 				<?php
 				foreach ($all_dates as $date) {
 					$tots = array_get($all_totals, $date, Array());
@@ -487,7 +500,7 @@ class View_Attendance__Display extends View
 					<td colspan="2">&nbsp;</td>
 				</tr>
 				<tr class="absent">
-					<th>Total Absent</th>
+					<th <?php echo $colspan; ?>>Total Absent</th>
 				<?php
 				foreach ($all_dates as $date) {
 					$tots = array_get($all_totals, $date, Array());					
@@ -503,7 +516,7 @@ class View_Attendance__Display extends View
 					<td colspan="2">&nbsp;</td>
 				</tr>
 				<tr class="extras">
-					<th>Extras</th>
+					<th <?php echo $colspan; ?>>Extras</th>
 				<?php
 				foreach ($all_dates as $date) {
 					$tots = array_get($all_totals, $date, Array());					

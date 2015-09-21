@@ -138,6 +138,21 @@ define('MEMBER_REGO_HELP_EMAIL', '');
 // Minimum password length when members register an account
 define('MEMBER_PASSWORD_MIN_LENGTH', '7');
 
+// Whether to show addresses in the members interface
+define('MEMBERS_SHARE_ADDRESS', FALSE);
+
+// SMTP server used to send registration emails (leave blank to use the local 'mail' command)
+define('SMTP_SERVER', '');
+
+// Encryption to use when authenticating with the SMTP server - 'ssl', 'tls', or empty.
+define('SMTP_ENCRYPTION', ''); 
+
+// Username to use when authenticating with the SMTP server. Can be left blank for no auth.
+define('SMTP_USERNAME', '');
+
+// Password to use when authenticating with the SMTP server. Can be left blank for no auth.
+define('SMTP_PASSWORD', '');
+
 
 ////////////////////////////////////////////////////////////////
 // EXTERNAL TOOLS SETTINGS - how Jethro should talk to other services
@@ -225,7 +240,7 @@ define('CHUNK_SIZE', 100);
 // define('EXTRA_HEAD_HTML', '');
 
 // Separator character used for combining multiple email addresses in a link
-// define('MULTI_EMAIL_SEPARATOR', ';');
+// define('MULTI_EMAIL_SEPARATOR', ',');
 
 // Custom function for building email URLs.
 // Write your own, or use the sample below to go direct to gmail.

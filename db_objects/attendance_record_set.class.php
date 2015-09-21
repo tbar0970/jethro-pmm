@@ -169,28 +169,25 @@ class Attendance_Record_Set
 	function delete()
 	{
 		$db =& $GLOBALS['db'];
-		$sql = 'DELETE FROM attendance_record
+		$sql = 'DELETE ar 
+				FROM attendance_record ar
+				JOIN person p ON ar.personid = p.id
 				WHERE date = '.$db->quote($this->date).'
-					AND (groupid = '.$db->quote((int)$this->groupid).')';
+					AND (ar.groupid = '.$db->quote((int)$this->groupid).')';
 		if ($this->congregationid) {
 			$sql .= '
-					AND (personid IN (SELECT id FROM person WHERE congregationid = '.$db->quote($this->congregationid).') ';
+					AND ((congregationid = '.$db->quote($this->congregationid).') ';
 			if (!empty($this->_attendance_records)) {
 				$our_personids = array_map(Array($GLOBALS['db'], 'quote'), array_keys($this->_attendance_records));
 				$sql .= ' OR personid IN ('.implode(', ', $our_personids).')';
 			}
 			$sql .= ')';
 		}
-		if (strlen($this->age_bracket) || ($this->status !== NULL)) {
-			$sql .= '
-					AND (personid IN (SELECT id FROM person WHERE 1=1 ';
-			if (strlen($this->age_bracket)) {
-				' AND age_bracket = '.$db->quote($this->age_bracket).' ';
-			}
-			if (!is_null($this->status)) {
-				' AND status = '.$db->quote($this->status);
-			}
-			$sql .= ' )) ';
+		if (strlen($this->age_bracket)) {
+			$sql .= ' AND age_bracket = '.$db->quote($this->age_bracket).' ';
+		}
+		if ($this->status !== NULL) {
+			$sql .= ' AND status = '.$db->quote($this->status);
 		}
 
 		$res = $db->query($sql);
@@ -257,14 +254,22 @@ class Attendance_Record_Set
 			if ($type == 'c') $congids[] = $id;
 			if ($type == 'g') $groupids[] = $id;
 		}
-		$SQL = 'SELECT p.id, p.first_name, p.last_name, c.id as congregationid, c.name as congregation, group_concat(pgm.groupid) as groupids
+		$SQL = 'SELECT p.id, p.first_name, p.last_name, p.status, c.id as congregationid, c.name as congregation, '
+				.($groupids ? 'group_concat(pgm.groupid) as groupids' : '"" AS groupids').'
 				FROM person p
 				JOIN family f on p.familyid = f.id
 				LEFT JOIN congregation c ON p.congregationid = c.id
+				';
+		if ($groupids) {
+			$SQL .= '
 				LEFT JOIN person_group_membership pgm 
-					ON pgm.personid = p.id 
+					ON pgm.personid = p.id
 					AND pgm.groupid in ('.implode(', ', array_map(Array($db, 'quote'), $groupids)).')
-				WHERE ';
+				';
+		}
+		$SQL .= '
+				WHERE
+				';
 		$wheres = Array();
 		if ($congids) $wheres[] = '(p.congregationid IN ('.implode(', ', array_map(Array($db, 'quote'), $congids)).'))';
 		if ($groupids) $wheres[] = '(pgm.groupid IS NOT NULL)';
@@ -570,15 +575,15 @@ class Attendance_Record_Set
 			$SQL .= '
 				LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status';
 		}
-		if ($age_bracket !== '') {
-			$SQL .= '
-				AND p.age_bracket = '.$GLOBALS['db']->quote($age_bracket);
-		}
 		$SQL .= '
 				WHERE ((p.status <> "archived") OR (ar.present IS NOT NULL)) ';
 		if ($congregationids) {
 			 $SQL .= '
 				 AND p.congregationid IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congregationids)).') ';
+		}
+		if ($age_bracket !== '') {
+			$SQL .= '
+				AND p.age_bracket = '.$GLOBALS['db']->quote($age_bracket);
 		}
 
 		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
@@ -614,7 +619,7 @@ class Attendance_Record_Set
 			$congregations = $GLOBALS['system']->getDBObjectData('congregation', Array('!attendance_recording_days' => 0), 'OR', 'meeting_time');
 			$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('!attendance_recording_days' => 0, 'is_archived' => 0), 'AND', 'category, name');
 			// need to preserve category too
-			uasort($groups, create_function('$x,$y', '$r = strnatcmp($x["category"], $y["category"]); if ($r == 0) strnatcmp($x["name"], $y["name"]); return $r;')); // to ensure natural sorting
+			uasort($groups, create_function('$x,$y', '$r = strnatcmp($x["category"], $y["category"]); if ($r == 0) $r = strnatcmp($x["name"], $y["name"]); return $r;')); // to ensure natural sorting
 		}
 		$lastCategory = -1;
 		?>

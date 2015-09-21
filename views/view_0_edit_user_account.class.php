@@ -14,7 +14,7 @@ class View__Edit_User_Account extends View
 		if (!empty($_POST['edit_staff_submitted'])) {
 			if ($this->_staff_member->haveLock()) {
 				$this->_staff_member->processForm();
-				if ($this->_staff_member->save()) {
+				if ($this->_staff_member->checkUniqueUsername() && $this->_staff_member->save()) {
 					$this->_staff_member->releaseLock();
 					add_message('Account Updated ');
 					redirect('admin__user_accounts'); // exits

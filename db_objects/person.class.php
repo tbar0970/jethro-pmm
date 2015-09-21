@@ -124,6 +124,12 @@ class Person extends DB_Object
 									'show_in_summary'	=> false,
 
 								   ),
+			'feed_uuid'				=> Array(
+									'type' => 'text',
+									'editable'		=> false,
+									'show_in_summary'	=> false,
+									)
+	
 		);
 		if (defined('PERSON_STATUS_DEFAULT')) {
 			if (FALSE !== ($i = array_search(constant('PERSON_STATUS_DEFAULT'), $res['status']['options']))) {
@@ -701,6 +707,16 @@ class Person extends DB_Object
 			default:
 				parent::printFieldInterface($name, $prefix);
 		}
+	}
+
+	public function setFeedUUID()
+	{
+		$uuid = generate_random_string(60);
+		while ($others = $GLOBALS['system']->getDBObjectData('person', Array('feed_uuid' => $uuid))) {
+			$uuid = generate_random_string(60);
+		}
+		$this->setValue('feed_uuid', $uuid);
+		return $uuid;
 	}
 
 	static function getDateSubfieldParams()

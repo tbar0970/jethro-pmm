@@ -31,6 +31,19 @@ class View_Attendance__Record extends View
 
 	function processView()
 	{
+		if (isset($_REQUEST['cohortids'])) {
+			foreach ($_REQUEST['cohortids'] as $id) {
+				if ($id) $this->_cohortids[] = $id;
+			}
+			$_SESSION['attendance']['cohortids'] = $this->_cohortids;
+		}
+		$this->_attendance_date = process_widget('attendance_date', Array('type' => 'date'));			
+		if (empty($this->_attendance_date)) {
+			// Default to last Sunday, unless today is Sunday
+			$default_day = defined('ATTENDANCE_DEFAULT_DAY') ? ATTENDANCE_DEFAULT_DAY : 'Sunday';
+			$this->_attendance_date = date('Y-m-d', ((date('l') == $default_day) ? time() : strtotime('last '.$default_day)));			
+		}
+		
 		if (empty($_REQUEST['params_submitted']) && empty($_REQUEST['attendances_submitted'])) {
 			if (!empty($_SESSION['attendance'])) {
 				$this->_age_bracket = array_get($_SESSION['attendance'], 'age_bracket');
@@ -38,40 +51,39 @@ class View_Attendance__Record extends View
 				$this->_show_photos =  array_get($_SESSION['attendance'], 'show_photos', FALSE);
 				$this->_parallel_mode =  array_get($_SESSION['attendance'], 'parallel_mode', FALSE);
 			}
-			// Default to last Sunday, unless today is Sunday
-			$default_day = defined('ATTENDANCE_DEFAULT_DAY') ? ATTENDANCE_DEFAULT_DAY : 'Sunday';
-			$this->_attendance_date = date('Y-m-d', ((date('l') == $default_day) ? time() : strtotime('last '.$default_day)));
 		}
 
 		if (!empty($_REQUEST['params_submitted']) || !empty($_REQUEST['attendances_submitted'])) {
-			$this->_attendance_date = process_widget('attendance_date', Array('type' => 'date'));
 			$this->_age_bracket = $_SESSION['attendance']['age_bracket'] = array_get($_REQUEST, 'age_bracket');
 			$this->_show_photos = $_SESSION['attendance']['show_photos'] = array_get($_REQUEST, 'show_photos', FALSE);
 			$this->_parallel_mode = $_SESSION['attendance']['parallel_mode'] = array_get($_REQUEST, 'parallel_mode', FALSE);
 
-			foreach ($_REQUEST['cohortids'] as $id) {
-				if ($id) $this->_cohortids[] = $id;
-				$_SESSION['attendance']['cohortids'] = $this->_cohortids;
-			}
-
-			$status = NULL; // TODO
-			foreach ($this->_cohortids as $id) {
-				$this->_record_sets[$id] = new Attendance_Record_set($this->_attendance_date, $id, $this->_age_bracket, $status);
-				if ($this->_show_photos) $this->_record_sets[$id]->show_photos = TRUE;
-			}
 		}
 		
-		foreach ($this->_record_sets as $cohortid => $set) {
-			if (!$set->checkAllowedDate()) {
-				add_message("Attendance for '".$set->getCohortName()."' cannot be recorded on a ".date('l', strtotime($this->_attendance_date)), 'error');
-				unset($this->_record_sets[$cohortid]);
-				$this->_cohortids = array_diff($this->_cohortids, Array($cohortid));
+		$status = NULL; // TODO
+		foreach ($this->_cohortids as $id) {
+			$this->_record_sets[$id] = new Attendance_Record_set($this->_attendance_date, $id, $this->_age_bracket, $status);
+			if ($this->_show_photos) $this->_record_sets[$id]->show_photos = TRUE;
+		}
+		
+		if (!empty($_REQUEST['release'])) {
+			foreach ($this->_record_sets as $set) {
+				$set->releaseLock();
 			}
-			
-			if (!$set->acquireLock()) {
-				add_message("Another user is currently recording attendance for '".$set->getCohortName()."'.  Please wait until they finish then try again.", 'error');
-				unset($this->_record_sets[$cohortid]);
-				$this->_cohortids = array_diff($this->_cohortids, Array($cohortid));
+		} else if (!empty($_REQUEST['params_submitted'])) {
+			foreach ($this->_record_sets as $cohortid => $set) {
+				if (!$set->checkAllowedDate()) {
+					add_message("Attendance for '".$set->getCohortName()."' cannot be recorded on a ".date('l', strtotime($this->_attendance_date)), 'error');
+					unset($this->_record_sets[$cohortid]);
+					$this->_cohortids = array_diff($this->_cohortids, Array($cohortid));
+					continue;
+				}
+
+				if (!$set->acquireLock()) {
+					add_message("Another user is currently recording attendance for '".$set->getCohortName()."'.  Please wait until they finish then try again.", 'error');
+					unset($this->_record_sets[$cohortid]);
+					$this->_cohortids = array_diff($this->_cohortids, Array($cohortid));
+				}
 			}
 		}
 
@@ -109,16 +121,17 @@ class View_Attendance__Record extends View
 				$_SESSION['enter_attendance_token'] = md5(time());
 			}
 		}
+		
 	}
 	
 	function printView()
 	{
-		if (empty($this->_record_sets)) {
-			$this->printParams();
-		} else if (empty($_POST['attendances_submitted'])) {
-			$this->printForm();
+		if (!empty($_POST['attendances_submitted'])) {
+			$this->printConfirmation();			
+		} else if ($this->_cohortids && !empty($_REQUEST['params_submitted'])) {
+			$this->printForm();			
 		} else {
-			$this->printConfirmation();
+			$this->printParams();
 		}
 	}
 
@@ -241,6 +254,9 @@ class View_Attendance__Record extends View
 	{
 		$totalPersons = Attendance_Record_Set::getPersonIDsForCohorts($this->_cohortids);
 		$totalPrinted = 0;
+		$cancelURL = build_url(Array('*' => NULL, 'view' => 'attendance__record', 'cohortids' => $this->_cohortids, 'attendance_date' => $this->_attendance_date, 'release' => 1));
+		$dummy = new Person();
+		
 		?>
 		<table class="table table-condensed table-auto-width valign-middle">
 			<thead>
@@ -248,7 +264,7 @@ class View_Attendance__Record extends View
 			<?php
 			if (SizeDetector::isWide()) {
 				?>
-				<th></th>
+				<th>ID</th>
 				<?php
 			}
 			if ($this->_show_photos) {
@@ -260,6 +276,11 @@ class View_Attendance__Record extends View
 			?>
 					<th>Name</th>
 			<?php
+			if (SizeDetector::isWide()) {
+				?>
+				<th>Status</th>
+				<?php
+			}
 			foreach ($this->_record_sets as $prefix => $set) {
 				?>
 				<th class="center"><?php echo $set->getCohortName();?> </th>
@@ -298,6 +319,11 @@ class View_Attendance__Record extends View
 				?>
 					<td><?php echo ents($detail['first_name'].' '.$detail['last_name']); ?></td>
 				<?php
+				if (SizeDetector::isWide()) {
+					?>
+					<td class=""><?php $dummy->printFieldValue('status', $detail['status']); ?></td>
+					<?php
+				}
 				foreach ($this->_record_sets as $prefix => $set) {
 					?>
 					<td class="parallel-attendance">
@@ -322,7 +348,7 @@ class View_Attendance__Record extends View
 			}
 			?>
 				<tr class="headcount">
-					<th class="right" colspan="<?php echo 1+(int)SizeDetector::isWide()+(int)$this->_show_photos; ?>">Total Headcount: &nbsp;</th>
+					<th class="right" colspan="<?php echo 1+(2*(int)SizeDetector::isWide())+(int)$this->_show_photos; ?>">Total Headcount: &nbsp;</th>
 				<?php
 				foreach ($this->_record_sets as $prefix => $set) {
 					?>
@@ -335,7 +361,7 @@ class View_Attendance__Record extends View
 			</tbody>
 		</table>
 		<input type="submit" class="btn" value="Save All Attendances" />
-		<a href="?view=attendance__record" class="btn">Cancel</a>
+		<a href="<?php echo $cancelURL; ?>" class="btn">Cancel</a>
 		<?php
 
 
@@ -344,6 +370,7 @@ class View_Attendance__Record extends View
 	
 	private function printFormSequential()
 	{
+		$cancelURL = build_url(Array('*' => NULL, 'view' => 'attendance__record', 'cohortids' => $this->_cohortids, 'attendance_date' => $this->_attendance_date, 'release' => 1));
 		$totalPrinted = 0;
 		foreach ($this->_record_sets as $i => $set) {
 			if ((int)$set->congregationid) {
@@ -375,7 +402,7 @@ class View_Attendance__Record extends View
 						</p>
 						<p class="span6 align-right nowrap">
 							<input type="submit" class="btn" value="Save All Attendances" />
-							<a href="?view=attendance__record" class="btn">Cancel</a>
+							<a href="<?php echo $cancelURL; ?>" class="btn">Cancel</a>
 						</p>
 					</div>
 					<?php

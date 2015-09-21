@@ -347,9 +347,9 @@ $(document).ready(function() {
 	if (attendanceUseKeyboard) {
 		/* when a key is pressed while a button group is hovered, click the applicable button */
 		$('.radio-button-group').keypress(function(e) {
-			var char = String.fromCharCode(e.which).toUpperCase();
+			var theChar = String.fromCharCode(e.which).toUpperCase();
 			$(this).find('div').each(function() {
-				if ($(this).text().trim() == char) {
+				if ($(this).text().trim() == theChar) {
 					this.click();
 				}
 			});
