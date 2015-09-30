@@ -1682,7 +1682,7 @@ table.system-config td small {
 	padding: 7px 3px;
 }
 
-#service-plan tbody * {
+#service-plan tbody td {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
