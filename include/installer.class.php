@@ -25,7 +25,7 @@ class Installer
 	function printBody()
 	{
 		require_once dirname(__FILE__).'/system_controller.class.php';
-		$GLOBALS['system'] = new System_Controller();
+		$GLOBALS['system'] = $GLOBALS['system'] = System_Controller::get();
 		set_error_handler(Array($GLOBALS['system'], '_handleError'));
 
 		if ($this->readyToInstall() && $this->initInitialEntities()) {

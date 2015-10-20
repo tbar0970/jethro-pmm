@@ -43,5 +43,5 @@ $GLOBALS['user_system'] = new User_System();
 $GLOBALS['user_system']->setPublic();
 
 require_once 'include/system_controller.class.php';
-$GLOBALS['system'] = new System_Controller(THIS_DIR);
+$GLOBALS['system'] = System_Controller::get(THIS_DIR);
 $GLOBALS['system']->run();

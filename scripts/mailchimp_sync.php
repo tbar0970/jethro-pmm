@@ -37,7 +37,7 @@ $GLOBALS['user_system'] = new User_System();
 $GLOBALS['user_system']->setPublic();
 
 require_once JETHRO_ROOT.'/include/system_controller.class.php';
-$GLOBALS['system'] = new System_Controller();
+$GLOBALS['system'] = System_Controller::get();
 
 if (empty($api_key)) {
 	trigger_error("API key not specified" , E_USER_ERROR);
