@@ -860,10 +860,9 @@ class Person_Query extends DB_Object
 			 * results.  There is client-side code to deal with this,
 			 * but this check here is for extra robustness.
 			 */
-			if($query['order_by'] == '`attendance_percent`' and !in_array('attendance_percent', $params['show_fields'])){
+			if (($query['order_by'] == '`attendance_percent`') && !in_array('attendance_percent', $params['show_fields'])) {
 				array_push($params['show_fields'],'attendance_percent');
-			}
-			else if ($query['order_by'] == '`attendance_numabsences`' and !in_array('attendance_numabsences', $params['show_fields'])){
+			} else if (($query['order_by'] == '`attendance_numabsences`') && !in_array('attendance_numabsences', $params['show_fields'])){
 				array_push($params['show_fields'],'attendance_numabsences');
 			}
 			foreach ($params['show_fields'] as $field) {
@@ -1014,8 +1013,7 @@ class Person_Query extends DB_Object
 		 */
 		if ($query['order_by'] == '`attendance_percent`') {
 			$query['order_by'] = '`Attendance` ASC';
-		}
-		else if ($query['order_by'] == '`attendance_numabsences`') {
+		} else if ($query['order_by'] == '`attendance_numabsences`') {
 			$query['order_by'] = '`Running Absences` DESC';
 		}
 
