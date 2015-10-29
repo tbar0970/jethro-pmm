@@ -93,6 +93,9 @@ define('SHOW_SERVICE_NOTES_PUBLICLY', TRUE);
 // enter one here.  See  php.net/manual/en/timezones.php for valid timezones.
 define('TIMEZONE', '');
 
+// Note to display beneath the log-in button, eg a link to T&Cs.  Can contain HTML.
+//define('LOGIN_NOTE', '');
+
 // Security setting: Require a user to log in again if they haven't done anything for this length of time
 define('SESSION_TIMEOUT_MINS', 90);
 
