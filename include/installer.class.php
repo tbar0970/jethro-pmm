@@ -333,12 +333,8 @@ class Installer
 		?>
 		<h2>Installation Complete!</h2>
 
-		You can now:
-		<ul>
-			<li><a target="_blank" href="<?php echo BASE_URL; ?>/readme.html">View the readme file</a> for further information</li>
-			<li><a href="<?php echo BASE_URL; ?>">Log in to the system</a> to start work</li>
-		</ul>
+		You can now <a href="<?php echo BASE_URL; ?>">log in to the system</a> to start work.
+		
 		<?php
 	}
 }
-?>
