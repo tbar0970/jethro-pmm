@@ -746,6 +746,7 @@ class Person_Query extends DB_Object
 
 					if (array_get($values, 'periodtype') == 'relative') {
 						$length = $values['periodlength'];
+						if (!preg_match('/^[0-9]+$/', $length)) $length = 0;
 						$offsets = Array(
 							'before' => Array(-$length-1, -1),
 							'ending' => Array(-$length, 0),
@@ -853,6 +854,17 @@ class Person_Query extends DB_Object
 		// DISPLAY FIELDS
 		$joined_groups = FALSE;
 		if (empty($select_fields)) {
+			/*
+			 * If the user chose to sort by Attendance or Absences but didn't 
+			 * include them in the list of required columns, just add them to the
+			 * results.  There is client-side code to deal with this,
+			 * but this check here is for extra robustness.
+			 */
+			if (($query['order_by'] == '`attendance_percent`') && !in_array('attendance_percent', $params['show_fields'])) {
+				array_push($params['show_fields'],'attendance_percent');
+			} else if (($query['order_by'] == '`attendance_numabsences`') && !in_array('attendance_numabsences', $params['show_fields'])){
+				array_push($params['show_fields'],'attendance_numabsences');
+			}
 			foreach ($params['show_fields'] as $field) {
 				if (substr($field, 0, 2) == '--') continue; // they selected a separator
 				switch ($field) {
@@ -862,7 +874,7 @@ class Person_Query extends DB_Object
 						if (empty($params['include_groups'])) continue;
 						
 						if ($params['group_by'] == 'groupid') {
-							// pg and pgm already joined for grouping purposes
+							/* pg and pgm already joined for grouping purposes */
 							if ($field == 'groups') {
 								$query['select'][] = 'GROUP_CONCAT(pg.name ORDER BY pg.name SEPARATOR "\n") as person_groups';
 							} else if ($field == 'membershipstatus') {
@@ -908,9 +920,11 @@ class Person_Query extends DB_Object
 						$query['select'][] = 'all_members.names as `All Family Members`';
 						break;
 					case 'adult_members':
-						// For a left join to be efficient we need to 
-						// create a temp table with an index rather than
-						// just joining a subquery.
+						/* 
+						 * For a left join to be efficient we need to 
+						 * create a temp table with an index rather than
+						 * just joining a subquery.
+						 */
 						$r1 = $GLOBALS['db']->query('CREATE TEMPORARY TABLE _family_adults'.$this->id.' (
 													familyid int(10) not null primary key,
 													names varchar(512) not null
@@ -932,7 +946,6 @@ class Person_Query extends DB_Object
 						$query['select'][] = '_family_adults'.$this->id.'.names as `Adult Family Members`';
 						break;
 					case 'attendance_percent':
-						if ($params['attendance_groupid']) {
 							$groupid = $params['attendance_groupid'] == '__cong__' ? 0 : $params['attendance_groupid'];
 							$min_date = date('Y-m-d', strtotime('-'.(int)$params['attendance_weeks'].' weeks'));
 							$query['select'][] = '(SELECT CONCAT(ROUND(SUM(present)/COUNT(*)*100), "%") 
@@ -940,18 +953,15 @@ class Person_Query extends DB_Object
 													WHERE date >= '.$GLOBALS['db']->quote($min_date).' 
 													AND groupid = '.(int)$groupid.'
 													AND personid = p.id) AS `Attendance`';
-						}
 						break;
 					case 'attendance_numabsences':
-						// The number of "absents" recorded since the last "present".
-						if ($params['attendance_groupid']) {
+						/* The number of "absents" recorded since the last "present".*/
 							$groupid = $params['attendance_groupid'] == '__cong__' ? 0 : $params['attendance_groupid'];
 							$query['select'][] = '(SELECT COUNT(*)
 													FROM attendance_record ar
 													WHERE groupid = '.(int)$groupid.'
 													AND personid = p.id
 													AND date > (SELECT COALESCE(MAX(date), "2000-01-01") FROM attendance_record ar2 WHERE ar2.personid = ar.personid AND present = 1)) AS `Running Absences`';
-						}
 						break;
 					case 'actionnotes.subjects':
 						$query['select'][] = '(SELECT GROUP_CONCAT(subject SEPARATOR ", ") 
@@ -987,26 +997,24 @@ class Person_Query extends DB_Object
 		// Order by
 		if (substr($params['sort_by'], 0, 7) == 'date---') {
 			$query['from'] .= 'LEFT JOIN person_date pdorder ON pdorder.personid = p.id AND pdorder.typeid = '.$db->quote(substr($query['order_by'], 8))."\n";
-			// we want persons with a full date first, in chronological order.  Then persons with a yearless date, in order.  Then persons with no date.
+			/*
+			 * We want persons with a full date first, in chronological
+			 * order.  Then persons with a yearless date, in order.  
+			 * Then persons with no date.
+			 */
 			$query['order_by'] = 'IF (pdorder.`date` IS NULL, 3, IF (pdorder.`date` LIKE "-%", 2, 1)), pdorder.`date`';
 
 		}
 
+		/* 
+		 * We can order by attendances or absences safely, 
+		 * because we have already ensured they will appear 
+		 * the select clause.
+		 */
 		if ($query['order_by'] == '`attendance_percent`') {
-			if (in_array('attendance_percent', $params['show_fields'])) {
-				$query['order_by'] = '`Attendance` ASC';
-			} else {
-				// can't order by attendnace percent if it's not in the select  fall back to lastname.
-				$query['order_by'] = 'p.last_name';
-			}
-		}
-		if ($query['order_by'] == '`attendance_numabsences`') {
-			if (in_array('attendance_numabsences', $params['show_fields'])) {
-				$query['order_by'] = '`Running Absences` DESC';
-			} else {
-				// can't order by attendnace absences if it's not in the select  fall back to lastname.
-				$query['order_by'] = 'p.last_name';
-			}
+			$query['order_by'] = '`Attendance` ASC';
+		} else if ($query['order_by'] == '`attendance_numabsences`') {
+			$query['order_by'] = '`Running Absences` DESC';
 		}
 
 		// Build SQL

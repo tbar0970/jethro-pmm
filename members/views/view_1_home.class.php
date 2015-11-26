@@ -15,7 +15,7 @@ class View_Home extends View
 		?>
 		<div class="member-homepage-box">
 			<h3>
-				<a class="pull-right" href="?view=_edit_me">Edit</a>
+				<a class="pull-right" href="?view=_edit_me"><small>Edit</small></a>
 				My Family
 			</h3>
 			<?php
@@ -30,9 +30,9 @@ class View_Home extends View
 			?>
 			<div class="member-homepage-box">
 			<h3>
-                            <a class="pull-right" href="?view=_edit_ical">Subscribe</a>
-                            My Roster Allocations
-                        </h3>
+				<a class="pull-right" href="?view=_edit_ical"><small>Subscribe</small></a>
+				My Roster Allocations &nbsp;
+			</h3>
 			<?php
 			$GLOBALS['system']->includeDBClass('roster_role_assignment');
 			$rallocs = Roster_Role_Assignment::getUpcomingAssignments($GLOBALS['member_user_system']->getCurrentMember('id'), NULL);

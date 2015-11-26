@@ -43,9 +43,20 @@
 			<div class="control-group">
 				<div class="controls">
 					<input type="submit" value="Log In" class="btn" />
-					<input type="hidden" name="login_key" value="<?php echo $login_key; ?>" />
+					<input type="hidden" name="login_key" value="<?php echo $login_key; ?>" /><br />
 				</div>
 			</div>
+		<?php
+		if (defined('LOGIN_NOTE') && LOGIN_NOTE) {
+			?>
+			<div class="control-group">
+				<div class="controls">
+					<?php echo '<p>'.LOGIN_NOTE.'</p>'; ?>
+				</div>
+			</div>
+			<?php
+		}
+		?>
 		</div>
 	</form>
 </body>

@@ -51,6 +51,7 @@ class View_Groups extends View
 					<td class="hidden-phone"><?php $this->_group->printFieldValue('share_member_details'); ?></td>
 					<td class="align-right">
 						<form class="min" method="post" action="?view=_edit_group&groupid=<?php echo $this->_group->id; ?>">
+							<input type="hidden" name="action" value="delete" />
 							<button class="btn-link double-confirm-title link-collapse" type="submit" title="Delete this group">
 								<i class="icon-trash"></i>Delete group
 							</button>

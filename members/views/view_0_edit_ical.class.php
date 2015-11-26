@@ -6,9 +6,14 @@ class View__Edit_Ical extends View
 		return 'Manage Roster iCal Feed';
 	}
 	
+	function _loadPerson()
+	{
+		$this->person = $GLOBALS['system']->getDBObject('person', $GLOBALS['member_user_system']->getCurrentMember('id'));	
+	}
+	
 	function processView()
 	{
-            $this->person = $GLOBALS['system']->getDBObject('person', $GLOBALS['member_user_system']->getCurrentMember('id'));
+            $this->_loadPerson();
 			if (array_get($_POST, 'action')) {
 				if (!$this->person->acquireLock()) {
 					add_message("Could not adjust iCal feed at this time; please try again later", 'error');

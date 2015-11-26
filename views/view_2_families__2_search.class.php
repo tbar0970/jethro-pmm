@@ -29,10 +29,12 @@ class View_Families__Search extends View
 
 		// Put all the archived ones last
 		$archiveds = Array();
-		foreach ($this->_family_data as $k => $v) {
-			if ($v['status'] == 'archived') {
-				$archiveds[$k] = $v;
-				unset($this->_family_data[$k]);
+		if (!empty($this->_family_data)) {
+			foreach ($this->_family_data as $k => $v) {
+				if ($v['status'] == 'archived') {
+					$archiveds[$k] = $v;
+					unset($this->_family_data[$k]);
+				}
 			}
 		}
 		foreach ($archiveds as $k => $v) {

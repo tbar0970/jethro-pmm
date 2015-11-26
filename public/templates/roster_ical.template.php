@@ -6,6 +6,7 @@
 BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Jethro/Jethro//NONSGML v1.0//EN
+X-WR-CALNAME:<?php echo SYSTEM_NAME; ?> Roster
 <?php
     foreach ($assignments as $date => $allocs) {
         foreach ($allocs as $alloc) {
@@ -14,7 +15,7 @@ PRODID:-//Jethro/Jethro//NONSGML v1.0//EN
             $endtime = $starttime;
             $timeSpecified = 0;
             // Check if the meeting time looks reasonable
-            if ($alloc['meeting_time'] != NULL && preg_match('/^\\d\\d\\d\\d$/', $alloc['meeting_time'])) {
+            if ($alloc['meeting_time'] != NULL && preg_match('/\\d\\d\\d\\d/', $alloc['meeting_time'])) {
                 // Guess end time as start time + 1 hour (3600 seconds)
                 $endtime += 3600;
                 $timeSpecified = 1;
@@ -41,9 +42,9 @@ ORGANIZER;CN=<?php echo $fromName; ?>:MAILTO:<?php echo MEMBER_REGO_EMAIL_FROM_A
             if ($timeSpecified) {
                 // Use GMT, with time
 ?>
-DTSTART;VALUE=DATE:<?php echo gmdate('Ymd\THis\Z', $starttime); ?>
+DTSTART:<?php echo gmdate('Ymd\THis\Z', $starttime); ?>
 
-DTEND;VALUE=DATE:<?php echo gmdate('Ymd\THis\Z', $endtime); ?>
+DTEND:<?php echo gmdate('Ymd\THis\Z', $endtime); ?>
                 
 <?php        } else {
                 // Use local time, with date only
@@ -59,12 +60,8 @@ SUMMARY:<?php echo $alloc['title']; ?>
 DESCRIPTION:Roster assignment: <?php
             if ($alloc['cong'] )
             echo $alloc['title'] . ', ' . $alloc['cong'] . ', ' . SYSTEM_NAME;
-?>
-
- <?php echo 'Role description: ' . BASE_URL . '/public/?view=display_role_description&role=' . $alloc['id'] . ' ';
-?>
-
- Note that start/end time is approximate.
+?>\n\n<?php echo 'Role description: ' . BASE_URL . '/public/?view=display_role_description&role=' . $alloc['id'] . ' ';
+?> \n\nNote that start/end time is approximate.
 END:VEVENT
 <?php
         }

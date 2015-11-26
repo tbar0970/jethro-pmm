@@ -578,7 +578,7 @@ function format_phone_number($x, $formats)
  */
 function get_email_href($to, $name=NULL, $bcc=NULL, $subject=NULL)
 {
-	$sep = defined('MULTI_EMAIL_SEPARATOR') ? MULTI_EMAIL_SEPARATOR : ';';
+	$sep = defined('MULTI_EMAIL_SEPARATOR') ? MULTI_EMAIL_SEPARATOR : ',';
 	if (!empty($to)) $to = implode($sep, (array)$to);
 	if (!empty($bcc)) $bcc = implode($sep, (array)$bcc);
 	

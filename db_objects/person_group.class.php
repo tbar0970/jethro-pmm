@@ -288,11 +288,21 @@ class Person_Group extends db_object
 
 	function delete()
 	{
-		parent::delete();
+		$SQL = 'SELECT COUNT(*) FROM account_group_restriction WHERE groupid = '.(int)$this->id;
+		$res = $GLOBALS['db']->queryOne($SQL);
+		check_db_result($res);
+		if ($res > 0) {
+			add_message("This group cannot be deleted because it is used to restrict one or more user accounts", 'error');
+			return FALSE;
+		}
+		
+		$r = parent::delete();
 		$db =& $GLOBALS['db'];
 		$sql = 'DELETE FROM person_group_membership WHERE groupid = '.$db->quote($this->id);
 		$res = $db->query($sql);
 		check_db_result($res);
+		
+		return $r;
 	}
 
 	function printFieldValue($fieldname, $value=NULL)

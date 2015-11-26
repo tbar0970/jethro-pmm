@@ -83,7 +83,7 @@ class View__Edit_Me extends View
 				
 			?>
 			<button class="btn" type="submit">Save</button>
-			<a class="btn" href="?view=">Cancel</a>
+			<a class="btn" href="?">Cancel</a>
 			</form>
 			<?php
 		}

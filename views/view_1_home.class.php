@@ -92,7 +92,10 @@ class View_Home extends View
 		if ($GLOBALS['user_system']->havePerm(PERM_VIEWROSTER)) {
 			?>
 			<div class="homepage-box my-roster">
-				<h3>Upcoming roster<span> allocations</span></h3>
+				<h3>
+					<a href="?view=_manage_ical" class="pull-right hidden-phone"><small>Subscribe</small></a>
+					Upcoming roster<span> allocations</span>
+				</h3>
 				<?php
 				$GLOBALS['system']->includeDBClass('roster_role_assignment');
 				$rallocs = Roster_Role_Assignment::getUpcomingAssignments($GLOBALS['user_system']->getCurrentUser('id'));

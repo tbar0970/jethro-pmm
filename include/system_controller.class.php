@@ -27,7 +27,7 @@ class System_Controller
 		return $instance;
 	}
 
-	public function __construct($base_dir=NULL)
+	private function __construct($base_dir=NULL)
 	{
 		if (is_null($base_dir)) $base_dir = dirname(dirname(__FILE__));
 		$this->_base_dir = $base_dir;

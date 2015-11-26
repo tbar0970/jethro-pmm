@@ -55,9 +55,9 @@ if ($show_actions) {
 			<td>
 				<?php
 				if (isset($callbacks[$field])) {
-					call_user_func($callbacks[$field], $id, $details[$field]);
+					call_user_func($callbacks[$field], $id, array_get($details, $field, ''));
 				} else {
-					echo $details[$field]; 
+					echo array_get($details, $field, ''); 
 				}
 				?>
 				</td>

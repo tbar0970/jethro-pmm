@@ -62,7 +62,7 @@ img:["glyphicons-halflings.png","glyphicons-halflings-white.png"]
 	top: 20%;
 	left: 50%;
 	margin-left: -15em;
-	padding: 0 0 20px 0;
+	padding: 0 0;
 }
 #login-header {
 	z-index: -100;
@@ -119,9 +119,6 @@ img:["glyphicons-halflings.png","glyphicons-halflings-white.png"]
 		font-size: 0.01em;
 		text-indent: -9999px;
 		text-align: left
-	}
-	#login-box .controls {
-		margin-left: 0px;
 	}
 }
 @media (max-height: 320px) {
@@ -1682,7 +1679,7 @@ table.system-config td small {
 	padding: 7px 3px;
 }
 
-#service-plan tbody * {
+#service-plan tbody td {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;

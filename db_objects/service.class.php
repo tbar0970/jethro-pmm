@@ -468,7 +468,7 @@ class service extends db_object
 	 * Find all services after a particular date.
 	 *
 	 * If the congregationid is specified, then only services for this congregation are returned.
-	 * @param date $date
+	 * @param string $date
 	 * @param int $congregationid
 	 * @return mixed Returns an array of service objects.
 	 */
@@ -478,11 +478,11 @@ class service extends db_object
             $sql = '';
             if ($congregationid == null)
             {
-                $sql = 'SELECT id FROM service where date >= ' . $db->quote(date('Y-m-d', $date));
+                $sql = 'SELECT id FROM service where date >= ' . $db->quote($date);
             }
             else
             {
-                $sql = 'SELECT id FROM service where date >= ' . $db->quote(date('Y-m-d', $date)) .
+                $sql = 'SELECT id FROM service where date >= ' . $db->quote($date) .
                     ' and congregationid = ' . $db->quote($congregationid);
             }
             $res = $db->queryAll($sql);
@@ -554,12 +554,13 @@ class service extends db_object
 			$num = 1;
 			$items = $this->getItems();
 			$cong = $GLOBALS['system']->getDBObject('congregation', $this->getValue('congregationid'));
-			$time = strtotime(preg_replace('[^0-9]', '', $cong->getValue('meeting_time')));
+			$time = strtotime(preg_replace('/[^0-9]/', '', $cong->getValue('meeting_time')));
+			
 			foreach ($items as $item) {
 				if ($item['heading_text']) {
 					?>
 					<tr>
-						<td colspan="4"><b><?php echo ents($item['heading_text']); ?></b></td>
+						<td colspan="3"><b><?php echo ents($item['heading_text']); ?></b></td>
 					</tr>
 					<?php
 				}
@@ -624,7 +625,7 @@ class service extends db_object
          */
         public static function getMeetingDateTime($meetingDate, $meetingTime) {
             $dateString = date('Y-m-d', $meetingDate);
-            if ($meetingTime != NULL && preg_match('/^\\d\\d\\d\\d$/', $meetingTime)) {
+            if ($meetingTime != NULL && preg_match('/\\d\\d\\d\\d/', $meetingTime)) {
                 // Time is specified and valid.
                 $dateString .= ' ' . 
                     substr($meetingTime, 0, 2) .
