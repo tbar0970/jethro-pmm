@@ -164,10 +164,10 @@ body {
 }
 @media (min-width: 1025px) {
 	#jethro-overall-width {
-		min-width: 1024px;
+		min-width: 1020px;
 	}
 }
-@media (max-width: 1024px) {
+@media (max-width: 1055px) {
 	#jethro-overall-width {
 		min-width: 100%;
 	}
