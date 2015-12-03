@@ -289,7 +289,7 @@ class Custom_Field extends db_object
 				$params['options'][$id] = $detail['value'];
 			}
 		}
-		if (!empty($this->values['params']['regex'])) $params['attrs']['regex'] = $this->values['params']['regex'];
+		if (!empty($this->values['params']['regex'])) $params['regex'] = $this->values['params']['regex'];
 		return $params;
 	}
 
