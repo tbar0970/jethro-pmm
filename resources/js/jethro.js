@@ -390,6 +390,19 @@ $(document).ready(function() {
 		JethroServicePlanner.init();
 	}
 
+	if (document.getElementById('custom-fields-editor')) {
+		$("#custom-fields-editor tbody").sortable(	{
+			cursor: "move",
+			/*containment: "parent",*/
+			revert: 100,
+			opacity: 1,
+			axis: 'y',
+			start: function(event, ui) { ui.helper.find('table').hide(); },
+			stop: function(event, ui) { ui.item.find('table').show('medium'); },
+
+		})
+	}
+
 	if (document.getElementById('service-program-editor')) {
 		JethroServiceProgram.init();
 	}
@@ -522,6 +535,7 @@ JethroServicePlanner.init = function() {
 		containment: "parent",
 		revert: 100,
 		opacity: 1,
+		axis: 'y'
     })
 
 	$('#service-plan').on('focus', 'textarea, input', function() {

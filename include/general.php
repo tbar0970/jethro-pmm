@@ -41,7 +41,7 @@ function strip_all_slashes() {
 
 function bam($x)
 {
-	echo '<pre>';
+	echo '<pre style="text-align: left">';
 	print_r($x);
 	echo '</pre>';
 }
@@ -164,9 +164,10 @@ function print_widget($name, $params, $value)
 			} else {
 				$width_exp = empty($params['width']) ? '' : 'size="'.$params['width'].'"';
 				$regex_exp = empty($params['regex']) ? '' : 'regex="'.trim($params['regex'], '/ ').'"';
+				$placeholder_exp = empty($params['placeholder']) ? '' : 'placeholder="'.$params['placeholder'].'"';
 				$autocomplete_exp = isset($params['autocomplete']) ? 'autocomplete='.($params['autocomplete'] ? 'on' : 'off').'"' : '';
 				?>
-				<input type="<?php echo $params['type']; ?>" name="<?php echo $name; ?>" value="<?php echo ents($value); ?>" class="<?php echo trim($classes); ?>" <?php echo implode(' ', Array($maxlength_exp, $width_exp, $regex_exp, $autocomplete_exp)); ?> <?php echo $attrs; ?> />
+				<input type="<?php echo $params['type']; ?>" name="<?php echo $name; ?>" value="<?php echo ents($value); ?>" class="<?php echo trim($classes); ?>" <?php echo implode(' ', Array($maxlength_exp, $width_exp, $regex_exp, $autocomplete_exp, $placeholder_exp)); ?> <?php echo $attrs; ?> />
 				<?php
 			}
 			break;
@@ -273,9 +274,13 @@ function print_widget($name, $params, $value)
 				$name_template = substr($name, 0, strpos($name, '[')).'%s'.substr($name, strpos($name, '['));
 			}
 			$months = Array();
-			if (array_get($params, 'allow_empty', false)) $months[''] = '(Month)';
+			if (array_get($params, 'allow_empty', false)) {
+				$months[''] = '(Month)';
+				if (empty($value)) $value = '--';
+			} else {
+				if (empty($value)) $value = date('Y-m-d'); // blank dates not allowed
+			}
 			for ($i = 1; $i < 13; $i++) $months[$i] = date(array_get($params, 'month_format', 'F'), strtotime("2007-$i-01")); 
-			if (empty($value)) $value = date('Y-m-d'); // blank dates not allowed
 			list($year_val, $month_val, $day_val) = explode('-', substr($value, 0, 10));
 			?>
 			<span class="nowrap" <?php echo $attrs; ?> >
@@ -365,31 +370,52 @@ function print_widget($name, $params, $value)
 			</div>
 			<?php
 			break;
+		case 'checkbox':
+			?>
+			<input type="checkbox" name="<?php echo ents($name); ?>" value="1"
+				   <?php if ($value) echo 'checked="checked"'; ?>
+			>
+			<?php
+			break;
 	}
 }
 
-
-function process_widget($name, $params)
+function process_widget($name, $params, $index=NULL)
 {
+	$testVal = $rawVal = array_get($_REQUEST, $name);
+	if (empty($testVal) && $params['type'] == 'date') $testVal = array_get($_REQUEST, $name.'_d');
+	if (is_array($testVal)) {
+		if (!is_null($index)) {
+			$rawVal = $rawVal[$index];
+		} else {
+			$res = Array();
+			foreach ($testVal as $i => $v) {
+				$x = process_widget($name, $params, $i);
+				if (strlen($x)) $res[] = $x;
+			}
+			return $res;
+		}
+	}
+
 	$value = null;
 	switch ($params['type']) {
 		case 'phone':
-			if (array_get($params, 'allow_empty', TRUE) && empty($_REQUEST[$name])) {
+			if (array_get($params, 'allow_empty', TRUE) && empty($rawVal)) {
 				$value = '';
 			} else {
-				if (!is_valid_phone_number($_REQUEST[$name], $params['formats'])) {
-					trigger_error('The phone number "'.$_REQUEST[$name].'" is not valid and has not been set', E_USER_NOTICE);
+				if (!is_valid_phone_number($rawVal, $params['formats'])) {
+					trigger_error('The phone number "'.$rawVal.'" is not valid and has not been set', E_USER_NOTICE);
 					$value = NULL;
 				} else {
-					$value = clean_phone_number($_REQUEST[$name]);
+					$value = clean_phone_number($rawVal);
 				}
 			}
 			break;
 		case 'date':
-			if (isset($_REQUEST[$name])) {
+			if (isset($rawVal)) {
 				// might have an ISO8601 date
-				if (preg_match('/^(\d\d\d\d-\d\d-\d\d)$/', $_REQUEST[$name])) {
-					return $_REQUEST[$name];
+				if (preg_match('/^(\d\d\d\d-\d\d-\d\d)$/', $rawVal)) {
+					return $rawVal;
 				}
 			}
 			if (FALSE === strpos($name, '[')) {
@@ -400,8 +426,10 @@ function process_widget($name, $params)
 			}
 			if (!isset($_REQUEST[$name.'_d'])) return NULL;
 			if (!is_null($subindex) && !isset($_REQUEST[$name.'_d'][$subindex])) return NULL;
+
 			foreach (Array('y', 'm', 'd') as $comp) {
 				$comp_vals[$comp] = array_get($_REQUEST, $name.'_'.$comp, 0);
+				if (!is_null($index)) $comp_vals[$comp] = $comp_vals[$comp][$index];
 				if (!is_null($subindex)) $comp_vals[$comp] = $comp_vals[$comp][$subindex];
 			}
 			$value = sprintf('%04d-%02d-%02d', $comp_vals['y'], $comp_vals['m'], $comp_vals['d']);
@@ -422,31 +450,31 @@ function process_widget($name, $params)
 			}
 			break;
 		case 'bibleref':
-			if (!empty($_REQUEST[$name])) {
+			if (!empty($rawVal)) {
 				require_once 'bible_ref.class.php';
-				$br = new bible_ref($_REQUEST[$name]);
+				$br = new bible_ref($rawVal);
 				if ($br->book) $value = $br->toCode();
 			}
 			break;
 		case 'bitmask':
 			// value is the bitwise-or of all submitted values
 			$value = 0;
-			if (isset($_REQUEST[$name])) {
-				if (isset($_REQUEST[$name])) {
-					foreach ($_REQUEST[$name] as $i) {
+			if (isset($rawVal)) {
+				if (isset($rawVal)) {
+					foreach ($rawVal as $i) {
 						$value = $value | (int)$i;
 					}
 				}
 			}
 			break;
 		case 'html':
-			if (isset($_REQUEST[$name])) {
+			if (isset($rawVal)) {
 				require_once 'htmLawed.php';
-				$value = htmLawed($_REQUEST[$name], array('deny_attribute' => '* -href', 'safe'=>1));
+				$value = htmLawed($rawVal, array('deny_attribute' => '* -href', 'safe'=>1));
 			}
 			break;
 		default:
-			$value = array_get($_REQUEST, $name);
+			$value = $rawVal;
 			if (!empty($params['regex']) && !empty($value) && !preg_match($params['regex'].'i', $value)) {
 				trigger_error($value.' is not a valid value for '.array_get($params, 'label', ucfirst($name)));
 				$value = NULL;
@@ -496,8 +524,13 @@ function speed_log()
 
 function getmicrotime(){ 
   list($usec, $sec) = explode(" ",microtime()); 
-     return (int)((float)$usec + (float)$sec) * 1000; 
-  } 
+  return (int)((float)$usec + (float)$sec) * 1000; 
+}
+
+function print_hidden_field($name, $value)
+{
+	echo '<input type="hidden" name="'.ents($name).'" value="'.ents($value).'" />'."\n";
+}
 
 function print_hidden_fields($arr, $prefix='', $suffix='')
 {

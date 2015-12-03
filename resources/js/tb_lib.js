@@ -131,6 +131,23 @@ $(document).ready(function() {
 		target.css('text-decoration', this.checked ? 'line-through' : 'none');
 	});
 
+	/**
+	 * <select data-toggle="visible" data-target="row .option" data-match-attr="mytype"> ...
+	 * <div class="option" data-mytype="x"></div>
+	 * <div class="option" data-mytype="y"></div>
+	 */
+	$('[data-toggle=visible]').change(function() {
+		var base = $(document);
+		var targetExp = $(this).attr('data-target');
+		if (/^row /.test(targetExp)) {
+			base = $(this).parents('tr:first');
+			targetExp = targetExp.substr(4);
+		}
+		target = base.find(targetExp);
+		target.hide();
+		target.filter('['+$(this).attr('data-match-attr')+'='+this.value+']').show();
+	}).change();
+
 
 	// Ability to change the form action when a button is clicked.  Allows one form to submit to several different places.
 	$('input[data-set-form-action], button[data-set-form-action]').click(function() {
@@ -447,6 +464,7 @@ TBLib.expandTable = function(table)
 		}
 		if ($(this).hasClass('bubble-option-classes')) this.change();
 		this.name = this.name.replace('_'+index+'_', '_'+rows.length+'_');
+		if (this.name == 'index[]') this.value = rows.length; // so that after re-ordering, the order can be detected server-side
 		if (((this.type == 'radio') || (this.type == 'checkbox')) && (this.value == index)) this.value = rows.length;
 	});
 	$(table).find('tbody:first').append(newRow);
