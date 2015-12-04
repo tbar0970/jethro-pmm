@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS `custom_field_value` (
   `personid` int(11) NOT NULL,
   `fieldid` int(11) NOT NULL,
   `value_text` varchar(255) DEFAULT NULL,
-  `value_date` date DEFAULT NULL,
+  `value_date` char(10) DEFAULT NULL,
   `value_optionid` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `personid` (`personid`),
@@ -40,7 +40,7 @@ SET @rank = -1;
 
 INSERT INTO custom_field
 (name, rank, type, allow_multiple, params)
-SELECT name, @rank:=@rank+1, 'date', 1, 'a:1:{s:10:"allow_note";b:1;}'
+SELECT name, @rank:=@rank+1, 'date', 1, 'a:2:{s:10:"allow_note";i:1;s:16:"allow_blank_year";i:1;}'
 from date_type
 order by name;
 

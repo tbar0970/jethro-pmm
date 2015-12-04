@@ -267,7 +267,8 @@ function print_widget($name, $params, $value)
 			}
 			break;
 		case 'date':
-			$day_year_classes = trim($classes.' int-box');
+			$year_classes = $day_year_classes = trim($classes.' int-box');
+			if (array_get($params, 'allow_blank_year', false)) $year_classes .= ' optional-year';
 			if (FALSE === strpos($name, '[')) {
 				$name_template = $name.'%s';
 			} else {
@@ -280,7 +281,8 @@ function print_widget($name, $params, $value)
 			} else {
 				if (empty($value)) $value = date('Y-m-d'); // blank dates not allowed
 			}
-			for ($i = 1; $i < 13; $i++) $months[$i] = date(array_get($params, 'month_format', 'F'), strtotime("2007-$i-01")); 
+			for ($i = 1; $i < 13; $i++) $months[$i] = date(array_get($params, 'month_format', 'F'), strtotime("2007-$i-01"));
+			$value = reset(explode(' ', $value));
 			list($year_val, $month_val, $day_val) = explode('-', substr($value, 0, 10));
 			?>
 			<span class="nowrap" <?php echo $attrs; ?> >
@@ -293,7 +295,7 @@ function print_widget($name, $params, $value)
 					<?php
 				}
 				?>
-			</select><input type="text" name="<?php printf($name_template, '_y'); ?>" class="year-box <?php echo $day_year_classes; ?>" size="4" maxlength="4" value="<?php echo $year_val; ?>" placeholder="YYYY"/>
+			</select><input type="text" name="<?php printf($name_template, '_y'); ?>" class="year-box <?php echo $year_classes; ?>" size="4" maxlength="4" value="<?php echo $year_val; ?>" placeholder="YYYY"/>
 			</span>
 			<?php
 			break;

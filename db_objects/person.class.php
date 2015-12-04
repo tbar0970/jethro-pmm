@@ -509,8 +509,9 @@ class Person extends DB_Object
 				if (strlen($value)) {
 					switch ($customFields[$fieldid]['type']) {
 						case 'date':
-							$dateVal = substr($value, 0, 10);
-							$textVal = (strlen($value) > 10) ? substr($value, 11) : NULL;
+							$bits = explode(' ', $value);
+							$dateVal = array_get($bits, 0);
+							$textVal = array_get($bits, 1);
 							break;
 						case 'select':
 							$optionVal = $value;

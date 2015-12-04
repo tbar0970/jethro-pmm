@@ -125,6 +125,10 @@ class Custom_Field extends db_object
 			<?php print_widget($prefix.'allow_note', Array('type'=>'checkbox'), array_get($this->values['params'], 'allow_note')); ?>
 			Allow note
 		</label>
+		<label class="allownote">
+			<?php print_widget($prefix.'allow_blank_year', Array('type'=>'checkbox'), array_get($this->values['params'], 'allow_blank_year')); ?>
+			Allow blank year
+		</label>
 		<?php
 	}
 
@@ -199,6 +203,7 @@ class Custom_Field extends db_object
 			case 'params':
 				$val = Array();
 				$val['allow_note'] = !empty($_REQUEST[$prefix.'allow_note']);
+				$val['allow_blank_year'] = !empty($_REQUEST[$prefix.'allow_blank_year']);
 				$val['regex'] = array_get($_REQUEST, $prefix.'regex', '');
 				$this->setValue($fieldname, $val);
 
@@ -289,6 +294,7 @@ class Custom_Field extends db_object
 				$params['options'][$id] = $detail['value'];
 			}
 		}
+		if (!empty($this->values['params']['allow_blank_year'])) $params['allow_blank_year'] = $this->values['params']['allow_blank_year'];
 		if (!empty($this->values['params']['regex'])) $params['regex'] = $this->values['params']['regex'];
 		return $params;
 	}
@@ -300,7 +306,9 @@ class Custom_Field extends db_object
 	{
 		print_widget('custom_'.$this->id.'[]', $this->getWidgetParams(), $value);
 		if (($this->getValue('type') == 'date') && !empty($this->values['params']['allow_note'])) {
-			print_widget('custom_'.$this->id.'_note[]', Array('type' => 'text', 'placeholder' => '(Note)'), substr($value, 11));
+			$bits = explode(' ', $value);
+			$note = array_get($bits, 1);
+			print_widget('custom_'.$this->id.'_note[]', Array('type' => 'text', 'placeholder' => '(Note)'), $note);
 		}
 	}
 
@@ -321,7 +329,7 @@ class Custom_Field extends db_object
 		if (is_array($val)) return implode(', ', array_map(Array($this, 'formatValue'), $val));
 		switch ($this->getValue('type')) {
 			case 'date':
-				if (!preg_match('/(([-0-9]{4})-([0-9]{2}-[0-9]{2}))( (.*))?/', $val, $matches)) {
+				if (!preg_match('/(([-0-9]{4})?-([0-9]{2}-[0-9]{2}))( (.*))?/', $val, $matches)) {
 					return "! Malformed value $val";
 				}
 				$res = format_date($matches[1]);
