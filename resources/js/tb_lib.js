@@ -131,6 +131,23 @@ $(document).ready(function() {
 		target.css('text-decoration', this.checked ? 'line-through' : 'none');
 	});
 
+	/**
+	 * <select data-toggle="visible" data-target="row .option" data-match-attr="mytype"> ...
+	 * <div class="option" data-mytype="x"></div>
+	 * <div class="option" data-mytype="y"></div>
+	 */
+	$('[data-toggle=visible]').change(function() {
+		var base = $(document);
+		var targetExp = $(this).attr('data-target');
+		if (/^row /.test(targetExp)) {
+			base = $(this).parents('tr:first');
+			targetExp = targetExp.substr(4);
+		}
+		target = base.find(targetExp);
+		target.hide();
+		target.filter('['+$(this).attr('data-match-attr')+'='+this.value+']').show();
+	}).change();
+
 
 	// Ability to change the form action when a button is clicked.  Allows one form to submit to several different places.
 	$('input[data-set-form-action], button[data-set-form-action]').click(function() {
@@ -330,11 +347,11 @@ TBLib.invalidRegexInput = null;
 TBLib.handleRegexInputBlur = function()
 {
 	if (r = this.getAttribute('regex')) {
-		$(this).parents('TR:first').removeClass('missing');
+		$(this).parents('.control-group').removeClass('error');
 		var ro = new RegExp(r, 'i');
 		if ((this.value != '') && !ro.test(this.value)) {
 			this.focus();
-			$(this).parents('TR:first').addClass('missing');
+			$(this).parents('.control-group').addClass('error');
 			alert('The value of the highlighted field is not valid');
 			TBLib.invalidRegexInput = this;
 			setTimeout('TBLib.invalidRegexInput.select()', 100);
@@ -366,12 +383,14 @@ TBLib.handleDayBoxBlur = function()
 	if (this.value == '') return true;
 	var intVal = parseInt(this.value, 10);
 	if (isNaN(intVal) || (intVal < 1) || (intVal > 31)) {
+		$(this).parents('.control-group').addClass('error');
 		this.focus();
 		alert('Day of month must be between 1 and 31');
 		TBLib.invalidDayBox = this;
 		setTimeout('TBLib.invalidDayBox.select()', 100);
 		return false;
 	}
+	$(this).parents('.control-group').removeClass('error');
 	return true;
 }
 
@@ -381,12 +400,14 @@ TBLib.handleYearBoxBlur = function()
 	if (this.value == '') return true;
 	var intVal = parseInt(this.value, 10);
 	if (isNaN(intVal) || (intVal < 1900) || (intVal > 3000)) {
+		$(this).parents('.control-group').addClass('error');
 		this.focus();
 		alert('Year must be between 1900 and 3000');
 		TBLib.invalidYearBox = this;
 		setTimeout('TBLib.invalidYearBox.select()', 100);
 		return false;
 	}
+	$(this).parents('.control-group').removeClass('error');
 	return true;
 }
 
@@ -447,6 +468,7 @@ TBLib.expandTable = function(table)
 		}
 		if ($(this).hasClass('bubble-option-classes')) this.change();
 		this.name = this.name.replace('_'+index+'_', '_'+rows.length+'_');
+		if (this.name == 'index[]') this.value = rows.length; // so that after re-ordering, the order can be detected server-side
 		if (((this.type == 'radio') || (this.type == 'checkbox')) && (this.value == index)) this.value = rows.length;
 	});
 	$(table).find('tbody:first').append(newRow);
@@ -523,7 +545,7 @@ TBLib.handleFormSubmit = function()
 		TBLib.doTBLibValidation = true;
 		return false;
 	}
-	$('.control-group.error').removeClass('errpr');
+	$('.control-group.error').removeClass('error');
 	// Process compulsory inputs
 	var compulsoryInputs = ($(this).find('input.compulsory'));
 	for (var i=0; i < compulsoryInputs.size(); i++) {
@@ -663,11 +685,31 @@ TBLib.handleFormSubmit = function()
 			ok = false;
 			return false;
 		}
+		if ((this.value == '') && $(this).siblings('select').val() != '') {
+			var req = $(this).siblings('.optional-year').length ? 'day and month' : 'day, month and year';
+			$(this).parents('.control-group').addClass('error');
+			this.select();
+			alert('The highlighted date field is incomplete - you must enter '+req+', or leave it completely blank');
+			TBLib.invalidDateField = this;
+			setTimeout('TBLib.invalidDateField.select()', 100);
+			ok = false;
+			return false;
+		}
 	});
 	if (!ok) return false;
 
 	$(this).find('input.year-box').each(function() {
 		if (!TBLib.handleYearBoxBlur.apply(this)) {
+			ok = false;
+			return false;
+		}
+		var myDayBox = $(this).siblings('.day-box');
+		if ((this.value == '') && !$(this).hasClass('optional-year') && (myDayBox.val() != '')) {
+			$(this).parents('.control-group').addClass('error');
+			this.select();
+			alert('The highlighted date field is incomplete - you must enter day, month and year or leave it completely blank');
+			TBLib.invalidDateField = this;
+			setTimeout('TBLib.invalidDateField.select()', 100);
 			ok = false;
 			return false;
 		}

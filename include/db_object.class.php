@@ -308,20 +308,17 @@ class db_object
 			return FALSE;
 		}
 
-		if (empty($this->_old_values)) return TRUE;
-
 		// Set the history
 		if (isset($this->fields['history'])) {
-			$changes = Array();
-			foreach ($this->_old_values as $name => $old_val) {
-				if ($name == 'history') continue;
-				if ($name == 'password') continue;
-				$changes[] = $this->getFieldLabel($name).' changed from "'.ents($this->getFormattedValue($name, $old_val)).'" to "'.ents($this->getFormattedValue($name)).'"';
+			$changes = $this->_getChanges();
+			if ($changes) {
+				$user = $this->getCurrentUser();
+				$this->values['history'][time()] = 'Updated by '.$user['first_name'].' '.$user['last_name'].' (#'.$user['id'].")\n".implode("\n", $changes);
+				$this->_old_values['history'] = 1;
 			}
-			$user = $this->getCurrentUser();
-			$this->values['history'][time()] = 'Updated by '.$user['first_name'].' '.$user['last_name'].' (#'.$user['id'].")\n".implode("\n", $changes);
-			$this->_old_values['history'] = 1;
 		}
+
+		if (empty($this->_old_values)) return TRUE;
 
 		// Set any last-changed fields
 		foreach ($this->_old_values as $i => $v) {
@@ -374,12 +371,26 @@ class db_object
 		return TRUE;
 	}
 
+	protected function _getChanges()
+	{
+		$changes = Array();
+		foreach ($this->_old_values as $name => $old_val) {
+			if ($name == 'history') continue;
+			if ($name == 'password') continue;
+			$changes[] = $this->getFieldLabel($name).' changed from "'.ents($this->getFormattedValue($name, $old_val)).'" to "'.ents($this->getFormattedValue($name)).'"';
+		}
+		return $changes;
+	}
+
 	public function populate($id, $values)
 	{
 		$this->_old_values = Array();
 		$this->id = $id;
 		foreach ($this->fields as $fieldname => $details) {
 			if (empty($details['readonly']) && isset($values[$fieldname])) {
+				if (($details['type'] == 'serialise') && is_string($values[$fieldname])) {
+					$values[$fieldname] = unserialize($values[$fieldname]);
+				}
 				$this->setValue($fieldname, $values[$fieldname]);
 			}
 		}

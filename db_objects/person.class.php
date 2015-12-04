@@ -5,7 +5,8 @@ class Person extends DB_Object
 {
 	var $_save_permission_level = PERM_EDITPERSON;
 	var $_photo_data = NULL;
-	var $_dates_to_save = NULL;
+	var $_custom_values = Array();
+	var $_old_custom_values = Array();
 
 	const MAX_PHOTO_WIDTH = 200;
 	const MAX_PHOTO_HEIGHT = 200;
@@ -139,7 +140,6 @@ class Person extends DB_Object
 		return $res;
 	}
 
-
 	function getInitSQL()
 	{
 		return Array(
@@ -198,6 +198,18 @@ class Person extends DB_Object
 		);
 	}
 
+	public function load($id) {
+		parent::load($id);
+
+		// Load custom values
+		$SQL = 'SELECT v.fieldid, TRIM(CONCAT(COALESCE(value_optionid, CONCAT(value_date, " "), ""), COALESCE(value_text, ""))) as value 
+				FROM custom_field_value v
+				WHERE personid = '.(int)$this->id;
+		$res = $GLOBALS['db']->queryAll($SQL, NULL, NULL, true, FALSE, TRUE);
+		check_db_result($res);
+		$this->_custom_values = $res;
+	}
+
 	function toString()
 	{
 		return $this->values['first_name'].' '.$this->values['last_name'];
@@ -206,29 +218,6 @@ class Person extends DB_Object
 
 	function printFieldValue($name, $value=null)
 	{
-		if ($name == 'dates') {
-			if (is_null($value)) $value = $this->getDates();
-			if (empty($value)) {
-				echo '<i>(None)</i>';
-				return;
-			}
-			?>
-			<table class="borderless table-auto-width">
-			<?php
-			foreach ($value as $d) {
-				?>
-				<tr>
-					<td><?php echo ents($d['type']); ?></td>
-					<td class="nowrap"><?php echo format_date($d['date']); ?></td>
-					<td><i><?php echo ents($d['note']); ?></i></td>
-				</tr>
-				<?php
-			}
-			?>
-			</table>
-			<?php
-			return;
-		}
 		if (is_null($value)) $value = $this->getValue($name);
 		switch ($name) {
 			case 'name':
@@ -285,10 +274,29 @@ class Person extends DB_Object
 		parent::printFieldValue($name, $value);
 	}
 
-	function printSummary() {
-		if ($GLOBALS['system']->featureEnabled('DATES')) $this->fields['dates'] = Array('divider_before' => true);
-		parent::printSummary();
-		unset($this->fields['dates']);
+	protected function _printSummaryRows() {
+		parent::_printSummaryRows();
+
+		$divided = FALSE;
+		$dummyField = new Custom_Field();
+		foreach ($this->getCustomFields() as $fieldid => $fieldDetails) {
+			$dummyField->populate($fieldid, $fieldDetails);
+			if (isset($this->_custom_values[$fieldid])) {
+				?>
+				<tr <?php if (!$divided) { echo 'class="divider-before"'; $divided = TRUE; } ?>>
+					<th><?php echo ents($fieldDetails['name']); ?></th>
+					<td>
+						<?php
+						foreach ($this->_custom_values[$fieldid] as $j => $val) {
+							if ($j > 0) echo '<br />';
+							echo ents($dummyField->formatValue($val));
+						}
+						?>
+					</td>
+				</tr>
+				<?php
+			}
+		}
 	}
 
 
@@ -402,6 +410,8 @@ class Person extends DB_Object
 	
 	function save($update_family=TRUE)
 	{
+		// TODO: TRANSACTION
+		
 		$msg = '';
 
 		if ($update_family && $GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
@@ -468,7 +478,7 @@ class Person extends DB_Object
 		$res = parent::save();
 		if ($res) {
 			$this->_savePhoto();
-			$this->_saveDates();
+			$this->_saveCustomValues();
 		}
 		if ($msg) add_message($msg);
 		return $res;
@@ -484,33 +494,61 @@ class Person extends DB_Object
 		}
 	}
 
-
-
-	function _saveDates() {
+	function _saveCustomValues() {
 		$db =& $GLOBALS['db'];
-		if (!is_null($this->_dates_to_save)) {
-			$SQL = 'DELETE FROM person_date WHERE personid = '.(int)$this->id;
-			check_db_result($db->query($SQL));
-
-			$sets = Array();
-			foreach ($this->_dates_to_save as $d) {
-				if ($d) $sets[] = '('.(int)$this->id.', '.$db->quote($d['typeid']).', '.$db->quote($d['date']).', '.$db->quote($d['note']).')';
-			}
-			if ($sets) {
-				$SQL = 'INSERT INTO person_date
-						(personid, typeid, `date`, note)
-						VALUES
-						'.implode(",\n", $sets);
-				check_db_result($GLOBALS['db']->query($SQL));
+		$SQL = 'DELETE FROM custom_field_value WHERE personid = '.(int)$this->id;
+		check_db_result($db->query($SQL));
+		$SQL = 'INSERT INTO custom_field_value
+				(personid, fieldid, value_text, value_date, value_optionid)
+				VALUES ';
+		$customFields = $this->getCustomFields();
+		$sets = Array();
+		foreach ($this->_custom_values as $fieldid => $values) {
+			foreach ($values as $value) {
+				$dateVal = $textVal = $optionVal = NULL;
+				if (strlen($value)) {
+					switch ($customFields[$fieldid]['type']) {
+						case 'date':
+							$bits = explode(' ', $value);
+							$dateVal = array_get($bits, 0);
+							$textVal = array_get($bits, 1);
+							break;
+						case 'select':
+							$optionVal = $value;
+							break;
+						default:
+							$textVal = $value;
+					}
+					$sets[] = '('.(int)$this->id.','.(int)$fieldid.','.$db->quote($textVal).','.$db->quote($dateVal).','.$db->quote($optionVal).')';
+				}
 			}
 		}
+		if ($sets) {
+			$SQL .= implode(",\n", $sets);
+			check_db_result($GLOBALS['db']->query($SQL));
+		}
 	}
+
+	protected function _getChanges()
+	{
+		$res = parent::_getChanges();
+		if (!empty($this->_old_custom_values)) {
+			$customFields = $this->getCustomFields();
+			$dummyField = new Custom_Field();
+			foreach ($this->_old_custom_values as $fieldid => $oldVal) {
+				$dummyField->populate($fieldid, $customFields[$fieldid]);
+				$res[] = $dummyField->getValue('name').' changed from "'.$dummyField->formatValue($oldVal).'" to "'.$dummyField->formatValue($this->_custom_values[$fieldid]).'"';
+			}
+		}
+		return $res;
+	}
+
 
 	function create()
 	{
 		if (parent::create()) {
 			$this->_savePhoto();
-			$this->_saveDates();
+			$this->_saveCustomValues();
 			return TRUE;
 		}
 		return FALSE;
@@ -595,10 +633,6 @@ class Person extends DB_Object
 	{
 		include_once 'include/size_detector.class.php';
 
-		if ($GLOBALS['system']->featureEnabled('DATES') && (is_null($fields) || in_array('dates', $fields))) {
-			$this->fields['dates'] = Array('divider_before' => true); // fake field for interface purposes
-		}
-
 		if ($GLOBALS['system']->featureEnabled('PHOTOS')
 			&& (is_null($fields) || in_array('photo', $fields))
 			&& !SizeDetector::isNarrow()
@@ -618,12 +652,58 @@ class Person extends DB_Object
 		parent::printForm($prefix, $fields);
 
 		unset($this->fields['photo']);
+
+		$customFields = $this->getCustomFields();
+		$dummyField = new Custom_Field();
+		if ($customFields) {
+			?>
+			<hr />
+			<div class="form-horizontal">
+			<?php
+			foreach ($customFields as $fieldid => $fieldDetails) {
+				$dummyField->populate($fieldid, $fieldDetails);
+				$tableClass = $fieldDetails['allow_multiple'] ? 'expandable' : '';
+				$values = isset($this->_custom_values[$fieldid]) ? $this->_custom_values[$fieldid] : Array('');
+				?>
+				<div class="control-group">
+					<label class="control-label" for="custom_<?php echo $fieldid; ?>"><?php echo ents($fieldDetails['name']); ?></label>
+					<div class="controls">
+						<table class="<?php echo $tableClass; ?>">
+						<?php
+						foreach ($values as $value) {
+							?>
+							<tr><td>
+								<?php
+								$dummyField->printWidget($value);
+								?>
+							</td></tr>
+							<?php
+						}
+						?>
+						</table>
+					</div>
+				</div>
+				<?php
+			}
+			?>
+			</div>
+			<?php
+		}
+
 	}
 
 	function processForm($prefix='', $fields=NULL)
 	{
 		$res = parent::processForm($prefix, $fields);
-		$this->_dates_to_save = self::processDatesInterface($prefix);
+		foreach ($this->getCustomFields() as $fieldid => $fieldDetails) {
+			$field = $GLOBALS['system']->getDBObject('custom_field', $fieldid);
+			$newVal = $field->processWidget();
+			$oldVal = array_get($this->_custom_values, $fieldid, '');
+			if ((!empty($oldVal) || !empty($newVal)) && ($oldVal != $newVal)) {
+				$this->_old_custom_values[$fieldid] = $oldVal;
+				$this->_custom_values[$fieldid] = $newVal;
+			}
+		}
 
 		if (!empty($_FILES['photo']) && !$_FILES['photo']['error']) {
 			if (!in_array($_FILES['photo']['type'], Array('image/jpeg', 'image/gif', 'image/png', 'image/jpg'))) {
@@ -677,8 +757,6 @@ class Person extends DB_Object
 		return $res;
 	}
 
-
-
 	function printFieldInterface($name, $prefix='')
 	{
 		switch ($name) {
@@ -702,9 +780,6 @@ class Person extends DB_Object
 				<?php
 				
 				break;
-			case 'dates':
-				self::printDatesInterface($prefix, $this->getDates());
-				break;
 			default:
 				parent::printFieldInterface($name, $prefix);
 		}
@@ -720,132 +795,14 @@ class Person extends DB_Object
 		return $uuid;
 	}
 
-	static function getDateSubfieldParams()
+	private function getCustomFields()
 	{
-		return Array(
-			'type' => Array(
-				'type' => 'select',
-				'options' => Array(NULL => '') + self::getDateTypes(),
-				'class' => 'datetype'
-			),
-			'date' => Array(
-				'type' => 'date',
-				'allow_empty' => true,
-				'allow_blank_year' => true,
-			),
-			'note' => Array(
-				'type' => 'text',
-				'width' => 40,
-				'class' => 'datenote',
-			)
-		);
-	}
-
-	static function printDatesInterface($prefix, $dates)
-	{
-		if (empty($dates)) $dates[] = Array('id' => '', 'typeid' => null, 'date' => '---', 'note' => '');
-
-		?>
-		<table class="expandable person-dates">
-			<thead>
-				<tr>
-					<th>Type</th>
-					<th>Date</th>
-					<th>Note</th>
-				</tr>
-			</thead>
-			<tbody>
-			<?php
-			$params = self::getDateSubfieldParams();
-			foreach ($dates as $i => $d) {
-				?>
-				<tr>
-					<td><?php print_widget($prefix.'date[_'.$i.'_][typeid]', $params['type'], $d['typeid']); ?></td>
-					<td><?php print_widget($prefix.'dateval[_'.$i.'_]', $params['date'], $d['date']); ?></td>
-					<td><?php print_widget($prefix.'date[_'.$i.'_][note]', $params['note'], $d['note']); ?></td>
-				</tr>
-				<?php
-			}
-			?>
-			</tbody>
-		</table>
-		<script>
-			$(document).ready(function() {
-				$('form').submit(function() {
-					var ok = true;
-					$('.person-dates tr').each(function() {
-						var t = $(this);
-						if ((t.find('.day-box').val() != '')
-							&& (t.find('.datetype').val() == '') 
-							&& (t.find('.datenote').val() == '')
-						) {
-							t.find('.day-box').select();
-							alert('You must specify a type or a note for each date entry');
-							ok = false;
-							return;
-						}
-					});
-					return ok;
-				});
-			});
-		</script>
-		<?php
-	}
-
-	static function processDatesInterface($prefix)
-	{
-		$res = NULL;
-		if (!empty($_POST[$prefix.'date'])) {
-			$res = Array();
-			$date_params = Array('type' => 'date', 'allow_blank_year' => true);
-			foreach ($_POST[$prefix.'date'] as $i => $d) {
-				$d['date'] = process_widget($prefix.'dateval['.$i.']', $date_params);
-				if (empty($d['date'])) continue;
-				if (empty($d['typeid'])) $d['typeid'] = NULL;
-				if (empty($d['typeid']) && !strlen($d['note'])) {
-					add_message('The date "'.format_date($d['date']).'" was not saved because no type or note was specified for it');
-				} else {
-					// we only save each dateval+type combo once.  entries with notes win.
-					$res[] = $d;
-				}
-			}
+		if (!isset($this->_tmp['custom_fields'])) {
+			$this->_tmp['custom_fields'] = $GLOBALS['system']->getDBObjectData('custom_field', Array(), 'OR', 'rank');
 		}
-		return $res;
+		return $this->_tmp['custom_fields'];
 	}
 
-	public function addDate($date, $typeid, $note)
-	{
-		if (is_null($this->_dates_to_save)) {
-			foreach ($this->getDates() as $d) {
-				$this->_dates_to_save[$d['date'].'_'.$d['typeid']] = $d;
-			}
-		}
-		$key = $date.'_'.$typeid;
-		if (!isset($this->_dates_to_save[$key]) || strlen($note)) {
-			$this->_dates_to_save[$key] = Array('date' => $date, 'typeid' => $typeid, 'note' => $note);
-		}
-	}
-
-	function getDates()
-	{
-		$sql = 'SELECT d.*, t.name as `type`
-				FROM person_date d
-				LEFT JOIN date_type t ON d.typeid = t.id
-				WHERE personid = '.(int)$this->id.'
-				ORDER BY (`date` LIKE "-%"), `date`';
-		$res = $GLOBALS['db']->queryAll($sql, NULL, NULL);
-		check_db_result($res);
-		return $res;
-	}
-
-	static function getDateTypes() {
-		$sql = 'SELECT id, name
-				FROM date_type
-				ORDER BY name';
-		$res = $GLOBALS['db']->queryAll($sql, NULL, NULL, true);
-		check_db_result($res);
-		return $res;
-	}
 
 }
 ?>

@@ -164,10 +164,10 @@ body {
 }
 @media (min-width: 1025px) {
 	#jethro-overall-width {
-		min-width: 1024px;
+		min-width: 1020px;
 	}
 }
-@media (max-width: 1024px) {
+@media (max-width: 1055px) {
 	#jethro-overall-width {
 		min-width: 100%;
 	}
@@ -680,7 +680,7 @@ table.object-summary td table.borderless tr:first-child td {
 }
 
 .day-box {
-	width: 2.5ex !important;
+	width: 3ex !important;
 }
 .year-box {
 	width: 5ex !important;
@@ -1727,7 +1727,24 @@ table.system-config td small {
 	margin-right: -11px;
 	margin-top: 3px;
 }
-
+#custom-fields-editor label {
+	margin: 0px !important;
+}
+#custom-fields-editor td {
+	line-height: 30px;
+}
+#custom-fields-editor label.allownote {
+	padding-top: 5px !important;
+}
+#custom-fields-editor input[type=checkbox] {
+	margin-top: 0px !important;
+}
+#custom-fields-editor td>input[type=text] {
+	margin: 0px !important;
+}
+#custom-fields-editor td table tr:first-child td {
+	padding-top: 0px;
+}
 
 /************ PRINT **************/
 @media print {
