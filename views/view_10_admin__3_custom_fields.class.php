@@ -5,12 +5,7 @@ class View_Admin__Custom_Fields extends View
 
 	static function getMenuPermissionLevel()
 	{
-		$features = explode(',', ENABLED_FEATURES);
-		if (in_array('DATES', $features) || in_array('CUSTOMFIELDS', $features)) {
-			return PERM_SYSADMIN;
-		} else {
-			return -1;
-		}
+		return PERM_SYSADMIN;
 	}
 
 	function getTitle()

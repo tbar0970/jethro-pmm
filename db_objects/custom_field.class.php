@@ -317,8 +317,8 @@ class Custom_Field extends db_object
 		$res = process_widget('custom_'.$this->id, $this->getWidgetParams());
 		if (($this->getValue('type') == 'date') && !empty($this->values['params']['allow_note'])) {
 			$notes = process_widget('custom_'.$this->id.'_note', Array('type' => 'text'));
-			foreach ($notes as $k => $v) {
-				$res[$k] .= ' '.$v;
+			foreach ((array)$notes as $k => $v) {
+				if (!empty($res[$k])) $res[$k] .= ' '.$v;
 			}
 		}
 		return $res;
@@ -346,5 +346,25 @@ class Custom_Field extends db_object
 
 	}
 
+	/**
+	 * Get SQL expression to retrieve a value suitable for use by formatValue() above.
+	 * @param string $tableAlias  Alias of the custom_field_value table in the SQL statement
+	 * @return string SQL
+	 */
+	public static function getRawValueSQLExpr($tableAlias)
+	{
+		return 'TRIM(CONCAT(COALESCE('.$tableAlias.'.value_optionid, CONCAT('.$tableAlias.'.value_date, " "), ""), COALESCE('.$tableAlias.'.value_text, "")))';
+	}
+
+	/**
+	 * Get SQL expression to retrieve a value suitable for sorting
+	 * (ie option fields' RANKs are returned instead of option id or option label).
+	 * @param string $tableAlias  Alias of the custom_field_value table in the SQL statement
+	 * @return string SQL
+	 */
+	public static function getSortValueSQLExpr($dataTableAlias, $optionTableAlias)
+	{
+		return 'COALESCE('.$optionTableAlias.'.rank, '.$dataTableAlias.'.value_date, '.$dataTableAlias.'.value_text)';
+	}
 }
 ?>

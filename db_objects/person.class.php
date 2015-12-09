@@ -202,7 +202,7 @@ class Person extends DB_Object
 		parent::load($id);
 
 		// Load custom values
-		$SQL = 'SELECT v.fieldid, TRIM(CONCAT(COALESCE(value_optionid, CONCAT(value_date, " "), ""), COALESCE(value_text, ""))) as value 
+		$SQL = 'SELECT v.fieldid, '.Custom_Field::getRawValueSQLExpr('v').' as value
 				FROM custom_field_value v
 				WHERE personid = '.(int)$this->id;
 		$res = $GLOBALS['db']->queryAll($SQL, NULL, NULL, true, FALSE, TRUE);
@@ -410,8 +410,7 @@ class Person extends DB_Object
 	
 	function save($update_family=TRUE)
 	{
-		// TODO: TRANSACTION
-		
+		$GLOBALS['system']->doTransaction('BEGIN');
 		$msg = '';
 
 		if ($update_family && $GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
@@ -479,6 +478,9 @@ class Person extends DB_Object
 		if ($res) {
 			$this->_savePhoto();
 			$this->_saveCustomValues();
+			$GLOBALS['system']->doTransaction('COMMIT');
+		} else {
+			$GLOBALS['system']->doTransaction('ROLLBACK');
 		}
 		if ($msg) add_message($msg);
 		return $res;
@@ -510,8 +512,8 @@ class Person extends DB_Object
 					switch ($customFields[$fieldid]['type']) {
 						case 'date':
 							$bits = explode(' ', $value);
-							$dateVal = array_get($bits, 0);
-							$textVal = array_get($bits, 1);
+							$dateVal = array_shift($bits);
+							$textVal = implode(' ' , $bits);
 							break;
 						case 'select':
 							$optionVal = $value;
@@ -697,12 +699,7 @@ class Person extends DB_Object
 		$res = parent::processForm($prefix, $fields);
 		foreach ($this->getCustomFields() as $fieldid => $fieldDetails) {
 			$field = $GLOBALS['system']->getDBObject('custom_field', $fieldid);
-			$newVal = $field->processWidget();
-			$oldVal = array_get($this->_custom_values, $fieldid, '');
-			if ((!empty($oldVal) || !empty($newVal)) && ($oldVal != $newVal)) {
-				$this->_old_custom_values[$fieldid] = $oldVal;
-				$this->_custom_values[$fieldid] = $newVal;
-			}
+			$this->setCustomValue($fieldid, $field->processWidget());
 		}
 
 		if (!empty($_FILES['photo']) && !$_FILES['photo']['error']) {
@@ -795,12 +792,26 @@ class Person extends DB_Object
 		return $uuid;
 	}
 
-	private function getCustomFields()
+	private function &getCustomFields()
 	{
 		if (!isset($this->_tmp['custom_fields'])) {
 			$this->_tmp['custom_fields'] = $GLOBALS['system']->getDBObjectData('custom_field', Array(), 'OR', 'rank');
 		}
 		return $this->_tmp['custom_fields'];
+	}
+
+	public function setCustomValue($fieldid, $newVal, $addToExisting=FALSE)
+	{
+		$fields = $this->getCustomFields();
+		$oldVal = array_get($this->_custom_values, $fieldid, '');
+		if ((!empty($oldVal) || !empty($newVal)) && ($oldVal != $newVal)) {
+			$this->_old_custom_values[$fieldid] = $oldVal;
+			if ($fields[$fieldid]['allow_multiple'] && $addToExisting && $oldVal) {
+				$this->_custom_values[$fieldid] = array_merge((array)$oldVal, $newVal);
+			} else {
+				$this->_custom_values[$fieldid] = $newVal;
+			}
+		}
 	}
 
 

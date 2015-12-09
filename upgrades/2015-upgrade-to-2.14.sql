@@ -39,9 +39,16 @@ ALTER TABLE `custom_field_value`
 SET @rank = -1;
 
 INSERT INTO custom_field
-(name, rank, type, allow_multiple, params)
-SELECT name, @rank:=@rank+1, 'date', 1, 'a:2:{s:10:"allow_note";i:1;s:16:"allow_blank_year";i:1;}'
+(id, name, rank, type, allow_multiple, params)
+SELECT id, name, @rank:=@rank+1, 'date', 1, 'a:2:{s:10:"allow_note";i:1;s:16:"allow_blank_year";i:1;}'
 from date_type
 order by name;
 
 ALTER TABLE date_type RENAME TO _disused_date_type;
+
+INSERT INTO custom_field_value
+(personid, fieldid, value_date, value_text)
+SELECT personid, typeid, `date`, note
+FROM person_date;
+
+ALTER TABLE person_date RENAME TO _disused_person_date;

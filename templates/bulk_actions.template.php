@@ -82,15 +82,24 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 				$dummy->printFieldInterface($field);
 				echo '</td></tr>';
 			}
-			$dateFieldParams = Person::getDateSubfieldParams();
-			$dateFieldParams['type']['empty_text'] = '(Choose type)';
+			$customFields = $GLOBALS['system']->getDBObjectData('custom_field', Array(), 'OR', 'rank');
+			$dummy = new Custom_Field();
+			$addParams = Array(
+							'type' => 'select',
+							'options' => Array('Replacing existing values ', 'Adding to existing values')
+						);
+			foreach ($customFields as $fieldid => $fieldDetails) {
+				$dummy->populate($fieldid, $fieldDetails);
+				echo '<tr><td>Set '.ents($dummy->getValue('name')).' to: </td><td>';
+				$dummy->printWidget('');
+				if ($dummy->getValue('allow_multiple')) {
+					echo '</td><td>';
+					print_widget('custom_'.$fieldid.'_add', $addParams, 0);
+				}
+				echo '</td></tr>';
+			}
+
 			?>
-				<tr>
-					<td>Add date value:</td>
-					<td><?php print_widget('date_typeid', $dateFieldParams['type'], NULL); ?></td>
-					<td><?php print_widget('date_val', $dateFieldParams['date'], date('Y-m-d')); ?></td>
-					<td><?php print_widget('date_note', $dateFieldParams['note'], ''); ?></td>
-				</tr>
 			</table>
 			<input type="submit" class="btn" onclick="return confirm('Are you sure you want to bulk-update these persons?')" value="Go" data-set-form-action="<?php echo BASE_URL; ?>?view=_persons_bulk_update&backto=<?php echo urlencode(http_build_query($_GET)); ?>" />
 		</div>

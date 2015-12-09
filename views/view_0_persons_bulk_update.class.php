@@ -15,12 +15,22 @@ class View__Persons_Bulk_Update extends View
 			trigger_error("Cannot update persons, no person ID specified", E_USER_WARNING);
 			return;
 		}
-		
+
+		$customValues = Array();
+		$customFields = $GLOBALS['system']->getDBObjectData('custom_field', Array(), 'OR', 'rank');
+		$dummyField = new Custom_Field();
+		foreach ($customFields as $fieldid => $fieldDetails) {
+			$dummyField->populate($fieldid, $fieldDetails);
+			if ($val = $dummyField->processWidget()) {
+				$customValues[$fieldid] = $val;
+			}
+		}
+
 		foreach ($this->_allowedFields as $field) {
 			if (array_get($_POST, $field, '') == '') unset($_POST[$field]);
 		}
 		
-		if (empty($_POST['date_typeid']) && count(array_intersect(array_keys($_POST), $this->_allowedFields)) == 0) {
+		if (empty($customValues) && count(array_intersect(array_keys($_POST), $this->_allowedFields)) == 0) {
 			add_message("Cannot update; no new values were specified", 'error');
 			if (!empty($_REQUEST['backto'])) {
 				parse_str($_REQUEST['backto'], $back);
@@ -30,14 +40,9 @@ class View__Persons_Bulk_Update extends View
 			return;
 		}
 		
-		if (!is_array($_POST['personid'])) {
-			$_REQUEST['personid'] = Array($_REQUEST['personid']);
-		}
-		$GLOBALS['system']->includeDBClass('person');
-
 		$success = 0;
 		$GLOBALS['system']->setFriendlyErrors(TRUE);
-		foreach ($_REQUEST['personid'] as $personid) {
+		foreach ((array)$_REQUEST['personid'] as $personid) {
 
 			$this->_person = new Person((int)$personid);
 			
@@ -46,15 +51,11 @@ class View__Persons_Bulk_Update extends View
 					$this->_person->setValue($field, $_POST[$field]);
 				}
 			}
-			if (!empty($_POST['date_typeid'])) {
-				$params = Person::getDateSubfieldParams();
-				$dateval = process_widget('date_val', $params['date']);
-				if (!$dateval) {
-					trigger_error("Invalid date value; cannot set date field");
-					return;
-				}
-				$this->_person->addDate($dateval, $_POST['date_typeid'], $_POST['date_note']);
+
+			foreach ($customValues as $fieldid => $val) {
+				$this->_person->setCustomValue($fieldid, $val, array_get($_POST, 'custom_'.$fieldid.'_add', FALSE));
 			}
+
 			if ($this->_person->validateFields() && $this->_person->save()) {
 				$success++;
 			}

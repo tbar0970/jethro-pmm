@@ -2,19 +2,22 @@
 include_once 'include/db_object.class.php';
 class Person_Query extends DB_Object
 {
-	var $_field_details = Array();
-	var $_query_fields = Array('p.status', 'p.congregationid', 'p.age_bracket', 'p.gender', 'f.address_suburb', 'f.address_state', 'f.address_postcode', 'p.creator', 'p.created', 'p.status_last_changed');
-	var $_show_fields = Array(
+	private $_field_details = Array();
+	private $_query_fields = Array('p.status', 'p.congregationid', 'p.age_bracket', 'p.gender', 'f.address_suburb', 'f.address_state', 'f.address_postcode', 'p.creator', 'p.created', 'p.status_last_changed');
+	private $_show_fields = Array(
 		'p.first_name', 'p.last_name', 'f.family_name', 'p.age_bracket', 'p.gender', 'p.status', 'p.congregationid', NULL,
 		'p.email', 'p.mobile_tel', 'p.work_tel', 'f.home_tel', 'p.remarks',
 		'f.address_street', 'f.address_suburb', 'f.address_state', 'f.address_postcode', NULL,
 		'p.creator', 'p.created', 'f.created', 'p.status_last_changed', );
-	var $_dummy_family = NULL;
-	var $_dummy_person = NULL;
-	var $_group_chooser_options_cache = NULL;
+	private $_dummy_family = NULL;
+	private $_dummy_person = NULL;
+	private $_dummy_custom_field = NULL;
+	private $_group_chooser_options_cache = NULL;
 
-	const DATE_SEP = '__nextdate__';
-	const DATE_NOTE_SEP = '__note:__';
+	private $_custom_fields = Array();
+
+	const CUSTOMFIELDVAL_SEP = '__next__';
+	const CUSTOMFIELD_PREFIX = 'CUSTOMFIELD---';
 
 	function __construct($id=0)
 	{
@@ -49,6 +52,9 @@ class Person_Query extends DB_Object
 				$this->_field_details['f.'.$i] = $v;
 				$this->_field_details['f.'.$i]['allow_empty'] = true;
 			}
+
+			$this->_custom_fields = $GLOBALS['system']->getDBObjectData('custom_field', Array(), 'OR', 'rank');
+			$this->_dummy_custom_field = new Custom_Field();
 		}
 		return parent::__construct($id);
 	}
@@ -117,7 +123,7 @@ class Person_Query extends DB_Object
 	function printForm()
 	{
 		$GLOBALS['system']->includeDBClass('person_group');
-		$params = $this->getValue('params');
+		$params = $this->_convertParams($this->getValue('params'));
 		?>
 		<h3>Find me people...</h3>
 
@@ -165,92 +171,112 @@ class Person_Query extends DB_Object
 		}
 		?>
 		</table>
-		
+
 		<?php
-		// DATE FIELD RULES
-		if ($GLOBALS['system']->featureEnabled('DATES')) {
-			if (empty($params['dates']) && !empty($params['rules']['date'])) {
-				$params['dates'][] = $params['rules']['date'] + Array('criteria' => 'between');
-				unset($params['rules']['date']);
-			}
-			
+		if ($this->_custom_fields) {
 			?>
+
 			<h4>who have
 				<?php
 				$dlParams = Array(
 					'type' => 'select',
 					'options' => Array('OR' => 'any', 'AND' => 'all'),
 				);
-				print_widget('params_date_logic', $dlParams, array_get($params, 'date_logic', 'AND'));
+				print_widget('params_custom_field_logic', $dlParams, array_get($params, 'custom_field_logic', 'AND'));
 				?>
-				 the following date fields...</h4>
-			<table class="table expandable indent-left" id="datefield-rules">
+				of the following custom fields...</h4>
+
+			<table class="table table-border table-auto-width indent-left table-condensed">
+
 			<?php
-			$values = array_get($params, 'dates', Array());
-			if (empty($values)) {
-				$values[] = Array('typeid' => NULL, 'criteria' => 'any', 'anniversary' => TRUE, 'from' => '2000-01-01', 'to' => date('Y-m-d'));
-			}
-			foreach ($values as $i => $value) {
+			if (empty($params['custom_fields'])) $params['custom_fields'] = Array();
+			foreach ($this->_custom_fields as $fieldid => $fieldDetails) {
 				?>
-				<tr>
-					<td class="narrow">
-						<?php					
-						print_widget('params_date_'.$i.'_typeid', Array('type' => 'select', 'options' => Array(0 => '--Choose--') + Person::getDateTypes()), (string)$value['typeid']);
-						?>
-					</td>
-					<td>
-						<?php
-
-						// backwards compatibility:
-						if (array_get($value, 'criteria') == 'between') {
-							$value['criteria'] = $value['anniversary'] ? 'anniversary' : 'exact';
-						}
-						$cparams = Array(
-									'type' => 'select',
-									'options' => Array(
-										'any' => 'filled with any value',
-										'empty' => 'not filled in',
-										'exact' => 'with exact value within...',
-										'anniversary' => 'with exact value or anniversary within...',
-									),
-									'class' => 'datefield-rule-criteria',
-								);
-						print_widget('params_date_'.$i.'_criteria', $cparams, $value['criteria']);
-						$pts = Array('fixed' => '', 'relative' => '');
-						$pts[array_get($value, 'periodtype', 'fixed')] = 'checked="checked"';
-						?>
-						<div class="datefield-rule-period">
+					<tr>
+						<td>
 							<label class="checkbox">
-								<input type="radio" name="params_date_<?php echo $i; ?>_periodtype" value="fixed" <?php echo $pts['fixed']; ?> />
-								the period from
-								<?php print_widget('params_date_'.$i.'_from', Array('type' => 'date'), $value['from']); ?>
-								to
-								<?php print_widget('params_date_'.$i.'_to', Array('type' => 'date'), $value['to']); ?>
+								<input autofocus="1" type="checkbox" name="enable_custom_field[]"
+									   value="<?php echo $fieldid; ?>"
+									   id="enable_custom_<?php echo $fieldid; ?>"
+									   class="select-rule-toggle"
+									   <?php if (isset($params['custom_fields'][$fieldid])) echo 'checked="checked" '; ?>
+								/>
+								<strong><?php echo ents($fieldDetails['name']); ?></strong>
 							</label>
-							<label class="checkbox">
-								<input type="radio" name="params_date_<?php echo $i; ?>_periodtype" value="relative"<?php echo $pts['relative']; ?> />
-								the
-								<?php print_widget('params_date_'.$i.'_periodlength', Array('type' => 'int'), array_get($value, 'periodlength', 14)); ?>
-								day period
-								<?php print_widget('params_date_'.$i.'_periodanchor',
-										Array(
-											'type' => 'select',
-											'options' => Array(
-															'before' => 'before',
-															'ending' => 'ending on',
-															'starting' => 'starting on',
-															'after' => 'after',
-														)
-										),
-										array_get($value, 'periodanchor', 'ending')
-								); ?>
-								the day the report is executed
-							</label>
+						</td>
+						<td>
+							<div class="select-rule-options" <?php if (!isset($params['custom_fields'][$fieldid])) echo 'style="display: none" '; ?>>
+							<?php
+							switch ($fieldDetails['type']) {
+								case 'date':
+									$value = array_get($params['custom_fields'], $fieldid, Array());
+									$cparams = Array(
+												'type' => 'select',
+												'options' => Array(
+													'any' => 'filled in with any value',
+													'empty' => 'not filled in',
+													'exact' => 'with exact value within...',
+													'anniversary' => 'with exact value or anniversary within...',
+												),
+												'class' => 'datefield-rule-criteria',
+											);
+									print_widget('params_custom_field_'.$fieldid.'_criteria', $cparams, array_get($value, 'criteria'));
+									$pts = Array('fixed' => '', 'relative' => '');
+									$pts[array_get($value, 'periodtype', 'fixed')] = 'checked="checked"';
+									?>
+									<div class="datefield-rule-period">
+										<label class="checkbox nowrap">
+											<input type="radio" name="params_custom_field_<?php echo $fieldid; ?>_periodtype" value="fixed" <?php echo $pts['fixed']; ?> />
+											the period from
+											<?php print_widget('params_custom_field_'.$fieldid.'_from', Array('type' => 'date', 'allow_empty' => TRUE), $value['from']); ?>
+											to
+											<?php print_widget('params_custom_field_'.$fieldid.'_to', Array('type' => 'date', 'allow_empty' => TRUE), $value['to']); ?>
+										</label>
+										<label class="checkbox">
+											<input type="radio" name="params_custom_field_<?php echo $fieldid; ?>_periodtype" value="relative"<?php echo $pts['relative']; ?> />
+											the
+											<?php print_widget('params_custom_field_'.$fieldid.'_periodlength', Array('type' => 'int'), array_get($value, 'periodlength', 14)); ?>
+											day period
+											<?php print_widget('params_custom_field_'.$fieldid.'_periodanchor',
+													Array(
+														'type' => 'select',
+														'options' => Array(
+																		'before' => 'before',
+																		'ending' => 'ending on',
+																		'starting' => 'starting on',
+																		'after' => 'after',
+																	)
+													),
+													array_get($value, 'periodanchor', 'ending')
+											); ?>
+											the day the report is executed
+										</label>
 
-						</div>
-					</td>
-				</tr>
-				<?php
+									</div>
+									<?php
+									break;
+								case 'select':
+									echo 'containing';
+									print_widget(
+										'params_custom_field_'.$fieldid.'_val',
+										Array('type' => 'select', 'options' => $fieldDetails['options'], 'allow_multiple' => true),
+										array_get(array_get($params['custom_fields'], $fieldid, Array()), 'val')
+									);
+									break;
+								case 'text':
+									echo 'equal to ';
+									print_widget(
+										'params_custom_field_'.$fieldid.'_val',
+										Array('type' => 'text'),
+										array_get(array_get($params['custom_fields'], $fieldid, Array()), 'val')
+									);
+									break;
+							}
+							?>
+							</div>
+						</td>
+					</tr>
+					<?php
 			}
 			?>
 			</table>
@@ -262,23 +288,27 @@ class Person_Query extends DB_Object
 		<div class="indent-left">
 
 			<?php
-			Person_Group::printMultiChooser('include_groupids', array_get($params, 'include_groups', Array()), Array(), TRUE);
+			$gotGroups = Person_Group::printMultiChooser('include_groupids', array_get($params, 'include_groups', Array()), Array(), TRUE);
+
+			if ($gotGroups) {
+				?>
+				<label class="checkbox">
+					<input type="checkbox" name="enable_group_membership_status" data-toggle="enable" data-target="#group-membership-status *" value="1"	<?php if (!empty($params['group_membership_status'])) echo 'checked="checked"'; ?> />
+					with membership status of
+				</label>
+				<span id="group-membership-status"><?php Person_Group::printMembershipStatusChooser('group_membership_status', array_get($params, 'group_membership_status'), true); ?></span>
+
+				<label class="checkbox">
+					<input type="checkbox" name="enable_group_join_date" data-toggle="enable" data-target="#group-join-dates *" value="1"	<?php if (!empty($params['group_join_date_from'])) echo 'checked="checked"'; ?> />
+					and joined the group between
+				</label>
+				<span id="group-join-dates">
+				<?php print_widget('group_join_date_from', Array('type' => 'date'), array_get($params, 'group_join_date_from')); ?>
+				and <?php print_widget('group_join_date_to', Array('type' => 'date'), array_get($params, 'group_join_date_to')); ?>
+				</span>
+				<?php
+			}
 			?>
-
-			<label class="checkbox">
-				<input type="checkbox" name="enable_group_membership_status" data-toggle="enable" data-target="#group-membership-status *" value="1"	<?php if (!empty($params['group_membership_status'])) echo 'checked="checked"'; ?> />
-				with membership status of
-			</label>
-			<span id="group-membership-status"><?php Person_Group::printMembershipStatusChooser('group_membership_status', array_get($params, 'group_membership_status'), true); ?></span>
-
-			<label class="checkbox">
-				<input type="checkbox" name="enable_group_join_date" data-toggle="enable" data-target="#group-join-dates *" value="1"	<?php if (!empty($params['group_join_date_from'])) echo 'checked="checked"'; ?> />
-				and joined the group between
-			</label> 
-			<span id="group-join-dates">
-			<?php print_widget('group_join_date_from', Array('type' => 'date'), array_get($params, 'group_join_date_from')); ?>
-			and <?php print_widget('group_join_date_to', Array('type' => 'date'), array_get($params, 'group_join_date_to')); ?>
-			</span>
 		</div>
 
 
@@ -373,10 +403,10 @@ class Person_Query extends DB_Object
 						$options['actionnotes.subjects'] = 'Notes requiring action';
 					}
 
-					if ($GLOBALS['system']->featureEnabled('DATES')) {
+					if ($this->_custom_fields) {
 						$options['--A'] = '-----';
-						foreach (Person::getDateTypes() as $typeid => $name) {
-							$options['date---'.$typeid] = ucfirst($name).' Date';
+						foreach ($this->_custom_fields as $fieldid => $fielddetails) {
+							$options[self::CUSTOMFIELD_PREFIX.$fieldid] = ucfirst($fielddetails['name']);
 						}
 					}
 					$options['--B'] = '-----';
@@ -452,13 +482,14 @@ class Person_Query extends DB_Object
 		<option value="attendance_percent"<?php if ($sb == "attendance_percent") echo ' selected="selected"'; ?>>Attendance rate during the specified period</option>
 		<option value="attendance_numabsences""<?php if ($sb == "attendance_numabsences") echo ' selected="selected"'; ?>>Number of absences since last marked present</option>
 		<?php
-		if ($GLOBALS['system']->featureEnabled('DATES')) {
+		if ($this->_custom_fields) {
 			?>
 			<option disabled="disabled">------</option>
 			<?php
-			foreach (Person::getDateTypes() as $typeid => $name) {
+			foreach ($this->_custom_fields as $fieldid => $fielddetails) {
+				$selected = ($sb == self::CUSTOMFIELD_PREFIX.$fieldid) || ($sb == 'date---'.$fieldid)
 				?>
-				<option value="date---<?php echo $typeid; ?>"<?php if ($sb == 'date---'.$typeid) echo ' selected="selected"'; ?>><?php echo ents($name); ?> date</option>
+				<option value="customfield---<?php echo $fieldid; ?>"<?php if ($selected) echo ' selected="selected"'; ?>><?php echo ents($fielddetails['name']); ?></option>
 				<?php
 			}
 		}
@@ -511,7 +542,7 @@ class Person_Query extends DB_Object
 			$this->id = 'TEMP';
 		}
 
-		$params = $this->getValue('params');
+		$params = $this->_convertParams($this->getValue('params'));
 
 		// FIELD RULES
 		$rules = Array();
@@ -522,25 +553,32 @@ class Person_Query extends DB_Object
 		}
 		$params['rules'] = $rules;
 		
-		// DATE RULES
-		$i = 0;
-		$params['dates'] = Array();
-		while (array_key_exists('params_date_'.$i.'_typeid', $_REQUEST)) {
-			if (!empty($_REQUEST['params_date_'.$i.'_typeid'])) {
-				$params['dates'][] = Array(
-					'typeid' => (int)$_REQUEST['params_date_'.$i.'_typeid'],
-					'criteria' => $_REQUEST['params_date_'.$i.'_criteria'],
-					'periodtype' => $_REQUEST['params_date_'.$i.'_periodtype'],
-					'periodlength' => $_REQUEST['params_date_'.$i.'_periodlength'],
-					'periodanchor' => $_REQUEST['params_date_'.$i.'_periodanchor'],
-					'from' => process_widget('params_date_'.$i.'_from', Array('type' => 'date')),
-					'to' => process_widget('params_date_'.$i.'_to', Array('type' => 'date')),
-				);
+		// CUSTOM FIELD RULES
+		$params['custom_fields'] = Array();
+		foreach ($this->_custom_fields as $fieldid => $fieldDetails) {
+			if (in_array($fieldid, array_get($_REQUEST, 'enable_custom_field', Array()))) {
+				switch ($this->_custom_fields[$fieldid]['type']) {
+					case 'date':
+						$params['custom_fields'][$fieldid] = Array(
+							'criteria' => $_REQUEST['params_custom_field_'.$fieldid.'_criteria'],
+							'periodtype' => $_REQUEST['params_custom_field_'.$fieldid.'_periodtype'],
+							'periodlength' => $_REQUEST['params_custom_field_'.$fieldid.'_periodlength'],
+							'periodanchor' => $_REQUEST['params_custom_field_'.$fieldid.'_periodanchor'],
+							'from' => process_widget('params_custom_field_'.$fieldid.'_from', Array('type' => 'date')),
+							'to' => process_widget('params_custom_field_'.$fieldid.'_to', Array('type' => 'date')),
+						);
+						break;
+					case 'select':
+					case 'text':
+						$params['custom_fields'][$fieldid] = Array(
+							'val' => $_REQUEST['params_custom_field_'.$fieldid.'_val']
+						);
+						break;
+				}
 			}
-			$i++;
 		}
-		if (!empty($_REQUEST['params_date_logic'])) {
-			$params['date_logic'] = $_REQUEST['params_date_logic'] == 'OR' ? 'OR' : 'AND';
+		if (!empty($_REQUEST['params_custom_field_logic'])) {
+			$params['custom_field_logic'] = $_REQUEST['params_custom_field_logic'] == 'OR' ? 'OR' : 'AND';
 		}
 
 		// GROUP RULES
@@ -610,14 +648,14 @@ class Person_Query extends DB_Object
 		return $res;
 	}
 
-	private function _formatDateResult($str)
+	private function _formatCustomFieldValue($str, $fieldid)
 	{
 		$out = Array();
 		if (empty($str)) return '';
-		$rows = explode(self::DATE_SEP, $str);
+		$this->_dummy_custom_field->populate($fieldid, $this->_custom_fields[$fieldid]);
+		$rows = explode(self::CUSTOMFIELDVAL_SEP, $str);
 		foreach ($rows as $row) {
-			list ($d, $n) = explode(self::DATE_NOTE_SEP, $row);
-			$out[] = format_date($d). ($n ? ' ('.ents($n).')' : '');
+			$out[] = $this->_dummy_custom_field->formatValue($row);
 		}
 		return implode("\n", $out);
 	}
@@ -677,7 +715,8 @@ class Person_Query extends DB_Object
 	function getSQL($select_fields=NULL)
 	{
 		$db =& $GLOBALS['db'];
-		$params = $this->getValue('params');
+		
+		$params = $this->_convertParams($this->getValue('params'));
 		if (empty($params)) return null;
 		$query = Array();
 		$query['from'] = 'person p 
@@ -720,67 +759,73 @@ class Person_Query extends DB_Object
 			}
 		}
 		
-		// DATE FIELD FILTERS
-		if (empty($params['dates']) && !empty($params['rules']['date'])) {
-			$params['dates'][] = $params['rules']['date'] + Array('criteria' => 'between');
-		}
-
-		$dateWheres = Array();
-		foreach (array_get($params, 'dates', Array()) as $i => $values) {
-			if ($values['criteria'] == 'between') {
-				$values['criteria'] = $values['anniversary'] ? 'anniversary' : 'exact';
-			}
-			switch ($values['criteria']) {
-				case 'any':
-					$query['from'] .= ' LEFT JOIN person_date pd'.$i.' ON pd'.$i.'.personid = p.id AND pd'.$i.'.typeid = '.(int)$values['typeid']."\n";
-					$dateWheres[] = 'pd'.$i.'.`date` IS NOT NULL';
-					break;
-
-				case 'empty':
-					$query['from'] .= ' LEFT JOIN person_date pde'.$i.' ON pde'.$i.'.personid = p.id AND pde'.$i.'.typeid = '.(int)$values['typeid']."\n";
-					$dateWheres[] = 'pde'.$i.'.personid IS NULL';
-					break;
-
-				case 'exact':
-				case 'anniversary':
-
-					if (array_get($values, 'periodtype') == 'relative') {
-						$length = $values['periodlength'];
-						if (!preg_match('/^[0-9]+$/', $length)) $length = 0;
-						$offsets = Array(
-							'before' => Array(-$length-1, -1),
-							'ending' => Array(-$length, 0),
-							'starting' => Array(0, $length),
-							'after' => Array(1, $length+1)
-						);
-						list($so, $eo) = $offsets[$values['periodanchor']];
-						$between = 'BETWEEN CURDATE() + INTERVAL '.$so.' DAY AND CURDATE() + INTERVAL '.$eo.' DAY';
-					} else {
-						$between = 'BETWEEN '.$db->quote($values['from']).' AND '.$db->quote($values['to']);
+		// CUSTOM FIELD FILTERS
+		$customFieldWheres = Array();
+		foreach (array_get($params, 'custom_fields', Array()) as $fieldid => $values) {
+			$query['from'] .= ' LEFT JOIN custom_field_value pd'.$fieldid.' ON pd'.$fieldid.'.personid = p.id AND pd'.$fieldid.'.fieldid = '.(int)$fieldid."\n";
+			switch ($this->_custom_fields[$fieldid]['type']) {
+				case 'date':
+					if ($values['criteria'] == 'between') {
+						$values['criteria'] = $values['anniversary'] ? 'anniversary' : 'exact';
 					}
-					$w = Array();
-					$w[] = '(pd'.$i.'.`date` NOT LIKE "-%" 
-							AND pd'.$i.'.`date` '.$between.')';
-					if ($values['criteria'] == 'anniversary') {
-						// Anniversary matches either have no year or a year before the 'to' year
-						// AND their month-day fits the range either in the from year or the to year.
-						$fromyearbetween = 'CONCAT('.$db->quote(substr($values['from'], 0, 4)).', RIGHT(pd'.$i.'.`date`, 6)) '.$between;
-						$toyearbetween = 'CONCAT('.$db->quote(substr($values['to'], 0, 4)).', RIGHT(pd'.$i.'.`date`, 6)) '.$between;
-						$w[] = '(pd'.$i.'.`date` LIKE "-%" AND '.$fromyearbetween.')';
-						$w[] = '(pd'.$i.'.`date` LIKE "-%" AND '.$toyearbetween.')';
-						$w[] = '(pd'.$i.'.`date` NOT LIKE "-%" AND pd'.$i.'.`date` < '.$db->quote($values['to']).' AND '.$fromyearbetween.')';
-						$w[] = '(pd'.$i.'.`date` NOT LIKE "-%" AND pd'.$i.'.`date` < '.$db->quote($values['to']).' AND '.$toyearbetween.')';
+					switch ($values['criteria']) {
+						case 'any':
+							$customFieldWheres[] = 'pd'.$fieldid.'.`personid` IS NOT NULL';
+							break;
+
+						case 'empty':
+							$customFieldWheres[] = 'pd'.$fieldid.'.personid IS NULL';
+							break;
+
+						case 'exact':
+						case 'anniversary':
+
+							if (array_get($values, 'periodtype') == 'relative') {
+								$length = $values['periodlength'];
+								if (!preg_match('/^[0-9]+$/', $length)) $length = 0;
+								$offsets = Array(
+									'before' => Array(-$length-1, -1),
+									'ending' => Array(-$length, 0),
+									'starting' => Array(0, $length),
+									'after' => Array(1, $length+1)
+								);
+								list($so, $eo) = $offsets[$values['periodanchor']];
+								$between = 'BETWEEN CURDATE() + INTERVAL '.$so.' DAY AND CURDATE() + INTERVAL '.$eo.' DAY';
+							} else {
+								$between = 'BETWEEN '.$db->quote($values['from']).' AND '.$db->quote($values['to']);
+							}
+							$w = Array();
+							$w[] = '(pd'.$fieldid.'.`value_date` NOT LIKE "-%"
+									AND pd'.$fieldid.'.`value_date` '.$between.')';
+							if ($values['criteria'] == 'anniversary') {
+								// Anniversary matches either have no year or a year before the 'to' year
+								// AND their month-day fits the range either in the from year or the to year.
+								$fromyearbetween = 'CONCAT('.$db->quote(substr($values['from'], 0, 4)).', RIGHT(pd'.$fieldid.'.`value_date`, 6)) '.$between;
+								$toyearbetween = 'CONCAT('.$db->quote(substr($values['to'], 0, 4)).', RIGHT(pd'.$fieldid.'.`value_date`, 6)) '.$between;
+								$w[] = '(pd'.$fieldid.'.`value_date` LIKE "-%" AND '.$fromyearbetween.')';
+								$w[] = '(pd'.$fieldid.'.`value_date` LIKE "-%" AND '.$toyearbetween.')';
+								$w[] = '(pd'.$fieldid.'.`value_date` NOT LIKE "-%" AND pd'.$fieldid.'.`value_date` < '.$db->quote($values['to']).' AND '.$fromyearbetween.')';
+								$w[] = '(pd'.$fieldid.'.`value_date` NOT LIKE "-%" AND pd'.$fieldid.'.`value_date` < '.$db->quote($values['to']).' AND '.$toyearbetween.')';
+							}
+							$customFieldWheres[] = '('.implode(' OR ', $w).')';
+							break;
+
 					}
-					$query['from'] .= ' LEFT JOIN person_date pd'.$i.' ON pd'.$i.'.personid = p.id AND pd'.$i.'.typeid = '.(int)$values['typeid']."\n";
-					$dateWheres[] = '('.implode(' OR ', $w).')';
 					break;
 
+				case 'select':
+					$ids = implode(',', array_map(Array($db, 'quote'), $values['val']));
+					$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IN ('.$ids.'))';
+					break;
 
+				case 'text':
+					$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid = '.$db->quote($values['val']).')';
+					break;
 			}
 		}
-		if (!empty($dateWheres)) {
-			$logic = array_get($params, 'date_logic', 'AND');
-			$query['where'][] = '(('.implode(') '.$logic.' (', $dateWheres).'))';
+		if (!empty($customFieldWheres)) {
+			$logic = array_get($params, 'custom_field_logic', 'AND');
+			$query['where'][] = '(('.implode(') '.$logic.' (', $customFieldWheres).'))';
 		}
 
 		// GROUP MEMBERSHIP FILTERS
@@ -979,12 +1024,19 @@ class Person_Query extends DB_Object
 						}
 						// else deliberate fallthrough...
 					default:
+						$customFieldID = NULL;
 						if (substr($field, 0, 7) == 'date---') {
-							$types = Person::getDateTypes();
-							$dateid = substr($field, 7);
-							if (isset($types[$dateid])) {
-								$query['from'] .= 'LEFT JOIN person_date pdd'.$dateid.' ON pdd'.$dateid.'.personid = p.id AND pdd'.$dateid.'.typeid = '.$db->quote($dateid)."\n";
-								$query['select'][] = 'GROUP_CONCAT(DISTINCT CONCAT(pdd'.$dateid.'.`date`, "'.self::DATE_NOTE_SEP.'", pdd'.$dateid.'.`note`) ORDER BY pdd'.$dateid.'.`date` SEPARATOR "'.self::DATE_SEP.'") as '.$db->quote('DATE---'.$types[$dateid])."\n";
+							// backwards compat
+							$customFieldID = substr($field, 7);
+						} else if (0 === strpos($field, self::CUSTOMFIELD_PREFIX)) {
+							$customFieldID = substr($field, 14);
+						}
+						if ($customFieldID) {
+							$field = new Custom_Field();
+							$field->populate($customFieldID, $this->_custom_fields[$customFieldID]);
+							if (isset($this->_custom_fields[$customFieldID])) {
+								$query['from'] .= 'LEFT JOIN custom_field_value cfv'.$customFieldID.' ON cfv'.$customFieldID.'.personid = p.id AND cfv'.$customFieldID.'.fieldid = '.$db->quote($customFieldID)."\n";
+								$query['select'][] = 'GROUP_CONCAT(DISTINCT '.Custom_Field::getRawValueSQLExpr('cfv'.$customFieldID).' ORDER BY '.Custom_Field::getRawValueSQLExpr('cfv'.$customFieldID).' SEPARATOR "'.self::CUSTOMFIELDVAL_SEP.'") as '.$db->quote(self::CUSTOMFIELD_PREFIX.$customFieldID)."\n";
 							}
 						} else {
 							$query['select'][] = $this->_quoteAliasAndColumn($field).' AS '.$db->quote($field);
@@ -995,14 +1047,23 @@ class Person_Query extends DB_Object
 		}
 
 		// Order by
+		$customOrder = NULL;
 		if (substr($params['sort_by'], 0, 7) == 'date---') {
-			$query['from'] .= 'LEFT JOIN person_date pdorder ON pdorder.personid = p.id AND pdorder.typeid = '.$db->quote(substr($query['order_by'], 8))."\n";
-			/*
-			 * We want persons with a full date first, in chronological
-			 * order.  Then persons with a yearless date, in order.  
-			 * Then persons with no date.
-			 */
-			$query['order_by'] = 'IF (pdorder.`date` IS NULL, 3, IF (pdorder.`date` LIKE "-%", 2, 1)), pdorder.`date`';
+			// backwards compatibility
+			$customOrder = substr($params['sort_by'], 8);
+		} else if (0 === strpos($params['sort_by'], self::CUSTOMFIELD_PREFIX)) {
+			$customOrder = substr($params['sort_by'], 14);
+		}
+		if ($customOrder) {
+			$query['from'] .= 'LEFT JOIN custom_field_value cfvorder ON cfvorder.personid = p.id AND cfvorder.fieldid = '.$db->quote($customOrder)."\n";
+			$query['from'] .= "LEFT JOIN custom_field_option cfoorder ON cfoorder.id = cfvorder.value_optionid \n";
+			$order = Array();
+			$order[] = 'IF(cfvorder.personid IS NULL, 1, 0)'; // put those without a value last
+			if ($this->_custom_fields[$customOrder]['type'] == 'date') {
+				$order[] = 'IF(cfvorder.value_date LIKE "-%", 1, 0)'; // put full dates before partial dates
+			}
+			$order[] = 'GROUP_CONCAT('.Custom_Field::getSortValueSQLExpr('cfvorder', 'cfoorder').')';
+			$query['order_by'] = implode(', ', $order);
 
 		}
 
@@ -1058,7 +1119,7 @@ class Person_Query extends DB_Object
 	function printResults($format='html')
 	{
 		$db =& $GLOBALS['db'];
-		$params = $this->getValue('params');
+		$params = $this->_convertParams($this->getValue('params'));
 
 		$sql = $this->getSQL();
 		if (is_null($sql)) return;
@@ -1131,8 +1192,8 @@ class Person_Query extends DB_Object
 					default:
 						if (isset($this->_field_details[$heading])) {
 							$hr[] = $this->_field_details[$heading]['label'];
-						} else if (substr($heading, 0, 7) == 'DATE---') {
-							$hr[] = ucfirst(substr($heading, 7));
+						} else if (0 === strpos($heading, self::CUSTOMFIELD_PREFIX)) {
+							$hr[] = $this->_custom_fields[substr($heading, strlen(self::CUSTOMFIELD_PREFIX))]['name'];
 						} else {
 							$hr[] = ucfirst($heading);
 						}
@@ -1150,8 +1211,8 @@ class Person_Query extends DB_Object
 					$var = $label[0] == 'p' ? '_dummy_person' : '_dummy_family';
 					$fieldname = substr($label, 2);
 					$r[] = $this->$var->getFormattedValue($fieldname, $val);
-				} else if (substr($label, 0, 7) == 'DATE---') {
-					$r[] = $this->_formatDateResult($val);
+				} else if (0 === strpos($label, self::CUSTOMFIELD_PREFIX)) {
+					$r[] = $this->_formatCustomFieldValue($val, substr($label, strlen(self::CUSTOMFIELD_PREFIX)));
 				} else {
 					$r[] = $val;
 				}
@@ -1198,8 +1259,8 @@ class Person_Query extends DB_Object
 							default:
 								if (isset($this->_field_details[$heading])) {
 									echo $this->_field_details[$heading]['label'];
-								} else if (substr($heading, 0, 7) == 'DATE---') {
-									echo ucfirst(substr($heading, 7));
+								} else if (0 === strpos($heading, self::CUSTOMFIELD_PREFIX)) {
+									echo ents($this->_custom_fields[substr($heading, strlen(self::CUSTOMFIELD_PREFIX))]['name']);
 								} else {
 									echo ucfirst($heading);
 								}
@@ -1250,8 +1311,8 @@ class Person_Query extends DB_Object
 									$fieldname = substr($label, 2);
 									$this->$var->setValue($fieldname, $val);
 									$this->$var->printFieldValue($fieldname);
-								} else if (substr($label, 0, 7) == 'DATE---') {
-									echo nl2br($this->_formatDateResult($val));
+								} else if (0 === strpos($label, self::CUSTOMFIELD_PREFIX)) {
+									echo nl2br(ents($this->_formatCustomFieldValue($val, substr($label, strlen(self::CUSTOMFIELD_PREFIX)))));
 								} else {
 									echo nl2br(ents($val));
 								}
@@ -1328,6 +1389,34 @@ class Person_Query extends DB_Object
 		}
 	}
 
+	/**
+	 * Convert an older version of the params to new format
+	 */
+	private function _convertParams($params)
+	{
+		if (isset($params['dates'])) {
+			foreach ($params['dates'] as $rule) {
+				$params['custom_fields'][$rule['typeid']] = $rule;
+				unset($params['custom_fields'][$rule['typeid']]['typeid']);
+			}
+			unset($params['dates']);
+		}
+		if (isset($params['date_logic'])) {
+			$params['custom_field_logic'] = $params['date_logic'];
+			unset($params['date_logic']);
+		}
 
+		foreach ($params['show_fields'] as $i => $v) {
+			if (0 === strpos($v, 'date---')) {
+				$params['show_fields'][$i] = self::CUSTOMFIELD_PREFIX.substr($v, strlen('date---'));
+			}
+		}
+
+		if (0 === strpos($params['sort_by'], 'date---')) {
+			$params['sort_by'] = self::CUSTOMFIELD_PREFIX.substr($params['sort_by'], strlen('date---'));
+		}
+
+		return $params;
+	}
 }
 ?>
