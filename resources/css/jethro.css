@@ -877,6 +877,15 @@ Otherwise they go beneath each other
 #family-members-container h4 {
 	margin-bottom: 0;
 }
+#family-members-container table tr:first-child td {
+	padding-top: 0px;
+}
+#family-members-container table tr:last-child td {
+	padding-bottom: 0px;
+}
+#family-members-container table tr td:first-child {
+	padding-left: 0px;
+}
 
 
 /**************** hOME PAGE *****************/
