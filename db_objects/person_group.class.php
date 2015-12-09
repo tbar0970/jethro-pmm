@@ -412,17 +412,20 @@ class Person_Group extends db_object
 		?>
 			<tr>
 				<td>
-					<?php Person_Group::printChooser($name.'[]', 0, $exclude_groups, $allow_category_select); ?>
+					<?php $gotGroups = Person_Group::printChooser($name.'[]', 0, $exclude_groups, $allow_category_select); ?>
 				</td>
 			</tr>
 		</table>
 		<?php
+		return $gotGroups;
 	}
 
 	static function printChooser($fieldname, $value, $exclude_groups=Array(), $allow_category_select=FALSE, $empty_text='(Choose)')
 	{
-		$cats = $GLOBALS['system']->getDBObjectData('person_group_category', Array(), 'OR', 'name');
-		$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('is_archived' => 0), 'OR', 'name');
+		static $cats = NULL;
+		static $groups = NULL;
+		if ($cats === NULL) $cats = $GLOBALS['system']->getDBObjectData('person_group_category', Array(), 'OR', 'name');
+		if ($groups === NULL) $groups = $GLOBALS['system']->getDBObjectData('person_group', Array('is_archived' => 0), 'OR', 'name');
 		if (empty($groups)) {
 			?><i>There are no groups in the system yet</i><?php
 			return FALSE;
