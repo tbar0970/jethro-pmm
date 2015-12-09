@@ -477,7 +477,7 @@ function process_widget($name, $params, $index=NULL)
 			break;
 		default:
 			$value = $rawVal;
-			if (!empty($params['regex']) && !empty($value) && !preg_match($params['regex'].'i', $value)) {
+			if (!empty($params['regex']) && !empty($value) && !preg_match('/'.trim($params['regex'], '/').'/i', $value)) {
 				trigger_error($value.' is not a valid value for '.array_get($params, 'label', ucfirst($name)));
 				$value = NULL;
 			}
