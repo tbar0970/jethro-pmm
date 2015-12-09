@@ -2,9 +2,10 @@
 require_once dirname(__FILE__).'/view.class.php';
 class System_Controller
 {
-	var $_view = NULL;
-	var $_friendly_errors = false;
-	var $_base_dir = '';
+	private $_view = NULL;
+	private $_friendly_errors = false;
+	private $_base_dir = '';
+	private $_object_cache = Array();
 	
 	static private $instance = NULL;
 
@@ -184,11 +185,12 @@ class System_Controller
 
 	public function getDBObject($classname, $id)
 	{
-		$this->includeDBClass($classname);
-		$res = new $classname($id);
-		if (!$res->id) $res = null;
-		return $res;
-
+		if (!isset($this->_object_cache[$classname]) || !isset($this->_object_cache[$classname][$id])) {
+			$this->includeDBClass($classname);
+			$this->_object_cache[$classname][$id] = new $classname($id);
+			if (!$this->_object_cache[$classname][$id]->id) $this->_object_cache[$classname][$id] = null;
+		}
+		return $this->_object_cache[$classname][$id];
 	}
 
 	public function getDBObjectData($classname, $params=Array(), $logic='OR', $order='')
