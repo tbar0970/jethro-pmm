@@ -194,21 +194,6 @@ class Person extends DB_Object
 			   PRIMARY KEY (personid),
 			   CONSTRAINT photo_personid FOREIGN KEY (`personid`) REFERENCES `_person` (`id`) ON DELETE CASCADE
 			) ENGINE=InnoDB",
-
-			"CREATE TABLE IF NOT EXISTS `date_type` (
-			  `id` int(11) NOT NULL auto_increment,
-			  `name` varchar(255) not null,
-			  PRIMARY KEY  (`id`)
-			) ENGINE=InnoDB",
-
-			"CREATE TABLE person_date (
-			  `personid` int(11) NOT NULL,
-			  `typeid` int(11) default null,
-			  `date` char(10) not null,
-			  `note` varchar(255) default '',
-			  CONSTRAINT persondate_personid FOREIGN KEY (`personid`) REFERENCES `_person` (`id`) ON DELETE CASCADE,
-			  CONSTRAINT persondate_typeid FOREIGN KEY (`typeid`) REFERENCES `date_type` (`id`) ON DELETE SET NULL
-			) ENGINE=InnoDB"
 		);
 	}
 
