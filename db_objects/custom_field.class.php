@@ -51,7 +51,9 @@ class Custom_Field extends db_object
 			$this->_tmp['options'] = $details['options'];
 		}
 		unset($details['options']);
-		return parent::populate($id, $details);
+		$res = parent::populate($id, $details);
+		if (empty($details['params'])) $details['params'] = Array();
+		return $res;
 	}
 	
 	public function getOptions()
@@ -113,8 +115,8 @@ class Custom_Field extends db_object
 				}
 			}
 			$res[$k]['options'] = $opts;
+			$res[$k]['params'] = unserialize($v['params']);
 		}
-		$res[$k]['params'] = unserialize($v['params']);
 		return $res;
 	}
 	
