@@ -196,7 +196,7 @@ class View_Persons__Reports extends View
 					?>
 					</tbody>
 				</table>
-				<input type="submit" class="btn-link pull-right" name="show_result_count" value="Show result counts for selected reports (could be slow)" />
+				<input type="submit" class="btn-link pull-right" name="show_result_count" value="Show result counts for selected reports" />
 				</form>
 				<?php
 			}
