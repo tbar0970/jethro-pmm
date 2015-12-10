@@ -386,7 +386,7 @@ function process_widget($name, $params, $index=NULL)
 {
 	$testVal = $rawVal = array_get($_REQUEST, $name);
 	if (empty($testVal) && $params['type'] == 'date') $testVal = array_get($_REQUEST, $name.'_d');
-	if (is_array($testVal)) {
+	if (is_array($testVal) && ($params['type'] != 'bitmask') && (array_get($params, 'allow_multiple', 0) == 0)) {
 		if (!is_null($index)) {
 			$rawVal = $rawVal[$index];
 		} else {
@@ -462,10 +462,9 @@ function process_widget($name, $params, $index=NULL)
 			// value is the bitwise-or of all submitted values
 			$value = 0;
 			if (isset($rawVal)) {
-				if (isset($rawVal)) {
-					foreach ($rawVal as $i) {
-						$value = $value | (int)$i;
-					}
+				bam($rawVal);
+				foreach ((array)$rawVal as $i) {
+					$value = $value | (int)$i;
 				}
 			}
 			break;
