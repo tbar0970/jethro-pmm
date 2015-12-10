@@ -273,7 +273,7 @@ class service extends db_object
 			case 'bible_to_read':
 			case 'bible_to_preach':
 				$type = substr($fieldname, strlen('bible_to_'));
-				$readings = $this->getRawBibleReadings('read');
+				$readings = $this->getRawBibleReadings($type);
 				$res = Array();
 				foreach ($readings as $reading) {
 					$br = new Bible_Ref($reading['bible_ref']);
