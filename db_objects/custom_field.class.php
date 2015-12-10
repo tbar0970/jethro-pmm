@@ -337,6 +337,7 @@ class Custom_Field extends db_object
 				return $res;
 				break;
 			case 'select':
+				if (empty($val)) return '';
 				return array_get($this->getOptions(), $val, '(Invalid option)');
 				break;
 			default:
