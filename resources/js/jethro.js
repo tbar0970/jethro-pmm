@@ -401,6 +401,18 @@ $(document).ready(function() {
 			stop: function(event, ui) { ui.item.find('table').show('medium'); },
 
 		})
+
+		$('#custom-fields-editor').parents('form').submit(function() {
+			var optionsMsg = fieldsMsg = '';
+			$(this).find('input[type=checkbox]').each(function() {
+				console.log(this);
+				if (this.checked){
+					if (this.name.match(/fields_[0-9]+_delete/)) fieldsMsg = "\nDeleting a field will delete all values for that field from all persons.";
+					if (this.name.match(/fields_[0-9]+_options_delete/)) optionsMsg = "\nDeleting a select option will remove that value from all persons currently using it.";
+				}
+			})
+			if (optionsMsg || fieldsMsg) return confirm("WARNING: "+fieldsMsg+optionsMsg+"\nAre you sure you want to continue?");
+		})
 	}
 
 	if (document.getElementById('service-program-editor')) {
