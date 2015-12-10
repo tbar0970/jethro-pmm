@@ -71,7 +71,10 @@ define('ENABLED_FEATURES', 'NOTES,PHOTOS,DATES,ATTENDANCE,ROSTERS&SERVICES,SERVI
 define('DEFAULT_PERMISSIONS', 7995391);
 
 // Whether a note is compulsory when adding a new family
-define('REQUIRE_INITIAL_NOTE', true); 
+define('REQUIRE_INITIAL_NOTE', true);
+
+// Whether users restricted by congregation or group can add persons and families
+define('RESTRICTED_USERS_CAN_ADD', true);
 
 // The order in which persons are listed when marking or reporting on 
 // The default is by status (core first) then family name, age bracket (adults first), gender (male first)

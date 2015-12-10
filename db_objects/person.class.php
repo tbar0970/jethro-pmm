@@ -19,8 +19,22 @@ class Person extends DB_Object
 		return parent::__construct($id);
 	}
 
+	static function allowedToAdd()
+	{
+		$restrictions = $GLOBALS['user_system']->getCurrentRestrictions();
+		if (!empty($restrictions['group'])) return FALSE;
+		if (!empty($restrictions['congregation'])) {
+			return (defined('RESTRICTED_USERS_CAN_ADD') && RESTRICTED_USERS_CAN_ADD);
+		}
+		return TRUE;
+	}
+
 	function _getFields()
 	{
+		$allowEmptyCong = TRUE;
+		if (!empty($GLOBALS['user_system']) && $GLOBALS['user_system']->getCurrentRestrictions('congregation')) {
+			$allowEmptyCong = FALSE; // Can only add to congs we can see.
+		}
 		$res = Array(
 			'first_name'	=> Array(
 									'type'		=> 'text',
@@ -63,7 +77,7 @@ class Person extends DB_Object
 									'order_by'			=> 'name',
 									'label'				=> 'Congregation',
 									'show_id'			=> FALSE,
-									'allow_empty'		=> TRUE,
+									'allow_empty'		=> $allowEmptyCong,
 									'class'				=> 'person-congregation',
 							   ),
 			'status'	=> Array(

@@ -103,11 +103,12 @@ class User_System
 
 	}//end getCurrentUser()
 
-	public function getCurrentRestrictions()
+	public function getCurrentRestrictions($type=NULL)
 	{
 		$res = Array();
 		if (!empty($_SESSION['user']['group_restrictions'])) $res['group'] = $_SESSION['user']['group_restrictions'];
 		if (!empty($_SESSION['user']['congregation_restrictions'])) $res['congregation'] = $_SESSION['user']['congregation_restrictions'];
+		if ($type) $res = array_get($res, $type);
 		return $res;
 	}
 

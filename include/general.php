@@ -246,6 +246,8 @@ function print_widget($name, $params, $value)
 				</div>
 				<?php
 			} else {
+				// SOme JS needs to know this
+				$attrs .= ' data-allow-empty='.(int)array_get($params, 'allow_empty');
 				?>
 				<select name="<?php echo $name; ?>" class="<?php echo $classes;?>" <?php echo $attrs; ?> >
 					<?php

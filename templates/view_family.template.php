@@ -59,7 +59,7 @@ printf($panel_header, 'basic', 'Basic Details & Members', 'active');
 $links = Array();
 if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
 	$links[] = '<a href="?view=_edit_family&familyid='.$family->id.'"><i class="icon-wrench"></i>Edit</a>';
-	if (count($GLOBALS['user_system']->getCurrentRestrictions()) == 0) {
+	if (Person::allowedToAdd()) {
 		// users with group or cong restrictions are not allowed to add persons
 		$links[] = '<a href="?view=_add_person_to_family&familyid='.$family->id.'"><i class="icon-plus-sign"></i>Add Member</a>';
 	}

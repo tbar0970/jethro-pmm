@@ -6,11 +6,7 @@ class View_Families__Add extends View
 
 	static function getMenuPermissionLevel()
 	{
-		if ($GLOBALS['user_system']->getCurrentRestrictions()) {
-			return -1; // users with group or cong restrictions can't add families or persons
-		} else {
-			return PERM_EDITPERSON;
-		}
+		return Person::allowedToAdd() ? PERM_EDITPERSON : -1;	
 	}
 
 	function processView()

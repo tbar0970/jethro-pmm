@@ -945,14 +945,16 @@ function handlePersonStatusChange()
 				}
 			}
 		}
-		// if we got to here, there is no blank option
-		if ((this.value == 'contact') || (this.value == 'archived')) {
-			// we need a blank option
-			var newOption = new Option('(None)', '');
-			try {
-				chooser.add(newOption, chooser.options[0]); // standards compliant; doesn't work in IE
-			} catch(ex) {
-				chooser.add(newOption, 0); // IE only
+		if ($(chooser).attr('data-allow-empty') != 0) {
+			// if we got to here, there is no blank option
+			if ((this.value == 'contact') || (this.value == 'archived')) {
+				// we need a blank option
+				var newOption = new Option('(None)', '');
+				try {
+					chooser.add(newOption, chooser.options[0]); // standards compliant; doesn't work in IE
+				} catch(ex) {
+					chooser.add(newOption, 0); // IE only
+				}
 			}
 		}
 	}
