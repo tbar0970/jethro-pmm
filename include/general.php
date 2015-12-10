@@ -511,23 +511,19 @@ function build_url($params)
 	}
 }
 
-function speed_log()
+function speed_log($bam=FALSE)
 {
+	$fn = $bam ? 'bam' : 'error_log';
 	$bt = debug_backtrace();
 	if (!isset($GLOBALS['first_log_time'])) {
-		$GLOBALS['first_log_time'] = getmicrotime();
-		error_log("SPEED_LOG: 0 - ".$bt[0]['file'].':'.$bt[0]['line']);
+		$GLOBALS['first_log_time'] = microtime(true);
+		$fn("SPEED_LOG: 0 - ".$bt[0]['file'].':'.$bt[0]['line']);
 	} else {
-		$diff = getmicrotime() - $GLOBALS['last_log_time'];
-		$total = getmicrotime() - $GLOBALS['first_log_time'];
-		error_log("SPEED_LOG: Diff=$diff  Total=$total  ".$bt[0]['file'].':'.$bt[0]['line']);
+		$diff = number_format((microtime(true) - $GLOBALS['last_log_time']), 2);
+		$total = number_format((microtime(true) - $GLOBALS['first_log_time']), 2);
+		$fn("SPEED_LOG: Diff=$diff  Total=$total  ".$bt[0]['file'].':'.$bt[0]['line']);
 	}
-	$GLOBALS['last_log_time'] = getmicrotime();
-}
-
-function getmicrotime(){ 
-  list($usec, $sec) = explode(" ",microtime()); 
-  return (int)((float)$usec + (float)$sec) * 1000; 
+	$GLOBALS['last_log_time'] = microtime(true);
 }
 
 function print_hidden_field($name, $value)

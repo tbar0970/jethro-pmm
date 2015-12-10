@@ -93,6 +93,7 @@ class db_object
 				case 'text':
 					if (array_get($details, 'height', 1) != 1) {
 						$type = 'text';
+						$default = FALSE; // text columns cannot have a default
 					} else {
 						$type = 'varchar(255)';
 					}
@@ -114,6 +115,7 @@ class db_object
 					break;
 				case 'serialise':
 					$type = 'text';
+					$default = FALSE; // text columns cannot have a default
 					break;
 			}
 
@@ -127,7 +129,9 @@ class db_object
 					break;
 			}
 
-			$res .= "`".$name."` ".$type." ".$null_exp." default ".$default.",
+			if ($default !== FALSE) $default = ' DEFAULT '.$default;
+
+			$res .= "`".$name."` ".$type." ".$null_exp.$default.",
 				";
 		}
 		$res .= "PRIMARY KEY (`id`)".$indexes."

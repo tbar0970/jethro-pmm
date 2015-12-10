@@ -77,6 +77,7 @@ class Installer
 
 	function initDB()
 	{
+		ini_set('max_execution_time', 120);
 		$dh = opendir(dirname(dirname(__FILE__)).'/db_objects');
 		while (FALSE !== ($filename = readdir($dh))) {
 			if (($filename[0] == '.') || is_dir($filename)) continue;
@@ -84,7 +85,7 @@ class Installer
 		}
 
 		$fks  = Array();
-		
+
 		sort($filenames);
 		foreach ($filenames as $filename) {
 			$classname = str_replace('.class.php', '', $filename);
@@ -204,12 +205,13 @@ class Installer
 				if (FALSE !== strpos($from, '.')) {
 					list($table, $from) = explode('.', $from);
 				}
-				$name = $from;
+				$name = $table.$from;
 				$SQL = 'ALTER TABLE '.$table.'
 						ADD CONSTRAINT `'.$name.'`
 						FOREIGN KEY ('.$from.') REFERENCES '.$to;
 				$r = $GLOBALS['db']->query($SQL);
 				check_db_result($r);
+
 			}
 		}
 	}
