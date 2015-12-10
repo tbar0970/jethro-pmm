@@ -899,6 +899,10 @@ class db_object
 			}
 			if ($operator == 'IN') {
 				if (is_array($val)) {
+					if (in_array(NULL, $val)) {
+						$prefix  .= '((';
+						$suffix = ') OR ('.$field.' IS NULL))';
+					}
 					$val = implode(',', array_map(Array($GLOBALS['db'], 'quote'), $val));
 				}
 				$val = '('.$val.')'; // If val wasn't an array we dont quote it coz it's a subquery

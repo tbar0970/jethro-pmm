@@ -199,9 +199,13 @@ $(document).ready(function() {
 		if (!confirm($(this).attr('data-confirm'))) return false
 	});
 	
-	$('.double-confirm-title').click(function() {
-		return confirm("Are you sure you want to "+this.title[0].toLowerCase()+this.title.substr(1)+"?")
-				&& confirm("This action cannot be undone.  Are you sure?");
+	$('.double-confirm-title').click(function(event) {
+		if (!( confirm("Are you sure you want to "+this.title[0].toLowerCase()+this.title.substr(1)+"?")
+				&& confirm("This action cannot be undone.  Are you sure?"))) {
+			event.preventDefault();
+			event.stopImmediatePropagation();
+			return false;
+		}
 	});
 
 
@@ -291,7 +295,7 @@ $(document).ready(function() {
 		}
 	});
 	
-	$('a[data-method=post]').click(function() {
+	$('a[data-method=post]').click(function(event) {
 		var p = $(this).attr('href').split('?');
 		var action = p[0];
 		var params = p[1].split('&');
@@ -502,7 +506,8 @@ TBLib.handleTableExpansion = function()
 TBLib.allInputsEmpty = function(JQElt)
 {
 	var res = true;
-	JQElt.find('input, textarea').each(function() {
+	var x = JQElt.find('input, textarea');
+	x.each(function() {
 		if (0 == $(this).parents('.preserve-value').length) {
 			if ((this.type != 'checkbox') && (this.type != 'radio') && (this.type != 'hidden') && (this.value != '')) {
 				res = false;
@@ -510,7 +515,8 @@ TBLib.allInputsEmpty = function(JQElt)
 			}
 		}
 	}).end();
-	JQElt.find('select').each(function() {
+	y = JQElt.find('select');
+	y.each(function() {
 		if ((this.value != '') && (0 == $(this).parents('td.preserve-value').length)) {
 			for (var j=0; j < this.options.length; j++) {
 				if (this.options[j].value == '') {
@@ -521,6 +527,7 @@ TBLib.allInputsEmpty = function(JQElt)
 			}
 		}
 	});
+	if (x.length + y.length == 0) return FALSE; // there are no empty inputs at all - don't expand
 	return res;
 }
 

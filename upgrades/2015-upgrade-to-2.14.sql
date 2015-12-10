@@ -52,3 +52,5 @@ SELECT personid, typeid, `date`, note
 FROM person_date;
 
 ALTER TABLE person_date RENAME TO _disused_person_date;
+
+ALTER TABLE person_query ADD COLUMN `owner` int(11) DEFAULT NULL,

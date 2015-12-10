@@ -64,10 +64,11 @@ class Person_Query extends DB_Object
 		return "
 			CREATE TABLE `person_query` (
 			  `id` int(11) NOT NULL auto_increment,
-			  `name` varchar(255) collate latin1_general_ci NOT NULL default '',
+			  `name` varchar(255) NOT NULL default '',
 			  `creator` int(11) NOT NULL default '0',
 			  `created` timestamp NOT NULL default CURRENT_TIMESTAMP,
-			  `params` text collate latin1_general_ci NOT NULL,
+			  `owner` int(11) DEFAULT NULL,
+			  `params` text NOT NULL,
 			  PRIMARY KEY  (`id`)
 			) ENGINE=InnoDB ;
 		";
@@ -100,6 +101,11 @@ class Person_Query extends DB_Object
 			'creator'			=> Array(
 									'type'			=> 'reference',
 									'editable'		=> false,
+									'references'	=> 'staff_member',
+									'show_in_summary'	=> false,
+								   ),
+			'owner'			=> Array(
+									'type'			=> 'reference',
 									'references'	=> 'staff_member',
 									'show_in_summary'	=> false,
 								   ),
@@ -499,6 +505,10 @@ class Person_Query extends DB_Object
 
 		<?php
 		if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
+			$visibilityParams = Array(
+				'type' => 'select',
+				'options' => Array('visible to everyone', 'visible only to me')
+			);
 			?>
 			<h3>I want to save this report...</h3>
 			<div class="indent-left">
@@ -506,12 +516,16 @@ class Person_Query extends DB_Object
 					<input type="radio" name="save_option" value="new" id="save_option_new" <?php if (empty($this->id)) echo 'checked="checked"'; ?> />
 					as a new report called
 					<input type="text" name="new_query_name" />
+					<?php print_widget('new_query_private', $visibilityParams, $this->getValue('owner') !== NULL); ?>
 				</label>
 		
 				<label type="radio">
 					<input type="radio" name="save_option" value="replace" id="save_option_replace" <?php if ($this->id && ($this->id != 'TEMP')) echo 'checked="checked"'; ?> />
-					in place of an existing report
-					<?php print_widget('replace_query_id', Array('type' => 'reference', 'references' => 'person_query'), $this->id); ?>
+					in place of the existing report
+					<?php 
+					print_widget('replace_query_id', Array('type' => 'reference', 'references' => 'person_query'), $this->id);
+					print_widget('replace_query_private', $visibilityParams, $this->getValue('owner') !== NULL);
+					?>
 				</label>
 
 				<label type="radio">
@@ -530,9 +544,11 @@ class Person_Query extends DB_Object
 				case 'new':
 					$this->populate(0, Array());
 					$this->setValue('name', $_POST['new_query_name']);
+					$this->setValue('owner', $_POST['new_query_private'] ? $GLOBALS['user_system']->getCurrentUser('id') : NULL);
 					break;
 				case 'replace':
 					$this->load((int)$_POST['replace_query_id']);
+					$this->setValue('owner', $_POST['replace_query_private'] ? $GLOBALS['user_system']->getCurrentUser('id') : NULL);
 					break;
 				case 'temp':
 					$this->id = 'TEMP';
@@ -1032,9 +1048,9 @@ class Person_Query extends DB_Object
 							$customFieldID = substr($field, 14);
 						}
 						if ($customFieldID) {
-							$field = new Custom_Field();
-							$field->populate($customFieldID, $this->_custom_fields[$customFieldID]);
 							if (isset($this->_custom_fields[$customFieldID])) {
+								$field = new Custom_Field();
+								$field->populate($customFieldID, $this->_custom_fields[$customFieldID]);
 								$query['from'] .= 'LEFT JOIN custom_field_value cfv'.$customFieldID.' ON cfv'.$customFieldID.'.personid = p.id AND cfv'.$customFieldID.'.fieldid = '.$db->quote($customFieldID)."\n";
 								$query['select'][] = 'GROUP_CONCAT(DISTINCT '.Custom_Field::getRawValueSQLExpr('cfv'.$customFieldID).' ORDER BY '.Custom_Field::getRawValueSQLExpr('cfv'.$customFieldID).' SEPARATOR "'.self::CUSTOMFIELDVAL_SEP.'") as '.$db->quote(self::CUSTOMFIELD_PREFIX.$customFieldID)."\n";
 							}
