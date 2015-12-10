@@ -30,6 +30,13 @@ class Custom_Field_Option extends db_object
 		);
 	}
 
+	public function getForeignKeys()
+	{
+		return Array(
+			'fieldid'  => 'custom_field(id) ON DELETE CASCADE',
+		);
+	}
+	
 	function delete()
 	{
 		$GLOBALS['system']->doTransaction('BEGIN');
