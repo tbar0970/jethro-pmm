@@ -67,6 +67,13 @@ class View_Services__Service_Program extends View
 			$this->_handleProgramSave();
 		}
 
+		if (!$this->_editing) {
+			foreach ($this->_congregations as $id) {
+				$cong = $GLOBALS['system']->getDBObject('congregation', $id);
+				$cong->releaseLock('services');
+			}
+		}
+
 	}
 
 	private function _loadServices()
@@ -103,7 +110,7 @@ class View_Services__Service_Program extends View
 					} else {
 						trigger_error("Could not acquire lock on individual service for $congid on $date - didn't save");
 					}
-				} else if (!empty($_POST['topic_title'][$congid][$date]) || !empty($_POST['format_title'][$congid][$date]) || !empty($_POST['bible_ref0'][$congid][$date])) {
+				} else if (!empty($_POST['topic_title'][$congid][$date]) || !empty($_POST['format_title'][$congid][$date]) || !empty($_POST['bible_refs'][$congid][$date][0])) {
 					// create a new service
 					$service = new Service();
 					$service->setValue('date', $date);
@@ -238,7 +245,6 @@ class View_Services__Service_Program extends View
 	{
 		if (empty($this->_congregations)) return;
 		?>
-		<p class="pull-right"><a href="<?php echo build_url(Array('editing' => 1)); ?>"><i class="icon-wrench"></i>Edit</a></p>
 		<table class="table roster service-program table-auto-width">
 			<thead>
 				<tr>
@@ -301,22 +307,11 @@ class View_Services__Service_Program extends View
 			return;
 		}
 		?>
-		<form method="get" class="well well-small">
+		<form method="get" class="well well-small form-horizontal">
 		<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
-		<?php
-		if ($GLOBALS['user_system']->havePerm(PERM_BULKSERVICE)) {
-			?>
-			<select name="editing">
-				<option value="0">View</option>
-				<option value="1" <?php if ($this->_editing) echo 'selected="selected"'; ?>>Edit</option>
-			</select>
-			<b>the service program</b>
-			<?php
-		}
-		?>
 		<table>
 			<tr>
-				<td rowspan="3" class="nowrap" style="padding-right: 2ex">
+				<td rowspan="3" class="nowrap" style="padding-right: 2ex; padding-left: 1ex;">
 					<b>For congregations</b><br />
 					<?php
 					
@@ -332,15 +327,22 @@ class View_Services__Service_Program extends View
 					}
 					?>
 				</td>
-				<td><b>from</b>&nbsp;</td>
+				<td><b>From</b>&nbsp;</td>
 				<td class="nowrap"><?php print_widget('start_date', Array('type' => 'date'), $this->_start_date); ?></td>
 			</tr>
 			<tr>
-				<td><b>to</b></td>
+				<td><b>To</b></td>
 				<td class="nowrap">
 					<?php print_widget('end_date', Array('type' => 'date'), $this->_end_date); ?>
 					&nbsp;
-					<button type="submit" class="btn">Go</button>
+					<input type="submit" class="btn" value="View" />
+				<?php
+				if ($GLOBALS['user_system']->havePerm(PERM_BULKSERVICE)) {
+					?>
+					<input type="submit" name="editing" class="btn" value="Edit" />
+					<?php
+				}
+				?>
 				</td>
 			</tr>
 		</table>
