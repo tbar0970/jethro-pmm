@@ -189,14 +189,22 @@ $(document).ready(function() {
 	});
 
 	// Add a confirmation based on the title of the clicked element
-	$('.confirm-title').click(function() {
+	$('.confirm-title').click(function(event) {
 		if (!$(this).hasClass('submit')) {
-			return confirm("Are you sure you want to "+this.title[0].toLowerCase()+this.title.substr(1)+"?");
+			if (!confirm("Are you sure you want to "+this.title[0].toLowerCase()+this.title.substr(1)+"?")) {
+				event.preventDefault();
+				event.stopImmediatePropagation();
+				return false
+			}
 		}
 	});
 	
-	$('[data-confirm]').click(function() {
-		if (!confirm($(this).attr('data-confirm'))) return false
+	$('[data-confirm]').click(function(event) {
+		if (!confirm($(this).attr('data-confirm'))) {
+			event.preventDefault();
+			event.stopImmediatePropagation();
+			return false
+		}
 	});
 	
 	$('.double-confirm-title').click(function(event) {
