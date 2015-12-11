@@ -143,8 +143,12 @@ class Action_Plan extends DB_Object
 			if ($GLOBALS['system']->featureEnabled('DATES')) {
 				$datetype_params = Array(
 									'type' => 'select',
-									'options' => Array('' => '(Choose type)') + Person::getDateTypes(),
+									'options' => Array('' => '(Choose type)'),
 									);
+				$dateFields = $GLOBALS['system']->getDBObjectData('custom_field', Array('type' => 'date'), 'OR', 'rank');
+				foreach ($dateFields as $fieldID => $fieldDetails) {
+					$datetype_params['options'][$fieldID] = $fieldDetails['name'];
+				}
 				$datenote_params = Array(
 									'type' => 'text',
 									'width' => 40
@@ -256,9 +260,12 @@ class Action_Plan extends DB_Object
 				$i++;
 			}
 		}
-		$GLOBALS['system']->includeDBClass('person');
-		$dates = Person::processDatesInterface('');
-		if (!is_null($dates)) $actions['dates'] = $dates;
+		$actions['dates'] = Array();
+		foreach ($_REQUEST['datetypes'] as $i => $customFieldID) {
+			if ($customFieldID) {
+				$actions['dates'][$customFieldID] = $_REQUEST['datenotes'][$i];
+			}
+		}
 		$this->setValue('actions', $actions);
 	}
 
@@ -357,8 +364,8 @@ class Action_Plan extends DB_Object
 		if (array_get($actions, 'dates')) {
 			foreach ($personids as $personid) {
 				$person = $GLOBALS['system']->getDBObject('person', $personid);
-				foreach (array_get($actions, 'dates', Array()) as $typeid => $note) {
-					$person->addDate($reference_date, $typeid, $note);
+				foreach (array_get($actions, 'dates', Array()) as $fieldID => $note) {
+					$person->setCustomValue($fieldID, $reference_date.' '.$note, TRUE);
 				}
 				$person->save();
 			}
