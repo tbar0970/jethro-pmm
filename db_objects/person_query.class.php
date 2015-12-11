@@ -234,9 +234,9 @@ class Person_Query extends DB_Object
 										<label class="checkbox nowrap">
 											<input type="radio" name="params_custom_field_<?php echo $fieldid; ?>_periodtype" value="fixed" <?php echo $pts['fixed']; ?> />
 											the period from
-											<?php print_widget('params_custom_field_'.$fieldid.'_from', Array('type' => 'date', 'allow_empty' => TRUE), $value['from']); ?>
+											<?php print_widget('params_custom_field_'.$fieldid.'_from', Array('type' => 'date', 'allow_empty' => TRUE), array_get($value, 'from')); ?>
 											to
-											<?php print_widget('params_custom_field_'.$fieldid.'_to', Array('type' => 'date', 'allow_empty' => TRUE), $value['to']); ?>
+											<?php print_widget('params_custom_field_'.$fieldid.'_to', Array('type' => 'date', 'allow_empty' => TRUE), array_get($value, 'to')); ?>
 										</label>
 										<label class="checkbox">
 											<input type="radio" name="params_custom_field_<?php echo $fieldid; ?>_periodtype" value="relative"<?php echo $pts['relative']; ?> />
@@ -598,10 +598,10 @@ class Person_Query extends DB_Object
 		}
 
 		// GROUP RULES
-		$params['include_groups'] = $this->_removeEmpties(array_get($_POST, 'include_groupids', Array()));
+		$params['include_groups'] = array_remove_empties(array_get($_POST, 'include_groupids', Array()));
 		$params['group_join_date_from'] = empty($_POST['enable_group_join_date']) ? NULL : process_widget('group_join_date_from', Array('type' => 'date'));
 		$params['group_join_date_to'] = empty($_POST['enable_group_join_date']) ? NULL : process_widget('group_join_date_to', Array('type' => 'date'));
-		$params['exclude_groups'] = $this->_removeEmpties(array_get($_POST, 'exclude_groupids', Array()));
+		$params['exclude_groups'] = array_remove_empties(array_get($_POST, 'exclude_groupids', Array()));
 		$params['group_membership_status'] = array_get($_POST, 'group_membership_status');
 
 		// NOTE RULES
@@ -614,7 +614,7 @@ class Person_Query extends DB_Object
 		$params['attendance_weeks'] = array_get($_POST, 'attendance_weeks');
 
 		// SHOW FIELDS
-		$params['show_fields'] = $this->_removeEmpties($_POST['show_fields']);
+		$params['show_fields'] = array_remove_empties($_POST['show_fields']);
 
 		// GROUP BY
 		$params['group_by'] = $_POST['group_by'];
@@ -644,22 +644,11 @@ class Person_Query extends DB_Object
 				break;
 			case 'select':
 			case 'reference':
-				$res = $this->_removeEmpties(array_get($_POST, 'params_'.str_replace('.', '_', $field), Array()));
+				$res = array_remove_empties(array_get($_POST, 'params_'.str_replace('.', '_', $field), Array()));
 				break;
 			default:
 				$res = array_get($_POST, 'params_'.str_replace('.', '_', $field));
 			break;
-		}
-		return $res;
-	}
-
-	function _removeEmpties($ar)
-	{
-		$res = Array();
-		foreach ($ar as $x) {
-			if (($x != '')) {
-				$res[] = $x;
-			}
 		}
 		return $res;
 	}
