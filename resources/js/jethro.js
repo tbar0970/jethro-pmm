@@ -390,8 +390,16 @@ $(document).ready(function() {
 		JethroServicePlanner.init();
 	}
 
+	$('table.reorderable tbody').sortable(	{
+			cursor: "move",
+			/*containment: "parent",*/
+			revert: 100,
+			opacity: 1,
+			axis: 'y',
+		})
+
 	if (document.getElementById('custom-fields-editor')) {
-		$("#custom-fields-editor tbody").sortable(	{
+		$("#custom-fields-editor>tbody").sortable(	{
 			cursor: "move",
 			/*containment: "parent",*/
 			revert: 100,
@@ -911,6 +919,10 @@ $(document).ready(function() {
 		.click(function() { handleNoteStatusChange(this); })
 		.change(function() { handleNoteStatusChange(this); })
 		.change();
+
+	$('#note_template_chooser').change(function() {
+		this.form.submit();
+	})
 });
 
 function handleNoteStatusChange(elt) {
@@ -926,7 +938,7 @@ function handleNoteStatusChange(elt) {
 	} else {
 		$('select[name='+prefix+'assignee] option[value=""]').remove();
 	}
-}	
+}
 
 function handlePersonStatusChange()
 {

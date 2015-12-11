@@ -132,7 +132,7 @@ $(document).ready(function() {
 	});
 
 	/**
-	 * <select data-toggle="visible" data-target="row .option" data-match-attr="mytype"> ...
+	 * <select data-toggle="visible" data-target="row .option" data-match-attr="data-mytype"> ...
 	 * <div class="option" data-mytype="x"></div>
 	 * <div class="option" data-mytype="y"></div>
 	 */
@@ -145,7 +145,8 @@ $(document).ready(function() {
 		}
 		target = base.find(targetExp);
 		target.hide();
-		target.filter('['+$(this).attr('data-match-attr')+'='+this.value+']').show();
+		var myFilter = '['+$(this).attr('data-match-attr')+'='+this.value+']';
+		target.filter(myFilter).show();
 	}).change();
 
 
@@ -523,7 +524,7 @@ TBLib.allInputsEmpty = function(JQElt)
 			}
 		}
 	}).end();
-	y = JQElt.find('select');
+	var y = JQElt.find('select');
 	y.each(function() {
 		if ((this.value != '') && (0 == $(this).parents('td.preserve-value').length)) {
 			for (var j=0; j < this.options.length; j++) {
@@ -535,7 +536,7 @@ TBLib.allInputsEmpty = function(JQElt)
 			}
 		}
 	});
-	if (x.length + y.length == 0) return FALSE; // there are no empty inputs at all - don't expand
+	if (x.length + y.length == 0) return false; // there are no empty inputs at all - don't expand
 	return res;
 }
 

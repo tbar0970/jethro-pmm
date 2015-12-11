@@ -1,5 +1,5 @@
 
-CREATE TABLE IF NOT EXISTS `custom_field` (
+CREATE TABLE `custom_field` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL DEFAULT '',
   `rank` int(11) NOT NULL DEFAULT '0',
@@ -9,15 +9,16 @@ CREATE TABLE IF NOT EXISTS `custom_field` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB;
 
-CREATE TABLE IF NOT EXISTS `custom_field_option` (
+CREATE TABLE `custom_field_option` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `value` varchar(255) NOT NULL DEFAULT '',
   `rank` int(11) NOT NULL DEFAULT '0',
   `fieldid` int(11) NOT NULL DEFAULT '0',
+  CONSTRAINT `customfieldoption_fieldid` FOREIGN KEY (`fieldid`) REFERENCES `custom_field`(`id`) ON DELETE CASCADE,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB;
 
-CREATE TABLE IF NOT EXISTS `custom_field_value` (
+CREATE TABLE `custom_field_value` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `personid` int(11) NOT NULL,
   `fieldid` int(11) NOT NULL,
@@ -25,16 +26,10 @@ CREATE TABLE IF NOT EXISTS `custom_field_value` (
   `value_date` char(10) DEFAULT NULL,
   `value_optionid` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `personid` (`personid`),
-  KEY `fieldid` (`fieldid`),
-  KEY `value_optionid` (`value_optionid`)
+  CONSTRAINT `customfieldvalue_fieldid` FOREIGN KEY (`fieldid`) REFERENCES `custom_field`(`id`) ON DELETE CASCADE,
+  CONSTRAINT `customfieldvalue_personid` FOREIGN KEY (`personid`) REFERENCES `_person`(`id`) ON DELETE CASCADE,
+  CONSTRAINT `customfieldvalue_optionid` FOREIGN KEY (`value_optionid`) REFERENCES `custom_field_option` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
-
-
-ALTER TABLE `custom_field_value`
-  ADD CONSTRAINT `value_optionid` FOREIGN KEY (`value_optionid`) REFERENCES `custom_field_option` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fieldid` FOREIGN KEY (`fieldid`) REFERENCES `custom_field` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `personid` FOREIGN KEY (`personid`) REFERENCES `_person` (`id`) ON DELETE CASCADE;
 
 SET @rank = -1;
 
@@ -53,4 +48,26 @@ FROM person_date;
 
 ALTER TABLE person_date RENAME TO _disused_person_date;
 
-ALTER TABLE person_query ADD COLUMN `owner` int(11) DEFAULT NULL,
+ALTER TABLE person_query ADD COLUMN `owner` int(11) DEFAULT NULL;
+
+CREATE TABLE `note_template` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL DEFAULT '',
+  `subject` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB;
+
+CREATE TABLE `note_template_field` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `templateid` int(11) NOT NULL DEFAULT '0',
+  `rank` int(11) NOT NULL DEFAULT '0',
+  `customfieldid` int(11) DEFAULT '0',
+  `label` varchar(255) DEFAULT '',
+  `type` varchar(255) NOT NULL DEFAULT '',
+  `params` varchar(255) DEFAULT 'a:0:{}',
+  PRIMARY KEY (`id`),
+) ENGINE=InnoDB;
+
+ALTER TABLE `note_template_field`
+  ADD CONSTRAINT `note_template_fieldcustomfieldid` FOREIGN KEY (`customfieldid`) REFERENCES `custom_field` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `note_template_fieldtemplateid` FOREIGN KEY (`templateid`) REFERENCES `note_template` (`id`) ON DELETE CASCADE;

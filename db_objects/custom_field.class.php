@@ -58,6 +58,7 @@ class Custom_Field extends db_object
 	
 	public function getOptions()
 	{
+		if ($this->getValue('type') != 'select') return Array();
 		if (!isset($this->_tmp['options'])) {
 			$this->_tmp['options'] = $GLOBALS['system']->getDBObjectData('custom_field_option', Array('fieldid' => $this->id), 'OR', 'rank');
 		}
@@ -73,16 +74,18 @@ class Custom_Field extends db_object
 				print_widget($prefix.$fieldname, Array('type' => 'checkbox'), $this->values[$fieldname] );
 				break;
 			case 'params':
+				$params = $this->getValue('params');
+				$params['options'] = $this->getOptions();
 				if ($this->id) {
 					$fn = 'printParams'.ucfirst($this->values['type']);
-					$this->$fn($prefix);
+					call_user_func(Array('Custom_Field', $fn), $prefix, $params);
 				} else {
 					foreach ($this->fields['type']['options'] as $opt => $label) {
 						?>
 						<div class="field-params" data-params-type="<?php echo $opt; ?>">
 							<?php
 							$fn = 'printParams'.ucfirst($opt);
-							$this->$fn($prefix);
+							call_user_func(Array('Custom_Field', $fn), $prefix, $params);
 							?>
 						</div>
 						<?php
@@ -120,36 +123,36 @@ class Custom_Field extends db_object
 		return $res;
 	}
 	
-	function printParamsDate($prefix)
+	public static function printParamsDate($prefix, $params)
 	{
 		?>
 		<label class="allownote">
-			<?php print_widget($prefix.'allow_note', Array('type'=>'checkbox'), array_get($this->values['params'], 'allow_note')); ?>
+			<?php print_widget($prefix.'allow_note', Array('type'=>'checkbox'), array_get($params, 'allow_note')); ?>
 			Allow note
 		</label>
 		<label class="allownote">
-			<?php print_widget($prefix.'allow_blank_year', Array('type'=>'checkbox'), array_get($this->values['params'], 'allow_blank_year')); ?>
+			<?php print_widget($prefix.'allow_blank_year', Array('type'=>'checkbox'), array_get($params, 'allow_blank_year')); ?>
 			Allow blank year
 		</label>
 		<?php
 	}
 
-	function printParamsText($prefix)
+	public static function printParamsText($prefix, $params)
 	{
 		?>
 		<label>
 		Regex:
 		<?php
-		print_widget($prefix.'regex', Array('type' => 'text', 'attrs' => Array('placeholder' => '(Optional)')), array_get($this->values['params'], 'regex'));
+		print_widget($prefix.'regex', Array('type' => 'text', 'attrs' => Array('placeholder' => '(Optional)')), array_get($params, 'regex'));
 		?>
 		</label>
 		<?php
 	}
 
-	function printParamsSelect($prefix)
+	public static function printParamsSelect($prefix, $params)
 	{
 		?>
-		<table class="select-options table-condensed expandable">
+		<table class="select-options table-condensed expandable reorderable">
 			<thead>
 				<tr>
 					<td colspan="2">
@@ -161,24 +164,25 @@ class Custom_Field extends db_object
 			</thead>
 			<tbody>
 				<?php
-				$options = $this->getOptions();
+				$options = array_get($params, 'options', Array());
 				$options[''] = Array('value' => '');
 				$i = 0;
 				foreach ($options as $optionID => $optionDetails) {
+					if (is_array($optionDetails)) $optionDetails = $optionDetails['value'];
 					?>
 					<tr>
-						<td>
+						<td class="cursor-move">
 							<?php
-							if ($optionID) echo $optionID;
+							if ($optionID !== '') echo $optionID;
 							print_hidden_field($prefix.'option_ids[]', $optionID);
 							?>
 						</td>
 						<td>
-							<?php print_widget($prefix.'option_values[]', Array('type' => 'text'), $optionDetails['value']); ?>
+							<?php print_widget($prefix.'option_values[]', Array('type' => 'text'), $optionDetails); ?>
 						</td>
 						<td class="center">
 							<?php
-							if ($optionID) {
+							if ($optionID !== '') {
 								?>
 								<input type="checkbox" name="<?php echo $prefix; ?>options_delete[]" value="<?php echo $optionID; ?>"
 								data-toggle="strikethrough" data-target="row"

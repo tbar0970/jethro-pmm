@@ -96,7 +96,7 @@ class View_Admin__Custom_Fields extends View
 				$prefix = 'fields_'.$i.'_';
 				?>
 				<tr>
-					<td>
+					<td class="cursor-move">
 						<?php
 						echo $field->id;
 						print_hidden_field($prefix.'id', $field->id);

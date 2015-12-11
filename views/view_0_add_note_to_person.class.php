@@ -1,8 +1,9 @@
 <?php
 class View__Add_Note_To_Person extends View
 {
-	var $_note;
-	var $_person;
+	private $_note;
+	private $_person;
+	private $_note_template;
 
 	static function getMenuPermissionLevel()
 	{
@@ -19,15 +20,23 @@ class View__Add_Note_To_Person extends View
 			$this->_person =& $GLOBALS['system']->getDBObject('person', $_REQUEST['personid']);
 			$_REQUEST['personid'] = Array($_REQUEST['personid']);
 		}
+		if ($templateID = array_get($_REQUEST, 'note_template_id')) {
+			$this->_note_template = new Note_Template($templateID);
+		}
+
 		$GLOBALS['system']->includeDBClass('person_note');
 		$this->_note = new Person_Note();
+		$this->_note->processForm();
 		if (array_get($_REQUEST, 'new_note_submitted')) {
-			$this->_note->processForm();
+			if ($this->_note_template) {
+				$this->_note_template->applyDataBlock($this->_note);
+			}
 			$success = TRUE;
 			foreach ($_REQUEST['personid'] as $personid) {
 				$this->_note->id = 0;
 				$this->_note->setValue('personid', $personid);
 				$success = $success && $this->_note->create();
+				// TODO: set person fields from note template
 			}
 			if ($success) {
 				if ($this->_person) {
@@ -57,14 +66,41 @@ class View__Add_Note_To_Person extends View
 		}	
 		?>
 		<form method="post" class="form-horizontal">
-			<input type="hidden" name="new_note_submitted" value="1" />
 			<input type="hidden" name="personid" value="<?php echo $this->_person->id; ?>" />
-			<h3>New Note Details</h3>
 			<?php
-			$this->_note->printForm();
+			$templates = $GLOBALS['system']->getDBObjectData('note_template', Array(), 'OR', 'name');
+			if ($templates) {
+				$templateParams = Array(
+									'type' => 'select', 
+									'options' => Array(NULL => '(No template)'),
+									'attrs' => Array('id' => 'note_template_chooser')
+								 );
+				foreach ($templates as $id => $tpl)  $templateParams['options'][$id] = $tpl['name'];
+				?>
+				<div class="control-group">
+					<label class="control-label">Note Template</label>
+					<div class="controls">
+						<?php
+						$templateID = $this->_note_template ? $this->_note_template->id : NULL;
+						print_widget('note_template_id', $templateParams, $templateID);
+						?>
+					</div>
+				</div>
+				<hr />
+				<?php
+			}
+
+			if ($this->_note_template) {
+				$this->_note->setValue('subject', $this->_note_template->getValue('subject'));
+			}
+			$this->_note->printForm('', Array('subject'));
+			if ($this->_note_template) {
+				$this->_note_template->printNoteFieldWidgets();
+			}
+			$this->_note->printForm('', array_diff(array_keys($this->_note->fields), Array('subject')));
 			?>	
 			<div class="controls">
-				<button type="submit" class="btn">Add Note to Person</button>
+				<input type="submit" name="new_note_submitted" class="btn" value="Add Note to Person" />
 				<a class="btn" href="<?php echo build_url(Array('view' => 'persons', 'personid' => $this->_person->id)); ?>">Cancel</a>
 		</form>
 		<?php

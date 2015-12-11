@@ -8,6 +8,17 @@ function array_get($array, $index, $alt=NULL)
 	}
 }
 
+function array_remove_empties($ar)
+{
+	$res = Array();
+	foreach ($ar as $x) {
+		if (($x != '')) {
+			$res[] = $x;
+		}
+	}
+	return $res;
+}
+
 function stripslashes_array(&$array, $strip_keys=false) {
 	if(is_string($array)) return stripslashes($array);
 	$keys_to_replace = Array();
@@ -485,6 +496,52 @@ function process_widget($name, $params, $index=NULL)
 			break;
 	}
 	return $value;
+}
+
+function format_value($value, $params)
+{
+	if (!empty($params['references'])) {
+		$obj =& $GLOBALS['system']->getDBObject($params['references'], $value);
+		if (!is_null($obj)) {
+			if (!array_get($params, 'show_id', true)) {
+				return $obj->toString();
+			} else {
+				return $obj->toString().' (#'.$value.')';
+			}
+		} else {
+			if ($value != 0)  {
+				return $value;
+			}
+		}
+		return '';
+	}
+	switch ($params['type']) {
+		case 'select':
+			return array_get($params['options'], $value, '(Invalid Value)');
+			break;
+		case 'datetime':
+			if (empty($value) && array_get($params, 'allow_empty')) return '';
+			return format_datetime($value);
+			break;
+		case 'date':
+			if (empty($value) && array_get($params, 'allow_empty')) return '';
+			return format_date($value);
+			break;
+		case 'bibleref':
+			require_once 'bible_ref.class.php';
+			$br = new bible_ref($value);
+			return $br->toShortString();
+			break;
+		case 'phone':
+			return format_phone_number($value, $params['formats']);
+			break;
+		default:
+			if (is_array($value)) {
+				return '<pre>'.print_r($value, 1).'</pre>';
+			} else {
+				return $value;
+			}
+	}
 }
 
 function build_url($params)

@@ -564,49 +564,8 @@ class db_object
 		}
 		if (is_null($value)) $value = array_get($this->values, $name, NULL);
 		$field = $this->fields[$name];
-		if (!empty($field['references'])) {
-			$obj =& $GLOBALS['system']->getDBObject($field['references'], $value);
-			if (!is_null($obj)) {
-				if (!array_get($field, 'show_id', true)) {
-					return $obj->toString();
-				} else {
-					return $obj->toString().' (#'.$value.')';
-				}
-			} else {
-				if ($value != 0)  {
-					return $value;
-				}
-			}
-			return '';
-		}
-		switch ($field['type']) {
-			case 'select':
-				return array_get($field['options'], $value, '(Invalid Value)');
-				break;
-			case 'datetime':
-				if (empty($value) && array_get($field, 'allow_empty')) return '';
-				return format_datetime($value);
-				break;
-			case 'date':
-				if (empty($value) && array_get($field, 'allow_empty')) return '';
-				return format_date($value);
-				break;
-			case 'bibleref':
-				require_once 'bible_ref.class.php';
-				$br = new bible_ref($value);
-				return $br->toShortString();
-				break;
-			case 'phone':
-				return format_phone_number($value, $field['formats']);
-				break;
-			default:
-				if (is_array($value)) {
-					return '<pre>'.print_r($value, 1).'</pre>';
-				} else {
-					return $value;
-				}
-		}
 
+		return format_value($value, $field);
 	}
 
 

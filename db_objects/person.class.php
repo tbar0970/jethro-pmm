@@ -505,6 +505,7 @@ class Person extends DB_Object
 		$customFields = $this->getCustomFields();
 		$sets = Array();
 		foreach ($this->_custom_values as $fieldid => $values) {
+			if (!is_array($values)) $values = empty($values) ? Array() : Array($values);
 			foreach ($values as $value) {
 				$dateVal = $textVal = $optionVal = NULL;
 				if (strlen($value)) {

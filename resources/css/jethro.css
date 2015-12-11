@@ -584,6 +584,9 @@ td.narrow, th.narrow, .object-summary th {
 .clickable, table.clickable-rows td, table.clickable-rows th, img.icon {
 	cursor: pointer;
 }
+.cursor-move {
+	cursor: move;
+}
 .smallprint, .help-inline {
 	font-size: 85%;
 	line-height: 130%;
