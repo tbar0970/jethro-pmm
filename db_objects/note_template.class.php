@@ -382,4 +382,28 @@ class Note_Template extends db_object
 		$res = $res.$divider."\n";
 		$note->setValue('details', $res.$note->getValue('details'));
 	}
+
+	public static function printTemplateChooserRow($selectedID)
+	{
+		$templates = $GLOBALS['system']->getDBObjectData('note_template', Array(), 'OR', 'name');
+		if ($templates) {
+			$templateParams = Array(
+								'type' => 'select',
+								'options' => Array(NULL => '(No template)'),
+								'attrs' => Array('id' => 'note_template_chooser')
+							 );
+			foreach ($templates as $id => $tpl)  $templateParams['options'][$id] = $tpl['name'];
+			?>
+			<div class="control-group">
+				<label class="control-label">Note Template</label>
+				<div class="controls">
+					<?php
+					print_widget('note_template_id', $templateParams, $selectedID);
+					?>
+				</div>
+			</div>
+			<hr />
+			<?php
+		}		
+	}
 }

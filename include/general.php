@@ -111,7 +111,7 @@ function redirect($view, $params=Array(), $hash='')
 	session_write_close();
 	if ($view == -1) {
 		// go back
-		header('Location: '.urlencode($_SERVER['HTTP_REFERER']));
+		header('Location: '.$_SERVER['HTTP_REFERER']);
 		exit;
 	}
 	$params['view'] = $view;

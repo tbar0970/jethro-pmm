@@ -2,6 +2,9 @@
 include_once 'db_objects/abstract_note.class.php';
 class Person_Note extends Abstract_Note
 {
+	// A note template being used to populate this note
+	private $_template = NULL;
+
 	function _getFields()
 	{
 		return Array(
@@ -49,6 +52,33 @@ class Person_Note extends Abstract_Note
 		$res['select'][] = 'person.first_name as person_fn';
 		$res['select'][] = 'person.last_name as person_ln';
 		return $res;
+	}
+
+	function printFieldInterface($name, $prefix = '') {
+		parent::printFieldInterface($name, $prefix);
+		if ($name == 'subject') {
+			?>
+			<div id="note-field-widgets">
+				<?php
+				if ($this->_template) {
+					$this->_template->printNoteFieldWidgets();
+				}
+				?>
+			</div>
+			<?php
+		}
+	}
+	
+	function setTemplate($template)
+	{
+		if (!$this->id) $this->setValue('subject', $template->getValue('subject'));
+		$this->_template = $template;
+	}
+
+	function printForm($prefix = '', $fields = NULL)
+	{
+		Note_Template::printTemplateChooserRow($this->_template ? $this->_template->id : NULL);
+		parent::printForm($prefix, $fields);
 	}
 
 }

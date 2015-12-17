@@ -921,7 +921,7 @@ $(document).ready(function() {
 		.change();
 
 	$('#note_template_chooser').change(function() {
-		this.form.submit();
+		$('#note-field-widgets').load('?call=note_template_widgets', { templateid: this.value });
 	})
 });
 

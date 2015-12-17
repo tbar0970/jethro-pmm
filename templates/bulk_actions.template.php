@@ -188,7 +188,6 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 	if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
 		?>
 		<div class="bulk-action well" id="add-note">
-			<input type="hidden" name="new_note_submitted" value="1" />
 			<?php 
 			$GLOBALS['system']->includeDBClass('person_note');
 			$note = new Person_Note();
@@ -196,7 +195,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 			?>
 			<div class="control-group">
 				<div class="controls">
-					<input type="submit" class="btn " value="Go" data-set-form-action="<?php echo BASE_URL; ?>?view=_add_note_to_person" />
+					<input type="submit" name="new_note_submitted" class="btn " value="Go" data-set-form-action="<?php echo BASE_URL; ?>?view=_add_note_to_person" />
 				</div>
 			</div>
 		</div>
