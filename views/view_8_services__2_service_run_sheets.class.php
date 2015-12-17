@@ -99,18 +99,23 @@ class View_services__service_run_sheets extends View
 				print_message("Somebody else is currently editing this service.  Please try again later.");
 				$this->editing = FALSE;
 			}
+			?>
+			<h1>
+				<?php echo ents($this->service->toString()); ?>
+			</h1>
+			<?php
+			$this->printServicePersonnel();
 			if ($this->editing) {
 				?>
 				<div class="row-fluid" id="service-planner">
 				<?php
-				$this->printServicePlan();
+				$this->printServiceEditor();
 				$this->printComponentSelector();
 				?>
 				</div>
 				<?php
 			} else {
 				?>
-				<h1><?php echo ents($this->service->toString()); ?></h1>
 				<div class="row-fluid">
 					<div class="span6">
 						<h3>
@@ -157,15 +162,32 @@ class View_services__service_run_sheets extends View
 	
 	}
 
-	private function printServicePlan()
+	private function printServicePersonnel()
+	{
+		$rosterViews = Roster_View::getForRunSheet($this->service->getValue('congregationid'));
+		if ($rosterViews) {
+			?>
+			<div class="row-fluid">
+			<div id="service-personnel" class="span12 clearfix">
+				<h3>Personnel</h3>
+				<?php
+				foreach ($rosterViews as $view) {
+					$view->printSingleView($this->service);
+				}
+				?>
+			</div>
+			</div>
+			<?php
+		}
+	}
+
+	private function printServiceEditor()
 	{
 		$cong = $GLOBALS['system']->getDBObject('congregation', $this->congregationid);
-		$startTime = preg_replace('/[^0-9]/', '', $cong->getValue('meeting_time'))
+		$startTime = preg_replace('/[^0-9]/', '', $cong->getValue('meeting_time'));
 		?>
 		<div class="span6">
-			<h1>
-				<?php echo ents($this->service->toString()); ?>
-			</h1>
+			<h3>Run Sheet</h3>
 			<form method="post" id="service-plan-container">
 			<input type="hidden" name="save_service" value="1" />
 			<table class="table table-bordered" id="service-plan" data-starttime="<?php echo $startTime; ?>">
@@ -310,7 +332,7 @@ class View_services__service_run_sheets extends View
 	{
 		?>
 		<div class="span6">
-			<h1>Available Components</h1>
+			<h3>Available Components</h3>
 			<div id="component-search" class="input-append input-prepend">
 				<span class="add-on"><i class="icon-search"></i></span>
 				<input type="text" placeholder="Enter search terms">

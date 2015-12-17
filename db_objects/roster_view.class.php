@@ -88,6 +88,12 @@ class roster_view extends db_object
 									'default'	=> 0,
 									'note' => 'Public roster views are available to non-logged-in users via the <a href="'.BASE_URL.'/public/">public site</a> and to church members via the <a href="'.BASE_URL.'/members/">member portal</a>',
 								),
+			'show_on_run_sheet' => Array(
+									'type'	=> 'select',
+									'options' => Array(0 => 'No', 1 => 'Yes'),
+									'default' => 0,
+									'note' => 'Whether to display this view\'s allocations at the top of applicable service run sheets',
+									),
 		);
 		return $fields;
 	}
@@ -436,6 +442,57 @@ class roster_view extends db_object
 		print_csv($csvData);
 	}
 
+	function printSingleView($service)
+	{
+		$asns = reset($this->getAssignments($service->getValue('date'), $service->getValue('date')));
+		?>
+		<div class="column">
+		<?php
+		$perCol = ceil(count($this->_members)/4);
+		$i = 0;
+		foreach ($this->_members as $member) {
+			?>
+			<div class="clearfix">
+				<label>
+					<?php
+					if ($member['role_id']) {
+						echo ents($member['role_title']);
+					} else if ($member['service_field']) {
+						echo ents($service->getFieldLabel($member['service_field'], TRUE));
+					}
+					?>
+				</label>
+				<div>
+					<?php
+					if ($member['role_id']) {
+						foreach ($asns[$member['role_id']] as $personid => $asn) {
+							?>
+							<a href="?view=persons&personid=<?php echo $personid; ?>" class="med-popup">
+								<?php echo ents($asn['name']); ?>
+							</a>
+							<br />
+							<?php
+						}
+					} else {
+						$service->printFieldValue($member['service_field']);
+					}
+					?>
+				</div>
+			</div>
+			<?php
+			$i++;
+			if ($i % $perCol == 0) {
+				?>
+		</div>
+		<div class="column">
+				<?php
+			}
+		}
+		?>
+		</div>
+		<?php
+	}
+
 
 	function printView($start_date=NULL, $end_date=NULL, $editing=FALSE, $public=FALSE)
 	{
@@ -460,7 +517,7 @@ class roster_view extends db_object
 		foreach ($this->getAssignments($start_date, $end_date) as $date => $date_assignments) {
 			$to_print[$date]['assignments'] = $date_assignments;
 		}
-		ksort($to_print);
+		ksort($to_print);	
 		$role_objects = Array();
 		$this_sunday = date('Y-m-d', strtotime('Sunday'));
 		if (empty($to_print)) {
@@ -783,6 +840,7 @@ class roster_view extends db_object
 	function _printRoleHeaders($editing, $public)
 	{
 		// print role/field headings
+		$dummy_service = new Service();
 		$last_congid = NULL;
 		foreach ($this->_members as $id => $details) {
 			$th_class = '';
@@ -805,7 +863,6 @@ class roster_view extends db_object
 						echo '<a class="med-popup" title="Click for role description" href="'.BASE_URL.'/public/?view=display_role_description&role='.$details['role_id'].'">'.ents($details['role_title']).'</a>';
 					}
 				} else {
-					$dummy_service = new Service();
 					echo ents($dummy_service->getFieldLabel($details['service_field'], true));
 				}
 				?>
@@ -889,6 +946,36 @@ class roster_view extends db_object
 		$GLOBALS['system']->doTransaction('COMMIT');
 		add_message("Role allocations saved");
 		redirect('rosters__display_roster_assignments');
+	}
+
+	/**
+	 * Get all the roster views that should be shown on the run sheet for the specified congregation
+	 * @param int $congregationid
+	 * @return array
+	 */
+	static function getForRunSheet($congregationid)
+	{
+		$res = Array();
+		$SQL = '
+		SELECT id
+		FROM roster_view
+		WHERE show_on_run_sheet = 1
+		AND id IN (
+			SELECT DISTINCT roster_view_id
+			FROM roster_view_service_field sf
+			WHERE sf.congregationid = '.(int)$congregationid.'
+			UNION
+			SELECT DISTINCT roster_view_id
+			FROM roster_view_role_membership rm
+			JOIN roster_role rr ON rr.id = rm.roster_role_id
+			WHERE rr.congregationid = '.(int)$congregationid.'
+		)';
+		$ids = $GLOBALS['db']->queryCol($SQL);
+		check_db_result($ids);
+		foreach ($ids as $id) {
+			$res[] = $GLOBALS['system']->getDBObject('roster_view', $id);
+		}
+		return $res;
 	}
 }
 ?>

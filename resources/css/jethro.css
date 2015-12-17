@@ -1741,6 +1741,46 @@ table.system-config td small {
 	margin-top: 3px;
 }
 
+#service-personnel div.column {
+	float: left;
+	width: 22.7%;
+	margin: 0 3% 0 0%;
+	/*outline: 1px solid;*/
+}
+#service-personnel div:last-child  {
+	margin-right: 0 !important;
+}
+
+#service-personnel label {
+	font-weight: bold;
+	margin: 0px;
+	float: left;
+	width: 8em;
+}
+#service-personnel div div {
+	margin-bottom: 5px;
+}
+#service-personnel div div div {
+	margin-left: 8.5em;
+}
+
+
+
+@media (max-width: 900px) {
+	#service-personnel div.column {
+		width: 47%;
+	}
+}
+
+@media (max-width: 480px) {
+	#service-personnel div.column {
+		width: 100%;
+		margin: 0;
+	}
+}
+
+
+
 /*************** CUSTOM FIELDS EDITOR *****************/
 
 #custom-fields-editor label {

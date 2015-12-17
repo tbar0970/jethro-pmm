@@ -65,9 +65,12 @@ CREATE TABLE `note_template_field` (
   `label` varchar(255) DEFAULT '',
   `type` varchar(255) NOT NULL DEFAULT '',
   `params` varchar(255) DEFAULT 'a:0:{}',
-  PRIMARY KEY (`id`),
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB;
 
 ALTER TABLE `note_template_field`
   ADD CONSTRAINT `note_template_fieldcustomfieldid` FOREIGN KEY (`customfieldid`) REFERENCES `custom_field` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `note_template_fieldtemplateid` FOREIGN KEY (`templateid`) REFERENCES `note_template` (`id`) ON DELETE CASCADE;
+
+ALTER TABLE roster_view
+ADD COLUMN show_on_run_sheet varchar(255) not null default 0;
