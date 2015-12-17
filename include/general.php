@@ -108,10 +108,15 @@ function ents($str)
 
 function redirect($view, $params=Array(), $hash='')
 {
+	session_write_close();
+	if ($view == -1) {
+		// go back
+		header('Location: '.urlencode($_SERVER['HTTP_REFERER']));
+		exit;
+	}
 	$params['view'] = $view;
 	$url = build_url($params);
 	if ($hash) $url .= '#'.$hash;
-	session_write_close();
 	header('Location: '.urldecode(html_entity_decode($url)));
 	exit;
 }
@@ -475,7 +480,6 @@ function process_widget($name, $params, $index=NULL)
 			// value is the bitwise-or of all submitted values
 			$value = 0;
 			if (isset($rawVal)) {
-				bam($rawVal);
 				foreach ((array)$rawVal as $i) {
 					$value = $value | (int)$i;
 				}

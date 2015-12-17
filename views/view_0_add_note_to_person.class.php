@@ -29,22 +29,38 @@ class View__Add_Note_To_Person extends View
 		$this->_note->processForm();
 		if (array_get($_REQUEST, 'new_note_submitted')) {
 			if ($this->_note_template) {
+				$this->_note_template->processNoteFieldWidgets();
 				$this->_note_template->applyDataBlock($this->_note);
 			}
-			$success = TRUE;
+			$success = $failure = 0;
 			foreach ($_REQUEST['personid'] as $personid) {
+				if ($this->_note_template && $this->_note_template->usesCustomFields()) {
+					$person = new Person($personid);
+					if (!$person->acquireLock()) {
+						add_message("Could not acquire lock on ".$person->toString().' - note not saved', 'error');
+						continue; // don't save the note if can't apply the values
+					}
+					$this->_note_template->applyFieldValues($person);
+					if (!$person->save()) {
+						add_message("Could not save values on ".$person->toString().' - note not saved', 'error');
+						continue; // don't save the note if can't apply the values
+					}
+				}
 				$this->_note->id = 0;
 				$this->_note->setValue('personid', $personid);
-				$success = $success && $this->_note->create();
-				// TODO: set person fields from note template
+				if ($this->_note->create()) $success++;
 			}
 			if ($success) {
 				if ($this->_person) {
 					add_message('Note added');
 					redirect('persons', Array('personid' => $this->_person->id), 'note_'.$this->_note->id); // exits
 				} else {
-					add_message('Note added to '.count($_REQUEST['personid']).' persons');
-					redirect('home');
+					if ($success == count($_REQUEST['personid'])) {
+						add_message('Note added to '.count($_REQUEST['personid']).' persons');
+					} else {
+						add_message('Note successfully added to '.$success.' of the '.count($_REQUEST['personid']).' selected persons');
+					}
+					redirect(-1);
 				}
 			}
 		}

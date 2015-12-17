@@ -55,18 +55,29 @@ class Custom_Field extends db_object
 		if (empty($details['params'])) $details['params'] = Array();
 		return $res;
 	}
-	
+
+	/**
+	 * If this field is of type 'select', get the available options for the field
+	 * @return Array(id => label), in ranked order.
+	 * @see Custom_Field_Option class.
+	 */
 	public function getOptions()
 	{
 		if ($this->getValue('type') != 'select') return Array();
 		if (!isset($this->_tmp['options'])) {
-			$this->_tmp['options'] = $GLOBALS['system']->getDBObjectData('custom_field_option', Array('fieldid' => $this->id), 'OR', 'rank');
+			$opts = $GLOBALS['system']->getDBObjectData('custom_field_option', Array('fieldid' => $this->id), 'OR', 'rank');
+			foreach ($opts as $id => $val) {
+				$this->_tmp['options'][$id] = $val['value'];
+			}
 		}
 		return $this->_tmp['options'];
 	}
 
-
-
+	/**
+	 * Print the interface for CONFIGURING this custom field.
+	 * @param string $fieldname	Name of this object's field
+	 * @param string $prefix	Prefix to use on HTML element names
+	 */
 	function printFieldInterface($fieldname, $prefix='')
 	{
 		switch ($fieldname) {
@@ -96,6 +107,16 @@ class Custom_Field extends db_object
 				parent::printFieldInterface($fieldname, $prefix);
 		}
 	}
+
+	/**
+	 * Get details of an SQL query to retrieve instances of this object type in bulk.
+	 * Overriden to add options to the results.
+	 * @param array $params
+	 * @param string $logic
+	 * @param string $order
+	 * @see DB_Object::getInstancesQueryComps()
+	 * @return array  Details of how to construct an SQL query
+	 */
 	public function getInstancesQueryComps($params, $logic, $order)
 	{
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
@@ -106,6 +127,14 @@ class Custom_Field extends db_object
 		return $res;
 	}
 
+	/**
+	 * Get data of the instances of this object type in bulk.
+	 * @param array $params
+	 * @param string $logic
+	 * @param string $order
+	 * @return array (objectID => objectDetails)
+	 * @see DB_Object::getInstancesData()
+	 */
 	public function getInstancesData($params, $logic='OR', $order='')
 	{
 		$res = parent::getInstancesData($params, $logic, $order);
@@ -122,7 +151,12 @@ class Custom_Field extends db_object
 		}
 		return $res;
 	}
-	
+
+	/**
+	 * Print an interface to configure parameters for this field if its type is 'date'
+	 * @param string $prefix
+	 * @param array $params  Existing params of this field
+	 */
 	public static function printParamsDate($prefix, $params)
 	{
 		?>
@@ -137,6 +171,11 @@ class Custom_Field extends db_object
 		<?php
 	}
 
+	/**
+	 * Print an interface to configure parameters for this field if its type is 'text'
+	 * @param string $prefix
+	 * @param array $params  Existing params of this field
+	 */
 	public static function printParamsText($prefix, $params)
 	{
 		?>
@@ -149,6 +188,11 @@ class Custom_Field extends db_object
 		<?php
 	}
 
+	/**
+	 * Print an interface to configure parameters for this field if its type is 'select'
+	 * @param string $prefix
+	 * @param array $params  Existing params of this field
+	 */
 	public static function printParamsSelect($prefix, $params)
 	{
 		?>
@@ -165,10 +209,9 @@ class Custom_Field extends db_object
 			<tbody>
 				<?php
 				$options = array_get($params, 'options', Array());
-				$options[''] = Array('value' => '');
+				$options[''] = '';
 				$i = 0;
-				foreach ($options as $optionID => $optionDetails) {
-					if (is_array($optionDetails)) $optionDetails = $optionDetails['value'];
+				foreach ($options as $optionID => $optionValue) {
 					?>
 					<tr>
 						<td class="cursor-move">
@@ -178,7 +221,7 @@ class Custom_Field extends db_object
 							?>
 						</td>
 						<td>
-							<?php print_widget($prefix.'option_values[]', Array('type' => 'text'), $optionDetails); ?>
+							<?php print_widget($prefix.'option_values[]', Array('type' => 'text'), $optionValue); ?>
 						</td>
 						<td class="center">
 							<?php
@@ -201,6 +244,11 @@ class Custom_Field extends db_object
 		<?php
 	}
 
+	/**
+	 * Process an interface for CONFIGURING this custom field
+	 * @param string $fieldname
+	 * @param string $prefix
+	 */
 	public function processFieldInterface($fieldname, $prefix = '') {
 		switch ($fieldname) {
 			case 'allow_multiple':
@@ -249,23 +297,34 @@ class Custom_Field extends db_object
 		}
 	}
 
-	public function save()
-	{
-		$GLOBALS['system']->doTransaction('BEGIN');
-		parent::save();
-		$this->saveOptions();
-		$GLOBALS['system']->doTransaction('COMMIT');
-	}
-	
+	/**
+	 * Save a brand new custom field to the DB
+	 * @return boolean
+	 */
 	public function create()
 	{
 		$GLOBALS['system']->doTransaction('BEGIN');
 		parent::create();
-		$this->saveOptions();
+		$this->_saveOptions();
 		$GLOBALS['system']->doTransaction('COMMIT');		
 	}
 
-	private function saveOptions()
+	/**
+	 * Save changes to an existing custom field to the DB
+	 * @return boolean
+	 */
+	public function save()
+	{
+		$GLOBALS['system']->doTransaction('BEGIN');
+		parent::save();
+		$this->_saveOptions();
+		$GLOBALS['system']->doTransaction('COMMIT');
+	}
+
+	/**
+	 * If this is a select field, save its options to the DB
+	 */
+	private function _saveOptions()
 	{
 		if (!empty($this->_tmp['delete_options'])) {
 			foreach ($this->_tmp['delete_options'] as $id => $obj) {
@@ -288,6 +347,10 @@ class Custom_Field extends db_object
 		}
 	}
 
+	/**
+	 * Get parameters to use for printing an interface for entering a value for this custom field
+	 * @return array
+	 */
 	private function getWidgetParams()
 	{
 		$params = Array(
@@ -306,7 +369,8 @@ class Custom_Field extends db_object
 	}
 
 	/**
-	 * Print widget for an end user to enter a value for this field for a person record
+	 * Print an interface for an end user to enter a value for this custom field for a person record
+	 * @param $value	Existing value
 	 */
 	public function printWidget($value)
 	{
@@ -318,6 +382,10 @@ class Custom_Field extends db_object
 		}
 	}
 
+	/**
+	 * Process an interface where an end user supplies a value for this custom field for a person record
+	 * @return mixed
+	 */
 	public function processWidget()
 	{
 		$res = process_widget('custom_'.$this->id, $this->getWidgetParams());
@@ -330,6 +398,12 @@ class Custom_Field extends db_object
 		return $res;
 	}
 
+	/**
+	 * Format a value of this field into a human readable form
+	 * (ie. dates formatted, option IDs rendered as option labels, etc).
+	 * @param mixed $val	Raw value
+	 * @return string
+	 */
 	public function formatValue($val)
 	{
 		if (is_array($val)) return implode(', ', array_map(Array($this, 'formatValue'), $val));
@@ -350,7 +424,6 @@ class Custom_Field extends db_object
 				return $val;
 				break;
 		}
-
 	}
 
 	/**
@@ -364,7 +437,7 @@ class Custom_Field extends db_object
 	}
 
 	/**
-	 * Get SQL expression to retrieve a value suitable for sorting
+	 * Get SQL expression to retrieve a value suitable for sorting.
 	 * (ie option fields' RANKs are returned instead of option id or option label).
 	 * @param string $tableAlias  Alias of the custom_field_value table in the SQL statement
 	 * @return string SQL
@@ -374,4 +447,3 @@ class Custom_Field extends db_object
 		return 'COALESCE('.$optionTableAlias.'.rank, '.$dataTableAlias.'.value_date, '.$dataTableAlias.'.value_text)';
 	}
 }
-?>

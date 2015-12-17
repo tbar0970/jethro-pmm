@@ -195,9 +195,14 @@ class System_Controller
 
 	public function getDBObjectData($classname, $params=Array(), $logic='OR', $order='')
 	{
-		$this->includeDBClass($classname);
-		$sample = new $classname();
-		return $sample->getInstancesData($params, $logic, $order);
+		static $cache = Array();
+		$cacheKey = "$classname-$logic-$order-".serialize($params);
+		if (!isset($cache[$cacheKey])) {
+			$this->includeDBClass($classname);
+			$sample = new $classname();
+			$cache[$cacheKey] = $sample->getInstancesData($params, $logic, $order);
+		}
+		return $cache[$cacheKey];
 	}
 
 	public function doTransaction($operation)
