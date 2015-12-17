@@ -60,7 +60,7 @@ class Abstract_Note extends DB_Object
 								'type'			=> 'date',
 								'note'			=> 'This note will appear in the assignee\'s "to-do" list from this date onwards',
 								'allow_empty'	=> false,
-								'default'		=> '2000-01-01'
+								'default'		=> date('Y-m-d'),
 							   ),
 			'creator'		=> Array(
 								'type'			=> 'int',
