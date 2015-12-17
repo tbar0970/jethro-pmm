@@ -370,11 +370,12 @@ class Custom_Field extends db_object
 
 	/**
 	 * Print an interface for an end user to enter a value for this custom field for a person record
-	 * @param $value	Existing value
+	 * @param mixed $value	Existing value
+	 * @param array $extraPrams	Any extra params to pass to print_widget.
 	 */
-	public function printWidget($value)
+	public function printWidget($value, $extraParams=Array())
 	{
-		print_widget('custom_'.$this->id.'[]', $this->getWidgetParams(), $value);
+		print_widget('custom_'.$this->id.'[]', $extraParams+$this->getWidgetParams(), $value);
 		if (($this->getValue('type') == 'date') && !empty($this->values['params']['allow_note'])) {
 			$bits = explode(' ', $value);
 			$note = array_get($bits, 1);

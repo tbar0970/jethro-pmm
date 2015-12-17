@@ -289,11 +289,13 @@ class Note_Template extends db_object
 						<?php
 						if ($details['customfieldid']) {
 							$f = $GLOBALS['system']->getDBObject('custom_field', $details['customfieldid']);
-							$f->printWidget(NULL); // TODO: get value!?
+							$f->printWidget(NULL, Array('allow_empty' => FALSE, 'default_empty' => TRUE));
 						} else {
 							$params = unserialize($details['params']);
 							$params['type'] = $details['type'];
-							print_widget('template_field_'.$id, $params, '');
+							$params['allow_empty'] = FALSE;
+							$params['default_empty'] = TRUE;
+							print_widget('template_field_'.$id, $params, NULL);
 						}
 						?>
 					</div>

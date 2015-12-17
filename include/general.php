@@ -211,7 +211,10 @@ function print_widget($name, $params, $value)
 			<?php
 			break;
 		case 'select':
-			$our_val = is_array($value) ? $value : (($value === '') ? Array() : Array("$value"));
+			$our_val = Array();
+			if ($value !== NULL && $value !== '') {
+				$our_val = is_array($value) ? $value : Array("$value");
+			}
 			foreach ($our_val as $k => $v) $our_val[$k] = "$v";
 			if (array_get($params, 'style', 'dropbox') == 'colour-buttons') {
 				?>
@@ -267,9 +270,21 @@ function print_widget($name, $params, $value)
 				?>
 				<select name="<?php echo $name; ?>" class="<?php echo $classes;?>" <?php echo $attrs; ?> >
 					<?php
-					if (array_get($params, 'allow_empty') && !array_get($params, 'allow_multiple')) {
+					$showEmpty = FALSE;
+					if (!array_get($params, 'allow_multiple')) {
+						if (array_get($params, 'allow_empty')) {
+							$showEmpty = TRUE;
+						} else if (array_get($params, 'default_empty') && empty($our_val)) {
+							$showEmpty = TRUE;
+						}
+					}
+					if ($showEmpty) {
+						$emptyText = array_get($params, 'empty_text');
+						if (!$emptyText) {
+							$emptyText = array_get($params, 'allow_empty') ? '(None)' : '--Choose--';
+						}
 						?>
-						<option value=""><?php echo array_get($params, 'empty_text', '(None)'); ?></option>
+						<option value=""><?php echo $emptyText; ?></option>
 						<?php
 					}
 					foreach (array_get($params, 'options', Array()) as $k => $v) {
@@ -293,7 +308,11 @@ function print_widget($name, $params, $value)
 				$name_template = substr($name, 0, strpos($name, '[')).'%s'.substr($name, strpos($name, '['));
 			}
 			$months = Array();
-			if (array_get($params, 'allow_empty', false)) {
+			// "default_empty" means show a blank value initially
+			// even though submitting a blank value is not allowed.
+			if (array_get($params, 'allow_empty', false)
+				|| (array_get($params, 'default_empty', false) && empty($value))
+			) {
 				$months[''] = '(Month)';
 				if (empty($value)) $value = '--';
 			} else {
