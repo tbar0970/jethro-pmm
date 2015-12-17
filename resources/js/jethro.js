@@ -456,6 +456,10 @@ JethroServiceProgram.init = function() {
 			var sourceCell = $(this).parents('td:first').prev('td:first');
 			JethroServiceProgram.copyServiceDetails(sourceCell, targetCell);
 		});
+		$('#populate-services').click(function() {
+			var placeholder = prompt('Enter a topic to apply to all empty services:');
+			if (placeholder) $('[name^="topic_title"][value=]').val(placeholder);
+		})
 };
 	/*
 	function cancelShiftConfirmPopup()

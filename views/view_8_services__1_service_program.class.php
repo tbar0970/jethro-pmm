@@ -342,6 +342,11 @@ class View_Services__Service_Program extends View
 					<input type="submit" name="editing" class="btn" value="Edit" />
 					<?php
 				}
+				if ($this->_editing) {
+					?>
+					&nbsp; <small class="clickable" id="populate-services">Bulk populate</small>
+					<?php
+				}
 				?>
 				</td>
 			</tr>
