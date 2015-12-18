@@ -681,7 +681,7 @@ JethroServicePlanner.addFromComponent = function(componentTR, beforeItem) {
 
 	var newTR = $('#service-item-template').clone().attr('id', '');
 	newTR.css('display', '').addClass('service-item');
-	var attrs = ['componentid', 'is_numbered', 'length_mins'];
+	var attrs = ['componentid', 'show_in_handout', 'length_mins'];
 	var runsheetTitle = componentTR.attr('data-runsheet_title');
 	var newTitle = runsheetTitle ? runsheetTitle: componentTR.find('.title').html();
 	newTR.find('td.item span').html(newTitle);
@@ -714,7 +714,7 @@ JethroServicePlanner.refreshNumbersAndTimes = function() {
 	sp.find('tr.service-item').each(function() {
 		$(this).find('td.start').html(currentTime);
 		currentTime = JethroServicePlanner._addTime(currentTime, $(this).find("input.length_mins").val());
-		if ($(this).find('input.is_numbered').val() == 1) {
+		if ($(this).find('input.show_in_handout').val() != 0) {
 			$(this).find('td.number').html(currentNumber++);
 		}
 	});

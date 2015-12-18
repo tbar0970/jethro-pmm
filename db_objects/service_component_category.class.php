@@ -25,15 +25,14 @@ class Service_Component_Category extends db_object
 									'initial_cap'	=> TRUE,
 									'default' => '%title%',
 								   ),
-			'is_numbered_default'		=> Array(
-									'type'		=> 'select',
-									'options'  => Array('No', 'Yes'),
-									'default' => 1,
-								   ),
 			'show_in_handout_default'		=> Array(
 									'type'		=> 'select',
-									'options'  => Array('No', 'Yes'),
-									'default' => 1,
+									'options'  => Array(
+													'0' => 'No',
+													'title' => 'Title only',
+													'full'  => 'Title and Content',
+													),
+									'default' => 'full',
 								   ),
 			'show_on_slide_default'		=> Array(
 									'type'		=> 'select',

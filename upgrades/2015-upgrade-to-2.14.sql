@@ -74,3 +74,8 @@ ALTER TABLE `note_template_field`
 
 ALTER TABLE roster_view
 ADD COLUMN show_on_run_sheet varchar(255) not null default 0;
+
+UPDATE service_component
+SET show_in_handout = 'full' WHERE show_in_handout = 1;
+
+ALTER TABLE service_component DROP COLUMN is_numbered;

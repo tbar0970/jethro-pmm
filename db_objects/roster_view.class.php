@@ -442,10 +442,11 @@ class roster_view extends db_object
 		print_csv($csvData);
 	}
 
-	function printSingleView($service)
+	function printSingleViewFlexi($service)
 	{
 		$asns = $this->getAssignments($service->getValue('date'), $service->getValue('date'));
 		$asns = empty($asns) ? Array() : reset($asns);
+
 		?>
 		<div class="column">
 		<?php
@@ -455,34 +456,15 @@ class roster_view extends db_object
 			?>
 			<div class="clearfix">
 				<label>
-					<?php
-					if ($member['role_id']) {
-						echo ents($member['role_title']);
-					} else if ($member['service_field']) {
-						echo ents($service->getFieldLabel($member['service_field'], TRUE));
-					}
-					?>
+					<?php $this->_printOutputLabel($member, $service); ?>
 				</label>
 				<div>
-					<?php
-					if ($member['role_id']) {
-						foreach (array_get($asns, $member['role_id'], Array()) as $personid => $asn) {
-							?>
-							<a href="?view=persons&personid=<?php echo $personid; ?>" class="med-popup">
-								<?php echo ents($asn['name']); ?>
-							</a>
-							<br />
-							<?php
-						}
-					} else {
-						$service->printFieldValue($member['service_field']);
-					}
-					?>
+					<?php $this->_printOutputValue($member, $service, array_get($asns, $member['role_id'], Array())); ?>
 				</div>
 			</div>
 			<?php
 			$i++;
-			if ($i % $perCol == 0) {
+			if (($i % $perCol == 0) && ($i < count($this->_members))) {
 				?>
 		</div>
 		<div class="column">
@@ -492,6 +474,67 @@ class roster_view extends db_object
 		?>
 		</div>
 		<?php
+	}
+
+	function printSingleViewTable($service, $columns=2)
+	{
+		$asns = $this->getAssignments($service->getValue('date'), $service->getValue('date'));
+		$asns = empty($asns) ? Array() : reset($asns);
+
+		$perCol = ceil(count($this->_members)/$columns);
+		?>
+		<table cellpadding="5">
+			<?php
+			for ($rowNum = 0; $rowNum < $perCol; $rowNum++) {
+				?>
+				<tr>
+				<?php
+				$i = 0;
+				foreach ($this->_members as $member) {
+					if (($i % $columns) == $rowNum) {
+						?>
+						<th><?php $this->_printOutputLabel($member, $service); ?></th>
+						<td>
+							<?php $this->_printOutputValue($member, $service, array_get($asns, $member['role_id'], Array()), 0); ?>
+						</td>
+						<?php
+					}
+					$i++;
+				}
+				?>
+				</tr>
+				<?php
+			}
+			?>
+		</table>
+		<?php
+	}
+
+	private function _printOutputLabel($member, $service)
+	{
+		if ($member['role_id']) {
+			echo ents($member['role_title']);
+		} else if ($member['service_field']) {
+			echo ents($service->getFieldLabel($member['service_field'], TRUE));
+		}
+	}
+
+	private function _printOutputValue($member, $service, $asn, $withLinks=TRUE)
+	{
+		if ($member['role_id']) {
+			foreach ($asn as $personid => $asn) {
+				if ($withLinks) echo '<a href="?view=persons&personid='.$personid.'" class="med-popup">';
+				echo ents($asn['name']);
+				if ($withLinks) {
+					echo '</a>';
+				} else {
+					echo '&nbsp;';
+				}
+				echo '<br />';
+			}
+		} else {
+			$service->printFieldValue($member['service_field']);
+		}
 	}
 
 
