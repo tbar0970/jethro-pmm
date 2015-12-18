@@ -12,22 +12,9 @@ class Call_Documents extends Call
 			$view->serveFile();
 			exit();
 		}
-
-		?>
-		<html>
-			<head>
-				<?php include 'templates/head.template.php'; ?>
-			</head>
-			<body id="iframe">
-				<div id="body">
-				<?php
-				$view->printIframeContents();
-				?>
-				</div>
-			</body>
-		</html>
-		<?php
+		if (!empty($_REQUEST['zipfile'])) {
+			$view->serveZip();
+			exit;
+		}
 	}
 }
-
-?>

@@ -302,10 +302,15 @@ class service extends db_object
 				
 			case 'summary':
 				?>
-				<i><?php echo ents($this->values['topic_title']); ?></i><br />
-				<?php $this->printFieldValue('bible_all'); ?><br />
+				<i><?php echo ents($this->values['topic_title']); ?></i>
 				<?php
-				echo ents($this->values['format_title']); 
+				if ($this->getRawBibleReadings()) {
+					echo '<br />';
+					$this->printFieldValue('bible_all');
+				}
+				if (strlen($this->values['format_title'])) {
+					echo '<br />'.ents($this->values['format_title']);
+				}
 				if (!empty($this->values['notes'])) {
 					?>
 					&nbsp;<span class="clickable" onclick="$(this).next('div.hide').toggle()"><i class="icon-chevron-down"></i></span>

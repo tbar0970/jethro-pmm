@@ -406,7 +406,10 @@ h1 {
 }
 h1, h2 {
   font-size: 20px;
-  line-height: 120%;
+  line-height: 24px;
+}
+h1 *, h2 * {
+	line-height: 24px;
 }
 h3 {
   font-size: 17.5px;
@@ -584,6 +587,7 @@ td.narrow, th.narrow, .object-summary th {
 .clickable, table.clickable-rows td, table.clickable-rows th, img.icon {
 	cursor: pointer;
 }
+
 .cursor-move {
 	cursor: move;
 }
@@ -895,8 +899,7 @@ Otherwise they go beneath each other
 /**************** hOME PAGE *****************/
 
 .homepage h3 {
-	margin-top: 10px;
-	height: 2em;
+	margin-top: 20px;
 	overflow: hidden;
 }
 .homepage h3 span {
@@ -1152,6 +1155,10 @@ table.service-details th {
 }
 table.service-details td, td.service-details {
 	width: 28ex; /* NB */
+}
+
+#body table.service-program td.service-details:hover {
+	background-color: #f0f0e8 !important;
 }
 #body table.service-details td table td {
 	/* bible readings */
@@ -1732,12 +1739,13 @@ table.system-config td small {
 }
 
 #service-comps th {
-	padding-right: 15px;
+	padding-right: 18px;
 }
 
 #service-comps th .icon-arrow-up, #service-comps th .icon-arrow-down {
 	float: right;
-	margin-right: -11px;
+	position: absolute;
+	margin-right: -15px;
 	margin-top: 3px;
 }
 

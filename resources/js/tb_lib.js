@@ -102,6 +102,12 @@ $(document).ready(function() {
 		}
 	});
 
+	$('a.take-parent-click').parent()
+		.css('cursor', 'pointer')
+		.click(function() {
+			self.location.href = $(this).find('a.take-parent-click').attr('href');
+		});
+
 	// A table that expands as you fill in the input boxes
 	$('table.expandable').each(function() { TBLib.setupExpandableTable(this) });
 	

@@ -1,9 +1,9 @@
 <?php
-class View_Services__Service_Components extends View
+class View_Services__Component_Library extends View
 {
 	function getTitle()
 	{
-		return "Manage Service Components";
+		return "Service Component Library";
 	}
 
 	static function getMenuPermissionLevel()

@@ -444,7 +444,8 @@ class roster_view extends db_object
 
 	function printSingleView($service)
 	{
-		$asns = reset($this->getAssignments($service->getValue('date'), $service->getValue('date')));
+		$asns = $this->getAssignments($service->getValue('date'), $service->getValue('date'));
+		$asns = empty($asns) ? Array() : reset($asns);
 		?>
 		<div class="column">
 		<?php
@@ -465,7 +466,7 @@ class roster_view extends db_object
 				<div>
 					<?php
 					if ($member['role_id']) {
-						foreach ($asns[$member['role_id']] as $personid => $asn) {
+						foreach (array_get($asns, $member['role_id'], Array()) as $personid => $asn) {
 							?>
 							<a href="?view=persons&personid=<?php echo $personid; ?>" class="med-popup">
 								<?php echo ents($asn['name']); ?>

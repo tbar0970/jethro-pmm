@@ -57,7 +57,7 @@ class View_Documents extends View
 				if ($newname = $this->_validateDirName($_POST['newfolder'])) {
 					$newdir = $this->_realdir.'/'.$newname;
 					if (is_dir($newdir) || mkdir($newdir)) {
-						if ($p = fileperms(DOCUMENTS_ROOT_PATH)) chmod($newdir, $p);
+						if ($p = fileperms($this->_rootpath)) chmod($newdir, $p);
 						$this->_addMessage('Folder "'.$newname.'" created');
 						$this->_realdir = $newdir;
 					}
@@ -69,7 +69,7 @@ class View_Documents extends View
 						$tmp_name = $_FILES["newfile"]["tmp_name"][$key];
 						if ($name = $this->_validateFileName($_FILES["newfile"]["name"][$key])) {
 							if (move_uploaded_file($tmp_name, $this->_realdir.'/'.$name)) {
-								if ($p = fileperms(DOCUMENTS_ROOT_PATH)) chmod($this->_realdir.'/'.$name, $p);
+								if ($p = fileperms($this->_rootpath)) chmod($this->_realdir.'/'.$name, $p);
 								$this->_addMessage('File "'.$name.'" saved');
 							}
 						}
@@ -84,7 +84,7 @@ class View_Documents extends View
 						$tmp_name = $_FILES["replacefile"]["tmp_name"][$origname];
 						if (file_exists($this->_realdir.'/'.$origname)) {
 							if (move_uploaded_file($tmp_name, $this->_realdir.'/'.$origname)) {
-								if ($p = fileperms(DOCUMENTS_ROOT_PATH)) chmod($this->_realdir.'/'.$origname, $p);
+								if ($p = fileperms($this->_rootpath)) chmod($this->_realdir.'/'.$origname, $p);
 								$this->_addMessage('File "'.$origname.'" replaced');
 							}
 						}
@@ -135,7 +135,7 @@ class View_Documents extends View
 						$this->_editfile = $filename;
 					} else {
 						if (file_put_contents($this->_realdir.'/'.$filename, process_widget('contents', array('type' => 'html')))) {
-							if ($p = fileperms(DOCUMENTS_ROOT_PATH)) chmod($this->_realdir.'/'.$filename, $p);
+							if ($p = fileperms($this->_rootpath)) chmod($this->_realdir.'/'.$filename, $p);
 							$this->_addMessage("\"$filename\" saved");
 						}
 					}
@@ -634,6 +634,37 @@ class View_Documents extends View
 				readfile($this->_realdir.'/'.$filename);
 			}
 		}
+	}
+
+	function serveZip()
+	{
+		// array of files to zip
+		$downloadFilename = array_get($_REQUEST, 'zipname', 'JethroFiles');
+		if (substr($downloadFilename, -4) != '.zip') $downloadFilename .= '.zip';
+		$zip = new ZipArchive();
+		$zipFilename = tempnam(sys_get_temp_dir(), 'jethrozip').'.zip';
+		if ($zip->open($zipFilename, ZipArchive::CREATE)!==TRUE) {
+			exit("cannot open <$zipFilename>\n");
+		}
+		foreach ((array)$_REQUEST['zipfile'] as $filename) {
+			if (($dir = $this->_validateDirPath(dirname($filename)))
+					&& ($filename = $this->_validateFileName(basename($filename)))
+			) {
+				if (!$zip->addFile($dir.'/'.$filename, $filename)) {
+					trigger_error("Failed adding $filename");
+					exit;
+				}
+			}
+		}
+		$zip->close();
+		header("Pragma: public"); // required
+		header("Expires: 0");
+		header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+		header("Cache-Control: private",false); // required for certain browsers
+		header("Content-Transfer-Encoding: binary");
+		header('Content-Disposition: attachment; filename="'.$downloadFilename.'"');
+		readfile($zipFilename);
+		unlink($zipFilename);
 	}
 
 	function _guessContentType($filename)

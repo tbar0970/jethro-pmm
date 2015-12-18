@@ -1,120 +1,279 @@
 <?php
 require_once 'include/bible_ref.class.php';
 require_once 'include/odf_tools.class.php';
-class View_Services__Generate_Documents extends View
+class View__Generate_Service_Documents extends View
 {
-	private $_service_date = '';
 	private $_congregations = Array();
+	private $_service_date = '';
+	private $_filename = '';
 	private $_generated_files = Array();
 	private $_replacements = Array();
 	private $_keywords = Array();
+
 	private $_dirs = Array();
+
+	const EXTENSIONS = 'odt,odp,ott,otp,docx,pptx';
 
 	static function getMenuPermissionLevel()
 	{
 		return PERM_SERVICEDOC;
 	}
 
-	function processView()
+	static function getTemplates($op)
 	{
-		$GLOBALS['system']->includeDBClass('service');
-		$this->_service_date = process_widget('service_date', Array('type' => 'date'));
-		$this->_congregations = $GLOBALS['system']->getDBObjectData('congregation', Array('!meeting_time' => ''));
-		if (empty($this->_congregations)) {
-			add_message("You need to set the 'code name' for some of your congregations before using this feature", 'failure');
-			$this->_congregations = NULL; // mark that we neve had any even before processing
-			return;
-		}
+		$dirs['populate'] = SERVICE_DOCS_TO_POPULATE_DIRS ? explode('|', SERVICE_DOCS_TO_POPULATE_DIRS) : '';
+		$dirs['expand'] = SERVICE_DOCS_TO_EXPAND_DIRS ? explode('|', SERVICE_DOCS_TO_EXPAND_DIRS) : '';
+		$opDirs = $dirs[$op];
+		$found_files = '';
 
-		$this->_dirs['populate'] = SERVICE_DOCS_TO_POPULATE_DIRS ? explode('|', SERVICE_DOCS_TO_POPULATE_DIRS) : '';
-		$this->_dirs['expand'] = SERVICE_DOCS_TO_EXPAND_DIRS ? explode('|', SERVICE_DOCS_TO_EXPAND_DIRS) : '';
 
-		if (empty($this->_dirs['populate']) && empty($this->_dirs['expand'])) {
-			add_message("You need to set a value for SERVICE_DOCS_TO_POPULATE_DIRS or SERVICE_DOCS_TO_EXPAND_DIRS in your system configuration before using this feature", 'failure');
-			$this->_dirs = NULL;
-			return;
-		}
-
-		// Convert relative path names to absolute, and warn of non-existent folders
 		$rootpath = DOCUMENTS_ROOT_PATH ? DOCUMENTS_ROOT_PATH :  JETHRO_ROOT.'/files';
-		foreach (Array('populate', 'expand') as $dirtype) {
-			foreach ($this->_dirs[$dirtype] as $i => &$dir) {
-				if (!is_dir($dir)) {
-					if (is_dir($rootpath.'/'.$dir)) {
-						$dir = $rootpath.'/'.$dir;
-					} else {
-						add_message("The folder ".$this->_cleanDirName($dir).' was not found and will not be used.  Check your system config file.', 'warning');
-						unset($this->_dirs[$dirtype][$i]);
+		foreach ($opDirs as $i => $dir) {
+			if (!is_dir($dir)) {
+				if (is_dir($rootpath.'/'.$dir)) {
+					$opDirs[$i] = $rootpath.'/'.$dir;
+				}
+			}
+			if (!is_dir($opDirs[$i])) {
+				trigger_error("Bad config: ".$this->_cleanDirName($dir)." does not exist");
+				unset($opDirs[$i]);
+				continue;
+			}
+		}
+		if ($op == 'populate') {
+			$res = Array();
+			foreach ($opDirs as $dir) {
+				$di = new DirectoryIterator($dir);
+				foreach ($di as $fileinfo) {
+					if ($fileinfo->isDir() && !$fileinfo->isDot()) {
+						$found_files[$fileinfo->getFilename()] = $fileinfo->getPathname();
+					} else if ($fileinfo->isFile()) {
+						$pathinfo = pathinfo($fileinfo->getFilename());
+						if (in_array($pathinfo['extension'], explode(',', self::EXTENSIONS))) {
+							$found_files[$fileinfo->getPath()] = basename($fileinfo->getPath());
+						}
+					}
+				}
+			}
+		} else {
+			foreach ($opDirs as $dir) {
+				$di = new DirectoryIterator($dir);
+				foreach ($di as $fileinfo) {
+					if (!$fileinfo->isFile()) continue;
+					$pathinfo = pathinfo($fileinfo->getFilename());
+					if (in_array($pathinfo['extension'], explode(',', self::EXTENSIONS))) {
+						$found_files[$fileinfo->getFilename()] = $fileinfo->getPathname();
 					}
 				}
 			}
 		}
-		unset($dir); // foreach by ref is dangerous.
+		return $found_files;
+	}
 
-		if ($this->_service_date) {
-			switch (array_get($_REQUEST, 'action')) {
-				case 'initiate':
-					$this->processInitiate();
-					break;
-				case 'populate':
-					$this->processPopulate();
-					break;
-				case 'expand':
-					$this->processExpand();
-					break;
+	static function resolveFilename($action, $basename)
+	{
+		$templates = self::getTemplates($action);
+		return array_get($templates, $basename);
+	}
+
+	private function _processExpand()
+	{
+		$generated_files = Array();
+		$pathinfo = pathinfo($this->_filename);
+		$new_dirname = $pathinfo['dirname'].'/'.$this->_service_date;
+		if (!file_exists($new_dirname)) {
+			mkdir($new_dirname);
+		}
+		if (is_writable($new_dirname)) {
+			chdir($new_dirname);
+			foreach (self::getCongregations() as $congid => $cong) {
+				$new_filename = substr($pathinfo['basename'], 0, -(strlen($pathinfo['extension'])+1)).'_'.$cong['meeting_time'].'.'.$pathinfo['extension'];
+				if (file_exists($new_filename)) {
+					if (!unlink($new_filename)) {
+						trigger_error("Could not overwrite ".$new_filename.' - file open?');
+						continue;
+					}
+				}
+				copy($this->_filename, $new_filename);
+				if ($p = fileperms($this->_filename)) chmod($new_filename, $p);
+				ODF_Tools::replaceKeywords($new_filename, array_get($_POST['replacements'], $congid, Array()));
+				$this->_generated_files[$new_dirname.'/'.$new_filename] = basename($pathinfo['dirname']).' / '.basename($new_dirname).' / '.$new_filename;
 			}
 		}
 	}
 
-	function processInitiate()
+	static function getCongregations()
 	{
-		foreach ($this->_dirs['populate'] as $dir) {
-			chdir($dir);
-			foreach ($this->_congregations as $congid => $cong) {
-				$service = Service::findByDateAndCong($this->_service_date, $congid);
-				if (empty($service)) {
-					add_message('No service found for congregation '.$cong['name'].' on '.$this->_service_date, 'failure');
-					unset($this->_congregations[$congid]);
-					continue;
+		static $congs = NULL;
+		if (is_null($congs)) {
+			$congs = $GLOBALS['system']->getDBObjectData('congregation', Array('!meeting_time' => ''));
+		}
+		return $congs;
+	}
+
+	public function processView()
+	{
+		if (!count(self::getCongregations())) {
+			add_message("You need to set the 'code name' for some of your congregations before using this feature", 'failure');
+			return;
+		}
+
+		$this->_service_date = process_widget('date', Array('type' => 'date'));
+		if (empty($this->_service_date)) {
+			add_message("No date supplied");
+			return;
+		}
+
+		if (!in_array(array_get($_REQUEST, 'action'), Array('populate', 'expand'))) {
+			add_message("Invalid action specified");
+			return;
+		}
+		$this->_action = $_REQUEST['action'];
+
+		if (empty($_REQUEST['filename'])) {
+			add_message("no filename supplied");
+			return;
+		}
+		$this->_filename = self::resolveFilename($this->_action, $_REQUEST['filename']);
+		if (!$this->_filename) {
+			add_message("Unkown template ".$_REQUEST['filename']);
+			return;
+		}
+
+		if (!empty($_REQUEST['replacements'])) {
+			$method = '_process'.ucfirst($this->_action).'';
+			$this->$method();
+		}
+
+		$this->loadReplacements();
+	}
+
+	public function printView()
+	{
+		if (empty(self::getCongregations()) || empty($this->_action) || empty($this->_service_date) || empty($this->_filename)) return;
+
+		if (!empty($this->_generated_files)) {
+			echo "The following files were generated: <ul>";
+			foreach ($this->_generated_files as $path => $label) {
+				echo '<li><a href="?call=documents&dir='.$this->_cleanDirname(dirname($path)).'&getfile='.basename($path).'">';
+				echo ents($label);
+				echo '</a></li>';
+			}
+			echo '</ul>';
+			$zipname = reset(explode('.', basename($this->_filename))).'_'.$this->_service_date;
+			$allHref = BASE_URL.'?call=documents&zipname='.$zipname;
+			foreach ($this->_generated_files as $path => $label) {
+				$allHref .= '&zipfile[]='.$this->_cleanDirName($path);
+			}
+			?>
+			<script>
+				document.location.href = '<?php echo $allHref; ?>';
+			</script>
+			<?php
+			
+		} else {
+			$this->_printReplacementsForm();
+		}
+	}
+
+		private function _printReplacementsForm()
+	{
+			?>
+			Confirm or correct the following field values
+			<form method="post">
+			<input type="hidden" name="action" value="<?php echo $this->_action; ?>" />
+			<input type="hidden" name="service_date" value="<?php echo $this->_service_date; ?>" />
+			<table class="table table-condensed table-bordered table-auto-width">
+				<thead>
+				<tr>
+					<th>Keyword</th>
+			<?php
+			foreach (self::getCongregations() as $congid => $congregation) {
+				?>
+				<th>
+					<?php
+					echo ents($congregation['name'].' ('.$congregation['meeting_time'].')');
+					?>
+				</th>
+				<?php
+			}
+			?>
+				</tr>
+				</thead>
+				<tbody>
+			<?php
+			foreach ($this->_keywords as $keyword) {
+				?>
+				<tr>
+					<td><?php echo ents($keyword); ?></td>
+					<?php
+				foreach (self::getCongregations() as $congid => $congregation) {
+					?>
+					<td>
+						<?php
+						if (!empty($this->_replacements[$congid])) {
+							if (isset($this->_replacements[$congid]) && isset($this->_replacements[$congid][$keyword])) {
+								?>
+								<input type="text"
+									   name="replacements[<?php echo (int)$congid; ?>][<?php echo ents($keyword); ?>]"
+									   value="<?php echo ents($this->_replacements[$congid][$keyword]); ?>" />
+								<?php
+							}
+						}
+						?>
+					</td>
+					<?php
 				}
-				$template_name = '_template_'.$cong['meeting_time'];
-				if (file_exists($template_name.'.ott')) {
-					$new_name = $this->_service_date.'_'.$cong['meeting_time'].'.odt';
-					if (file_exists($new_name)) {
-						add_message("$new_name already exists", 'failure');
-					} else {
-						copy($template_name.'.ott', $new_name);
-						chmod($new_name, fileperms($template_name.'.ott'));
-						$this->_generated_files[] = basename($dir).' / '.$new_name;
+				?>
+				</tr>
+			<?php
+			}
+			?>
+				</tbody>
+			</table>
+			<input type="submit" class="btn" value="Go" />
+			<a href="<?php echo build_url(Array()); ?>" class="btn">Cancel</a>
+			</form>
+			<?php
+	}
+
+
+	
+	function _processPopulate()
+	{
+		$newDir = $this->_filename.'/'.$this->_service_date;
+		if (!is_dir($newDir)) mkdir($newDir);
+		chdir($this->_filename);
+
+		$this->_replacements = $_POST['replacements'];
+		foreach (self::getCongregations() as $congid => $cong) {
+			foreach (explode(',', self::EXTENSIONS) as $ext) {
+				$thisFile = $this->_filename.'/'.$cong['meeting_time'].'.'.$ext;
+				if (is_file($thisFile)) {
+					$newFile = $newDir.'/'.basename($thisFile);
+					if (file_exists($newFile)) {
+						if (!unlink($newFile)) {
+							trigger_error('Cannot write to '.$newFile.' - is the file in use?');
+							continue;
+						}
 					}
-				} else if (file_exists($template_name.'.otp')) {
-					$new_name = $this->_service_date.'_'.$cong['meeting_time'].'.odp';
-					if (file_exists($new_name)) {
-						add_message("$new_name already exists", 'failure');
-					} else {
-						copy($template_name.'.otp', $new_name);
-						chmod($new_name, fileperms($template_name.'.otp'));
-						$this->_generated_files[] = basename($dir).' / '.$new_name;
-					}
-				} else {
-					add_message("No template found for ".$cong['meeting_time'].' in '.basename($dir), 'warning');
+					copy($thisFile, $newFile);
+					ODF_Tools::replaceKeywords($newFile, $this->_replacements[$congid]);
+					if ($p = fileperms($thisFile)) chmod($newFile, $p);
+					$this->_generated_files[$newFile] = $this->_cleanDirName($newDir).' / '.basename($newFile);
 				}
 			}
 		}
-		$this->_addGeneratedFilesMessage();
 	}
 
-	function processPopulate()
-	{
-		foreach ($this->_dirs['populate'] as $dir) {
-			chdir($dir);
-			if (empty($_POST['replacements'])) {
+	/*
+	 * 			if (empty($_POST['replacements'])) {
 				// Get ready to print the replacements form
-				foreach ($this->_congregations as $congid => &$congregation) {
+				foreach (self::getCongregations() as $congid => &$congregation) {
 					$service = Service::findByDateAndCong($this->_service_date, $congid);
 					if (empty($service)) {
 						add_message('No service found for congregation '.$congregation['name'].' on '.$this->_service_date, 'warning');
-						unset($this->_congregations[$congid]);
+						unset(self::getCongregations()[$congid]);
 						continue;
 					}
 					$next_service = Service::findByDateAndCOng(date('Y-m-d', strtotime($this->_service_date.' +1 week')), $congid);
@@ -161,219 +320,22 @@ class View_Services__Generate_Documents extends View
 					}
 				}
 			} else {
-				// do the replacements
-				$this->_replacements = $_POST['replacements'];
-				foreach ($this->_congregations as $congid => $details) {
-					$basename = $this->_service_date.'_'.$details['meeting_time'];
-					if (is_file($dir.'/'.$basename.'.odt')) {
-						$odf_filename = $basename.'.odt';
-					} else if (is_file($dir.'/'.$basename.'.odp')) {
-						$odf_filename = $basename.'.odp';
-					} else {
-						continue;
-					}
-					$output_odf_filename = 'POPULATED_'.$odf_filename;
-
-					if (file_exists($dir.'/'.$output_odf_filename)) {
-						if (!unlink($output_odf_filename)) {
-							trigger_error('Cannot write to '.$output_odf_filename.' - is the file in use?');
-							continue;
-						}
-					}
-					copy($dir.'/'.$odf_filename, $dir.'/'.$output_odf_filename);
-					ODF_Tools::replaceKeywords($dir.'/'.$output_odf_filename, $this->_replacements[$congid]);
-					chmod($dir.'/'.$output_odf_filename, fileperms($dir.'/'.$odf_filename));
-
-					$this->_generated_files[] = basename($dir).' / '.$output_odf_filename;
-				}
-				$this->_addGeneratedFilesMessage();
-			}
-		}
-	}
+	 */
 
 
 	function getTitle()
 	{
 		switch (array_get($_REQUEST, 'action')) {
 			case 'populate':
-				return 'Populate keywords in service documents';
+				return 'Populate service documents';
 			case 'expand':
 				return 'Expand service documents';
 		}
 		return 'Generate service documents';
 	}
 
-	function _printPopulateReplacementsForm()
-	{
-		?>
-		Confirm or correct the following field values
-		<form method="post">
-		<input type="hidden" name="action" value="populate" />
-		<input type="hidden" name="service_date" value="<?php echo $this->_service_date; ?>" />
-		<table class="table table-bordered table-condensed">
-			<thead>
-			<tr>
-		<?php
-		foreach ($this->_congregations as $congid => $congregation) {
-			if (!isset($congregation['filenames'])) continue;
-			?>
-			<th>
-				<?php
-				echo ents($congregation['name']);
-				foreach ($congregation['filenames'] as $file) {
-					echo '<br />';
-					echo ents($file);
-				}
-				?>
-			</th>
-			<?php
-		}
-		?>
-			</tr>
-			</thead>
-			<tbody>
-			<tr>
-		<?php
-		foreach ($this->_congregations as $congid => $congregation) {
-			if (!isset($congregation['filenames'])) continue;
-			?>
-			<td>
-				<table class="table table-bordered table-condensed">
-				<?php
-				foreach ($this->_replacements[$congid] as $keyword => $value) {
-					?>
-					<tr>
-					<td><?php echo ents($keyword); ?></td>
-					<td><input type="text" name="replacements[<?php echo (int)$congid; ?>][<?php echo ents($keyword); ?>]" value="<?php echo ents($value); ?>" /></td>
-					</tr>
-					<?php
-				}
-				?>
-				</table>
-			</td>
-			<?php
-		}
-		?>
-			</tr>
-			</tbody>
-		</table>
-		<input type="submit" class="btn" value="Go" />
-		<a href="<?php echo build_url(Array()); ?>" class="btn">Cancel</a>
-		</form>
-		<?php
-	}
 
-	function _addGeneratedFilesMessage()
-	{
-		if (!empty($this->_generated_files)) {
-			$str = "
-			Files created:
-			<ul>";
-			foreach ($this->_generated_files as $file) {
-				$str .= "<li>".ents($file).'</li>';
-			}
-			$str .= '</ul>';
-			add_message($str, 'success', true);
-		} else {
-			add_message("No files created", 'failure');
-		}
-	}
-
-	function printView()
-	{
-		if (is_null($this->_congregations) || is_null($this->_dirs)) return;
-				
-		switch (array_get($_REQUEST, 'action')) {
-			case 'populate':
-				if (empty($_POST['replacements']) && !empty($this->_congregations)) {
-					$this->_printPopulateReplacementsForm();
-					break;
-				}
-
-			case 'expand':
-				if (!empty($this->_replacements) && empty($_POST['replacements']) && !empty($this->_congregations)) {
-					$this->_printExpandReplacementsForm();
-					break;
-				}
-
-			// deliberate fallthroughs...
-
-			default:
-				$default_date = array_get($_REQUEST, 'service_date', date('Y-m-d', strtotime('Sunday')));
-				?>
-				<form method="post">
-				<input type="hidden" name="view" value="<?php echo ents($_GET['view']); ?>" />
-				<table>
-					<tr>
-						<th class="nowrap">Service date</th>
-						<td><?php print_widget('service_date', Array('type' => 'date'), $default_date); ?></td>
-					</tr>
-					<tr>
-						<th>Action:</th>
-						<td>
-							<table>
-							<?php
-							if (!empty($this->_dirs['populate'])) {
-								?>
-								<tr>
-									<td><input type="radio" name="action" value="initiate" id="action-initiate" /></td>
-									<td>
-										<label for="action-initiate">
-										<b>Initiate</b> - create a file for each service using templates<br />
-										<div class="smallprint alert-info">For each congregation with a code name, this will look in
-										<ul><li><?php echo implode('</li><li>', array_map(Array($this, '_cleanDirName'), $this->_dirs['populate'])); ?></ul>
-										for a file named "_template_CODENAME.ott" <br />and make a copy named "<?php echo $default_date; ?>_CODENAME.odt" (using the date specified above).</div>
-										</label>
-									</td>
-								</tr>
-								<tr>
-									<td><input type="radio" name="action" value="populate" id="action-populate" /></td>
-									<td>
-										<label for="action-populate">
-										<b>Populate</b> - replace keywords in each service's file<br />
-										<div class=" alert-info smallprint">For each congregation with a code name, this will look in
-										<ul><li><?php echo implode('</li><li>', array_map(Array($this, '_cleanDirName'), $this->_dirs['populate'])); ?></ul>
-										for a file named "<?php echo $default_date; ?>_CODENAME.odt" (using the date specified above), <br />replace %KEYWORDS% within it, <br />and save the results as "POPULATED_<?php echo $default_date; ?>_CODENAME.odt".</div>
-										</label>
-									</td>
-								</tr>
-								<?php
-							}
-							if (!empty($this->_dirs['expand'])) {
-								?>
-								<tr>
-									<td><input type="radio" name="action" value="expand" id="action-expand" /></td>
-									<td>
-										<label for="action-expand">
-										<b>Expand</b> - make a copy for each congregation<br />
-										<div class=" alert-info smallprint">For each file FILENAME.ODT  or FILENAME.ODP in 
-										<ul><li><?php echo implode('</li><li>', array_map(Array($this, '_cleanDirName'), $this->_dirs['expand'])) ?></ul>
-										this will create a subfolder using the date specified above,<br />
-										and make a copy of the file within the subfolder for each congregation - "<?php echo $default_date; ?>/FILENAME_CODENAME.odt, <br />replacing %KEYWORDS% in each copy as appropriate. </div>
-										</label>
-									</td>
-								</tr>
-								<?php
-							}
-							?>
-							</table>
-							<p>(See the <a href="<?php echo BASE_URL; ?>/resources/sample_service_doc.ott">sample file</a> for details of what keywords etc are available.)</p>
-						</td>
-					</tr>
-					<tr>
-						<th>&nbsp</th>
-						<td>
-							<input type="submit" class="btn" value="Go" />
-						</td>
-					</tr>
-				</table>
-				</form>
-				<?php
-				break;
-		}
-
-	}
-
+/*
 	function processExpand()
 	{
 		if ($this->_service_date) {
@@ -404,19 +366,36 @@ class View_Services__Generate_Documents extends View
 				$this->_addGeneratedFilesMessage();
 			}
 		}
-	}
+	}*/
 
 	function loadReplacements()
 	{
-		foreach ($this->_congregations as $congid => $cong) {
+		$congs = self::getCongregations();
+		$this->_keywords = $this->_cong_keywords = Array();
+		if (is_file($this->_filename)) {
+			$this->_keywords = ODF_Tools::getKeywords($this->_filename);
+		} else if (is_dir($this->_filename)) {
+			foreach (self::getCongregations() as $congid => $cong) {
+				foreach (explode(',', self::EXTENSIONS) as $extn) {
+					$filename = $this->_filename.'/'.$cong['meeting_time'].'.'.$extn;
+					if (file_exists($filename)) {
+						$this->_cong_keywords[$congid] = ODF_Tools::getKeywords($filename);
+						$this->_keywords = array_merge($this->_keywords, $this->_cong_keywords[$congid]);
+					}
+				}
+			}
+		}
+
+		foreach (self::getCongregations() as $congid => $cong) {
 			$service = Service::findByDateAndCong($this->_service_date, $congid);
 			if (empty($service)) {
 				add_message("Could not find service for ".$cong['name']." on ".$this->_service_date, 'failure');
-				unset($this->_congregations[$congid]);
+				unset(self::getCongregations()[$congid]);
 				continue;
 			}
 			$next_service = Service::findByDateAndCong(date('Y-m-d', strtotime($this->_service_date.' +1 week')), $congid);
-			foreach ($this->_keywords as $keyword) {
+			$list = is_file($this->_filename) ? $this->_keywords : $this->_cong_keywords[$congid];
+			foreach ($list as $keyword) {
 				$keyword = strtoupper($keyword);
 				if (0 === strpos($keyword, 'NAME_OF_')) {
 					$role_title = substr($keyword, strlen('NAME_OF_'));
@@ -448,91 +427,6 @@ class View_Services__Generate_Documents extends View
 				}
 			}
 		}
-	}
-
-	function expandFile($filename)
-	{
-		$pathinfo = pathinfo($filename);
-		$new_dirname = $pathinfo['dirname'].'/'.$this->_service_date;
-		if (!file_exists($new_dirname)) {
-			mkdir($new_dirname);
-		}
-		if (is_writable($new_dirname)) {
-			chdir($new_dirname);
-			foreach ($this->_congregations as $congid => $cong) {
-				$new_filename = substr($pathinfo['basename'], 0, -(strlen($pathinfo['extension'])+1)).'_'.$cong['meeting_time'].'.'.$pathinfo['extension'];
-				if (file_exists($new_filename)) {
-					if (!unlink($new_filename)) {
-						trigger_error("Could not overwrite ".$new_filename.' - file open?');
-						continue;
-					}
-				}
-				copy($filename, $new_filename);
-				ODF_Tools::replaceKeywords($new_filename, array_get($_POST['replacements'], $congid, Array()));
-				chmod($new_filename, fileperms($filename));
-				$this->_generated_files[] = basename($pathinfo['dirname']).' / '.basename($new_dirname).' / '.$new_filename;
-			}
-		}
-	}
-
-	function _printExpandReplacementsForm()
-	{
-			?>
-			Confirm or correct the following field values
-			<form method="post">
-			<input type="hidden" name="action" value="expand" />
-			<input type="hidden" name="service_date" value="<?php echo $this->_service_date; ?>" />
-			<table class="table table-condensed table-bordered">
-				<thead>
-				<tr>
-			<?php
-			foreach ($this->_congregations as $congid => $congregation) {
-				?>
-				<th>
-					<?php
-					echo ents($congregation['name'].' ('.$congregation['meeting_time'].')');
-					?>
-				</th>
-				<?php
-			}
-			?>
-				</tr>
-				</thead>
-				<tbody>
-				<tr>
-			<?php
-			foreach ($this->_congregations as $congid => $congregation) {
-				?>
-				<td>
-				<?php
-				if (!empty($this->_replacements[$congid])) {
-					?>
-					<table>
-					<?php
-					foreach ($this->_replacements[$congid] as $keyword => $value) {
-						?>
-						<tr>
-						<td><?php echo ents($keyword); ?></td>
-						<td><input type="text" name="replacements[<?php echo (int)$congid; ?>][<?php echo ents($keyword); ?>]" value="<?php echo ents($value); ?>" /></td>
-						</tr>
-						<?php
-					}
-					?>
-					</table>
-					<?php
-				}
-				?>
-				</td>
-				<?php
-			}
-			?>
-			</tr>
-			</tbody>
-			</table>
-			<input type="submit" class="btn" value="Go" />
-			<a href="<?php echo build_url(Array()); ?>" class="btn">Cancel</a>
-			</form>
-			<?php
 	}
 
 	private function _cleanDirName($dirname) {

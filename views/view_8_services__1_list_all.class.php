@@ -1,6 +1,9 @@
 <?php
 require_once 'include/bible_ref.class.php';
-class View_Services__Service_Program extends View
+/**
+ * This is the view for a single service's run sheet - navigable via services->list all.
+ */
+class View_Services__List_All extends View
 {
 	private $_start_date = NULL;
 	private $_end_date = NULL;
@@ -209,8 +212,7 @@ class View_Services__Service_Program extends View
 
 	function getTitle()
 	{
-		return ($this->_editing ? 'Edit' : 'View').' Service Program';
-
+		return ($this->_editing ? 'Edit Service Program' : 'All Services');
 	}
 
 
@@ -243,6 +245,7 @@ class View_Services__Service_Program extends View
 
 	function _printServiceProgram()
 	{
+		require_once dirname(__FILE__).'/view_0_generate_service_documents.class.php';
 		if (empty($this->_congregations)) return;
 		?>
 		<table class="table roster service-program table-auto-width">
@@ -257,11 +260,11 @@ class View_Services__Service_Program extends View
 					<?php
 				}
 				?>
+					<th>&nbsp</th>
 				</tr>
 			</thead>
 			<tbody>
 				<?php
-				// Print rows for existing services
 				if (empty($this->_grouped_services)) {
 					$last_date = date('Y-m-d', strtotime($this->_start_date.' -8 days'));
 				} else {
@@ -281,6 +284,32 @@ class View_Services__Service_Program extends View
 						<?php
 					}
 					?>
+						<td>
+							<span class="dropdown">
+							<a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-chevron-down"></i></a>
+							<ul class="dropdown-menu" role="menu">
+								<li>
+								<?php
+								foreach (Array('populate', 'expand') as $op) {
+									foreach (View__Generate_Service_Documents::getTemplates($op) as $filename => $fullpath) {
+										$url = build_url(Array(
+											'view'  => '_generate_service_documents',
+											'date'  => $date,
+											'action'    => $op,
+											'filename' => $filename,
+										));
+										?>
+										<a href="<?php echo $url; ?>"><?php echo ucfirst($op).' '.$filename; ?></a>
+										<?php
+									}
+								}
+								?>
+								</li>
+							</ul>
+							</span>
+						</td>
+
+						</td>
 					</tr>
 					<?php
 				}
@@ -360,11 +389,11 @@ class View_Services__Service_Program extends View
 		if (empty($data)) return;
 		if ($data['has_items']) {
 			?>
-			<a class="pull-right" title="View service run sheet" href="?view=services__service_run_sheets&date=<?php echo $date; ?>&congregationid=<?php echo $congid; ?>"><i class="icon-list"></i></a>
+			<a class="take-parent-click pull-right" title="View service run sheet" href="?view=services&date=<?php echo $date; ?>&congregationid=<?php echo $congid; ?>"><i class="icon-list"></i></a>
 			<?php
 		} else {
 			?>
-			<a class="pull-right" title="Create service run sheet" href="?view=services__service_run_sheets&editing=1&date=<?php echo $date; ?>&congregationid=<?php echo $congid; ?>"><i class="icon-plus-sign"></i></a>
+			<a class="take-parent-click pull-right" title="Create service run sheet" href="?view=services&editing=1&date=<?php echo $date; ?>&congregationid=<?php echo $congid; ?>"><i class="icon-plus-sign"></i></a>
 			<?php
 		}
 		$this->_dummy_service->populate($data['id'], $data);

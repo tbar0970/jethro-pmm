@@ -1,5 +1,5 @@
 <?php
-class View_services__service_run_sheets extends View
+class View_services extends View
 {
 	private $date = NULL;
 	private $congregationid = NULL;
@@ -70,6 +70,7 @@ class View_services__service_run_sheets extends View
 
 	function printView()
 	{
+		/*
 		?>
 		<form method="get" class="well well-small form-inline">
 			<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
@@ -90,6 +91,7 @@ class View_services__service_run_sheets extends View
 			<button type="submit" class="btn">Go</button>
 		</form>	
 		<?php
+		 */
 
 		if ($this->service === NULL) {
 			print_message("No service found for this congregation and date - add one via the service program first", 'error');
@@ -101,6 +103,12 @@ class View_services__service_run_sheets extends View
 			}
 			?>
 			<h1>
+				<small class="pull-right">
+					<a href="?view=services__list_all">
+						<i class="icon-chevron-left"></i>
+						Back to service list
+					</a>
+				</small>
 				<?php echo ents($this->service->toString()); ?>
 			</h1>
 			<?php
