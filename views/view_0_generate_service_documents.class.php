@@ -35,7 +35,7 @@ class View__Generate_Service_Documents extends View
 				}
 			}
 			if (!is_dir($opDirs[$i])) {
-				trigger_error("Bad config: ".$this->_cleanDirName($dir)." does not exist");
+				trigger_error("Bad config: ".self::_cleanDirName($dir)." does not exist");
 				unset($opDirs[$i]);
 				continue;
 			}
@@ -143,9 +143,9 @@ class View__Generate_Service_Documents extends View
 		if (!empty($_REQUEST['replacements'])) {
 			$method = '_process'.ucfirst($this->_action).'';
 			$this->$method();
+		} else {
+			$this->loadReplacements();
 		}
-
-		$this->loadReplacements();
 	}
 
 	public function printView()
@@ -155,7 +155,7 @@ class View__Generate_Service_Documents extends View
 		if (!empty($this->_generated_files)) {
 			echo "The following files were generated: <ul>";
 			foreach ($this->_generated_files as $path => $label) {
-				echo '<li><a href="?call=documents&dir='.$this->_cleanDirname(dirname($path)).'&getfile='.basename($path).'">';
+				echo '<li><a href="?call=documents&dir='.self::cleanDirName(dirname($path)).'&getfile='.basename($path).'">';
 				echo ents($label);
 				echo '</a></li>';
 			}
@@ -163,7 +163,7 @@ class View__Generate_Service_Documents extends View
 			$zipname = reset(explode('.', basename($this->_filename))).'_'.$this->_service_date;
 			$allHref = BASE_URL.'?call=documents&zipname='.$zipname;
 			foreach ($this->_generated_files as $path => $label) {
-				$allHref .= '&zipfile[]='.$this->_cleanDirName($path);
+				$allHref .= '&zipfile[]='.self::cleanDirName($path);
 			}
 			?>
 			<script>
@@ -176,7 +176,7 @@ class View__Generate_Service_Documents extends View
 		}
 	}
 
-		private function _printReplacementsForm()
+	private function _printReplacementsForm()
 	{
 			?>
 			Confirm or correct the following field values
@@ -259,69 +259,13 @@ class View__Generate_Service_Documents extends View
 					}
 					copy($thisFile, $newFile);
 					ODF_Tools::replaceKeywords($newFile, $this->_replacements[$congid]);
+
 					if ($p = fileperms($thisFile)) chmod($newFile, $p);
-					$this->_generated_files[$newFile] = $this->_cleanDirName($newDir).' / '.basename($newFile);
+					$this->_generated_files[$newFile] = self::cleanDirName($newDir).' / '.basename($newFile);
 				}
 			}
 		}
 	}
-
-	/*
-	 * 			if (empty($_POST['replacements'])) {
-				// Get ready to print the replacements form
-				foreach (self::getCongregations() as $congid => &$congregation) {
-					$service = Service::findByDateAndCong($this->_service_date, $congid);
-					if (empty($service)) {
-						add_message('No service found for congregation '.$congregation['name'].' on '.$this->_service_date, 'warning');
-						unset(self::getCongregations()[$congid]);
-						continue;
-					}
-					$next_service = Service::findByDateAndCOng(date('Y-m-d', strtotime($this->_service_date.' +1 week')), $congid);
-
-					$basename = $this->_service_date.'_'.$congregation['meeting_time'];
-					if (is_file($dir.'/'.$basename.'.odt')) {
-						$odf_filename = $dir.'/'.$basename.'.odt';
-					} else if (is_file($dir.'/'.$basename.'.odp')) {
-						$odf_filename = $dir.'/'.$basename.'.odp';
-					} else {
-						add_message('No file found for '.$basename.' in '.$dir, 'warning');
-						continue;
-					}
-					$odf_content = ODF_Tools::getXML($odf_filename);
-					if (empty($odf_content)) continue;
-
-					$congregation['filenames'][] = basename($dir).' / '.basename($odf_filename);
-
-					$keywords = ODF_Tools::getKeywords($odf_filename);
-					foreach ($keywords as $keyword) {
-						$keyword = strtoupper($keyword);
-						if (isset($_POST['replacements'][$congid][$keyword])) {
-							$this->_replacements[$congid][$keyword] = $_POST['replacements'][$congid][$keyword];
-						} else {
-							if (0 === strpos($keyword, 'NEXT_SERVICE_')) {
-								if (!empty($next_service)) {
-									$service_field = strtolower(substr($keyword, strlen('NEXT_SERVICE_')));
-									$this->_replacements[$congid][$keyword] = $next_service->getValue($service_field);
-									if ($service_field == 'date') {
-										// make a short friendly date
-										$this->_replacements[$congid][$keyword] = date('j M', strtotime($this->_replacements[$congid][$keyword]));
-									}
-								} else {
-									add_message("NEXT_SERVICE_ keyword could not be replaced because no next service was found for ".$congregation['name'], 'warning');
-									$this->_replacements[$congid][$keyword] = '';
-								}
-							} else if (0 === strpos($keyword, 'CONGREGATION_')) {
-								$cong_field = strtolower(substr($keyword, strlen('CONGREGATION_')));
-								$this->_replacements[$congid][$keyword] = $congregation[$cong_field];
-							} else {
-								$this->_replacements[$congid][$keyword] = $service->getKeywordReplacement($keyword);
-							}
-						}
-					}
-				}
-			} else {
-	 */
-
 
 	function getTitle()
 	{
@@ -334,39 +278,6 @@ class View__Generate_Service_Documents extends View
 		return 'Generate service documents';
 	}
 
-
-/*
-	function processExpand()
-	{
-		if ($this->_service_date) {
-			$found_files = Array();
-			foreach ($this->_dirs['expand'] as $dir) {
-				$di = new DirectoryIterator($dir);
-				foreach ($di as $fileinfo) {
-					if (!$fileinfo->isFile()) continue;
-					$pathinfo = pathinfo($fileinfo->getFilename());
-					if (in_array($pathinfo['extension'], Array('odt', 'odp'))) {
-						$found_files[] = $fileinfo->getFilename();
-						$this->_keywords = array_merge($this->_keywords, ODF_Tools::getKeywords($fileinfo->getPathname()));
-						if (!empty($_POST['replacements'])) {
-							// make copies and replace the keywords
-							$this->expandFile($fileinfo->getPathname());
-						}
-					}
-				}
-			}
-			if (empty($_POST['replacements'])) {
-				if (empty($found_files)) {
-					add_message("Could not expand - no ODT or ODP files were found in ".implode(', ', $this->_dirs['expand']), 'failure');
-				} else {
-					add_message("Files to be expanded: <br />".implode('<br />', $found_files), 'success', true);
-				}
-				$this->loadReplacements();
-			} else {
-				$this->_addGeneratedFilesMessage();
-			}
-		}
-	}*/
 
 	function loadReplacements()
 	{
@@ -385,6 +296,7 @@ class View__Generate_Service_Documents extends View
 				}
 			}
 		}
+		$this->_keywords = array_unique($this->_keywords);
 
 		foreach (self::getCongregations() as $congid => $cong) {
 			$service = Service::findByDateAndCong($this->_service_date, $congid);
@@ -403,6 +315,7 @@ class View__Generate_Service_Documents extends View
 				} else if (0 === strpos($keyword, 'SERVICE_')) {
 					$service_field = strtolower(substr($keyword, strlen('SERVICE_')));
 					$this->_replacements[$congid][$keyword] = $service->getValue($service_field);
+					if (null === $this->_replacements[$congid][$keyword]) $this->_replacements[$congid][$keyword] = '';
 					if ($service_field == 'date') {
 						// make a friendly date
 						$this->_replacements[$congid][$keyword] = date('j F Y', strtotime($this->_replacements[$congid][$keyword]));
@@ -429,7 +342,7 @@ class View__Generate_Service_Documents extends View
 		}
 	}
 
-	private function _cleanDirName($dirname) {
+	private static function _cleanDirName($dirname) {
 		$dirname = str_replace('\\', '/', $dirname);
 		$rootpath = DOCUMENTS_ROOT_PATH ? DOCUMENTS_ROOT_PATH :  JETHRO_ROOT.'/files';
 		$rootpath = str_replace('\\', '/', $rootpath);
