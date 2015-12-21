@@ -44,28 +44,32 @@ class Service_Component extends db_object
 									'label'		=> 'Length (mins)',
 									'divider_before' => true,
 								   ),
-			'is_numbered'		=> Array(
-									'type'		=> 'select',
-									'options'  => Array('No', 'Yes'),
-									'label'    => 'Numbered?'
-								   ),
+
 			'runsheet_title_format'	=> Array(
 									'type'		=> 'text',
 									'width'		=> 80,
 									'initial_cap'	=> TRUE,
+									'placeholder' => '(Optional)',
 									'note' => 'How should this component be shown on the run sheet.  Can include replacements such as the component\'s %title%, %SERVICE_TOPIC% or %NAME_OF_SOMEROSTERROLE%.  Leave blank to use the category\'s default.',
 								   ),
 			'show_in_handout'		=> Array(
 									'type'		=> 'select',
-									'options'  => Array('No', 'Yes'),
+									'options'  => Array(
+													'0' => 'No',
+													'title' => 'Title only',
+													'full'  => 'Title and Content',
+													),
 									'label'    => 'Show on Handout?',
 									'editable' => true,
 									'show_in_summary' => true,
+									'note' => 'Items that are shown on the handout appear with numbers on the run sheet.',
 								   ),
+
 			'handout_title_format'	=> Array(
 									'type'		=> 'text',
 									'width'		=> 80,
 									'initial_cap'	=> TRUE,
+									'placeholder' => '(Optional)',
 									'note' => 'How should this component be shown on the handout.  Can include replacements such as the component\'s %title%, %SERVICE_TOPIC% or %NAME_OF_SOMEROSTERROLE%.  Leave blank to use the category\'s default.',
 								   ),
 			'show_on_slide'		=> Array(
@@ -88,6 +92,7 @@ class Service_Component extends db_object
 									'initial_cap'	=> TRUE,
 								   ),
 			'ccli_number'		=> Array(
+									'label' => 'CCLI Number',
 									'type'		=> 'int',
 									'width'		=> 8,
 								   ),

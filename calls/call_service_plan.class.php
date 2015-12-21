@@ -21,6 +21,9 @@ class Call_Service_Plan extends Call
 					}
 				</style>
 				<style>
+					body {
+						margin: 1cm;
+					}
 					* {
 						font-family: sans-serif;
 					}
@@ -28,9 +31,15 @@ class Call_Service_Plan extends Call
 						padding: 5px 10px;
 						vertical-align: top;
 					}
-					th {
+					thead th {
 						background-color: #555;
 						color: white;
+					}
+					tbody th {
+						text-align: left;
+					}
+					tbody th:first-child {
+						padding-left: 0px;
 					}
 					th * {
 						color: white !important;
@@ -42,7 +51,10 @@ class Call_Service_Plan extends Call
 			</head>
 			<body>
 				<h1><?php echo ents($service->toString()); ?></h1>
-				<?php $service->printServicePlan(); ?>
+				<?php
+				$service->printRunSheetPersonnelTable();
+				$service->printServicePlan();
+				?>
 			</body>
 		</html>
 		<?php

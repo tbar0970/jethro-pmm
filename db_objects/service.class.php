@@ -525,7 +525,7 @@ class service extends db_object
 
 	public function getItems($withContent=FALSE, $ofCategoryID=NULL)
 	{
-		$SQL = 'SELECT si.*, sc.title, sc.alt_title, sc.is_numbered, '.($withContent ? 'sc.content_html, sc.credits, ' : '').'
+		$SQL = 'SELECT si.*, sc.title, sc.alt_title, sc.show_in_handout, '.($withContent ? 'sc.content_html, sc.credits, ' : '').'
 					IF(LENGTH(sc.runsheet_title_format) = 0, scc.runsheet_title_format, sc.runsheet_title_format) AS runsheet_title_format,
 					IF(LENGTH(sc.handout_title_format) = 0, scc.handout_title_format, sc.handout_title_format) AS handout_title_format
 				FROM service_item si
@@ -543,7 +543,7 @@ class service extends db_object
 	public function printServicePlan()
 	{
 		?>
-		<table
+		<table style="border-collapse: collapse" cellspacing="0" cellpadding="5"
 			<?php if (empty($_REQUEST['view'])) echo 'border="1"'; ?>
 			class="table table-bordered"
 		>
@@ -560,7 +560,6 @@ class service extends db_object
 			$items = $this->getItems();
 			$cong = $GLOBALS['system']->getDBObject('congregation', $this->getValue('congregationid'));
 			$time = strtotime(preg_replace('/[^0-9]/', '', $cong->getValue('meeting_time')));
-			
 			foreach ($items as $item) {
 				if ($item['heading_text']) {
 					?>
@@ -572,7 +571,7 @@ class service extends db_object
 				?>
 				<tr>
 					<td><?php echo date('Hi', $time); ?></td>
-					<td><?php if ($item['is_numbered']) echo $num++; ?></td>
+					<td><?php if ($item['show_in_handout'] != '0') echo $num++; ?></td>
 					<td>
 						<?php
 						$title = $item['runsheet_title_format'];
@@ -602,7 +601,7 @@ class service extends db_object
 				<h3><?php echo ents($i['heading_text']); ?></h3>
 				<?php
 			}
-			if (!$i['is_numbered']) continue;
+			if ($i['show_in_handout'] == '0') continue;
 			?>
 			<h4 id="item<?php echo $k; ?>">
 				<?php
@@ -613,31 +612,67 @@ class service extends db_object
 				echo ents($title);
 				?>
 			</h4>
-			<?php echo $i['content_html']; ?>
-			<small>
-				<?php echo nl2br(ents($i['credits'])); ?>
-			</small>
+			<?php 
+			if ($i['show_in_handout'] == 'full') {
+				echo $i['content_html'];
+				?>
+				<small>
+					<?php echo nl2br(ents($i['credits'])); ?>
+				</small>
+				<?php
+			}
+		}
+	}
+
+	public function printRunSheetPersonnelFlexi()
+	{
+		$rosterViews = Roster_View::getForRunSheet($this->getValue('congregationid'));
+		if ($rosterViews) {
+			?>
+			<div class="row-fluid">
+			<div id="service-personnel" class="span12 clearfix">
+				<h3>Personnel</h3>
+				<?php
+				foreach ($rosterViews as $view) {
+					$view->printSingleViewFlexi($this);
+				}
+				?>
+			</div>
+			</div>
 			<?php
 		}
 	}
+
+	public function printRunSheetPersonnelTable()
+	{
+		$rosterViews = Roster_View::getForRunSheet($this->getValue('congregationid'));
+		if ($rosterViews) {
+			?>
+			<?php
+			foreach ($rosterViews as $view) {
+				$view->printSingleViewTable($this);
+			}
+			echo '<br />';
+		}
+	}
         
-        /**
-         * Calculate the meeting date/time.
-         * 
-         * @param int $meetingDate The date of the meeting.
-         * @param string $meetingTime The meeting time is like "1000" for 10:00.
-         * @return int The meeting date/time.
-         */
-        public static function getMeetingDateTime($meetingDate, $meetingTime) {
-            $dateString = date('Y-m-d', $meetingDate);
-            if ($meetingTime != NULL && preg_match('/\\d\\d\\d\\d/', $meetingTime)) {
-                // Time is specified and valid.
-                $dateString .= ' ' . 
-                    substr($meetingTime, 0, 2) .
-                    ":" .
-                    substr($meetingTime, 2, 2) . ':00';
-            }
-            return strtotime($dateString);            
-        }
+	/**
+	 * Calculate the meeting date/time.
+	 *
+	 * @param int $meetingDate The date of the meeting.
+	 * @param string $meetingTime The meeting time is like "1000" for 10:00.
+	 * @return int The meeting date/time.
+	 */
+	public static function getMeetingDateTime($meetingDate, $meetingTime) {
+		$dateString = date('Y-m-d', $meetingDate);
+		if ($meetingTime != NULL && preg_match('/\\d\\d\\d\\d/', $meetingTime)) {
+			// Time is specified and valid.
+			$dateString .= ' ' .
+				substr($meetingTime, 0, 2) .
+				":" .
+				substr($meetingTime, 2, 2) . ':00';
+		}
+		return strtotime($dateString);
+	}
 }
 ?>
