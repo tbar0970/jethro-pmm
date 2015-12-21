@@ -24,7 +24,7 @@ class View__Generate_Service_Documents extends View
 		$dirs['populate'] = SERVICE_DOCS_TO_POPULATE_DIRS ? explode('|', SERVICE_DOCS_TO_POPULATE_DIRS) : '';
 		$dirs['expand'] = SERVICE_DOCS_TO_EXPAND_DIRS ? explode('|', SERVICE_DOCS_TO_EXPAND_DIRS) : '';
 		$opDirs = $dirs[$op];
-		$found_files = '';
+		$found_files = Array();
 
 
 		$rootpath = DOCUMENTS_ROOT_PATH ? DOCUMENTS_ROOT_PATH :  JETHRO_ROOT.'/files';
@@ -143,9 +143,9 @@ class View__Generate_Service_Documents extends View
 		if (!empty($_REQUEST['replacements'])) {
 			$method = '_process'.ucfirst($this->_action).'';
 			$this->$method();
+		} else {
+			$this->loadReplacements();
 		}
-
-		$this->loadReplacements();
 	}
 
 	public function printView()
@@ -258,7 +258,20 @@ class View__Generate_Service_Documents extends View
 						}
 					}
 					copy($thisFile, $newFile);
+					//if (in_array('SERVICE_CONTENT', $this->_keywords)) {
+						$service = Service::findByDateAndCong($this->_service_date, $congid);
+						if ($service) {
+							ob_start();
+							$service->printServiceContent();
+							$html = ob_get_clean();
+							if ($html) {
+								ODF_Tools::insertHTML($newFile, $html, '%SERVICE_CONTENT%');
+							}
+						}
+					//}
+					
 					ODF_Tools::replaceKeywords($newFile, $this->_replacements[$congid]);
+					
 					if ($p = fileperms($thisFile)) chmod($newFile, $p);
 					$this->_generated_files[$newFile] = $this->_cleanDirName($newDir).' / '.basename($newFile);
 				}
@@ -379,7 +392,7 @@ class View__Generate_Service_Documents extends View
 				foreach (explode(',', self::EXTENSIONS) as $extn) {
 					$filename = $this->_filename.'/'.$cong['meeting_time'].'.'.$extn;
 					if (file_exists($filename)) {
-						$this->_cong_keywords[$congid] = ODF_Tools::getKeywords($filename);
+						$this->_cong_keywords[$congid] = array_merge(array_get($this->_cong_keywords, $congid, Array()), ODF_Tools::getKeywords($filename));
 						$this->_keywords = array_merge($this->_keywords, $this->_cong_keywords[$congid]);
 					}
 				}
