@@ -144,11 +144,26 @@ Class ODF_Tools
 			trigger_error("Couldn't get Content XML from $filename");
 			return FALSE;
 		}
-		
+
 		$dom = new DOMDocument();
 		$dom->loadXML($xml);
 		$dom->preserveWhiteSpace = false;
 		$dom->formatOutput = true;
+
+		// Find where to insert into the document
+		$insertPoint = NULL;
+		foreach ($dom->getElementsByTagNameNS('urn:oasis:names:tc:opendocument:xmlns:text:1.0', 'p') as $elt) {
+			if (trim($elt->textContent) == $placeholder) {
+				$insertPoint = $elt;
+				break;
+			}
+		}
+		if (NULL === $insertPoint) {
+			trigger_error("Could not find $placeholder in a paragraph to insert the new content");
+			return FALSE;
+		}
+
+		$paraStyle = $insertPoint->getAttribute('text:style-name');
 
 		// ADD STYLES
 		$styleData = Array(
@@ -163,16 +178,20 @@ Class ODF_Tools
 							'style:text-underline-width' => 'auto',
 							'style:text-underline-color' => 'font-color',
 			),
-			// TODO: smallprint - can this work in an auto style?
-			// <style:style style:name="smallprint" style:family="paragraph" style:parent-style-name="Standard">
-			//  <style:text-properties fo:font-size="9pt" style:text-underline-style="none"/>
-			// </style:style>		
+			'JethroSmall' => Array(
+							'fo:font-size' => '6pt',
+			),
 		);
 		$aStylesElt = $dom->getElementsByTagNameNS('urn:oasis:names:tc:opendocument:xmlns:office:1.0', 'automatic-styles')->item(0);
 		foreach ($styleData as $styleName => $attrs) {
 			$newStyle = $dom->createElement('style:style');
 			$newStyle->setAttribute('style:name', $styleName);
-			$newStyle->setAttribute('style:family', 'text');
+			if ($styleName == 'JethroSmall') {
+				$newStyle->setAttribute('style:family', 'paragraph');
+				$newStyle->setAttribute('style:parent-style-name', $paraStyle);
+			} else {
+				$newStyle->setAttribute('style:family', 'text');
+			}
 			$aStylesElt->appendChild($newStyle);
 			$newTp = $dom->createElement('style:text-properties');
 			foreach ($attrs as $key => $val) {
@@ -184,17 +203,17 @@ Class ODF_Tools
 			}
 			$newStyle->appendChild($newTp);
 		}
-		
+
 		// ADD CONTENT
 		$map = Array(
-			'p'  => Array('text:p', Array()),
+			'p'  => Array('text:p', Array('text:style-name' => $paraStyle)),
 			'br' => Array('text:line-break', Array()),
 			'b'  => Array('text:span', Array('text:style-name' => 'JethroBold')),
 			'strong'  => Array('text:span', Array('text:style-name' => 'JethroBold')),
 			'i'  => Array('text:span', Array('text:style-name' => 'JethroItalic')),
 			'em'  => Array('text:span', Array('text:style-name' => 'JethroItalic')),
 			'u'   => Array('text:span', Array('text:style-name' => 'JethroUnderline')),
-			'small' => Array('text:span', Array('text:style-name' => 'JethroSmall')),
+			'small' => Array('text:p', Array('text:style-name' => 'JethroSmall')),
 		);
 		for ($i=1; $i <=6; $i++) {
 			$map['h'.$i] = Array(
@@ -204,6 +223,7 @@ Class ODF_Tools
 		}
 
 		$input = strip_tags($html, '<'.implode('>,<', array_keys($map)).'>');
+		$input = preg_replace('#[>]\s+#', '>', $input); // strip space after tags which would cause funny indents
 		$input = '<body>'.$input.'</body>';
 		$htmlDom = new DOMDocument();
 		$htmlDom->preserveWhiteSpace = false;
@@ -226,18 +246,6 @@ Class ODF_Tools
 		$fragmentDom = new DOMDocument();
 		$fragmentDom->loadXML($fragmentXML);
 
-		// Now we can stick the content into the original
-		$insertPoint = NULL;
-		foreach ($dom->getElementsByTagNameNS('urn:oasis:names:tc:opendocument:xmlns:text:1.0', 'p') as $elt) {
-			if (trim($elt->textContent) == $placeholder) {
-				$insertPoint = $elt;
-				break;
-			}
-		}
-		if (NULL === $insertPoint) {
-			trigger_error("Could not find $placeholder in a paragraph to insert the new content");
-			return FALSE;
-		}
 		foreach ($fragmentDom->firstChild->childNodes as $newNode) {
 			$newNew = $dom->importNode($newNode, true);
 			$insertPoint->parentNode->insertBefore($newNew, $insertPoint);
