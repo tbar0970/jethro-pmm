@@ -46,7 +46,7 @@ class View_services extends View
 					foreach (array_get($_POST, 'componentid', Array()) as $rank => $compid) {
 						$newItem = Array(
 							'componentid' => $compid,
-							'is_numbered' => $_POST['is_numbered'][$rank],
+							'show_in_handout' => $_POST['show_in_handout'][$rank],
 							'length_mins' => $_POST['length_mins'][$rank],
 							'note'        => trim($_POST['note'][$rank]),
 							'heading_text'     => trim($_POST['heading_text'][$rank]),
@@ -112,7 +112,7 @@ class View_services extends View
 				<?php echo ents($this->service->toString()); ?>
 			</h1>
 			<?php
-			$this->printServicePersonnel();
+			$this->service->printRunSheetPersonnelFlexi();
 			if ($this->editing) {
 				?>
 				<div class="row-fluid" id="service-planner">
@@ -168,25 +168,6 @@ class View_services extends View
 
 		}
 	
-	}
-
-	private function printServicePersonnel()
-	{
-		$rosterViews = Roster_View::getForRunSheet($this->service->getValue('congregationid'));
-		if ($rosterViews) {
-			?>
-			<div class="row-fluid">
-			<div id="service-personnel" class="span12 clearfix">
-				<h3>Personnel</h3>
-				<?php
-				foreach ($rosterViews as $view) {
-					$view->printSingleView($this->service);
-				}
-				?>
-			</div>
-			</div>
-			<?php
-		}
 	}
 
 	private function printServiceEditor()
@@ -261,7 +242,7 @@ class View_services extends View
 								?>
 								</span>
 								<?php
-								foreach (Array('componentid', 'length_mins', 'is_numbered') as $k) {
+								foreach (Array('componentid', 'length_mins', 'show_in_handout') as $k) {
 									?>
 									<input type="hidden" name="<?php echo $k; ?>[]" class="<?php echo $k; ?>" value="<?php echo ents($item[$k]); ?>" />
 									<?php
@@ -393,7 +374,7 @@ class View_services extends View
 
 								?>
 								<tr data-componentid="<?php echo (int)$compid; ?>"
-									data-is_numbered="<?php echo (int)$comp['is_numbered']; ?>"
+									data-show_in_handout="<?php echo $comp['show_in_handout']; ?>"
 									data-length_mins="<?php echo (int)$comp['length_mins']; ?>"
 									data-runsheet_title="<?php echo ents($runsheetTitle); ?>">
 									<td>
