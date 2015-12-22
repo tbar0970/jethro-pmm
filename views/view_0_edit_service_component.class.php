@@ -3,8 +3,8 @@ require_once 'views/abstract_view_edit_object.class.php';
 class View__Edit_Service_Component extends Abstract_View_Edit_Object
 {
 	var $_editing_type = 'service_component';
-	var $_on_success_view = 'services__service_components';
-	var $_on_cancel_view = 'services__service_components';
+	var $_on_success_view = 'services__component_library';
+	var $_on_cancel_view = 'services__component_library';
 	var $_submit_button_label = 'Save ';
 
 	static function getMenuPermissionLevel()
