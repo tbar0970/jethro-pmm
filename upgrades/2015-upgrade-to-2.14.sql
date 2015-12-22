@@ -79,3 +79,8 @@ UPDATE service_component
 SET show_in_handout = 'full' WHERE show_in_handout = 1;
 
 ALTER TABLE service_component DROP COLUMN is_numbered;
+
+ALTER TABLE service_component_category DROP COLUMN is_numbered_default;
+
+UPDATE service_component_category SET show_in_handout_default = 'full' WHERE show_in_handout_default = 1;
+UPDATE service_component_category SET show_in_handout_default = 'title' WHERE category_name = 'Songs';
