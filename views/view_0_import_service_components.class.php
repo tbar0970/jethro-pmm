@@ -84,7 +84,7 @@ class View__Import_Service_Components extends View
 			if (empty($this->errors)) {
 				$GLOBALS['system']->doTransaction('COMMIT');
 				add_message(($rowNum-1).' rows imported successfully');
-				redirect('services__service_components'); // exits
+				redirect('services__component_library'); // exits
 			} else {
 				add_message("Errors were found in the CSV file.  Import has not been performed.  Please correct the errors and try again", 'error');
 				$GLOBALS['system']->doTransaction('ROLLBACK');

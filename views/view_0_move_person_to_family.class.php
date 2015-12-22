@@ -36,13 +36,16 @@ class View__Move_Person_To_Family extends View
 						$remaining_members = $GLOBALS['system']->getDBObjectData('person', Array('familyid' => $old_familyid));
 						if (empty($remaining_members)) {
 							$old_family =& $GLOBALS['system']->getDBObject('family', $old_familyid);
-							// add a note
-							$GLOBALS['system']->includeDBClass('family_note');
-							$note = new Family_Note();
-							$note->setValue('familyid', $old_familyid);
-							$note->setValue('subject', 'Archived by System');
-							$note->setValue('details', 'The system is archiving this family because its last member ('.$this->_person->toString().' #'.$this->_person->id.') has been moved to another family ('.$family->toString().' #'.$family->id.')');
-							$note->create();
+							
+							if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
+								// add a note
+								$GLOBALS['system']->includeDBClass('family_note');
+								$note = new Family_Note();
+								$note->setValue('familyid', $old_familyid);
+								$note->setValue('subject', 'Archived by System');
+								$note->setValue('details', 'The system is archiving this family because its last member ('.$this->_person->toString().' #'.$this->_person->id.') has been moved to another family ('.$family->toString().' #'.$family->id.')');
+								$note->create();
+							}
 
 							// archive the family record
 							$old_family->setValue('status', 'archived');
