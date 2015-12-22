@@ -155,7 +155,7 @@ class View__Generate_Service_Documents extends View
 		if (!empty($this->_generated_files)) {
 			echo "The following files were generated: <ul>";
 			foreach ($this->_generated_files as $path => $label) {
-				echo '<li><a href="?call=documents&dir='.self::cleanDirName(dirname($path)).'&getfile='.basename($path).'">';
+				echo '<li><a href="?call=documents&dir='.self::_cleanDirName(dirname($path)).'&getfile='.basename($path).'">';
 				echo ents($label);
 				echo '</a></li>';
 			}
@@ -163,7 +163,7 @@ class View__Generate_Service_Documents extends View
 			$zipname = reset(explode('.', basename($this->_filename))).'_'.$this->_service_date;
 			$allHref = BASE_URL.'?call=documents&zipname='.$zipname;
 			foreach ($this->_generated_files as $path => $label) {
-				$allHref .= '&zipfile[]='.self::cleanDirName($path);
+				$allHref .= '&zipfile[]='.self::_cleanDirName($path);
 			}
 			?>
 			<script>
@@ -272,7 +272,7 @@ class View__Generate_Service_Documents extends View
 					
 					ODF_Tools::replaceKeywords($newFile, $this->_replacements[$congid]);
 					if ($p = fileperms($thisFile)) chmod($newFile, $p);
-					$this->_generated_files[$newFile] = self::cleanDirName($newDir).' / '.basename($newFile);
+					$this->_generated_files[$newFile] = self::_cleanDirName($newDir).' / '.basename($newFile);
 				}
 			}
 		}
