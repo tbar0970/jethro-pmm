@@ -84,3 +84,6 @@ ALTER TABLE service_component_category DROP COLUMN is_numbered_default;
 
 UPDATE service_component_category SET show_in_handout_default = 'full' WHERE show_in_handout_default = 1;
 UPDATE service_component_category SET show_in_handout_default = 'title' WHERE category_name = 'Songs';
+
+ALTER TABLE service
+ADD COLUMN comments TEXT NOT NULL DEFAULT '';

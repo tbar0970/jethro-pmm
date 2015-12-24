@@ -54,6 +54,7 @@ class View_services extends View
 						$newItems[] = $newItem;
 					}
 					$this->service->saveItems($newItems);
+					$this->service->saveComments(process_widget('service_comments', Array('type' => 'html')));
 					$this->service->releaseLock('items');
 					$this->editing = FALSE;
 				}
@@ -70,29 +71,6 @@ class View_services extends View
 
 	function printView()
 	{
-		/*
-		?>
-		<form method="get" class="well well-small form-inline">
-			<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
-			<select name="editing">
-				<option value="0">View</option>
-				<option value="1" <?php if ($this->editing) echo 'selected="selected"'; ?>>Edit</option>
-			</select>
-			the
-			<?php print_widget('congregationid', Array(
-				'type' => 'reference',
-				'references' => 'congregation',
-				'allow_empty' => false,
-				'filter'			=> create_function('$x', '$y = $x->getValue("meeting_time"); return !empty($y);'),
-			), $this->congregationid); ?>
-			service on
-			<?php 
-			print_widget('date', Array('type' => 'date'), $this->date); ?>
-			<button type="submit" class="btn">Go</button>
-		</form>	
-		<?php
-		 */
-
 		if ($this->service === NULL) {
 			print_message("No service found for this congregation and date - add one via the service program first", 'error');
 			return;
@@ -105,8 +83,7 @@ class View_services extends View
 			<h1>
 				<small class="pull-right">
 					<a href="?view=services__list_all">
-						<i class="icon-chevron-left"></i>
-						Back to service list
+						<i class="icon-chevron-left"></i>Back to service list
 					</a>
 				</small>
 				<?php echo ents($this->service->toString()); ?>
@@ -125,7 +102,7 @@ class View_services extends View
 			} else {
 				?>
 				<div class="row-fluid">
-					<div class="span6">
+					<div class="span6 anchor-bottom">
 						<h3>
 							<span class="pull-right">
 									<small>
@@ -136,7 +113,12 @@ class View_services extends View
 							</span>
 							Run Sheet
 						</h3>
+
+						<?php
+						$this->service->printServicePlan();
+						?>
 					</div>
+
 					<div class="span6">
 						<h3>
 							<span class="pull-right">
@@ -146,21 +128,13 @@ class View_services extends View
 							</span>
 							Full content
 						</h3>
-					</div>
-				</div>
-				<div class="row-fluid">
-					<div class="span6 anchor-bottom">
-						<?php
-						$this->service->printServicePlan();
-						?>
-					</div>
-					<div class="span6 well well-small anchor-bottom preview-pane">
+
 						<?php
 						$this->service->printServiceContent();
 						?>
+
 					</div>
 				</div>
-
 
 				<?php
 				
@@ -288,6 +262,13 @@ class View_services extends View
 				<tfoot>
 					<tr>
 						<td colspan="4">
+							<?php
+							$this->printNotesFields();
+							?>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="4">
 							<button type="submit" class="btn">Save</button>
 						</td>
 					</tr>
@@ -413,6 +394,12 @@ class View_services extends View
 			</div>
 		</div>
 		<?php
+	}
+
+	private function printNotesFields()
+	{
+		echo '<b>Comments</b>:';
+		print_widget('service_comments', $this->service->fields['comments'], $this->service->getValue('comments'));
 	}
 }
 

@@ -53,6 +53,12 @@ class service extends db_object
 									'height'	=> 4,
 									'initial_cap'	=> TRUE,
 								   ),
+			'comments'	=> Array(
+									'type'		=> 'html',
+									'height'	=> '9em',
+									'toolbar'  => 'basic',
+								   ),
+
 		);
 		return $fields;
 	}
@@ -523,6 +529,27 @@ class service extends db_object
 		}
 	}
 
+	/**
+	 * This is unusual. The 'comments' field gets saved separately
+	 * because it falls under the 'items' lock, not the default lock,
+	 * because it is edited with the run sheet, not the overall service program.
+	 * @param string$comments
+	 */
+	public function saveComments($comments)
+	{
+		if ($this->haveLock('items')) {
+			$db = $GLOBALS['db'];
+			$SQL = 'UPDATE service
+					SET comments = '.$db->quote($comments).'
+					WHERE id = '.(int)$this->id;
+			$res = $db->exec($SQL);
+			check_db_result($res);
+			$this->values['comments'] = $comments;
+			return TRUE;
+		}
+		return FALSE;
+	}
+
 	public function getItems($withContent=FALSE, $ofCategoryID=NULL)
 	{
 		$SQL = 'SELECT si.*, sc.title, sc.alt_title, sc.show_in_handout, '.($withContent ? 'sc.content_html, sc.credits, ' : '').'
@@ -543,9 +570,9 @@ class service extends db_object
 	public function printServicePlan()
 	{
 		?>
-		<table style="border-collapse: collapse" cellspacing="0" cellpadding="5"
-			<?php if (empty($_REQUEST['view'])) echo 'border="1"'; ?>
-			class="table table-bordered"
+		<table cellspacing="0" cellpadding="5"
+			<?php if (empty($_REQUEST['view'])) echo 'border="1" style="width: 10cm; border-collapse: collapse" '; ?>
+			class="table table-bordered run-sheet"
 		>
 			<thead>
 				<tr>
@@ -570,8 +597,8 @@ class service extends db_object
 				}
 				?>
 				<tr>
-					<td><?php echo date('Hi', $time); ?></td>
-					<td><?php if ($item['show_in_handout'] != '0') echo $num++; ?></td>
+					<td class="narrow"><?php echo date('Hi', $time); ?></td>
+					<td class="narrow"><?php if ($item['show_in_handout'] != '0') echo $num++; ?></td>
 					<td>
 						<?php
 						$title = $item['runsheet_title_format'];
@@ -587,6 +614,17 @@ class service extends db_object
 			}
 			?>
 			</tbody>
+		<?php
+		if ($this->getValue('comments')) {
+			?>
+			<tfoot>
+				<tr>
+					<td colspan="3" class="run-sheet-comments"><?php $this->printFieldValue('comments'); ?></td>
+				</tr>
+			</tfoot>
+			<?php
+		}
+		?>
 		</table>
 		<?php
 	}

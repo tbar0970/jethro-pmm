@@ -1730,13 +1730,20 @@ table.system-config td small {
 	padding: 1px 3px;
 }
 
-#service-plan textarea {
+#service-plan tbody textarea {
 	display: block;
 	font-size: 70%;
 	line-height: 110%;
 	width: 100%;
 	margin: 0px;
 }
+td.run-sheet-comments {
+	font-size: 85%;
+}
+td.run-sheet-comments * {
+	line-height: 1em !important;
+}
+
 
 #service-comps th {
 	padding-right: 18px;

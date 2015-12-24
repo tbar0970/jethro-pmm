@@ -194,8 +194,31 @@ function print_widget($name, $params, $value)
 				<script src="<?php echo BASE_URL.'resources/ckeditor/ckeditor.js'; ?>"></script>
 				<?php
 			}
+			$ckParams = '';
+			if (array_get($params, 'toolbar') == 'basic') {
+				$ckParams = "
+					toolbar: [
+						{ name: 'styles', items: [ 'Format' ] },
+						{ name: 'basicstyles', items : ['Bold', 'Italic', 'Underscore', 'RemoveFormat'] },
+						{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList' ] }
+
+					],
+					removePlugins: 'elementspath',
+					resize_enabled: false,
+				";
+			}
+			if ($height = array_get($params, 'height')) {
+				$ckParams .= "
+					height: '{$height}',
+				";
+			}
 			?>
-			<textarea class="ckeditor" name="<?php echo $name; ?>" <?php echo $attrs; ?>><?php echo $value; ?></textarea>
+			<textarea id="<?php echo $name; ?>" name="<?php echo $name; ?>" <?php echo $attrs; ?>><?php echo $value; ?></textarea>
+			<script>
+				CKEDITOR.replace('<?php echo $name; ?>', {
+					<?php echo $ckParams; ?>
+				});
+			</script>
 			<?php
 			break;
 		case 'int':

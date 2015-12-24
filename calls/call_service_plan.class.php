@@ -25,11 +25,12 @@ class Call_Service_Plan extends Call
 						margin: 1cm;
 					}
 					* {
-						font-family: sans-serif;
+						font-family: "Arial Narrow", Arial, Sans Serif
 					}
 					td, th {
 						padding: 5px 10px;
 						vertical-align: top;
+						font-size: 11pt;
 					}
 					thead th {
 						background-color: #555;
@@ -46,6 +47,16 @@ class Call_Service_Plan extends Call
 					}
 					table {
 						border-collapse: collapse;
+					}
+					td.run-sheet-comments {
+						font-size: 85%;
+					}
+					td.run-sheet-comments * {
+						line-height: 1em !important;
+					}
+					td.narrow {
+						width: 1%;
+						white-space: nowrap;
 					}
 				</style>
 			</head>
