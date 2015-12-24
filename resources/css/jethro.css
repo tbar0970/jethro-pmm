@@ -1160,6 +1160,11 @@ table.service-details td, td.service-details {
 #body table.service-program td.service-details:hover {
 	background-color: #f0f0e8 !important;
 }
+#body table.service-program td, .service-details-inline small {
+	color: #aaa !important;
+	font-size: 75%;
+	line-height: 0.5em;
+}
 #body table.service-details td table td {
 	/* bible readings */
 	border-bottom: 1px solid #ddd !important;

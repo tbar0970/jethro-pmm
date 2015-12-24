@@ -307,21 +307,31 @@ class service extends db_object
 				break;
 				
 			case 'summary':
+			case 'summary_inline':
+				$separator = $fieldname == 'summary' ? '<br />' : '&nbsp; &bull; &nbsp;';
 				?>
 				<i><?php echo ents($this->values['topic_title']); ?></i>
 				<?php
 				if ($this->getRawBibleReadings()) {
-					echo '<br />';
+					echo $separator;
 					$this->printFieldValue('bible_all');
 				}
 				if (strlen($this->values['format_title'])) {
-					echo '<br />'.ents($this->values['format_title']);
+					echo $separator.ents($this->values['format_title']);
 				}
 				if (!empty($this->values['notes'])) {
-					?>
-					&nbsp;<span class="clickable" onclick="$(this).next('div.hide').toggle()"><i class="icon-chevron-down"></i></span>
-					<div class="smallprint hide"><?php echo nl2br(ents($this->values['notes'])); ?></div>
-					<?php
+					echo $separator;
+					echo '<small>';
+					if ($fieldname == 'summary_inline') {
+						echo str_replace("\n", ' / ', ents($this->values['notes']));
+					} else {
+						echo nl2br(ents($this->values['notes']));
+					}
+					echo '</small>';
+					
+					// 					&nbsp;<span class="clickable" data-toggle="visible" data-target="next"><i class="icon-chevron-down"></i></span>
+					//	<div class="smallprint "><?php echo ; </div>
+					
 				}
 				break;
 			default:

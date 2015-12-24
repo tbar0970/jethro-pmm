@@ -88,6 +88,11 @@ class View_services extends View
 				</small>
 				<?php echo ents($this->service->toString()); ?>
 			</h1>
+			<p class="service-details-inline">
+				<?php
+				$this->service->PrintFieldValue('summary_inline');
+				?>
+			</p>
 			<?php
 			$this->service->printRunSheetPersonnelFlexi();
 			if ($this->editing) {

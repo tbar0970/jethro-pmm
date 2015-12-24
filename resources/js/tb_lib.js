@@ -142,7 +142,7 @@ $(document).ready(function() {
 	 * <div class="option" data-mytype="x"></div>
 	 * <div class="option" data-mytype="y"></div>
 	 */
-	$('[data-toggle=visible]').change(function() {
+	$('input[data-toggle=visible]').change(function() {
 		var base = $(document);
 		var targetExp = $(this).attr('data-target');
 		if (/^row /.test(targetExp)) {
@@ -154,6 +154,22 @@ $(document).ready(function() {
 		var myFilter = '['+$(this).attr('data-match-attr')+'='+this.value+']';
 		target.filter(myFilter).show();
 	}).change();
+
+	$('[data-toggle=visible]').not('input').click(function(event) {
+		var targetExp = $(this).attr('data-target');
+		var target = null;
+		if (targetExp == 'next') {
+			target = $(this).next();
+		} else {
+			if (/^row /.test(targetExp)) {
+				base = $(this).parents('tr:first');
+				targetExp = targetExp.substr(4);
+			}
+			target = base.find(targetExp);
+		}
+		target.toggle();
+		event.stopPropagation();
+	});
 
 
 	// Ability to change the form action when a button is clicked.  Allows one form to submit to several different places.
