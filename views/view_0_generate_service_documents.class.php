@@ -150,9 +150,14 @@ class View__Generate_Service_Documents extends View
 
 	public function printView()
 	{
+		/* 
+		 * Assign a temporary variable to make the empty() statement 
+		 * work correctly on PHP versions earlier than 5.5.
+		 */
 		$selfCongregations = self::getCongregations();
 		if (empty($selfCongregations) || empty($this->_action) || empty($this->_service_date) || empty($this->_filename)) return;
-
+		$selfCongregations = null;//Finished with temporary variable.
+		
 		if (!empty($this->_generated_files)) {
 			echo "The following files were generated: <ul>";
 			foreach ($this->_generated_files as $path => $label) {
