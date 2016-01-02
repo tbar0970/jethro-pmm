@@ -68,7 +68,7 @@ Jethro is designed to facilitate and encourage good team ministry, so its name c
 
 # Acknowledgements
 Jethro development has been sponsored or contributed to by several churches worldwide:
-* [Christ Church Inner West Anlgican Community](http://cciw.org.au), Sydney, Australia (founding sponsor)
+* [Christ Church Inner West Anglican Community](http://cciw.org.au), Sydney, Australia (founding sponsor)
 * [Redlands Presbyterian Church](http://www.redlands.org.au/), Queensland, Australia (sponsor of service planning features)
 * [St Peter's Woolton](http://www.stpeters-woolton.org.uk), Liverpool, UK (sponsor of date field and photo features)
 * [Coast Evanglical Church](http://www.coastec.net.au)</a>, Forster, Australia (sponsor of group-membership statuses, attendance enhancements and more)
