@@ -150,7 +150,8 @@ class View__Generate_Service_Documents extends View
 
 	public function printView()
 	{
-		if (empty(self::getCongregations()) || empty($this->_action) || empty($this->_service_date) || empty($this->_filename)) return;
+		$selfCongregations = self::getCongregations();
+		if (empty($selfCongregations) || empty($this->_action) || empty($this->_service_date) || empty($this->_filename)) return;
 
 		if (!empty($this->_generated_files)) {
 			echo "The following files were generated: <ul>";
