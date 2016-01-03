@@ -12,7 +12,17 @@ class View_Home extends View
 	
 	function printView()
 	{
+		$GLOBALS['system']->includeDBClass('member');
 		?>
+		<div class="member-homepage-box visible-phone">
+			<h3>Search people</h3>
+			<form method="get" class="form-inline">
+				<input type="hidden" name="view" value="people" />
+				<input name="search" type="text" placeholder="Enter name to search" value="<?php echo ents(array_get($_REQUEST, 'search')); ?>">
+				<button data-action="search" class="btn" type="submit">Search</button>
+			</form>
+		</div>
+
 		<div class="member-homepage-box">
 			<h3>
 				<a class="pull-right" href="?view=_edit_me"><small>Edit</small></a>
@@ -78,7 +88,20 @@ class View_Home extends View
 			}
 			echo '</ul>';
 			echo '</div>';
-		}		
+		}
+		
+		?>
+		<div class="member-homepage-box hidden-phone">
+			<h3>Search people</h3>
+			<form method="get" class="form-inline">
+				<input type="hidden" name="view" value="people" />
+				<input name="search" type="text" placeholder="Enter name to search" value="<?php echo ents(array_get($_REQUEST, 'search')); ?>">
+				<button data-action="search" class="btn" type="submit">Search</button>
+			</form>
+		</div>
+		<?php
+
+		
 
 	}
 	
