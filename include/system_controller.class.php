@@ -83,7 +83,7 @@ class System_Controller
 		if (!empty($_REQUEST['call'])) {
 			$call_name = str_replace('/', '', $_REQUEST['call']);
 			// Try both the Jethro and system_root calls folders
-			$filename = dirname(dirname(__FILE__)).'/calls/call_'.$call_name.'.class.php';
+			$filename = ''; //dirname(dirname(__FILE__)).'/calls/call_'.$call_name.'.class.php';
 			if (!file_exists($filename)) {
 				$filename = $this->_base_dir.'/calls/call_'.$call_name.'.class.php';
 			}
