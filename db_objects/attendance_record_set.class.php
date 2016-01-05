@@ -369,6 +369,7 @@ class Attendance_Record_Set
 		}
 		?>
 		<input type="text" class="int-box" name="<?php echo $headcountFieldName; ?>" value="<?php echo $headcountValue; ?>" size="5" />
+		<input type="button" class="btn" onclick="var x = $(this).siblings('input').get(0); x.value = x.value == '' ? 1 : parseInt(x.value, 10)+1" value="+" />
 		<?php
 	}
 
