@@ -329,7 +329,7 @@ class View_services extends View
 					</div>
 				</div>
 				<div class="modal-footer">
-					<input class="btn" type="button" value="Add item" data-action="saveAdHoc" />
+					<input class="btn" type="button" value="Save item" data-action="saveAdHoc" />
 					<input class="btn" type="button" value="Cancel" data-dismiss="modal" />
 				</div>
 				
