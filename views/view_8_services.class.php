@@ -363,7 +363,7 @@ class View_services extends View
 			<h3>Component Library</h3>
 			<div id="component-search" class="input-append input-prepend">
 				<span class="add-on"><i class="icon-search"></i></span>
-				<input type="text" placeholder="Enter search terms">
+				<input type="text" placeholder="Search components">
 				<?php
 				print_widget('tag', Array('type' => 'reference', 'references' => 'service_component_tag', 'allow_empty' => TRUE, 'empty_text' => '-- Choose Tag --'), NULL);
 				?>
