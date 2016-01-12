@@ -143,7 +143,7 @@ $(document).ready(function() {
 	 * <div class="option" data-mytype="x"></div>
 	 * <div class="option" data-mytype="y"></div>
 	 */
-	$('input[data-toggle=visible]').change(function() {
+	$('input[data-toggle=visible], select[data-toggle=visible]').change(function() {
 		var base = $(document);
 		var targetExp = $(this).attr('data-target');
 		if (/^row /.test(targetExp)) {
@@ -156,7 +156,7 @@ $(document).ready(function() {
 		target.filter(myFilter).show();
 	}).change();
 
-	$('[data-toggle=visible]').not('input').click(function(event) {
+	$('[data-toggle=visible]').not('input, select').click(function(event) {
 		var targetExp = $(this).attr('data-target');
 		var target = null;
 		if (targetExp == 'next') {
