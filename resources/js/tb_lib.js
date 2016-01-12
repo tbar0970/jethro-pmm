@@ -3,14 +3,14 @@ var TBLib = {};
 
 /***********************************
  * Event handlers
-************************************/
+ ************************************/
 
 
 $(document).ready(function() {
 
 	if ($('.stop-js').length) return; /* Classname flag for big pages that don't want JS to run */
 
-	
+
 	var i = document.createElement('input');
 	if (!('autofocus' in i) || $('[autofocus]').length == 0) {
 		// native autofocus is not supported, or no element is using it
@@ -23,15 +23,16 @@ $(document).ready(function() {
 	}
 
 	//// VALIDATION ////
-	$('input.int-box')
-		.focus(TBLib.handleIntBoxFocus)
-		.keydown(TBLib.handleIntBoxKeyPress);
-	$('input.exact-width').change(TBLib.handleFixedWidthInputBlur);
+	$(document.body).on('focus', 'input.int-box', TBLib.handleIntBoxFocus)
+			.on('keydown', 'input.int-box', TBLib.handleIntBoxKeyPress);
 	$('input.bible-ref').change(TBLib.handleBibleRefBlur);
 	$('input.valid-email').change(TBLib.handleEmailBlur);
 	$('input.day-box').change(TBLib.handleDayBoxBlur);
 	$('input.year-box').change(TBLib.handleYearBoxBlur);
-	$('textarea[maxlength]').keypress(function() { var m = parseInt($(this).attr('maxlength'),10); return ((m < 1 ) || (this.value.length <= m)); });
+	$('textarea[maxlength]').keypress(function() {
+		var m = parseInt($(this).attr('maxlength'), 10);
+		return ((m < 1) || (this.value.length <= m));
+	});
 	$('input[regex]').change(TBLib.handleRegexInputBlur);
 	$('.optional .compulsory').removeClass('compulsory');
 	$('form').submit(TBLib.handleFormSubmit);
@@ -65,7 +66,7 @@ $(document).ready(function() {
 	// Access key "s" for all submit buttons
 	var submits = $('#body form[method=post] input[type=submit]');
 	if (submits.length == 1) submits.attr('accesskey', 's');
-	
+
 	// Ability for any element to submit the form it's part of
 	$('.submit').click(function() {
 		if ($(this).hasClass('confirm-title')) {
@@ -79,7 +80,7 @@ $(document).ready(function() {
 			var form = $(this).parents('form');
 		}
 		if (form.length) {
-			if (!form[0].onsubmit || form[0].onsubmit()) $(form[0]).submit(); 
+			if (!form[0].onsubmit || form[0].onsubmit()) $(form[0]).submit();
 		}
 		return false;
 	});
@@ -110,7 +111,7 @@ $(document).ready(function() {
 
 	// A table that expands as you fill in the input boxes
 	$('table.expandable').each(function() { TBLib.setupExpandableTable(this) });
-	
+
 	// Ability to enable/disable the children of a related element
 	// using data-toggle="enable" and data-target="selector of what to enable/disable"
 	$('[data-toggle=enable]').change(function() {
@@ -221,7 +222,7 @@ $(document).ready(function() {
 			}
 		}
 	});
-	
+
 	$('[data-confirm]').click(function(event) {
 		if (!confirm($(this).attr('data-confirm'))) {
 			event.preventDefault();
@@ -229,7 +230,7 @@ $(document).ready(function() {
 			return false
 		}
 	});
-	
+
 	$('.double-confirm-title').click(function(event) {
 		if (!( confirm("Are you sure you want to "+this.title[0].toLowerCase()+this.title.substr(1)+"?")
 				&& confirm("This action cannot be undone.  Are you sure?"))) {
@@ -242,7 +243,7 @@ $(document).ready(function() {
 
 	// A checkbox that selects all the other checkboxes in the same table column
 	$('input.select-all').click(TBLib.handleSelectAllClick);
-	
+
 	// Control a hidden input using a checkbox (since the checkbox won't get submitted if unchecked)
 	$('.toggle-next-hidden').each(function() {
 		var hidden = $(this).next('input[type="hidden"]').get(0);
@@ -271,7 +272,7 @@ $(document).ready(function() {
 
 	// When a textbox is focused, select just the basename of a filename value (eg excluding the .txt in somefile.txt)
 	$('input.select-basename').focus(TBLib.selectBasename);
-	
+
 
 
 	setTimeout('setupUnsavedWarnings()', 400);
@@ -325,7 +326,7 @@ $(document).ready(function() {
 			subs.removeClass('icon-chevron-down').addClass('icon-chevron-up');
 		}
 	});
-	
+
 	$('a[data-method=post]').click(function(event) {
 		var p = $(this).attr('href').split('?');
 		var action = p[0];
@@ -349,7 +350,7 @@ $(document).ready(function() {
 
 
 var DATA_CHANGED = false;
-function setupUnsavedWarnings() 
+function setupUnsavedWarnings()
 {
 	var warnForms = $('form.warn-unsaved');
 	if (warnForms.length) {
@@ -605,14 +606,14 @@ TBLib.handleFormSubmit = function()
 		}
 	})
 	if (!multiOK) return false;
-	
+
 	// Check phone numbers are OK
 	var phoneInputs = ($(this).find('input.phone-number'));
 	for (var i=0; i < phoneInputs.size(); i++) {
 		with (phoneInputs.get(i)) {
 			if (value == '') continue;
 			if (value.match(/[A-Za-z]/)) {
-				TBLib.markErroredInput(phoneInputs.get(i)); 
+				TBLib.markErroredInput(phoneInputs.get(i));
 				alert('Phone numbers cannot contain letters');
 				phoneInputs.get(i).focus();
 				return false;
@@ -694,13 +695,6 @@ TBLib.handleFormSubmit = function()
 	if (!regexesOK) return false;
 
 	var ok = true;
-	$(this).find('input.exact-width').each(function() {
-		if (!TBLib.handleFixedWidthInputBlur.apply(this)) {
-			ok = false;
-			return false;
-		}
-	});
-	if (!ok) return false;
 
 	$(this).find('input.bible-ref').each(function() {
 		if (!TBLib.handleBibleRefBlur.apply(this)) {
@@ -753,7 +747,7 @@ TBLib.handleFormSubmit = function()
 		}
 	});
 	if (!ok) return false;
-	
+
 	if ($(this).hasClass('disable-submit-buttons')) {
 		$(this).find('input[type=submit]').attr('disabled', 'disabled');
 	}
@@ -776,37 +770,13 @@ TBLib.handleEmailBlur = function()
 	return true;
 }
 
-TBLib.invalidFixedWidthInput = null;
-TBLib.handleFixedWidthInputBlur = function()
-{
-	if (this.value == '') return;
-	if (this.value.length != this.size) {
-		this.focus();
-		alert('Values for this field must have '+this.size+' digits');
-		TBLib.invalidFixedWidthInput = this;
-		setTimeout('TBLib.invalidFixedWidthInput.select()', 100);
-		return false;
-	}
-}
-
 TBLib.handleIntBoxKeyPress = function(event)
 {
 	if (!event) event = window.event;
 	if (event.altKey || event.ctrlKey || event.metaKey) return true;
 	var keyCode = event.keyCode ? event.keyCode : event.which;
-	if (-1 == this.className.indexOf('exact-width')) { // todo: improve this with jquery
-		if ((keyCode == 107) && (this.value != '')) {
-			this.value = (parseInt(this.value, 10)) + 1;
-			return false;
-		}
-		if ((keyCode == 109) && (this.value != '')) {
-			this.value = parseInt(this.value, 10) - 1;
-			return false;
-		}
-	}
-	validKeys = new Array(8, 9, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 97, 98, 99, 100, 101, 102, 103, 104, 105, 96, 46, 36, 35,37, 39);
+	validKeys = new Array(8, 9, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 97, 98, 99, 100, 101, 102, 103, 104, 105, 96, 46, 36, 35, 37, 39);
 	if (!validKeys.contains(keyCode)) {
-		console.log(keyCode);
 		return false;
 	}
 }
@@ -827,7 +797,7 @@ TBLib.handleSelectAllClick = function()
 	$(this).parents('table:first').find('input[type=checkbox]').attr('checked', this.checked);
 }
 
-TBLib.handleBitmaskBoxClick = function() 
+TBLib.handleBitmaskBoxClick = function()
 {
 	this.value = parseInt(this.value, 10);
 	var boxes = document.getElementsByName(this.name);
@@ -906,7 +876,7 @@ function tblog(x)
 
 /************************************
  *  Extensions to built in types
-*************************************/
+ *************************************/
 
 String.prototype.trim = function() {
 	return this.replace(/^\s+|\s+$/g,"");
