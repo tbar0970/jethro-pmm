@@ -1,4 +1,7 @@
 <?php
+/**
+ * This is the view for showing/editing an individual service's run sheet.
+ */
 class View_services extends View
 {
 	private $date = NULL;
@@ -46,6 +49,7 @@ class View_services extends View
 					foreach (array_get($_POST, 'componentid', Array()) as $rank => $compid) {
 						$newItem = Array(
 							'componentid' => $compid,
+							'title' => $_POST['title'][$rank],
 							'show_in_handout' => $_POST['show_in_handout'][$rank],
 							'length_mins' => $_POST['length_mins'][$rank],
 							'note'        => trim($_POST['note'][$rank]),
@@ -99,7 +103,7 @@ class View_services extends View
 				?>
 				<div class="row-fluid" id="service-planner">
 				<?php
-				$this->printServiceEditor();
+				$this->printRunSheetEditor();
 				$this->printComponentSelector();
 				?>
 				</div>
@@ -120,7 +124,7 @@ class View_services extends View
 						</h3>
 
 						<?php
-						$this->service->printServicePlan();
+						$this->service->printRunSheet();
 						?>
 					</div>
 
@@ -149,10 +153,11 @@ class View_services extends View
 	
 	}
 
-	private function printServiceEditor()
+	private function printRunSheetEditor()
 	{
 		$cong = $GLOBALS['system']->getDBObject('congregation', $this->congregationid);
 		$startTime = preg_replace('/[^0-9]/', '', $cong->getValue('meeting_time'));
+		$dummyItem = new Service_Item();
 		?>
 		<div class="span6">
 			<h3>Run Sheet</h3>
@@ -178,11 +183,11 @@ class View_services extends View
 							<?php
 							if ($this->editing) {
 								?>
-								Drag or double-click components to add them to this service
+								<i>Drag or double-click components to add them to this service</i>
 								<?php
 							} else {
 								?>
-								This service does not yet have any items
+								<i>This service does not yet have any items</i>
 								<?php
 							}
 							?>
@@ -204,7 +209,7 @@ class View_services extends View
 							<?php
 						}
 						?>
-						<tr class="service-item">
+						<tr class="service-item<?php if (empty($item['componentid'])) echo ' ad-hoc'; ?>">
 							<td class="start"></td>
 							<td class="number"></td>
 							<td class="item">
@@ -221,7 +226,7 @@ class View_services extends View
 								?>
 								</span>
 								<?php
-								foreach (Array('componentid', 'length_mins', 'show_in_handout') as $k) {
+								foreach (Array('componentid', 'title', 'length_mins', 'show_in_handout') as $k) {
 									?>
 									<input type="hidden" name="<?php echo $k; ?>[]" class="<?php echo $k; ?>" value="<?php echo ents($item[$k]); ?>" />
 									<?php
@@ -280,10 +285,55 @@ class View_services extends View
 				</tfoot>
 			</table>
 			</form>
+
 			<script type="text/javascript">
 				setTimeout('showLockExpiryWarning()', <?php echo max(1000,(strtotime('+'.LOCK_LENGTH, 0)-60)*1000); ?>);
 				setTimeout('showLockExpiredWarning()', <?php echo (strtotime('+'.LOCK_LENGTH, 0))*1000; ?>);
 			</script>
+
+			<div class="modal hide fade-in" id="ad-hoc-modal" role="dialog">
+				<div class="modal-header">
+					<h4>Add ad-hoc service item</h4>
+				</div>
+				<div class="modal-body form-horizontal">
+					<div class="control-group">
+						<label class="control-label">
+							Title
+						</label>
+						<div class="controls">
+							<?php $dummyItem->printFieldInterface('title'); ?>
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label">
+							Show in handout
+						</label>
+						<div class="controls">
+							<?php 
+							unset($dummyItem->fields['show_in_handout']['options']['full']);
+							$dummyItem->fields['show_in_handout']['options']['title'] = 'Yes';
+							$dummyItem->setValue('show_in_handout', 'title');
+							$dummyItem->printFieldInterface('show_in_handout'); ?>
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label">
+							Length (mins)
+						</label>
+						<div class="controls">
+							<?php
+							$dummyItem->setValue('length_mins', 2);
+							$dummyItem->printFieldInterface('length_mins');
+							?>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<input class="btn" type="button" value="Add item" data-action="saveAdHoc" />
+					<input class="btn" type="button" value="Cancel" data-dismiss="modal" />
+				</div>
+				
+			</div>
  		</div>
 		<?php
 	}
@@ -294,10 +344,13 @@ class View_services extends View
 			<a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="icon-chevron-down"></i></a>
 		<ul class="dropdown-menu pull-right">
 			<li><a href="javascript:;" data-action="addHeading">Add heading above</a></li>
+			<li class="divider"></li>
 			<li><a href="javascript:;" data-action="addNote">Add note</a></li>
-			<li><a href="javascript:;" data-action="viewCompDetail">View component detail</a>
-
+			<li class="hidden-ad-hoc"><a href="javascript:;" data-action="viewCompDetail">View component detail</a>
+			<li class="visible-ad-hoc"><a href="javascript:;" data-action="editDetails">Edit item detail</a>
 			<li><a href="javascript:;" data-action="remove">Remove</a></li>
+			<li class="divider"></li>
+			<li><a href="javascript:;" data-action="addAdHoc">Add ad-hoc item below</a></li>
 		</ul>
 		</div><?php
 
@@ -307,7 +360,7 @@ class View_services extends View
 	{
 		?>
 		<div class="span6">
-			<h3>Available Components</h3>
+			<h3>Component Library</h3>
 			<div id="component-search" class="input-append input-prepend">
 				<span class="add-on"><i class="icon-search"></i></span>
 				<input type="text" placeholder="Enter search terms">

@@ -96,3 +96,11 @@ UPDATE service_component_category SET show_in_handout_default = 'title' WHERE ca
 
 ALTER TABLE service
 ADD COLUMN comments TEXT NOT NULL DEFAULT '';
+
+ALTER TABLE service_item ADD COLUMN  `title` varchar(255) NOT NULL DEFAULT '';
+
+ALTER TABLE service_item ADD COLUMN  `show_in_handout` varchar(255)NOT NULL DEFAULT '';
+
+UPDATE service_item si
+JOIN service_component sc ON si.componentid = sc.id
+SET si.show_in_handout = sc.show_in_handout;
