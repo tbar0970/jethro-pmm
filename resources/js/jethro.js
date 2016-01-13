@@ -490,6 +490,9 @@ var JethroServicePlanner = {};
 
 JethroServicePlanner.draggedComp = null;
 
+JethroServicePlanner.newComponentInsertPoint = null;
+JethroServicePlanner.itemBeingEdited = null;
+
 JethroServicePlanner._getTRDragHelper = function(event, tr) {
 	var helper = tr.clone();
 	var originals = tr.children();
@@ -588,6 +591,13 @@ JethroServicePlanner.init = function() {
 		var action = $(this).attr('data-action');
 		JethroServicePlanner.Item[action]($(this).parents('tr:first'));
 	})
+	$('#ad-hoc-modal input[data-action]').click(function() {
+		var action = $(this).attr('data-action');
+		JethroServicePlanner.Item[action]();
+	})
+	$('#ad-hoc-modal input').keypress(function(e) {
+		if (e.which == 13) JethroServicePlanner.Item.saveAdHoc();
+	})
 
 	JethroServicePlanner.refreshNumbersAndTimes();
 
@@ -669,6 +679,47 @@ JethroServicePlanner.Item.viewCompDetail = function($tr) {
 	TBLib.handleMedPopupLinkClick({'href' : href});
 }
 
+JethroServicePlanner.Item.addAdHoc = function ($tr) {
+	JethroServicePlanner.newComponentInsertPoint = $tr.next('tr');
+	$('#ad-hoc-modal').modal('show');
+}
+
+JethroServicePlanner.Item.saveAdHoc = function () {
+	
+	var attrs = {componentid : ''};
+	$('#ad-hoc-modal input[name], #ad-hoc-modal select').each(function() {
+		attrs[this.name] = this.value;
+	});
+	if (attrs['title'] == '') {
+		alert('You must specifiy a title');
+		return;
+	}
+	if (JethroServicePlanner.itemBeingEdited) {
+		for (k in attrs) {
+			JethroServicePlanner.itemBeingEdited.find('input[name="'+k+'[]"]').val(attrs[k]);
+			JethroServicePlanner.itemBeingEdited.find('td.item span').html(attrs['title']);
+		}
+		JethroServicePlanner.itemBeingEdited = null;
+		JethroServicePlanner.refreshNumbersAndTimes();
+		JethroServicePlanner.isChanged = true;
+
+	} else {
+		JethroServicePlanner.addItem(attrs['title'], attrs, JethroServicePlanner.newComponentInsertPoint);
+	}
+	$('#ad-hoc-modal').modal('hide').find('input[name=title]').val('');
+}
+
+JethroServicePlanner.Item.editDetails = function ($tr) {
+	JethroServicePlanner.itemBeingEdited = $tr;
+	var attrs = ['title', 'length_mins', 'show_in_handout'];
+	for (var i=0; i < attrs.length; i++) {
+		$('#ad-hoc-modal').find('[name='+attrs[i]+']').val($tr.find('input[name="'+attrs[i]+'[]"]').val());
+	}
+	$('#ad-hoc-modal').modal('show');
+
+	
+}
+
 JethroServicePlanner.onItemDrop = function(event, ui) {
 	if (JethroServicePlanner.draggedComp) {
 		JethroServicePlanner.addFromComponent(JethroServicePlanner.draggedComp, this);
@@ -677,16 +728,24 @@ JethroServicePlanner.onItemDrop = function(event, ui) {
 }
 
 JethroServicePlanner.addFromComponent = function(componentTR, beforeItem) {
-	JethroServicePlanner.isChanged = true;
-
-	var newTR = $('#service-item-template').clone().attr('id', '');
-	newTR.css('display', '').addClass('service-item');
-	var attrs = ['componentid', 'show_in_handout', 'length_mins'];
+	var attrVals = {};
 	var runsheetTitle = componentTR.attr('data-runsheet_title');
 	var newTitle = runsheetTitle ? runsheetTitle: componentTR.find('.title').html();
-	newTR.find('td.item span').html(newTitle);
+	var attrs = ['componentid', 'show_in_handout', 'length_mins'];
 	for (var i=0; i < attrs.length; i++) {
-		newTR.find('td.item').append('<input type="hidden" class="'+attrs[i]+'" name="'+attrs[i]+'[]" value="'+componentTR.attr('data-'+attrs[i])+'" />');
+		attrVals[attrs[i]] = componentTR.attr('data-'+attrs[i]);
+	}
+	JethroServicePlanner.addItem(newTitle, attrVals, beforeItem);
+}
+
+JethroServicePlanner.addItem = function(title, attrVals, beforeItem) {
+	var newTR = $('#service-item-template').clone().attr('id', '');
+	newTR.css('display', '').addClass('service-item');
+	if (!attrVals['componentid']) newTR.addClass('ad-hoc');
+	newTR.find('td.item span').html(title);
+	attrVals['title'] = title;
+	for (k in attrVals) {
+		newTR.find('td.item').append('<input type="hidden" class="'+k+'" name="'+k+'[]" value="'+attrVals[k]+'" />');
 	}
 	if (!beforeItem || $(beforeItem).parents('tfoot').length) {
 		beforeItem = "#service-plan tbody tr:last";
@@ -694,11 +753,12 @@ JethroServicePlanner.addFromComponent = function(componentTR, beforeItem) {
 	$(beforeItem).before(newTR);
 	$('#service-plan-placeholder').remove();
 
-	JethroServicePlanner.refreshNumbersAndTimes();
 	newTR.droppable({
 		drop: JethroServicePlanner.onItemDrop,
 		hoverClass: 'drop-hover',
 	});
+	JethroServicePlanner.refreshNumbersAndTimes();
+	JethroServicePlanner.isChanged = true;
 }
 
 JethroServicePlanner.onItemReorder = function() {

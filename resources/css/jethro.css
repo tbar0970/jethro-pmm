@@ -721,6 +721,11 @@ input.btn-link, button.btn-link {
 	font-size: 14px;
 }
 
+.dropdown-menu .divider {
+	margin: 3px 0px;
+	border-bottom: 0px;
+}
+
 /************* REPORTS **************/
 table.query-results {
 	margin-bottom: 2px; /*  so the X persons listed text can snuggle underneath */
@@ -1160,7 +1165,7 @@ table.service-details td, td.service-details {
 #body table.service-program td.service-details:hover {
 	background-color: #f0f0e8 !important;
 }
-#body table.service-program td, .service-details-inline small {
+#body table.service-program td small, .service-details-inline small {
 	color: #aaa !important;
 	font-size: 75%;
 	line-height: 0.5em;
@@ -1725,6 +1730,16 @@ table.system-config td small {
 	display: none;
 }
 
+#service-plan .service-item .visible-ad-hoc {
+	display: none;
+}
+#service-plan .service-item.ad-hoc .visible-ad-hoc {
+	display: inherit;
+}
+#service-plan .service-item.ad-hoc .hidden-ad-hoc {
+	display: none;
+}
+
 .service-heading {
 	font-weight: bold;
 	width: 100%;
@@ -1747,6 +1762,10 @@ td.run-sheet-comments {
 }
 td.run-sheet-comments * {
 	line-height: 1em !important;
+}
+#service-plan tfoot tr:last-child td {
+	border-top: 0px;
+	padding-top: 0px;
 }
 
 

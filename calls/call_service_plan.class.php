@@ -64,7 +64,7 @@ class Call_Service_Plan extends Call
 				<h1><?php echo ents($service->toString()); ?></h1>
 				<?php
 				$service->printRunSheetPersonnelTable();
-				$service->printServicePlan();
+				$service->printRunSheet();
 				?>
 			</body>
 		</html>
