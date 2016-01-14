@@ -150,8 +150,14 @@ class View__Generate_Service_Documents extends View
 
 	public function printView()
 	{
-		if (empty(self::getCongregations()) || empty($this->_action) || empty($this->_service_date) || empty($this->_filename)) return;
-
+		/* 
+		 * Assign a temporary variable to make the empty() statement 
+		 * work correctly on PHP versions earlier than 5.5.
+		 */
+		$selfCongregations = self::getCongregations();
+		if (empty($selfCongregations) || empty($this->_action) || empty($this->_service_date) || empty($this->_filename)) return;
+		$selfCongregations = null;//Finished with temporary variable.
+		
 		if (!empty($this->_generated_files)) {
 			echo "The following files were generated: <ul>";
 			foreach ($this->_generated_files as $path => $label) {
@@ -258,6 +264,7 @@ class View__Generate_Service_Documents extends View
 						}
 					}
 					copy($thisFile, $newFile);
+					if ($p = fileperms($thisFile)) chmod($newFile, $p);
 					//if (in_array('SERVICE_CONTENT', $this->_keywords)) {
 						$service = Service::findByDateAndCong($this->_service_date, $congid);
 						if ($service) {
@@ -271,7 +278,6 @@ class View__Generate_Service_Documents extends View
 					//}
 					
 					ODF_Tools::replaceKeywords($newFile, $this->_replacements[$congid]);
-					if ($p = fileperms($thisFile)) chmod($newFile, $p);
 					$this->_generated_files[$newFile] = self::_cleanDirName($newDir).' / '.basename($newFile);
 				}
 			}
@@ -318,7 +324,7 @@ class View__Generate_Service_Documents extends View
 				continue;
 			}
 			$next_service = Service::findByDateAndCong(date('Y-m-d', strtotime($this->_service_date.' +1 week')), $congid);
-			$list = is_file($this->_filename) ? $this->_keywords : $this->_cong_keywords[$congid];
+			$list = is_file($this->_filename) ? $this->_keywords : array_get($this->_cong_keywords, $congid, Array());
 			foreach ($list as $keyword) {
 				$keyword = strtoupper($keyword);
 				if (0 === strpos($keyword, 'NAME_OF_')) {

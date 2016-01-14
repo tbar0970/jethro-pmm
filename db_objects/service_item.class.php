@@ -4,7 +4,7 @@ class service_item extends db_object
 	var $_load_permission_level = 0; // want PERM_VIEWSERVICE | PERM_VIEWROSTER
 	var $_save_permission_level = 0; // FUTURE: PERM_EDITSERVICE;
 
-	function _getFields()
+	protected static function _getFields()
 	{
 
 		$fields = Array(
@@ -28,6 +28,29 @@ class service_item extends db_object
 									'type'		=> 'int',
 									'width'		=> 6,
 								   ),
+
+			// this is ony populated for ad-hoc items - otherwise the title comes from the component.
+			'title'		=> Array(
+									'type'		=> 'text',
+									'width'		=> 80,
+									'initial_cap'	=> TRUE,
+									'allow_empty' => true,
+							),
+
+			// this gets copied from the component on save.
+			'show_in_handout'		=> Array(
+									'type'		=> 'select',
+									'options'  => Array(
+													'0' => 'No',
+													'title' => 'Title only',
+													'full'  => 'Title and Content',
+													),
+									'label'    => 'Show on Handout?',
+									'editable' => true,
+									'show_in_summary' => true,
+									'note' => 'Items that are shown on the handout appear with numbers on the run sheet.',
+								   ),
+
 			'heading_text'		=> Array(
 									'type'		=> 'text',
 									'width'		=> 80,

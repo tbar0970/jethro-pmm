@@ -40,7 +40,7 @@ class Staff_Member extends Person
 		return $res;
 	}
 
-	function _getFields()
+	protected static function _getFields()
 	{
 		return Array(
 			'username'	=> Array(

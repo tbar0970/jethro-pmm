@@ -41,6 +41,15 @@ order by name;
 
 ALTER TABLE date_type RENAME TO _disused_date_type;
 
+/* Some systems have date values with typeid=null */
+INSERT INTO custom_field
+(name, rank, type, allow_multiple, params)
+SELECT
+'Other Date', @rank:=@rank+1, 'date', 1, 'a:2:{s:10:"allow_note";i:1;s:16:"allow_blank_year";i:1;}'
+FROM person_date
+WHERE (fieldid IS NULL) OR (fieldid = 0)
+LIMIT 1;
+
 INSERT INTO custom_field_value
 (personid, fieldid, value_date, value_text)
 SELECT personid, typeid, `date`, note
@@ -87,3 +96,11 @@ UPDATE service_component_category SET show_in_handout_default = 'title' WHERE ca
 
 ALTER TABLE service
 ADD COLUMN comments TEXT NOT NULL DEFAULT '';
+
+ALTER TABLE service_item ADD COLUMN  `title` varchar(255) NOT NULL DEFAULT '';
+
+ALTER TABLE service_item ADD COLUMN  `show_in_handout` varchar(255)NOT NULL DEFAULT '';
+
+UPDATE service_item si
+JOIN service_component sc ON si.componentid = sc.id
+SET si.show_in_handout = sc.show_in_handout;

@@ -71,7 +71,7 @@ class roster_view extends db_object
 		return $res;
 	}
 
-	function _getFields()
+	protected static function _getFields()
 	{
 		
 		$fields = Array(
@@ -442,17 +442,21 @@ class roster_view extends db_object
 		print_csv($csvData);
 	}
 
-	function printSingleViewFlexi($service)
+	function printSingleViewFlexi($service, $includeServiceFields=FALSE)
 	{
 		$asns = $this->getAssignments($service->getValue('date'), $service->getValue('date'));
 		$asns = empty($asns) ? Array() : reset($asns);
-
+		$numMembers = 0;
+		foreach ($this->_members as $member) {
+			if ($member['role_id'] || $includeServiceFields) $numMembers++;
+		}
 		?>
 		<div class="column">
 		<?php
-		$perCol = ceil(count($this->_members)/4);
+		$perCol = ceil($numMembers/4);
 		$i = 0;
 		foreach ($this->_members as $member) {
+			if (!$includeServiceFields && (empty($member['role_id']))) continue;
 			?>
 			<div class="clearfix">
 				<label>
@@ -464,7 +468,7 @@ class roster_view extends db_object
 			</div>
 			<?php
 			$i++;
-			if (($i % $perCol == 0) && ($i < count($this->_members))) {
+			if (($i % $perCol == 0) && ($i < $numMembers)) {
 				?>
 		</div>
 		<div class="column">
@@ -476,12 +480,16 @@ class roster_view extends db_object
 		<?php
 	}
 
-	function printSingleViewTable($service, $columns=2)
+	function printSingleViewTable($service, $columns=2, $includeServiceFields=FALSE)
 	{
 		$asns = $this->getAssignments($service->getValue('date'), $service->getValue('date'));
 		$asns = empty($asns) ? Array() : reset($asns);
+		$numMembers = 0;
+		foreach ($this->_members as $member) {
+			if ($member['role_id'] || $includeServiceFields) $numMembers++;
+		}
 
-		$perCol = ceil(count($this->_members)/$columns);
+		$perCol = ceil($numMembers/$columns);
 		?>
 		<table cellpadding="5">
 			<?php
@@ -491,6 +499,7 @@ class roster_view extends db_object
 				<?php
 				$i = 0;
 				foreach ($this->_members as $member) {
+					if (!$includeServiceFields && (empty($member['role_id']))) continue;
 					if (($i % $columns) == $rowNum) {
 						?>
 						<th><?php $this->_printOutputLabel($member, $service); ?></th>
@@ -522,6 +531,7 @@ class roster_view extends db_object
 	private function _printOutputValue($member, $service, $asn, $withLinks=TRUE)
 	{
 		if ($member['role_id']) {
+			if (empty($asn)) echo '--';
 			foreach ($asn as $personid => $asn) {
 				if ($withLinks) echo '<a href="?view=persons&personid='.$personid.'" class="med-popup">';
 				echo ents($asn['name']);

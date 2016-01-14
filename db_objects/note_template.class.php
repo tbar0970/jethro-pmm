@@ -9,7 +9,7 @@ class Note_Template extends db_object
 
 	private $_field_values = Array();
 
-	function _getFields()
+	protected static function _getFields()
 	{
 		return Array(
 			'name'	=> Array(

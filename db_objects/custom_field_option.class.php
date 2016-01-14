@@ -8,7 +8,7 @@ class Custom_Field_Option extends db_object
 		parent::__construct($id);
 	}
 
-	function _getFields()
+	protected static function _getFields()
 	{
 		return Array(
 			'value'	=> Array(

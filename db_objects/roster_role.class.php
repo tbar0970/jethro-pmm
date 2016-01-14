@@ -20,7 +20,7 @@ class Roster_Role extends db_object
 		}
 	}
 
-	function _getFields()
+	protected static function _getFields()
 	{
 		
 		$fields = Array(

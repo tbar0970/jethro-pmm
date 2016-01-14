@@ -5,7 +5,7 @@ class Person_Note extends Abstract_Note
 	// A note template being used to populate this note
 	private $_template = NULL;
 
-	function _getFields()
+	protected static function _getFields()
 	{
 		return Array(
 				'personid'	=> Array(

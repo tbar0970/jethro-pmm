@@ -207,6 +207,11 @@ function print_widget($name, $params, $value)
 					resize_enabled: false,
 				";
 			}
+			if (array_get($params, 'enterMode') == 'BR') {
+				$ckParams .= '
+					enterMode: CKEDITOR.ENTER_BR,
+				';
+			}
 			if ($height = array_get($params, 'height')) {
 				$ckParams .= "
 					height: '{$height}',

@@ -19,7 +19,7 @@ class service extends db_object
 		return parent::__construct($id);
 	}
 
-	function _getFields()
+	protected static function _getFields()
 	{
 
 		$fields = Array(
@@ -55,8 +55,9 @@ class service extends db_object
 								   ),
 			'comments'	=> Array(
 									'type'		=> 'html',
-									'height'	=> '9em',
+									'height'	=> '7em',
 									'toolbar'  => 'basic',
+									'enterMode' => 'BR',
 								   ),
 
 		);
@@ -526,12 +527,14 @@ class service extends db_object
 
 		if (!empty($itemList)) {
 			$SQL = 'INSERT INTO service_item
-					(serviceid, rank, componentid, length_mins, note, heading_text)
+					(serviceid, rank, componentid, title, show_in_handout, length_mins, note, heading_text)
 					VALUES
 					';
 			$sets = Array();
 			foreach ($itemList as $rank => $item) {
-				$sets[] = '('.(int)$this->id.', '.(int)$rank.', '.(int)$item['componentid'].', '.(int)$item['length_mins'].', '.$db->quote(array_get($item, 'note')).', '.$db->quote(array_get($item, 'heading_text')).')';
+				if ($item['componentid']) $item['title'] = ''; // title is only saved for ad hoc items
+				if (!$item['componentid']) $item['componentid'] = NULL;
+				$sets[] = '('.(int)$this->id.', '.(int)$rank.', '.$db->quote($item['componentid']).', '.$db->quote($item['title']).', '.$db->quote($item['show_in_handout']).', '.(int)$item['length_mins'].', '.$db->quote(array_get($item, 'note')).', '.$db->quote(array_get($item, 'heading_text')).')';
 			}
 			$SQL .= implode(",\n", $sets);
 			$res = $db->exec($SQL);;
@@ -562,9 +565,12 @@ class service extends db_object
 
 	public function getItems($withContent=FALSE, $ofCategoryID=NULL)
 	{
-		$SQL = 'SELECT si.*, sc.title, sc.alt_title, sc.show_in_handout, '.($withContent ? 'sc.content_html, sc.credits, ' : '').'
-					IF(LENGTH(sc.runsheet_title_format) = 0, scc.runsheet_title_format, sc.runsheet_title_format) AS runsheet_title_format,
-					IF(LENGTH(sc.handout_title_format) = 0, scc.handout_title_format, sc.handout_title_format) AS handout_title_format
+		$SQL = 'SELECT si.*, 
+					IF (si.componentid IS NULL, si.title, sc.title) AS title,
+					sc.alt_title,
+					'.($withContent ? 'sc.content_html, sc.credits, ' : '').'
+					IFNULL(IF(LENGTH(sc.runsheet_title_format) = 0, scc.runsheet_title_format, sc.runsheet_title_format), "%title%") AS runsheet_title_format,
+					IFNULL(IF(LENGTH(sc.handout_title_format) = 0, scc.handout_title_format, sc.handout_title_format), "%title%") AS handout_title_format
 				FROM service_item si
 				LEFT JOIN service_component sc ON si.componentid = sc.id
 				LEFT JOIN service_component_category scc ON sc.categoryid = scc.id
@@ -577,7 +583,7 @@ class service extends db_object
 		return $res;
 	}
 
-	public function printServicePlan()
+	public function printRunSheet()
 	{
 		?>
 		<table cellspacing="0" cellpadding="5"

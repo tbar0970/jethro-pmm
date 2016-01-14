@@ -4,7 +4,7 @@ class Person_Group extends db_object
 {
 	var $_save_permission_level = PERM_EDITGROUP;
 
-	function _getFields()
+	protected static function _getFields()
 	{
 		return Array(
 			'name'		=> Array(

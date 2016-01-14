@@ -4,7 +4,7 @@ class family extends db_object
 {
 	var $_save_permission_level = PERM_EDITPERSON;
 
-	function _getFields()
+	protected static function _getFields()
 	{
 
 		$fields = Array(

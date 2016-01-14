@@ -19,7 +19,7 @@ class Action_Plan_Note extends Abstract_Note {
 		return '';
 	}
 
-	function _getFields()
+	protected static function _getFields()
 	{
 
 		$res = parent::_getFields();

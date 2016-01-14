@@ -29,7 +29,7 @@ class Person extends DB_Object
 		return TRUE;
 	}
 
-	function _getFields()
+	protected static function _getFields()
 	{
 		$allowEmptyCong = TRUE;
 		if (!empty($GLOBALS['user_system']) && $GLOBALS['user_system']->getCurrentRestrictions('congregation')) {

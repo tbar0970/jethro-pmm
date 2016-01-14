@@ -36,7 +36,7 @@ class db_object
 			$this->fields += $new_fields;
 			$parent_class = get_parent_class($parent_class);
 		}
-		$own_fields = $this->_getFields();
+		$own_fields = call_user_func(Array(get_class($this), '_getFields'));
 		foreach ($own_fields as $i => $v) {
 			$own_fields[$i]['table_name'] = strtolower(get_class($this));
 		}
@@ -72,7 +72,7 @@ class db_object
 			CREATE TABLE `".$table_name."` (
 			  `id` int(11) NOT NULL auto_increment,
 				";
-		foreach ($this->_getFields() as $name => $details) {
+		foreach (call_user_func(Array(get_class($this), '_getFields')) as $name => $details) {
 			$type = 'varchar(255)';
 			$default = array_get($details, 'default', '');
 			$null_exp = array_get($details, 'allow_empty', 0) ? 'NULL' : 'NOT NULL';
@@ -197,7 +197,7 @@ class db_object
 		$db =& $GLOBALS['db'];
 		$flds = Array();
 		$vals = Array();
-		$our_fields = $this->_getFields();
+		$our_fields = call_user_func(Array(get_class($this), '_getFields'));
 		foreach ($our_fields as $name => $details) {
 			if (array_get($details, 'readonly')) continue;
 			$flds[] = $name;
@@ -255,7 +255,7 @@ class db_object
 	* @return array
 	* @access protected
 	*/
-	protected function _getFields()
+	protected static function _getFields()
 	{
 		return Array();
 	}
