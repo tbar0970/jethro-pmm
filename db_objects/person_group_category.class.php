@@ -13,7 +13,7 @@ class Person_Group_Category extends db_object
 		}
 	}
 
-	function _getFields()
+	protected static function _getFields()
 	{
 		return Array(
 			'name'				=> Array(

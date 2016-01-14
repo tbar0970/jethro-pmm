@@ -2,7 +2,7 @@
 include_once 'db_objects/abstract_note.class.php';
 class Family_Note extends Abstract_Note
 {
-	function _getFields()
+	protected static function _getFields()
 	{
 		return Array(
 				'familyid'	=> Array(

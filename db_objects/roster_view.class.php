@@ -71,7 +71,7 @@ class roster_view extends db_object
 		return $res;
 	}
 
-	function _getFields()
+	protected static function _getFields()
 	{
 		
 		$fields = Array(

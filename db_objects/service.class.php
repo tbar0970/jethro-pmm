@@ -19,7 +19,7 @@ class service extends db_object
 		return parent::__construct($id);
 	}
 
-	function _getFields()
+	protected static function _getFields()
 	{
 
 		$fields = Array(

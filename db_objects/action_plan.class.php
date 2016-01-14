@@ -20,7 +20,7 @@ class Action_Plan extends DB_Object
 	}
 
 
-	function _getFields()
+	protected static function _getFields()
 	{
 		return Array(
 			'name'				=> Array(

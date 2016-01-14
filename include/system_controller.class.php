@@ -75,6 +75,9 @@ class System_Controller
 
 	public function initErrorHandler()
 	{
+		$error_level = defined('E_DEPRECATED') ? (E_ALL & ~constant('E_DEPRECATED') /*& ~constant('E_STRICT')*/) : E_ALL;
+		error_reporting($error_level);
+
 		set_error_handler(Array($this, '_handleError'));
 	}
 
