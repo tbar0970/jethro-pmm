@@ -9,10 +9,12 @@
 		<div id="header">
 			<h1>Jethro PMM Installer</h1>
 		</div>
-
-		<div id="body">
-			<?php $this->printBody(); ?>
+		<div id="jethro-overall-width">
+			<div id="jethro-overall-width-inner">
+				<div id="body">
+					<?php $this->printBody(); ?>
+				</div>
+			</div>
 		</div>
-
 	</body>
 </html>
