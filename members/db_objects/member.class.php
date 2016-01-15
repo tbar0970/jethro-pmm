@@ -6,7 +6,7 @@ class Member extends DB_Object
 {
 
 
-	function _getFields()
+	protected static function _getFields()
 	{
 		$memberFields = Array('first_name', 'last_name', 'gender', 'age_bracket', 'congregationid', 'email', 'mobile_tel', 'work_tel', 'familyid', 'family_name', 'address_street', 'address_suburb', 'address_state', 'address_postcode', 'home_tel');
 		

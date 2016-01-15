@@ -5,7 +5,7 @@ class Note_Comment extends DB_Object
 	var $_load_permission_level = PERM_VIEWNOTE;
 	var $_save_permission_level = PERM_EDITNOTE;
 
-	function _getFields()
+	protected static function _getFields()
 	{
 		return Array(
 				'noteid'	=> Array(

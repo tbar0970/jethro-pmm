@@ -2,7 +2,7 @@
 include_once 'include/db_object.class.php';
 class Service_Component_Tagging extends db_object
 {
-	function _getFields()
+	protected static function _getFields()
 	{
 
 		$fields = Array(

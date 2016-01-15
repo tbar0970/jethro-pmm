@@ -75,7 +75,7 @@ class Person_Query extends DB_Object
 	}
 
 
-	function _getFields()
+	protected static function _getFields()
 	{
 		$default_params = Array(
 							'rules'			=> Array('p.status' => Array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'contact')),

@@ -8,7 +8,7 @@ class Note_Template_Field extends db_object
 		parent::__construct($id);
 	}
 
-	function _getFields()
+	protected static function _getFields()
 	{
 		return Array(
 			'templateid'	=> Array(
