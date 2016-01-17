@@ -215,13 +215,9 @@ class db_object
 			array_unshift($flds, 'id');
 			array_unshift($vals, $db->quote((int)$this->id));
 		}
-		$updateVals = Array();
-		for($i = 0; $i < count($flds); $i++){
-			array_push($updateVals, $flds[$i] . "=" . $vals[$i]);
-		}
+
 		$sql = 'INSERT INTO '.strtolower(get_class($this)).' ('.implode(', ', $flds).')
-				 VALUES ('.implode(', ', $vals).') ON DUPLICATE KEY UPDATE ' . implode(', ',$updateVals);
-		$updateVals = null;
+				 VALUES ('.implode(', ', $vals).')';
 		$res = $db->query($sql);
 		check_db_result($res);
 		if (empty($this->id)) $this->id = $db->lastInsertId();
