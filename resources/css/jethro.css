@@ -990,9 +990,35 @@ Otherwise they go beneath each other
 	min-height: 1px;
 }
 
-#member-list .row-fluid {
+#member-list .member-row {
+	margin-bottom: 5px;
+}
+#member-list .family-row {
 	margin-bottom: 10px;
 }
+#member-list h3 {
+	clear: both;
+	margin-bottom: 0px;
+}
+#member-list div.member-card {
+	float: left;
+	padding-left: 60px;
+	width: 230px;
+	margin-bottom: 10px;
+	height: 80px;
+}
+#member-list div.member-card img {
+	width: 50px;
+	margin-left: -60px;
+	float: left;
+	margin-top: 3px;
+}
+@media (max-width: 400px) {
+	#member-list div.person {
+		width: 100%;
+	}
+}
+
 
 
 
