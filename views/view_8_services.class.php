@@ -34,6 +34,7 @@ class View_services extends View
 				'date' => $this->date
 			), 'AND');
 			if (!empty($serviceData)) {
+				// SAVE RUN SHEET
 				$this->service = $GLOBALS['system']->getDBObject('service', key($serviceData));
 
 				if ($this->editing) {
@@ -50,6 +51,7 @@ class View_services extends View
 						$newItem = Array(
 							'componentid' => $compid,
 							'title' => $_POST['title'][$rank],
+							'personnel' => $_POST['personnel'][$rank],
 							'show_in_handout' => $_POST['show_in_handout'][$rank],
 							'length_mins' => $_POST['length_mins'][$rank],
 							'note'        => trim($_POST['note'][$rank]),
@@ -163,12 +165,13 @@ class View_services extends View
 			<h3>Run Sheet</h3>
 			<form method="post" id="service-plan-container">
 			<input type="hidden" name="save_service" value="1" />
-			<table class="table table-bordered" id="service-plan" data-starttime="<?php echo $startTime; ?>">
+			<table class="table table-bordered table-condensed no-autofocus" id="service-plan" data-starttime="<?php echo $startTime; ?>">
 				<thead>
 					<tr>
 						<th class="narrow">Start</th>
 						<th class="narrow">#</th>
 						<th>Item</th>
+						<th class="personnel">Personnel</th>
 						<th class="narrow">&nbsp</th>
 					</tr>
 				</thead>
@@ -179,7 +182,7 @@ class View_services extends View
 				if (empty($items)) {
 					?>
 					<tr id="service-plan-placeholder">
-						<td colspan="4" style="padding: 50px; text-align: center">
+						<td colspan="5" style="padding: 50px; text-align: center">
 							<?php
 							if ($this->editing) {
 								?>
@@ -219,14 +222,15 @@ class View_services extends View
 									$title = $item['runsheet_title_format'];
 									$title = str_replace('%title%', $item['title'], $title);
 									$title = $this->service->replaceKeywords($title);
-									echo ents($title);
 								} else {
-									echo ents($item['title']);
+									$title = $item['title'];
 								}
+								echo ents($title);
 								?>
 								</span>
 								<?php
-								foreach (Array('componentid', 'title', 'length_mins', 'show_in_handout') as $k) {
+								print_hidden_field('title[]', $title);
+								foreach (Array('componentid', 'length_mins', 'show_in_handout') as $k) {
 									?>
 									<input type="hidden" name="<?php echo $k; ?>[]" class="<?php echo $k; ?>" value="<?php echo ents($item[$k]); ?>" />
 									<?php
@@ -242,6 +246,7 @@ class View_services extends View
 									}
 									?>><?php echo ents($item['note']); ?></textarea>
 							</td>
+							<td class="personnel"><input class="unfocused" name="personnel[]" type="text" value="<?php echo ents($item['personnel']); ?>" /></td>
 							<td class="tools">
 								<?php $this->_printTools(); ?>
 							</td>
@@ -258,10 +263,11 @@ class View_services extends View
 							<span></span>
 							<textarea name="note[]" class="unfocused" rows="1" style="display: none"></textarea>
 						</td>
+						<td class="personnel"><input name="personnel[]" type="text" value="" /></td>
 						<td class="tools"><?php $this->_printTools(); ?></td>
 					</tr>
 					<tr id="service-heading-template">
-						<td colspan="3">
+						<td colspan="4">
 							<input class="service-heading" name="" />
 						</td>
 						<td class="tools"><a href="javascript:;" data-action="remove"><i class="icon-trash"></i></a></td>
@@ -271,14 +277,14 @@ class View_services extends View
 
 				<tfoot>
 					<tr>
-						<td colspan="4">
+						<td colspan="5">
 							<?php
 							$this->printNotesFields();
 							?>
 						</td>
 					</tr>
 					<tr>
-						<td colspan="4">
+						<td colspan="5">
 							<button type="submit" class="btn">Save</button>
 						</td>
 					</tr>
@@ -306,30 +312,29 @@ class View_services extends View
 					</div>
 					<div class="control-group">
 						<label class="control-label">
-							Show in handout
+							Show in handout?
 						</label>
 						<div class="controls">
 							<?php 
-							unset($dummyItem->fields['show_in_handout']['options']['full']);
-							$dummyItem->fields['show_in_handout']['options']['title'] = 'Yes';
 							$dummyItem->setValue('show_in_handout', 'title');
 							$dummyItem->printFieldInterface('show_in_handout'); ?>
 						</div>
 					</div>
 					<div class="control-group">
 						<label class="control-label">
-							Length (mins)
+							Length
 						</label>
 						<div class="controls">
 							<?php
 							$dummyItem->setValue('length_mins', 2);
 							$dummyItem->printFieldInterface('length_mins');
 							?>
+							mins
 						</div>
 					</div>
 				</div>
 				<div class="modal-footer">
-					<input class="btn" type="button" value="Save item" data-action="saveAdHoc" />
+					<input class="btn" type="button" value="Save item" data-action="saveItemDetails" />
 					<input class="btn" type="button" value="Cancel" data-dismiss="modal" />
 				</div>
 				
@@ -346,8 +351,8 @@ class View_services extends View
 			<li><a href="javascript:;" data-action="addHeading">Add heading above</a></li>
 			<li class="divider"></li>
 			<li><a href="javascript:;" data-action="addNote">Add note</a></li>
-			<li class="hidden-ad-hoc"><a href="javascript:;" data-action="viewCompDetail">View component detail</a>
-			<li class="visible-ad-hoc"><a href="javascript:;" data-action="editDetails">Edit item detail</a>
+			<li class=""><a href="javascript:;" data-action="editDetails">Edit item detail</a>
+			<li class="hidden-ad-hoc"><a href="javascript:;" data-action="viewCompDetail">View component</a>
 			<li><a href="javascript:;" data-action="remove">Remove</a></li>
 			<li class="divider"></li>
 			<li><a href="javascript:;" data-action="addAdHoc">Add ad-hoc item below</a></li>
@@ -360,7 +365,14 @@ class View_services extends View
 	{
 		?>
 		<div class="span6">
-			<h3>Component Library</h3>
+			<h3>
+				<small class="pull-right">
+					<a href="?view=services__component_library">
+						<i class="icon-wrench"></i>Manage
+					</a>
+				</small>
+				Component Library
+			</h3>
 			<div id="component-search" class="input-append input-prepend">
 				<span class="add-on"><i class="icon-search"></i></span>
 				<input type="text" placeholder="Search components">
@@ -392,7 +404,7 @@ class View_services extends View
 					), 'AND', 'usage_12m');
 					?>
 					<div class="tab-pane <?php echo $active; ?>" id="cat<?php echo (int)$catid; ?>">
-						<table class="table table-bordered" title="Double-click or drag to add to service">
+						<table class="table table-bordered table-condensed" title="Double-click or drag to add to service">
 							<thead>
 								<tr>
 									<th data-sort="string">Title</th>
@@ -410,12 +422,15 @@ class View_services extends View
 									$runsheetTitle = str_replace('%title%', $comp['title'], $runsheetTitle);
 									$runsheetTitle = $this->service->replaceKeywords($runsheetTitle);
 								}
+								$comp['personnel'] = $this->service->replaceKeywords($comp['personnel']);
 
 								?>
 								<tr data-componentid="<?php echo (int)$compid; ?>"
 									data-show_in_handout="<?php echo $comp['show_in_handout']; ?>"
 									data-length_mins="<?php echo (int)$comp['length_mins']; ?>"
-									data-runsheet_title="<?php echo ents($runsheetTitle); ?>">
+									data-runsheet_title="<?php echo ents($runsheetTitle); ?>"
+									data-personnel="<?php echo ents($comp['personnel']); ?>"
+								>
 									<td>
 										<span class="title"><?php echo ents($comp['title']); ?></span>
 										<?php

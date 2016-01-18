@@ -444,6 +444,9 @@ class service extends db_object
 			return $this->getPersonnelByRoleTitle($role_title);
 		} else if (0 === strpos($keyword, 'SERVICE_')) {
 			$service_field = strtolower(substr($keyword, strlen('SERVICE_')));
+			if (in_array($service_field, Array('topic', 'format'))) {
+				$service_field .= '_title';
+			}
 			$res = $this->getValue($service_field);
 			if ($service_field == 'date') {
 				// make a friendly date
@@ -451,7 +454,8 @@ class service extends db_object
 			}
 			return $res;
 		} else {
-			return '';
+			// look for a role that matches
+			return $this->getPersonnelByRoleTitle($keyword);
 		}
 	}
 
@@ -525,16 +529,32 @@ class service extends db_object
 		$res = $db->exec('DELETE FROM service_item WHERE serviceid = '.(int)$this->id);
 		check_db_result($res);
 
+		$compids = Array();
+		foreach ($itemList as $item) {
+			if ($item['componentid']) $compids[] = (int)$item['componentid'];
+		}
+		$set = implode(', ', array_unique($compids));
+		$comps = $GLOBALS['system']->getDBObjectData('service_component', Array('(id' => $set));
+
 		if (!empty($itemList)) {
 			$SQL = 'INSERT INTO service_item
-					(serviceid, rank, componentid, title, show_in_handout, length_mins, note, heading_text)
+					(serviceid, rank, componentid, title, personnel, show_in_handout, length_mins, note, heading_text)
 					VALUES
 					';
 			$sets = Array();
 			foreach ($itemList as $rank => $item) {
-				if ($item['componentid']) $item['title'] = ''; // title is only saved for ad hoc items
-				if (!$item['componentid']) $item['componentid'] = NULL;
-				$sets[] = '('.(int)$this->id.', '.(int)$rank.', '.$db->quote($item['componentid']).', '.$db->quote($item['title']).', '.$db->quote($item['show_in_handout']).', '.(int)$item['length_mins'].', '.$db->quote(array_get($item, 'note')).', '.$db->quote(array_get($item, 'heading_text')).')';
+				if ($item['componentid']) {
+					$item['title'] = ''; // title is only saved for ad hoc items
+
+					// only save personnel if it's been changed from the component's default
+					// so that if the roster changes, the run sheet will auto updated.
+					if ($item['personnel'] == $comps[$item['componentid']]['personnel']) {
+						$item['personnel'] = '';
+					}
+				} else {
+					$item['componentid'] = NULL;
+				}
+				$sets[] = '('.(int)$this->id.', '.(int)$rank.', '.$db->quote($item['componentid']).', '.$db->quote($item['title']).', '.$db->quote($item['personnel']).', '.$db->quote($item['show_in_handout']).', '.(int)$item['length_mins'].', '.$db->quote(array_get($item, 'note')).', '.$db->quote(array_get($item, 'heading_text')).')';
 			}
 			$SQL .= implode(",\n", $sets);
 			$res = $db->exec($SQL);;
@@ -570,7 +590,8 @@ class service extends db_object
 					sc.alt_title,
 					'.($withContent ? 'sc.content_html, sc.credits, ' : '').'
 					IFNULL(IF(LENGTH(sc.runsheet_title_format) = 0, scc.runsheet_title_format, sc.runsheet_title_format), "%title%") AS runsheet_title_format,
-					IFNULL(IF(LENGTH(sc.handout_title_format) = 0, scc.handout_title_format, sc.handout_title_format), "%title%") AS handout_title_format
+					IFNULL(IF(LENGTH(sc.handout_title_format) = 0, scc.handout_title_format, sc.handout_title_format), "%title%") AS handout_title_format,
+					IF(LENGTH(si.personnel) = 0, sc.personnel, si.personnel) AS personnel
 				FROM service_item si
 				LEFT JOIN service_component sc ON si.componentid = sc.id
 				LEFT JOIN service_component_category scc ON sc.categoryid = scc.id
@@ -580,6 +601,11 @@ class service extends db_object
 		$SQL .= ' ORDER BY rank';
 		$res = $GLOBALS['db']->queryAll($SQL);
 		check_db_result($res);
+
+		foreach ($res as $k => &$item) {
+			$item['personnel'] = $this->replaceKeywords($item['personnel']);
+		}
+		unset($item);
 		return $res;
 	}
 
@@ -588,13 +614,14 @@ class service extends db_object
 		?>
 		<table cellspacing="0" cellpadding="5"
 			<?php if (empty($_REQUEST['view'])) echo 'border="1" style="width: 10cm; border-collapse: collapse" '; ?>
-			class="table table-bordered run-sheet"
+			class="table table-bordered table-condensed run-sheet"
 		>
 			<thead>
 				<tr>
 					<th class="narrow">Start</th>
 					<th class="narrow">#</th>
 					<th>Item</th>
+					<th class="narrow">Personnel</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -607,7 +634,7 @@ class service extends db_object
 				if ($item['heading_text']) {
 					?>
 					<tr>
-						<td colspan="3"><b><?php echo ents($item['heading_text']); ?></b></td>
+						<td colspan="4"><b><?php echo ents($item['heading_text']); ?></b></td>
 					</tr>
 					<?php
 				}
@@ -624,6 +651,7 @@ class service extends db_object
 						if ($item['note']) echo '<br /><i><small>'.nl2br(ents($item['note'])).'</small></i>';
 						?>
 					</td>
+					<td class="narrow"><?php echo ents($item['personnel']); ?></td>
 				</tr>
 				<?php
 				$time += $item['length_mins']*60;
@@ -635,7 +663,7 @@ class service extends db_object
 			?>
 			<tfoot>
 				<tr>
-					<td colspan="3" class="run-sheet-comments"><?php $this->printFieldValue('comments'); ?></td>
+					<td colspan="4" class="run-sheet-comments"><?php $this->printFieldValue('comments'); ?></td>
 				</tr>
 			</tfoot>
 			<?php

@@ -1393,9 +1393,10 @@ table.service-details td table td input {
 		box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset;
 		border-radius: 4px 4px 4px 4px;
 		padding: 4px 6px;
-		margin-bottom: 10px;
+		/*margin-bottom: 10px;*/
 		color: #333333;
 		width: auto;
+		max-width: 300px;
 		overflow-y: auto;
 		overflow-x: hidden;
 	}
@@ -1676,6 +1677,9 @@ table.system-config td small {
 	font-size: 90%;
 	font-weight: bold;
 }
+#service-planner td, #service-planner td * {
+	/*font-family: "Arial Narrow", "Helvetica neue", Helvetica, Arial, Sans Serif;*/
+}
 #service-planner .tab-pane {
 	/*overflow: auto;*/
 	max-width: 100%;
@@ -1696,6 +1700,10 @@ table.system-config td small {
 	font-size: 70%;
 	font-style: italic;
 }
+
+#service-plan-container {
+	padding-right: 15px; /* space for vertical scrollbar, so it doesn't trigger horizontal scrollbar' */
+}
 #service-plan .tools, #service-comps .tools {
 	padding: 0px;
 	vertical-align: middle;
@@ -1706,9 +1714,11 @@ table.system-config td small {
 }
 #service-plan .tools .dropdown-toggle {
 	display: block;
-	padding: 7px 3px;
+	padding: 3px 4px;
 }
-
+#service-plan .tools .dropdown-toggle i {
+	padding: 0px !important;
+}
 #service-plan tbody td {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -1748,6 +1758,13 @@ table.system-config td small {
 #service-plan input {
 	margin: 0px !important;
 	padding: 1px 3px;
+}
+#service-plan td.personnel {
+	padding-top: 1px;
+	padding-bottom: 1px;
+}
+#service-plan .personnel, #service-plan td.personnel input {
+	width: 11ex;
 }
 
 #service-plan tbody textarea {

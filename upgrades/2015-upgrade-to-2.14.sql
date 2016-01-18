@@ -104,3 +104,19 @@ ALTER TABLE service_item ADD COLUMN  `show_in_handout` varchar(255)NOT NULL DEFA
 UPDATE service_item si
 JOIN service_component sc ON si.componentid = sc.id
 SET si.show_in_handout = sc.show_in_handout;
+
+ALTER TABLE service_component_category
+ADD COLUMN personnel_default VARCHAR(255) NOT NULL DEFAULT '';
+
+UPDATE service_component_category
+SET personnel_default = '%SONG_LEADER%' WHERE category_name = 'Songs';
+
+UPDATE service_component_category
+SET personnel_default = '%SERVICE_LEADER%' WHERE category_name IN ('Creeds', 'Prayers');
+
+ALTER TABLE service_component
+ADD COLUMN personnel VARCHAR(255) NOT NULL DEFAULT '';
+
+ALTER TABLE service_item
+ADD COLUMN personnel VARCHAR(255) NOT NULL DEFAULT '';
+
