@@ -775,7 +775,7 @@ TBLib.handleIntBoxKeyPress = function(event)
 	if (!event) event = window.event;
 	if (event.altKey || event.ctrlKey || event.metaKey) return true;
 	var keyCode = event.keyCode ? event.keyCode : event.which;
-	validKeys = new Array(8, 9, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 97, 98, 99, 100, 101, 102, 103, 104, 105, 96, 46, 36, 35, 37, 39);
+	validKeys = new Array(8, 9, 13, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 97, 98, 99, 100, 101, 102, 103, 104, 105, 96, 46, 36, 35, 37, 39);
 	if (!validKeys.contains(keyCode)) {
 		return false;
 	}
@@ -900,15 +900,20 @@ Array.prototype.contains = function(element)
 	return false;
 };
 
-TBLib.anchorBottom = function(exp) {
+TBLib.anchorBottom = function(exp, isOnResize) {
 	var elts = $(exp);
 	elts.css('overflow-y', 'auto');
 	elts.height(1);
 	var totalBodyHeight = $('body').height();
-	var margin = 50;
+	var margin = 20;
 	elts.each(function() {
 		var $t = $(this);
 		var padding = parseInt($t.css('padding-top'), 10) +  parseInt($t.css('padding-bottom'), 10);
-		$t.height(totalBodyHeight - $t.position().top - margin - padding);
+		var newHeight = totalBodyHeight - $t.position().top - margin - padding;
+		newHeight = Math.max(newHeight, 100);
+		$t.height(newHeight);
 	});
+	if (!isOnResize) {
+		$(window).resize(function() { TBLib.anchorBottom(exp, true); });
+	}
 }
