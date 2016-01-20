@@ -955,7 +955,8 @@ class Person_Query extends DB_Object
 						$query['select'][] = 'p.id as '.$field;
 						break;
 					case 'all_members':
-						$query['from'] .= 'JOIN (
+						$query['from'] .= ' 
+										JOIN (
 											SELECT familyid, IF (
 												GROUP_CONCAT(DISTINCT last_name) = ff.family_name, 
 												GROUP_CONCAT(first_name ORDER BY age_bracket, gender DESC SEPARATOR ", "),
@@ -965,7 +966,7 @@ class Person_Query extends DB_Object
 											JOIN family ff ON pp.familyid = ff.id
 											WHERE pp.status <> "archived"
 											GROUP BY familyid
-										   ) all_members ON all_members.familyid = p.familyid
+										) all_members ON all_members.familyid = p.familyid
 										   ';
 						$query['select'][] = 'all_members.names as `All Family Members`';
 						break;
