@@ -222,7 +222,7 @@ class roster_view extends db_object
 		switch ($name) {
 			case 'members':
 				$this->_members = Array();
-				$this->_members_to_set = $_POST[$prefix.$name];
+				$this->_members_to_set = array_get($_POST, $prefix.$name, Array());
 				break;
 			default:
 				return parent::processFieldInterface($name, $prefix);
