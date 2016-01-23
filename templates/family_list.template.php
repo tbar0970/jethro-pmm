@@ -4,7 +4,13 @@
 		<th>ID</th>
 		<th>Family Name</th>
 		<th>Family Members</th>
+	<?php
+	if (!SizeDetector::isNarrow()) {
+		?>
 		<th>Home Phone</th>
+		<?php
+	}
+	?>
 		<th>Actions</th>
 	</tr>
 </thead>
@@ -17,7 +23,13 @@ foreach ($families as $id => $details) {
 		<td><?php echo (int)$id; ?></td>
 		<td><?php echo ents($details['family_name']); ?></td>
 		<td><?php echo ents($details['members']); ?></td>
-		<td><?php echo ents($details['home_tel']); ?></td>		
+	<?php
+	if (!SizeDetector::isNarrow()) {
+		?>
+		<td><?php echo ents($details['home_tel']); ?></td>
+		<?php
+	}
+	?>
 		<td class="action-cell narrow">
 			<a href="?view=families&familyid=<?php echo $id; ?>"><i class="icon-user"></i>View</a> &nbsp;
 		<?php
