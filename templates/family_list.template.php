@@ -4,6 +4,7 @@
 		<th>ID</th>
 		<th>Family Name</th>
 		<th>Family Members</th>
+		<th>Home Phone</th>
 		<th>Actions</th>
 	</tr>
 </thead>
@@ -16,6 +17,7 @@ foreach ($families as $id => $details) {
 		<td><?php echo (int)$id; ?></td>
 		<td><?php echo ents($details['family_name']); ?></td>
 		<td><?php echo ents($details['members']); ?></td>
+		<td><?php echo ents($details['home_tel']); ?></td>		
 		<td class="action-cell narrow">
 			<a href="?view=families&familyid=<?php echo $id; ?>"><i class="icon-user"></i>View</a> &nbsp;
 		<?php
