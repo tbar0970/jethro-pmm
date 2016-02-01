@@ -10,6 +10,7 @@ class User_System extends Abstract_User_System
 {
 	private $_error;
 	private $_permission_levels = Array();
+	private $_is_public = FALSE;
 
 	public function __construct()
 	{
@@ -109,7 +110,7 @@ class User_System extends Abstract_User_System
 	 */
 	public function getCurrentUser($field='')
 	{
-		if (empty($_SESSION['user'])) {
+		if (empty($_SESSION['user']) || $this->_is_public) {
 			return NULL;
 		} else {
 			if (empty($field)) {
@@ -156,6 +157,7 @@ class User_System extends Abstract_User_System
 	{
 		$res = $GLOBALS['db']->query('SET @current_user_id = -1');
 		if (PEAR::isError($res)) trigger_error('Failed to set user id in database', E_USER_ERROR);
+		$this->_is_public = TRUE;
 	}
 
 	public function printLogin()
