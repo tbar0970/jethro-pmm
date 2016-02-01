@@ -47,10 +47,10 @@ require_once JETHRO_ROOT.'/include/init.php';
 
 // Set up the user system
 require_once THIS_DIR.'/include/member_user_system.class.php';
-$GLOBALS['member_user_system'] = new Member_User_System();
-$GLOBALS['member_user_system']->run();
+$GLOBALS['user_system'] = new Member_User_System();
+$GLOBALS['user_system']->run();
 
-if ($GLOBALS['member_user_system']->getCurrentMember() != NULL) {
+if ($GLOBALS['user_system']->getCurrentMember() != NULL) {
 	require_once 'include/system_controller.class.php';
 	$GLOBALS['system'] = System_Controller::get(THIS_DIR);
 	System_Controller::get()->run();

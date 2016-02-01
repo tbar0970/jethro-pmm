@@ -258,6 +258,9 @@ class System_Controller
 		<div class="alert<?php if(isset($bg)){ echo" alert-".$bg;} ?>">
 			<h4><?php echo $title; ?></h4>
 			<p><?php echo $errstr; ?></p>
+		<?php
+		if ((JETHRO_VERSION == 'DEV') || defined('SHOW_ERROR_BACKTRACES')) {
+			?>
 			<u class="clickable" onclick="var parentDiv=this.parentNode; while (parentDiv.tagName != 'DIV') { parentDiv = parentDiv.parentNode; }; with (parentDiv.getElementsByTagName('PRE')[0].style) { display = (display == 'block') ? 'none' : 'block' }">Show Details</u>
 			<pre style="display: none; background: white; font-weight: normal; color: black"><b>Line <?php echo $errline; ?> of File <?php echo $errfile; ?></b>
 			<?php
@@ -273,6 +276,9 @@ class System_Controller
 			print_r($bt); 
 			?>
 			</pre>
+			<?php
+		}
+		?>
 		</div>
 		<?php
 		if ($send_email && defined('ERRORS_EMAIL_ADDRESS') && constant('ERRORS_EMAIL_ADDRESS')) {

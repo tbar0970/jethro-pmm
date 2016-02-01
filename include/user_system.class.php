@@ -1,6 +1,12 @@
 <?php
 require_once dirname(__FILE__).'/general.php';
-class User_System
+require_once dirname(__FILE__).'/abstract_user_system.php';
+
+/**
+ * This class is the user system for fully-logged-in users (eg staff members).
+ * See members/include/member_user_system for church-member login handling.
+ */
+class User_System extends Abstract_User_System
 {
 	private $_error;
 	private $_permission_levels = Array();
@@ -82,6 +88,18 @@ class User_System
 			$res = 0;
 		}
 		return (bool)$res;
+	}
+
+	/**
+	 * Get details of the currently-authorised user account
+	 * @see Abstract_User_System::getCurrentPerson()
+	 * @param string $field	Particular field to return; null=return all fields
+	 * @return mixed
+	 */
+
+	public function getCurrentPerson($field='')
+	{
+		return $this->getCurrentUser($field);
 	}
 
 	/**

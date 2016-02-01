@@ -170,7 +170,7 @@ class db_object
 		}
 		$GLOBALS['system']->setFriendlyErrors(FALSE);
 		if (isset($this->fields['creator']) && empty($this->values['creator'])) {
-			$userid = $this->getCurrentUser('id');
+			$userid = $GLOBALS['user_system']->getCurrentPerson('id');
 			if (!is_null($userid)) {
 				$this->values['creator'] = $userid;
 			}
@@ -316,7 +316,7 @@ class db_object
 		if (isset($this->fields['history'])) {
 			$changes = $this->_getChanges();
 			if ($changes) {
-				$user = $this->getCurrentUser();
+				$user = $GLOBALS['user_system']->getCurrentPerson();
 				$this->values['history'][time()] = 'Updated by '.$user['first_name'].' '.$user['last_name'].' (#'.$user['id'].")\n".implode("\n", $changes);
 				$this->_old_values['history'] = 1;
 			}
@@ -634,7 +634,7 @@ class db_object
 		<div class="form-horizontal">
 		<?php
 		foreach ($this->fields as $name => $details) {
-			if (array_get($details, 'divider_before')) {
+			if (empty($fields) && array_get($details, 'divider_before')) {
 				?>
 				<hr />
 				<?php
@@ -710,20 +710,10 @@ class db_object
 
 //--        PERMISSIONS AND LOCKING        --//
 	
-	protected function getCurrentUser($field='')
-	{
-		if (!empty($GLOBALS['member_user_system'])) {
-			$userid = $GLOBALS['member_user_system']->getCurrentMember($field);
-		} else {
-			$userid = $GLOBALS['user_system']->getCurrentUser($field);
-		}
-		return $userid;		
-	}
-	
 	protected function checkPerm($perm)
 	{
 		if ($perm == 0) return TRUE;
-		if (!empty($GLOBALS['user_system'])) {
+		if ($GLOBALS['user_system']->getCurrentUser('id')) {
 			return $GLOBALS['user_system']->havePerm($perm);
 		} else {
 			return TRUE;
@@ -740,7 +730,7 @@ class db_object
 					WHERE object_type = '.$db->quote(strtolower(get_class($this))).'
 						AND objectid = '.$db->quote($this->id).'
 						AND lock_type = '.$db->quote($type).'
-						AND userid = '.$this->getCurrentUser('id').'
+						AND userid = '.$GLOBALS['user_system']->getCurrentPerson('id').'
 						AND expires > '.$db->quote(MDB2_Date::unix2Mdbstamp(time()));
 			$this->_held_locks[$type] = $db->queryOne($sql);
 			check_db_result($this->_held_locks[$type]);
@@ -761,7 +751,7 @@ class db_object
 						AND expires > '.$db->quote(MDB2_Date::unix2Mdbstamp(time()));
 			$res = $db->queryOne($sql);
 			check_db_result($res);
-			if ($res == $this->getCurrentUser('id')) {
+			if ($res == $GLOBALS['user_system']->getCurrentPerson('id')) {
 				$this->_acquirable_locks[$type] = TRUE; // already got it, what the heck
 				$this->_held_locks[$type] = TRUE;
 			} else {
@@ -781,7 +771,7 @@ class db_object
 					'.$db->quote($this->id).',
 					'.$db->quote(strtolower(get_class($this))).',
 					'.$db->quote($type).',
-					'.$db->quote($this->getCurrentUser('id')).',
+					'.$db->quote($GLOBALS['user_system']->getCurrentPerson('id')).',
 					'.$db->quote(MDB2_Date::unix2Mdbstamp(strtotime('+'.LOCK_LENGTH))).')';
 		$res = $db->query($sql);
 		check_db_result($res);
@@ -803,7 +793,7 @@ class db_object
 	{
 		$db =& $GLOBALS['db'];
 		$sql = 'DELETE FROM db_object_lock
-				WHERE userid = '.$db->quote($this->getCurrentUser('id')).'
+				WHERE userid = '.$db->quote($GLOBALS['user_system']->getCurrentPerson('id')).'
 					AND objectid = '.$db->quote($this->id).'
 					AND lock_type = '.$db->quote($type).'
 					AND object_type = '.$db->quote(strtolower(get_class($this)));
