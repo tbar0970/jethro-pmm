@@ -233,7 +233,7 @@ class View_Attendance__Display extends View
 			</tbody>
 			<tfoot class="attendance-stats">
 				<tr class="headcount">
-					<th colspan="3">Total Headcount</th>
+					<th colspan="2">Total Headcount</th>
 				<?php
 				foreach ($dates as $date) {
 					?>
@@ -246,7 +246,7 @@ class View_Attendance__Display extends View
 					<td colspan="2">&nbsp;</td>
 				</tr>
 				<tr class="present">
-					<th colspan="3">Total Present</th>
+					<th colspan="2">Total Present</th>
 				<?php
 				foreach ($dates as $date) {
 					?>
@@ -259,7 +259,7 @@ class View_Attendance__Display extends View
 					<td colspan="2">&nbsp;</td>
 				</tr>
 				<tr class="absent">
-					<th colspan="3">Total Absent</th>
+					<th colspan="2">Total Absent</th>
 				<?php
 				foreach ($dates as $date) {
 					?>
@@ -272,7 +272,7 @@ class View_Attendance__Display extends View
 					<td colspan="2">&nbsp;</td>
 				</tr>
 				<tr class="extras">
-					<th colspan="3">Extras</th>
+					<th colspan="2">Extras</th>
 				<?php
 				foreach ($dates as $date) {
 					?>
