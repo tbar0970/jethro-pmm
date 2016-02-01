@@ -139,11 +139,11 @@ class View_services extends View
 							</span>
 							Full content
 						</h3>
-
-						<?php
-						$this->service->printServiceContent();
-						?>
-
+						<div class="service-content anchor-bottom">
+							<?php
+							$this->service->printServiceContent();
+							?>
+						</div>
 					</div>
 				</div>
 

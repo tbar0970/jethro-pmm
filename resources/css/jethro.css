@@ -1695,6 +1695,13 @@ table.system-config td small {
 
 /*************** SERVICE PLANNING ****************/
 
+.service-content h4 {
+	font-size: 110%;
+	color: #888;
+	margin-top: 1ex;
+	margin-bottom: 0px;
+}
+
 #service-comp-manager .tab-content {
 	overflow-y: auto;
 }
@@ -1822,7 +1829,6 @@ td.run-sheet-comments * {
 	margin-right: -15px;
 	margin-top: 3px;
 }
-
 #service-personnel div.column {
 	float: left;
 	width: 22.7%;
@@ -1837,13 +1843,13 @@ td.run-sheet-comments * {
 	font-weight: bold;
 	margin: 0px;
 	float: left;
-	width: 8em;
+	width: 9em;
 }
 #service-personnel div div {
 	margin-bottom: 5px;
 }
 #service-personnel div div div {
-	margin-left: 8.5em;
+	margin-left: 9.2em;
 }
 
 
