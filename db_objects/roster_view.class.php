@@ -33,6 +33,10 @@ class roster_view extends db_object
 	{
 		$res = parent::load($id);
 		
+		if (!$this->getValue('is_public') && !$GLOBALS['user_system']->getCurrentUser('id')) {
+			trigger_error("Roster view #{$this->id} is only available to logged in users", E_USER_ERROR); // exits;
+		}
+		
 		$sql = '(
 					SELECT rvrm.order_num as order_num, rr.id as role_id, rr.title as role_title, NULL as service_field, rr.congregationid as congregationid, rrc.name as congregation_name, rr.volunteer_group as volunteer_group
 					FROM
