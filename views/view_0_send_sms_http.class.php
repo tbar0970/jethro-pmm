@@ -58,7 +58,7 @@ class View__Send_SMS_HTTP extends View
 			print_message("Did not find any recipients with mobile numbers.  Message not sent.", 'error');
 		} else {
 
-			$mobile_tels = array();
+			$mobile_tels = array();			
 			foreach ($recips as $recip) {
 				$mobile_tels[$recip['mobile_tel']] = 1;
 			}
@@ -77,14 +77,21 @@ class View__Send_SMS_HTTP extends View
 			$content = str_replace('_RECIPIENTS_COMMAS_', urlencode(implode(',', $mobile_tels)), $content);
 			$content = str_replace('_RECIPIENTS_NEWLINES_', urlencode(implode("\n", $mobile_tels)), $content);
 
+			$header  = "";
+			if ((FIVECENT_SMS_EMAIL) && (FIVECENT_SMS_API_KEY)) {
+				$header = $header . "User: " . FIVECENT_SMS_EMAIL . "\r\n"
+						  . "Api-Key: " . FIVECENT_SMS_API_KEY . "\r\n";
+			}
+			$header  = $header . "Content-Length: ".strlen($content)."\r\n"
+				           . "Content-Type: application/x-www-form-urlencoded\r\n";
 			$opts = Array(
 				'http' => Array(
 					'method'	=> 'POST',
 					'content'	=> $content,
-					'header'	=> "Content-Length: ".strlen($content)."\r\n"
-									."Content-Type: application/x-www-form-urlencoded\r\n"
+					'header'	=> $header
 				)
 			);
+						
 			$response = '';
 			$fp = fopen(SMS_HTTP_URL, 'r', false, stream_context_create($opts));
 			if ($fp) {
@@ -101,9 +108,20 @@ class View__Send_SMS_HTTP extends View
 			if (SMS_HTTP_RESPONSE_OK_REGEX) {
 				foreach ($recips as $id => $recip) {
 					$pattern = '/'.str_replace('_RECIPIENT_', preg_quote($recip['mobile_tel']), SMS_HTTP_RESPONSE_OK_REGEX).'/m';
-
+					print "Pattern: " . $pattern;
 					if (preg_match($pattern, $response)) { 
 						$successes[$id] = $recip;
+
+						// Add a note containing the SMS to the user
+						$GLOBALS['system']->includeDBClass('person_note');
+						$note = new Person_Note();
+						$note->setValue('subject', 'SMS Sent');
+						$note->setvalue('details', $_POST['message']);
+						$note->setValue('personid', $id);
+						if ($note->create()) {
+							add_message('Note added');
+						}
+
 					} else {
 						$failures[$id] = $recip;
 					}
