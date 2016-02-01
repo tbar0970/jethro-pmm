@@ -442,26 +442,33 @@ class service extends db_object
 		if (0 === strpos($keyword, 'NAME_OF_')) {
 			$role_title = substr($keyword, strlen('NAME_OF_'));
 			return $this->getPersonnelByRoleTitle($role_title);
+
+		} else if (substr($keyword, -10) == '_FIRSTNAME') {
+			return $this->getPersonnelByRoleTitle(substr($keyword, 0, -10), TRUE);
+			
 		} else if (0 === strpos($keyword, 'SERVICE_')) {
 			$service_field = strtolower(substr($keyword, strlen('SERVICE_')));
 			if (in_array($service_field, Array('topic', 'format'))) {
 				$service_field .= '_title';
 			}
-			$res = $this->getValue($service_field);
-			if ($service_field == 'date') {
-				// make a friendly date
-				$res = date('j F Y', strtotime($res));
+			if (isset($this->fields[$service_field])) {
+				$res = $this->getValue($service_field);
+				if ($service_field == 'date') {
+					// make a friendly date
+					$res = date('j F Y', strtotime($res));
+				}
+				return $res;
 			}
-			return $res;
-		} else {
-			// look for a role that matches
-			return $this->getPersonnelByRoleTitle($keyword);
+		
 		}
+
+		// look for a role that matches
+		return $this->getPersonnelByRoleTitle($keyword);
 	}
 
-	function getPersonnelByRoleTitle($role_title)
+	function getPersonnelByRoleTitle($role_title, $first_name_only=FALSE)
 	{
-		$sql = 'SELECT *
+		$sql = 'SELECT roster_role_id, first_name, last_name
 			FROM person
 				JOIN roster_role_assignment rra ON rra.personid = person.id
 				JOIN roster_role rr ON rra.roster_role_id = rr.id
@@ -474,7 +481,7 @@ class service extends db_object
 		foreach ($assignments as $assignment) {
 			$role_id = $assignment['roster_role_id'];
 			$role_ids[$role_id] = 1;
-			$names[] = $assignment['first_name'].' '.$assignment['last_name'];
+			$names[] = $assignment['first_name'].($first_name_only ? '' : (' '.$assignment['last_name']));
 		}
 		if (count($role_ids) != 1) return ''; // either no role found or ambigious role title
 		return implode(', ', $names);
