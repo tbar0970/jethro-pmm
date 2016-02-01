@@ -1,6 +1,6 @@
 <?php
 require_once dirname(__FILE__).'/general.php';
-require_once dirname(__FILE__).'/abstract_user_system.php';
+require_once dirname(__FILE__).'/abstract_user_system.class.php';
 
 /**
  * This class is the user system for fully-logged-in users (eg staff members).
