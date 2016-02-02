@@ -77,8 +77,9 @@ define('REQUIRE_INITIAL_NOTE', true);
 // Whether users restricted by congregation or group can add persons and families
 define('RESTRICTED_USERS_CAN_ADD', true);
 
-// The order in which persons are listed when marking or reporting on 
-// The default is by status (core first) then last name, age bracket (adults first), gender (male first)
+// The order in which persons are listed when marking or reporting attendance for congregations or groups.
+// "status" means person status for congregational attendance, and group membership status for groups.
+// "person.status" means person status, even when marking attendance for a group.
 define('ATTENDANCE_LIST_ORDER', 'status ASC, family_name ASC, familyid, age_bracket ASC, gender DESC');
 
 // The default day for which attendance is recorded
