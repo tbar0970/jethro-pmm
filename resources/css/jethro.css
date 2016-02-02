@@ -164,10 +164,11 @@ body {
 }
 @media (min-width: 1025px) {
 	#jethro-overall-width {
-		min-width: 1020px;
+		/*min-width: 1020px;*/
+		padding-left: 10px;
 	}
 }
-@media (max-width: 1055px) {
+@media (max-width: 1025px) {
 	#jethro-overall-width {
 		min-width: 100%;
 	}
@@ -569,12 +570,10 @@ input[type="radio"] {
 #body .no-padding td, #body .no-padding th {
 	padding: 0px !important;
 }
-/*
-THIS IS IMPLEMENTED BY JETHRO.JS IN A SPECIAL WAY
+/* THIS IS MOSTLY IMPLEMENTED BY JETHRO.JS IN A SPECIAL WAY*/
 td.narrow, th.narrow, .object-summary th {
-	width: 1%;
 	white-space: nowrap;
-}*/
+}
 
 .fill-me * {
 	width: 100%;
