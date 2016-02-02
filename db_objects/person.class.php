@@ -235,7 +235,7 @@ class Person extends DB_Object
 				} else if (defined('SMS_HTTP_URL') && constant('SMS_HTTP_URL') && $GLOBALS['user_system']->havePerm(PERM_SENDSMS)) {
 					// Provide a link to send SMS through the SMS gateway
 					?>
-					<div id="send-sms-modal" class="modal hide fade" role="dialog" aria-hidden="true">
+					<div id="send-sms-modal-<?php echo ents($value); ?>" class="modal hide fade" role="dialog" aria-hidden="true">
 						<form method="post" action="?view=_send_sms_http">
 							<input type="hidden" name="personid" value="<?php echo $this->id; ?>" />
 
@@ -253,7 +253,7 @@ class Person extends DB_Object
 						</form>
 					</div>
 					<?php
-					$smsLink = 'href="#send-sms-modal" data-toggle="modal"';
+					$smsLink = 'href="#send-sms-modal-' . ents($value) . '" data-toggle="modal"';
 				}
 				?>
 				<span class="nowrap">
