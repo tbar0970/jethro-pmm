@@ -58,7 +58,7 @@ class View__Send_SMS_HTTP extends View
 			print_message("Did not find any recipients with mobile numbers.  Message not sent.", 'error');
 		} else {
 
-			$mobile_tels = array();			
+			$mobile_tels = array();
 			foreach ($recips as $recip) {
 				$mobile_tels[$recip['mobile_tel']] = 1;
 			}
