@@ -557,16 +557,16 @@ class Attendance_Record_Set
 
 	function getAttendances($congregationids, $groupid, $age_bracket, $start_date, $end_date)
 	{
-		$SQL = 'SELECT p.id, p.last_name, p.first_name, '.($groupid ? 'pgms.label AS membership_status, ' : '').' p.status, ar.date, ar.present
-				FROM person p
-				JOIN family f ON p.familyid = f.id
+		$SQL = 'SELECT person.id, person.last_name, person.first_name, '.($groupid ? 'pgms.label AS membership_status, ' : '').' person.status, ar.date, ar.present
+				FROM person person
+				JOIN family f ON person.familyid = f.id
 				';
 		if ($groupid) {
 			$SQL .= '
-				JOIN person_group_membership pgm ON pgm.personid = p.id AND pgm.groupid = '.(int)$groupid;
+				JOIN person_group_membership pgm ON pgm.personid = person.id AND pgm.groupid = '.(int)$groupid;
 		}
 		$SQL .= '
-				LEFT JOIN attendance_record ar ON ar.personid = p.id
+				LEFT JOIN attendance_record ar ON ar.personid = person.id
 					AND ar.date BETWEEN '.$GLOBALS['db']->quote($start_date).' AND '.$GLOBALS['db']->quote($end_date);
 		if ($congregationids) {
 			$SQL .= ' AND ar.groupid = 0';
@@ -577,18 +577,18 @@ class Attendance_Record_Set
 				LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status';
 		}
 		$SQL .= '
-				WHERE ((p.status <> "archived") OR (ar.present IS NOT NULL)) ';
+				WHERE ((person.status <> "archived") OR (ar.present IS NOT NULL)) ';
 		if ($congregationids) {
 			 $SQL .= '
-				 AND p.congregationid IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congregationids)).') ';
+				 AND person.congregationid IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congregationids)).') ';
 		}
 		if ($age_bracket !== '') {
 			$SQL .= '
-				AND p.age_bracket = '.$GLOBALS['db']->quote($age_bracket);
+				AND person.age_bracket = '.$GLOBALS['db']->quote($age_bracket);
 		}
 
 		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
-		$order = preg_replace("/(^|[^.])status($| |,)/", '\\1p.status\\2', $order);
+		$order = preg_replace("/(^|[^.])status($| |,)/", '\\1person.status\\2', $order);
 		$SQL .= '
 				ORDER BY '.$order;
 		$dates = Array();
