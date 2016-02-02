@@ -5,6 +5,7 @@
 		<th>Family Name</th>
 		<th>Family Members</th>
 	<?php
+	include_once 'include/size_detector.class.php';
 	if (!SizeDetector::isNarrow()) {
 		?>
 		<th>Home Phone</th>
