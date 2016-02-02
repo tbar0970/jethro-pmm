@@ -679,8 +679,8 @@ JethroServicePlanner.Item.addAdHoc = function ($tr) {
 	$modal.find('input[name=title]').val('');
 	
 	$modal.find('select[name=show_in_handout] option[value=full]')
-			.attr('disabled')
-			.css('display', 'none');
+			.css('display', 'none')
+			.attr('disabled');
 	$modal.find('select[name=show_in_handout] option[value=title]')
 			.html('Yes');
 
