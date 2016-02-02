@@ -108,7 +108,6 @@ class View__Send_SMS_HTTP extends View
 			if (SMS_HTTP_RESPONSE_OK_REGEX) {
 				foreach ($recips as $id => $recip) {
 					$pattern = '/'.str_replace('_RECIPIENT_', preg_quote($recip['mobile_tel']), SMS_HTTP_RESPONSE_OK_REGEX).'/m';
-					print "Pattern: " . $pattern;
 					if (preg_match($pattern, $response)) { 
 						$successes[$id] = $recip;
 
