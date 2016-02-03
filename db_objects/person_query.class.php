@@ -486,7 +486,9 @@ class Person_Query extends DB_Object
 		?>
 		<option disabled="disabled">------</option>
 		<option value="attendance_percent"<?php if ($sb == "attendance_percent") echo ' selected="selected"'; ?>>Attendance rate during the specified period</option>
-		<option value="attendance_numabsences""<?php if ($sb == "attendance_numabsences") echo ' selected="selected"'; ?>>Number of absences since last marked present</option>
+		<option value="attendance_numabsences"<?php if ($sb == "attendance_numabsences") echo ' selected="selected"'; ?>>Number of absences since last marked present</option>
+		<option disabled="disabled">------</option>
+		<option value="membershipstatus"<?php if ($sb == "membershipstatus") echo ' selected="selected"'; ?>>Group membership status</option>
 		<?php
 		if ($this->_custom_fields) {
 			?>
@@ -625,11 +627,15 @@ class Person_Query extends DB_Object
 
 		// SORT BY
 		$params['sort_by'] = $_POST['sort_by'];
-		if (in_array($params['sort_by'], Array('attendance_percent', 'attendance_numabsences'))) {
+		if (in_array($params['sort_by'], Array('attendance_percent', 'attendance_numabsences', 'membershipstatus'))) {
 			if (!in_array($params['sort_by'], $params['show_fields'])) {
-				add_message("In order to sort by attendance/absence, it will also be displayed as a column", 'error');
+				add_message("In order to sort by the requested field, it will also be displayed as a column", 'notice');
 				$params['show_fields'][] = $params['sort_by'];
 			}
+		}
+		if (empty($params['include_groups']) && ($params['sort_by'] == 'membershipstatus')) {
+			add_message('No groups were chosen, so results cannot be ordered by membership status', 'error');
+			$params['sort_by'] = '';
 		}
 		$this->setValue('params', $params);
 	}
@@ -1070,19 +1076,20 @@ class Person_Query extends DB_Object
 			}
 			$order[] = 'GROUP_CONCAT('.Custom_Field::getSortValueSQLExpr('cfvorder', 'cfoorder').')';
 			$query['order_by'] = implode(', ', $order);
-
 		}
 
-		/* 
-		 * We can order by attendances or absences safely, 
-		 * because we have already ensured they will appear 
+		/*
+		 * We can order by attendances or absences safely,
+		 * because we have already ensured they will appear
 		 * the select clause.
 		 */
-		if ($query['order_by'] == '`attendance_percent`') {
-			$query['order_by'] = '`Attendance` ASC';
-		} else if ($query['order_by'] == '`attendance_numabsences`') {
-			$query['order_by'] = '`Running Absences` DESC';
-		}
+		$rewrites = Array(
+					'`attendance_percent`' => '`Attendance` ASC',
+					'`attendance_numabsences`' => '`Running Absences` DESC',
+					'`membershipstatus`' => 'pgms.rank',
+		);
+		$query['order_by'] = str_replace(array_keys($rewrites), array_values($rewrites), $query['order_by']);
+		if (!strlen(trim($query['order_by'], '`'))) $query['order_by'] = 1;
 
 		// Build SQL
 		$sql = 'SELECT '.$select_fields.'
