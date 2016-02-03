@@ -4,14 +4,15 @@ require_once 'include/size_detector.class.php';
 
 class View_Attendance__Record extends View
 {
-	var $_record_sets = Array();
-	var $_attendance_date = NULL;
-	var $_age_bracket = NULL;
+	private $_record_sets = Array();
+	private $_attendance_date = NULL;
+	private $_age_bracket = NULL;
+	private $_status = NULL;
 
-	var $_cohortids = Array();
+	private $_cohortids = Array();
 
-	var $_show_photos = FALSE;
-	var $_parallel_mode = FALSE;
+	private $_show_photos = FALSE;
+	private $_parallel_mode = FALSE;
 
 	static function getMenuPermissionLevel()
 	{
@@ -47,6 +48,7 @@ class View_Attendance__Record extends View
 		if (empty($_REQUEST['params_submitted']) && empty($_REQUEST['attendances_submitted'])) {
 			if (!empty($_SESSION['attendance'])) {
 				$this->_age_bracket = array_get($_SESSION['attendance'], 'age_bracket');
+				$this->_status = array_get($_SESSION['attendance'], 'status');
 				$this->_cohortids = array_get($_SESSION['attendance'], 'cohortids');
 				$this->_show_photos =  array_get($_SESSION['attendance'], 'show_photos', FALSE);
 				$this->_parallel_mode =  array_get($_SESSION['attendance'], 'parallel_mode', FALSE);
@@ -55,14 +57,13 @@ class View_Attendance__Record extends View
 
 		if (!empty($_REQUEST['params_submitted']) || !empty($_REQUEST['attendances_submitted'])) {
 			$this->_age_bracket = $_SESSION['attendance']['age_bracket'] = array_get($_REQUEST, 'age_bracket');
+			$this->_status = $_SESSION['attendance']['status'] = array_get($_REQUEST, 'status');
 			$this->_show_photos = $_SESSION['attendance']['show_photos'] = array_get($_REQUEST, 'show_photos', FALSE);
 			$this->_parallel_mode = $_SESSION['attendance']['parallel_mode'] = array_get($_REQUEST, 'parallel_mode', FALSE);
-
 		}
 		
-		$status = NULL; // TODO
 		foreach ($this->_cohortids as $id) {
-			$this->_record_sets[$id] = new Attendance_Record_set($this->_attendance_date, $id, $this->_age_bracket, $status);
+			$this->_record_sets[$id] = new Attendance_Record_set($this->_attendance_date, $id, $this->_age_bracket, $this->_status);
 			if ($this->_show_photos) $this->_record_sets[$id]->show_photos = TRUE;
 		}
 		
@@ -140,7 +141,7 @@ class View_Attendance__Record extends View
 		// STEP 1 - choose congregation and date
 		?>
 		<form method="get" class="well well-small clearfix form-inline">
-			<input type="hidden" name="view" value="<?php echo $_REQUEST['view']; ?>" />
+			<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
 			<table class="attendance-config-table">
 				<tr>
 					<th>For</th>
@@ -152,6 +153,21 @@ class View_Attendance__Record extends View
 								'default'		=> '',
 								'allow_empty'	=> false,
 						), $this->_age_bracket);
+
+						$statusOptions = Array();
+						foreach (Person::getStatusOptions() as $id => $val) {
+							$statusOptions['p-'.$id] = $val;
+						}
+						list($gOptions, $default) = Person_Group::getMembershipStatusOptionsAndDefault();
+						foreach ($gOptions as $id => $val) {
+							$statusOptions['g-'.$id] = $val;
+						}
+						print_widget('status', Array(
+								'type'			=> 'select',
+								'options'		=> Array('' => 'Any status') + $statusOptions,
+								'default'		=> '',
+								'allow_empty'	=> false,
+						), $this->_status);
 						?>
 					</td>
 				</tr>

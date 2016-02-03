@@ -19,10 +19,8 @@ class View__Groups extends View
 			trigger_error("Group ID missing");
 			return;
 		}
-		
-		$personIDs = $this->group->getMemberIDs(FALSE);
-		$order = 'last_name, first_name';
-		$persons = $GLOBALS['system']->getDBObjectData('member', Array('id' => $personIDs), 'OR', $order);
+
+		$persons = $this->group->getMembers(Array('!status' => 'archived'));
 		$emails = Array();
 		foreach ($persons as $member) {
 			if ($e = $member['email']) $emails[] = $e;

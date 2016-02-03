@@ -30,6 +30,12 @@ class Person extends DB_Object
 		return TRUE;
 	}
 
+	public static function getStatusOptions()
+	{
+		return explode(',', PERSON_STATUS_OPTIONS)
+				+ Array('contact' => 'Contact', 'archived' => 'Archived');
+	}
+
 	protected static function _getFields()
 	{
 		$allowEmptyCong = TRUE;
@@ -83,8 +89,7 @@ class Person extends DB_Object
 							   ),
 			'status'	=> Array(
 								'type'	=> 'select',
-								'options'	=> explode(',', PERSON_STATUS_OPTIONS) 
-											+ Array('contact' => 'Contact', 'archived' => 'Archived'),
+								'options'	=> self::getStatusOptions(),
 								'default'	=> 'contact' /* but see below */,
 								'class'		=> 'person-status',
 								'allow_empty'	=> false,
@@ -599,11 +604,6 @@ class Person extends DB_Object
 		</ul>
 		<input type="text" placeholder="Search persons" id="<?php echo $name; ?>-input" class="person-search-multiple" />
 		<?php
-	}
-
-	function getStatusOptions()
-	{
-		return $this->fields['status']['options'];
 	}
 
 	static function getStatusStats()
