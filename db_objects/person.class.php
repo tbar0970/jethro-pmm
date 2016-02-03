@@ -808,10 +808,10 @@ class Person extends DB_Object
 	{
 		$fields = $this->getCustomFields();
 		$oldVal = array_get($this->_custom_values, $fieldid, '');
-		if ((!empty($oldVal) || !empty($newVal)) && ($oldVal != $newVal)) {
+		if ((!empty($oldVal) || !empty($newVal)) && ($addToExisting || ($oldVal != $newVal))) {
 			$this->_old_custom_values[$fieldid] = $oldVal;
 			if ($fields[$fieldid]['allow_multiple'] && $addToExisting && $oldVal) {
-				$this->_custom_values[$fieldid] = array_merge((array)$oldVal, $newVal);
+				$this->_custom_values[$fieldid] = array_merge((array)$oldVal, (array)$newVal);
 			} else {
 				$this->_custom_values[$fieldid] = $newVal;
 			}
