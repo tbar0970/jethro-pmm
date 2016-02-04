@@ -92,7 +92,7 @@ class Action_Plan extends DB_Object
 			$notes = Array(Array()); // 1 blank note to start us off
 		}
 		?>
-		<table>
+		<table class="action-plan">
 			<tbody>
 				<tr>
 					<th>Name</th>
@@ -139,27 +139,67 @@ class Action_Plan extends DB_Object
 						?>
 					</td>
 				</tr>
-			<?php
-			if ($GLOBALS['system']->featureEnabled('DATES')) {
-				$datetype_params = Array(
-									'type' => 'select',
-									'options' => Array('' => '(Choose type)'),
-									);
-				$dateFields = $GLOBALS['system']->getDBObjectData('custom_field', Array('type' => 'date'), 'OR', 'rank');
-				foreach ($dateFields as $fieldID => $fieldDetails) {
-					$datetype_params['options'][$fieldID] = $fieldDetails['name'];
-				}
-				$datenote_params = Array(
-									'type' => 'text',
-									'width' => 40
-									);
-				?>
 				<tr>
-					<th>Dates</th>
+					<th>Fields</th>
 					<td>
 						When this plan is executed, for each person / family member:
-						<table class="expandable">
+						<table class="fields">
 						<?php
+						$dummy = new Person();
+						foreach (Array('congregationid', 'status', 'age_bracket') as $field) {
+							$value = '';
+							$addToExisting = FALSE;
+							$v = array_get($actions['fields'], $field);
+							if ($v) {
+								$value = $v['value'];
+								$addToExisting = $v['add'];
+							}
+							$dummy->fields[$field]['allow_empty'] = TRUE;
+							$dummy->fields[$field]['empty_text'] = '(No change)';
+							$dummy->setValue($field, array_get($actions['fields'], $field));
+							echo '<tr><td>';
+							print_widget('fields_enabled['.$field.']', Array('type'=>'checkbox'), $value);
+							echo 'Set '.$dummy->getFieldLabel($field).' </td><td>';
+							$dummy->printFieldInterface($field);
+							echo '</td></tr>';
+						}
+
+						$customFields = $GLOBALS['system']->getDBObjectData('custom_field', Array(), 'OR', 'rank');
+						$dummy = new Custom_Field();
+						$addParams = Array(
+										'type' => 'select',
+										'options' => Array('Replacing existing values ', 'Adding to existing values')
+									);
+						foreach ($customFields as $fieldid => $fieldDetails) {
+							$value = '';
+							$addToExisting = FALSE;
+							$v = array_get($actions['fields'], 'custom_'.$fieldid);
+							if ($v) {
+								$value = $v['value'];
+								$addToExisting = $v['add'];
+							}
+							$dummy->populate($fieldid, $fieldDetails);
+							echo '<tr><td>';
+							print_widget('fields_enabled[custom_'.$fieldid.']', Array('type'=>'checkbox'), strlen($value));
+							echo 'Set '.ents($dummy->getValue('name')).'&nbsp;</td><td>';
+							if ($fieldDetails['type'] == 'date') {
+								// For now, we only support setting date fields to the reference date.
+								// But there is room for future expansion to support fixed dates too.
+								$dateVal = $noteVal = '';
+								if (strlen($value)) {
+									list($dateVal, $noteVal) = explode('===', $value);
+								}
+								echo 'to the reference date, with note ';
+								print_widget('custom_'.$fieldid.'_note', Array('type' => 'text'), $noteVal);
+							} else {
+								$dummy->printWidget($value);
+							}
+							if ($dummy->getValue('allow_multiple')) {
+								print_widget('fields_addvalue[custom_'.$fieldid.']', $addParams, $addToExisting);
+							}
+							echo '</td></tr>';
+						}
+						/*
 						$dates = array_get($actions, 'dates');
 						if (empty($dates)) $dates = Array('' => '');
 						foreach ($dates as $typeid => $note) {
@@ -174,13 +214,11 @@ class Action_Plan extends DB_Object
 							</tr>
 							<?php
 						}
+						 */
 						?>
 						</table>
 					</td>
 				</tr>
-				<?php
-			}
-			?>
 				<tr>
 					<th>Options</th>
 					<td>
@@ -251,20 +289,25 @@ class Action_Plan extends DB_Object
 			}
 			$i++;
 		}
-		if (isset($_POST['datetypes'])) {
-			$i = 0;
-			while (isset($_POST['datetypes'][$i])) {
-				if ($_POST['datetypes'][$i]) {
-					$actions['dates'][$_POST['datetypes'][$i]] = $_POST['datenotes'][$i];
+		foreach ($_POST['fields_enabled'] as $k => $v) {
+			if (0 === strpos($k, 'custom_')) {
+				$fieldID = substr($k, 7);
+				$field = new Custom_Field($fieldID);
+				if ($field->getValue('type') == 'date') {
+					// FUture expansion: allow static dates here; for now we just support
+					// the reference date, represented by magic number -1.
+					$val = '-1==='.$_POST['custom_'.$fieldID.'_note'];
+				} else {
+					$val = $field->processWidget();
+					$val = reset($val); // it comes wrapped in an array 
 				}
-				$i++;
+			} else {
+				$val = $_POST[$k];
 			}
-		}
-		$actions['dates'] = Array();
-		foreach ($_REQUEST['datetypes'] as $i => $customFieldID) {
-			if ($customFieldID) {
-				$actions['dates'][$customFieldID] = $_REQUEST['datenotes'][$i];
-			}
+			$actions['fields'][$k] = Array(
+				'value' => $val,
+				'add' => array_get($_POST['fields_addvalue'], $k, FALSE)
+			);
 		}
 		$this->setValue('actions', $actions);
 	}
@@ -361,15 +404,42 @@ class Action_Plan extends DB_Object
 			$note->create();
 		}
 
-		if (array_get($actions, 'dates')) {
+		if ($fields = array_get($actions, 'fields')) {
 			foreach ($personids as $personid) {
 				$person = $GLOBALS['system']->getDBObject('person', $personid);
-				foreach (array_get($actions, 'dates', Array()) as $fieldID => $note) {
-					$person->setCustomValue($fieldID, $reference_date.' '.$note, TRUE);
+				foreach ($fields as $k => $v) {
+					if (0 === strpos($k, 'custom_')) {
+						if (0 === strpos($v['value'], '-1===')) {
+							$v['value'] = $reference_date.' '.substr($v['value'], 5);
+						}
+						$fieldID = substr($k, 7);
+						$person->setCustomValue($fieldID, $v['value'], $v['add']);
+					} else {
+						$person->setValue($k, $v['value']);
+					}
 				}
 				$person->save();
 			}
+			//exit;
 		}
 
+
+
+	}
+
+	public function getValue($name)
+	{
+		$res = parent::getValue($name);
+		if (($name == 'actions') && isset($res['dates'])) {
+			// Convert old format to new format
+			foreach ($res['dates'] as $fieldid => $note) {
+				$res['fields']['custom-'.$fieldid] = Array(
+					'value' => "-1==={$note}",
+					'add' => true,
+				);
+			}
+			unset($res['dates']);
+		}
+		return $res;
 	}
 }
