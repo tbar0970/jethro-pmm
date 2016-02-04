@@ -1906,6 +1906,10 @@ td.run-sheet-comments * {
 	}
 }
 
+#body .action-plan .fields td {
+	vertical-align: middle;
+}
+
 /************ PRINT **************/
 @media print {
 	#jethro-overall-width, #jethro-overall-width-inner {
