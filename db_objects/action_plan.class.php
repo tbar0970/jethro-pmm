@@ -156,9 +156,9 @@ class Action_Plan extends DB_Object
 							}
 							$dummy->fields[$field]['allow_empty'] = TRUE;
 							$dummy->fields[$field]['empty_text'] = '(No change)';
-							$dummy->setValue($field, array_get($actions['fields'], $field));
+							if (strlen($value)) $dummy->setValue($field, $value);
 							echo '<tr><td>';
-							print_widget('fields_enabled['.$field.']', Array('type'=>'checkbox'), $value);
+							print_widget('fields_enabled['.$field.']', Array('type'=>'checkbox'), strlen($value));
 							echo 'Set '.$dummy->getFieldLabel($field).' </td><td>';
 							$dummy->printFieldInterface($field);
 							echo '</td></tr>';
@@ -289,6 +289,7 @@ class Action_Plan extends DB_Object
 			}
 			$i++;
 		}
+		$addValue = array_get($_POST, 'fields_addvalue', Array());
 		foreach ($_POST['fields_enabled'] as $k => $v) {
 			if (0 === strpos($k, 'custom_')) {
 				$fieldID = substr($k, 7);
@@ -306,7 +307,7 @@ class Action_Plan extends DB_Object
 			}
 			$actions['fields'][$k] = Array(
 				'value' => $val,
-				'add' => array_get($_POST['fields_addvalue'], $k, FALSE)
+				'add' => array_get($addValue, $k, FALSE)
 			);
 		}
 		$this->setValue('actions', $actions);
