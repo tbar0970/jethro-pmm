@@ -1816,9 +1816,18 @@ td.run-sheet-comments * {
 	padding-top: 0px;
 }
 
+#service-comps {
+	margin-bottom: 20px;
+	min-height: 77vh;
+}
 
 #service-comps th {
 	padding-right: 18px;
+}
+
+#service-comps .tab-pane {
+	max-height: 75vh;
+	padding-right: 5px;
 }
 
 #service-comps th .icon-arrow-up, #service-comps th .icon-arrow-down {

@@ -504,9 +504,12 @@ JethroServicePlanner._getTRDragHelper = function(event, tr) {
 JethroServicePlanner.init = function() {
 
 	// COMPONENTS TABLES:
-
-	TBLib.anchorBottom('#service-comps, #service-plan-container');
-
+	// We have to start off with these hidden so we can set their width explicitly
+	// to their parent width.  Otherwise they always push stuff out.
+	$('#service-comps table').width(
+		$('#service-comps .tab-pane.active').first().width() + 'px'
+	).show();
+	
     $("#service-comps tbody tr").draggable({
 		containment: "#service-planner",
 		helper: "clone",
