@@ -995,7 +995,7 @@ $(document).ready(function() {
 	$('form#edit-family, form#add-family').submit(handleFamilyFormSubmit);
 	$('form#add-family').submit(handleNewFamilySubmit);
 	$('form#add-family input.family-name').blur(handleFamilyNameBlur);
-	$('select.person-status').not('.bulk-action *').change(handlePersonStatusChange).change();
+	$('select.person-status').not('.bulk-action *, .action-plan *').change(handlePersonStatusChange).change();
 	$('form#add-family .person-status select').change(handleNewPersonStatusChange);
 	$('form#add-family .congregation select').change(handleNewPersonCongregationChange);
 
