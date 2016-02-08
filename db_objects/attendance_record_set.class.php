@@ -7,8 +7,8 @@ class Attendance_Record_Set
 	public $date = NULL;
 	public $congregationid = NULL;
 	public $groupid = 0;
-	public $age_bracket = NULL;
-	public $status = NULL;
+	public $age_brackets = NULL;
+	public $statuses = NULL;
 	public $show_photos = FALSE;
 	private $_persons = NULL;
 	private $_attendance_records = Array();
@@ -18,10 +18,10 @@ class Attendance_Record_Set
 
 //--        CREATING, LOADING AND SAVING        --//
 
-	function Attendance_Record_Set($date=NULL, $cohort=NULL, $age_bracket=NULL, $status=NULL)
+	function Attendance_Record_Set($date=NULL, $cohort=NULL, $age_brackets=NULL, $statuses=NULL)
 	{
 		if ($date && $cohort) {
-			$this->load($date, $cohort, $age_bracket, $status);
+			$this->load($date, $cohort, $age_brackets, $statuses);
 		}
 	}
 	
@@ -91,7 +91,7 @@ class Attendance_Record_Set
 		return Array();
 	}
 
-	function load($date, $cohort, $age_bracket, $status)
+	function load($date, $cohort, $age_brackets, $statuses)
 	{
 		$this->date = $date;
 		list($cohortType, $cohortID) = explode('-', $cohort);
@@ -100,16 +100,19 @@ class Attendance_Record_Set
 			case 'g': $this->groupid = $cohortID; break;
 			default: trigger_error("Invalid cohort $cohort"); return;
 		}
-		$this->age_bracket = $age_bracket;
-		$this->status = $status;
-		if ($this->status) {
-			list($statusType, $statusID) = explode('-', $status);
-			if (($statusType == 'g') && ($cohortType != 'g')) {
-				trigger_error("Cannot restrict congregational attendance by a group membership status");
-				return;
+		$this->age_brackets = $age_brackets;
+		$this->statuses = $statuses;
+		if ($this->statuses) {
+			foreach ($this->statuses as $status) {
+				list($statusType, $statusID) = explode('-', $status);
+				if (($statusType == 'g') && ($cohortType != 'g')) {
+					trigger_error("Cannot restrict congregational attendance by a group membership status");
+					return;
+				}
 			}
 		}
 
+		// FETCH ANY EXISTING ATTENDANCE RECORDS
 		$db =& $GLOBALS['db'];
 		$sql = 'SELECT ar.personid, ar.present
 					FROM attendance_record ar
@@ -123,36 +126,43 @@ class Attendance_Record_Set
 				AND p.congregationid = '.$db->quote($this->congregationid);
 		}
 		$statusType = $statusID = NULL;
-		if ($this->status) {
-			list($statusType, $statusID) = explode('-', $status);
-			switch ($statusType) {
-				case 'p':
-					$sql .= '
-						AND p.status = '.(int)$statusID;
-					break;
-				case 'g':
-					$sql .= '
-						AND pgm.membership_status = '.(int)$statusID;
-					break;
-				default:
-					trigger_error("invalid status filter $status"); return;
+		if ($this->statuses) {
+			$statusClauses = Array();
+			foreach ($this->statuses as $status) {
+				list($statusType, $statusID) = explode('-', $status);
+				switch ($statusType) {
+					case 'p':
+						$statusClauses[] = 'p.status = '.(int)$statusID;
+						break;
+					case 'g':
+						$statusClauses[] ='pgm.membership_status = '.(int)$statusID;
+						break;
+					default:
+						trigger_error("invalid status filter $status"); return;
+				}
 			}
-		}
-		if (strlen($this->age_bracket)) {
 			$sql .= '
-				AND p.age_bracket = '.$db->quote($this->age_bracket);
+				AND (('.implode(') OR (', $statusClauses).'))';
+		}
+		if ($this->age_brackets) {
+			$sql .= '
+				AND p.age_bracket IN ('.implode(',', array_map(Array($db, 'quote'), $this->age_brackets)).')';
 		}
 		$this->_attendance_records = $db->queryAll($sql, null, null, true);
 		check_db_result($this->_attendance_records);
 
+		// NOW FETCH THE APPLICABLE PERSON RECORDS
 		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
 		$conds = Array('!status' => 'archived');
-		if (strlen($this->age_bracket)) {
-			$conds['age_bracket'] = $this->age_bracket;
+		if ($this->age_brackets) {
+			$conds['(age_bracket'] = $this->age_brackets;
 		}
-		if (strlen($this->status)) {
-			$field = $statusType == 'g' ? 'membership_status' : 'status';
-			$conds[$field] = $statusID;
+		if ($this->statuses) {
+			foreach ($this->statuses as $status) {
+				list($statusType, $statusID) = explode('-', $status);
+				$field = $statusType == 'g' ? '(membership_status' : '(status';
+				$conds[$field][] = $statusID;
+			}
 		}
 		if ($this->congregationid) {
 			$conds['congregationid'] = $this->congregationid;
@@ -197,19 +207,10 @@ class Attendance_Record_Set
 					AND (ar.groupid = '.$db->quote((int)$this->groupid).')';
 		if ($this->congregationid) {
 			$sql .= '
-					AND ((congregationid = '.$db->quote($this->congregationid).') ';
-			if (!empty($this->_attendance_records)) {
-				$our_personids = array_map(Array($GLOBALS['db'], 'quote'), array_keys($this->_attendance_records));
-				$sql .= ' OR personid IN ('.implode(', ', $our_personids).')';
-			}
-			$sql .= ')';
+					AND ((congregationid = '.$db->quote($this->congregationid).') 
+					';
 		}
-		if (strlen($this->age_bracket)) {
-			$sql .= ' AND age_bracket = '.$db->quote($this->age_bracket).' ';
-		}
-		if ($this->status !== NULL) {
-			$sql .= ' AND status = '.$db->quote($this->status);
-		}
+		$sql .= 'WHERE personid IN ('.implode(',', array_map(Array($db, 'quote'), array_keys($this->_persons))).')';
 
 		$res = $db->query($sql);
 		check_db_result($res);
@@ -611,25 +612,33 @@ class Attendance_Record_Set
 			$SQL .= '
 				AND person.age_bracket = '.$GLOBALS['db']->quote($params['age_bracket']);
 		}
-		$status = array_get($params, 'status', '');
-		if (strlen($status)) {
-			list($statusType, $statusID) = explode('-', $status);
-			if (($statusType == 'g') && empty($groupid)) {
-				trigger_error("Cannot filter by group membership status for congregational attendance");
-				return Array(Array(), Array(), Array());
-			}
-			switch ($statusType) {
-				case 'g':
-					$SQL .= '
-						AND pgm.membership_status = '.$GLOBALS['db']->quote($statusID);
-					break;
-				case 'p':
-					$SQL .= '
-						AND person.status = '.$GLOBALS['db']->quote($statusID);
-					break;
-
+		if (!empty($params['(age_bracket'])) {
+			$SQL .= '
+				AND person.age_bracket IN ('.implode(',', array_map(Array($GLOBALS['db'], 'quote'), $params['(age_bracket'])).')';
+		}
+		$statuses = array_get($params, '(status', Array());
+		if (isset($params['status'])) {
+			$statuses[] = $params['status'];
+		}
+		$statusClauses = Array();
+		foreach ($statuses as $status) {
+			if (strlen($status)) {
+				list($statusType, $statusID) = explode('-', $status);
+				if (($statusType == 'g') && empty($groupid)) {
+					trigger_error("Cannot filter by group membership status for congregational attendance");
+					return Array(Array(), Array(), Array());
+				}
+				switch ($statusType) {
+					case 'g':
+						$statusClauses[] = 'pgm.membership_status = '.$GLOBALS['db']->quote($statusID);
+						break;
+					case 'p':
+						$statusClauses[] = 'person.status = '.$GLOBALS['db']->quote($statusID);
+						break;
+				}
 			}
 		}
+		if ($statusClauses) $SQL .= 'AND (('.implode(') OR (', $statusClauses).'))';
 
 		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
 		if ($congregationids) {
@@ -708,8 +717,93 @@ class Attendance_Record_Set
 		</tr>
 		<?php
 	}
+	
+	public static function printPersonFilters($age_brackets, $statuses)
+	{
+		?>
+		<div class="row-fluid" style="margin-top: 5px">
+			<div class="span6">
+				<label class="checkbox" >
+					<?php
+					print_widget(
+						'age_brackets_all',
+						Array(
+							'type' => 'checkbox',
+							'attrs' => Array(
+								'data-toggle' => "visible",
+								'data-target' => "#agebrackets"
+							)
+						),
+						empty($age_brackets)
+					);
+					?>
+					All age brackets
+				</label>
+				<div id="agebrackets" style="<?php echo empty($age_brackets) ? 'display: none' : ''; ?>">
+					<?php
+					print_widget('age_brackets', Array(
+							'type'			=> 'select',
+							'options'		=> explode(',', AGE_BRACKET_OPTIONS),
+							'default'		=> '',
+							'allow_empty'	=> true,
+							'allow_multiple' => true,
+							'height' => count(explode(',', AGE_BRACKET_OPTIONS)),
 
+					), $age_brackets);
+					?>
+				</div>
+			</div>
+			<div class="span6">
+				<label class="checkbox">
+					<?php
+					print_widget(
+						'statuses_all',
+						Array(
+							'type' => 'checkbox',
+							'attrs' => Array(
+								'data-toggle' => "visible",
+								'data-target' => "#statuses"
+							)
+						),
+						empty($statuses)
+					);
+					?>
+					All statuses
+				</label>
+				<div id="statuses" style="<?php echo empty($statuses) ? 'display: none' : ''; ?>">
+					<?php
+					$statusOptions = self::getStatusOptions();
+					print_widget('statuses', Array(
+							'type'			=> 'select',
+							'options'		=> $statusOptions,
+							'default'		=> '',
+							'allow_empty'	=> true,
+							'allow_multiple' => true,
+							'height' => count($statusOptions),
+					), $statuses);
+					?>
+				</div>
+			</div>
+		</div>
+		<?php
+	}
 
+	/**
+	 * Get the options for filtering people by (person or group-membership) status
+	 * @return array
+	 */
+	public static function getStatusOptions()
+	{
+		$statusOptions = Array();
+		foreach (Person::getStatusOptions() as $id => $val) {
+			$statusOptions['p-'.$id] = $val;
+		}
+		list($gOptions, $default) = Person_Group::getMembershipStatusOptionsAndDefault();
+		foreach ($gOptions as $id => $val) {
+			$statusOptions['g-'.$id] = $val;
+		}
+		return $statusOptions;
+	}
 
 
 

@@ -6,8 +6,8 @@ class View_Attendance__Record extends View
 {
 	private $_record_sets = Array();
 	private $_attendance_date = NULL;
-	private $_age_bracket = NULL;
-	private $_status = NULL;
+	private $_age_brackets = NULL;
+	private $_statuses = NULL;
 
 	private $_cohortids = Array();
 
@@ -47,8 +47,8 @@ class View_Attendance__Record extends View
 		
 		if (empty($_REQUEST['params_submitted']) && empty($_REQUEST['attendances_submitted'])) {
 			if (!empty($_SESSION['attendance'])) {
-				$this->_age_bracket = array_get($_SESSION['attendance'], 'age_bracket');
-				$this->_status = array_get($_SESSION['attendance'], 'status');
+				$this->_age_brackets = array_get($_SESSION['attendance'], 'age_brackets');
+				$this->_statuses = array_get($_SESSION['attendance'], 'statuses');
 				$this->_cohortids = array_get($_SESSION['attendance'], 'cohortids');
 				$this->_show_photos =  array_get($_SESSION['attendance'], 'show_photos', FALSE);
 				$this->_parallel_mode =  array_get($_SESSION['attendance'], 'parallel_mode', FALSE);
@@ -56,14 +56,17 @@ class View_Attendance__Record extends View
 		}
 
 		if (!empty($_REQUEST['params_submitted']) || !empty($_REQUEST['attendances_submitted'])) {
-			$this->_age_bracket = $_SESSION['attendance']['age_bracket'] = array_get($_REQUEST, 'age_bracket');
-			$this->_status = $_SESSION['attendance']['status'] = array_get($_REQUEST, 'status');
+			if (!empty($_REQUEST['age_brackets_all'])) unset($_REQUEST['age_brackets']);
+			if (!empty($_REQUEST['statuses_all'])) unset($_REQUEST['statuses']);
+
+			$this->_age_brackets = $_SESSION['attendance']['age_brackets'] = array_get($_REQUEST, 'age_brackets');
+			$this->_statuses = $_SESSION['attendance']['statuses'] = array_get($_REQUEST, 'statuses');
 			$this->_show_photos = $_SESSION['attendance']['show_photos'] = array_get($_REQUEST, 'show_photos', FALSE);
 			$this->_parallel_mode = $_SESSION['attendance']['parallel_mode'] = array_get($_REQUEST, 'parallel_mode', FALSE);
 		}
 		
 		foreach ($this->_cohortids as $id) {
-			$this->_record_sets[$id] = new Attendance_Record_set($this->_attendance_date, $id, $this->_age_bracket, $this->_status);
+			$this->_record_sets[$id] = new Attendance_Record_set($this->_attendance_date, $id, $this->_age_brackets, $this->_statuses);
 			if ($this->_show_photos) $this->_record_sets[$id]->show_photos = TRUE;
 		}
 		
@@ -145,36 +148,16 @@ class View_Attendance__Record extends View
 			<table class="attendance-config-table">
 				<tr>
 					<th>For</th>
-					<td colspan="2" class="fill-me">
+					<td colspan="2">
 						<?php
-						print_widget('age_bracket', Array(
-								'type'			=> 'select',
-								'options'		=> Array('' => 'All age brackets') + explode(',', AGE_BRACKET_OPTIONS),
-								'default'		=> '',
-								'allow_empty'	=> false,
-						), $this->_age_bracket);
-
-						$statusOptions = Array();
-						foreach (Person::getStatusOptions() as $id => $val) {
-							$statusOptions['p-'.$id] = $val;
-						}
-						list($gOptions, $default) = Person_Group::getMembershipStatusOptionsAndDefault();
-						foreach ($gOptions as $id => $val) {
-							$statusOptions['g-'.$id] = $val;
-						}
-						print_widget('status', Array(
-								'type'			=> 'select',
-								'options'		=> Array('' => 'Any status') + $statusOptions,
-								'default'		=> '',
-								'allow_empty'	=> false,
-						), $this->_status);
+						Attendance_Record_Set::printPersonFilters($this->_age_brackets, $this->_statuses);
 						?>
 					</td>
 				</tr>
 				<tr>
 					<th>In</th>
 
-					<td class="valign-top">
+					<td class="valign-top fill-me">
 						<table class="expandable">
 							<?php
 							if (empty($this->_cohortids)) {
@@ -235,13 +218,16 @@ class View_Attendance__Record extends View
 		?>
 		<form method="post" class="attendance warn-unsaved" action="?view=attendance__record">
 			<input type="hidden" name="attendance_date" value="<?php echo $this->_attendance_date; ?>" />
-			<input type="hidden" name="age_bracket" value="<?php echo $this->_age_bracket; ?>" />
 			<input type="hidden" name="show_photos" value="<?php echo $this->_show_photos; ?>" />
 			<input type="hidden" name="parallel_mode" value="<?php echo $this->_parallel_mode; ?>" />
 			<input type="hidden" name="enter_attendance_token" value="<?php echo $_SESSION['enter_attendance_token']; ?>" />
 			<input type="hidden" name="attendances_submitted" value="1" />
 			<?php
-			print_hidden_fields(Array('cohortids' => $this->_cohortids));
+			print_hidden_fields(Array(
+				'cohortids' => $this->_cohortids,
+				'age_brackets', $this->_age_brackets,
+				'statuses', $this->_statuses,
+			));
 			?>
 
 			<p class="visible-desktop smallprint">For greatest speed, press P for present and A for absent.  The cursor will automatically progress to the next person.  To go back, use the arrow keys.</p>
@@ -397,12 +383,23 @@ class View_Attendance__Record extends View
 				return;
 			}
 			$title = $set->getCohortName();
-			if (strlen($set->age_bracket)) {
+			$stats = $abs = Array();
+
+			if ($set->statuses) {
+				$options = Attendance_Record_Set::getStatusOptions();
+				foreach ($set->statuses as $s) {
+					$stats[] = $options[$s];
+				}
+			}
+			if ($set->age_brackets) {
 				$GLOBALS['system']->includeDBClass('person');
 				$p = new Person();
-				$p->setValue('age_bracket', $set->age_bracket);
-				$title = $p->getFormattedValue('age_bracket').' in '.$title;
+				foreach ($set->age_brackets as $ab) {
+					$p->setValue('age_bracket', $ab);
+					$abs[] = $p->getFormattedValue('age_bracket');
+				}
 			}
+			$title = implode(', ', $stats).' '.implode(',', $abs).' in '.$title;
 			?>
 			<h3><?php echo ents($title); ?></h3>
 			<div class="width-really-auto form-inline">
@@ -454,4 +451,5 @@ class View_Attendance__Record extends View
 		<p><a href="?view=persons__reports"><i class="icon-list"></i>Analyse attendance using a person report</a></p>
 		<?php
 	}
+
 }
