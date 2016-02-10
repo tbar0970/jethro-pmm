@@ -174,10 +174,10 @@ class View_Attendance__Display extends View
 			echo ' Group';
 		}
 		echo '</h3>';
-		$params = Array(
-			'(age_bracket' => $this->age_brackets,
-			'(status' => $this->statuses,
-		);
+		$params = Array();
+		if ($this->age_brackets) $params['(age_bracket'] = $this->age_brackets;
+		if ($this->statuses) $params['(status'] = $this->statuses;
+		
 		foreach ($this->statuses as $status) {
 			if ($status && ($status[0] == 'g') && empty($groupid)) {
 				print_message("Congregational attendance cannot be filtered by a group membership status. Please clear the status filter to display attendance for this congregation.", 'error');

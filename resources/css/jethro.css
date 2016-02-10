@@ -1371,6 +1371,11 @@ table.service-details td table td input {
 		background: #aaa;
 	}
 
+	table.attendance-stats td {
+		text-align: right;
+		width: 6ex;
+	}
+
 	.attendance-stats th, .attendance-stats td {
 		white-space: nowrap;
 	}

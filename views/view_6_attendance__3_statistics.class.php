@@ -55,16 +55,34 @@ class View_Attendance__Statistics extends View
 		$this->status_map = $dummy_person->getStatusOptions();
 		
 		ob_start();
+		$printed = 0;
 		$congs = $GLOBALS['system']->getDBObjectData('congregation', Array('!attendance_recording_days' => 0), 'OR', 'meeting_time');
 		foreach ($congs as $id => $detail) {
-			$this->printSet('c-'.$id, $detail['name']);
+			if ($this->printSet('c-'.$id, $detail['name'])) {
+				$printed++;
+				if ($printed % 3 == 0) {
+					?>
+					</div>
+					<div class="row">
+					<?php
+				}
+			}
 		}
 		$cong_content = ob_get_clean();
 		
 		ob_start();
+		$printed = 0;
 		$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('!attendance_recording_days' => 0, 'is_archived' => 0), 'AND');
 		foreach ($groups as $id => $detail) {
-			$this->printSet('g-'.$id, $detail['name']);
+			if ($this->printSet('g-'.$id, $detail['name'])) {
+				$printed++;
+				if ($printed % 3 == 0) {
+					?>
+					</div>
+					<div class="row">
+					<?php
+				}
+			}
 		}
 		$group_content = ob_get_clean();
 	
@@ -91,7 +109,8 @@ class View_Attendance__Statistics extends View
 	private function printSet($cohortid, $cohortname)
 	{
 		$stats = Attendance_Record_Set::getStatsForPeriod($this->_start_date, $this->_end_date, $cohortid);
-		if (empty($stats)) {
+		
+		if (empty($stats) || $stats[NULL]['rate'] == 0) {
 			return FALSE;
 		}
 		?>
@@ -102,26 +121,42 @@ class View_Attendance__Statistics extends View
 					<th colspan="4"><?php echo ents($cohortname); ?></th>
 				</tr>
 				<tr>
-					<th>Status</th>
+					<th>Segment</th>
 					<th title="Percentage of dates marked present rather than absent">Rate</th>
 					<th class="present" title="Average number marked present per date">Avg&nbsp;P</th>
 					<th class="absent" title="Average number marked absent per date">Avg&nbsp;A</th>
 			</thead>
 			<tbody>
 		<?php
+		$map['age_bracket'] = explode(',', AGE_BRACKET_OPTIONS);
 		if ($cohortid[0] == 'g') {
-			list($map, $default) = Person_Group::getMembershipStatusOptionsAndDefault();
+			list($map['status'], $default) = Person_Group::getMembershipStatusOptionsAndDefault();
 		} else {
-			$map = $this->status_map;
+			$map['status'] = $this->status_map;
 		}
-		foreach ($map as $k => $v) {
-			if (isset($stats[$k])) {
+		foreach (Array('status', 'age_bracket') as $grouping) {
+
+			foreach ($map[$grouping] as $k => $v) {
+				if (!isset($stats[$grouping][$k])) continue;
 				?>
-				<tr>
+				<tr <?php if ($k == 0 && $grouping == 'age_bracket') echo 'class="thick-top-border"'; ?>>
 					<th><?php echo ents($v); ?></th>
-					<td style="width: 6ex; text-align: right"><?php echo $stats[$k]['rate'] ?>%</td>
-					<td style="width: 6ex; text-align: right"><?php echo number_format($stats[$k]['avg_present'], 1) ?></td>
-					<td style="width: 6ex; text-align: right"><?php echo number_format($stats[$k]['avg_absent'], 1) ?></td>
+				<?php
+				if (isset($stats[$grouping][$k])) {
+					?>
+					<td><?php echo $stats[$grouping][$k]['rate'] ?>%</td>
+					<td><?php echo number_format($stats[$grouping][$k]['avg_present'], 1) ?></td>
+					<td><?php echo number_format($stats[$grouping][$k]['avg_absent'], 1) ?></td>
+					<?php
+				} else {
+					?>
+					<td>-</td>
+					<td>-</td>
+					<td>-</td>
+					<?php
+
+				}
+				?>
 				</tr>
 				<?php
 			}
@@ -129,9 +164,9 @@ class View_Attendance__Statistics extends View
 		?>
 				<tr class="thick-top-border">
 					<th>Overall</th>
-					<td style="width: 6ex; text-align: right"><?php echo $stats[NULL]['rate'] ?>%</td>
-					<td style="width: 6ex; text-align: right"><?php echo number_format($stats[NULL]['avg_present'], 1) ?></td>
-					<td style="width: 6ex; text-align: right"><?php echo number_format($stats[NULL]['avg_absent'], 1) ?></td>
+					<td><?php echo $stats[NULL]['rate'] ?>%</td>
+					<td><?php echo number_format($stats[NULL]['avg_present'], 1) ?></td>
+					<td><?php echo number_format($stats[NULL]['avg_absent'], 1) ?></td>
 				</tr>
 				<tr class="headcount">
 					<th colspan="2">

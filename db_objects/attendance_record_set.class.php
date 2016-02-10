@@ -207,10 +207,10 @@ class Attendance_Record_Set
 					AND (ar.groupid = '.$db->quote((int)$this->groupid).')';
 		if ($this->congregationid) {
 			$sql .= '
-					AND ((congregationid = '.$db->quote($this->congregationid).') 
+					AND (congregationid = '.$db->quote($this->congregationid).') 
 					';
 		}
-		$sql .= 'WHERE personid IN ('.implode(',', array_map(Array($db, 'quote'), array_keys($this->_persons))).')';
+		$sql .= '  AND personid IN ('.implode(',', array_map(Array($db, 'quote'), array_keys($this->_persons))).')';
 
 		$res = $db->query($sql);
 		check_db_result($res);
@@ -523,60 +523,83 @@ class Attendance_Record_Set
 		$groupid = ($type == 'g') ? $id : 0;
 		$status_col = ($type == 'g') ? 'pgms.id' : 'p.status';
 		$cohort_where = 'ar.groupid = '.(int)$groupid;
+		$cohort_joins = '';
 		if ($type == 'c') {
 			$cohort_where .= ' AND p.congregationid = '.(int)$id;
-		}		
-		$sql = '
-				SELECT status, rank, AVG(percent_present) as avg_attendance FROM
-				(
-					SELECT ar.personid, '.$status_col.' AS status, pgms.rank, CONCAT(ROUND(SUM(ar.present) * 100 / COUNT(ar.date)), '.$db->quote('%').') as percent_present
-					FROM 
-						person p 
-						JOIN attendance_record ar ON p.id = ar.personid
-						LEFT JOIN person_group_membership pgm ON pgm.personid = p.id AND pgm.groupid = ar.groupid
-						LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status
-					WHERE 
-						ar.date BETWEEN '.$db->quote($start_date).' AND '.$db->quote($end_date).'
-						AND '.$cohort_where.'
-				';
+		}
+		if ($type == 'g') {
+			$cohort_joins = '
+							LEFT JOIN person_group_membership pgm ON pgm.personid = p.id AND pgm.groupid = ar.groupid
+							LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status
+							';
 
-		$sql .=	'
-					GROUP BY ar.personid, '.$status_col.'
-				) indiv
-				GROUP BY rank, status WITH ROLLUP';
-		$res = $db->queryAll($sql);
-		check_db_result($res);
-		
+		}
 		$stats = Array();
 		$stats[NULL]['rate'] = $stats[NULL]['avg_present'] = $stats[NULL]['avg_absent'] = 0;
-		
-		foreach ($res as $row) {
-			$stats[$row['status']]['rate'] = round($row['avg_attendance']);
-			$stats[$row['status']]['avg_present'] = 0;
-			$stats[$row['status']]['avg_absent'] = 0;	
+
+		foreach (Array('status', 'age_bracket') as $groupingField) {
+			$rank = ($groupingField == 'status' && $type == 'g') ? 'rank, ' : '';
+			$selectCol = ($groupingField == 'status') ? $status_col : $groupingField;
+
+			// SELECT THE RATES
+
+			$sql = '
+					SELECT '.$groupingField.', '.$rank.' AVG(percent_present) as avg_attendance FROM
+					(
+						SELECT ar.personid, '.$selectCol.' AS '.$groupingField.', '.$rank.' CONCAT(ROUND(SUM(ar.present) * 100 / COUNT(ar.date)), '.$db->quote('%').') as percent_present
+						FROM
+							person p
+							JOIN attendance_record ar ON p.id = ar.personid
+							'.$cohort_joins.'
+						WHERE
+							ar.date BETWEEN '.$db->quote($start_date).' AND '.$db->quote($end_date).'
+							AND '.$cohort_where.'
+					';
+
+			$sql .=	'
+						GROUP BY ar.personid, '.$selectCol.'
+					) indiv
+					GROUP BY '.$rank.' '.$groupingField.' WITH ROLLUP';
+			$res = $db->queryAll($sql);
+			check_db_result($res);
+
+			foreach ($res as $row) {
+				if (NULL !== $row[$groupingField]) {
+					$stats[$groupingField][$row[$groupingField]]['rate'] = round($row['avg_attendance']);
+					$stats[$groupingField][$row[$groupingField]]['avg_present'] = 0;
+					$stats[$groupingField][$row[$groupingField]]['avg_absent'] = 0;
+				} else {
+					// the rollup row
+					$stats[$row[$groupingField]]['rate'] = round($row['avg_attendance']);
+					$stats[$row[$groupingField]]['avg_present'] = 0;
+					$stats[$row[$groupingField]]['avg_absent'] = 0;
+				}
+			}
+
+			// SELECT THE NUMBER
+			$sql = '
+					SELECT '.$groupingField.', AVG(TotalPresent) as avg_present, AVG(TotalAbsent) as avg_absent
+					FROM (
+						SELECT ar.date, '.$selectCol.' AS '.$groupingField.',  '.$rank.' SUM(present) as TotalPresent, COUNT(*)-SUM(present) as TotalAbsent
+						FROM
+							person p
+							JOIN attendance_record ar ON p.id = ar.personid
+							'.$cohort_joins.'
+						WHERE
+							ar.date BETWEEN '.$db->quote($start_date).' AND '.$db->quote($end_date).'
+							AND '.$cohort_where.'
+						GROUP BY ar.date, '.$groupingField.'
+					) perdate GROUP BY '.$groupingField.'';
+			$res = $db->queryAll($sql);
+			check_db_result($res);
+			foreach ($res as $row) {
+				foreach (Array('avg_present', 'avg_absent') as $key) {
+					$stats[$groupingField][$row[$groupingField]][$key] = $row[$key];
+					$stats[NULL][$key] += (float)$row[$key];
+				}
+			}
 		}
-		
-		$sql = '
-				SELECT status, present, rank, AVG(count) as count FROM
-				(
-					SELECT ar.date, '.$status_col.' AS status, pgms.rank, present, count(*) as count
-					FROM 
-						person p 
-						JOIN attendance_record ar ON p.id = ar.personid
-						LEFT JOIN person_group_membership pgm ON pgm.personid = p.id AND pgm.groupid = ar.groupid
-						LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status
-					WHERE 
-						ar.date BETWEEN '.$db->quote($start_date).' AND '.$db->quote($end_date).'
-						AND '.$cohort_where.'
-					GROUP BY ar.date, status, present
-				) perdate GROUP BY status, present';
-		$res = $db->queryAll($sql);
-		check_db_result($res);
-		foreach ($res as $row) {
-			$key = $row['present'] ? 'avg_present' : 'avg_absent';
-			$stats[$row['status']][$key] = $row['count'];
-			$stats[NULL][$key] += (float)$row['count'];
-		}		
+		//exit;
 		return $stats;
 	}
 
