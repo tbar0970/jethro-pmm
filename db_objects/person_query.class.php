@@ -514,26 +514,51 @@ class Person_Query extends DB_Object
 			?>
 			<h3>I want to save this report...</h3>
 			<div class="indent-left">
+				<p>
 				<label type="radio">
-					<input type="radio" name="save_option" value="new" id="save_option_new" <?php if (empty($this->id)) echo 'checked="checked"'; ?> />
-					as a new report called
-					<input type="text" name="new_query_name" />
-					<?php print_widget('new_query_private', $visibilityParams, $this->getValue('owner') !== NULL); ?>
+					<input type="radio" name="save_option" value="new" id="save_option_new"
+						<?php if (empty($this->id)) echo 'checked="checked"'; ?>
+						 data-toggle="enable"
+					/>
+					as a new report 
 				</label>
 		
 				<label type="radio">
-					<input type="radio" name="save_option" value="replace" id="save_option_replace" <?php if ($this->id && ($this->id != 'TEMP')) echo 'checked="checked"'; ?> />
-					in place of the existing report
-					<?php 
-					print_widget('replace_query_id', Array('type' => 'reference', 'references' => 'person_query'), $this->id);
-					print_widget('replace_query_private', $visibilityParams, $this->getValue('owner') !== NULL);
-					?>
+					<input type="radio" name="save_option" value="replace" id="save_option_replace" <?php if ($this->id && ($this->id != 'TEMP')) echo 'checked="checked"'; ?>
+						 data-toggle="enable"
+						 />
+					in place of its previous version
 				</label>
 
 				<label type="radio">
-					<input type="radio" name="save_option" value="temp" id="save_option_temp"<?php if (empty($this->id) || $this->id == 'TEMP') echo ' checked="checked"'; ?> />
+					<input type="radio" name="save_option"
+						   value="temp"
+						   id="save_option_temp"
+							  <?php if (empty($this->id) || $this->id == 'TEMP') echo ' checked="checked"'; ?>
+						   data-toggle="disable"
+						   data-target="#save-options input, #save-options select"
+					/>
 					only temporarily as an ad-hoc report
 				</label>
+				</p>
+				
+				<table id="save-options">
+					<tr>
+						<th>Report title &nbsp;</th>
+						<td>
+							<?php $this->printFieldInterface('name'); ?>
+						</td>
+					</tr>
+					<tr>
+						<th>Visibility</th>
+						<td>
+							<?php
+							print_widget('is_private', $visibilityParams, $this->getValue('owner') !== NULL);
+							?>
+						</td>
+					</tr>
+				</table>
+
 			</div>
 			<?php
 		}
@@ -545,12 +570,12 @@ class Person_Query extends DB_Object
 			switch ($_POST['save_option']) {
 				case 'new':
 					$this->populate(0, Array());
-					$this->setValue('name', $_POST['new_query_name']);
-					$this->setValue('owner', $_POST['new_query_private'] ? $GLOBALS['user_system']->getCurrentUser('id') : NULL);
+					$this->processFieldInterface('name');
+					$this->setValue('owner', $_POST['is_private'] ? $GLOBALS['user_system']->getCurrentUser('id') : NULL);
 					break;
 				case 'replace':
-					$this->load((int)$_POST['replace_query_id']);
-					$this->setValue('owner', $_POST['replace_query_private'] ? $GLOBALS['user_system']->getCurrentUser('id') : NULL);
+					$this->processFieldInterface('name');
+					$this->setValue('owner', $_POST['is_private'] ? $GLOBALS['user_system']->getCurrentUser('id') : NULL);
 					break;
 				case 'temp':
 					$this->id = 'TEMP';

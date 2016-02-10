@@ -763,6 +763,7 @@ class db_object
 
 	public function acquireLock($type='')
 	{
+		if (!$this->id) return TRUE;
 		if ($this->haveLock($type)) return TRUE;
 		if (!$this->canAcquireLock($type)) return FALSE;
 		$db =& $GLOBALS['db'];

@@ -75,9 +75,10 @@ class View_Persons__Reports extends View
 	{
 		if (!empty($_REQUEST['configure'])) {
 			?>
-			<form method="post" action="<?php echo build_url(Array('configure' => NULL)); ?>">
+			<form method="post" class="form-horizontal" action="<?php echo build_url(Array('configure' => NULL)); ?>">
 				<input type="hidden" name="query_submitted" value="1" />
 				<?php
+				$this->_query->acquireLock();
 				$this->_query->printForm();
 				?>
 				<h3>&nbsp</h3>
