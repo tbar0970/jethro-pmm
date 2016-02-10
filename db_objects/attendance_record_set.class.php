@@ -744,9 +744,9 @@ class Attendance_Record_Set
 	public static function printPersonFilters($age_brackets, $statuses)
 	{
 		?>
-		<div class="row-fluid" style="margin-top: 5px">
-			<div class="span6">
-				<label class="checkbox" >
+		<div class="row-fluid">
+			<div class="span6" style="margin-top: 5px">
+				<label class="checkbox nowrap" >
 					<?php
 					print_widget(
 						'age_brackets_all',
@@ -776,8 +776,8 @@ class Attendance_Record_Set
 					?>
 				</div>
 			</div>
-			<div class="span6">
-				<label class="checkbox">
+			<div class="span6" style="margin-top: 5px">
+				<label class="checkbox nowrap">
 					<?php
 					print_widget(
 						'statuses_all',

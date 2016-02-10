@@ -148,7 +148,7 @@ class View_Attendance__Record extends View
 			<table class="attendance-config-table">
 				<tr>
 					<th>For</th>
-					<td colspan="2">
+					<td colspan="2" style="min-width: 240px">
 						<?php
 						Attendance_Record_Set::printPersonFilters($this->_age_brackets, $this->_statuses);
 						?>
