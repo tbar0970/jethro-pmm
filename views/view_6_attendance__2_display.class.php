@@ -81,10 +81,10 @@ class View_Attendance__Display extends View
 		?>
 		<form method="get" class="well well-small clearfix form-inline">
 			<input type="hidden" name="view" value="<?php echo $_REQUEST['view']; ?>" />
-			<table class="attendance-config-table valign-middle">
+			<table class="attendance-config-table">
 				<tr>
 					<th>For</th>
-					<td colspan="2">
+					<td colspan="2" style="min-width: 240px">
 						<?php
 						Attendance_Record_Set::printPersonFilters($this->age_brackets, $this->statuses);
 						?>
@@ -92,7 +92,7 @@ class View_Attendance__Display extends View
 				</tr>
 				<tr>
 					<th>In</th>
-					<td class="valign-top">
+					<td class="valign-top fill-me">
 						<table class="expandable">
 							<?php
 							if (empty($this->cohortids)) {

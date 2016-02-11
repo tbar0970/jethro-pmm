@@ -145,11 +145,12 @@ class Action_Plan extends DB_Object
 						When this plan is executed, for each person / family member:
 						<table class="fields">
 						<?php
+						$fields = $actions['fields'];
 						$dummy = new Person();
 						foreach (Array('congregationid', 'status', 'age_bracket') as $field) {
 							$value = '';
 							$addToExisting = FALSE;
-							$v = array_get($actions['fields'], $field);
+							$v = array_get($fields, $field);
 							if ($v) {
 								$value = $v['value'];
 								$addToExisting = $v['add'];
@@ -173,7 +174,7 @@ class Action_Plan extends DB_Object
 						foreach ($customFields as $fieldid => $fieldDetails) {
 							$value = '';
 							$addToExisting = FALSE;
-							$v = array_get($actions['fields'], 'custom_'.$fieldid);
+							$v = array_get($fields, 'custom_'.$fieldid);
 							if ($v) {
 								$value = $v['value'];
 								$addToExisting = $v['add'];
