@@ -76,6 +76,9 @@ class User_System extends Abstract_User_System
 	}
 
 	private function _logOut() {
+		if (!empty($_SESSION['user'])) {
+			DB_Object::releaseAllLocks($_SESSION['user']['id']);
+		}
 		$_SESSION['user'] = NULL;
 		$_SESSION['login_time'] = NULL;
 		$_SESSION['last_activity_time'] = NULL;

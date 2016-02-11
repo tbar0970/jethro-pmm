@@ -789,6 +789,20 @@ class db_object
 		return TRUE;
 	}
 
+	/**
+	 * Release all locks held by the specified user.
+	 * (Called at logout)
+	 * @param int $userid	ID of user whose locks are to be released
+	 */
+	public static function releaseAllLocks($userid)
+	{
+		$db = $GLOBALS['db'];
+		$SQL = 'DELETE FROM db_object_lock
+				WHERE userid = '.$db->quote($userid);
+		$res = $db->query($SQL);
+		check_db_result($res);
+	}
+
 
 	public function releaseLock($type='')
 	{
