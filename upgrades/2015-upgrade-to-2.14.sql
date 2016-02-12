@@ -47,7 +47,7 @@ INSERT INTO custom_field
 SELECT
 'Other Date', @rank:=@rank+1, 'date', 1, 'a:2:{s:10:"allow_note";i:1;s:16:"allow_blank_year";i:1;}'
 FROM person_date
-WHERE (fieldid IS NULL) OR (fieldid = 0)
+WHERE (typeid IS NULL) OR (typeid = 0)
 LIMIT 1;
 
 INSERT INTO custom_field_value
