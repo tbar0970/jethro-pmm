@@ -145,7 +145,7 @@ class Action_Plan extends DB_Object
 						When this plan is executed, for each person / family member:
 						<table class="fields">
 						<?php
-						$fields = $actions['fields'];
+						$fields = array_get($actions, 'fields', Array());
 						$dummy = new Person();
 						foreach (Array('congregationid', 'status', 'age_bracket') as $field) {
 							$value = '';

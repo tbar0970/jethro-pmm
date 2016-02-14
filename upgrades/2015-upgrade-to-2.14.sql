@@ -113,10 +113,10 @@ ALTER TABLE service_component_category
 ADD COLUMN personnel_default VARCHAR(255) NOT NULL DEFAULT '';
 
 UPDATE service_component_category
-SET personnel_default = '%SONG_LEADER%' WHERE category_name = 'Songs';
+SET personnel_default = '%SONG_LEADER_FIRSTNAME%' WHERE category_name = 'Songs';
 
 UPDATE service_component_category
-SET personnel_default = '%SERVICE_LEADER%' WHERE category_name IN ('Creeds', 'Prayers');
+SET personnel_default = '%SERVICE_LEADER_FIRSTNAME%' WHERE category_name IN ('Creeds', 'Prayers');
 
 ALTER TABLE service_component
 ADD COLUMN personnel VARCHAR(255) NOT NULL DEFAULT '';

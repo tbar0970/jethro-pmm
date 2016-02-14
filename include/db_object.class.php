@@ -800,7 +800,8 @@ class db_object
 		$SQL = 'DELETE FROM db_object_lock
 				WHERE userid = '.$db->quote($userid);
 		$res = $db->query($SQL);
-		check_db_result($res);
+		// We actually don't care if this fails - it shouldn't hold up the logout.
+		//check_db_result($res);
 	}
 
 
