@@ -115,7 +115,7 @@ $(document).ready(function() {
 	// Ability to enable/disable the children of a related element
 	// using data-toggle="enable" and data-target="selector of what to enable/disable"
 	$('[data-toggle=enable], [data-toggle=disable]').change(function() {
-		var newDisabledVal = $(this).attr('data-toggle') == 'disable' ? this.checked : !this.checked;
+		var newDisabledVal = ($(this).attr('data-toggle') == 'disable') ? this.checked : !this.checked;
 		if (this.type == 'radio') {
 			$('input[name='+this.name+']').each(function() {
 				if ($(this).attr('data-target')) {
@@ -126,6 +126,7 @@ $(document).ready(function() {
 		} else if (this.type == 'checkbox') {
 			$($(this).attr('data-target')).attr('disabled', newDisabledVal);
 		} else {
+			var newDisabledVal = ($(this).attr('data-toggle') == 'disable') ? this.value : !this.value;
 			// eg select box
 			$($(this).attr('data-target')).attr('disabled', newDisabledVal);
 		}
