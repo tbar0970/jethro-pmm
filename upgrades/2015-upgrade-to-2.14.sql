@@ -41,18 +41,22 @@ order by name;
 
 ALTER TABLE date_type RENAME TO _disused_date_type;
 
+SET @rank = (SELECT MAX(rank) FROM custom_field) + 1;
+
 /* Some systems have date values with typeid=null */
 INSERT INTO custom_field
 (name, rank, type, allow_multiple, params)
 SELECT
-'Other Date', @rank:=@rank+1, 'date', 1, 'a:2:{s:10:"allow_note";i:1;s:16:"allow_blank_year";i:1;}'
+'Other Date', @rank, 'date', 1, 'a:2:{s:10:"allow_note";i:1;s:16:"allow_blank_year";i:1;}'
 FROM person_date
-WHERE (fieldid IS NULL) OR (fieldid = 0)
+WHERE (typeid IS NULL) OR (typeid = 0)
 LIMIT 1;
+
+SET @otherFieldID = (SELECT id FROM custom_field WHERE name = 'Other Date');
 
 INSERT INTO custom_field_value
 (personid, fieldid, value_date, value_text)
-SELECT personid, typeid, `date`, note
+SELECT personid, IF((typeid IS NULL) OR (typeid = 0), @otherFieldID, typeid), `date`, note
 FROM person_date;
 
 ALTER TABLE person_date RENAME TO _disused_person_date;
