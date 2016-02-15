@@ -504,9 +504,12 @@ JethroServicePlanner._getTRDragHelper = function(event, tr) {
 JethroServicePlanner.init = function() {
 
 	// COMPONENTS TABLES:
-
-	TBLib.anchorBottom('#service-comps, #service-plan-container');
-
+	// We have to start off with these hidden so we can set their width explicitly
+	// to their parent width.  Otherwise they always push stuff out.
+	$('#service-comps table').width(
+		$('#service-comps .tab-pane.active').first().width() + 'px'
+	).show();
+	
     $("#service-comps tbody tr").draggable({
 		containment: "#service-planner",
 		helper: "clone",
@@ -679,8 +682,8 @@ JethroServicePlanner.Item.addAdHoc = function ($tr) {
 	$modal.find('input[name=title]').val('');
 	
 	$modal.find('select[name=show_in_handout] option[value=full]')
-			.attr('disabled')
-			.css('display', 'none');
+			.css('display', 'none')
+			.attr('disabled');
 	$modal.find('select[name=show_in_handout] option[value=title]')
 			.html('Yes');
 
@@ -992,7 +995,7 @@ $(document).ready(function() {
 	$('form#edit-family, form#add-family').submit(handleFamilyFormSubmit);
 	$('form#add-family').submit(handleNewFamilySubmit);
 	$('form#add-family input.family-name').blur(handleFamilyNameBlur);
-	$('select.person-status').not('.bulk-action *').change(handlePersonStatusChange).change();
+	$('select.person-status').not('.bulk-action *, .action-plan *').change(handlePersonStatusChange).change();
 	$('form#add-family .person-status select').change(handleNewPersonStatusChange);
 	$('form#add-family .congregation select').change(handleNewPersonCongregationChange);
 

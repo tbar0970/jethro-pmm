@@ -763,6 +763,7 @@ class db_object
 
 	public function acquireLock($type='')
 	{
+		if (!$this->id) return TRUE;
 		if ($this->haveLock($type)) return TRUE;
 		if (!$this->canAcquireLock($type)) return FALSE;
 		$db =& $GLOBALS['db'];
@@ -786,6 +787,21 @@ class db_object
 		}
 
 		return TRUE;
+	}
+
+	/**
+	 * Release all locks held by the specified user.
+	 * (Called at logout)
+	 * @param int $userid	ID of user whose locks are to be released
+	 */
+	public static function releaseAllLocks($userid)
+	{
+		$db = $GLOBALS['db'];
+		$SQL = 'DELETE FROM db_object_lock
+				WHERE userid = '.$db->quote($userid);
+		$res = $db->query($SQL);
+		// We actually don't care if this fails - it shouldn't hold up the logout.
+		//check_db_result($res);
 	}
 
 

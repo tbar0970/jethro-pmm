@@ -62,6 +62,11 @@ class service_item extends db_object
 									'height'    => 4,
 									'initial_cap'	=> TRUE,
 								   ),
+			'personnel'		=> Array(
+									'type'		=> 'text',
+									'width'		=> 80,
+									'height'    => 4,
+								   ),
 		);
 		return $fields;
 	}

@@ -164,10 +164,11 @@ body {
 }
 @media (min-width: 1025px) {
 	#jethro-overall-width {
-		min-width: 1020px;
+		/*min-width: 1020px;*/
+		padding-left: 10px;
 	}
 }
-@media (max-width: 1055px) {
+@media (max-width: 1025px) {
 	#jethro-overall-width {
 		min-width: 100%;
 	}
@@ -201,7 +202,6 @@ body {
 /*	border: 1px solid green;*/
 }
 #jethro-public #jethro-nav-toprow h1 {
-	padding-left: 10px;
 	line-height: 40px;
 }
 
@@ -569,12 +569,10 @@ input[type="radio"] {
 #body .no-padding td, #body .no-padding th {
 	padding: 0px !important;
 }
-/*
-THIS IS IMPLEMENTED BY JETHRO.JS IN A SPECIAL WAY
+/* THIS IS MOSTLY IMPLEMENTED BY JETHRO.JS IN A SPECIAL WAY*/
 td.narrow, th.narrow, .object-summary th {
-	width: 1%;
 	white-space: nowrap;
-}*/
+}
 
 .fill-me * {
 	width: 100%;
@@ -1373,6 +1371,11 @@ table.service-details td table td input {
 		background: #aaa;
 	}
 
+	table.attendance-stats td {
+		text-align: right;
+		width: 6ex;
+	}
+
 	.attendance-stats th, .attendance-stats td {
 		white-space: nowrap;
 	}
@@ -1427,16 +1430,18 @@ table.service-details td table td input {
 		overflow-x: hidden;
 	}
 	div.multi-select label {
-		padding-left: 24px;
-		padding-right: 20px;
+		padding-left: 24px !important;
+		padding-right: 20px !important;
 		white-space: nowrap;
 		width: auto;
+		display: block !important;
+		margin-bottom: 5px !important;
 	}
 	div.multi-select label.active {
 		background: #E8E8FF;
 	}
 	div.multi-select label.checkbox input {
-		margin-left: -22px;
+		margin-left: -22px !important;
 	}
 
 /************* SHARED ************/
@@ -1642,10 +1647,6 @@ div.autosuggest ul li a .tl, div.autosuggest ul li a .tr {
 .attendance-config-table {
 	display: inline-block;
 }
-.attendance-config-table select, .attendance-config-table input  {
-	margin: 0px;
-}
-
 .attendance-config-table > tbody  > tr > th {
 	padding: 10px 5px;
 }
@@ -1818,9 +1819,18 @@ td.run-sheet-comments * {
 	padding-top: 0px;
 }
 
+#service-comps {
+	margin-bottom: 20px;
+	min-height: 77vh;
+}
 
 #service-comps th {
 	padding-right: 18px;
+}
+
+#service-comps .tab-pane {
+	max-height: 75vh;
+	padding-right: 5px;
 }
 
 #service-comps th .icon-arrow-up, #service-comps th .icon-arrow-down {
@@ -1897,6 +1907,10 @@ td.run-sheet-comments * {
 	.note-template-fields {
 		margin: 20px 25px;
 	}
+}
+
+#body .action-plan .fields td {
+	vertical-align: middle;
 }
 
 /************ PRINT **************/
