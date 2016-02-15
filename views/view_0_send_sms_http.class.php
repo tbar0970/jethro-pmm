@@ -77,11 +77,7 @@ class View__Send_SMS_HTTP extends View
 			$content = str_replace('_RECIPIENTS_COMMAS_', urlencode(implode(',', $mobile_tels)), $content);
 			$content = str_replace('_RECIPIENTS_NEWLINES_', urlencode(implode("\n", $mobile_tels)), $content);
 
-			$header  = "";
-			if ((FIVECENT_SMS_EMAIL) && (FIVECENT_SMS_API_KEY)) {
-				$header = $header . "User: " . FIVECENT_SMS_EMAIL . "\r\n"
-						  . "Api-Key: " . FIVECENT_SMS_API_KEY . "\r\n";
-			}
+			$header  = SMS_HTTP_HEADER_TEMPLATE;
 			$header  = $header . "Content-Length: ".strlen($content)."\r\n"
 				           . "Content-Type: application/x-www-form-urlencoded\r\n";
 			$opts = Array(
@@ -110,15 +106,16 @@ class View__Send_SMS_HTTP extends View
 					$pattern = '/'.str_replace('_RECIPIENT_', preg_quote($recip['mobile_tel']), SMS_HTTP_RESPONSE_OK_REGEX).'/m';
 					if (preg_match($pattern, $response)) { 
 						$successes[$id] = $recip;
-
-						// Add a note containing the SMS to the user
-						$GLOBALS['system']->includeDBClass('person_note');
-						$note = new Person_Note();
-						$note->setValue('subject', 'SMS Sent');
-						$note->setvalue('details', $_POST['message']);
-						$note->setValue('personid', $id);
-						if ($note->create()) {
-							add_message('Note added');
+						if ((empty($_REQUEST['saveasnote']) && SMS_SAVE_TO_NOTE_BY_DEFAULT) || (!empty($_REQUEST['saveasnote']))) {
+							// Add a note containing the SMS to the user
+							$GLOBALS['system']->includeDBClass('person_note');
+							$note = new Person_Note();
+							$note->setValue('subject', 'SMS Sent');
+							$note->setvalue('details', $_POST['message']);
+							$note->setValue('personid', $id);
+							if ($note->create()) {
+								add_message('Note added');
+							}
 						}
 
 					} else {

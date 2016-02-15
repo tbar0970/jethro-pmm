@@ -189,6 +189,12 @@ define('FIVECENT_SMS_API_KEY', '');
 // 5centSMS User Email
 define('FIVECENT_SMS_EMAIL', '');
 
+// Header template for SMS server api authentication.
+// For example, for 5centsms.com.au something like
+// "User: yourfivecentregistered@email\r\nApi-Key: YourAPIKey\r\n";
+// Note that if you are using \r\n to put in new lines, you should wrap this in ""
+define('SMS_HTTP_HEADER_TEMPLATE', "");
+
 // URL of the server to send SMSes through
 define('SMS_HTTP_URL', ''); // eg. https://www.5centsms.com.au:/api/v4/sms')
 
@@ -202,6 +208,9 @@ define('SMS_HTTP_POST_TEMPLATE', '');
 // eg ^1\|_RECIPIENT_\|[0-9]+\|OK<br>
 // eg [\s\S]*_RECIPIENT_\",\"id\"\:\d*,\"status\"\:\d*,\"status_text\"\:\"New Message\"       for 5centsms.com.au
 define('SMS_HTTP_RESPONSE_OK_REGEX', '');
+
+// Set to true to default to save SMS as a note attached to the recipient
+define('SMS_SAVE_TO_NOTE_BY_DEFAULT', false);
 
 // A file to log who has sent SMSes (optional)
 define('SMS_SEND_LOGFILE', '');

@@ -307,6 +307,13 @@ class View_Admin__System_Configuration extends View {
 				</td>
 			</tr>
 			<tr>
+				<th>Default to saving sent SMS as note</th>
+				<td>
+					<?php echo SMS_SAVE_TO_NOTE_BY_DEFAULT; ?>
+					<br />
+				</td>
+			</tr>
+			<tr>
 				<th>Logging of SMS sending</th>
 				<td>
 					<?php echo SMS_SEND_LOGFILE ? 'Configured' : 'Not configured'; ?>
