@@ -180,14 +180,15 @@ define('CCLI_SEARCH_URL', 'http://us.search.ccli.com/search/results?SearchTerm=_
 // Otherwise you can use songsearch:  http://us.search.ccli.com/songs/__NUMBER__
 define('CCLI_DETAIL_URL', 'https://au.songselect.com/songs/__NUMBER__');
 
+////////////////////////////////////////////////////////////////
 // SMS GATEWAY:
-// ------------
+////////////////////////////////////////////////////////////////
 
-// 5centSMS API Token
-define('FIVECENT_SMS_API_KEY', '');
+// The maximum SMS length users are allowed to send.  160 chars is usually a one-part SMS.
+define('SMS_MAX_LENGTH', 320);
 
-// 5centSMS User Email
-define('FIVECENT_SMS_EMAIL', '');
+// The two digit country code for mobile phones. Some providers, such as smsbroadcast, use this
+define('SMS_COUNTRY_CODE', 61);
 
 // Header template for SMS server api authentication.
 // For example, for 5centsms.com.au something like
@@ -196,17 +197,25 @@ define('FIVECENT_SMS_EMAIL', '');
 define('SMS_HTTP_HEADER_TEMPLATE', "");
 
 // URL of the server to send SMSes through
-define('SMS_HTTP_URL', ''); // eg. https://www.5centsms.com.au:/api/v4/sms')
+// eg https://www.5centsms.com.au:/api/v4/sms 			for 5centsms.com.au
+// eg https://api.smsbroadcast.com.au/api-adv.php 	 	for smsbroadcast.com.au
+define('SMS_HTTP_URL', '');
+
 
 // The format for the send-sms POST request
 // Can contain keywords _USER_MOBILE_ _USER_EMAIL_ _MESSAGE_ _RECIPIENTS_COMMAS_ _RECIPIENTS_NEWLINES_
-// eg 'sender=_USER_MOBILE_&to=_RECIPIENTS_COMMAS_&message=_MESSAGE_
+// eg for 5centsms.com.au
+//		'sender=_USER_MOBILE_&to=_RECIPIENTS_COMMAS_&message=_MESSAGE_'
+// eg for smsbroadcast.com.au
+// 		'username=USERNAME&password=PASSWORD&to=_RECIPIENTS_COMMAS_&from=_USER_MOBILE_&maxsplit=' . floor(SMS_MAX_LENGTH/160) . 'message=_MESSAGE_'
+ 
+_
 define('SMS_HTTP_POST_TEMPLATE', ''); 
 
 // Regex to use to detect success message from the SMS server for each recipient
 // _RECIPIENT_ keyword is available.  Leave blank to ignore response.
 // eg ^1\|_RECIPIENT_\|[0-9]+\|OK<br>
-// eg [\s\S]*_RECIPIENT_\",\"id\"\:\d*,\"status\"\:\d*,\"status_text\"\:\"New Message\"       for 5centsms.com.au
+// eg [\s\S]*_RECIPIENT_\",\"id\"\:\d*,\"status\"\:\d*,\"status_text\"\:\"Sen			for 5centsms.com.au
 define('SMS_HTTP_RESPONSE_OK_REGEX', '');
 
 // Set to true to default to save SMS as a note attached to the recipient
@@ -251,9 +260,6 @@ define('MAP_LOOKUP_URL', 'http://maps.google.com.au?q=__ADDRESS_STREET__,%20__AD
 ///////////////////////////////////////////////////////
 define('LOCK_LENGTH', '10 minutes');
 define('LOCK_CLEANUP_PROBABLILITY', 10);
-
-// The maximum SMS length users are allowed to send.  160 chars is usually a one-part SMS.
-define('SMS_MAX_LENGTH', 160);
 
 // the chunk size to aim for when dividing lists (of persons or families) into pages
 define('CHUNK_SIZE', 100);
