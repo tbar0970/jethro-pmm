@@ -497,7 +497,7 @@ class Person_Query extends DB_Object
 			foreach ($this->_custom_fields as $fieldid => $fielddetails) {
 				$selected = ($sb == self::CUSTOMFIELD_PREFIX.$fieldid) || ($sb == 'date---'.$fieldid)
 				?>
-				<option value="customfield---<?php echo $fieldid; ?>"<?php if ($selected) echo ' selected="selected"'; ?>><?php echo ents($fielddetails['name']); ?></option>
+				<option value="<?php echo self::CUSTOMFIELD_PREFIX.$fieldid; ?>"<?php if ($selected) echo ' selected="selected"'; ?>><?php echo ents($fielddetails['name']); ?></option>
 				<?php
 			}
 		}
