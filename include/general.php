@@ -61,7 +61,6 @@ function bam($x)
 function check_db_result(&$res)
 {
 	if (PEAR::isError($res)) {
-		print_r($res->userinfo);
 		trigger_error("Database Error: ".print_r($res->userinfo, 1), E_USER_ERROR);
 		exit();
 	}
