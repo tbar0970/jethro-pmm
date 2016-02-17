@@ -52,6 +52,12 @@ class Service_Component extends db_object
 									'placeholder' => '(Optional)',
 									'note' => 'How should this component be shown on the run sheet.  Can include replacements such as the component\'s %title%, %SERVICE_TOPIC% or %NAME_OF_SOMEROSTERROLE%.  Leave blank to use the category\'s default.',
 								   ),
+			'personnel'            => Array(
+									'type'		=> 'text',
+									'width'		=> 80,
+									'placeholder' => '(Optional)',
+									'note' => 'What to put in the run sheet\'s "personnel" column by default. Can include roster role keywords such as %SERVICE_LEADER%. Leave blank to use the category\'s default.',
+									),
 			'show_in_handout'		=> Array(
 									'type'		=> 'select',
 									'options'  => Array(
@@ -146,6 +152,7 @@ class Service_Component extends db_object
 		$res['from'] .=  ' LEFT JOIN service svc1m ON svc1m.id = svc.id AND svc1m.date > NOW() - INTERVAL 1 MONTH ';
 		$res['from'] .=  ' LEFT JOIN service svc12m ON svc12m.id = svc.id AND svc12m.date > NOW() - INTERVAL 12 MONTH ';
 		$res['select'][] = 'IF (LENGTH(service_component.runsheet_title_format) = 0, cat.runsheet_title_format, service_component.runsheet_title_format) as runsheet_title_format ';
+		$res['select'][] = 'IF (LENGTH(service_component.personnel) = 0, cat.personnel_default, service_component.personnel) as personnel ';
 		$res['select'][] = 'COUNT(DISTINCT svc1m.id) AS usage_1m';
 		$res['select'][] = 'COUNT(DISTINCT svc12m.id) AS usage_12m';
 		$res['select'][] = 'MAX(svc.date) as lastused';

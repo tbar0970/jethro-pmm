@@ -164,10 +164,11 @@ body {
 }
 @media (min-width: 1025px) {
 	#jethro-overall-width {
-		min-width: 1020px;
+		/*min-width: 1020px;*/
+		padding-left: 10px;
 	}
 }
-@media (max-width: 1055px) {
+@media (max-width: 1025px) {
 	#jethro-overall-width {
 		min-width: 100%;
 	}
@@ -201,7 +202,6 @@ body {
 /*	border: 1px solid green;*/
 }
 #jethro-public #jethro-nav-toprow h1 {
-	padding-left: 10px;
 	line-height: 40px;
 }
 
@@ -569,12 +569,10 @@ input[type="radio"] {
 #body .no-padding td, #body .no-padding th {
 	padding: 0px !important;
 }
-/*
-THIS IS IMPLEMENTED BY JETHRO.JS IN A SPECIAL WAY
+/* THIS IS MOSTLY IMPLEMENTED BY JETHRO.JS IN A SPECIAL WAY*/
 td.narrow, th.narrow, .object-summary th {
-	width: 1%;
 	white-space: nowrap;
-}*/
+}
 
 .fill-me * {
 	width: 100%;
@@ -1373,6 +1371,11 @@ table.service-details td table td input {
 		background: #aaa;
 	}
 
+	table.attendance-stats td {
+		text-align: right;
+		width: 6ex;
+	}
+
 	.attendance-stats th, .attendance-stats td {
 		white-space: nowrap;
 	}
@@ -1419,23 +1422,26 @@ table.service-details td table td input {
 		box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset;
 		border-radius: 4px 4px 4px 4px;
 		padding: 4px 6px;
-		margin-bottom: 10px;
+		/*margin-bottom: 10px;*/
 		color: #333333;
 		width: auto;
+		max-width: 300px;
 		overflow-y: auto;
 		overflow-x: hidden;
 	}
 	div.multi-select label {
-		padding-left: 24px;
-		padding-right: 20px;
+		padding-left: 24px !important;
+		padding-right: 20px !important;
 		white-space: nowrap;
 		width: auto;
+		display: block !important;
+		margin-bottom: 5px !important;
 	}
 	div.multi-select label.active {
 		background: #E8E8FF;
 	}
 	div.multi-select label.checkbox input {
-		margin-left: -22px;
+		margin-left: -22px !important;
 	}
 
 /************* SHARED ************/
@@ -1641,10 +1647,6 @@ div.autosuggest ul li a .tl, div.autosuggest ul li a .tr {
 .attendance-config-table {
 	display: inline-block;
 }
-.attendance-config-table select, .attendance-config-table input  {
-	margin: 0px;
-}
-
 .attendance-config-table > tbody  > tr > th {
 	padding: 10px 5px;
 }
@@ -1694,6 +1696,13 @@ table.system-config td small {
 
 /*************** SERVICE PLANNING ****************/
 
+.service-content h4 {
+	font-size: 110%;
+	color: #888;
+	margin-top: 1ex;
+	margin-bottom: 0px;
+}
+
 #service-comp-manager .tab-content {
 	overflow-y: auto;
 }
@@ -1701,6 +1710,9 @@ table.system-config td small {
 #service-planner .nav-tabs *, #service-comp-manager .nav-tabs * {
 	font-size: 90%;
 	font-weight: bold;
+}
+#service-planner td, #service-planner td * {
+	/*font-family: "Arial Narrow", "Helvetica neue", Helvetica, Arial, Sans Serif;*/
 }
 #service-planner .tab-pane {
 	/*overflow: auto;*/
@@ -1722,6 +1734,10 @@ table.system-config td small {
 	font-size: 70%;
 	font-style: italic;
 }
+
+#service-plan-container {
+	padding-right: 15px; /* space for vertical scrollbar, so it doesn't trigger horizontal scrollbar' */
+}
 #service-plan .tools, #service-comps .tools {
 	padding: 0px;
 	vertical-align: middle;
@@ -1732,9 +1748,11 @@ table.system-config td small {
 }
 #service-plan .tools .dropdown-toggle {
 	display: block;
-	padding: 7px 3px;
+	padding: 3px 4px;
 }
-
+#service-plan .tools .dropdown-toggle i {
+	padding: 0px !important;
+}
 #service-plan tbody td {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -1775,6 +1793,13 @@ table.system-config td small {
 	margin: 0px !important;
 	padding: 1px 3px;
 }
+#service-plan td.personnel {
+	padding-top: 1px;
+	padding-bottom: 1px;
+}
+#service-plan .personnel, #service-plan td.personnel input {
+	width: 11ex;
+}
 
 #service-plan tbody textarea {
 	display: block;
@@ -1794,9 +1819,18 @@ td.run-sheet-comments * {
 	padding-top: 0px;
 }
 
+#service-comps {
+	margin-bottom: 20px;
+	min-height: 77vh;
+}
 
 #service-comps th {
 	padding-right: 18px;
+}
+
+#service-comps .tab-pane {
+	max-height: 75vh;
+	padding-right: 5px;
 }
 
 #service-comps th .icon-arrow-up, #service-comps th .icon-arrow-down {
@@ -1805,7 +1839,6 @@ td.run-sheet-comments * {
 	margin-right: -15px;
 	margin-top: 3px;
 }
-
 #service-personnel div.column {
 	float: left;
 	width: 22.7%;
@@ -1820,13 +1853,13 @@ td.run-sheet-comments * {
 	font-weight: bold;
 	margin: 0px;
 	float: left;
-	width: 8em;
+	width: 9em;
 }
 #service-personnel div div {
 	margin-bottom: 5px;
 }
 #service-personnel div div div {
-	margin-left: 8.5em;
+	margin-left: 9.2em;
 }
 
 
@@ -1874,6 +1907,10 @@ td.run-sheet-comments * {
 	.note-template-fields {
 		margin: 20px 25px;
 	}
+}
+
+#body .action-plan .fields td {
+	vertical-align: middle;
 }
 
 /************ PRINT **************/

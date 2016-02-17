@@ -14,14 +14,14 @@ class View__Edit_Me extends View
 	{
 		// Non-adults can only edit if there are no adults in the family
 		return 
-			($GLOBALS['member_user_system']->getCurrentMember('age_bracket') == '0')
+			($GLOBALS['user_system']->getCurrentMember('age_bracket') == '0')
 			|| !$this->hasAdult
 		;
 	}
 	
 	function processView()
 	{
-		$this->family = $GLOBALS['system']->getDBOBject('family', $GLOBALS['member_user_system']->getCurrentMember('familyid'));
+		$this->family = $GLOBALS['system']->getDBOBject('family', $GLOBALS['user_system']->getCurrentMember('familyid'));
 		foreach ($this->family->getMemberData() as $id => $member) {
 			$p = $GLOBALS['system']->getDBObject('person', $id);
 			$this->persons[] = $p;

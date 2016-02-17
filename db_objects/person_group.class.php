@@ -102,59 +102,27 @@ class Person_Group extends db_object
 		return $this->values['name'];
 	}
 
-	function getMembers($incl_archived=TRUE, $order_by=NULL)
+	function getMembers($params=Array(), $order_by=NULL)
 	{
-		$db =& $GLOBALS['db'];
-		$sql = 'SELECT p.*, gm.membership_status AS membership_status_id, ms.label as membership_status, gm.created as joined_group, c.name as congregation
-				FROM person_group_membership gm 
-				JOIN person p ON gm.personid = p.id
-				';
-		if ($order_by != NULL) {
-			$sql .= '
-				JOIN family f ON f.id = p.familyid
-			';
-		}
-		$sql .= '
-				LEFT JOIN congregation c ON c.id = p.congregationid
-				LEFT JOIN person_group_membership_status ms ON ms.id = gm.membership_status
-				WHERE gm.groupid = '.$db->quote((int)$this->id).'
-				';
-		if (!$incl_archived) {
-			$sql .= ' AND p.status <> "archived"
-					';
-		}
 		if ($order_by == NULL) {
-			$order_by = 'ms.rank, p.last_name, p.first_name';
+			$order_by = 'pgms.rank, person.last_name, person.first_name';
 		} else {
-			$order_by = preg_replace("/(^|[^.])status($| |,)/", '\\1p.status\\2', $order_by);
+			// replace 'status' with membership status rank.
+			// but retain 'person.status' unchanged.
+			$order_by = preg_replace("/(^|[^.])status($| |,)/", '\\1pgms.rank\\2', $order_by);
 		}
-		$sql .= 'ORDER BY '.$order_by;
-		$res = $db->queryAll($sql, null, null, true);
-		check_db_result($res);
-		foreach ($res as $k => &$v) {
-			$v['joined_group'] = format_date($v['joined_group']);
-		}
-		return $res;
-	}
-	
-	function getMemberIDs($incl_archived=TRUE)
-	{
-		$db =& $GLOBALS['db'];
-		$sql = 'SELECT p.id
-				FROM person_group_membership gm 
-				JOIN person p ON gm.personid = p.id
-				LEFT JOIN congregation c ON c.id = p.congregationid
-				LEFT JOIN person_group_membership_status ms ON ms.id = gm.membership_status
-				WHERE gm.groupid = '.$db->quote((int)$this->id).'
-				';
-		if (!$incl_archived) {
-			$sql .= ' AND p.status <> "archived"
-					';
-		}
-		$sql .= 'ORDER BY p.last_name, p.first_name';
-		$res = $db->queryCol($sql);
-		check_db_result($res);
-		return $res;		
+		$person = new Person();
+		$comps = $person->getInstancesQueryComps($params, 'AND', $order_by);
+		$comps['from'] .= '
+			JOIN person_group_membership pgm ON pgm.personid = person.id
+			LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status
+			';
+		if (strlen($comps['where'])) $comps['where'] .= ' AND ';
+		$comps['where'] .= ' pgm.groupid = '.(int)$this->id;
+		$comps['select'][] = 'pgm.membership_status as membership_status_id';
+		$comps['select'][] = 'pgms.label as membership_status';
+		$comps['select'][] = 'pgm.created as joined_group';
+		return $person->_getInstancesData($comps);
 	}
 
 	function addMember($personid, $membership_status=NULL, $overwrite_existing=FALSE)

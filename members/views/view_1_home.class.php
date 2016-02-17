@@ -29,7 +29,7 @@ class View_Home extends View
 				My Family
 			</h3>
 			<?php
-			$family = $GLOBALS['system']->getDBObject('family', $GLOBALS['member_user_system']->getCurrentMember('familyid'));
+			$family = $GLOBALS['system']->getDBObject('family', $GLOBALS['user_system']->getCurrentMember('familyid'));
 			unset($family->fields['status']);
 			$family->printCustomSummary(Array($this, 'printFamilyMembers'));
 			?>
@@ -45,7 +45,7 @@ class View_Home extends View
 			</h3>
 			<?php
 			$GLOBALS['system']->includeDBClass('roster_role_assignment');
-			$rallocs = Roster_Role_Assignment::getUpcomingAssignments($GLOBALS['member_user_system']->getCurrentMember('id'), NULL);
+			$rallocs = Roster_Role_Assignment::getUpcomingAssignments($GLOBALS['user_system']->getCurrentMember('id'), NULL);
 			if ($rallocs) {
 				?>
 				<table class="table table-auto-width">
@@ -78,7 +78,7 @@ class View_Home extends View
 		}
 		
 		$GLOBALS['system']->includeDBClass('person_group');
-		$groups = Person_Group::getGroups($GLOBALS['member_user_system']->getCurrentMember('id'), FALSE, TRUE);
+		$groups = Person_Group::getGroups($GLOBALS['user_system']->getCurrentMember('id'), FALSE, TRUE);
 		if (count($groups) > 1) {
 			echo '<div  class="member-homepage-box" >';
 			echo '<h3>My Groups</h3>';

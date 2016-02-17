@@ -8,7 +8,7 @@ class View__Edit_Ical extends View
 	
 	function _loadPerson()
 	{
-		$this->person = $GLOBALS['system']->getDBObject('person', $GLOBALS['member_user_system']->getCurrentMember('id'));	
+		$this->person = $GLOBALS['system']->getDBObject('person', $GLOBALS['user_system']->getCurrentMember('id'));	
 	}
 	
 	function processView()

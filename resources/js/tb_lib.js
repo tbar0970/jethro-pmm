@@ -18,7 +18,7 @@ $(document).ready(function() {
 			setTimeout("$('.initial-focus, .autofocus, [autofocus]').get(0).focus()", 200);
 		} else {
 			// Focus the first visible input
-			setTimeout("try { $('body input[type!=checkbox]:visible, select:visible').not('.btn-link, [type=checkbox], [type=radio]').not('.no-autofocus *').get(0).focus(); } catch (e) {}", 200);
+			setTimeout("try { $('body input[type!=checkbox]:visible, select:visible').not('.btn-link, [type=checkbox], [type=radio]').not('.no-autofocus *, .no-autofocus').get(0).focus(); } catch (e) {}", 200);
 		}
 	}
 
@@ -114,16 +114,21 @@ $(document).ready(function() {
 
 	// Ability to enable/disable the children of a related element
 	// using data-toggle="enable" and data-target="selector of what to enable/disable"
-	$('[data-toggle=enable]').change(function() {
+	$('[data-toggle=enable], [data-toggle=disable]').change(function() {
+		var newDisabledVal = ($(this).attr('data-toggle') == 'disable') ? this.checked : !this.checked;
 		if (this.type == 'radio') {
 			$('input[name='+this.name+']').each(function() {
-				$($(this).attr('data-target')).attr('disabled', !this.checked);
+				if ($(this).attr('data-target')) {
+					newDisabledVal = $(this).attr('data-toggle') == 'disable' ? this.checked : !this.checked;
+					$($(this).attr('data-target')).attr('disabled', newDisabledVal);
+				}
 			});
 		} else if (this.type == 'checkbox') {
-			$($(this).attr('data-target')).attr('disabled', !this.checked);
+			$($(this).attr('data-target')).attr('disabled', newDisabledVal);
 		} else {
+			var newDisabledVal = ($(this).attr('data-toggle') == 'disable') ? this.value : !this.value;
 			// eg select box
-			$($(this).attr('data-target')).attr('disabled', !this.value);
+			$($(this).attr('data-target')).attr('disabled', newDisabledVal);
 		}
 
 	}).change();
@@ -143,7 +148,7 @@ $(document).ready(function() {
 	 * <div class="option" data-mytype="x"></div>
 	 * <div class="option" data-mytype="y"></div>
 	 */
-	$('input[data-toggle=visible], select[data-toggle=visible]').change(function() {
+	$('input[data-toggle=visible], select[data-toggle=visible]').not('[type=checkbox]').change(function() {
 		var base = $(document);
 		var targetExp = $(this).attr('data-target');
 		if (/^row /.test(targetExp)) {
@@ -156,15 +161,18 @@ $(document).ready(function() {
 		target.filter(myFilter).show();
 	}).change();
 
-	$('[data-toggle=visible]').not('input, select').click(function(event) {
+	$('[data-toggle=visible]').not('input[type!=checkbox], select').click(function(event) {
 		var targetExp = $(this).attr('data-target');
 		var target = null;
 		if (targetExp == 'next') {
 			target = $(this).next();
 		} else {
+			var base;
 			if (/^row /.test(targetExp)) {
 				base = $(this).parents('tr:first');
 				targetExp = targetExp.substr(4);
+			} else {
+				base = $(document.body);
 			}
 			target = base.find(targetExp);
 		}
@@ -775,7 +783,7 @@ TBLib.handleIntBoxKeyPress = function(event)
 	if (!event) event = window.event;
 	if (event.altKey || event.ctrlKey || event.metaKey) return true;
 	var keyCode = event.keyCode ? event.keyCode : event.which;
-	validKeys = new Array(8, 9, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 97, 98, 99, 100, 101, 102, 103, 104, 105, 96, 46, 36, 35, 37, 39);
+	validKeys = new Array(8, 9, 13, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 97, 98, 99, 100, 101, 102, 103, 104, 105, 96, 46, 36, 35, 37, 39);
 	if (!validKeys.contains(keyCode)) {
 		return false;
 	}
@@ -900,15 +908,20 @@ Array.prototype.contains = function(element)
 	return false;
 };
 
-TBLib.anchorBottom = function(exp) {
+TBLib.anchorBottom = function(exp, isOnResize) {
 	var elts = $(exp);
 	elts.css('overflow-y', 'auto');
 	elts.height(1);
 	var totalBodyHeight = $('body').height();
-	var margin = 50;
+	var margin = 20;
 	elts.each(function() {
 		var $t = $(this);
 		var padding = parseInt($t.css('padding-top'), 10) +  parseInt($t.css('padding-bottom'), 10);
-		$t.height(totalBodyHeight - $t.position().top - margin - padding);
+		var newHeight = totalBodyHeight - $t.position().top - margin - padding;
+		newHeight = Math.max(newHeight, 100);
+		$t.height(newHeight);
 	});
+	if (!isOnResize) {
+		$(window).resize(function() { TBLib.anchorBottom(exp, true); });
+	}
 }

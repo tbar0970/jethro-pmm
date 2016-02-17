@@ -486,7 +486,9 @@ class Person_Query extends DB_Object
 		?>
 		<option disabled="disabled">------</option>
 		<option value="attendance_percent"<?php if ($sb == "attendance_percent") echo ' selected="selected"'; ?>>Attendance rate during the specified period</option>
-		<option value="attendance_numabsences""<?php if ($sb == "attendance_numabsences") echo ' selected="selected"'; ?>>Number of absences since last marked present</option>
+		<option value="attendance_numabsences"<?php if ($sb == "attendance_numabsences") echo ' selected="selected"'; ?>>Number of absences since last marked present</option>
+		<option disabled="disabled">------</option>
+		<option value="membershipstatus"<?php if ($sb == "membershipstatus") echo ' selected="selected"'; ?>>Group membership status</option>
 		<?php
 		if ($this->_custom_fields) {
 			?>
@@ -495,7 +497,7 @@ class Person_Query extends DB_Object
 			foreach ($this->_custom_fields as $fieldid => $fielddetails) {
 				$selected = ($sb == self::CUSTOMFIELD_PREFIX.$fieldid) || ($sb == 'date---'.$fieldid)
 				?>
-				<option value="customfield---<?php echo $fieldid; ?>"<?php if ($selected) echo ' selected="selected"'; ?>><?php echo ents($fielddetails['name']); ?></option>
+				<option value="<?php echo self::CUSTOMFIELD_PREFIX.$fieldid; ?>"<?php if ($selected) echo ' selected="selected"'; ?>><?php echo ents($fielddetails['name']); ?></option>
 				<?php
 			}
 		}
@@ -512,26 +514,51 @@ class Person_Query extends DB_Object
 			?>
 			<h3>I want to save this report...</h3>
 			<div class="indent-left">
+				<p>
 				<label type="radio">
-					<input type="radio" name="save_option" value="new" id="save_option_new" <?php if (empty($this->id)) echo 'checked="checked"'; ?> />
-					as a new report called
-					<input type="text" name="new_query_name" />
-					<?php print_widget('new_query_private', $visibilityParams, $this->getValue('owner') !== NULL); ?>
+					<input type="radio" name="save_option" value="new" id="save_option_new"
+						<?php if (empty($this->id)) echo 'checked="checked"'; ?>
+						 data-toggle="enable"
+					/>
+					as a new report 
 				</label>
 		
 				<label type="radio">
-					<input type="radio" name="save_option" value="replace" id="save_option_replace" <?php if ($this->id && ($this->id != 'TEMP')) echo 'checked="checked"'; ?> />
-					in place of the existing report
-					<?php 
-					print_widget('replace_query_id', Array('type' => 'reference', 'references' => 'person_query'), $this->id);
-					print_widget('replace_query_private', $visibilityParams, $this->getValue('owner') !== NULL);
-					?>
+					<input type="radio" name="save_option" value="replace" id="save_option_replace" <?php if ($this->id && ($this->id != 'TEMP')) echo 'checked="checked"'; ?>
+						 data-toggle="enable"
+						 />
+					in place of its previous version
 				</label>
 
 				<label type="radio">
-					<input type="radio" name="save_option" value="temp" id="save_option_temp"<?php if (empty($this->id) || $this->id == 'TEMP') echo ' checked="checked"'; ?> />
+					<input type="radio" name="save_option"
+						   value="temp"
+						   id="save_option_temp"
+							  <?php if (empty($this->id) || $this->id == 'TEMP') echo ' checked="checked"'; ?>
+						   data-toggle="disable"
+						   data-target="#save-options input, #save-options select"
+					/>
 					only temporarily as an ad-hoc report
 				</label>
+				</p>
+				
+				<table id="save-options">
+					<tr>
+						<th>Report title &nbsp;</th>
+						<td>
+							<?php $this->printFieldInterface('name'); ?>
+						</td>
+					</tr>
+					<tr>
+						<th>Visibility</th>
+						<td>
+							<?php
+							print_widget('is_private', $visibilityParams, $this->getValue('owner') !== NULL);
+							?>
+						</td>
+					</tr>
+				</table>
+
 			</div>
 			<?php
 		}
@@ -543,12 +570,12 @@ class Person_Query extends DB_Object
 			switch ($_POST['save_option']) {
 				case 'new':
 					$this->populate(0, Array());
-					$this->setValue('name', $_POST['new_query_name']);
-					$this->setValue('owner', $_POST['new_query_private'] ? $GLOBALS['user_system']->getCurrentUser('id') : NULL);
+					$this->processFieldInterface('name');
+					$this->setValue('owner', $_POST['is_private'] ? $GLOBALS['user_system']->getCurrentUser('id') : NULL);
 					break;
 				case 'replace':
-					$this->load((int)$_POST['replace_query_id']);
-					$this->setValue('owner', $_POST['replace_query_private'] ? $GLOBALS['user_system']->getCurrentUser('id') : NULL);
+					$this->processFieldInterface('name');
+					$this->setValue('owner', $_POST['is_private'] ? $GLOBALS['user_system']->getCurrentUser('id') : NULL);
 					break;
 				case 'temp':
 					$this->id = 'TEMP';
@@ -625,11 +652,15 @@ class Person_Query extends DB_Object
 
 		// SORT BY
 		$params['sort_by'] = $_POST['sort_by'];
-		if (in_array($params['sort_by'], Array('attendance_percent', 'attendance_numabsences'))) {
+		if (in_array($params['sort_by'], Array('attendance_percent', 'attendance_numabsences', 'membershipstatus'))) {
 			if (!in_array($params['sort_by'], $params['show_fields'])) {
-				add_message("In order to sort by attendance/absence, it will also be displayed as a column", 'error');
+				add_message("In order to sort by the requested field, it will also be displayed as a column", 'notice');
 				$params['show_fields'][] = $params['sort_by'];
 			}
+		}
+		if (empty($params['include_groups']) && ($params['sort_by'] == 'membershipstatus')) {
+			add_message('No groups were chosen, so results cannot be ordered by membership status', 'error');
+			$params['sort_by'] = '';
 		}
 		$this->setValue('params', $params);
 	}
@@ -955,7 +986,8 @@ class Person_Query extends DB_Object
 						$query['select'][] = 'p.id as '.$field;
 						break;
 					case 'all_members':
-						$query['from'] .= 'JOIN (
+						$query['from'] .= ' 
+										JOIN (
 											SELECT familyid, IF (
 												GROUP_CONCAT(DISTINCT last_name) = ff.family_name, 
 												GROUP_CONCAT(first_name ORDER BY age_bracket, gender DESC SEPARATOR ", "),
@@ -965,7 +997,7 @@ class Person_Query extends DB_Object
 											JOIN family ff ON pp.familyid = ff.id
 											WHERE pp.status <> "archived"
 											GROUP BY familyid
-										   ) all_members ON all_members.familyid = p.familyid
+										) all_members ON all_members.familyid = p.familyid
 										   ';
 						$query['select'][] = 'all_members.names as `All Family Members`';
 						break;
@@ -1069,19 +1101,20 @@ class Person_Query extends DB_Object
 			}
 			$order[] = 'GROUP_CONCAT('.Custom_Field::getSortValueSQLExpr('cfvorder', 'cfoorder').')';
 			$query['order_by'] = implode(', ', $order);
-
 		}
 
-		/* 
-		 * We can order by attendances or absences safely, 
-		 * because we have already ensured they will appear 
+		/*
+		 * We can order by attendances or absences safely,
+		 * because we have already ensured they will appear
 		 * the select clause.
 		 */
-		if ($query['order_by'] == '`attendance_percent`') {
-			$query['order_by'] = '`Attendance` ASC';
-		} else if ($query['order_by'] == '`attendance_numabsences`') {
-			$query['order_by'] = '`Running Absences` DESC';
-		}
+		$rewrites = Array(
+					'`attendance_percent`' => '`Attendance` ASC',
+					'`attendance_numabsences`' => '`Running Absences` DESC',
+					'`membershipstatus`' => 'pgms.rank',
+		);
+		$query['order_by'] = str_replace(array_keys($rewrites), array_values($rewrites), $query['order_by']);
+		if (!strlen(trim($query['order_by'], '`'))) $query['order_by'] = 1;
 
 		// Build SQL
 		$sql = 'SELECT '.$select_fields.'

@@ -254,31 +254,42 @@ class System_Controller
 			default:
 				return; // E_STRICT or E_DEPRECATED
 		}
+
+		$bt = debug_backtrace();
+		array_shift($bt); // remove reference to this handleError function
+		foreach ($bt as &$b) {
+			if (!empty($b['args'])) {
+				foreach ($b['args'] as &$v) {
+					if (!is_scalar($v)) $v = '[Object/Array]';
+				}
+			}
+			unset($b['object']);
+		}
+
 		?>
 		<div class="alert<?php if(isset($bg)){ echo" alert-".$bg;} ?>">
 			<h4><?php echo $title; ?></h4>
 			<p><?php echo $errstr; ?></p>
+		<?php
+		if ((JETHRO_VERSION == 'DEV') || (defined('SHOW_ERROR_BACKTRACES') && constant('SHOW_ERROR_BACKTRACES'))) {
+			?>
 			<u class="clickable" onclick="var parentDiv=this.parentNode; while (parentDiv.tagName != 'DIV') { parentDiv = parentDiv.parentNode; }; with (parentDiv.getElementsByTagName('PRE')[0].style) { display = (display == 'block') ? 'none' : 'block' }">Show Details</u>
 			<pre style="display: none; background: white; font-weight: normal; color: black"><b>Line <?php echo $errline; ?> of File <?php echo $errfile; ?></b>
 			<?php
-			$bt = debug_backtrace();
-			foreach ($bt as &$b) {
-				if (!empty($b['args'])) {
-					foreach ($b['args'] as &$v) {
-						if (!is_scalar($v)) $v = '[Object/Array]';
-					}
-				}
-				unset($b['object']);
-			}
 			print_r($bt); 
 			?>
 			</pre>
+			<?php
+		}
+		?>
 		</div>
 		<?php
 		if ($send_email && defined('ERRORS_EMAIL_ADDRESS') && constant('ERRORS_EMAIL_ADDRESS')) {
 			$content = "$errstr \nLine $errline of $errfile\n\n";
 			if (!empty($GLOBALS['user_system'])) $content .= "Current user: ".$GLOBALS['user_system']->getCurrentUser('username');
-			$content .= "\n\nRequest: ".print_r($_REQUEST,1)."\n\n".print_r($bt, 1);
+			$content .= "\n\nRequest: ".print_r($_REQUEST,1)."\n\n";
+			$content .= 'Referer: '.array_get($_SERVER, 'HTTP_REFERER', '')."\n\n";
+			$content .= print_r($bt, 1);
 			@mail(constant('ERRORS_EMAIL_ADDRESS'), 'Jethro Error from '.build_url(array()), $content);
 		}
 		if ($send_email) error_log("$errstr - Line $errline of $errfile");

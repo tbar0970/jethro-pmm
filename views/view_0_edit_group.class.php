@@ -71,7 +71,7 @@ class View__Edit_Group extends Abstract_View_Edit_Object
 
 			case 'remove_member':
 			case 'remove_members':
-				$personids = $_POST['personid'];
+				$personids = array_get($_POST, 'personid');
 				if (!empty($personids)) {
 					if (!is_array($personids)) {
 						$personids = Array($personids);

@@ -1,7 +1,8 @@
 <?php
 class View_Attendance__Display extends View
 {
-	private $age_bracket = null;
+	private $age_brackets = null;
+	private $statuses = null;
 	private $cohortids = Array();
 	private $start_date = null;
 	private $end_date = null;
@@ -24,7 +25,8 @@ class View_Attendance__Display extends View
 	{
 		if (empty($_REQUEST['params_submitted'])) {
 			if (!empty($_SESSION['attendance'])) {
-				$this->age_bracket = array_get($_SESSION['attendance'], 'age_bracket');
+				$this->age_brackets = array_get($_SESSION['attendance'], 'age_brackets', Array());
+				$this->statuses = array_get($_SESSION['attendance'], 'statuses', Array());
 				$this->cohortids = array_get($_SESSION['attendance'], 'cohortids');
 				$this->start_date = array_get($_SESSION['attendance'], 'start_date', date('Y-m-d', strtotime('-7 weeks')));
 				$this->end_date = array_get($_SESSION['attendance'], 'end_date');
@@ -34,8 +36,11 @@ class View_Attendance__Display extends View
 			}
 
 		} else {
-			$this->age_bracket = $_SESSION['attendance']['age_bracket'] = $_REQUEST['age_bracket'];
-			if ($this->age_bracket != '') $this->age_bracket = (int)$this->age_bracket;
+			if (!empty($_REQUEST['age_brackets_all'])) unset($_REQUEST['age_brackets']);
+			if (!empty($_REQUEST['statuses_all'])) unset($_REQUEST['statuses']);	
+			$this->age_brackets = $_SESSION['attendance']['age_brackets'] = array_get($_REQUEST, 'age_brackets', Array());
+			$this->statuses = $_SESSION['attendance']['statuses'] = array_get($_REQUEST, 'statuses', Array());
+
 			if (!empty($_REQUEST['cohortids']) && is_array($_REQUEST['cohortids'])) {
 				foreach ($_REQUEST['cohortids'] as $id) {
 					$this->cohortids[] = $id;
@@ -76,23 +81,18 @@ class View_Attendance__Display extends View
 		?>
 		<form method="get" class="well well-small clearfix form-inline">
 			<input type="hidden" name="view" value="<?php echo $_REQUEST['view']; ?>" />
-			<table class="attendance-config-table valign-middle">
+			<table class="attendance-config-table">
 				<tr>
 					<th>For</th>
-					<td colspan="2" class="fill-me">
+					<td colspan="2" style="min-width: 240px">
 						<?php
-						print_widget('age_bracket', Array(
-								'type'			=> 'select',
-								'options'		=> Array('' => 'All age brackets') + explode(',', AGE_BRACKET_OPTIONS),
-								'default'		=> '',
-								'allow_empty'	=> false,
-						), $this->age_bracket);
+						Attendance_Record_Set::printPersonFilters($this->age_brackets, $this->statuses);
 						?>
 					</td>
 				</tr>
 				<tr>
 					<th>In</th>
-					<td class="valign-top">
+					<td class="valign-top fill-me">
 						<table class="expandable">
 							<?php
 							if (empty($this->cohortids)) {
@@ -174,9 +174,18 @@ class View_Attendance__Display extends View
 			echo ' Group';
 		}
 		echo '</h3>';
-
-		list ($dates, $attendances, $totals) = Attendance_Record_Set::getAttendances((array)$congid, $groupid, $this->age_bracket, $this->start_date, $this->end_date);
-		if (empty($attendances)) {
+		$params = Array();
+		if ($this->age_brackets) $params['(age_bracket'] = $this->age_brackets;
+		if ($this->statuses) $params['(status'] = $this->statuses;
+		
+		foreach ($this->statuses as $status) {
+			if ($status && ($status[0] == 'g') && empty($groupid)) {
+				print_message("Congregational attendance cannot be filtered by a group membership status. Please clear the status filter to display attendance for this congregation.", 'error');
+				return;
+			}
+		}
+		list ($dates, $attendances, $totals) = Attendance_Record_Set::getAttendances((array)$congid, $groupid, $params, $this->start_date, $this->end_date);
+		if (empty($dates)) {
 			?>
 			<p><i>No attendance records found.  Try adjusting your criteria.</i></p>
 			<?php
@@ -232,8 +241,11 @@ class View_Attendance__Display extends View
 			?>
 			</tbody>
 			<tfoot class="attendance-stats">
+			<?php
+			if (empty($params)) {
+				?>
 				<tr class="headcount">
-					<th colspan="3">Total Headcount</th>
+					<th colspan="2">Total Headcount</th>
 				<?php
 				foreach ($dates as $date) {
 					?>
@@ -245,8 +257,11 @@ class View_Attendance__Display extends View
 				?>
 					<td colspan="2">&nbsp;</td>
 				</tr>
+				<?php
+			}
+			?>
 				<tr class="present">
-					<th colspan="3">Total Present</th>
+					<th colspan="2"><?php echo empty($params) ? 'Total Present' : 'Present'; ?></th>
 				<?php
 				foreach ($dates as $date) {
 					?>
@@ -259,7 +274,7 @@ class View_Attendance__Display extends View
 					<td colspan="2">&nbsp;</td>
 				</tr>
 				<tr class="absent">
-					<th colspan="3">Total Absent</th>
+					<th colspan="2"><?php echo empty($params) ? 'Total Absent' : 'Absent'; ?></th>
 				<?php
 				foreach ($dates as $date) {
 					?>
@@ -271,8 +286,11 @@ class View_Attendance__Display extends View
 				?>
 					<td colspan="2">&nbsp;</td>
 				</tr>
+			<?php
+			if (empty($params)) {
+				?>
 				<tr class="extras">
-					<th colspan="3">Extras</th>
+					<th colspan="2">Extras</th>
 				<?php
 				foreach ($dates as $date) {
 					?>
@@ -288,6 +306,9 @@ class View_Attendance__Display extends View
 				?>
 					<td colspan="2">&nbsp;</td>
 				</tr>
+				<?php
+			}
+			?>
 			</tfoot>
 		</table>
 		<?php
@@ -324,6 +345,10 @@ class View_Attendance__Display extends View
 		$GLOBALS['system']->includeDBClass('attendance_record_set');
 		$GLOBALS['system']->includeDBClass('person');
 		$dummy = new Person();
+
+		$params = Array();
+		if ($this->age_brackets) $params['(age_bracket'] = $this->age_brackets;
+		if ($this->statuses) $params['(status'] = $this->statuses;
 		
 		$all_persons = Attendance_Record_Set::getPersonIDsForCohorts($this->cohortids);
 		$all_dates = $all_attendances = $all_totals = $all_headcounts = Array();
@@ -333,9 +358,12 @@ class View_Attendance__Display extends View
 				list($type, $id) = explode('-', $cohortid);
 				if ($type == 'c') $congid = $id;
 				if ($type == 'g') $groupid = $id;
-				list ($cdates, $cattendances, $ctotals) = Attendance_Record_Set::getAttendances((array)$congid, $groupid, $this->age_bracket, $this->start_date, $this->end_date);
-				$hc = Headcount::fetchRange(($congid ? 'congregation' : 'person_group'), $congid ? $congid : $groupid, $this->start_date, $this->end_date);
-				foreach ($hc as $date => $c) $all_headcounts[$date][$cohortid] = $c;
+				list ($cdates, $cattendances, $ctotals) = Attendance_Record_Set::getAttendances((array)$congid, $groupid, $params, $this->start_date, $this->end_date);
+				if (empty($params)) {
+					// Headcounts and extras don't make sense when we are only viewing a segment of the total attendance
+					$hc = Headcount::fetchRange(($congid ? 'congregation' : 'person_group'), $congid ? $congid : $groupid, $this->start_date, $this->end_date);
+					foreach ($hc as $date => $c) $all_headcounts[$date][$cohortid] = $c;
+				}
 				$all_dates = array_merge($all_dates, $cdates);
 				foreach ($ctotals as $date => $t) $all_totals[$date][$cohortid] = $t;
 				foreach ($cattendances as $personid => $cat) {
@@ -467,6 +495,9 @@ class View_Attendance__Display extends View
 			$colspan = SizeDetector::isWide() ? 'colspan="2"' : '';
 			?>
 			<tfoot class="attendance-stats">
+			<?php
+			if (empty($params)) {
+				?>
 				<tr class="headcount">
 					<th <?php echo $colspan; ?>>Total Headcount</th>
 				<?php
@@ -483,8 +514,11 @@ class View_Attendance__Display extends View
 				?>
 					<td colspan="2">&nbsp;</td>
 				</tr>
+				<?php
+			}
+			?>
 				<tr class="present">
-					<th <?php echo $colspan; ?>>Total Present</th>
+					<th <?php echo $colspan; ?>><?php echo empty($params) ? 'Total Present' : 'Present'; ?></th>
 				<?php
 				foreach ($all_dates as $date) {
 					$tots = array_get($all_totals, $date, Array());
@@ -500,7 +534,7 @@ class View_Attendance__Display extends View
 					<td colspan="2">&nbsp;</td>
 				</tr>
 				<tr class="absent">
-					<th <?php echo $colspan; ?>>Total Absent</th>
+					<th <?php echo $colspan; ?>><?php echo empty($params) ? 'Total Absent' : 'Absent'; ?></th>
 				<?php
 				foreach ($all_dates as $date) {
 					$tots = array_get($all_totals, $date, Array());					
@@ -515,6 +549,9 @@ class View_Attendance__Display extends View
 				?>
 					<td colspan="2">&nbsp;</td>
 				</tr>
+			<?php
+			if (empty($params)) {
+				?>
 				<tr class="extras">
 					<th <?php echo $colspan; ?>>Extras</th>
 				<?php
@@ -523,11 +560,10 @@ class View_Attendance__Display extends View
 					$hc = array_get($all_headcounts, $date, Array());
 					foreach ($this->cohortids as $cohortid) {
 						$present = array_get(array_get($tots, $cohortid, Array()), 1, 0);						
-						$absent = array_get(array_get($tots, $cohortid, Array()), 0, 0);
 						$headcount = array_get($hc, $cohortid, NULL);
 						?>
 						<td>
-							<?php if ($headcount) echo $headcount - $present - $absent; ?>
+							<?php if ($headcount) echo $headcount - $present; ?>
 						</td>
 						<?php
 					}
@@ -535,6 +571,9 @@ class View_Attendance__Display extends View
 				?>
 					<td colspan="2">&nbsp;</td>
 				</tr>
+				<?php
+			}
+			?>
 			</tfoot>
 			<?php
 		}
@@ -542,7 +581,7 @@ class View_Attendance__Display extends View
 		</table>
 		<?php
 		include 'templates/bulk_actions.template.php';
-		
+
 	}
 }
 ?>

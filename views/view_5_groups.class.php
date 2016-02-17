@@ -108,7 +108,8 @@ class View_Groups extends View
 
 
 			<?php
-			$persons = $this->_group->getMembers(!empty($_SESSION['show_archived_group_members']));
+			$mParams = empty($_SESSION['show_archived_group_members']) ? Array() : Array('!status' => 'archived');
+			$persons = $this->_group->getMembers($mParams);
 			list ($status_options, $default_status) = Person_Group::getMembershipStatusOptionsAndDefault();
 			?>
 			<h3>Group Members (<?php echo count($persons); ?>)</h3>
@@ -156,6 +157,9 @@ class View_Groups extends View
 			}
 
 			if (!empty($persons)) {
+				foreach ($persons as $k => &$v) {
+					$v['joined_group'] = format_date($v['joined_group']);
+				}
 				$special_fields = Array('joined_group', 'congregation');
 				if (count($status_options) > 1) {
 					array_unshift($special_fields, 'membership_status');

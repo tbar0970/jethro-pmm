@@ -1,6 +1,7 @@
 <?php
 require_once JETHRO_ROOT.'/include/general.php';
-class Member_User_System
+require_once JETHRO_ROOT.'/include/abstract_user_system.class.php';
+class Member_User_System extends Abstract_User_System
 {
 	private $_error;
 
@@ -234,6 +235,17 @@ If you didn't request an account, you can just ignore this email";
 			}
 		}
 
+	}
+
+	/**
+	 * Get details of the currently-authorised church member
+	 * @see Abstract_User_System::getCurrentPerson()
+	 * @param string $field	Particular field to return; null=return all fields
+	 * @return mixed
+	 */
+	public function getCurrentPerson($field='')
+	{
+		return $this->getCurrentMember($field);
 	}
 
 	/**

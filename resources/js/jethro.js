@@ -413,7 +413,6 @@ $(document).ready(function() {
 		$('#custom-fields-editor').parents('form').submit(function() {
 			var optionsMsg = fieldsMsg = '';
 			$(this).find('input[type=checkbox]').each(function() {
-				console.log(this);
 				if (this.checked){
 					if (this.name.match(/fields_[0-9]+_delete/)) fieldsMsg = "\nDeleting a field will delete all values for that field from all persons.";
 					if (this.name.match(/fields_[0-9]+_options_delete/)) optionsMsg = "\nDeleting a select option will remove that value from all persons currently using it.";
@@ -505,9 +504,12 @@ JethroServicePlanner._getTRDragHelper = function(event, tr) {
 JethroServicePlanner.init = function() {
 
 	// COMPONENTS TABLES:
-
-	TBLib.anchorBottom('#service-comps, #service-plan-container');
-
+	// We have to start off with these hidden so we can set their width explicitly
+	// to their parent width.  Otherwise they always push stuff out.
+	$('#service-comps table').width(
+		$('#service-comps .tab-pane.active').first().width() + 'px'
+	).show();
+	
     $("#service-comps tbody tr").draggable({
 		containment: "#service-planner",
 		helper: "clone",
@@ -523,7 +525,7 @@ JethroServicePlanner.init = function() {
 		}
     });
 
-	$("#component-search input").keypress(function() {
+	$("#component-search input").keypress(function(event) {
 		if (event.charCode == 13) JethroServicePlanner.beginComponentFiltering();
 	})
 	$("#component-search button[data-action=search]").click(JethroServicePlanner.beginComponentFiltering)
@@ -595,20 +597,14 @@ JethroServicePlanner.init = function() {
 		var action = $(this).attr('data-action');
 		JethroServicePlanner.Item[action]();
 	})
-	$('#ad-hoc-modal input').keypress(function(e) {
-		if (e.which == 13) JethroServicePlanner.Item.saveAdHoc();
+	$('#ad-hoc-modal input').keypress(function(event) {
+		if (event.charCode == 13) JethroServicePlanner.Item.saveItemDetails();
 	})
 
 	JethroServicePlanner.refreshNumbersAndTimes();
 
 	// WARN UNSAVED
-
 	window.onbeforeunload = JethroServicePlanner.onBeforeUnload;
-
-	$('#service-plan-container').submit(function() {
-			
-	});
-
 
 }
 
@@ -680,13 +676,24 @@ JethroServicePlanner.Item.viewCompDetail = function($tr) {
 }
 
 JethroServicePlanner.Item.addAdHoc = function ($tr) {
+	JethroServicePlanner.itemBeingEdited = null
 	JethroServicePlanner.newComponentInsertPoint = $tr.next('tr');
-	$('#ad-hoc-modal').modal('show');
+	$modal = $('#ad-hoc-modal');
+	$modal.find('input[name=title]').val('');
+	
+	$modal.find('select[name=show_in_handout] option[value=full]')
+			.css('display', 'none')
+			.attr('disabled');
+	$modal.find('select[name=show_in_handout] option[value=title]')
+			.html('Yes');
+
+	$modal.find('.modal-header h4').html('Add ad-hoc service item');
+	$modal.modal('show');
 }
 
-JethroServicePlanner.Item.saveAdHoc = function () {
+JethroServicePlanner.Item.saveItemDetails = function () {
 	
-	var attrs = {componentid : ''};
+	var attrs = {};
 	$('#ad-hoc-modal input[name], #ad-hoc-modal select').each(function() {
 		attrs[this.name] = this.value;
 	});
@@ -704,6 +711,7 @@ JethroServicePlanner.Item.saveAdHoc = function () {
 		JethroServicePlanner.isChanged = true;
 
 	} else {
+		attrs.componentid = '';
 		JethroServicePlanner.addItem(attrs['title'], attrs, JethroServicePlanner.newComponentInsertPoint);
 	}
 	$('#ad-hoc-modal').modal('hide').find('input[name=title]').val('');
@@ -711,11 +719,22 @@ JethroServicePlanner.Item.saveAdHoc = function () {
 
 JethroServicePlanner.Item.editDetails = function ($tr) {
 	JethroServicePlanner.itemBeingEdited = $tr;
+	$modal = $('#ad-hoc-modal');
 	var attrs = ['title', 'length_mins', 'show_in_handout'];
+	console.log($tr.find('input'));
 	for (var i=0; i < attrs.length; i++) {
-		$('#ad-hoc-modal').find('[name='+attrs[i]+']').val($tr.find('input[name="'+attrs[i]+'[]"]').val());
+		$modal.find('[name='+attrs[i]+']').val($tr.find('input[name="'+attrs[i]+'[]"]').val());
 	}
-	$('#ad-hoc-modal').modal('show');
+	// Show 'show in handout = full' only for non-ad-hoc items
+	var componentID = $tr.find('input[name="componentid[]"]').val();
+	$modal.find('select[name=show_in_handout] option[value=full]')
+			.prop('disabled', componentID ? false : true)
+			.css('display', componentID ? '' : 'none');
+	$modal.find('select[name=show_in_handout] option[value=title]')
+			.html(componentID ? 'Title only' : 'Yes');
+
+	$modal.find('.modal-header h4').html('Edit service item');
+	$modal.modal('show');
 
 	
 }
@@ -729,9 +748,10 @@ JethroServicePlanner.onItemDrop = function(event, ui) {
 
 JethroServicePlanner.addFromComponent = function(componentTR, beforeItem) {
 	var attrVals = {};
+	console.log(componentTR);
 	var runsheetTitle = componentTR.attr('data-runsheet_title');
-	var newTitle = runsheetTitle ? runsheetTitle: componentTR.find('.title').html();
-	var attrs = ['componentid', 'show_in_handout', 'length_mins'];
+	var newTitle = runsheetTitle ? runsheetTitle : componentTR.find('.title').html();
+	var attrs = ['componentid', 'show_in_handout', 'length_mins', 'personnel'];
 	for (var i=0; i < attrs.length; i++) {
 		attrVals[attrs[i]] = componentTR.attr('data-'+attrs[i]);
 	}
@@ -743,6 +763,8 @@ JethroServicePlanner.addItem = function(title, attrVals, beforeItem) {
 	newTR.css('display', '').addClass('service-item');
 	if (!attrVals['componentid']) newTR.addClass('ad-hoc');
 	newTR.find('td.item span').html(title);
+	newTR.find('input[name="personnel[]"]').val(attrVals['personnel']);
+	delete attrVals['personnel'];
 	attrVals['title'] = title;
 	for (k in attrVals) {
 		newTR.find('td.item').append('<input type="hidden" class="'+k+'" name="'+k+'[]" value="'+attrVals[k]+'" />');
@@ -973,7 +995,7 @@ $(document).ready(function() {
 	$('form#edit-family, form#add-family').submit(handleFamilyFormSubmit);
 	$('form#add-family').submit(handleNewFamilySubmit);
 	$('form#add-family input.family-name').blur(handleFamilyNameBlur);
-	$('select.person-status').not('.bulk-action *').change(handlePersonStatusChange).change();
+	$('select.person-status').not('.bulk-action *, .action-plan *').change(handlePersonStatusChange).change();
 	$('form#add-family .person-status select').change(handleNewPersonStatusChange);
 	$('form#add-family .congregation select').change(handleNewPersonCongregationChange);
 

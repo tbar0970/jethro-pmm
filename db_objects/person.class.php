@@ -13,7 +13,8 @@ class Person extends DB_Object
 
 	function __construct($id=0)
 	{
-		if ($id == $this->getCurrentUser('id')) {
+		if ($id == $GLOBALS['user_system']->getCurrentPerson('id')) {
+			// Every person can save their own details
 			$this->_save_permission_level = 0;
 		}
 		return parent::__construct($id);
@@ -29,10 +30,16 @@ class Person extends DB_Object
 		return TRUE;
 	}
 
+	public static function getStatusOptions()
+	{
+		return explode(',', PERSON_STATUS_OPTIONS)
+				+ Array('contact' => 'Contact', 'archived' => 'Archived');
+	}
+
 	protected static function _getFields()
 	{
 		$allowEmptyCong = TRUE;
-		if (!empty($GLOBALS['user_system']) && $GLOBALS['user_system']->getCurrentRestrictions('congregation')) {
+		if ($GLOBALS['user_system']->getCurrentRestrictions('congregation')) {
 			$allowEmptyCong = FALSE; // Can only add to congs we can see.
 		}
 		$res = Array(
@@ -82,8 +89,7 @@ class Person extends DB_Object
 							   ),
 			'status'	=> Array(
 								'type'	=> 'select',
-								'options'	=> explode(',', PERSON_STATUS_OPTIONS) 
-											+ Array('contact' => 'Contact', 'archived' => 'Archived'),
+								'options'	=> self::getStatusOptions(),
 								'default'	=> 'contact' /* but see below */,
 								'class'		=> 'person-status',
 								'allow_empty'	=> false,
@@ -600,11 +606,6 @@ class Person extends DB_Object
 		<?php
 	}
 
-	function getStatusOptions()
-	{
-		return $this->fields['status']['options'];
-	}
-
 	static function getStatusStats()
 	{
 		$dummy = new Person();
@@ -655,41 +656,44 @@ class Person extends DB_Object
 
 		unset($this->fields['photo']);
 
-		$customFields = $this->getCustomFields();
-		$dummyField = new Custom_Field();
-		if ($customFields) {
-			?>
-			<hr />
-			<div class="form-horizontal">
-			<?php
-			foreach ($customFields as $fieldid => $fieldDetails) {
-				$dummyField->populate($fieldid, $fieldDetails);
-				$tableClass = $fieldDetails['allow_multiple'] ? 'expandable' : '';
-				$values = isset($this->_custom_values[$fieldid]) ? $this->_custom_values[$fieldid] : Array('');
+		if (empty($fields) || in_array('custom', $fields)) {
+
+			$customFields = $this->getCustomFields();
+			$dummyField = new Custom_Field();
+			if ($customFields) {
 				?>
-				<div class="control-group">
-					<label class="control-label" for="custom_<?php echo $fieldid; ?>"><?php echo ents($fieldDetails['name']); ?></label>
-					<div class="controls">
-						<table class="<?php echo $tableClass; ?>">
-						<?php
-						foreach ($values as $value) {
-							?>
-							<tr><td>
-								<?php
-								$dummyField->printWidget($value);
-								?>
-							</td></tr>
+				<hr />
+				<div class="form-horizontal">
+				<?php
+				foreach ($customFields as $fieldid => $fieldDetails) {
+					$dummyField->populate($fieldid, $fieldDetails);
+					$tableClass = $fieldDetails['allow_multiple'] ? 'expandable' : '';
+					$values = isset($this->_custom_values[$fieldid]) ? $this->_custom_values[$fieldid] : Array('');
+					?>
+					<div class="control-group">
+						<label class="control-label" for="custom_<?php echo $fieldid; ?>"><?php echo ents($fieldDetails['name']); ?></label>
+						<div class="controls">
+							<table class="<?php echo $tableClass; ?>">
 							<?php
-						}
-						?>
-						</table>
+							foreach ($values as $value) {
+								?>
+								<tr><td>
+									<?php
+									$dummyField->printWidget($value);
+									?>
+								</td></tr>
+								<?php
+							}
+							?>
+							</table>
+						</div>
 					</div>
+					<?php
+				}
+				?>
 				</div>
 				<?php
 			}
-			?>
-			</div>
-			<?php
 		}
 
 	}
@@ -804,10 +808,10 @@ class Person extends DB_Object
 	{
 		$fields = $this->getCustomFields();
 		$oldVal = array_get($this->_custom_values, $fieldid, '');
-		if ((!empty($oldVal) || !empty($newVal)) && ($oldVal != $newVal)) {
+		if ((!empty($oldVal) || !empty($newVal)) && ($addToExisting || ($oldVal != $newVal))) {
 			$this->_old_custom_values[$fieldid] = $oldVal;
 			if ($fields[$fieldid]['allow_multiple'] && $addToExisting && $oldVal) {
-				$this->_custom_values[$fieldid] = array_merge((array)$oldVal, $newVal);
+				$this->_custom_values[$fieldid] = array_merge((array)$oldVal, (array)$newVal);
 			} else {
 				$this->_custom_values[$fieldid] = $newVal;
 			}
