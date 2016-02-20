@@ -758,10 +758,6 @@ class Person_Query extends DB_Object
 		$query['from'] = 'person p 
 						JOIN family f ON p.familyid = f.id
 						';
-		$query['order_by'] = $this->_quoteAliasAndColumn($params['sort_by']);
-		if ($params['sort_by'] == 'f.family_name') {
-			$query['order_by'] .= ', f.id';
-		}
 		$query['where'] = Array();
 
 		// BASIC FILTERS
@@ -911,6 +907,8 @@ class Person_Query extends DB_Object
 
 
 		// GROUPING
+		$grouping_order = '';
+		$grouping_field = '';
 		if (empty($params['group_by'])) {
 			$grouping_field = '';
 		} else if ($params['group_by'] == 'groupid') {
@@ -920,16 +918,12 @@ class Person_Query extends DB_Object
 									JOIN person_group pg ON pg.id = pgm.groupid
 									';
 				$query['where'][] = $this->_getGroupAndCategoryRestrictionSQL($params['include_groups'], $params['group_join_date_from'], $params['group_join_date_to'], $params['group_membership_status']);
-				$query['order_by'] = 'pg.name, '.$query['order_by'];
+				$grouping_order = 'pg.name, ';
 			} else {
 				$grouping_field = '';
 			}
 		} else {
-			$grouping_field = $params['group_by'].', ';
-			if (FALSE !== ($key = array_search($params['group_by'], $params['show_fields']))) {
-				unset($params['show_fields'][$key]);
-			}
-			$query['order_by'] = $grouping_field.$query['order_by'];
+			$grouping_order = $grouping_field = $params['group_by'].', ';
 		}
 
 		// DISPLAY FIELDS
@@ -941,9 +935,9 @@ class Person_Query extends DB_Object
 			 * results.  There is client-side code to deal with this,
 			 * but this check here is for extra robustness.
 			 */
-			if (($query['order_by'] == '`attendance_percent`') && !in_array('attendance_percent', $params['show_fields'])) {
+			if (($params['sort_by'] == 'attendance_percent') && !in_array('attendance_percent', $params['show_fields'])) {
 				array_push($params['show_fields'],'attendance_percent');
-			} else if (($query['order_by'] == '`attendance_numabsences`') && !in_array('attendance_numabsences', $params['show_fields'])){
+			} else if (($params['sort_by'] == 'attendance_numabsences') && !in_array('attendance_numabsences', $params['show_fields'])){
 				array_push($params['show_fields'],'attendance_numabsences');
 			}
 			foreach ($params['show_fields'] as $field) {
@@ -1083,7 +1077,7 @@ class Person_Query extends DB_Object
 			$select_fields = $grouping_field.'p.id as ID, '.implode(', ', $query['select']);
 		}
 
-		// Order by
+		// ORDER BY
 		$customOrder = NULL;
 		if (substr($params['sort_by'], 0, 7) == 'date---') {
 			// backwards compatibility
@@ -1101,6 +1095,22 @@ class Person_Query extends DB_Object
 			}
 			$order[] = 'GROUP_CONCAT('.Custom_Field::getSortValueSQLExpr('cfvorder', 'cfoorder').')';
 			$query['order_by'] = implode(', ', $order);
+		} else if ($params['sort_by'] == 'p.congregationid') {
+			// Order by congregation meeting time then congregation name
+			$query['from'] .= '
+				LEFT JOIN congregation cord ON p.congregationid = cord.id ';
+			$query['order_by'] = 'IF(cord.id IS NULL, 1, 0), IF(LENGTH(cord.meeting_time)>0, 0, 1), cord.meeting_time, cord.name';
+		} else {
+			$query['order_by'] = $this->_quoteAliasAndColumn($params['sort_by']);
+		}
+
+		if ($grouping_order) {
+			$query['order_by'] = $grouping_order.$query['order_by'];
+		}
+
+		if ($params['sort_by'] == 'f.family_name') {
+			// Stop members of identically-named families from being intermingled
+			$query['order_by'] .= ', f.id';
 		}
 
 		/*
@@ -1432,6 +1442,7 @@ class Person_Query extends DB_Object
 	 */
 	private function _convertParams($params)
 	{
+		if (empty($params)) return Array();
 		if (isset($params['dates'])) {
 			foreach ($params['dates'] as $rule) {
 				$params['custom_fields'][$rule['typeid']] = $rule;
@@ -1444,7 +1455,7 @@ class Person_Query extends DB_Object
 			unset($params['date_logic']);
 		}
 
-		foreach ($params['show_fields'] as $i => $v) {
+		foreach (array_get($params, 'show_fields', Array()) as $i => $v) {
 			if (0 === strpos($v, 'date---')) {
 				$params['show_fields'][$i] = self::CUSTOMFIELD_PREFIX.substr($v, strlen('date---'));
 			}
