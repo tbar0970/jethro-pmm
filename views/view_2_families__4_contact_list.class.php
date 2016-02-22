@@ -194,7 +194,7 @@ class View_Families__Contact_List extends View
 			if ($child_names) {
 				?>
 				<tr>
-					<td colspan="4"><?php echo ents(implode(', ', $child_names)); ?></td
+					<td colspan="4"><?php echo ents(implode(', ', $child_names)); ?></td>
 				</tr>
 				<?php
 			}
