@@ -10,7 +10,7 @@
 		SizeDetector::printFormFields();
 		?>
 		<div id="login-header">
-			<h1>{{systemName}}</h1>
+			<h1><span>Jethro PMM </span> {{systemName}}</h1>
 		</div>
 		<div id="login-body" class="form-horizontal">
 			<noscript>
