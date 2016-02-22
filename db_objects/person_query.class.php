@@ -863,7 +863,11 @@ class Person_Query extends DB_Object
 		// GROUP MEMBERSHIP FILTERS
 		if (!empty($params['include_groups'])) {
 
-			$include_groupids_clause = $this->_getGroupAndCategoryRestrictionSQL($params['include_groups'], $params['group_join_date_from'], $params['group_join_date_to'], array_get($params, 'group_membership_status'));
+			$include_groupids_clause = $this->_getGroupAndCategoryRestrictionSQL(
+												$params['include_groups'],
+												array_get($params, 'group_join_date_from'),
+												array_get($params, 'group_join_date_to'),
+												array_get($params, 'group_membership_status'));
 			$group_members_sql = 'SELECT personid 
 								FROM person_group_membership pgm 
 								JOIN person_group pg ON pgm.groupid = pg.id
@@ -917,7 +921,12 @@ class Person_Query extends DB_Object
 				$query['from'] .= ' JOIN person_group_membership pgm ON p.id = pgm.personid
 									JOIN person_group pg ON pg.id = pgm.groupid
 									';
-				$query['where'][] = $this->_getGroupAndCategoryRestrictionSQL($params['include_groups'], $params['group_join_date_from'], $params['group_join_date_to'], $params['group_membership_status']);
+				$query['where'][] = $this->_getGroupAndCategoryRestrictionSQL(
+											$params['include_groups'],
+											array_get($params, 'group_join_date_from'),
+											array_get($params, 'group_join_date_to'),
+											array_get($params, 'group_membership_status')
+									);
 				$grouping_order = 'pg.name, ';
 			} else {
 				$grouping_field = '';
@@ -961,7 +970,11 @@ class Person_Query extends DB_Object
 								$query['from'] .= ' LEFT JOIN person_group_membership pgm ON p.id = pgm.personid
 													JOIN person_group pg ON pg.id = pgm.groupid
 													';
-								$query['where'][] = $this->_getGroupAndCategoryRestrictionSQL($params['include_groups'], $params['group_join_date_from'], $params['group_join_date_to']);
+								$query['where'][] = $this->_getGroupAndCategoryRestrictionSQL(
+															$params['include_groups'],
+															array_get($params, 'group_join_date_from'),
+															array_get($params, 'group_join_date_to')
+													);
 								$joined_groups = TRUE;
 							}
 							if ($field == 'groups') {
@@ -1443,14 +1456,14 @@ class Person_Query extends DB_Object
 	private function _convertParams($params)
 	{
 		if (empty($params)) return Array();
-		if (isset($params['dates'])) {
+		if (!empty($params['dates'])) {
 			foreach ($params['dates'] as $rule) {
 				$params['custom_fields'][$rule['typeid']] = $rule;
 				unset($params['custom_fields'][$rule['typeid']]['typeid']);
 			}
 			unset($params['dates']);
 		}
-		if (isset($params['date_logic'])) {
+		if (!empty($params['date_logic'])) {
 			$params['custom_field_logic'] = $params['date_logic'];
 			unset($params['date_logic']);
 		}
