@@ -4,7 +4,8 @@
 	<?php include 'head.template.php' ?>
 </head>
 <body id="login" ng-controller="LoginFormTemplate">
-	<form method="post" id="login-box" class="well">
+	<!-- We specify a blank action, and novalidate, so that Angular doesn't prevent the form from being submitted. -->
+	<form action="" method="post" id="login-box" name="login-box" class="well" novalidate >
 		<?php 
 		require_once 'include/size_detector.class.php';
 		SizeDetector::printFormFields();
@@ -32,7 +33,7 @@
 			</div>
 			<div class="control-group">
 				<div class="controls">
-					<input type="submit" value="Log In" class="btn" />
+					<input type="submit" value="Log In" class="btn"/>
 					<input type="hidden" name="login_key" value="{{loginKey}}" /><br />
 				</div>
 			</div>
