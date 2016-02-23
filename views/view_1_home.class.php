@@ -11,19 +11,29 @@ class Task{
 }
 /* Class for serialising Roster Allocations and sending to the client side. */
 class RosterAllocation{
+	public function __construct(){
+		$this->allocs = Array();
+	}
 	public $date;
 	public $allocs;
 }
 /* Class for encapsulating and serialising all variables to send to the client side. */
 class ViewHomeResponseObject{
+	public function __construct(){
+		$this->num_cols = 1;
+		$this->tasks = Array();
+		$this->rallocs = Array();
+		$this->systemName = SYSTEM_NAME;
+		$this->baseUrl = BASE_URL;
+	}
 	public $num_cols;
-	public $tasks = Array();
-	public $rallocs = Array();
-	public $systemName = SYSTEM_NAME;
-	public $baseUrl = BASE_URL;
+	public $tasks;
+	public $rallocs;
+	public $systemName;
+	public $baseUrl;
 	public $notesForFutureActionUrl;
 	public $notesCount;
-	public $currentUserId;	
+	public $currentUserId;
 }
 class View_Home extends View
 {
@@ -39,7 +49,6 @@ class View_Home extends View
 	function printView()
 	{
 		$response = new ViewHomeResponseObject();
-		$response->num_cols = 1;
 		$response->currentUserId = $GLOBALS['user_system']->getCurrentUser('id');
 		if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) $response->num_cols++;
 		if ($GLOBALS['user_system']->havePerm(PERM_VIEWROSTER)) $response->num_cols++;
@@ -71,11 +80,10 @@ class View_Home extends View
 				foreach ($rallocs as $date => $allocs) {
 					 $ra = new RosterAllocation();
 					 $ra->date = date('j M', strtotime($date));
-					 $ra->allocs = Array();
 					 foreach ($allocs as $alloc) {
-						  array_push($ra->$allocs, $alloc['cong'].' '.$alloc['title']);
+						  array_push($ra->allocs, $alloc['cong'].' '.$alloc['title']);
 					 }
-					 array_push($response->$rallocs,$ra);
+					 array_push($response->rallocs,$ra);
 				}
 			}
 		}
@@ -126,12 +134,12 @@ class View_Home extends View
 					<a href="?view=_manage_ical" class="pull-right hidden-phone"><small>Subscribe</small></a>
 					Upcoming roster<span> allocations</span>
 				</h3>
-				<div ng-repeat="ralloc in rallocs">
+				<div name="rosterAllocations" ng-repeat="ralloc in rallocs">
 					<h5>{{ralloc.date}}</h5>
 					<p ng-repeat="alloc in ralloc.allocs">{{alloc}}</p>
 				</div>
 					<div class="pull-right"><a href="./?view=persons&personid={{currentUserId}}#rosters">See all</a></div>
-					<p><i>None</i></p>
+					<p name="noRosterAllocations"><i>None</i></p>
 			 </div>
 		</div>
 		<script>
@@ -151,6 +159,11 @@ class View_Home extends View
 			$scope.notesCount = response.notesCount;
 			$scope.notesCount += ($scope.notesCount == 1 ? " note" : " notes");
 			$scope.rallocs = response.rallocs;
+			if ($scope.rallocs.length > 0){
+				$("[name='noRosterAllocations']").addClass("hidden");
+			} else {
+				$("[name='rosterAllocations']").addClass("hidden");
+			}
 			$scope.currentUserId = response.currentUserId;
 		});
 		</script>
