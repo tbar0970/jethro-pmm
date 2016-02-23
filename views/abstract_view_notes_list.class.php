@@ -40,7 +40,7 @@ class Abstract_View_Notes_List extends View
 	function printView()
 	{
 		?>
-		<form class="well well-small form-inline">
+		<form class="well well-small form-inline" action="" novalidate>
 		<input type="hidden" name="view" value="<?php echo $_REQUEST['view']; ?>" />
 		Show notes assigned to 
 		<?php 
