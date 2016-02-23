@@ -236,7 +236,7 @@ class View_Documents extends View
 			</div>
 		</div>
 			<div id="rename-folder-modal" class="modal hide fade" role="dialog" aria-hidden="true">
-				<form method="post">
+				<form method="post" action="" novalidate>
 					<div class="modal-header">
 						<h4>Rename this folder:</h4>
 					</div>
@@ -251,7 +251,7 @@ class View_Documents extends View
 			</div>
 
 			<div id="add-folder-modal" class="modal hide fade" role="dialog" aria-hidden="true">
-				<form method="post">
+				<form method="post" action="" novalidate>
 					<div class="modal-header">
 						<h4>Create new subfolder:</h4>
 					</div>
@@ -266,7 +266,7 @@ class View_Documents extends View
 			</div>
 
 			<div id="upload-file-modal" class="modal hide fade" role="dialog" aria-hidden="true">
-				<form method="post" enctype="multipart/form-data">
+				<form method="post" enctype="multipart/form-data" action="" novalidate>
 					<div class="modal-header">
 						<h4>Upload new files:</h4>
 					</div>
@@ -282,7 +282,7 @@ class View_Documents extends View
 			</div>
 
 			<div id="replace-file-modal" class="modal hide fade" role="dialog" aria-hidden="true">
-				<form method="post" enctype="multipart/form-data">
+				<form method="post" enctype="multipart/form-data" action="" novalidate>
 					<div class="modal-header">
 						<h4>Replace <span id="replaced-filename"></span> with:</h4>
 					</div>
@@ -298,7 +298,7 @@ class View_Documents extends View
 			</div>
 
 			<div id="rename-file-modal" class="modal hide fade" role="dialog" aria-hidden="true">
-				<form method="post">
+				<form method="post" action="" novalidate>
 					<div class="modal-header">
 						<h4>Rename file:</h4>
 					</div>
@@ -313,7 +313,7 @@ class View_Documents extends View
 			</div>
 
 			<div id="move-file-modal" class="modal hide fade" role="dialog" aria-hidden="true">
-				<form method="post">
+				<form method="post" action="" novalidate>
 					<div class="modal-header">
 						<h4>Move <span id="moving-filename"></span> <br />to a different folder:</h4>
 					</div>
@@ -394,7 +394,7 @@ class View_Documents extends View
 	function printEditor()
 	{
 		?>
-		<form method="post" action="<?php echo build_url(Array('editfile' => NULL)); ?>">
+		<form method="post" action="<?php echo build_url(Array('editfile' => NULL)); ?>" novalidate>
 		<?php
 		if ($this->_editfile == '_new_') {
 			$i = 1;
@@ -455,7 +455,7 @@ class View_Documents extends View
 			if ($this->getPrintedDir()) {
 				if (empty($dirlist) && empty($filelist)) {
 					?>
-					<form class="min" method="post" target="_parent" action="<?php echo $parentaction ?>">
+					<form class="min" method="post" target="_parent" action="<?php echo $parentaction ?>" novalidate>
 						<input type="hidden" name="deletefolder" value="1" />
 						<input type="image" title="Delete this folder" class="confirm-title" src="resources/img/folder_delete.png" />
 					</form>
@@ -542,7 +542,7 @@ class View_Documents extends View
 						<span class="clickable rename-file"><i class="icon-wrench"></i>Rename</span> &nbsp;
 						<span class="clickable replace-file"><i class="icon-upload"></i>Replace</span> &nbsp;
 						<span class="clickable move-file"><i class="icon-random"></i>Move</span> &nbsp;
-						<form method="post" class="min">
+						<form method="post" class="min" action="" novalidate>
 							<input type="hidden" name="deletefile[]" value="<?php echo ents($filename);?>" ?>
 							<button type="submit" class="btn btn-link confirm-title" title="Delete this file">
 								<i class="icon-trash"></i>Delete</button>
