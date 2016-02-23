@@ -60,7 +60,7 @@ class View_Admin__Action_Plans extends View
 		if (!empty($this->_plan)) {
 			if (empty($this->_plan->id) || $this->_plan->haveLock()) {
 				?>
-				<form method="post">
+				<form method="post" action="" novalidate>
 					<input type="hidden" name="plan_submitted" value="1" />
 					<?php
 					$this->_plan->printForm();
