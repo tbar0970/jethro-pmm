@@ -72,7 +72,7 @@ class View_Groups__List_All extends View
 						?>
 						<td class="narrow action-cell">
 							<a href="?view=_edit_group&groupid=<?php echo $gid; ?>&back_to=groups__list_all"><i class="icon-wrench"></i>Edit</a>
-							<form class="min" method="post" action="?view=_edit_group&groupid=<?php echo $gid; ?>">
+							<form class="min" method="post" action="?view=_edit_group&groupid=<?php echo $gid; ?>" novalidate>
 								<input type="hidden" name="action" value="delete" />
 								<button type="submit" class="btn-link double-confirm-title"title="Delete this group">
 									<i class="icon-trash"></i>Delete
