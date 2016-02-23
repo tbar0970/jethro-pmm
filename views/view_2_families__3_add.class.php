@@ -140,12 +140,12 @@ class View_Families__Add extends View
 		}
 		?>
 
-		<form method="post" class="min">
+		<form method="post" class="min" action="" novalidate>
 		<?php print_hidden_fields($_POST); ?>
 		<input type="submit" class="btn" name="override_dup_check" value="Create new family anyway" />
 		</form>
 
-		<form method="get" class="min">
+		<form method="get" class="min" action="" novalidate>
 		<input type="submit" class="btn" value="Cancel family creation" />
 		</form>
 		<?php
@@ -159,7 +159,7 @@ class View_Families__Add extends View
 		$person->fields['last_name']['width'] = 11;
 		$person->fields['email']['width'] = 25;
 		?>
-		<form method="post" id="add-family" class="form-horizontal">
+		<form method="post" id="add-family" class="form-horizontal" action="" novalidate>
 			<input type="hidden" name="new_family_submitted" value="1" />
 			<div class="">
 
