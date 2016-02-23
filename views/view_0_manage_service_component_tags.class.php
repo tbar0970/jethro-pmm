@@ -52,7 +52,7 @@ class View__Manage_Service_Component_Tags extends View
 		}
 		$tags += Array('' => Array('tag' => ''));
 		?>
-		<form method="post">
+		<form method="post" action="" novalidate>
 		<table class="expandable valign-middle">
 			<thead>
 			</thead>
