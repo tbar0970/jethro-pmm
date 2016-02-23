@@ -384,7 +384,7 @@ $(document).ready(function() {
 	
 	// NARROW COLUMNS
 
-	setTimeout( "applyNarrowColumns('body'); ", 30);
+	//setTimeout( "applyNarrowColumns('body'); ", 30);
 
 	if (document.getElementById('service-planner')) {
 		JethroServicePlanner.init();
@@ -845,7 +845,8 @@ var applyNarrowColumns = function(root) {
 	var parents = cells.parents('table:visible');
 	parents.each(function() {
 		var table = $(this);
-		table.css('width', table.width()+'px');
+        var tablewidth = table[0].getBoundingClientRect().right - table[0].getBoundingClientRect().left; // ie<=8 doesn't have .width
+		table.css('width', tablewidth+'px');
 		table.removeClass('table-auto-width').removeClass('table-min-width'); // because this class has an 'important' width we need to override
 	});
 	cells.css('white-space', 'nowrap');
