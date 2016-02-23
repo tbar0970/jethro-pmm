@@ -41,7 +41,7 @@ class View__Add_User_Account extends View
 	function printView()
 	{
 		?>
-		<form method="post" class="form form-horizontal">
+		<form method="post" class="form form-horizontal" action="" novalidate>
 			<input type="hidden" name="new_sm_submitted" value="1" />
 			<div class="control-group">
 				<label class="control-label">Person Record</label>
