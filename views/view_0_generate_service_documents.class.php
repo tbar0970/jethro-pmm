@@ -186,7 +186,7 @@ class View__Generate_Service_Documents extends View
 	{
 			?>
 			Confirm or correct the following field values
-			<form method="post">
+			<form method="post" action="" novalidate>
 			<input type="hidden" name="action" value="<?php echo $this->_action; ?>" />
 			<input type="hidden" name="service_date" value="<?php echo $this->_service_date; ?>" />
 			<table class="table table-condensed table-bordered table-auto-width">
