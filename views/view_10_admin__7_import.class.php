@@ -250,7 +250,7 @@ class View_Admin__Import extends View
 				<p>A new person record will be created for each row in the file. </p>
 				<p>A new family record will be created whenever a new row contains a change in family name or family details.  <br />However, changing to or from a blank value in a field does not create a new family unless the whole row is blank.</p>
 				<p>All the imported persons will be added to the group you choose below.</p>
-				<form method="post" enctype="multipart/form-data">
+				<form method="post" enctype="multipart/form-data" action="" novalidate>
 				<table>
 					<tr>
 						<td>Import File:</td>
