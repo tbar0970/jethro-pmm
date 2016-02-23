@@ -24,7 +24,7 @@ class View_Services__Component_Library extends View
 			return;
 		}
 		?>
-		<form class="well well-small form-inline" style="line-height: 35px">
+		<form class="well well-small form-inline" style="line-height: 35px" action="" novalidate>
 			<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
 			Show components containing
 			<input type="text" name="search" placeholder="Enter search terms" value="<?php echo ents(array_get($_REQUEST, 'search')); ?>">
