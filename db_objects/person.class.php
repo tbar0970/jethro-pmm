@@ -245,7 +245,7 @@ class Person extends DB_Object
 							<div class="modal-body">
 								Message:<br />
 								<textarea autofocus="autofocus" name="message" class="span4" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
-								<span name="charactercount"><?php echo SMS_MAX_LENGTH; ?> characters remaining.</span>
+								<span class="charactercount"><?php echo SMS_MAX_LENGTH; ?> characters remaining.</span>
 							</div>
 							<div class="modal-footer">
 								<input type="submit" class="btn" value="Send" accesskey="s" onclick="if (!$('[name=message]').val()) { alert('Enter a message first'); return false; }" />

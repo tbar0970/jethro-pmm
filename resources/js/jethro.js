@@ -31,7 +31,6 @@ $(document).ready(function() {
         // SMS Character counting
         $('.charactercount').parent().find('textarea').on('keyup propertychange paste', function(){
 		var maxlength = $(this).attr("maxlength");
-		var maxlength = 160;
                 var chars = maxlength - $(this).val().length;
 		if (chars <= 0) {
 			$(this).val( $(this).val().substring(0,maxlength) );
