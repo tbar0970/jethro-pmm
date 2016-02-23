@@ -31,7 +31,7 @@ class View__Add_Roster_Role extends View
 	function printView()
 	{
 		?>
-		<form method="post" class="form-horizontal">
+		<form method="post" class="form-horizontal" action="" novalidate>
 			<input type="hidden" name="new_role_submitted" value="1" />
 			<h3>New Role Details</h3>
 			<?php
