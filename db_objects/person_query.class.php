@@ -1177,10 +1177,12 @@ class Person_Query extends DB_Object
 			$this->_printResultGroups($res, $params, $format);
 		}
 
-		if ($res && ($format == 'html') && in_array('checkbox', $params['show_fields'])) {
-			echo '<div class="no-print">';
-			include 'templates/bulk_actions.template.php';
-			echo '</div>';
+		if ($format == 'html') && in_array('checkbox', $params['show_fields']) {
+			if ($res) {
+				echo '<div class="no-print">';
+				include 'templates/bulk_actions.template.php';
+				echo '</div>';
+			}
 			echo '</form>';
 		}
 	}

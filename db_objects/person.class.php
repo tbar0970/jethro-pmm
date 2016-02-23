@@ -260,7 +260,7 @@ class Person extends DB_Object
 						</form>
 					</div>
 					<?php
-					$smsLink = 'href="#send-sms-modal-' . $uniqueID . '" data-toggle="modal"';
+					$smsLink = 'data-target="#send-sms-modal-' . $uniqueID . '" data-toggle="modal"';
 				}
 				?>
 				<span class="nowrap">
