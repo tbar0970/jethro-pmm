@@ -1,4 +1,5 @@
 <?php
+/* Class for serialising Tasks and sending to the client side. */
 class Task{
 	public $view;
 	public $icon;
@@ -8,12 +9,14 @@ class Task{
 	public $id;
 	public $subject;
 }
+/* Class for serialising Roster Allocations and sending to the client side. */
 class RosterAllocation{
 	public $date;
 	public $allocs;
 }
+/* Class for encapsulating and serialising all variables to send to the client side. */
 class ViewHomeResponseObject{
-	public $num_cols = 1;
+	public $num_cols;
 	public $tasks = Array();
 	public $rallocs = Array();
 	public $systemName = SYSTEM_NAME;
@@ -57,8 +60,6 @@ class View_Home extends View
 					$t->subject = ents($task['subject']);
 					array_push($response->$tasks,$t);
 				}
-			} else {
-				//Display "None"
 			}
 			$later = $user->getTasks('later');
 			$response->notesCount = count($later);
