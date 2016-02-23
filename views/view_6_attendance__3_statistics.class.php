@@ -37,7 +37,7 @@ class View_Attendance__Statistics extends View
 	function _printParams()
 	{
 		?>
-		<form method="get" style="line-height: 200%" class="well well-small form-inline">
+		<form method="get" style="line-height: 200%" class="well well-small form-inline" action="" novalidate>
 		<input type="hidden" name="view" value="<?php echo $_REQUEST['view']; ?>" />
 		Show the attendance statistics for persons of each (current) status <br />
 		between <?php print_widget('start_date', Array('type' => 'date'), $this->_start_date); ?>
