@@ -36,7 +36,7 @@ class View__Edit_Attendance extends View
 		$attendances = $this->_person->getAttendance($_REQUEST['startdate'], $_REQUEST['enddate'], $_REQUEST['groupid']);
 		$map = Array(1 => 'present', '0' => 'absent', '' => 'unknown')
 		?>
-		<form method="post">
+		<form method="post" action="" novalidate>
 			<table class="table table-bordered table-condensed table-auto-width">
 				<thead>
 					<tr>
