@@ -1,4 +1,13 @@
 <?php
+class Task{
+	public $view;
+	public $icon;
+	public $name;
+	public $type;
+	public $typeId;
+	public $id;
+	public $subject;
+}
 class View_Home extends View
 {
 	function getTitle()
@@ -13,16 +22,40 @@ class View_Home extends View
 	function printView()
 	{
 		$num_cols = 1;
+		$clientSideTasks = Array();
 		if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) $num_cols++;
 		if ($GLOBALS['user_system']->havePerm(PERM_VIEWROSTER)) $num_cols++;
 
+		if ( $GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
+			$user =& $GLOBALS['system']->getDBObject('staff_member', $GLOBALS['user_system']->getCurrentUser('id'));
+			$tasks = $user->getTasks('now');
+				if ($tasks) {
+					foreach ($tasks as $id => $task) {
+						$t = new Task();
+						$t->view = ($task['type'] == 'person') ? 'persons' : 'families';
+						$t->icon = ($task['type'] == 'person') ? 'user' : 'home';
+						$t->name = ents($task['name']);
+						$t->type = $task['type'];
+						$t->typeId = $task[$task['type'].'id'];
+						$t->id = $id;
+						$t->subject = ents($task['subject']);
+						array_push($clientSideTasks,$t);
+					}
+				} else {
+					//Display "None"
+				}
+				$later = $user->getTasks('later');
+				$count = count($later);
+				if ($count) {
+				}
+		}
 		?>
-		<div class="homepage homepage-<?php echo $num_cols; ?>-col">
+		<div ng-controller="Homepage" class="homepage homepage-{{numCols}}-col">
 
 		<div class="homepage-box search-forms">
 			<h3>
 				<a class="pull-right hide-phone" 
-				   href="javascript:if (sp = prompt('Search <?php echo SYSTEM_NAME; ?> for: ')) window.location='<?php echo BASE_URL; ?>?view=_mixed_search&search='+sp"
+				   href="javascript:if (sp = prompt('Search {{systemName}} for: ')) window.location='{{baseUrl}}?view=_mixed_search&search='+sp"
 				   onclick="prompt('To create a search-jethro button in your browser, save the following code as a bookmark/favourite: ', this.href); return false"
 				>
 					<small>Bookmark</small>
@@ -38,18 +71,9 @@ class View_Home extends View
 				</span>
 			</form>
 		</div>
-
-		<?php
-		if ( $GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
-			$user =& $GLOBALS['system']->getDBObject('staff_member', $GLOBALS['user_system']->getCurrentUser('id'));
-			$tasks = $user->getTasks('now');
-			?>
 			<div class="homepage-box my-notes">
 				<h3>Notes <span>for immediate action</span></h3>
-				<?php
-				if ($tasks) {
-					?>
-					<table class="table table-condensed table-striped table-hover clickable-rows" width="100%">
+					<table name="tasks" class="table table-condensed table-striped table-hover clickable-rows" width="100%">
 						<thead>
 							<tr>
 								<th>For</th>
@@ -57,38 +81,16 @@ class View_Home extends View
 							</tr>
 						</thead>
 						<tbody>
-							<?php
-							foreach ($tasks as $id => $task) {
-								$view = ($task['type'] == 'person') ? 'persons' : 'families';
-								$icon = ($task['type'] == 'person') ? 'user' : 'home';
-								?>
-								<tr>
-									<td class="narrow"><i class="icon-<?php echo $icon; ?>"></i> <?php echo ents($task['name']); ?></td>
-									<td><a href="?view=<?php echo $view; ?>&<?php echo $task['type']; ?>id=<?php echo $task[$task['type'].'id']; ?>#note_<?php echo $id; ?>"><?php echo ents($task['subject']); ?></a></td>
-								</tr>
-								<?php
-							}
-							?>
+							<tr ng-repeat="task in tasks">
+								<td class="narrow"><i class="icon-{{task.icon}}"></i> {{task.name}}</td>
+								<td><a href="?view={{task.view}}&{{task.type}}id={{task.typeId}}#note_{{task.id}}">{{task.subject}}</a></td>
+							</tr>
 						</tbody>
 					</table>
-					<?php
-				} else {
-					?>
-					<p><i>None</i></p>
-					<?php
-				}
-				$later = $user->getTasks('later');
-				$count = count($later);
-				if ($count) {
-					?>
+					<p name="noTasks"><i>None</i></p>
 					<p class="align-right">You have <a href="<?php echo build_url(Array('view' => 'notes__for_future_action', 'assignee' => $user->id)); ?>"><?php echo count($later); ?> note<?php echo ($count > 1) ? 's' : ''; ?> for future action</a></p>
-					<?php
-				}
-				?>
 			</div>
 			<?php
-		}
-
 		if ($GLOBALS['user_system']->havePerm(PERM_VIEWROSTER)) {
 			?>
 			<div class="homepage-box my-roster">
@@ -110,21 +112,28 @@ class View_Home extends View
 					}
 					?>
 					<div class="pull-right"><a href="./?view=persons&personid=<?php echo $GLOBALS['user_system']->getCurrentUser('id'); ?>#rosters">See all</a></div>
-					<?php
-				} else {
-					?>
 					<p><i>None</i></p>
-					<?php
-				}
-				?>
 			 </div>
-			<?php
-		}
-
-		?>
 		</div>
 		<?php
-
+				}
+		}
+		?>
+		<script>
+		/* mainTemplateApp is initialised in main.template.php. */
+		mainTemplateApp.controller("Homepage",function($scope){
+			$scope.numCols = "<?php echo $num_cols; ?>";
+			$scope.systemName = "<?php //echo $SYSTEM_NAME; ?>";
+			$scope.baseUrl = "<?php //echo $BASE_URL; ?>";
+			$scope.tasks = JSON.parse('{"tasks":<?php echo json_encode($clientSideTasks); ?>}').tasks;
+			if ($scope.tasks.length > 0){
+					$("[name='noTasks']").addClass("hidden");
+			} else {
+				$("[name='tasks']").addClass("hidden");
+			}
+		});
+		</script>
+		<?php
 	}
 }
 ?>
