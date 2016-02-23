@@ -71,7 +71,7 @@ class View__Delete_Person extends View
 			$buttons['delete'] = 'Delete anyway';
 		}
 		?>
-		<form method="post">
+		<form method="post" action="" novalidate>
 			<input type="hidden" name="personid" value="<?php echo (int)$this->_person->id; ?>" />
 		<?php
 		foreach ($buttons as $key => $label) {
