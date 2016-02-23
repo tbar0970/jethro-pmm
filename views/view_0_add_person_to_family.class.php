@@ -50,7 +50,7 @@ class View__Add_Person_To_Family extends View
 	function printView()
 	{
 		?>
-		<form method="post" id="add-family">
+		<form method="post" id="add-family" action="" novalidate>
 			<input type="hidden" name="new_person_submitted" value="1" />
 			<input type="hidden" name="familyid" value="<?php echo ents($_REQUEST['familyid']); ?>" />
 			<h3>New Person Details</h3>
