@@ -143,7 +143,7 @@ class View_Attendance__Record extends View
 	{
 		// STEP 1 - choose congregation and date
 		?>
-		<form method="get" class="well well-small clearfix form-inline">
+		<form method="get" class="well well-small clearfix form-inline" action="" novalidate>
 			<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
 			<table class="attendance-config-table">
 				<tr>
