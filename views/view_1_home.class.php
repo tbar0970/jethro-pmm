@@ -8,6 +8,20 @@ class Task{
 	public $id;
 	public $subject;
 }
+class RosterAllocation{
+	public $date;
+	public $allocs;
+}
+class ViewHomeResponseObject{
+	public $num_cols = 1;
+	public $tasks = Array();
+	public $rallocs = Array();
+	public $systemName = SYSTEM_NAME;
+	public $baseUrl = BASE_URL;
+	public $notesForFutureActionUrl;
+	public $notesCount;
+	public $currentUserId;	
+}
 class View_Home extends View
 {
 	function getTitle()
@@ -21,34 +35,50 @@ class View_Home extends View
 	
 	function printView()
 	{
-		$num_cols = 1;
-		$clientSideTasks = Array();
-		if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) $num_cols++;
-		if ($GLOBALS['user_system']->havePerm(PERM_VIEWROSTER)) $num_cols++;
+		$response = new ViewHomeResponseObject();
+		$response->num_cols = 1;
+		$response->currentUserId = $GLOBALS['user_system']->getCurrentUser('id');
+		if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) $response->num_cols++;
+		if ($GLOBALS['user_system']->havePerm(PERM_VIEWROSTER)) $response->num_cols++;
 
 		if ( $GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
 			$user =& $GLOBALS['system']->getDBObject('staff_member', $GLOBALS['user_system']->getCurrentUser('id'));
+			$response->notesForFutureActionUrl = build_url(Array('view' => 'notes__for_future_action', 'assignee' => $user->id));
 			$tasks = $user->getTasks('now');
-				if ($tasks) {
-					foreach ($tasks as $id => $task) {
-						$t = new Task();
-						$t->view = ($task['type'] == 'person') ? 'persons' : 'families';
-						$t->icon = ($task['type'] == 'person') ? 'user' : 'home';
-						$t->name = ents($task['name']);
-						$t->type = $task['type'];
-						$t->typeId = $task[$task['type'].'id'];
-						$t->id = $id;
-						$t->subject = ents($task['subject']);
-						array_push($clientSideTasks,$t);
-					}
-				} else {
-					//Display "None"
+			if ($tasks) {
+				foreach ($tasks as $id => $task) {
+					$t = new Task();
+					$t->view = ($task['type'] == 'person') ? 'persons' : 'families';
+					$t->icon = ($task['type'] == 'person') ? 'user' : 'home';
+					$t->name = ents($task['name']);
+					$t->type = $task['type'];
+					$t->typeId = $task[$task['type'].'id'];
+					$t->id = $id;
+					$t->subject = ents($task['subject']);
+					array_push($response->$tasks,$t);
 				}
-				$later = $user->getTasks('later');
-				$count = count($later);
-				if ($count) {
-				}
+			} else {
+				//Display "None"
+			}
+			$later = $user->getTasks('later');
+			$response->notesCount = count($later);
 		}
+		if ($GLOBALS['user_system']->havePerm(PERM_VIEWROSTER)) {
+			$GLOBALS['system']->includeDBClass('roster_role_assignment');
+			$rallocs = Roster_Role_Assignment::getUpcomingAssignments($GLOBALS['user_system']->getCurrentUser('id'));
+			if ($rallocs) {
+				foreach ($rallocs as $date => $allocs) {
+					 $ra = new RosterAllocation();
+					 $ra->date = date('j M', strtotime($date));
+					 $ra->allocs = Array();
+					 foreach ($allocs as $alloc) {
+						  array_push($ra->$allocs, $alloc['cong'].' '.$alloc['title']);
+					 }
+					 array_push($response->$rallocs,$ra);
+				}
+			}
+		}
+		$responseJson = json_encode($response);
 		?>
 		<div ng-controller="Homepage" class="homepage homepage-{{numCols}}-col">
 
@@ -90,50 +120,37 @@ class View_Home extends View
 					<p name="noTasks"><i>None</i></p>
 					<p class="align-right">You have <a href="{{notesForFutureActionUrl}}">{{notesCount}} for future action</a></p>
 			</div>
-			<?php
-		if ($GLOBALS['user_system']->havePerm(PERM_VIEWROSTER)) {
-			?>
 			<div class="homepage-box my-roster">
 				<h3>
 					<a href="?view=_manage_ical" class="pull-right hidden-phone"><small>Subscribe</small></a>
 					Upcoming roster<span> allocations</span>
 				</h3>
-				<?php
-				$GLOBALS['system']->includeDBClass('roster_role_assignment');
-				$rallocs = Roster_Role_Assignment::getUpcomingAssignments($GLOBALS['user_system']->getCurrentUser('id'));
-				if ($rallocs) {
-					foreach ($rallocs as $date => $allocs) {
-						 ?>
-						 <h5><?php echo date('j M', strtotime($date)); ?></h5>
-						 <?php
-						 foreach ($allocs as $alloc) {
-							  echo $alloc['cong'].' '.$alloc['title'].'<br />';
-						 }
-					}
-					?>
-					<div class="pull-right"><a href="./?view=persons&personid=<?php echo $GLOBALS['user_system']->getCurrentUser('id'); ?>#rosters">See all</a></div>
+				<div ng-repeat="ralloc in rallocs">
+					<h5>{{ralloc.date}}</h5>
+					<p ng-repeat="alloc in ralloc.allocs">{{alloc}}</p>
+				</div>
+					<div class="pull-right"><a href="./?view=persons&personid={{currentUserId}}#rosters">See all</a></div>
 					<p><i>None</i></p>
 			 </div>
 		</div>
-		<?php
-				}
-		}
-		?>
 		<script>
 		/* mainTemplateApp is initialised in main.template.php. */
 		mainTemplateApp.controller("Homepage",function($scope){
-			$scope.numCols = "<?php echo $num_cols; ?>";
-			$scope.systemName = "<?php //echo $SYSTEM_NAME; ?>";
-			$scope.baseUrl = "<?php //echo $BASE_URL; ?>";
-			$scope.tasks = JSON.parse('{"tasks":<?php echo json_encode($clientSideTasks); ?>}').tasks;
+			var response = JSON.parse('{"response":<?php echo $responseJson; ?>}').response;
+			$scope.numCols = response.num_cols;
+			$scope.systemName = response.systemName;
+			$scope.baseUrl = response.baseUrl;
+			$scope.tasks = response.tasks;
 			if ($scope.tasks.length > 0){
 					$("[name='noTasks']").addClass("hidden");
 			} else {
 				$("[name='tasks']").addClass("hidden");
 			}
-			$scope.notesForFutureActionUrl = "<?php echo build_url(Array('view' => 'notes__for_future_action', 'assignee' => $user->id)); ?>";
-			$scope.notesCount = <?php echo count($later); ?>;
+			$scope.notesForFutureActionUrl = response.notesForFutureActionUrl;
+			$scope.notesCount = response.notesCount;
 			$scope.notesCount += ($scope.notesCount == 1 ? " note" : " notes");
+			$scope.rallocs = response.rallocs;
+			$scope.currentUserId = response.currentUserId;
 		});
 		</script>
 		<?php
