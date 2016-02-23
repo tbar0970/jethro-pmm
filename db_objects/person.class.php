@@ -233,6 +233,8 @@ class Person extends DB_Object
 				if (!strlen($value)) return;
 				echo ents($this->getFormattedValue($name, $value));
 
+                // include the first 5 letters of the firstname, incase phone numbers are non-unique in reports
+                $uniqueID = ents($value) . '-' . substr(ents($this->getValue('first_name')),0,5);
 				$smsLink = '';
 				if (SizeDetector::isNarrow()) {
 					// Probably a phone - use a plain sms: link
@@ -240,7 +242,7 @@ class Person extends DB_Object
 				} else if (defined('SMS_HTTP_URL') && constant('SMS_HTTP_URL') && $GLOBALS['user_system']->havePerm(PERM_SENDSMS)) {
 					// Provide a link to send SMS through the SMS gateway
 					?>
-					<div id="send-sms-modal<?php echo ents($value);?>" class="modal hide fade" role="dialog" aria-hidden="true">
+					<div id="send-sms-modal-<?php echo $uniqueID;?>" class="modal hide fade" role="dialog" aria-hidden="true">
 						<form method="post" action="?view=_send_sms_http">
 							<input type="hidden" name="personid" value="<?php echo $this->id; ?>" />
 
@@ -258,7 +260,7 @@ class Person extends DB_Object
 						</form>
 					</div>
 					<?php
-					$smsLink = 'href="#send-sms-modal' . ents($value) . '" data-toggle="modal"';
+					$smsLink = 'href="#send-sms-modal-' . $uniqueID . '" data-toggle="modal"';
 				}
 				?>
 				<span class="nowrap">
