@@ -81,7 +81,7 @@ class View__Add_Note_To_Person extends View
 			return;
 		}	
 		?>
-		<form method="post" class="form-horizontal">
+		<form method="post" class="form-horizontal" action="" novalidate>
 			<input type="hidden" name="personid" value="<?php echo $this->_person->id; ?>" />
 			<?php
 			if ($this->_note_template) {
