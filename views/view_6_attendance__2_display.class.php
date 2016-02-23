@@ -79,7 +79,7 @@ class View_Attendance__Display extends View
 	private function _printParams()
 	{
 		?>
-		<form method="get" class="well well-small clearfix form-inline">
+		<form method="get" class="well well-small clearfix form-inline" action="" novalidate>
 			<input type="hidden" name="view" value="<?php echo $_REQUEST['view']; ?>" />
 			<table class="attendance-config-table">
 				<tr>
@@ -194,7 +194,7 @@ class View_Attendance__Display extends View
 		$headcounts = Headcount::fetchRange(($congid ? 'congregation' : 'person_group'), $congid ? $congid : $groupid, $this->start_date, $this->end_date);
 		$dummy = new Person();
 		?>
-		<form method="post" action="" class="bulk-person-action">
+		<form method="post" action="" class="bulk-person-action" novalidate>
 		<table class="table table-hover table-auto-width nowrap table-bordered table-condensed">
 			<thead>
 				<tr>
