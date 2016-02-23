@@ -88,7 +88,7 @@ class View_Home extends View
 						</tbody>
 					</table>
 					<p name="noTasks"><i>None</i></p>
-					<p class="align-right">You have <a href="<?php echo build_url(Array('view' => 'notes__for_future_action', 'assignee' => $user->id)); ?>"><?php echo count($later); ?> note<?php echo ($count > 1) ? 's' : ''; ?> for future action</a></p>
+					<p class="align-right">You have <a href="{{notesForFutureActionUrl}}">{{notesCount}} for future action</a></p>
 			</div>
 			<?php
 		if ($GLOBALS['user_system']->havePerm(PERM_VIEWROSTER)) {
@@ -131,6 +131,9 @@ class View_Home extends View
 			} else {
 				$("[name='tasks']").addClass("hidden");
 			}
+			$scope.notesForFutureActionUrl = "<?php echo build_url(Array('view' => 'notes__for_future_action', 'assignee' => $user->id)); ?>";
+			$scope.notesCount = <?php echo count($later); ?>;
+			$scope.notesCount += ($scope.notesCount == 1 ? " note" : " notes");
 		});
 		</script>
 		<?php
