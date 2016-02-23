@@ -110,7 +110,7 @@ class View__Import_Service_Components extends View
 		
 		?>
 
-		<form method="post" enctype="multipart/form-data">
+		<form method="post" enctype="multipart/form-data" action="" novalidate>
 			<div class="form-horizontal">
 				<div class="control-group">
 					<label class="control-label">
