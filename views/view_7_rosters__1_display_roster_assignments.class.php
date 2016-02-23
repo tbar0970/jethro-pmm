@@ -55,7 +55,7 @@ class View_Rosters__Display_Roster_Assignments extends View
 			}
 			$viewid = ($this->_view) ? $this->_view->id : null;
 			?>
-			<form method="get" class="well well-small no-print">
+			<form method="get" class="well well-small no-print" action="" novalidate>
 			<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
 			<table>
 				<tr>
