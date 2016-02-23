@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" ng-app="main.template">
 <head>
 	<?php include 'head.template.php'; ?>
 </head>
@@ -78,6 +78,9 @@
 			</div><!--/.navbar-->
 
 		</div>
+		<script>
+			var mainTemplateApp = angular.module("main.template",[]); 
+		</script>
 		<div id="body">
 			<?php 
 			
