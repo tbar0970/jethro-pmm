@@ -77,7 +77,7 @@ class View_Admin__Custom_Fields extends View
 		$field = new Custom_Field();
 		$this->fields['_new_'] = $field;
 		?>
-		<form method="post">
+		<form method="post" action="" novalidate>
 		<table id="custom-fields-editor" class="table table-auto-width expandable valign-top">
 			<thead>
 				<tr>
