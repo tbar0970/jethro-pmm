@@ -135,7 +135,7 @@ class View__Edit_Note extends View
 		if ($show_form && !empty($_REQUEST['edit_original'])) {
 			print_message('NB: Notes are designed to accumulate as a historical record, so they should usually only be edited to correct a mistake', '');
 			?>
-			<form method="post" class="well" action="<?php echo build_url(Array('edit_original' => NULL)); ?>">
+			<form method="post" class="well" action="<?php echo build_url(Array('edit_original' => NULL)); ?>" novalidate>
 				<input type="hidden" name="update_note_submitted" value="1" />
 				<?php
 				$this->_note->printForm();
