@@ -62,7 +62,7 @@ class View__Edit_User_Account extends View
 		}
 		if ($show_form) {
 			?>
-			<form method="post" id="person_form" class="form-horizontal">
+			<form method="post" id="person_form" class="form-horizontal" action="" novalidate>
 				<input type="hidden" name="edit_staff_submitted" value="1" />
 				<?php $this->_staff_member->printForm(); ?>
 				<div class="controls">
