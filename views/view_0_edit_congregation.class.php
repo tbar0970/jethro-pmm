@@ -81,7 +81,7 @@ class View__Edit_Congregation extends View
 		}
 		if ($show_form) {
 			?>
-			<form method="post" class="form form-horizontal" id="congregation_form">
+			<form method="post" class="form form-horizontal" id="congregation_form" action="" novalidate>
 				<input type="hidden" name="edit_congregation_submitted" value="1" />
 				<?php $this->_congregation->printForm(); ?>
 				<div class="controls">
