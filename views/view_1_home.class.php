@@ -101,7 +101,7 @@ class View_Home extends View
 				</a>
 				System-Wide Search</h3>
 			<label class="msie-only">Enter a person, family or group name, or phone number or email:</label>
-			<form method="get">
+			<form method="get" action="" novalidate>
 				<input type="hidden" name="view" value="_mixed_search" />
 				<span class="input-prepend input-append">
 					<span class="add-on"><i class="icon-search"></i></span>
