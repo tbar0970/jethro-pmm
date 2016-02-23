@@ -254,7 +254,7 @@ class Person extends DB_Object
 								<textarea autofocus="autofocus" name="message" class="span4" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
 							</div>
 							<div class="modal-footer">
-								<input type="submit" class="btn" value="Send" accesskey="s" onclick="if (!$('[name=message]').val()) { alert('Enter a message first'); return false; }" />
+								<input type="submit" class="btn" value="Send" accesskey="s" onclick="if (!$('#send-sms-modal-<?php echo $uniqueID;?> [name=message]').val()) { alert('Enter a message first'); return false; }" />
 								<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
 							</div>
 						</form>
