@@ -435,7 +435,7 @@ class Action_Plan extends DB_Object
 		if (($name == 'actions') && isset($res['dates'])) {
 			// Convert old format to new format
 			foreach ($res['dates'] as $fieldid => $note) {
-				$res['fields']['custom-'.$fieldid] = Array(
+				$res['fields']['custom_'.$fieldid] = Array(
 					'value' => "-1==={$note}",
 					'add' => true,
 				);
