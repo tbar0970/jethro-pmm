@@ -586,6 +586,10 @@ td.narrow, th.narrow, .object-summary th {
 	cursor: pointer;
 }
 
+.clickable, table.clickable-rows td.nonclickable-cell {
+	cursor: auto;
+}
+
 .cursor-move {
 	cursor: move;
 }
