@@ -642,6 +642,11 @@ select, input, textarea {
 	width: auto;
 	max-width: 97%;
 }
+
+.charactercount {
+	display: block;
+	font-size: x-small;
+}
 /* disused ? */
 .full-width-input {
 	width: 99.5%;
