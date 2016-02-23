@@ -90,7 +90,7 @@ $(document).ready(function() {
 	});
 
 	// Ability to click anywhere on a table row to activate the link within it
-	$('table.clickable-rows td').click(function(e) {
+	$('table.clickable-rows td:not(.nonclickable-cell)').click(function(e) {
 		var t = $(this);
 		var myLinks = t.find('a, input');
 		if (!myLinks.length) {

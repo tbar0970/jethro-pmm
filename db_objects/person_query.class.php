@@ -1177,7 +1177,7 @@ class Person_Query extends DB_Object
 			$this->_printResultGroups($res, $params, $format);
 		}
 
-		if ($format == 'html') && in_array('checkbox', $params['show_fields']) {
+		if (($format == 'html') && in_array('checkbox', $params['show_fields'])) {
 			if ($res) {
 				echo '<div class="no-print">';
 				include 'templates/bulk_actions.template.php';
@@ -1275,7 +1275,7 @@ class Person_Query extends DB_Object
 			return;
 		}
 		?>
-		<table class="table table-striped table-condensed table-hover table-min-width clickable-rows query-results">
+		<table class="table table-striped table-condensed table-hover table-min-width query-results clickable-rows">
 			<thead>
 				<tr>
 				<?php
@@ -1412,6 +1412,9 @@ class Person_Query extends DB_Object
 		}
 		if ($heading == 'checkbox') {
 			$class_list[] = 'selector narrow';
+		}
+		if ($heading == 'p.mobile_tel') {
+			$class_list[] = 'nonclickable-cell';
 		}
 		$classes = empty($class_list) ? '' : ' class="'.implode(' ', $class_list).'"';
 		return $classes;

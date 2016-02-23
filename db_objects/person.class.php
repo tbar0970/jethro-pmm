@@ -238,7 +238,7 @@ class Person extends DB_Object
 				$smsLink = '';
 				if (SizeDetector::isNarrow()) {
 					// Probably a phone - use a plain sms: link
-					$smsLink = 'href="sms:'.ents($value).'"';
+					$smsLink = '<a href="sms:'.ents($value).'" class="btn btn-mini"><i class="icon-envelope"></i></a>';
 				} else if (defined('SMS_HTTP_URL') && constant('SMS_HTTP_URL') && $GLOBALS['user_system']->havePerm(PERM_SENDSMS)) {
 					// Provide a link to send SMS through the SMS gateway
 					?>
@@ -260,16 +260,14 @@ class Person extends DB_Object
 						</form>
 					</div>
 					<?php
-					$smsLink = 'data-target="#send-sms-modal-' . $uniqueID . '" data-toggle="modal"';
+					$smsLink = '<span data-target="#send-sms-modal-' . $uniqueID . '" data-toggle="modal" class="btn btn-mini"><i class="icon-envelope"></i></span>';
 				}
 				?>
 				<span class="nowrap">
 					<a href="tel:<?php echo ents($value); ?>" class="btn btn-mini"><i class="icon-phone"></i></a>
 				<?php
 				if ($smsLink) {
-					?>
-					<a <?php echo $smsLink; ?> class="btn btn-mini"><i class="icon-envelope"></i></a>
-					<?php
+					echo $smsLink;
 				}
 				?>
 				</span>
