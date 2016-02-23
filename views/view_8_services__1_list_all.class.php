@@ -336,7 +336,7 @@ class View_Services__List_All extends View
 			return;
 		}
 		?>
-		<form method="get" class="well well-small form-horizontal">
+		<form method="get" class="well well-small form-horizontal" action="" novalidate>
 		<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
 		<table>
 			<tr>
@@ -413,7 +413,7 @@ class View_Services__List_All extends View
 			setTimeout('showLockExpiredWarning()', <?php echo (strtotime('+'.LOCK_LENGTH, 0))*1000; ?>);
 		</script>
 
-		<form method="post" class="warn-unsaved">
+		<form method="post" class="warn-unsaved" action="" novalidate>
 		<input type="hidden" name="program_submitted" value="1" />
 		<!-- the following hidden fields preserve the value of an image input whose click
 		     is intercepted by a confirm-shift popup -->
