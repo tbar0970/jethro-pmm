@@ -24,7 +24,7 @@ class View_Groups__Add extends Abstract_View_Add_Object
 	function printView()
 	{
 		?>
-		<form method="post" class="form-horizontal" id="add-<?php echo $this->_create_type; ?>">
+		<form method="post" class="form-horizontal" id="add-<?php echo $this->_create_type; ?>" action="" novalidate>
 			<input type="hidden" name="new_<?php echo $this->_create_type; ?>_submitted" value="1" />
 			<?php
 			$this->_new_object->printForm();
