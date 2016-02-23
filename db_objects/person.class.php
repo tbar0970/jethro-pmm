@@ -221,7 +221,7 @@ class Person extends DB_Object
 	}
 
 
-	function printFieldValue($name, $value=null)
+	function printFieldValueForPerson($personid, $name, $value=null)
 	{
 		if (is_null($value)) $value = $this->getValue($name);
 		switch ($name) {
@@ -244,10 +244,10 @@ class Person extends DB_Object
 					?>
 					<div id="send-sms-modal-<?php echo $uniqueID;?>" class="modal hide fade" role="dialog" aria-hidden="true">
 						<form method="post" action="?view=_send_sms_http">
-							<input type="hidden" name="personid" value="<?php echo $this->id; ?>" />
+							<input type="hidden" name="personid" value="<?php echo $personid; ?>" />
 
 							<div class="modal-header">
-								<h4>Send SMS to <?php $this->printFieldValue('name'); ?></h4>
+								<h4>Send SMS to <?php $this->printFieldValueForPerson($personid, 'name'); ?></h4>
 							</div>
 							<div class="modal-body">
 								Message:<br />
@@ -278,6 +278,11 @@ class Person extends DB_Object
 		}
 		parent::printFieldValue($name, $value);
 	}
+
+        function printFieldValue($name, $value=null) {
+                $this->printFieldValueForPerson($this->id, $name, $value);
+        }
+
 
 	protected function _printSummaryRows() {
 		parent::_printSummaryRows();

@@ -1360,7 +1360,7 @@ class Person_Query extends DB_Object
 									$var = $label[0] == 'p' ? '_dummy_person' : '_dummy_family';
 									$fieldname = substr($label, 2);
 									$this->$var->setValue($fieldname, $val);
-									$this->$var->printFieldValue($fieldname);
+									$this->$var->printFieldValueForPerson($row['view_link'],$fieldname);
 								} else if (0 === strpos($label, self::CUSTOMFIELD_PREFIX)) {
 									echo nl2br(ents($this->_formatCustomFieldValue($val, substr($label, strlen(self::CUSTOMFIELD_PREFIX)))));
 								} else {
