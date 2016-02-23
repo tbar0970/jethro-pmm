@@ -34,7 +34,7 @@ class View__Add_Congregation extends View
 	function printView()
 	{
 		?>
-		<form method="post" id="add-congregation" class="form form-horizontal">
+		<form method="post" id="add-congregation" class="form form-horizontal" action="" novalidate>
 			<input type="hidden" name="new_congregation_submitted" value="1" />
 			<h3>Congregation Details</h3>
 			<?php
