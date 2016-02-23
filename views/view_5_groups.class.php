@@ -50,7 +50,7 @@ class View_Groups extends View
 					<th class="narrow hidden-phone">Share Member Details?</th>
 					<td class="hidden-phone"><?php $this->_group->printFieldValue('share_member_details'); ?></td>
 					<td class="align-right">
-						<form class="min" method="post" action="?view=_edit_group&groupid=<?php echo $this->_group->id; ?>">
+						<form class="min" method="post" action="?view=_edit_group&groupid=<?php echo $this->_group->id; ?>" novalidate>
 							<input type="hidden" name="action" value="delete" />
 							<button class="btn-link double-confirm-title link-collapse" type="submit" title="Delete this group">
 								<i class="icon-trash"></i>Delete group
@@ -61,7 +61,7 @@ class View_Groups extends View
 			</table>
 
 			<div class="modal hide fade" id="action-plan-modal" role="dialog" aria-hidden="true">
-				<form method="post" action="?view=_edit_group&action=add_member&groupid=<?php echo $this->_group->id; ?>">
+				<form method="post" action="?view=_edit_group&action=add_member&groupid=<?php echo $this->_group->id; ?>" novalidate>
 					<div class="modal-header">
 						<h4>Add Members by Name Search</h4>
 					</div>
@@ -166,7 +166,7 @@ class View_Groups extends View
 				}
 				if (!empty($_REQUEST['edit_statuses'])) {
 					?>
-					<form method="post" action="<?php echo build_url(Array('edit_statuses' => NULL)); ?>">
+					<form method="post" action="<?php echo build_url(Array('edit_statuses' => NULL)); ?>" novalidate>
 					<?php
 					$callbacks = Array(
 						'membership_status' => Array($this, 'printMembershipStatusChooser')
