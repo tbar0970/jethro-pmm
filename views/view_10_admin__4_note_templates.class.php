@@ -110,7 +110,7 @@ class View_Admin__Note_Templates extends View
 	private function printTemplateDetails()
 	{
 		?>
-		<form method="post" class="form-horizontal" id="add-person_group">
+		<form method="post" class="form-horizontal" id="add-person_group" action="" novalidate>
 			<input type="hidden" name="templateid" value="<?php echo $this->_template->id; ?>">
 			<input type="hidden" name="template_submitted" value="1">
 			<?php
