@@ -173,7 +173,7 @@ class View_Admin__System_Configuration extends View {
 			<tr>
 				<th>Group Membership Status Options</th>
 				<td>
-					<form method="post">
+					<form method="post" action="" novalidate>
 					<input type="hidden" name="group_membership_statuses_submitted" value="1" />
 					<table class="table-condensed expandable table-bordered table-auto-width">
 						<thead>
