@@ -42,7 +42,7 @@ class View_Families__Contact_List extends View
 		$dummy_person->fields['congregationid']['allow_multiple'] = true;
 		$dummy_person->fields['age_bracket']['allow_multiple'] = true;
 		?>
-		<form method="get">
+		<form method="get" action="" novalidate>
 		<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
 		<table>
 			<tr>
