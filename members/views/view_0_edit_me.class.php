@@ -71,7 +71,7 @@ class View__Edit_Me extends View
 
 			
 			?>
-			<form method="post" enctype="multipart/form-data">
+			<form method="post" enctype="multipart/form-data" action="" novalidate>
 			<h3>Family Details</h3>
 			<?php
 			$this->family->printForm('family', Array('address_street', 'address_suburb', 'address_postcode', 'home_tel'));
