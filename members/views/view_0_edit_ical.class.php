@@ -52,13 +52,13 @@ class View__Edit_Ical extends View
 			<p>To use the feed, enter this URL into Google Calendar, Microsoft Outlook, Apple iCal or another calendar tool which supports the iCalendar format.</p>
 
 			<p>To regenerate your personalised URL, click below.  Your old feed URL will then stop working.</p>
-			<form method="post" class="inline">
+			<form method="post" class="inline" action="" novalidate>
 				<input type="hidden" name="action" value="change" />
 				<input type="submit" class="btn" value="Generate New URL" />
 			</form>
 
 			<p>To disable your iCal feed altogether, click below.</p>
-			<form method="post" class="inline">
+			<form method="post" class="inline" action="" novalidate>
 				<input type="hidden" name="action" value="disable" />
 				<input type="submit" class="btn" value="Disable iCal feed" />
 			</form>
@@ -66,7 +66,7 @@ class View__Edit_Ical extends View
 		} else {
 			?>
 			<p>Jethro can publish an iCal feed of your roster assignments.  To enable your personal iCal feed, click below.</p>
-			<form method="post" class="form-inline">
+			<form method="post" class="form-inline" action="" novalidate>
 				<input type="hidden" name="action" value="enable" />
 				<input type="submit" class="btn" value="Enable iCal feed" />
 			</form>
