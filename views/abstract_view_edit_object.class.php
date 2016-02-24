@@ -97,12 +97,12 @@ class Abstract_View_Edit_Object extends View
 		}
 		if ($show_form) {
 			?>
-			<form  action="" novalidate method="post" enctype="multipart/form-data" id="edit-<?php echo $this->_editing_type; ?>" class="<?php echo $this->_form_classnames; ?>">
+			<form action="" novalidate method="post" enctype="multipart/form-data" id="edit-<?php echo $this->_editing_type; ?>" class="<?php echo $this->_form_classnames; ?>">
 				<input type="hidden" name="edit_object_submitted" value="1" />
 				<?php $this->_edited_object->printForm(); ?>
 				<hr />
 				<div class="form form-horizontal"><div class="control-group"><div class="controls">
-					<button class="btn"><?php echo $this->_submit_button_label; ?></button>
+					<button class="btn" type="submit"><?php echo $this->_submit_button_label; ?></button>
 				<?php
 				if ($this->_on_cancel_view) {
 					?>
