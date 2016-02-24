@@ -294,7 +294,7 @@ class Installer
 		<h2>Welcome</h2>
 		<p>Welcome to the Jethro installer.  The installation process will set up your MySQL database so that <br />it's ready to run Jethro.  First we need to collect some details to get things started.</p>
 		
-		<form method="post">
+		<form method="post" action="" novalidate>
 			<h3>Initial User Account</h3>
 			<p>Please enter the details of the first user you want to add to the system.  <br />This is the user as which you will initially log in.  <br />After you have logged in you can edit the rest of your details.</p>
 
