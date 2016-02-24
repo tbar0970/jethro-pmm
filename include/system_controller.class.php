@@ -123,7 +123,11 @@ class System_Controller
 				$this->_view = new $view_classname();
 				$this->_view->processView();
 			}
-			require $this->_base_dir.'/templates/main.template.php';
+			if (empty($_REQUEST['ajax'])) {
+				require $this->_base_dir.'/templates/main.template.php';
+			} else {
+				require $this->_base_dir.'/templates/ajax.template.php';
+			}
 			restore_error_handler();
 		}
 	}
@@ -178,6 +182,16 @@ class System_Controller
 			$this->_view->printView();
 		}
 	}
+
+	public function printAjax()
+        {
+                if (is_null($this->_view)) {
+                        echo 'Error: Undefined view';
+                } else {
+                        $this->_view->printAjax();
+                }
+        }
+
 
 	public function includeDBClass($classname)
 	{
