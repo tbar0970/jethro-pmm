@@ -15,7 +15,7 @@ class View__Change_Password extends View
 	function printView()
 	{		
 		?>
-		<form method="post" action="?isreset=1">
+		<form method="post" action="?isreset=1" novalidate>
 			<label>New password:</label>		
 			<input type="password" name="password1" />
 			
