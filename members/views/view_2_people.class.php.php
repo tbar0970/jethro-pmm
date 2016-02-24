@@ -15,7 +15,7 @@ class View_People extends View
 		$GLOBALS['system']->includeDBClass('member');
 		?>
 		<div class="container" id="member-list">
-			<form method="get" class="form-inline">
+			<form method="get" class="form-inline" action="" novalidate>
 			<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
 			<div class="input-append input-prepend">
 				<span class="add-on"><i class="icon-search"></i></span>
