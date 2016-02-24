@@ -4,7 +4,7 @@
 	<?php include dirname(dirname(dirname(__FILE__))).'/templates/head.template.php' ?>
 </head>
 <body id="login">
-	<form method="post" action="?" id="login-box" class="well disable-submit-buttons">
+	<form method="post" action="?" id="login-box" class="well disable-submit-buttons" novalidate>
 		<div id="login-header">
 			<h1><?php echo ents(SYSTEM_NAME); ?></h1>
 		</div>
