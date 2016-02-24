@@ -13,7 +13,7 @@ SizeDetector::processRequest();
 			The server thinks the width is <?php echo SizeDetector::getWidth(); ?> and height is <?php echo SizeDetector::getHeight(); ?>
 		</pre>
 
-		<form method="post" style="border: 2px solid">
+		<form method="post" style="border: 2px solid" action="" novalidate>
 			<?php SizeDetector::printFormFields(); ?>
 			This is a form
 			<input type="submit" />
