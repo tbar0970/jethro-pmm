@@ -241,7 +241,7 @@ class Person extends DB_Object
 					// Provide a link to send SMS through the SMS gateway
 					?>
 					<div id="send-sms-modal" class="modal hide fade" role="dialog" aria-hidden="true">
-						<form method="post" action="?view=_send_sms_http">
+						<form method="post" action="?view=_send_sms_http" novalidate>
 							<input type="hidden" name="personid" value="<?php echo $this->id; ?>" />
 
 							<div class="modal-header">
