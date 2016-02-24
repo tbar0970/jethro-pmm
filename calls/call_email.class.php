@@ -154,7 +154,7 @@ class Call_email extends Call
 			?>
 			<html>
 				<body>
-					<form id="emailpopupform" method="post" action="<?php echo build_url(Array('print_popup'=>1)); ?>" target="emailpopup">
+					<form id="emailpopupform" method="post" action="<?php echo build_url(Array('print_popup'=>1)); ?>" target="emailpopup" novalidate>
 						<?php print_hidden_fields($_POST); ?> 
 					</form>
 
