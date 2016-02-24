@@ -615,7 +615,7 @@ class roster_view extends db_object
 				print_message("There are some roles in this roster which you are not able to edit because they refer to a volunteer group you do not have access to.");
 			}
 			?>
-			<form method="post" class="warn-unsaved bubble-option-props">
+			<form method="post" class="warn-unsaved bubble-option-props" action="" novalidate>
 			<script>
 				$(document).ready(function() {
 
@@ -736,7 +736,7 @@ class roster_view extends db_object
 										'end_date' => $date
 									));
 									?>
-									<form method="post" action="<?php echo $url; ?>" style="position: absolute; display: none">
+									<form method="post" action="<?php echo $url; ?>" style="position: absolute; display: none" novalidate>
 										<div class="standard" style="border-width: 2px; border-radius: 8px">
 										<h3>Send SMS</h3>
 										<textarea name="message" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
