@@ -121,7 +121,7 @@ class Service_Component extends db_object
 		if (!empty($categoryid)) {
 			$conds['categoryid'] = (int)$categoryid;
 		}
-		return $GLOBALS['system']->getDBObjectData('service_component', $conds, 'AND', 'title');
+		return $GLOBALS['system']->getDBObjectData('service_component', $conds, 'AND', 'service_component.title');
 	}
 
 	/**
@@ -173,7 +173,7 @@ class Service_Component extends db_object
 		}
 		if ($keyword) {
 			$qk = $GLOBALS['db']->quote("%{$keyword}%");
-			$res['where'] .= ' '.$logic.' (title LIKE '.$qk.' OR alt_title LIKE '.$qk.' OR content_html LIKE '.$qk.')';
+			$res['where'] .= ' '.$logic.' (service_component.title LIKE '.$qk.' OR alt_title LIKE '.$qk.' OR content_html LIKE '.$qk.')';
 		}
 
 		return $res;
