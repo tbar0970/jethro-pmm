@@ -16,7 +16,7 @@ class View_Home extends View
 		?>
 		<div class="member-homepage-box visible-phone">
 			<h3>Search people</h3>
-			<form method="get" class="form-inline">
+			<form method="get" class="form-inline" action="" novalidate>
 				<input type="hidden" name="view" value="people" />
 				<input name="search" type="text" placeholder="Enter name to search" value="<?php echo ents(array_get($_REQUEST, 'search')); ?>">
 				<button data-action="search" class="btn" type="submit">Search</button>
@@ -93,7 +93,7 @@ class View_Home extends View
 		?>
 		<div class="member-homepage-box hidden-phone">
 			<h3>Search people</h3>
-			<form method="get" class="form-inline">
+			<form method="get" class="form-inline" action="" novalidate>
 				<input type="hidden" name="view" value="people" />
 				<input name="search" type="text" placeholder="Enter name to search" value="<?php echo ents(array_get($_REQUEST, 'search')); ?>">
 				<button data-action="search" class="btn" type="submit">Search</button>
