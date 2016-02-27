@@ -145,7 +145,7 @@ class View_Home extends View
 		<script>
 		/* mainTemplateApp is initialised in main.template.php. */
 		mainTemplateApp.controller("Homepage",function($scope){
-			var response = JSON.parse('{"response":<?php echo $responseJson; ?>}').response;
+			var response = <?php echo $responseJson; ?>;
 			$scope.numCols = response.num_cols;
 			$scope.systemName = response.systemName;
 			$scope.baseUrl = response.baseUrl;
