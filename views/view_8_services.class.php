@@ -202,7 +202,7 @@ class View_services extends View
 						if (strlen($item['heading_text'])) {
 							?>
 							<tr>
-								<td colspan="3">
+								<td colspan="4">
 									<input type="text" class="service-heading unfocused" name="" value="<?php echo ents($item['heading_text']); ?>" />
 								</td>
 								<td class="tools">

@@ -457,7 +457,7 @@ class roster_view extends db_object
 		?>
 		<div class="column">
 		<?php
-		$perCol = ceil($numMembers/4);
+		$totalRows = ceil($numMembers/4);
 		$i = 0;
 		foreach ($this->_members as $member) {
 			if (!$includeServiceFields && (empty($member['role_id']))) continue;
@@ -472,7 +472,7 @@ class roster_view extends db_object
 			</div>
 			<?php
 			$i++;
-			if (($i % $perCol == 0) && ($i < $numMembers)) {
+			if (($i % $totalRows == 0) && ($i < $numMembers)) {
 				?>
 		</div>
 		<div class="column">
@@ -493,18 +493,19 @@ class roster_view extends db_object
 			if ($member['role_id'] || $includeServiceFields) $numMembers++;
 		}
 
-		$perCol = ceil($numMembers/$columns);
+		$totalRows = ceil($numMembers/$columns);
 		?>
 		<table cellpadding="5">
 			<?php
-			for ($rowNum = 0; $rowNum < $perCol; $rowNum++) {
+			for ($rowNum = 0; $rowNum < $totalRows; $rowNum++) {
 				?>
 				<tr>
 				<?php
 				$i = 0;
 				foreach ($this->_members as $member) {
 					if (!$includeServiceFields && (empty($member['role_id']))) continue;
-					if (($i % $columns) == $rowNum) {
+					
+					if (($i % $totalRows) == $rowNum) {
 						?>
 						<th><?php $this->_printOutputLabel($member, $service); ?></th>
 						<td>
