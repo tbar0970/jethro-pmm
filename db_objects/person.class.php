@@ -242,17 +242,13 @@ class Person extends DB_Object
 				} else if (defined('SMS_HTTP_URL') && constant('SMS_HTTP_URL') && $GLOBALS['user_system']->havePerm(PERM_SENDSMS)) {
 					// Provide a link to send SMS through the SMS gateway
 					?>
-					<div id="send-sms-modal-<?php echo $uniqueID;?>" class="modal hide fade" role="dialog" aria-hidden="true">
-						<form class="send-sms-ajax" method="post" action="?view=_send_sms_http">
-							<input type="hidden" name="personid" value="<?php echo $personid; ?>" />
-							<input type="hidden" name="ajax" value="1" />
-
+					<div data-personid="<?php echo $personid; ?>" id="send-sms-modal-<?php echo $uniqueID;?>" class="modal single-sms-modal hide fade" role="dialog" aria-hidden="true">
 							<div class="modal-header">
 								<h4>Send SMS to <?php $this->printFieldValueForPerson($personid, 'name'); ?></h4>
 							</div>
 							<div class="modal-body">
 								Message:<br />
-								<textarea autofocus="autofocus" name="message" class="span8" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
+								<textarea autofocus="autofocus" name="single_sms_message" class="span8" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
                                 <span class="charactercount"><?php echo SMS_MAX_LENGTH; ?> characters remaining.</span>
 							</div>
 							<div class="modal-footer">
@@ -262,10 +258,9 @@ class Person extends DB_Object
 									if (SMS_SAVE_TO_NOTE_BY_DEFAULT) { echo "checked"; }
 									echo ' /></label>';
 								} ?>
-								<input type="submit" class="btn sms-submit" value="Send" accesskey="s" onclick="if (!$('#send-sms-modal-<?php echo $uniqueID;?> [name=message]').val()) { alert('Enter a message first'); return false; }" />
+                              <button class="btn sms-submit" accesskey="s">Send</button>
 								<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
 							</div>
-						</form>
 					</div>
 					<?php
 					$smsLink = '<span data-target="#send-sms-modal-' . $uniqueID . '" data-toggle="modal" class="btn btn-mini"><i class="icon-envelope"></i></span>';

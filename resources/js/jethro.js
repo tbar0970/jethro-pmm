@@ -110,57 +110,67 @@ $(document).ready(function () {
 
 
   /*************************** SMS AJAX ********************/
-  $('form.send-sms-ajax').submit(function (event) {
+  $('.single-sms-modal .sms-submit').on('click', function(event) {
     event.preventDefault();
-    var submitBtn, smsData;
-    submitBtn = $(this).find('.sms-submit');
-    submitBtn.prop('disabled', true);
-    submitBtn.prop('value', 'Sending...');
-    smsData = $(this).serialize();
-    $.ajax({
-      type: 'POST',
-      dataType: 'JSON',
-      url: '?view=_send_sms_http',
-      data: smsData,
-      context: $(this),
-      error: function (jqXHR, status, error) {
-        console.log('Error sending SMS', status, error);
-        var statusBtn = $(this).find('.single-sms-status');
-        statusBtn.unbind('click');
-        statusBtn.on('click', function (event) { event.preventDefault(); alert(error); });
-        statusBtn.toggleClass('fade');
-
-      },
-      success: function (data) {
-        console.log('AJAX DATA:', data);
-        var successCount = 0,
+    var modalDiv = $(this).parent().parent(); // takes us back up to the DIV
+    var sms_message = modalDiv.find("textarea").val();
+    if (!sms_message) {
+      alert("Please enter a message first.");
+      return false;
+    } else {
+      var submitBtn, smsData,personid;
+      $(this).prop('disabled', true);
+      $(this).html("Sending");
+      smsData = {
+        personid: modalDiv.attr("data-personid"),
+        ajax: 1,
+        message: sms_message
+      }
+      //smsData = $(this).serialize();
+      $.ajax({
+        type: 'POST',
+        dataType: 'JSON',
+        url: '?view=_send_sms_http',
+        data: smsData,
+        context: $(this),
+        error: function (jqXHR, status, error) {
+          var modalDiv = $(this).parent().parent(); // takes us back up to the DIV
+          console.log('Error sending SMS', status, error);
+          var statusBtn = modalDiv.find('.single-sms-status');
+          statusBtn.unbind('click');
+          statusBtn.on('click', function (event) { event.preventDefault(); alert(error); });
+          statusBtn.toggleClass('fade');
+        },
+        success: function (data) {
+          var modalDiv = $(this).parent().parent(); // takes us back up to the DIV
+          var successCount = 0,
           failedCount = 0,
           rawresponse = '',
           error = 'No details available. Please check the number is right.',
           statusBtn,
           submitBtn;
-        if (data.success !== undefined) { successCount = data.success.count; }
-        if (data.failed !== undefined) { failedCount = data.failed.count; }
-        if (data.rawresponse !== undefined) { rawresponse = data.rawresponse; }
-        if (data.error !== undefined) { error = data.error; }
+          if (data.success !== undefined) { successCount = data.success.count; }
+          if (data.failed !== undefined) { failedCount = data.failed.count; }
+          if (data.rawresponse !== undefined) { rawresponse = data.rawresponse; }
+          if (data.error !== undefined) { error = data.error; }
 
-        if (failedCount > 0) {
-          statusBtn = $(this).find('.single-sms-status');
-          statusBtn.unbind('click');
-          statusBtn.on('click', function (event) { event.preventDefault(); alert(error); });
-          statusBtn.toggleClass('fade');
-        } else {
-          $(this).parent().modal('hide');
+          if (failedCount > 0) {
+            statusBtn = modalDiv.find('.single-sms-status');
+            statusBtn.unbind('click');
+            statusBtn.on('click', function (event) { event.preventDefault(); alert(error); });
+            statusBtn.toggleClass('fade');
+          } else {
+            modalDiv.modal('hide');
+          }
+          $(this).prop('disabled', false);
+          $(this).html("Send");
         }
+      });
+      return false;
 
-        submitBtn = $(this).find('.sms-submit');
-        submitBtn.prop('disabled', false);
-        submitBtn.prop('value', 'Send');
-      }
-    });
-    return false;
+
+    }
   });
-
 
   /*************************** REPORTS *********************/
   $('input.select-rule-toggle').click(function () {
