@@ -313,14 +313,18 @@ class Person extends DB_Object
 	{
       $aDate = strtotime($a['created']);
       $bDate = strtotime($b['created']);
-      foreach ($a['comments'] as $id=>$comment) {
-        $cDate = strtotime($comment['created']);
+      // comments are always in chronological order, so grab the last comment
+      if (count($a['comments']) > 0) {
+        $cDate = strtotime(end($a['comments'])['created']);
+        reset($a['comments']);
         if ($cDate > $aDate) { $aDate = $cDate;}
       }
-      foreach ($b['comments'] as $id=>$comment) {
-        $cDate = strtotime($comment['created']);
-        if ($cDate > $aDate) { $bDate = $cDate;}
+      if (count($b['comments']) > 0) {
+        $cDate = strtotime(end($b['comments'])['created']);
+        reset($b['comments']);
+        if ($cDate > $bDate) { $bDate = $cDate;}
       }
+
       return $aDate < $bDate;
 	}
 
