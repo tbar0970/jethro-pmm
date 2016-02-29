@@ -60,7 +60,7 @@ button.single-sms-status {
 .modal-footer label {
   display: inline;
 }
-.modal-footer .charactercount {
+.single-sms-modal .charactercount {
   display: block
 }
 .charactercount {
