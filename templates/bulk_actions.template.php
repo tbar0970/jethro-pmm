@@ -269,6 +269,19 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 					</label>
 				</div>
 			</div>
+<?php if (defined("SMS_SAVE_TO_NOTE_BY_DEFAULT")) {
+?>
+            <div class="control-group">
+                <label class="control-label">After sending:</label>
+              <div class="controls">
+                <label class="checkbox">
+                  <input type="checkbox" name="saveasnote" accesskey="n" <?php if (SMS_SAVE_TO_NOTE_BY_DEFAULT) { echo " checked "; } ?>  />
+                  save as note
+                </label>
+              </div>
+            </div>
+<?php
+			} ?>
 			<div class="control-group">
 				<label class="control-label">Message: </label>
 				<div class="controls">

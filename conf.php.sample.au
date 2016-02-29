@@ -217,6 +217,7 @@ define('SMS_SAVE_TO_NOTE_BY_DEFAULT', false);
 
 // The default subject for SMS notes
 define('SMS_SAVE_TO_NOTE_SUBJECT', 'SMS');
+
 // A file to log who has sent SMSes (optional)
 define('SMS_SEND_LOGFILE', '');
 
