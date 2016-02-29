@@ -73,12 +73,15 @@ class View__Send_SMS_HTTP extends View
     $content = str_replace('_RECIPIENTS_COMMAS_', urlencode(implode(',', $mobile_tels)), $content);
     $content = str_replace('_RECIPIENTS_NEWLINES_', urlencode(implode("\n", $mobile_tels)), $content);
 
+    $header  = "" . SMS_HTTP_HEADER_TEMPLATE;
+    $header  = $header . "Content-Length: ".strlen($content)."\r\n"
+                       . "Content-Type: application/x-www-form-urlencoded\r\n";
+
     $opts = Array(
       'http' => Array(
         'method'        => 'POST',
         'content'       => $content,
-        'header'        => "Content-Length: ".strlen($content)."\r\n"
-        ."Content-Type: application/x-www-form-urlencoded\r\n"
+        'header'        => $header
       )
     );
     // To work with HTTP Server errors ourselves, override the system error_handler
@@ -125,6 +128,23 @@ class View__Send_SMS_HTTP extends View
     return array("success"=>$success, "successes"=>$successes, "failures"=>$failures,"rawresponse"=>$response);
   }
 
+  function saveAsNote($recipients, $message) {
+    $GLOBALS['system']->includeDBClass('person_note');
+    $subject = "SMS Sent";
+    if (!SMS_SAVE_TO_NOTE_SUBJECT) {
+      $subect = SMS_SAVE_TO_NOT_SUBJECT;
+    }
+    foreach ($recipients as $id => $details) {
+      // Add a note containing the SMS to the user
+      $note = new Person_Note();
+      $note->setValue('subject', $subject);
+      $note->setvalue('details', $message);
+      $note->setValue('personid', $id);
+      if ($note->create()) {
+        add_message('Note added');
+      }
+    }
+  }
 
   function printAjax()
   {
@@ -162,6 +182,9 @@ class View__Send_SMS_HTTP extends View
               $ajax['sent']['count'] = count($successes);
               $ajax['sent']['recipients'] = $successes;
               $ajax['sent']['confirmed'] = true;
+              if (isset($_REQUEST['saveasnote'])) {
+                $this->saveAsNote($successes, $message);
+              }
             }
             if (!empty($failures)) {
               $ajax['failed']['count'] = count($failures);
@@ -219,7 +242,7 @@ class View__Send_SMS_HTTP extends View
           print_message('SMS sending failed for '.count($failures).' recipients', 'failure');
 ?>
 <p><b>Sending an SMS to the following recipients failed.  <span class="clickable" onclick="$('#response').toggle()">Show server response</span></b></p>
-<div class="hidden standard" id="response"><?php bam($response); ?></div>
+<div class="hidden standard" id="response"><?php echo $response; ?></div>
 <?php
           $persons = $failures;
           require 'templates/person_list.template.php';

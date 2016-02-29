@@ -297,7 +297,8 @@ class View_Admin__System_Configuration extends View {
 				<th>SMS Gateway</th>
 				<td>
 					<?php echo SMS_HTTP_URL; ?><br />
-					<?php echo (SMS_HTTP_POST_TEMPLATE && SMS_HTTP_RESPONSE_OK_REGEX) ? 'See details in config file' : '<b>Not fully configured<b>'; ?>
+					<?php echo (SMS_HTTP_POST_TEMPLATE && SMS_HTTP_RESPONSE_OK_REGEX) ? 'See details in config file' : '<b>Not fully configured.<b>'; ?>
+                    <?php echo (SMS_HTTP_HEADER_TEMPLATE) ? '' : ' No additional headers configured.'; ?>
 			</tr>
 			<tr>
 				<th>Max length for SMS messages</th>
@@ -306,6 +307,20 @@ class View_Admin__System_Configuration extends View {
 					<br /><small>160 characters is generally a one-part SMS. Longer messages will be sent in several parts and will cost more.</small>
 				</td>
 			</tr>
+            <tr>
+              <th>Default to saving sent SMS as note</th>
+              <td>
+                <?php echo SMS_SAVE_TO_NOTE_BY_DEFAULT; ?>
+                <br />
+              </td>
+            </tr>
+            <tr>
+              <th>Default Subject for SMS saved as a note</th>
+              <td>
+                <?php echo SMS_SAVE_TO_NOTE_SUBJECT; ?>
+                <br />
+              </td>
+            </tr>
 			<tr>
 				<th>Logging of SMS sending</th>
 				<td>

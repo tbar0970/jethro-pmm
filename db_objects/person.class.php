@@ -256,6 +256,11 @@ class Person extends DB_Object
 							</div>
 							<div class="modal-footer">
 								<button class="btn btn-warning single-sms-status fade">Send failed - see details</button>
+                                <?php if (defined("SMS_SAVE_TO_NOTE_BY_DEFAULT")) {
+									echo '<label>Save SMS as note:<input type="checkbox" name="saveasnote" accesskey="n" ';
+									if (SMS_SAVE_TO_NOTE_BY_DEFAULT) { echo "checked"; }
+									echo ' /></label>';
+								} ?>
 								<input type="submit" class="btn sms-submit" value="Send" accesskey="s" onclick="if (!$('#send-sms-modal-<?php echo $uniqueID;?> [name=message]').val()) { alert('Enter a message first'); return false; }" />
 								<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
 							</div>
