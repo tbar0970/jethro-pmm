@@ -420,6 +420,7 @@ $(document).ready(function () {
             $("#alert").fadeIn();
           } else {
             $('#smshttp').toggle();
+            $("#bulk-action-chooser").val(0);
             $('#alert').removeClass('alert-info').removeClass('alert-error').removeClass('alert-success');
             $('#alert').addClass('alert-success');
             $("#alert").html("<strong>SMS Success!</strong> All messages successfully sent.");
