@@ -274,8 +274,10 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 				<div class="controls">
 					<textarea name="message" class="span4" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
 					<br />
-					<input type="submit" class="btn " value="Send" data-set-form-action="<?php echo BASE_URL; ?>?view=_send_sms_http" />
+					<input type="submit" class="btn bulk-sms-submit" value="Send" data-set-form-action="<?php echo BASE_URL; ?>?view=_send_sms_http" />
 				</div>
+			</div>
+			<div class="control-group bulk-sms-failed">
 			</div>
 		</div>
 		<?php

@@ -243,18 +243,20 @@ class Person extends DB_Object
 					// Provide a link to send SMS through the SMS gateway
 					?>
 					<div id="send-sms-modal-<?php echo $uniqueID;?>" class="modal hide fade" role="dialog" aria-hidden="true">
-						<form method="post" action="?view=_send_sms_http">
+						<form class="send-sms-ajax" method="post" action="?view=_send_sms_http">
 							<input type="hidden" name="personid" value="<?php echo $personid; ?>" />
+							<input type="hidden" name="ajax" value="1" />
 
 							<div class="modal-header">
 								<h4>Send SMS to <?php $this->printFieldValueForPerson($personid, 'name'); ?></h4>
 							</div>
 							<div class="modal-body">
 								Message:<br />
-								<textarea autofocus="autofocus" name="message" class="span4" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
+								<textarea autofocus="autofocus" name="message" class="span8" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
 							</div>
 							<div class="modal-footer">
-								<input type="submit" class="btn" value="Send" accesskey="s" onclick="if (!$('#send-sms-modal-<?php echo $uniqueID;?> [name=message]').val()) { alert('Enter a message first'); return false; }" />
+								<button class="btn btn-warning single-sms-status fade">Send failed - see details</button>
+								<input type="submit" class="btn sms-submit" value="Send" accesskey="s" onclick="if (!$('#send-sms-modal-<?php echo $uniqueID;?> [name=message]').val()) { alert('Enter a message first'); return false; }" />
 								<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
 							</div>
 						</form>

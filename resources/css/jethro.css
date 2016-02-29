@@ -52,6 +52,12 @@ img:["glyphicons-halflings.png","glyphicons-halflings-white.png"]
 	background: #d3d6e1 !important;
 }
 
+/******************** SMS *********************/
+button.single-sms-status {
+	float:left;
+}
+
+
 
 /******************** LOGIN *******************/
 #login-box {
@@ -470,6 +476,7 @@ ul {
 #body a, .modal a, .clickable, button.btn-link, input.btn-link {
 	text-decoration: underline;
 	color: #647196
+    cursor: pointer;
 }
 #body a.btn, .modal a.btn {
 	color: #333333;

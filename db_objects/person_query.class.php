@@ -1171,7 +1171,6 @@ class Person_Query extends DB_Object
 
 		$sql = $this->getSQL();
 		if (is_null($sql)) return;
-
 		if ($format == 'html' && in_array('checkbox', $params['show_fields'])) {
 			echo '<form method="post" enctype="multipart/form-data" class="bulk-person-action">';
 		}
@@ -1345,7 +1344,7 @@ class Person_Query extends DB_Object
 								break;
 							case 'checkbox':
 								?>
-								<input name="personid[]" type="checkbox" value="<?php echo $row[$label]; ?>" class="no-print" />
+								<input data-personid="<?php echo $row[$label]; ?>" name="personid[]" type="checkbox" value="<?php echo $row[$label]; ?>" class="no-print" />
 								<?php
 								break;
 							case 'photo':
