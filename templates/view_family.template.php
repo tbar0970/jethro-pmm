@@ -2,7 +2,6 @@
 include_once 'include/size_detector.class.php';
   function _compareCreatedDates($a, $b)
   {
-    print "<pre>SORTING</pre>";
       $aDate = strtotime($a['created']);
       $bDate = strtotime($b['created']);
       // comments are always in chronological order, so grab the last comment
