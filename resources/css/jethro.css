@@ -57,6 +57,12 @@ button.single-sms-status {
 	float:left;
 }
 
+.modal-footer label {
+  display: inline;
+}
+.charactercount {
+	font-size: x-small;
+}
 
 
 /******************** LOGIN *******************/
@@ -657,6 +663,7 @@ select, input, textarea {
 	width: auto;
 	max-width: 97%;
 }
+
 /* disused ? */
 .full-width-input {
 	width: 99.5%;

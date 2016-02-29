@@ -253,6 +253,7 @@ class Person extends DB_Object
 							<div class="modal-body">
 								Message:<br />
 								<textarea autofocus="autofocus" name="message" class="span8" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
+                                <span class="charactercount"><?php echo SMS_MAX_LENGTH; ?> characters remaining.</span>
 							</div>
 							<div class="modal-footer">
 								<button class="btn btn-warning single-sms-status fade">Send failed - see details</button>
