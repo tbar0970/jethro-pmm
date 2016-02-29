@@ -644,7 +644,6 @@ select, input, textarea {
 }
 
 .charactercount {
-	display: block;
 	font-size: x-small;
 }
 /* disused ? */
