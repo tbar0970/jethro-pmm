@@ -60,6 +60,9 @@ button.single-sms-status {
 .modal-footer label {
   display: inline;
 }
+.modal-footer .charactercount {
+  display: block
+}
 .charactercount {
 	font-size: x-small;
 }
