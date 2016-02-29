@@ -140,8 +140,8 @@ class View__Send_SMS_HTTP extends View
       $note->setValue('subject', $subject);
       $note->setvalue('details', $message);
       $note->setValue('personid', $id);
-      if ($note->create()) {
-        add_message('Note added');
+      if (!$note->create()) {
+        add_message('Failed to save SMS as a note.');
       }
     }
   }
