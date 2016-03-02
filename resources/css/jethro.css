@@ -816,7 +816,19 @@ Otherwise they go beneath each other
 	margin-right: 200px;
 	padding-right: 15px;
 	width: auto;
-	overflow: hidden;
+	xoverflow: hidden;
+}
+
+@media (max-width: 650px) {
+	/* under 650 the photo cannot go by the side */
+	.person-details-withphoto {
+		margin-right: 0px;
+	}
+	.view-person img.person-photo {
+		float: none;
+		padding-bottom: 15px;
+	}
+	
 }
 
 .person-details-box {
