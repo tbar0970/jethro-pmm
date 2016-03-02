@@ -205,12 +205,14 @@ class Person_Query extends DB_Object
 									   value="<?php echo $fieldid; ?>"
 									   id="enable_custom_<?php echo $fieldid; ?>"
 									   class="select-rule-toggle"
+									   data-toggle="enable"
+									   data-target="#custom-value-<?php echo $fieldid; ?> *"
 									   <?php if (isset($params['custom_fields'][$fieldid])) echo 'checked="checked" '; ?>
 								/>
 								<strong><?php echo ents($fieldDetails['name']); ?></strong>
 							</label>
 						</td>
-						<td>
+						<td id="custom-value-<?php echo $fieldid; ?>">
 							<div class="select-rule-options" <?php if (!isset($params['custom_fields'][$fieldid])) echo 'style="display: none" '; ?>>
 							<?php
 							switch ($fieldDetails['type']) {
