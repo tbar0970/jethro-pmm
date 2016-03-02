@@ -940,6 +940,9 @@ class Person_Query extends DB_Object
 			} else if (($params['sort_by'] == 'attendance_numabsences') && !in_array('attendance_numabsences', $params['show_fields'])){
 				array_push($params['show_fields'],'attendance_numabsences');
 			}
+			if (empty($params['show_fields'])) {
+				$params['show_fields'] = Array('p.first_name', 'p.last_name');
+			}
 			foreach ($params['show_fields'] as $field) {
 				if (substr($field, 0, 2) == '--') continue; // they selected a separator
 				switch ($field) {
