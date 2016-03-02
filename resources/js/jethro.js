@@ -97,17 +97,6 @@ $(document).ready(function() {
 	$('input.select-rule-toggle').click(function() {
 		$($(this).parents('tr')[0]).find('div.select-rule-options').css('display', (this.checked ? '' : 'none'));
 	});
-
-	if ($('#datefield-rules')) {
-		$('.datefield-rule-period').hide();
-		$('.datefield-rule-criteria').change(function() {
-			if ((this.value == 'exact') || (this.value == 'anniversary')) {
-				$(this).siblings('.datefield-rule-period').show();
-			} else {
-				$(this).siblings('.datefield-rule-period').hide();
-			}
-		}).change();
-	}
 		
 
 	
