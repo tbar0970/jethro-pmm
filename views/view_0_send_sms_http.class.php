@@ -77,21 +77,23 @@ class View__Send_SMS_HTTP extends View
 			$content = str_replace('_RECIPIENTS_COMMAS_', urlencode(implode(',', $mobile_tels)), $content);
 			$content = str_replace('_RECIPIENTS_NEWLINES_', urlencode(implode("\n", $mobile_tels)), $content);
 
+			$header  = "" . SMS_HTTP_HEADER_TEMPLATE;
+			$header  = $header . "Content-Length: ".strlen($content)."\r\n"
+				           . "Content-Type: application/x-www-form-urlencoded\r\n";
 			$opts = Array(
 				'http' => Array(
 					'method'	=> 'POST',
 					'content'	=> $content,
-					'header'	=> "Content-Length: ".strlen($content)."\r\n"
-									."Content-Type: application/x-www-form-urlencoded\r\n"
+					'header'	=> $header
 				)
 			);
+						
 			$response = '';
 			$fp = fopen(SMS_HTTP_URL, 'r', false, stream_context_create($opts));
 			if ($fp) {
 				$response = stream_get_contents($fp);
 				fclose($fp);
 			}
-
 			if (empty($response)) {
 				add_message('Failed communicating with SMS server - please check your config', 'failure');
 				return;
@@ -100,10 +102,26 @@ class View__Send_SMS_HTTP extends View
 			$response = str_replace("\r", '', $response);
 			if (SMS_HTTP_RESPONSE_OK_REGEX) {
 				foreach ($recips as $id => $recip) {
-					$pattern = '/'.str_replace('_RECIPIENT_', preg_quote($recip['mobile_tel']), SMS_HTTP_RESPONSE_OK_REGEX).'/m';
+					if ($recip['mobile_tel'][0] == '0') { // some apis return the number in international format - starting with 61 for Australia
+						$internationalpattern = '/'.str_replace('_RECIPIENT_', preg_quote(SMS_COUNTRY_CODE . substr($recip['mobile_tel'],1)), SMS_HTTP_RESPONSE_OK_REGEX).'/m';
+						$internationalisedmatch = preg_match($internationalpattern,$response);
+					}
 
-					if (preg_match($pattern, $response)) { 
+					$pattern = '/'.str_replace('_RECIPIENT_', preg_quote($recip['mobile_tel']), SMS_HTTP_RESPONSE_OK_REGEX).'/m';
+					if ($internationalisedmatch || preg_match($pattern, $response)) { 
 						$successes[$id] = $recip;
+						if (isset($_REQUEST['saveasnote'])) {
+							// Add a note containing the SMS to the user
+							$GLOBALS['system']->includeDBClass('person_note');
+							$note = new Person_Note();
+							$note->setValue('subject', 'SMS Sent');
+							$note->setvalue('details', $_POST['message']);
+							$note->setValue('personid', $id);
+							if ($note->create()) {
+								add_message('Note added');
+							}
+						}
+
 					} else {
 						$failures[$id] = $recip;
 					}
@@ -116,7 +134,7 @@ class View__Send_SMS_HTTP extends View
 					print_message('SMS sending failed for '.count($failures).' recipients', 'failure');
 					?>
 					<p><b>Sending an SMS to the following recipients failed.  <span class="clickable" onclick="$('#response').toggle()">Show server response</span></b></p>
-					<div class="hidden standard" id="response"><?php bam($response); ?></div>
+					<div class="hidden standard" id="response"><?php echo $response; ?></div>
 					<?php
 					$persons = $failures;
 					require 'templates/person_list.template.php';

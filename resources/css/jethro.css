@@ -508,6 +508,12 @@ form.min {
 .modal form {
 	margin: 0px;
 }
+.modal-footer label {
+	display:inline-block;
+}
+.modal-footer label input[type=checkbox] {
+	margin: 0;
+}
 .well {
 	background-color: #E8E8FF;
 }

@@ -297,7 +297,8 @@ class View_Admin__System_Configuration extends View {
 				<th>SMS Gateway</th>
 				<td>
 					<?php echo SMS_HTTP_URL; ?><br />
-					<?php echo (SMS_HTTP_POST_TEMPLATE && SMS_HTTP_RESPONSE_OK_REGEX) ? 'See details in config file' : '<b>Not fully configured<b>'; ?>
+			                <?php echo (SMS_HTTP_HEADER_TEMPLATE && SMS_HTTP_POST_TEMPLATE && SMS_HTTP_RESPONSE_OK_REGEX) ? 'See details in config file' : '<b>Not fully configured<b>'; ?>
+				</td>
 			</tr>
 			<tr>
 				<th>Max length for SMS messages</th>
