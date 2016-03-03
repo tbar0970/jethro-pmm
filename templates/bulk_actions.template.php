@@ -145,7 +145,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 				</p>
 
 				<p>
-				<label name="<?php echo $verb; ?>_group_source" class="radio">
+				<label class="radio">
 					<input type="radio" name="<?php echo $verb; ?>_group_source" value="new"
 							data-toggle="enable" data-target="#<?php echo $verb; ?>_new_group *" />
 					<b>a new group:</b>

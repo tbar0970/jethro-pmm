@@ -39,6 +39,9 @@ class Service_Component_Category extends db_object
 									'options'  => Array('No', 'Yes'),
 									'default' => 1,
 								   ),
+			'personnel_default'		=> Array(
+									'type'		=> 'text',
+								   ),
 			'length_mins_default'		=> Array(
 									'type'		=> 'int',
 									'width'		=> 6,
@@ -51,12 +54,12 @@ class Service_Component_Category extends db_object
 	{
 		$res = (array)parent::getInitSQL();
 		$res[] = 'INSERT INTO service_component_category
-				  (category_name, runsheet_title_format, handout_title_format, length_mins_default)
+				  (category_name, runsheet_title_format, handout_title_format, length_mins_default, personnel_default)
 				  VALUES 
-				  ("Songs", "Song: %title%", "Song: %title%", 3),
-				  ("Prayers", "%title%", "%title%", 2),
-				  ("Creeds", "The %title%", "The %title%", 2),
-				  ("Other", "%title%", "%title%", 1);';
+				  ("Songs", "Song: %title%", "Song: %title%", 3, "%SONG_LEADER_FIRSTNAME%"),
+				  ("Prayers", "%title%", "%title%", 2, "%SERVICE_LEADER_FIRSTNAME%"),
+				  ("Creeds", "The %title%", "The %title%", 2, "%SERVICE_LEADER_FIRSTNAME%"),
+				  ("Other", "%title%", "%title%", 1, "");';
 		return $res;
 		
 	}

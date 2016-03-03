@@ -256,6 +256,7 @@ class System_Controller
 		}
 
 		$bt = debug_backtrace();
+		array_shift($bt); // remove reference to this handleError function
 		foreach ($bt as &$b) {
 			if (!empty($b['args'])) {
 				foreach ($b['args'] as &$v) {

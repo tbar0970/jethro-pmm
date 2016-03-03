@@ -61,7 +61,6 @@ function bam($x)
 function check_db_result(&$res)
 {
 	if (PEAR::isError($res)) {
-		print_r($res->userinfo);
 		trigger_error("Database Error: ".print_r($res->userinfo, 1), E_USER_ERROR);
 		exit();
 	}
@@ -272,7 +271,7 @@ function print_widget($name, $params, $value)
 			} else if (array_get($params, 'allow_multiple')) {
 				$height = array_get($params, 'height', min(count($params['options']), 4));
 				if (substr($name, -2) != '[]') $name .= '[]';
-				$style = 'height: '.($height*1.8).'em';
+				$style = 'height: '.($height*1.7).'em';
 				$classes .= ' multi-select';
 				// the empty onclick below is to make labels work on iOS
 				// see http://stackoverflow.com/questions/5421659/html-label-command-doesnt-work-in-iphone-browser
@@ -440,7 +439,10 @@ function print_widget($name, $params, $value)
 		case 'checkbox':
 			?>
 			<input type="checkbox" name="<?php echo ents($name); ?>" value="1"
-				   <?php if ($value) echo 'checked="checked"'; ?>
+				   <?php 
+				   if ($value) echo 'checked="checked" ';
+				   echo $attrs;
+				   ?>
 			>
 			<?php
 			break;

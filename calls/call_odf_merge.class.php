@@ -45,13 +45,17 @@ class Call_ODF_Merge extends Call
 
 	function mergeDOCX($source_file, $merged_file)
 	{
+		// Important: we get the merge data first, because the phpWord
+		// autoloader included below stuffs up the Jethro autoloader
+		// and causes errors.
+		$data = array_values($this->getMergeData());
+
 		// NB THIS FILE HAS BEEN CHANGED!
 		require_once 'include/phpword/src/PhpWord/Autoloader.php';
 		\PhpOffice\PhpWord\Autoloader::register();
 		\PhpOffice\PhpWord\Settings::setTempDir(dirname($source_file));
 		$templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor($source_file);
 
-		$data = array_values($this->getMergeData());
 		if (!$templateProcessor->cloneBlock('MERGEBLOCK', count($data))) {
 			$vars = $templateProcessor->getVariables();
 			if (empty($vars)) {

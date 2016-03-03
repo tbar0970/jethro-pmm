@@ -451,7 +451,7 @@ class service extends db_object
 			if (in_array($service_field, Array('topic', 'format'))) {
 				$service_field .= '_title';
 			}
-			if (isset($this->fields[$service_field])) {
+			if ((substr($service_field, 0, 5) == 'bible') || isset($this->fields[$service_field])) {
 				$res = $this->getValue($service_field);
 				if ($service_field == 'date') {
 					// make a friendly date

@@ -113,7 +113,7 @@ class View_services extends View
 			} else {
 				?>
 				<div class="row-fluid">
-					<div class="span6 anchor-bottom">
+					<div class="span6">
 						<h3>
 							<span class="pull-right">
 									<small>
@@ -139,7 +139,7 @@ class View_services extends View
 							</span>
 							Full content
 						</h3>
-						<div class="service-content anchor-bottom">
+						<div class="service-content">
 							<?php
 							$this->service->printServiceContent();
 							?>
@@ -202,7 +202,7 @@ class View_services extends View
 						if (strlen($item['heading_text'])) {
 							?>
 							<tr>
-								<td colspan="3">
+								<td colspan="4">
 									<input type="text" class="service-heading unfocused" name="" value="<?php echo ents($item['heading_text']); ?>" />
 								</td>
 								<td class="tools">
@@ -361,6 +361,22 @@ class View_services extends View
 
 	}
 
+	private function printComponentSearch()
+	{
+		?>
+			<div id="component-search" class="input-append input-prepend no-autofocus">
+				<span class="add-on"><i class="icon-search"></i></span>
+				<input type="text" placeholder="Search components">
+				<?php
+				print_widget('tag', Array('type' => 'reference', 'references' => 'service_component_tag', 'allow_empty' => TRUE, 'empty_text' => '-- Choose Tag --'), NULL);
+				?>
+				<button data-action="search" class="btn" type="button">Filter</button>
+				<button data-action="clear" class="btn" type="button">Clear</button>
+			</div>
+
+		<?php
+	}
+
 	private function printComponentSelector()
 	{
 		?>
@@ -373,15 +389,7 @@ class View_services extends View
 				</small>
 				Component Library
 			</h3>
-			<div id="component-search" class="input-append input-prepend">
-				<span class="add-on"><i class="icon-search"></i></span>
-				<input type="text" placeholder="Search components">
-				<?php
-				print_widget('tag', Array('type' => 'reference', 'references' => 'service_component_tag', 'allow_empty' => TRUE, 'empty_text' => '-- Choose Tag --'), NULL);
-				?>
-				<button data-action="search" class="btn" type="button">Filter</button>
-				<button data-action="clear" class="btn" type="button">Clear</button>
-			</div>
+			<?php $this->printComponentSearch(); ?>
 			<ul class="nav nav-tabs">
 				<?php
 				$cats = $GLOBALS['system']->getDBObjectData('service_component_category', Array(), 'AND', 'category_name');
@@ -403,8 +411,11 @@ class View_services extends View
 						'categoryid' => $catid
 					), 'AND', 'usage_12m');
 					?>
-					<div class="tab-pane <?php echo $active; ?>" id="cat<?php echo (int)$catid; ?>">
-						<table class="table table-bordered table-condensed" title="Double-click or drag to add to service">
+					<div class="tab-pane <?php echo $active; ?>"
+						 id="cat<?php echo (int)$catid; ?>">
+
+						<table style="display: none" class="table table-bordered table-condensed"
+							   title="Double-click or drag to add to service">
 							<thead>
 								<tr>
 									<th data-sort="string">Title</th>

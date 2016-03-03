@@ -30,6 +30,12 @@ class Person extends DB_Object
 		return TRUE;
 	}
 
+	public static function getStatusOptions()
+	{
+		return explode(',', PERSON_STATUS_OPTIONS)
+				+ Array('contact' => 'Contact', 'archived' => 'Archived');
+	}
+
 	protected static function _getFields()
 	{
 		$allowEmptyCong = TRUE;
@@ -83,8 +89,7 @@ class Person extends DB_Object
 							   ),
 			'status'	=> Array(
 								'type'	=> 'select',
-								'options'	=> explode(',', PERSON_STATUS_OPTIONS) 
-											+ Array('contact' => 'Contact', 'archived' => 'Archived'),
+								'options'	=> self::getStatusOptions(),
 								'default'	=> 'contact' /* but see below */,
 								'class'		=> 'person-status',
 								'allow_empty'	=> false,
@@ -614,11 +619,6 @@ class Person extends DB_Object
 		<?php
 	}
 
-	function getStatusOptions()
-	{
-		return $this->fields['status']['options'];
-	}
-
 	static function getStatusStats()
 	{
 		$dummy = new Person();
@@ -821,10 +821,10 @@ class Person extends DB_Object
 	{
 		$fields = $this->getCustomFields();
 		$oldVal = array_get($this->_custom_values, $fieldid, '');
-		if ((!empty($oldVal) || !empty($newVal)) && ($oldVal != $newVal)) {
+		if ((!empty($oldVal) || !empty($newVal)) && ($addToExisting || ($oldVal != $newVal))) {
 			$this->_old_custom_values[$fieldid] = $oldVal;
 			if ($fields[$fieldid]['allow_multiple'] && $addToExisting && $oldVal) {
-				$this->_custom_values[$fieldid] = array_merge((array)$oldVal, $newVal);
+				$this->_custom_values[$fieldid] = array_merge((array)$oldVal, (array)$newVal);
 			} else {
 				$this->_custom_values[$fieldid] = $newVal;
 			}
