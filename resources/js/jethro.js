@@ -552,7 +552,7 @@ $(document).ready(function () {
 
   // NARROW COLUMNS
 
-  //setTimeout( "applyNarrowColumns('body'); ", 30);
+  setTimeout( "applyNarrowColumns('body'); ", 30);
 
   if (document.getElementById('service-planner')) {
     JethroServicePlanner.init();
@@ -1059,7 +1059,6 @@ function layOutMatchBoxes() {
 /* handle clicks on 'search' links in the top nav by building a modal */
 function handleSearchLinkClick()
 {
-  console.log('search link handling', $(this));
   $(this).parents('ul').parents('li').find('a.dropdown-toggle').dropdown('toggle');
   var heading = $(this).parents('ul').parents('li').find('a.dropdown-toggle').text().toLowerCase();
   if ($('#search-modal').length === 0) {
