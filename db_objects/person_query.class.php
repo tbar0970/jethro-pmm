@@ -1176,7 +1176,6 @@ class Person_Query extends DB_Object
 
 		$sql = $this->getSQL();
 		if (is_null($sql)) return;
-
 		if ($format == 'html' && in_array('checkbox', $params['show_fields'])) {
 			echo '<form method="post" enctype="multipart/form-data" class="bulk-person-action">';
 		}
@@ -1192,10 +1191,12 @@ class Person_Query extends DB_Object
 			$this->_printResultGroups($res, $params, $format);
 		}
 
-		if ($res && ($format == 'html') && in_array('checkbox', $params['show_fields'])) {
-			echo '<div class="no-print">';
-			include 'templates/bulk_actions.template.php';
-			echo '</div>';
+		if (($format == 'html') && in_array('checkbox', $params['show_fields'])) {
+			if ($res) {
+				echo '<div class="no-print">';
+				include 'templates/bulk_actions.template.php';
+				echo '</div>';
+			}
 			echo '</form>';
 		}
 	}
@@ -1288,7 +1289,7 @@ class Person_Query extends DB_Object
 			return;
 		}
 		?>
-		<table class="table table-striped table-condensed table-hover table-min-width clickable-rows query-results">
+		<table class="table table-striped table-condensed table-hover table-min-width query-results clickable-rows">
 			<thead>
 				<tr>
 				<?php
@@ -1348,7 +1349,7 @@ class Person_Query extends DB_Object
 								break;
 							case 'checkbox':
 								?>
-								<input name="personid[]" type="checkbox" value="<?php echo $row[$label]; ?>" class="no-print" />
+								<input data-personid="<?php echo $row[$label]; ?>" name="personid[]" type="checkbox" value="<?php echo $row[$label]; ?>" class="no-print" />
 								<?php
 								break;
 							case 'photo':
@@ -1363,7 +1364,7 @@ class Person_Query extends DB_Object
 									$var = $label[0] == 'p' ? '_dummy_person' : '_dummy_family';
 									$fieldname = substr($label, 2);
 									$this->$var->setValue($fieldname, $val);
-									$this->$var->printFieldValue($fieldname);
+									$this->$var->printFieldValueForPerson($row['view_link'],$fieldname);
 								} else if (0 === strpos($label, self::CUSTOMFIELD_PREFIX)) {
 									echo nl2br(ents($this->_formatCustomFieldValue($val, substr($label, strlen(self::CUSTOMFIELD_PREFIX)))));
 								} else {
@@ -1425,6 +1426,9 @@ class Person_Query extends DB_Object
 		}
 		if ($heading == 'checkbox') {
 			$class_list[] = 'selector narrow';
+		}
+		if ($heading == 'p.mobile_tel') {
+			$class_list[] = 'nonclickable-cell';
 		}
 		$classes = empty($class_list) ? '' : ' class="'.implode(' ', $class_list).'"';
 		return $classes;
