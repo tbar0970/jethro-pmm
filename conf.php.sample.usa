@@ -117,6 +117,10 @@ define('ERRORS_EMAIL_ADDRESS', '');
 // Warning - do not enable this if you have lots of people in lots of groups.
 define('PERSON_LIST_SHOW_GROUPS', FALSE);
 
+// If this is set to eg. "moo", then you must add "?secret=moo" to the end
+// of public roster URLs to view them, and public rosters will not be listed on the public site.
+define('PUBLIC_ROSTER_SECRET', '');
+
 ////////////////////////////////////////////////////////////////
 // MEMBER LOGIN SETTINGS - Regarding the /members/ sub-site
 ////////////////////////////////////////////////////////////////

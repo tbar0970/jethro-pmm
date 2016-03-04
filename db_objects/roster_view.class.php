@@ -105,6 +105,13 @@ class roster_view extends db_object
 	function printForm($prefix='', $fields=NULL)
 	{
 		$this->fields['members'] = Array(); // fake field for interface purposes
+		if ($this->id) {
+			$url = BASE_URL.'public/?view=display_roster&roster_view='.$this->id;
+			if (defined('PUBLIC_ROSTER_SECRET') && strlen(PUBLIC_ROSTER_SECRET)) {
+				$url .= '&secret='.PUBLIC_ROSTER_SECRET;
+			}
+			$this->fields['is_public']['note'] = 'If set to public, this roster will be available via the <a href="'.BASE_URL.'/members/">member portal</a> and to non-logged-in users at <a class="nowrap" href="'.$url.'">'.$url.'</a>';
+		}
 		parent::printForm($prefix, $fields);
 		unset($this->fields['members']);
 	}
@@ -515,7 +522,7 @@ class roster_view extends db_object
 					}
 					$i++;
 				}
-				?>
+		p		?>
 				</tr>
 				<?php
 			}
