@@ -1472,7 +1472,10 @@ div.multi-select:focus, div.radio-button-group:focus {
 /******** CHOOSER *************/
 
 ul.multi-person-finder {
-	width: 250px;
+	width: 135px;
+}
+input.person-search-multiple, input.person-search-single {
+	width: 160px;
 }
 li div.delete-list-item, li div.delete-chosen-person {
 	float: right;
