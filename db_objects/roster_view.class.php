@@ -522,7 +522,7 @@ class roster_view extends db_object
 					}
 					$i++;
 				}
-		p		?>
+				?>
 				</tr>
 				<?php
 			}
