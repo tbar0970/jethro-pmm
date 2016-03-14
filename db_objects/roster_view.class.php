@@ -34,7 +34,10 @@ class roster_view extends db_object
 		$res = parent::load($id);
 		
 		if (!$this->getValue('is_public') && !$GLOBALS['user_system']->getCurrentUser('id')) {
-			trigger_error("Roster view #{$this->id} is only available to logged in users", E_USER_ERROR); // exits;
+			// We don't use trigger_error here because sysadmins don't really care.
+			header($_SERVER["SERVER_PROTOCOL"]." 401 Not Authorised");
+			print_message("Roster view #{$this->id} is only available to logged in users", 'error');
+			exit;
 		}
 		
 		$sql = '(
