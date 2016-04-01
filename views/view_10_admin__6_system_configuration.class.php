@@ -381,7 +381,39 @@ class View_Admin__System_Configuration extends View {
 				<td><?php echo nl2br(MOBILE_TEL_FORMATS); ?></td>
 			</tr>
 
-
+			<tr>
+				<td colspan="2"><h3>Appearance Settings</h3></td>
+			</tr>
+			<tr>
+				<th>Custom Colours</th>
+				<td><?php
+					$customLessVars = defined('CUSTOM_LESS_VARS') ? constant('CUSTOM_LESS_VARS') : NULL;
+					$customCSSFile = 'jethro-'.JETHRO_VERSION.'-custom.css';
+					if (file_exists(JETHRO_ROOT.'/'.$customCSSFile)) {
+						?>
+						Jethro is using the custom CSS file <?php echo $customCSSFile; ?><br />
+						<?php
+						if ($customLessVars) {
+							?>
+							The following <a href="http://lesscss.org/">LESS</a> variables are set in the conf file:
+							<?php bam($customLessVars); ?>
+							To adjust these colours, first delete <?php echo $customCSSFile; ?> from your jethro directory.  Then edit your conf.php file, and when happy with the changes, come back to this page to re-save the custom CSS file.
+							<?php
+						}
+					} else if ($customLessVars) {
+						?>
+						The following <a href="http://lesscss.org/">LESS</a> variables are set in the conf file:
+						<?php bam($customLessVars); ?>
+						<b>These changes have not been saved to a custom CSS file,
+							so Jethro is building the CSS on every page load.</b>
+						For production environments you should
+						<span class="clickable" onclick="TBLib.downloadText($(document.head).find('style[id^=less]').get(0).innerHTML, '<?php echo $customCSSFile; ?>')">download the compiled CSS</span>
+						and save it in your main Jethro folder.
+						<?php
+					}
+					?>
+				</td>
+			</tr>
 
 		</table>
 		<?php
