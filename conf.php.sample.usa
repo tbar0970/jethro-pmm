@@ -245,6 +245,19 @@ define('CHUNK_SIZE', 100);
 // For example <link rel="stylesheet" type="text/css" href="/extrastuff/jethro-extra.css" >
 // define('EXTRA_HEAD_HTML', '');
 
+// Override LESS variables for the CSS stylesheet (for custom colour scheme)
+// See resources/less/jethro.less.php
+// define('CUSTOM_LESS_VARS', "
+//	@jethroDarkest: #008791;
+//	@jethroDarkish: #008791;
+//	@jethroGrayish: #e8eeee;
+//	@jethroLight: #f7f7fa;
+//	@jethroLightest: #ffffff;
+//	@linkColor: #008791;
+//	@jethroLightText: #f0f0f0;
+//	@jethroDarkText: #008791;
+//");
+
 // Separator character used for combining multiple email addresses in a link
 // define('MULTI_EMAIL_SEPARATOR', ',');
 
