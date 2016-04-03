@@ -275,6 +275,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 					<textarea name="message" class="span4" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
 					<br />
 					<input type="submit" class="btn " value="Send" data-set-form-action="<?php echo BASE_URL; ?>?view=_send_sms_http" />
+					<span class="charactercount"><?php echo SMS_MAX_LENGTH; ?> characters remaining.</span>
 				</div>
 			</div>
 		</div>

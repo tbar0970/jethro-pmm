@@ -28,6 +28,16 @@ $(document).ready(function() {
 		}
 	});
 	
+        // SMS Character counting
+        $('.charactercount').parent().find('textarea').on('keyup propertychange paste', function(){
+		var maxlength = $(this).attr("maxlength");
+                var chars = maxlength - $(this).val().length;
+		if (chars <= 0) {
+			$(this).val( $(this).val().substring(0,maxlength) );
+			chars = 0;
+		}
+		$('.charactercount').html(chars +' characters remaining.');
+	});
 
 	// Popups etc
 	var envelopeWindow = null;	
