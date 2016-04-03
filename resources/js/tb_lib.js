@@ -925,3 +925,15 @@ TBLib.anchorBottom = function(exp, isOnResize) {
 		$(window).resize(function() { TBLib.anchorBottom(exp, true); });
 	}
 }
+
+TBLib.downloadText = function(content, filename) {
+	content = btoa(encodeURIComponent(content).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+        return String.fromCharCode('0x' + p1);
+    }));
+	var pom = document.createElement('a');
+	pom.setAttribute('href', 'data:text/html;charset=utf-8;base64,' + content);
+	pom.setAttribute('download', filename);
+	pom.style.display = 'none';
+	document.body.appendChild(pom);
+	pom.click();
+}
