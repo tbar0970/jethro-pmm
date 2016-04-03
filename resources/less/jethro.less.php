@@ -1,4 +1,4 @@
-/* Define our colours (may be overriden in CUSTOM_LESS_VARS below) */
+/* Define our colours (may be overriden in CUSTOM_LESS_VARS for conf.php below) */
 
 @jethroDarkest: #858A9B;
 @jethroDarkish: #A6ACC2;
@@ -14,10 +14,13 @@
 @import "responsive.less";
 @import "../css/jquery-ui.min.css";
 
-/* Load any custom vars from conf.php */
 <?php
-require_once dirname(dirname(dirname(__FILE__))).'/conf.php';
-if (defined('CUSTOM_LESS_VARS')) echo CUSTOM_LESS_VARS;
+/* Load any custom vars from conf.php */
+$confFile = dirname(dirname(dirname(__FILE__))).'/conf.php';
+if (is_readable($confFile)) {
+	require_once $confFile;
+	if (defined('CUSTOM_LESS_VARS')) echo CUSTOM_LESS_VARS;
+}
 ?>
 
 /* Modify bootstrap vars */
