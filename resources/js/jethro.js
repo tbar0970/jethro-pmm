@@ -97,7 +97,7 @@ $(document).ready(function() {
 	$('input.select-rule-toggle').click(function() {
 		$($(this).parents('tr')[0]).find('div.select-rule-options').css('display', (this.checked ? '' : 'none'));
 	});
-
+		
 	if ($('#datefield-rules')) {
 		$('.datefield-rule-period').hide();
 		$('.datefield-rule-criteria').change(function() {
@@ -108,7 +108,6 @@ $(document).ready(function() {
 			}
 		}).change();
 	}
-		
 
 	
 	/************************ SEARCH CHOOSERS ************************/

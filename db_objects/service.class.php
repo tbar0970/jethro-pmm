@@ -451,7 +451,7 @@ class service extends db_object
 			if (in_array($service_field, Array('topic', 'format'))) {
 				$service_field .= '_title';
 			}
-			if (isset($this->fields[$service_field])) {
+			if ((substr($service_field, 0, 5) == 'bible') || isset($this->fields[$service_field])) {
 				$res = $this->getValue($service_field);
 				if ($service_field == 'date') {
 					// make a friendly date
@@ -536,12 +536,14 @@ class service extends db_object
 		$res = $db->exec('DELETE FROM service_item WHERE serviceid = '.(int)$this->id);
 		check_db_result($res);
 
-		$compids = Array();
+		$compids = $comps = Array();
 		foreach ($itemList as $item) {
 			if ($item['componentid']) $compids[] = (int)$item['componentid'];
 		}
-		$set = implode(', ', array_unique($compids));
-		$comps = $GLOBALS['system']->getDBObjectData('service_component', Array('(id' => $set));
+		if ($compids) {
+			$set = implode(', ', array_unique($compids));
+			$comps = $GLOBALS['system']->getDBObjectData('service_component', Array('(id' => $set));
+		}
 
 		if (!empty($itemList)) {
 			$SQL = 'INSERT INTO service_item

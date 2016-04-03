@@ -205,12 +205,14 @@ class Person_Query extends DB_Object
 									   value="<?php echo $fieldid; ?>"
 									   id="enable_custom_<?php echo $fieldid; ?>"
 									   class="select-rule-toggle"
+									   data-toggle="enable"
+									   data-target="#custom-value-<?php echo $fieldid; ?> *"
 									   <?php if (isset($params['custom_fields'][$fieldid])) echo 'checked="checked" '; ?>
 								/>
 								<strong><?php echo ents($fieldDetails['name']); ?></strong>
 							</label>
 						</td>
-						<td>
+						<td id="custom-value-<?php echo $fieldid; ?>">
 							<div class="select-rule-options" <?php if (!isset($params['custom_fields'][$fieldid])) echo 'style="display: none" '; ?>>
 							<?php
 							switch ($fieldDetails['type']) {
@@ -822,24 +824,32 @@ class Person_Query extends DB_Object
 									'after' => Array(1, $length+1)
 								);
 								list($so, $eo) = $offsets[$values['periodanchor']];
-								$between = 'BETWEEN CURDATE() + INTERVAL '.$so.' DAY AND CURDATE() + INTERVAL '.$eo.' DAY';
+								if ($so > 0) $so = "+$so";
+								if ($eo > 0) $eo = "+$eo";
+								$from = date('Y-m-d', strtotime("{$so} days"));
+								$to = date('Y-m-d', strtotime("{$eo} days"));
 							} else {
-								$between = 'BETWEEN '.$db->quote($values['from']).' AND '.$db->quote($values['to']);
+								$from = $values['from'];
+								$to = $values['to'];
 							}
+							$betweenExp = 'BETWEEN '.$db->quote($from).' AND '.$db->quote($to);
+							$valExp = 'pd'.$fieldid.'.value_date';
 							$w = Array();
-							$w[] = '(pd'.$fieldid.'.`value_date` NOT LIKE "-%"
-									AND pd'.$fieldid.'.`value_date` '.$between.')';
+							$w[] = "$valExp NOT LIKE '-%' AND $valExp $betweenExp";
 							if ($values['criteria'] == 'anniversary') {
-								// Anniversary matches either have no year or a year before the 'to' year
-								// AND their month-day fits the range either in the from year or the to year.
-								$fromyearbetween = 'CONCAT('.$db->quote(substr($values['from'], 0, 4)).', RIGHT(pd'.$fieldid.'.`value_date`, 6)) '.$between;
-								$toyearbetween = 'CONCAT('.$db->quote(substr($values['to'], 0, 4)).', RIGHT(pd'.$fieldid.'.`value_date`, 6)) '.$between;
-								$w[] = '(pd'.$fieldid.'.`value_date` LIKE "-%" AND '.$fromyearbetween.')';
-								$w[] = '(pd'.$fieldid.'.`value_date` LIKE "-%" AND '.$toyearbetween.')';
-								$w[] = '(pd'.$fieldid.'.`value_date` NOT LIKE "-%" AND pd'.$fieldid.'.`value_date` < '.$db->quote($values['to']).' AND '.$fromyearbetween.')';
-								$w[] = '(pd'.$fieldid.'.`value_date` NOT LIKE "-%" AND pd'.$fieldid.'.`value_date` < '.$db->quote($values['to']).' AND '.$toyearbetween.')';
+								$qFromYear = $db->quote(substr($from, 0, 4));
+								$qToYear = $db->quote(substr($to, 0, 4));
+								
+								$w[] = "$valExp LIKE '-%' AND (
+											CONCAT($qFromYear, $valExp) $betweenExp
+											OR CONCAT($qToYear, $valExp) $betweenExp
+										)";
+								$w[] = "$valExp NOT LIKE '-%' AND (
+											CONCAT($qFromYear, RIGHT($valExp, 6)) $betweenExp
+											OR CONCAT($qToYear, RIGHT($valExp, 6)) $betweenExp
+										)";
 							}
-							$customFieldWheres[] = '('.implode(' OR ', $w).')';
+							$customFieldWheres[] = '(('.implode("\n) OR (\n", $w).'))';
 							break;
 
 					}
@@ -948,6 +958,9 @@ class Person_Query extends DB_Object
 				array_push($params['show_fields'],'attendance_percent');
 			} else if (($params['sort_by'] == 'attendance_numabsences') && !in_array('attendance_numabsences', $params['show_fields'])){
 				array_push($params['show_fields'],'attendance_numabsences');
+			}
+			if (empty($params['show_fields'])) {
+				$params['show_fields'] = Array('p.first_name', 'p.last_name');
 			}
 			foreach ($params['show_fields'] as $field) {
 				if (substr($field, 0, 2) == '--') continue; // they selected a separator

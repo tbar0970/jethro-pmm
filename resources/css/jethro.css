@@ -789,7 +789,19 @@ Otherwise they go beneath each other
 	margin-right: 200px;
 	padding-right: 15px;
 	width: auto;
-	overflow: hidden;
+	xoverflow: hidden;
+}
+
+@media (max-width: 650px) {
+	/* under 650 the photo cannot go by the side */
+	.person-details-withphoto {
+		margin-right: 0px;
+	}
+	.view-person img.person-photo {
+		float: none;
+		padding-bottom: 15px;
+	}
+	
 }
 
 .person-details-box {
@@ -1460,7 +1472,10 @@ div.multi-select:focus, div.radio-button-group:focus {
 /******** CHOOSER *************/
 
 ul.multi-person-finder {
-	width: 250px;
+	width: 135px;
+}
+input.person-search-multiple, input.person-search-single {
+	width: 160px;
 }
 li div.delete-list-item, li div.delete-chosen-person {
 	float: right;
