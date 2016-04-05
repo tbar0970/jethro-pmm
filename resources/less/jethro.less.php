@@ -60,11 +60,13 @@ if (is_readable($confFile)) {
 	background-image: linear-gradient(to bottom, @jethroDarkish, @jethroDarkest);
 	background-repeat: repeat-x;
 	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffA6ACC2', endColorstr='#ff858A9B', GradientType=0);
+}
+.table thead th, .table tfoot th, .table thead th *, .table tfoot th * {
+	/* use a colour that will contrast with the background */
 	color: contrast(@jethroDarkish, @jethroDarkText, @jethroLightText);
+	font-weight: normal !important; /* bold makes the contrast too stark */
 }
-.table thead th *, .table tfoot th * {
-	color: @jethroDarkText !important;
-}
+
 /* the styling used for focused textboxes, also applied to the "active" note when viewing a person */
 .highlight {
 	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(256, 0, 0, 0.9);
