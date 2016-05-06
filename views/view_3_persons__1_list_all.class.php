@@ -10,6 +10,8 @@ class View_Persons__List_All extends View
 		$params = Array();
 		if (empty($_REQUEST['show_archived'])) {
 			$params['!status'] = 'archived';
+		} else {
+			$params['!status'] = '';
 		}
 		if (empty($_SESSION['total_persons'])) {
 			$_SESSION['total_persons'] = $GLOBALS['db']->queryOne('SELECT count(*) from person');
