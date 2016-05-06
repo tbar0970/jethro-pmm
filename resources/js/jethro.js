@@ -361,6 +361,7 @@ $(document).ready(function() {
       submitBtn.prop('disabled', true);
       submitBtn.prop('value', 'Sending...');
       var smsData = $(this).serialize();
+      smsData['saveasnote']
       $.ajax({
         type: 'POST',
         dataType: 'JSON',
