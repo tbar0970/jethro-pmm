@@ -190,7 +190,9 @@ class System_Controller
 	public function printAjax()
         {
                 if (is_null($this->_view)) {
-                        echo 'Error: Undefined view';
+			$result = array();
+			$result['error'] = 'Undefined view';
+			echo json_encode($result);
                 } else {
                         $this->_view->printAjax();
                 }

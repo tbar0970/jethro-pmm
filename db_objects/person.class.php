@@ -253,12 +253,16 @@ class Person extends DB_Object
 							</div>
 							<div class="modal-footer">
 								<button class="btn btn-warning single-sms-status fade">Send failed - see details</button>
-                                <?php if (defined("SMS_SAVE_TO_NOTE_BY_DEFAULT")) {
-									echo '<label>Save SMS as note:<input type="checkbox" name="saveasnote" accesskey="n" ';
-									if (SMS_SAVE_TO_NOTE_BY_DEFAULT) { echo "checked"; }
-									echo ' /></label>';
-								} ?>
-                              <button class="btn sms-submit" accesskey="s">Send</button>
+								<?php
+									$savebydefault = false;
+									if (defined("SMS_SAVE_TO_NOTE_BY_DEFAULT")) { 
+										if (SMS_SAVE_TO_NOTE_BY_DEFAULT) {
+											$savebydefault = true;
+										}
+									}
+								?>
+								<label>Save SMS as note:<input type="checkbox" name="saveasnote" class="saveasnote" <?php echo $savebydefault; ?> /></label>
+				                                <button class="btn sms-submit" accesskey="s">Send</button>
 								<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
 							</div>
 					</div>
