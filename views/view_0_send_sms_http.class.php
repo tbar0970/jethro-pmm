@@ -184,7 +184,7 @@ class View__Send_SMS_HTTP extends View
               $ajax['sent']['confirmed'] = true;
 	      $ajax['sent']['request'] = $_REQUEST;
               if (isset($_REQUEST['saveasnote'])) {
-			if ($_REQUEST['saveasnote'] == '1') {
+			if (($_REQUEST['saveasnote'] == '1') || ($_REQUEST['saveasnote'] == 'on')) {
 	        	        $this->saveAsNote($successes, $message);
 				$ajax['sent']['saveasnote'] = $_REQUEST['saveasnote'];
 			}
