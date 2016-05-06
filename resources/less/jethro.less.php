@@ -77,6 +77,21 @@ if (is_readable($confFile)) {
 	background: #d3d6e1 !important;
 }
 
+/******************** SMS *********************/
+button.single-sms-status {
+	float:left;
+}
+
+.modal-footer label {
+  display: inline;
+}
+.single-sms-modal .charactercount {
+  display: block
+}
+.charactercount {
+	font-size: x-small;
+}
+
 
 /******************** LOGIN *******************/
 #login-box {
@@ -498,6 +513,7 @@ ul {
 #body a, .modal a, .clickable, button.btn-link, input.btn-link {
 	text-decoration: underline;
 	color: @linkColor;
+    cursor: pointer;
 }
 #body a.btn, .modal a.btn {
 	color: @jethroDarkText;
@@ -535,6 +551,12 @@ form.min {
 }
 .modal form {
 	margin: 0px;
+}
+.modal-footer label {
+	display:inline-block;
+}
+.modal-footer label input[type=checkbox] {
+	margin: 0;
 }
 .well {
 	background-color: @jethroGrayish;
@@ -614,6 +636,10 @@ td.narrow, th.narrow, .object-summary th {
 	cursor: pointer;
 }
 
+.clickable, table.clickable-rows td.nonclickable-cell {
+	cursor: auto;
+}
+
 .cursor-move {
 	cursor: move;
 }
@@ -668,6 +694,7 @@ select, input, textarea {
 	width: auto;
 	max-width: 97%;
 }
+
 /* disused ? */
 .full-width-input {
 	width: 99.5%;

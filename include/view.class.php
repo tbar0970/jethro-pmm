@@ -22,5 +22,10 @@ abstract class View
 
 	abstract public function printView();
 
+	public function printAjax()
+	{
+		echo json_encode(array("error"=>"noAjax"));
+	}
+
 }//end class
 ?>

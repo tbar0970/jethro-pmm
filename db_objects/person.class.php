@@ -221,7 +221,7 @@ class Person extends DB_Object
 	}
 
 
-	function printFieldValue($name, $value=null)
+	function printFieldValueForPerson($personid, $name, $value=null)
 	{
 		if (is_null($value)) $value = $this->getValue($name);
 		switch ($name) {
@@ -233,41 +233,44 @@ class Person extends DB_Object
 				if (!strlen($value)) return;
 				echo ents($this->getFormattedValue($name, $value));
 
+                // include the first 5 letters of the firstname, incase phone numbers are non-unique in reports
+                $uniqueID = ents($value) . '-' . substr(ents($this->getValue('first_name')),0,5);
 				$smsLink = '';
 				if (SizeDetector::isNarrow()) {
 					// Probably a phone - use a plain sms: link
-					$smsLink = 'href="sms:'.ents($value).'"';
+					$smsLink = '<a href="sms:'.ents($value).'" class="btn btn-mini"><i class="icon-envelope"></i></a>';
 				} else if (defined('SMS_HTTP_URL') && constant('SMS_HTTP_URL') && $GLOBALS['user_system']->havePerm(PERM_SENDSMS)) {
 					// Provide a link to send SMS through the SMS gateway
 					?>
-					<div id="send-sms-modal" class="modal hide fade" role="dialog" aria-hidden="true">
-						<form method="post" action="?view=_send_sms_http">
-							<input type="hidden" name="personid" value="<?php echo $this->id; ?>" />
-
+					<div data-personid="<?php echo $personid; ?>" id="send-sms-modal-<?php echo $uniqueID;?>" class="modal single-sms-modal hide fade" role="dialog" aria-hidden="true">
 							<div class="modal-header">
-								<h4>Send SMS to <?php $this->printFieldValue('name'); ?></h4>
+								<h4>Send SMS to <?php $this->printFieldValueForPerson($personid, 'name'); ?></h4>
 							</div>
 							<div class="modal-body">
 								Message:<br />
-								<textarea autofocus="autofocus" name="message" class="span4" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
+								<textarea autofocus="autofocus" name="single_sms_message" class="span8" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
+                                <span class="charactercount"><?php echo SMS_MAX_LENGTH; ?> characters remaining.</span>
 							</div>
 							<div class="modal-footer">
-								<input type="submit" class="btn" value="Send" accesskey="s" onclick="if (!$('[name=message]').val()) { alert('Enter a message first'); return false; }" />
+								<button class="btn btn-warning single-sms-status fade">Send failed - see details</button>
+                                <?php if (defined("SMS_SAVE_TO_NOTE_BY_DEFAULT")) {
+									echo '<label>Save SMS as note:<input type="checkbox" name="saveasnote" accesskey="n" ';
+									if (SMS_SAVE_TO_NOTE_BY_DEFAULT) { echo "checked"; }
+									echo ' /></label>';
+								} ?>
+                              <button class="btn sms-submit" accesskey="s">Send</button>
 								<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
 							</div>
-						</form>
 					</div>
 					<?php
-					$smsLink = 'href="#send-sms-modal" data-toggle="modal"';
+					$smsLink = '<span data-target="#send-sms-modal-' . $uniqueID . '" data-toggle="modal" class="btn btn-mini"><i class="icon-envelope"></i></span>';
 				}
 				?>
 				<span class="nowrap">
 					<a href="tel:<?php echo ents($value); ?>" class="btn btn-mini"><i class="icon-phone"></i></a>
 				<?php
 				if ($smsLink) {
-					?>
-					<a <?php echo $smsLink; ?> class="btn btn-mini"><i class="icon-envelope"></i></a>
-					<?php
+					echo $smsLink;
 				}
 				?>
 				</span>
@@ -278,6 +281,11 @@ class Person extends DB_Object
 		}
 		parent::printFieldValue($name, $value);
 	}
+
+        function printFieldValue($name, $value=null) {
+                $this->printFieldValueForPerson($this->id, $name, $value);
+        }
+
 
 	protected function _printSummaryRows() {
 		parent::_printSummaryRows();
@@ -316,8 +324,21 @@ class Person extends DB_Object
 
 	function _compareCreatedDates($a, $b)
 	{
-		return $a['created'] > $b['created'];
+      $aDate = strtotime($a['created']);
+      $bDate = strtotime($b['created']);
+      // comments are always in chronological order, so grab the last comment
+      if (count($a['comments']) > 0) {
+        $cDate = strtotime(end($a['comments'])['created']);
+        reset($a['comments']);
+        if ($cDate > $aDate) { $aDate = $cDate;}
+      }
+      if (count($b['comments']) > 0) {
+        $cDate = strtotime(end($b['comments'])['created']);
+        reset($b['comments']);
+        if ($cDate > $bDate) { $bDate = $cDate;}
+      }
 
+      return $aDate < $bDate;
 	}
 
 	function validateFields()
