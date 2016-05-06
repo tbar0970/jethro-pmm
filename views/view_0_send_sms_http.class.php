@@ -182,8 +182,12 @@ class View__Send_SMS_HTTP extends View
               $ajax['sent']['count'] = count($successes);
               $ajax['sent']['recipients'] = $successes;
               $ajax['sent']['confirmed'] = true;
+	      $ajax['sent']['request'] = $_REQUEST;
               if (isset($_REQUEST['saveasnote'])) {
-                $this->saveAsNote($successes, $message);
+			if ($_REQUEST['saveasnote'] == '1') {
+			        $this->saveAsNote($successes, $message);
+				$ajax['sent']['saveasnote'] = $_REQUEST['saveasnote'];
+			}
               }
             }
             if (!empty($failures)) {

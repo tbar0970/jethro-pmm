@@ -28,6 +28,9 @@ $(document).ready(function() {
     }
   });
 
+  // Move Modal for SMS Messaging out to the body, to avoid weird z-index bugs
+  $(".single-sms-modal").detach().appendTo("#body");
+
   // SMS Character counting
   $('.charactercount').parent().find('textarea').on('keyup propertychange paste', function(){
     var maxlength = $(this).attr("maxlength");
@@ -117,6 +120,7 @@ $(document).ready(function() {
       $(this).html("Sending");
       smsData = {
         personid: modalDiv.attr("data-personid"),
+	saveasnote: (modalDiv.find('.saveasnote').attr('checked') == 'checked')?'1':'0',
         ajax: 1,
         message: sms_message
       }
@@ -136,6 +140,7 @@ $(document).ready(function() {
           statusBtn.toggleClass('fade');
         },
         success: function (data) {
+	  console.log(data);
           var modalDiv = $(this).parent().parent(); // takes us back up to the DIV
           var successCount = 0,
           failedCount = 0,
@@ -158,11 +163,21 @@ $(document).ready(function() {
           }
           $(this).prop('disabled', false);
           $(this).html("Send");
+	  if ($("#tab_notes").length) {
+		$.ajax({
+			type: 'POST',
+			url: './?view=persons',
+			data: { personid: $("#view-person .person-details-box:first-child").data("personid") },
+			success: function (data) {
+				var notesdata = $.parseJSON(data);
+				$("#notes").html(notesdata.noteshtml);
+				$("#tab_notes").html("Notes (" + notesdata.notescount + ")");
+			}
+		  });
+	 }
         }
       });
       return false;
-
-
     }
   });
 
@@ -1162,7 +1177,6 @@ $(document).ready(function() {
 		$(this.form).find('input[type=submit], button[type=submit]').not('[data-set-form-target]').click(function() {
       this.form.target = '';
     });
-  });
   });
 });
 

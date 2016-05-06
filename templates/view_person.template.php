@@ -104,7 +104,7 @@ if (!$accordion) {
 	$current_tab = 'basic';
 	foreach ($tabs as $id => $label) {
 		?>
-		<li <?php if ($current_tab == $id) echo 'class="active"'; ?>><a data-toggle="tab" href="#<?php echo $id; ?>"><?php echo ents($label); ?></a></li>
+		<li <?php if ($current_tab == $id) echo 'class="active"'; ?>><a id="tab_<?php echo $id; ?>" data-toggle="tab" href="#<?php echo $id; ?>"><?php echo ents($label); ?></a></li>
 		<?php
 	}
 	?>
@@ -154,7 +154,7 @@ if (!$accordion && $GLOBALS['system']->featureEnabled('PHOTOS')) {
 	<?php
 }
 ?>
-		<div class="person-details-box">
+		<div class="person-details-box" data-personid="<?php echo $person->id; ?>">
 			<div class="header-link pull-right">
 				<?php
 				if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
