@@ -174,6 +174,20 @@ $(document).ready(function() {
 				$("#tab_notes").html("Notes (" + notesdata.notescount + ")");
 			}
 		  });
+	 } else if ($("form.bulk-person-action").length) {
+		if ($('#action_status').length) { // action status already exists
+			$('#action_status').html('SMS');
+          	} else {
+		        $('.bulk-person-action thead tr').append("<th id='action_status'>SMS</th>");
+		        $('.bulk-person-action tbody tr').each(function () { $(this).append('<td></td>'); });
+	        }
+		var personID = $(this).parent().parent().attr("data-personid");
+		if (failedCount > 0) {
+			$("[data-personid=" + personID + "]").closest('tr').find("td:last").html("Failed (General)");
+		} else {
+			$("[data-personid=" + personID + "]").closest('tr').find("td:last").html("Sent");
+		}
+
 	 }
         }
       });
