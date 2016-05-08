@@ -467,7 +467,8 @@ class roster_view extends db_object
 		?>
 		<div class="column">
 		<?php
-		$totalRows = ceil($numMembers/4);
+		$numCols = 3;
+		$totalRows = ceil($numMembers/$numCols);
 		$i = 0;
 		foreach ($this->_members as $member) {
 			if (!$includeServiceFields && (empty($member['role_id']))) continue;
