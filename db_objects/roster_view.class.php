@@ -1004,7 +1004,7 @@ class roster_view extends db_object
 		}
 		if (!empty($to_add)) {
 			$to_add = array_unique($to_add);
-			$sql = 'INSERT INTO roster_role_assignment (roster_role_id, assignment_date, personid, assigner) VALUES '.implode(",\n", $to_add);
+			$sql = 'REPLACE INTO roster_role_assignment (roster_role_id, assignment_date, personid, assigner) VALUES '.implode(",\n", $to_add);
 			$res = $GLOBALS['db']->query($sql);
 			check_db_result($res);
 		}
