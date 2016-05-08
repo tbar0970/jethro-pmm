@@ -756,14 +756,9 @@ class service extends db_object
 	 */
 	public static function getMeetingDateTime($meetingDate, $meetingTime) {
 		$dateString = date('Y-m-d', $meetingDate);
-		if ($meetingTime != NULL && preg_match('/\\d\\d\\d\\d/', $meetingTime)) {
-			// Time is specified and valid.
-			$dateString .= ' ' .
-				substr($meetingTime, 0, 2) .
-				":" .
-				substr($meetingTime, 2, 2) . ':00';
+		if ($meetingTime != NULL && preg_match('/(\\d\\d)(\\d\\d)/', $meetingTime, $matches)) {
+			$dateString .= ' '.$matches[1].':'.$matches[2];
 		}
 		return strtotime($dateString);
 	}
 }
-?>
