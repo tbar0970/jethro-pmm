@@ -731,6 +731,7 @@ JethroServicePlanner.Item.editDetails = function ($tr) {
 	$modal.find('select[name=show_in_handout] option[value=title]')
 			.html(componentID ? 'Title only' : 'Yes');
 
+	// Show the 'title' box only for non-ad-hoc items
 	var titleRow = $modal.find('input[name=title]').parents('.control-group');
 	titleRow[componentID ? 'hide' : 'show']();
 	
