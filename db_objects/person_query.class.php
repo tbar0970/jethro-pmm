@@ -643,7 +643,7 @@ class Person_Query extends DB_Object
 		$params['attendance_weeks'] = array_get($_POST, 'attendance_weeks');
 
 		// SHOW FIELDS
-		$params['show_fields'] = array_remove_empties($_POST['show_fields']);
+		$params['show_fields'] = array_unique(array_remove_empties($_POST['show_fields']));
 
 		// GROUP BY
 		$params['group_by'] = $_POST['group_by'];
