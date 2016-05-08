@@ -71,7 +71,7 @@ define('ENABLED_FEATURES', 'NOTES,PHOTOS,DATES,ATTENDANCE,ROSTERS&SERVICES,SERVI
 define('DEFAULT_PERMISSIONS', 7995391);
 
 // Whether a note is compulsory when adding a new family
-define('REQUIRE_INITIAL_NOTE', true); 
+define('REQUIRE_INITIAL_NOTE', true);
 
 // Whether users restricted by congregation or group can add persons and families
 define('RESTRICTED_USERS_CAN_ADD', true);
@@ -164,6 +164,7 @@ define('SMTP_USERNAME', '');
 // Password to use when authenticating with the SMTP server. Can be left blank for no auth.
 define('SMTP_PASSWORD', '');
 
+
 ////////////////////////////////////////////////////////////////
 // EXTERNAL TOOLS SETTINGS - how Jethro should talk to other services
 ////////////////////////////////////////////////////////////////
@@ -183,21 +184,42 @@ define('CCLI_SEARCH_URL', 'http://us.search.ccli.com/search/results?SearchTerm=_
 // Otherwise you can use songsearch:  http://us.search.ccli.com/songs/__NUMBER__
 define('CCLI_DETAIL_URL', 'https://au.songselect.com/songs/__NUMBER__');
 
+////////////////////////////////////////////////////////////////
 // SMS GATEWAY:
-// ------------
+////////////////////////////////////////////////////////////////
+
+// The maximum SMS length users are allowed to send.  160 chars is usually a one-part SMS.
+define('SMS_MAX_LENGTH', 320);
+
+// The two digit country code for mobile phones. Some providers, such as smsbroadcast, use this
+define('SMS_COUNTRY_CODE', 61);
+
+// Header template for SMS server api authentication.
+// For example, for 5centsms.com.au something like
+// "User: yourfivecentregistered@email\r\nApi-Key: YourAPIKey\r\n";
+// Note that if you are using \r\n to put in new lines, you should wrap this in ""
+define('SMS_HTTP_HEADER_TEMPLATE', "");
 
 // URL of the server to send SMSes through
-define('SMS_HTTP_URL', ''); // eg http://www.5centsms.com.au/api/send.php
+define('SMS_HTTP_URL', "");
+
 
 // The format for the send-sms POST request
 // Can contain keywords _USER_MOBILE_ _USER_EMAIL_ _MESSAGE_ _RECIPIENTS_COMMAS_ _RECIPIENTS_NEWLINES_
 // eg 'username=abc&password=xyz&to=_RECIPIENTS_COMMAS_&sender=_USER_MOBILE_&message=_MESSAGE_');
-define('SMS_HTTP_POST_TEMPLATE', ''); 
+//define('SMS_HTTP_POST_TEMPLATE', 'sender=_USER_MOBILE_&to=_RECIPIENTS_COMMAS_&message=_MESSAGE_'); 
+//define('SMS_HTTP_POST_TEMPLATE', 'username=MYUSERNAME&password=MYPASSWORD&to=_RECIPIENTS_COMMAS_&from=_USER_MOBILE_&maxsplit=' . floor(SMS_MAX_LENGTH/160) . '&message=_MESSAGE_');
+define('SMS_HTTP_POST_TEMPLATE' , '');
 
 // Regex to use to detect success message from the SMS server for each recipient
 // _RECIPIENT_ keyword is available.  Leave blank to ignore response.
 // eg ^1\|_RECIPIENT_\|[0-9]+\|OK<br>
-define('SMS_HTTP_RESPONSE_OK_REGEX', '');
+//define('SMS_HTTP_RESPONSE_OK_REGEX', 'OK:[\s]*\+?_RECIPIENT_');
+define('SMS_HTTP_RESPONS_OK_REGEX', '');
+
+define('SMS_SAVE_TO_NOTE_BY_DEFAULT', false);
+
+define('SMS_SAVE_TO_NOTE_SUBJECT', 'SMS');
 
 // A file to log who has sent SMSes (optional)
 define('SMS_SEND_LOGFILE', '');
