@@ -65,6 +65,7 @@ class Custom_Field extends db_object
 	{
 		if ($this->getValue('type') != 'select') return Array();
 		if (!isset($this->_tmp['options'])) {
+			$this->_tmp['options'] = Array();
 			$opts = $GLOBALS['system']->getDBObjectData('custom_field_option', Array('fieldid' => $this->id), 'OR', 'rank');
 			foreach ($opts as $id => $val) {
 				$this->_tmp['options'][$id] = $val['value'];
@@ -141,9 +142,12 @@ class Custom_Field extends db_object
 		foreach ($res as $k => $v) {
 			$opts = Array();
 			if ($v['type'] == 'select') {
-				foreach (explode(';;;', $v['options']) as $pair) {
-					list($id, $val) = explode('__:__', $pair);
-					$opts[$id] = $val;
+				$options = array_get($v, 'options', '');
+				if (strlen($options)) {
+					foreach (explode(';;;', $options) as $pair) {
+						list($id, $val) = explode('__:__', $pair);
+						$opts[$id] = $val;
+					}
 				}
 			}
 			$res[$k]['options'] = $opts;
