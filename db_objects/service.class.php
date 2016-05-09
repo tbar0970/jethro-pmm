@@ -177,7 +177,7 @@ class service extends db_object
 		if (0 === strpos($field, 'bible_')) {
 			// eg bible_read_1  or bible_preach_all
 			$bits = explode('_', $field);
-			list($bible, $type, $number) = $bits;
+			@list($bible, $type, $number) = $bits;
 			$short = (array_get($bits, 3) == 'short');
 			$candidate_readings = $this->getRawBibleReadings($type);
 			if ($number == 'all') {
