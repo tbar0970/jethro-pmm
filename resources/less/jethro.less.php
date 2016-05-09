@@ -471,7 +471,7 @@ h3:first-child, h4:first-child, h5:first-child {
 
 hr, table.object-summary tr.divider-before > td, table.object-summary tr.divider-before > th {
 	border-top-width: 1px;
-	border-top-color: @grayLight !important;
+	border-top-color: @grayLighter !important;
 }
 input[type=image] {
 	height: auto !important;
@@ -581,7 +581,7 @@ input[type="radio"] {
 	min-width: 50ex;
 }
 .table {
-	border-bottom: 1px solid #DDDDDD;
+	border-bottom: 1px solid @grayLighter;
 }
 /* nested tables - see list of family members within single person view */
 .table td table {
