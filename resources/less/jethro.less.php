@@ -173,7 +173,7 @@ body {
 	box-shadow: 1px 1px 6px rgba(0,0,0,.2);
 }
 #body {
-	margin: 0px 0px;
+	margin: 0px 10px;
 	max-width: 100%;
 	overflow: visible;
 	z-index: 50;
@@ -189,7 +189,6 @@ body {
 @media (min-width: 1025px) {
 	#jethro-overall-width {
 		/*min-width: 1020px;*/
-		padding-left: 10px;
 	}
 }
 @media (max-width: 1025px) {
@@ -198,9 +197,6 @@ body {
 	}
 	#jethro-nav-toprow {
 		padding-left: 10px !important;
-	}
-	#body {
-		margin: 0px 10px;
 	}
 }
 #jethro-nav-background {
@@ -213,6 +209,7 @@ body {
 
 #jethro-nav-toprow {
 	height: 40px;
+	padding-left: 10px;
 }
 #jethro-nav-toprow h1 {
 	color: @grayLighter;
