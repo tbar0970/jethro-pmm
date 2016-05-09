@@ -599,6 +599,7 @@ input[type="radio"] {
 }
 /* THIS IS MOSTLY IMPLEMENTED BY JETHRO.JS IN A SPECIAL WAY*/
 td.narrow, th.narrow, .object-summary th {
+	xwidth: 1%;
 	white-space: nowrap;
 }
 
@@ -708,7 +709,11 @@ table.object-summary td table.borderless tr:first-child td {
 .controls-text {
 	padding-top: 5px; /* to vertically align with control label */
 }
-
+.control-group h4 {
+	width: 160px;
+	text-align: right;
+	margin-top: 0px;
+}
 
 .day-box {
 	width: 3ex !important;
@@ -1866,9 +1871,8 @@ td.run-sheet-comments * {
 }
 #service-personnel div.column {
 	float: left;
-	width: 22.7%;
+	width: 31.3%;
 	margin: 0 3% 0 0%;
-	/*outline: 1px solid;*/
 }
 #service-personnel div:last-child  {
 	margin-right: 0 !important;
@@ -1878,7 +1882,8 @@ td.run-sheet-comments * {
 	font-weight: bold;
 	margin: 0px;
 	float: left;
-	width: 9em;
+	width: 8.5em;
+	padding-right: 0.5em;
 }
 #service-personnel div div {
 	margin-bottom: 5px;
@@ -1923,6 +1928,21 @@ td.run-sheet-comments * {
 }
 #custom-fields-editor td table tr:first-child td {
 	padding-top: 0px;
+}
+#custom-fields-editor tr.divider-before>td {
+	border-top-width: 3px;
+}
+#custom-fields-editor tr .heading {
+	display: none;
+}
+#custom-fields-editor tr.with-heading .heading {
+	font-size: 100%;
+	font-weight: bold;
+	display: block;
+	margin-bottom: 1em !important;
+}
+#custom-fields-editor tr.with-heading>td:not([class="name"]) {
+	padding-top: 3.5em;
 }
 
 .note-template-fields {

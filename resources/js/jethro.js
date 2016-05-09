@@ -419,6 +419,25 @@ $(document).ready(function() {
 			})
 			if (optionsMsg || fieldsMsg) return confirm("WARNING: "+fieldsMsg+optionsMsg+"\nAre you sure you want to continue?");
 		})
+
+		$('#custom-fields-editor td.toggle-divider input').click(function() {
+			$(this).parents('tr')[this.checked ? 'addClass' : 'removeClass']('divider-before');
+		});
+
+		var handleToggleHeading = function() {
+			var tr = $(this).parents('tr')
+			var headingBox = tr.find('.heading');
+			if (this.checked) {
+				tr.addClass('with-heading');
+				headingBox.focus();
+			} else {
+				tr.removeClass('with-heading');
+				headingBox.val('');
+			}
+		}
+		$('#custom-fields-editor td.toggle-heading input')
+			.click(handleToggleHeading)
+			.each(handleToggleHeading);
 	}
 
 	if (document.getElementById('service-program-editor')) {
@@ -720,7 +739,6 @@ JethroServicePlanner.Item.editDetails = function ($tr) {
 	JethroServicePlanner.itemBeingEdited = $tr;
 	$modal = $('#ad-hoc-modal');
 	var attrs = ['title', 'length_mins', 'show_in_handout'];
-	console.log($tr.find('input'));
 	for (var i=0; i < attrs.length; i++) {
 		$modal.find('[name='+attrs[i]+']').val($tr.find('input[name="'+attrs[i]+'[]"]').val());
 	}
@@ -732,6 +750,10 @@ JethroServicePlanner.Item.editDetails = function ($tr) {
 	$modal.find('select[name=show_in_handout] option[value=title]')
 			.html(componentID ? 'Title only' : 'Yes');
 
+	// Show the 'title' box only for non-ad-hoc items
+	var titleRow = $modal.find('input[name=title]').parents('.control-group');
+	titleRow[componentID ? 'hide' : 'show']();
+	
 	$modal.find('.modal-header h4').html('Edit service item');
 	$modal.modal('show');
 
@@ -747,7 +769,6 @@ JethroServicePlanner.onItemDrop = function(event, ui) {
 
 JethroServicePlanner.addFromComponent = function(componentTR, beforeItem) {
 	var attrVals = {};
-	console.log(componentTR);
 	var runsheetTitle = componentTR.attr('data-runsheet_title');
 	var newTitle = runsheetTitle ? runsheetTitle : componentTR.find('.title').html();
 	var attrs = ['componentid', 'show_in_handout', 'length_mins', 'personnel'];
@@ -835,6 +856,8 @@ function handleFamilyPhotosLayout() {
 }
 
 var applyNarrowColumns = function(root) {
+	//return;
+	
 	// All of this is because in Chrome, if you set a width on a TD,
 	// there is no way to stop the overall table from being width 100% OF THE WINDOW
 	// (even if its parent is less than 100% width).

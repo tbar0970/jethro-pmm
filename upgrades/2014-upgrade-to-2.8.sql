@@ -8,7 +8,7 @@ ALTER TABLE _person
 ADD COLUMN resetexpires DATETIME DEFAULT NULL;
 
 ALTER TABLE _person_group
-ADD COLUMN share_member_details varchar(255) default 0;
+ADD COLUMN share_member_details varchar(255) default "0";
 
 DROP VIEW person_group;
 

@@ -225,8 +225,8 @@ class View_Attendance__Record extends View
 			<?php
 			print_hidden_fields(Array(
 				'cohortids' => $this->_cohortids,
-				'age_brackets', $this->_age_brackets,
-				'statuses', $this->_statuses,
+				'age_brackets' => $this->_age_brackets,
+				'statuses' => $this->_statuses,
 			));
 			?>
 

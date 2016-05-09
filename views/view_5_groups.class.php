@@ -108,7 +108,10 @@ class View_Groups extends View
 
 
 			<?php
-			$mParams = empty($_SESSION['show_archived_group_members']) ? Array() : Array('!status' => 'archived');
+			$mParams = Array();
+			if (!array_get($_SESSION, 'show_archived_group_members', FALSE)) {
+				$mParams['!status'] = 'archived';
+			}
 			$persons = $this->_group->getMembers($mParams);
 			list ($status_options, $default_status) = Person_Group::getMembershipStatusOptionsAndDefault();
 			?>

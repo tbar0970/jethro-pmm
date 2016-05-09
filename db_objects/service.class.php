@@ -310,30 +310,29 @@ class service extends db_object
 			case 'summary':
 			case 'summary_inline':
 				$separator = $fieldname == 'summary' ? '<br />' : '&nbsp; &bull; &nbsp;';
-				?>
-				<i><?php echo ents($this->values['topic_title']); ?></i>
-				<?php
+				$bits = Array();
+				if (strlen($this->values['topic_title'])) {
+					$bits[] = '<i>'.ents($this->values['topic_title']).'</i>';
+				}
 				if ($this->getRawBibleReadings()) {
-					echo $separator;
+					ob_start();
 					$this->printFieldValue('bible_all');
+					$bits[] = ob_get_clean();
 				}
 				if (strlen($this->values['format_title'])) {
-					echo $separator.ents($this->values['format_title']);
+					$bits[] = ents($this->values['format_title']);
 				}
 				if (!empty($this->values['notes'])) {
-					echo $separator;
-					echo '<small>';
+					$x = '<small>';
 					if ($fieldname == 'summary_inline') {
-						echo str_replace("\n", ' / ', ents($this->values['notes']));
+						$x .= str_replace("\n", ' / ', ents($this->values['notes']));
 					} else {
-						echo nl2br(ents($this->values['notes']));
+						$x .= nl2br(ents($this->values['notes']));
 					}
-					echo '</small>';
-					
-					// 					&nbsp;<span class="clickable" data-toggle="visible" data-target="next"><i class="icon-chevron-down"></i></span>
-					//	<div class="smallprint "><?php echo ; </div>
-					
+					$x .= '</small>';
+					$bits[] = $x;
 				}
+				echo implode($separator, $bits);
 				break;
 			default:
 				if (strpos($fieldname, 'comps_') === 0) {
@@ -756,14 +755,9 @@ class service extends db_object
 	 */
 	public static function getMeetingDateTime($meetingDate, $meetingTime) {
 		$dateString = date('Y-m-d', $meetingDate);
-		if ($meetingTime != NULL && preg_match('/\\d\\d\\d\\d/', $meetingTime)) {
-			// Time is specified and valid.
-			$dateString .= ' ' .
-				substr($meetingTime, 0, 2) .
-				":" .
-				substr($meetingTime, 2, 2) . ':00';
+		if ($meetingTime != NULL && preg_match('/(\\d\\d)(\\d\\d)/', $meetingTime, $matches)) {
+			$dateString .= ' '.$matches[1].':'.$matches[2];
 		}
 		return strtotime($dateString);
 	}
 }
-?>

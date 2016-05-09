@@ -187,7 +187,7 @@ class Attendance_Record_Set
 		$db =& $GLOBALS['db'];
 		$GLOBALS['system']->doTransaction('begin');
 			$this->delete();
-			$stmt = $db->prepare('INSERT INTO attendance_record (date, groupid, personid, present) VALUES ('.$db->quote($this->date).', '.(int)$this->groupid.', ?, ?)', Array('integer', 'integer', 'integer'), MDB2_PREPARE_MANIP);
+			$stmt = $db->prepare('REPLACE INTO attendance_record (date, groupid, personid, present) VALUES ('.$db->quote($this->date).', '.(int)$this->groupid.', ?, ?)', Array('integer', 'integer', 'integer'), MDB2_PREPARE_MANIP);
 			check_db_result($stmt);
 			foreach ($this->_attendance_records as $personid => $present) {
 				$res = $stmt->execute(Array($personid, $present));

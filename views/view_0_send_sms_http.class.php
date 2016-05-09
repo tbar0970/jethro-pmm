@@ -64,7 +64,10 @@ class View__Send_SMS_HTTP extends View
 			}
 			$mobile_tels = array_keys($mobile_tels);
 
-			$message = $_POST['message'];
+			$message = array_get($_POST, 'message');
+			// Known issue: if their session was timed out when they entered the message,
+			// the message is not propagated after they submit the login form, so they'll get the
+			// "message is empty" error here.
 			if (empty($message) || strlen($message) > SMS_MAX_LENGTH) {
 				print_message("Your message is empty or too long", "error");
 				return;
