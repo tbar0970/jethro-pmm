@@ -255,7 +255,7 @@ class Person extends DB_Object
 								<button class="btn btn-warning single-sms-status fade">Send failed - see details</button>
 								<?php
 									$savebydefault = false;
-									if (defined("SMS_SAVE_TO_NOTE_BY_DEFAULT")) {
+									if (defined("SMS_SAVE_TO_NOTE_BY_DEFAULT")) { 
 										if (SMS_SAVE_TO_NOTE_BY_DEFAULT) {
 											$savebydefault = true;
 										}

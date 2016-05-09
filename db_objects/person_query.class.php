@@ -839,7 +839,6 @@ class Person_Query extends DB_Object
 							if ($values['criteria'] == 'anniversary') {
 								$qFromYear = $db->quote(substr($from, 0, 4));
 								$qToYear = $db->quote(substr($to, 0, 4));
-
 								$w[] = "$valExp LIKE '-%' AND (
 											CONCAT($qFromYear, $valExp) $betweenExp
 											OR CONCAT($qToYear, $valExp) $betweenExp

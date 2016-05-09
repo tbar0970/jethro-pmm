@@ -40,7 +40,6 @@ class View_Display_Roster extends View
 			print_message("Please contact your church administrator to get the private URLs for viewing rosters");
 			exit;
 		} else {
-
 			?>
 			<ul>
 			<?php

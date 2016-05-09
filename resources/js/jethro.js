@@ -211,7 +211,6 @@ $(document).ready(function() {
 		}).change();
     }
 
-
   /************************ SEARCH CHOOSERS ************************/
 
 	$('input.person-search-multiple').each(function() {
@@ -477,7 +476,6 @@ $(document).ready(function() {
   if (document.location.hash) {
     $(document.location.hash).filter('.notes-history-entry').addClass('highlight');
   }
-
 
 
   /***************** LAYOUT FIXES *******************/

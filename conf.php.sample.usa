@@ -207,7 +207,9 @@ define('SMS_HTTP_URL', "");
 // The format for the send-sms POST request
 // Can contain keywords _USER_MOBILE_ _USER_EMAIL_ _MESSAGE_ _RECIPIENTS_COMMAS_ _RECIPIENTS_NEWLINES_
 // eg 'username=abc&password=xyz&to=_RECIPIENTS_COMMAS_&sender=_USER_MOBILE_&message=_MESSAGE_');
-//define('SMS_HTTP_POST_TEMPLATE', 'sender=_USER_MOBILE_&to=_RECIPIENTS_COMMAS_&message=_MESSAGE_');
+// eg define('SMS_HTTP_POST_TEMPLATE', 'sender=_USER_MOBILE_&to=_RECIPIENTS_COMMAS_&message=_MESSAGE_');
+//define('SMS_HTTP_POST_TEMPLATE', 'sender=_USER_MOBILE_&to=_RECIPIENTS_COMMAS_&message=_MESSAGE_'); 
+// for smsbroadcast.com.au, something like
 //define('SMS_HTTP_POST_TEMPLATE', 'username=MYUSERNAME&password=MYPASSWORD&to=_RECIPIENTS_COMMAS_&from=_USER_MOBILE_&maxsplit=' . floor(SMS_MAX_LENGTH/160) . '&message=_MESSAGE_');
 define('SMS_HTTP_POST_TEMPLATE' , '');
 
