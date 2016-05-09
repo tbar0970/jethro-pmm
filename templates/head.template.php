@@ -42,7 +42,7 @@ if (file_exists(JETHRO_ROOT.'/'.$customCSSFile)) {
 } else {
 	// use packaged combined CSS
 	?>
-	<link type="text/css" rel="stylesheet" href="<?php echo BASE_URL; ?>/resources/css/jethro-<?php echo JETHRO_VERSION; ?>.css" />
+	<link type="text/css" rel="stylesheet" href="<?php echo BASE_URL; ?>resources/css/jethro-<?php echo JETHRO_VERSION; ?>.css" />
 	<?php
 }
 

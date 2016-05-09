@@ -643,7 +643,7 @@ class Person_Query extends DB_Object
 		$params['attendance_weeks'] = array_get($_POST, 'attendance_weeks');
 
 		// SHOW FIELDS
-		$params['show_fields'] = array_remove_empties($_POST['show_fields']);
+		$params['show_fields'] = array_unique(array_remove_empties($_POST['show_fields']));
 
 		// GROUP BY
 		$params['group_by'] = $_POST['group_by'];
@@ -1468,6 +1468,7 @@ class Person_Query extends DB_Object
 
 	/**
 	 * Convert an older version of the params to new format
+	 * and clean up any stupidities
 	 */
 	private function _convertParams($params)
 	{
@@ -1492,6 +1493,13 @@ class Person_Query extends DB_Object
 
 		if (0 === strpos($params['sort_by'], 'date---')) {
 			$params['sort_by'] = self::CUSTOMFIELD_PREFIX.substr($params['sort_by'], strlen('date---'));
+		}
+
+		if (
+			($params['group_by'] == 'groupid')
+			&& !count(array_remove_empties($params['include_groups']))
+		) {
+			$params['group_by'] = '';
 		}
 
 		return $params;

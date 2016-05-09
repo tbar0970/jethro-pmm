@@ -621,6 +621,7 @@ input[type="radio"] {
 }
 /* THIS IS MOSTLY IMPLEMENTED BY JETHRO.JS IN A SPECIAL WAY*/
 td.narrow, th.narrow, .object-summary th {
+	xwidth: 1%;
 	white-space: nowrap;
 }
 
@@ -1893,9 +1894,8 @@ td.run-sheet-comments * {
 }
 #service-personnel div.column {
 	float: left;
-	width: 22.7%;
+	width: 31.3%;
 	margin: 0 3% 0 0%;
-	/*outline: 1px solid;*/
 }
 #service-personnel div:last-child  {
 	margin-right: 0 !important;
@@ -1905,7 +1905,8 @@ td.run-sheet-comments * {
 	font-weight: bold;
 	margin: 0px;
 	float: left;
-	width: 9em;
+	width: 8.5em;
+	padding-right: 0.5em;
 }
 #service-personnel div div {
 	margin-bottom: 5px;
