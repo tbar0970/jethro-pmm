@@ -1,0 +1,5 @@
+ALTER TABLE custom_field
+ADD COLUMN heading_before VARCHAR(255) NOT NULL DEFAULT '';
+
+ALTER TABLE custom_field
+ADD COLUMN divider_before VARCHAR(255) NOT NULL DEFAULT 0;
