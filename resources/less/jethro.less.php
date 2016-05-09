@@ -689,6 +689,12 @@ table.object-summary td, table.object-summary th {
 	padding: 4px;
 	border-width: 0px;
 }
+.object-summary h4 {
+	color: @grayLight;
+	margin: 0px;
+	margin-top: 2px;
+	border-width: 0px !important;
+}
 
 /* make the table of person dates and family members line up with its label */
 table.object-summary td table.borderless tr:first-child td {
