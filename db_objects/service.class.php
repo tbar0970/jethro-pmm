@@ -317,7 +317,7 @@ class service extends db_object
 				if ($this->getRawBibleReadings()) {
 					ob_start();
 					$this->printFieldValue('bible_all');
-					$bits[] = ob_end_clean();
+					$bits[] = ob_get_clean();
 				}
 				if (strlen($this->values['format_title'])) {
 					$bits[] = ents($this->values['format_title']);
