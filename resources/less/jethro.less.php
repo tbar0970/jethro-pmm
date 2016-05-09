@@ -709,7 +709,11 @@ table.object-summary td table.borderless tr:first-child td {
 .controls-text {
 	padding-top: 5px; /* to vertically align with control label */
 }
-
+.control-group h4 {
+	width: 160px;
+	text-align: right;
+	margin-top: 0px;
+}
 
 .day-box {
 	width: 3ex !important;
@@ -1924,6 +1928,21 @@ td.run-sheet-comments * {
 }
 #custom-fields-editor td table tr:first-child td {
 	padding-top: 0px;
+}
+#custom-fields-editor tr.divider-before>td {
+	border-top-width: 3px;
+}
+#custom-fields-editor tr .heading {
+	display: none;
+}
+#custom-fields-editor tr.with-heading .heading {
+	font-size: 100%;
+	font-weight: bold;
+	display: block;
+	margin-bottom: 1em !important;
+}
+#custom-fields-editor tr.with-heading>td:not([class="name"]) {
+	padding-top: 3.5em;
 }
 
 .note-template-fields {

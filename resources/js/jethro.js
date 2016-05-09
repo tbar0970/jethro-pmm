@@ -419,6 +419,25 @@ $(document).ready(function() {
 			})
 			if (optionsMsg || fieldsMsg) return confirm("WARNING: "+fieldsMsg+optionsMsg+"\nAre you sure you want to continue?");
 		})
+
+		$('#custom-fields-editor td.toggle-divider input').click(function() {
+			$(this).parents('tr')[this.checked ? 'addClass' : 'removeClass']('divider-before');
+		});
+
+		var handleToggleHeading = function() {
+			var tr = $(this).parents('tr')
+			var headingBox = tr.find('.heading');
+			if (this.checked) {
+				tr.addClass('with-heading');
+				headingBox.focus();
+			} else {
+				tr.removeClass('with-heading');
+				headingBox.val('');
+			}
+		}
+		$('#custom-fields-editor td.toggle-heading input')
+			.click(handleToggleHeading)
+			.each(handleToggleHeading);
 	}
 
 	if (document.getElementById('service-program-editor')) {

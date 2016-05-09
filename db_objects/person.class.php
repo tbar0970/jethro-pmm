@@ -669,8 +669,19 @@ class Person extends DB_Object
 					$dummyField->populate($fieldid, $fieldDetails);
 					$tableClass = $fieldDetails['allow_multiple'] ? 'expandable' : '';
 					$values = isset($this->_custom_values[$fieldid]) ? $this->_custom_values[$fieldid] : Array('');
+
+					if ($fieldDetails['divider_before']) echo '<hr />';
+
 					?>
 					<div class="control-group">
+						<?php
+						if (strlen($fieldDetails['heading_before'])) {
+							?>
+								<h4><?php echo ents($fieldDetails['heading_before']); ?></h4>
+							<?php
+						}
+						?>
+
 						<label class="control-label" for="custom_<?php echo $fieldid; ?>"><?php echo ents($fieldDetails['name']); ?></label>
 						<div class="controls">
 							<table class="<?php echo $tableClass; ?>">

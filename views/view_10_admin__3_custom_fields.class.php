@@ -85,6 +85,8 @@ class View_Admin__Custom_Fields extends View
 					<th>Name</th>
 					<th>Type</th>
 					<th>Multi?</th>
+					<th>Divider?</th>
+					<th>Heading?</th>
 					<th>Parameters</th>
 					<th><i class="icon-trash"></i></th>
 				</tr>
@@ -94,8 +96,9 @@ class View_Admin__Custom_Fields extends View
 			$i = 0;
 			foreach ($this->fields as $field) {
 				$prefix = 'fields_'.$i.'_';
+				$class = $field->getValue('divider_before') ? 'class="divider-before"' : '';
 				?>
-				<tr>
+				<tr <?php echo $class; ?>>
 					<td class="cursor-move">
 						<?php
 						echo $field->id;
@@ -103,7 +106,8 @@ class View_Admin__Custom_Fields extends View
 						print_hidden_field('index[]', $i);
 						?>
 					</td>
-					<td>
+					<td class="name">
+						<?php $field->printFieldInterface('heading_before', $prefix); ?>
 						<?php $field->printFieldInterface('name', $prefix); ?>
 					</td>
 					<td>
@@ -117,6 +121,12 @@ class View_Admin__Custom_Fields extends View
 					</td>
 					<td class="center">
 						<?php $field->printFieldInterface('allow_multiple', $prefix); ?>
+					</td>
+					<td class="center toggle-divider">
+						<?php $field->printFieldInterface('divider_before', $prefix); ?>
+					</td>
+					<td class="center toggle-heading">
+						<?php $field->printFieldInterface('heading_before_toggle', $prefix); ?>
 					</td>
 					<td>
 						<?php $field->printFieldInterface('params', $prefix); ?>

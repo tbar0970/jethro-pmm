@@ -17,6 +17,7 @@ class Custom_Field extends db_object
 							'maxlength'	=> 128,
 							'allow_empty'	=> FALSE,
 							'initial_cap'	=> TRUE,
+							'placeholder'  => 'New field name...',
 						),
 			'rank'	=> Array(
 							'type'			=> 'int',
@@ -34,6 +35,19 @@ class Custom_Field extends db_object
 											),
 						   ),
 			'allow_multiple'=> Array(
+							'type'		=> 'select',
+							'options'  => Array('No', 'Yes'),
+							'default'	=> 0,
+						   ),
+			'heading_before'=> Array(
+							'type'		=> 'text',
+							'default'	=> '',
+							'class'		=> 'heading',
+							'width'		=> 30,
+							'maxlength'	=> 128,
+							'placeholder'  => 'Heading text...',
+						   ),
+			'divider_before'=> Array(
 							'type'		=> 'select',
 							'options'  => Array('No', 'Yes'),
 							'default'	=> 0,
@@ -82,7 +96,13 @@ class Custom_Field extends db_object
 	function printFieldInterface($fieldname, $prefix='')
 	{
 		switch ($fieldname) {
+			case 'heading_before_toggle':
+				print_widget($prefix.$fieldname,
+						Array('type' => 'checkbox'),
+						!empty($this->values['heading_before']));
+				break;
 			case 'allow_multiple':
+			case 'divider_before':
 				print_widget($prefix.$fieldname, Array('type' => 'checkbox'), $this->values[$fieldname] );
 				break;
 			case 'params':
