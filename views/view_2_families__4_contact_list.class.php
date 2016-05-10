@@ -4,7 +4,7 @@ class View_Families__Contact_List extends View
 
 	static function getMenuPermissionLevel()
 	{
-		return PERM_SYSADMIN;
+		return PERM_RUNREPORT;
 	}
 
 	function processView()
