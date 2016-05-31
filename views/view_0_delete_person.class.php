@@ -45,27 +45,27 @@ class View__Delete_Person extends View
 
 	public function getTitle()
 	{
-		return 'Delete '.$this->_person->toString();
+		return _('Delete ').$this->_person->toString();
 	}
 
 	public function printView()
 	{
 		$buttons = Array(
-					'delete' => 'Delete altogether',
-					'archiveclean' => 'Archive and Clean',
+					'delete' => _('Delete altogether'),
+					'archiveclean' => _('Archive and Clean'),
 					);
 		
 		if ($this->_staff_member) {
 			?>
-			<p>This person has a user account and cannot be deleted altogether.</p>
-			<p>You can archive and clean this person, which will</p>
+			<p><?php echo _('This person has a user account and cannot be deleted altogether.')?></p>
+			<p><?php echo _('You can archive and clean this person, which will')?></p>
 			<?php 
 			echo self::EXPLANATION;
 			unset($buttons['delete']);
 		} else if ($this->_person->hasRosterAssignments() || $this->_person->hasAttendance()) {
 			?>
-			<p>Deleting this person is not recommended since they have roster assignments and/or attendance records, and deleting them will affect historical statistics.</p>
-			<p>It is recommended that you archive and clean the person, which will</p>
+			<p><?php echo _('Deleting this person is not recommended since they have roster assignments and/or attendance records, and deleting them will affect historical statistics.')?></p>
+			<p><?php echo _('It is recommended that you archive and clean the person, which will')?></p>
 			<?php
 			echo self::EXPLANATION;
 			$buttons['delete'] = 'Delete anyway';

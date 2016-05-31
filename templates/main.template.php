@@ -26,22 +26,22 @@
 				<div class="user-detail pull-right">
 					<div>
 						<input type="hidden" name="logout" value="1" />
-						Logged in as 
+						<?php echo _('Logged in as')?> 
 						<span class="dropdown">
 							<a class="dropdown-toggle" id="user-menu" data-toggle="dropdown" href="#">
 								<?php echo $GLOBALS['user_system']->getCurrentUser('first_name').' '.$GLOBALS['user_system']->getCurrentUser('last_name'); ?>
 								<i class="caret"></i> 
 							</a>
 							<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="user-menu">
-								<li><a href="?view=_edit_me">Edit me</a></li>
-								<li><a href="?logout=1" data-method="post">Log out</a></li>
+								<li><a href="?view=_edit_me"><?php echo _('Edit me')?></a></li>
+								<li><a href="?logout=1" data-method="post"><?php echo _('Log out')?></a></li>
 							</ul>
 						</span>
 
 					<?php
 					if ($GLOBALS['user_system']->getCurrentRestrictions()) {
 						?>
-						<p class="restrictions" title="This user account can only see persons in certain congregations or groups"> Restrictions in effect </p>
+						<p class="restrictions" title=<?php echo _('"This user account can only see persons in certain congregations or groups"')?>> <?php echo _('Restrictions in effect')?> </p>
 						<?php
 					}
 					?>
@@ -63,11 +63,11 @@
 						<li id="user-detail-in-nav" class="dropdown">
 							<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown"><b>User:</b> <?php echo $GLOBALS['user_system']->getCurrentUser('first_name').' '.$GLOBALS['user_system']->getCurrentUser('last_name'); ?> <i class="caret"></i></a>
 							<ul class="dropdown-menu">
-								<li><a href="?view=_edit_me">Edit me</a></li>
+								<li><a href="?view=_edit_me"><?php echo _('Edit me')?></a></li>
 								<li>
 									<a class="log-out" href="#"><form class="min" method="post" action="<?php echo BASE_URL; ?>">
 										<input type="hidden" name="logout" value="1" />
-										<button class="btn-link" type="submit">Log out</button>
+										<button class="btn-link" type="submit"><?php echo _('Log ou')?>t</button>
 									</form></a>
 								</li>
 							</ul>

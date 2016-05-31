@@ -47,6 +47,11 @@ class View__Generate_Service_Documents extends View
 				foreach ($di as $fileinfo) {
 					if ($fileinfo->isDir() && !$fileinfo->isDot()) {
 						$found_files[$fileinfo->getFilename()] = $fileinfo->getPathname();
+					} else if ($fileinfo->isFile()) {
+						$pathinfo = pathinfo($fileinfo->getFilename());
+						if (in_array($pathinfo['extension'], explode(',', self::EXTENSIONS))) {
+							$found_files[$fileinfo->getPath()] = basename($fileinfo->getPath());
+						}
 					}
 				}
 			}
@@ -134,7 +139,7 @@ class View__Generate_Service_Documents extends View
 			add_message("Unkown template ".$_REQUEST['filename']);
 			return;
 		}
-		
+
 		if (!empty($_REQUEST['replacements'])) {
 			$method = '_process'.ucfirst($this->_action).'';
 			$this->$method();
@@ -145,7 +150,10 @@ class View__Generate_Service_Documents extends View
 
 	public function printView()
 	{
-	
+		/* 
+		 * Assign a temporary variable to make the empty() statement 
+		 * work correctly on PHP versions earlier than 5.5.
+		 */
 		$selfCongregations = self::getCongregations();
 		if (empty($selfCongregations) || empty($this->_action) || empty($this->_service_date) || empty($this->_filename)) return;
 		$selfCongregations = null;//Finished with temporary variable.
@@ -176,33 +184,8 @@ class View__Generate_Service_Documents extends View
 
 	private function _printReplacementsForm()
 	{
-		$congs = self::getCongregations();
-		$exampleCong = reset($congs);
-		switch ($this->_action) {
-			case 'populate':
-				?>
-				<p>This will open each congregation's template file (eg. <?php echo $exampleCong['meeting_time']; ?>.odt),<br />
-					replace the keywords within it (eg. %SERVICE_DATE% or %NAME_OF_PREACHER%) <br />
-					and save it as a new file named by service date (eg. <?php echo $this->_service_date.'_'.$exampleCong['meeting_time']; ?>.odt)
-				</p>
-				<?php
-				break;
-			case 'expand':
-				$bits = explode('.', basename($this->_filename));
-				$ext = array_pop($bits);
-				$base = implode('.', $bits);
-				$newFilename = $base.'_'.$exampleCong['meeting_time'].'.'.$ext;
-				?>
-				<p>This will make a new folder called "<?php echo $this->_service_date; ?>",<br />
-					save into it a separate copy of <?php echo basename($this->_filename); ?> for each congregation
-					(eg. <?php echo $newFilename; ?>)<br />
-					and replace the keywords in each new file according to the applicable congregation.
-				</p>
-				<?php
-				break;
-		}
-		?>
-		Please confirm or correct the following keyword replacements:
+			?>
+			Confirm or correct the following field values
 			<form method="post">
 			<input type="hidden" name="action" value="<?php echo $this->_action; ?>" />
 			<input type="hidden" name="service_date" value="<?php echo $this->_service_date; ?>" />
@@ -211,7 +194,7 @@ class View__Generate_Service_Documents extends View
 				<tr>
 					<th>Keyword</th>
 			<?php
-			foreach ($congs as $congid => $congregation) {
+			foreach (self::getCongregations() as $congid => $congregation) {
 				?>
 				<th>
 					<?php
@@ -329,8 +312,6 @@ class View__Generate_Service_Documents extends View
 					}
 				}
 			}
-		} else {
-			add_message("Could not find file ".$this->_filename, 'error');
 		}
 		$this->_keywords = array_unique($this->_keywords);
 

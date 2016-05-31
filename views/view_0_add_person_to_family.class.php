@@ -53,20 +53,20 @@ class View__Add_Person_To_Family extends View
 		<form method="post" id="add-family">
 			<input type="hidden" name="new_person_submitted" value="1" />
 			<input type="hidden" name="familyid" value="<?php echo ents($_REQUEST['familyid']); ?>" />
-			<h3>New Person Details</h3>
+			<h3><?php echo _('New Person Details')?></h3>
 			<?php
 			$this->_person->printForm();
 
 			if ($chooser = Action_Plan::getMultiChooser('execute_plan', 'add_person')) {
 				?>
-				<h3>Action Plans</h3>
-				<p>Execute the following action plans for the new person:</p>
+				<h3><?php echo _('Action Plans')?></h3>
+				<p><?php echo _('Execute the following action plans for the new person:')?></p>
 				<?php echo $chooser; ?>
-				<p>Reference date for plans: <?php print_widget('plan_reference_date', Array('type' => 'date'), NULL); ?></p>
+				<p><?php echo _('Reference date for plans:')?> <?php print_widget('plan_reference_date', Array('type' => 'date'), NULL); ?></p>
 				<?php
 			}
 			?>
-			<button type="submit" class="btn">Add Family Member</button>
+			<button type="submit" class="btn"><?php echo _('Add Family Member')?></button>
 			<a href="<?php echo build_url(Array('view' => 'families')); ?>" class="btn">Cancel</a>
 		</form>
 		<?php
