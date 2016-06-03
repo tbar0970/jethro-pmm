@@ -191,9 +191,13 @@ define('CCLI_DETAIL_URL', 'https://au.songselect.com/songs/__NUMBER__');
 // URL of the server to send SMSes through
 define('SMS_HTTP_URL', ''); // eg http://www.5centsms.com.au/api/send.php
 
+// SMS parameter name for recipients array. Use 'number' to have number[]=...&number[]=...
+define('SMS_RECIPIENT_PARAMETER', 'number');
+
 // The format for the send-sms POST request
-// Can contain keywords _USER_MOBILE_ _USER_EMAIL_ _MESSAGE_ _RECIPIENTS_COMMAS_ _RECIPIENTS_NEWLINES_
+// Can contain keywords _USER_MOBILE_ _USER_EMAIL_ _MESSAGE_ _RECIPIENTS_COMMAS_ _RECIPIENTS_NEWLINES_ _RECIPIENTS_ARRAY_
 // eg 'username=abc&password=xyz&to=_RECIPIENTS_COMMAS_&sender=_USER_MOBILE_&message=_MESSAGE_');
+// or 'username=abc&password=xyz&_RECIPIENTS_ARRAY_&sender=_USER_MOBILE_&message=_MESSAGE_');
 define('SMS_HTTP_POST_TEMPLATE', ''); 
 
 // Regex to use to detect success message from the SMS server for each recipient
