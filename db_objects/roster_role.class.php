@@ -54,8 +54,6 @@ class Roster_Role extends db_object
 							   ),
 			'details'		=> Array(
 									'type'		=> 'html',
-									'width'		=> 80,
-									'height'	=> 4,
 									'note' => 'These details will be shown when a public user clicks the role name in the public roster'
 								   ),
 			'active'		=> Array(
