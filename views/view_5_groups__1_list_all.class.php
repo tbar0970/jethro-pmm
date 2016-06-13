@@ -7,7 +7,7 @@ class View_Groups__List_All extends View
 
 	function getTitle()
 	{
-		return 'All Groups';
+		return _('All Groups');
 	}
 
 	function processView()
@@ -47,8 +47,8 @@ class View_Groups__List_All extends View
 				<thead>
 					<tr>
 						<th class="narrow">ID</th>
-						<th>Name</th>
-						<th class="narrow">Members</th>
+						<th><?php echo _('Name');?></th>
+						<th class="narrow"><?php echo _('Members');?></th>
 					<?php
 					if ($GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
 						?>
@@ -71,11 +71,11 @@ class View_Groups__List_All extends View
 					if ($GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
 						?>
 						<td class="narrow action-cell">
-							<a href="?view=_edit_group&groupid=<?php echo $gid; ?>&back_to=groups__list_all"><i class="icon-wrench"></i>Edit</a>
+							<a href="?view=_edit_group&groupid=<?php echo $gid; ?>&back_to=groups__list_all"><i class="icon-wrench"></i><?php echo _('Edit');?></a>
 							<form class="min" method="post" action="?view=_edit_group&groupid=<?php echo $gid; ?>">
 								<input type="hidden" name="action" value="delete" />
 								<button type="submit" class="btn-link double-confirm-title"title="Delete this group">
-									<i class="icon-trash"></i>Delete
+									<i class="icon-trash"></i><?php echo _('Delete');?>
 								</button>
 							</form>
 						</td>
@@ -101,17 +101,17 @@ class View_Groups__List_All extends View
 			<?php
 			if (empty($_REQUEST['show_archived'])) {
 				?>
-				<a class="pull-right hidden-phone" href="<?php echo build_url(Array('show_archived' => 1)); ?>"><i class="icon-eye-open"></i>Include Archived Groups</a>
+				<a class="pull-right hidden-phone" href="<?php echo build_url(Array('show_archived' => 1)); ?>"><i class="icon-eye-open"></i><?php echo _('Include Archived Groups');?></a>
 				<?php
 			} else {
 				?>
-				<a class="pull-right hidden-phone" href="<?php echo build_url(Array('show_archived' => 0)); ?>"><i class="icon-eye-close"></i>Exclude Archived Groups</a>
+				<a class="pull-right hidden-phone" href="<?php echo build_url(Array('show_archived' => 0)); ?>"><i class="icon-eye-close"></i><?php echo _('Exclude Archived Groups');?></a>
 				<?php
 			}
 
 			if ($GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
 				?>
-				<a href="?view=groups__add"><i class="icon-plus-sign"></i>Add a new group</a>
+				<a href="?view=groups__add"><i class="icon-plus-sign"></i><?php echo _('Add a new group');?></a>
 				<?php
 			}
 			?>
@@ -121,7 +121,7 @@ class View_Groups__List_All extends View
 			$cats = $this->_category_data; // + Array(0 => Array('name' => 'Uncategorised Groups'));
 			$this->_printCats();
 			?>
-			<h3>Uncategorised Groups</h3>
+			<h3><?php echo _('Uncategorised Groups');?></h3>
 			<?php $this->_printGroupsForCategory(0); ?>
 		</div>
 		<?php

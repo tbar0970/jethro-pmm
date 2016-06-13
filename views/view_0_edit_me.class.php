@@ -15,7 +15,7 @@ class View__Edit_Me extends Abstract_View_Edit_Object
 	
 	function getTitle()
 	{
-		return 'Editing User Account for '.$this->_edited_object->toString();
+		return _('Editing User Account for ').$this->_edited_object->toString();
 	}
 
 	function getEditingTypeFriendly() {

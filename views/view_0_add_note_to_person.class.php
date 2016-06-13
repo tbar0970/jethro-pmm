@@ -13,7 +13,7 @@ class View__Add_Note_To_Person extends View
 	function processView()
 	{
 		if (empty($_REQUEST['personid'])) {
-			trigger_error("Cannot add note, no person ID specified", E_USER_WARNING);
+			trigger_error(_('Cannot add note, no person ID specified'), E_USER_WARNING);
 			return;
 		}
 		if (!is_array($_REQUEST['personid'])) {
@@ -52,13 +52,13 @@ class View__Add_Note_To_Person extends View
 			}
 			if ($success) {
 				if ($this->_person) {
-					add_message('Note added');
+					add_message(_('Note added'));
 					redirect('persons', Array('personid' => $this->_person->id), 'note_'.$this->_note->id); // exits
 				} else {
 					if ($success == count($_REQUEST['personid'])) {
-						add_message('Note added to '.count($_REQUEST['personid']).' persons');
+						add_message(_('Note added to ').count($_REQUEST['personid'])._(' persons'));
 					} else {
-						add_message('Note successfully added to '.$success.' of the '.count($_REQUEST['personid']).' selected persons');
+						add_message(_('Note successfully added to ').$success._(' of the ').count($_REQUEST['personid'])._(' selected persons'));
 					}
 					redirect(-1);
 				}
@@ -71,7 +71,7 @@ class View__Add_Note_To_Person extends View
 		if (empty($this->_person)) {
 			return;
 		}	
-		return 'Add note to '.$this->_person->toString();
+		return _('Add note to ').$this->_person->toString();
 	}
 
 
@@ -91,7 +91,7 @@ class View__Add_Note_To_Person extends View
 
 			?>	
 			<div class="controls">
-				<input type="submit" name="new_note_submitted" class="btn" value="Add Note to Person" />
+				<input type="submit" name="new_note_submitted" class="btn" value=<?php echo _('Add Note to Person')?> />
 				<a class="btn" href="<?php echo build_url(Array('view' => 'persons', 'personid' => $this->_person->id)); ?>">Cancel</a>
 		</form>
 		<?php

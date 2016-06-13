@@ -24,7 +24,7 @@ class View_Notes__For_Immediate_Action extends Abstract_View_Notes_List
 
 	function getTitle()
 	{
-		return 'Notes For Immediate Action';
+		return _('Notes For Immediate Action');
 	}
 }
 ?>

@@ -27,13 +27,13 @@ class View_Home extends View
 				>
 					<small>Bookmark</small>
 				</a>
-				System-Wide Search</h3>
+				<?php echo _('System-Wide Search');?></h3>
 			<label class="msie-only">Enter a person, family or group name, or phone number or email:</label>
 			<form method="get">
 				<input type="hidden" name="view" value="_mixed_search" />
 				<span class="input-prepend input-append">
 					<span class="add-on"><i class="icon-search"></i></span>
-					<input type="text" name="search" class="" placeholder="Name, Phone or Email" /> 
+					<input type="text" name="search" class="" placeholder=<?php echo _('"Name, Phone or Email"');?> /> 
 					<button type="submit" class="btn">Go</button>
 				</span>
 			</form>
@@ -45,15 +45,15 @@ class View_Home extends View
 			$tasks = $user->getTasks('now');
 			?>
 			<div class="homepage-box my-notes">
-				<h3>Notes <span>for immediate action</span></h3>
+				<h3><?php echo _('Notes '); ?><span><?php echo _('for immediate action');?></span></h3>
 				<?php
 				if ($tasks) {
 					?>
 					<table class="table table-condensed table-striped table-hover clickable-rows" width="100%">
 						<thead>
 							<tr>
-								<th>For</th>
-								<th>Subject</th>
+								<th><?php echo _('For');?></th>
+								<th><?php echo _('Subject');?></th>
 							</tr>
 						</thead>
 						<tbody>
@@ -81,7 +81,7 @@ class View_Home extends View
 				$count = count($later);
 				if ($count) {
 					?>
-					<p class="align-right">You have <a href="<?php echo build_url(Array('view' => 'notes__for_future_action', 'assignee' => $user->id)); ?>"><?php echo count($later); ?> note<?php echo ($count > 1) ? 's' : ''; ?> for future action</a></p>
+					<p class="align-right"><?php echo _('You have ');?><a href="<?php echo build_url(Array('view' => 'notes__for_future_action', 'assignee' => $user->id)); ?>"><?php echo count($later); ?> note<?php echo ($count > 1) ? 's' : ''; ?> <?php echo _('for future action');?></a></p>
 					<?php
 				}
 				?>

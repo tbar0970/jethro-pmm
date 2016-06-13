@@ -28,7 +28,7 @@ class View_Persons__List_All extends View
 	
 	function getTitle()
 	{
-		$res = 'All Persons';
+		$res = _('All Persons');
 		return $res;
 
 	}
@@ -53,19 +53,19 @@ class View_Persons__List_All extends View
 		if (empty($persons)) {
 			if ($this->_paginator) {
 				?>
-				<p><strong>No persons in this range</strong></p>
+				<p><strong><?php echo _('No persons in this range');?></strong></p>
 				<?php
 			} else {
 				?>
-				<p><strong>No persons were found</strong></p>
-				<a href="<?php echo build_url(Array('show_archived' => 1)); ?>">Include Archived Persons</a>
+				<p><strong><?php echo _('No persons were found');?></strong></p>
+				<a href="<?php echo build_url(Array('show_archived' => 1)); ?>"><?php echo _('Include Archived Persons');?></a>
 				<?php
 			}
 		} else {
 			if ($this->_paginator) {
-				echo '<p><strong>'.count($persons).' persons in this range</strong></p>';
+				echo '<p><strong>'.count($persons)._(' persons in this range').'</strong></p>';
 			} else  {
-				echo '<p><strong>'.count($persons).' persons in total</strong></p>';
+				echo '<p><strong>'.count($persons)._(' persons in total').'</strong></p>';
 			}
 			$special_fields = Array('congregation');
 			include dirname(dirname(__FILE__)).'/templates/person_list.template.php';

@@ -14,9 +14,9 @@ class View_Families extends View
 	function getTitle()
 	{
 		if ($this->_family) {
-			return 'Viewing Family: '.$this->_family->getValue('family_name');
+			return _('Viewing Family: ').$this->_family->getValue('family_name');
 		}
-		return 'Error: No family supplied';
+		return _('Error: No family supplied');
 	}
 
 	

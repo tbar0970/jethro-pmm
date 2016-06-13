@@ -156,11 +156,11 @@ class System_Controller
 				// pardon the formatting - IE is having a white-space tantrum
 				?>
 				<li class="<?php echo $class; ?> dropdown">
-					<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown"><?php echo ucwords(str_replace('_', ' ', $name)); ?><i class="caret"></i></a>
+					<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown"><?php echo gettext(ucwords(str_replace('_', ' ', $name))); ?><i class="caret"></i></a>
 						<ul class="dropdown-menu"><?php
 							foreach ($data['children'] as $subname => $sub_details) {
 								$class = ($current_view == $name.'__'.$subname) ? 'active' : '';
-								?><li class="<?php echo $class; ?>"><a href="?view=<?php echo $name.'__'.$subname; ?>"><?php echo ucwords(str_replace('_', ' ', $subname)); ?></a></li><?php
+								?><li class="<?php echo $class; ?>"><a href="?view=<?php echo $name.'__'.$subname; ?>"><?php echo gettext(ucwords(str_replace('_', ' ', $subname))); ?></a></li><?php
 							}
 							?></ul>
 				</li>

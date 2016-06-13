@@ -11,7 +11,7 @@ class View_Attendance__Statistics extends View
 
 	function getTitle()
 	{
-		return 'Attendance Statistics';
+		return _('Attendance Statistics');
 	}
 
 	function processView()
@@ -39,11 +39,11 @@ class View_Attendance__Statistics extends View
 		?>
 		<form method="get" style="line-height: 200%" class="well well-small form-inline">
 		<input type="hidden" name="view" value="<?php echo $_REQUEST['view']; ?>" />
-		Show the attendance statistics for persons of each (current) status <br />
-		between <?php print_widget('start_date', Array('type' => 'date'), $this->_start_date); ?>
-		and  <?php print_widget('end_date', Array('type' => 'date'), $this->_end_date); ?>
+		<?php echo _('Show the attendance statistics for persons of each (current) status');?> <br />
+		<?php echo _('between');?> <?php print_widget('start_date', Array('type' => 'date'), $this->_start_date); ?>
+		<?php echo _('and');?>  <?php print_widget('end_date', Array('type' => 'date'), $this->_end_date); ?>
 		<input type="submit" class="btn" value="Go" />
-		<p class="smallprint">Note: Any weeks where a person's attendance is left blank (neither present nor absent) are ignored when calculating attendance percentages.</p>
+		<p class="smallprint"><?php echo _('Note: Any weeks where a person attendance is left blank (neither present nor absent) are ignored when calculating attendance percentages.');?></p>
 		</form>
 		<?php
 		
@@ -88,7 +88,7 @@ class View_Attendance__Statistics extends View
 	
 		if ($cong_content) {
 			?>
-			<h3>Congregations</h3>
+			<h3><?php echo _('Congregations');?></h3>
 			<div class="row">
 			<?php echo $cong_content; ?>
 			</div>
@@ -97,7 +97,7 @@ class View_Attendance__Statistics extends View
 		
 		if ($group_content) {
 			?>
-			<h3>Groups</h3>
+			<h3><?php echo _('Groups');?></h3>
 			<div class="row">
 			<?php echo $group_content; ?>
 			</div>
@@ -121,10 +121,10 @@ class View_Attendance__Statistics extends View
 					<th colspan="4"><?php echo ents($cohortname); ?></th>
 				</tr>
 				<tr>
-					<th>Segment</th>
-					<th title="Percentage of dates marked present rather than absent">Rate</th>
-					<th class="present" title="Average number marked present per date">Avg&nbsp;P</th>
-					<th class="absent" title="Average number marked absent per date">Avg&nbsp;A</th>
+					<th><?php echo _('Segment');?></th>
+					<th title=<?php echo _('"Percentage of dates marked present rather than absent"');?>><?php echo _('Rate');?></th>
+					<th class="present" title=<?php echo _('"Average number marked present per date"');?>><?php echo _('Avg&nbsp;P');?></th>
+					<th class="absent" title="<?php echo _('Average number marked absent per date"');?>><?php echo _('Avg&nbsp;A');?></th>
 			</thead>
 			<tbody>
 		<?php
@@ -163,14 +163,14 @@ class View_Attendance__Statistics extends View
 		}
 		?>
 				<tr class="thick-top-border">
-					<th>Overall</th>
+					<th><?php echo _('Overall');?></th>
 					<td><?php echo $stats[NULL]['rate'] ?>%</td>
 					<td><?php echo number_format($stats[NULL]['avg_present'], 1) ?></td>
 					<td><?php echo number_format($stats[NULL]['avg_absent'], 1) ?></td>
 				</tr>
 				<tr class="headcount">
 					<th colspan="2">
-						Avg&nbsp;Headcount
+						<?php echo _('Avg&nbsp;Headcount');?>
 					</th>
 					<td class="right">
 						<?php 
