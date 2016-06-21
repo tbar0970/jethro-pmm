@@ -130,7 +130,7 @@ class View_Home extends View
 			?>
 			<div class="homepage-box special-dates">
 				<h3>
-					Upcoming Special dates
+					Upcoming special dates
 
                                 </h3>
                                 <?php
@@ -154,10 +154,11 @@ class View_Home extends View
                                             if ($special_date['value_text'] !== '') {
                                                 $occassion .= ' (' .$special_date['value_text'] . ')';
                                             }
+                                            $occassion_date = date_format(date_create($special_date['occassion_date']), 'j M') ;
                                             ?>
                                                         <tr>
                                                             <td><a href="?view=persons&personid=<?php echo $personid; ?>"><i class="icon-<?php echo $icon; ?>"></i> <?php echo $special_date['person_name']; ?></a></td>
-                                                            <td><?php echo $special_date['value_date']; ?></td>
+                                                            <td><?php echo $occassion_date; ?></td>
                                                             <td><?php echo $occassion; ?></td>
                                                         </tr>
                                             <?php
