@@ -38,7 +38,6 @@ class Special_Dates extends db_object
 			ORDER BY MONTH(value_date) ASC, DAY(value_date) ASC';
 		$res = $GLOBALS['db']->queryAll($sql, NULL, NULL, true, false, true);
 		check_db_result($res);
-		var_dump($res);
 		return $res;
 	}
 
