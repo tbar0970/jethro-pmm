@@ -5,7 +5,7 @@ class Special_Dates extends db_object
 	// NB This class only exists for the following SQL
 	// It has no ID
 
-	static function getUpcomingDates($personid, $timeframe='4 weeks')
+	static function getUpcomingDates($personid, $timeframe='1 month')
 	{
 		$end_date = date('Y-m-d', strtotime('+'.$timeframe));
 		$current_year = date('Y');
