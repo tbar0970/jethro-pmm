@@ -15,7 +15,8 @@ class Special_Dates extends db_object
                             FROM custom_field_value, custom_field,_person
                             WHERE personid=_person.id
                                 AND custom_field_value.fieldid=custom_field.id
-                                AND value_date IS NOT NULL";
+				AND value_date IS NOT NULL 
+				AND status != 'archived' ";
 		if (!empty($timeframe)) {
 			$sql .= '
 			AND (
@@ -37,6 +38,7 @@ class Special_Dates extends db_object
 			ORDER BY MONTH(value_date) ASC, DAY(value_date) ASC';
 		$res = $GLOBALS['db']->queryAll($sql, NULL, NULL, true, false, true);
 		check_db_result($res);
+		var_dump($res);
 		return $res;
 	}
 
