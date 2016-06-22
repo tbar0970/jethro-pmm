@@ -486,7 +486,7 @@ h3:first-child, h4:first-child, h5:first-child {
 
 hr, table.object-summary tr.divider-before > td, table.object-summary tr.divider-before > th {
 	border-top-width: 1px;
-	border-top-color: @grayLight !important;
+	border-top-color: @grayLighter !important;
 }
 input[type=image] {
 	height: auto !important;
@@ -603,7 +603,7 @@ input[type="radio"] {
 	min-width: 50ex;
 }
 .table {
-	border-bottom: 1px solid #DDDDDD;
+	border-bottom: 1px solid @grayLighter;
 }
 /* nested tables - see list of family members within single person view */
 .table td table {
@@ -716,6 +716,12 @@ table.object-summary td, table.object-summary th {
 	padding: 4px;
 	border-width: 0px;
 }
+.object-summary h4 {
+	color: @grayLight;
+	margin: 0px;
+	margin-top: 2px;
+	border-width: 0px !important;
+}
 
 /* make the table of person dates and family members line up with its label */
 table.object-summary td table.borderless tr:first-child td {
@@ -736,7 +742,11 @@ table.object-summary td table.borderless tr:first-child td {
 .controls-text {
 	padding-top: 5px; /* to vertically align with control label */
 }
-
+.control-group h4 {
+	width: 160px;
+	text-align: right;
+	margin-top: 0px;
+}
 
 .day-box {
 	width: 3ex !important;
@@ -1951,6 +1961,21 @@ td.run-sheet-comments * {
 }
 #custom-fields-editor td table tr:first-child td {
 	padding-top: 0px;
+}
+#custom-fields-editor tr.divider-before>td {
+	border-top-width: 3px;
+}
+#custom-fields-editor tr .heading {
+	display: none;
+}
+#custom-fields-editor tr.with-heading .heading {
+	font-size: 100%;
+	font-weight: bold;
+	display: block;
+	margin-bottom: 1em !important;
+}
+#custom-fields-editor tr.with-heading>td:not([class="name"]) {
+	padding-top: 3.5em;
 }
 
 .note-template-fields {

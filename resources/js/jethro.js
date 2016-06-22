@@ -120,7 +120,7 @@ $(document).ready(function() {
       $(this).html("Sending");
       smsData = {
         personid: modalDiv.attr("data-personid"),
-	saveasnote: (modalDiv.find('.saveasnote').attr('checked') == 'checked')?'1':'0',
+        saveasnote: (modalDiv.find('.saveasnote').attr('checked') == 'checked')?'1':'0',
         ajax: 1,
         message: sms_message
       }
@@ -140,7 +140,7 @@ $(document).ready(function() {
           statusBtn.toggleClass('fade');
         },
         success: function (data) {
-	  console.log(data);
+          console.log(data);
           var modalDiv = $(this).parent().parent(); // takes us back up to the DIV
           var successCount = 0,
           failedCount = 0,
@@ -163,32 +163,32 @@ $(document).ready(function() {
           }
           $(this).prop('disabled', false);
           $(this).html("Send");
-	  if ($("#tab_notes").length) {
-		$.ajax({
-			type: 'POST',
-			url: './?view=persons',
-			data: { personid: $("#view-person .person-details-box:first-child").data("personid") },
-			success: function (data) {
-				var notesdata = $.parseJSON(data);
-				$("#notes").html(notesdata.noteshtml);
-				$("#tab_notes").html("Notes (" + notesdata.notescount + ")");
-			}
-		  });
-	 } else if ($("form.bulk-person-action").length) {
-		if ($('#action_status').length) { // action status already exists
-			$('#action_status').html('SMS');
-		} else {
-		        $('.bulk-person-action thead tr').append("<th id='action_status'>SMS</th>");
-		        $('.bulk-person-action tbody tr').each(function () { $(this).append('<td></td>'); });
-	        }
-		var personID = $(this).parent().parent().attr("data-personid");
-		if (failedCount > 0) {
-			$("[data-personid=" + personID + "]").closest('tr').find("td:last").html("Failed (General)");
-		} else {
-			$("[data-personid=" + personID + "]").closest('tr').find("td:last").html("Sent");
-		}
+          if ($("#tab_notes").length) {
+                $.ajax({
+                        type: 'POST',
+                        url: './?view=persons',
+                        data: { personid: $("#view-person .person-details-box:first-child").data("personid") },
+                        success: function (data) {
+                                var notesdata = $.parseJSON(data);
+                                $("#notes").html(notesdata.noteshtml);
+                                $("#tab_notes").html("Notes (" + notesdata.notescount + ")");
+                        }
+                  });
+         } else if ($("form.bulk-person-action").length) {
+                if ($('#action_status').length) { // action status already exists
+                        $('#action_status').html('SMS');
+                } else {
+                        $('.bulk-person-action thead tr').append("<th id='action_status'>SMS</th>");
+                        $('.bulk-person-action tbody tr').each(function () { $(this).append('<td></td>'); });
+                }
+                var personID = $(this).parent().parent().attr("data-personid");
+                if (failedCount > 0) {
+                        $("[data-personid=" + personID + "]").closest('tr').find("td:last").html("Failed (General)");
+                } else {
+                        $("[data-personid=" + personID + "]").closest('tr').find("td:last").html("Sent");
+                }
 
-	 }
+         }
         }
       });
       return false;
@@ -196,7 +196,7 @@ $(document).ready(function() {
   });
 
   /*************************** REPORTS *********************/
-	$('input.select-rule-toggle').click(function() {
+        $('input.select-rule-toggle').click(function() {
     $($(this).parents('tr')[0]).find('div.select-rule-options').css('display', (this.checked ? '' : 'none'));
   });
 
@@ -586,7 +586,7 @@ $(document).ready(function() {
 
   // NARROW COLUMNS
 
-	//setTimeout( "applyNarrowColumns('body'); ", 30);
+        setTimeout( "applyNarrowColumns('body'); ", 30);
 
   if (document.getElementById('service-planner')) {
     JethroServicePlanner.init();
@@ -619,9 +619,28 @@ $(document).ready(function() {
 					if (this.name.match(/fields_[0-9]+_delete/)) fieldsMsg = "\nDeleting a field will delete all values for that field from all persons.";
 					if (this.name.match(/fields_[0-9]+_options_delete/)) optionsMsg = "\nDeleting a select option will remove that value from all persons currently using it.";
         }
-			})
-			if (optionsMsg || fieldsMsg) return confirm("WARNING: "+fieldsMsg+optionsMsg+"\nAre you sure you want to continue?");
-		})
+                        })
+                        if (optionsMsg || fieldsMsg) return confirm("WARNING: "+fieldsMsg+optionsMsg+"\nAre you sure you want to continue?");
+                })
+
+                $('#custom-fields-editor td.toggle-divider input').click(function() {
+                        $(this).parents('tr')[this.checked ? 'addClass' : 'removeClass']('divider-before');
+                });
+
+                var handleToggleHeading = function() {
+                        var tr = $(this).parents('tr')
+                        var headingBox = tr.find('.heading');
+                        if (this.checked) {
+                                tr.addClass('with-heading');
+                                headingBox.focus();
+                        } else {
+                                tr.removeClass('with-heading');
+                                headingBox.val('');
+                        }
+                }
+                $('#custom-fields-editor td.toggle-heading input')
+                        .click(handleToggleHeading)
+                        .each(handleToggleHeading);
   }
 
   if (document.getElementById('service-program-editor')) {
@@ -1049,10 +1068,9 @@ var applyNarrowColumns = function(root) {
 	var expr = 'td.narrow, th.narrow, table.object-summary th'
   var cells = $(root).find(expr);
   var parents = cells.parents('table:visible');
-	parents.each(function() {
+        parents.each(function() {
     var table = $(this);
-    var tablewidth = table[0].getBoundingClientRect().right - table[0].getBoundingClientRect().left; // ie<=8 doesn't have .width
-		table.css('width', tablewidth+'px');
+                table.css('width', table.width()+'px');
     table.removeClass('table-auto-width').removeClass('table-min-width'); // because this class has an 'important' width we need to override
   });
   cells.css('white-space', 'nowrap');
@@ -1202,6 +1220,7 @@ $(document).ready(function() {
   $('form#edit-family, form#add-family').submit(handleFamilyFormSubmit);
   $('form#add-family').submit(handleNewFamilySubmit);
   $('form#add-family input.family-name').blur(handleFamilyNameBlur);
+        $('select.person-status').not('.bulk-action *, .action-plan *').change(handlePersonStatusChange).change();
   $('form#add-family .person-status select').change(handleNewPersonStatusChange);
   $('form#add-family .congregation select').change(handleNewPersonCongregationChange);
 

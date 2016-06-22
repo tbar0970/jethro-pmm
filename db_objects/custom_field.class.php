@@ -17,6 +17,7 @@ class Custom_Field extends db_object
 							'maxlength'	=> 128,
 							'allow_empty'	=> FALSE,
 							'initial_cap'	=> TRUE,
+							'placeholder'  => 'New field name...',
 						),
 			'rank'	=> Array(
 							'type'			=> 'int',
@@ -37,6 +38,21 @@ class Custom_Field extends db_object
 							'type'		=> 'select',
 							'options'  => Array('No', 'Yes'),
 							'default'	=> 0,
+							'title'		=> 'Whether to allow multiple values to be entered for this field',
+						   ),
+			'heading_before'=> Array(
+							'type'		=> 'text',
+							'default'	=> '',
+							'class'		=> 'heading',
+							'width'		=> 30,
+							'maxlength'	=> 128,
+							'placeholder'  => 'Heading text...',
+						   ),
+			'divider_before'=> Array(
+							'type'		=> 'select',
+							'options'  => Array('No', 'Yes'),
+							'default'	=> 0,
+							'title'		=> 'Whether to show a divider before this field'
 						   ),
 			'params'	=> Array(
 							'type'		=> 'serialise',
@@ -82,8 +98,17 @@ class Custom_Field extends db_object
 	function printFieldInterface($fieldname, $prefix='')
 	{
 		switch ($fieldname) {
+			case 'heading_before_toggle':
+				$title = 'Whether to show a heading before this field';
+				print_widget($prefix.$fieldname,
+						Array('type' => 'checkbox', 'attrs' => Array('title' => $title)),
+						!empty($this->values['heading_before']));
+				break;
 			case 'allow_multiple':
-				print_widget($prefix.$fieldname, Array('type' => 'checkbox'), $this->values[$fieldname] );
+			case 'divider_before':
+				print_widget($prefix.$fieldname, 
+						Array('type' => 'checkbox', 'attrs' => Array('title' => $this->fields[$fieldname]['title'])),
+						$this->values[$fieldname]);
 				break;
 			case 'params':
 				$params = $this->getValue('params');

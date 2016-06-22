@@ -294,13 +294,40 @@ class Person extends DB_Object
 	protected function _printSummaryRows() {
 		parent::_printSummaryRows();
 
-		$divided = FALSE;
+		// care is needed here, because we don't print empty fields
+		// but we still want to (potentially) print their headings and dividers.
+		$showDivider = TRUE; // always show before first field
+		$showHeading = '';
 		$dummyField = new Custom_Field();
 		foreach ($this->getCustomFields() as $fieldid => $fieldDetails) {
 			$dummyField->populate($fieldid, $fieldDetails);
+			if ($fieldDetails['divider_before']) {
+				$showDivider = TRUE;
+			}
+			if (strlen($fieldDetails['heading_before'])) {
+				$showHeading = $fieldDetails['heading_before'];
+			}
 			if (isset($this->_custom_values[$fieldid])) {
+				if ($showHeading) {
+					?>
+					<tr
+						<?php
+						if ($showDivider) echo 'class="divider-before"';
+						?>
+					>
+						<th colspan="2" class="center">
+							<h4><?php echo ents($showHeading); ?></h4>
+						</th>
+					</tr>
+					<?php
+					$showDivider = FALSE;
+				}
 				?>
-				<tr <?php if (!$divided) { echo 'class="divider-before"'; $divided = TRUE; } ?>>
+				<tr
+					<?php
+					if ($showDivider) echo 'class="divider-before"';
+					?>
+				>
 					<th><?php echo ents($fieldDetails['name']); ?></th>
 					<td>
 						<?php
@@ -312,6 +339,8 @@ class Person extends DB_Object
 					</td>
 				</tr>
 				<?php
+				$showDivider = FALSE;
+				$showHeading = '';
 			}
 		}
 	}
@@ -694,8 +723,19 @@ class Person extends DB_Object
 					$dummyField->populate($fieldid, $fieldDetails);
 					$tableClass = $fieldDetails['allow_multiple'] ? 'expandable' : '';
 					$values = isset($this->_custom_values[$fieldid]) ? $this->_custom_values[$fieldid] : Array('');
+
+					if ($fieldDetails['divider_before']) echo '<hr />';
+
 					?>
 					<div class="control-group">
+						<?php
+						if (strlen($fieldDetails['heading_before'])) {
+							?>
+								<h4><?php echo ents($fieldDetails['heading_before']); ?></h4>
+							<?php
+						}
+						?>
+
 						<label class="control-label" for="custom_<?php echo $fieldid; ?>"><?php echo ents($fieldDetails['name']); ?></label>
 						<div class="controls">
 							<table class="<?php echo $tableClass; ?>">
