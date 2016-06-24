@@ -10,14 +10,6 @@
 @jethroLinkColor: #647196;
 @grayMid: #CCC;
 
-<?php 
-/* production css is in a different directory, so paths need changing*/
-if (isset($productionrun)) {
-	echo '@iconSpritePath:          "resources/img/glyphicons-halflings.png";';
-	echo '@iconWhiteSpritePath:     "resources/img/glyphicons-halflings-white.png";';
-}
-?>
-
 @import "bootstrap.less";
 @import "responsive.less";
 <?php
