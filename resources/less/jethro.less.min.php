@@ -1,5 +1,4 @@
 <?php
-$productionrun = true;
 require_once '../minify/src/Minify.php';
 require_once '../minify/src/CSS.php';
 require_once '../minify/src/JS.php';
