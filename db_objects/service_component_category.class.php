@@ -1,8 +1,8 @@
 <?php
 class Service_Component_Category extends db_object
 {
-	var $_load_permission_level = 0; // want PERM_VIEWSERVICE | PERM_VIEWROSTER
-	var $_save_permission_level = 0; // FUTURE: PERM_EDITSERVICE;
+	protected $_load_permission_level = 0; // want PERM_VIEWSERVICE | PERM_VIEWROSTER
+	protected $_save_permission_level = 0; // FUTURE: PERM_EDITSERVICE;
 
 	protected static function _getFields()
 	{

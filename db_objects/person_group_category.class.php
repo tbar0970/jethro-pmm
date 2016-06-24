@@ -2,7 +2,7 @@
 include_once 'include/db_object.class.php';
 class Person_Group_Category extends db_object
 {
-	var $_save_permission_level = PERM_MANAGEGROUPCATS;
+	protected $_save_permission_level = PERM_MANAGEGROUPCATS;
 
 	public function __construct($id=NULL) {
 		parent::__construct($id);
