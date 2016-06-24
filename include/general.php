@@ -450,7 +450,7 @@ function print_widget($name, $params, $value)
 	}
 }
 
-function process_widget($name, $params, $index=NULL)
+function process_widget($name, $params, $index=NULL, $preserveEmpties=FALSE)
 {
 	$testVal = $rawVal = array_get($_REQUEST, $name);
 	if (empty($testVal) && $params['type'] == 'date') $testVal = array_get($_REQUEST, $name.'_d');
@@ -461,7 +461,8 @@ function process_widget($name, $params, $index=NULL)
 			$res = Array();
 			foreach ($testVal as $i => $v) {
 				$x = process_widget($name, $params, $i);
-				if (strlen($x)) $res[] = $x;
+				if ($preserveEmpties || strlen($x)) $res[] = $x;
+
 			}
 			return $res;
 		}
