@@ -10,9 +10,23 @@
 @jethroLinkColor: #647196;
 @grayMid: #CCC;
 
+<?php 
+/* production css is in a different directory, so paths need changing*/
+if (isset($productionrun)) {
+	echo '@iconSpritePath:          "resources/img/glyphicons-halflings.png";';
+	echo '@iconWhiteSpritePath:     "resources/img/glyphicons-halflings-white.png";';
+}
+?>
+
 @import "bootstrap.less";
 @import "responsive.less";
-@import "../css/jquery-ui.min.css";
+<?php
+	if (isset($productionrun)) {
+		echo '@import "resources/css/jquery-ui.min.css";';
+	} else {
+		echo '@import "../css/jquery-ui.min.css";';
+	}
+?>
 
 <?php
 /* Load any custom vars from conf.php */
@@ -102,7 +116,13 @@ if (is_readable($confFile)) {
 	margin: 0px;
 	font-size: 20px;
 	line-height: 30px;
-	background: url(../img/jethro-white.png);
+<?php 
+	if (isset($productionrun)) {
+		echo '	background: url(resources/img/jethro-white.png);';
+	} else {
+		echo '  background: url(../img/jethro-white.png);';
+	}
+?>
 	background-repeat: no-repeat;
 	background-position: left center;
 	padding-left: 116px;
@@ -230,7 +250,13 @@ body {
 }
 
 #jethro-nav-toprow .brand {
-	background: url(../img/jethro-white.png);
+<?php 
+	if (isset($productionrun)) {
+		echo '	background: url(resources/img/jethro-white.png);';
+	} else {
+		echo '  background: url(../img/jethro-white.png);';
+	}
+?>
 	background-repeat: no-repeat;
 	background-position: 50% 50%;
 	font-size: 0.01em;

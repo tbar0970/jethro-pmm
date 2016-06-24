@@ -407,7 +407,7 @@ class View_Admin__System_Configuration extends View {
 						<b>These changes have not been saved to a custom CSS file, 
 							so Jethro is building the CSS on every page load.</b>  
 						For production environments you should 
-						<span class="clickable" onclick="TBLib.downloadText($(document.head).find('style[id^=less]').get(0).innerHTML, '<?php echo $customCSSFile; ?>')">download the compiled CSS</span>
+						<a href="<?php echo BASE_URL; ?>resources/less/jethro.less.min.php" download="<?php echo $customCSSFile; ?>">download the compiled CSS</a>
 						and save it in your main Jethro folder.
 						<?php
 					}

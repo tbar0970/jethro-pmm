@@ -1,0 +1,9 @@
+[submodule "resources/minify"]
+	path = resources/minify
+	url = https://github.com/matthiasmullie/minify
+[submodule "resources/path-converter"]
+	path = resources/path-converter
+	url = https://github.com/matthiasmullie/path-converter
+[submodule "resources/lessphp"]
+	path = resources/lessphp
+	url = https://github.com/leafo/lessphp
