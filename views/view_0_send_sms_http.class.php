@@ -72,6 +72,9 @@ class View__Send_SMS_HTTP extends View
     $content = str_replace('_MESSAGE_', urlencode($message), $content);
     $content = str_replace('_RECIPIENTS_COMMAS_', urlencode(implode(',', $mobile_tels)), $content);
     $content = str_replace('_RECIPIENTS_NEWLINES_', urlencode(implode("\n", $mobile_tels)), $content);
+    if(defined('SMS_RECIPIENT_ARRAY_PARAMETER')){
+        $content = str_replace('_RECIPIENTS_ARRAY_', SMS_RECIPIENT_ARRAY_PARAMETER . '[]=' . implode('&' . SMS_RECIPIENT_ARRAY_PARAMETER . '[]=', $mobile_tels), $content);	
+    }    
 			
     $header  = "" . SMS_HTTP_HEADER_TEMPLATE;
     $header  = $header . "Content-Length: ".strlen($content)."\r\n"

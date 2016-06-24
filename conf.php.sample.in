@@ -203,9 +203,11 @@ define('SMS_HTTP_HEADER_TEMPLATE', "");
 // URL of the server to send SMSes through
 define('SMS_HTTP_URL', "");
 
-
-// The format for the send-sms POST request
-// Can contain keywords _USER_MOBILE_ _USER_EMAIL_ _MESSAGE_ _RECIPIENTS_COMMAS_ _RECIPIENTS_NEWLINES_
+// SMS parameter name for recipients array. Use 'number' to have number[]=...&number[]=...
+define('SMS_RECIPIENT_ARRAY_PARAMETER', 'number');                                                               
+                                                                                                               
+// The format for the send-sms POST request                                                                      
+// Can contain keywords _USER_MOBILE_ _USER_EMAIL_ _MESSAGE_ _RECIPIENTS_COMMAS_ _RECIPIENTS_NEWLINES_ _RECIPIENTS_ARRAY_ 
 // eg 'username=abc&password=xyz&to=_RECIPIENTS_COMMAS_&sender=_USER_MOBILE_&message=_MESSAGE_');
 // eg. define('SMS_HTTP_POST_TEMPLATE', 'sender=_USER_MOBILE_&to=_RECIPIENTS_COMMAS_&message=_MESSAGE_');
 // for smsbroadcast.com.au, something like
