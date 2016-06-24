@@ -10,23 +10,20 @@
 @jethroLinkColor: #647196;
 @grayMid: #CCC;
 
+<?php
+$confFile = dirname(dirname(dirname(__FILE__))).'/conf.php';                                                     
+if (is_readable($confFile)) {                                                                                    
+	require_once $confFile;  
+}
+if (defined('BASE_URL')) echo '@jethrobase: "' . BASE_URL . '";';                                                                         
+?>
 @import "bootstrap.less";
 @import "responsive.less";
-<?php
-	if (isset($productionrun)) {
-		echo '@import "resources/css/jquery-ui.min.css";';
-	} else {
-		echo '@import "../css/jquery-ui.min.css";';
-	}
-?>
+@import "@{jethrobase}/resources/css/jquery-ui.min.css";
 
 <?php
 /* Load any custom vars from conf.php */
-$confFile = dirname(dirname(dirname(__FILE__))).'/conf.php';
-if (is_readable($confFile)) {
-	require_once $confFile;
 	if (defined('CUSTOM_LESS_VARS')) echo CUSTOM_LESS_VARS;
-}
 ?>
 
 /* Modify bootstrap vars */
@@ -108,13 +105,7 @@ if (is_readable($confFile)) {
 	margin: 0px;
 	font-size: 20px;
 	line-height: 30px;
-<?php 
-	if (isset($productionrun)) {
-		echo '	background: url(resources/img/jethro-white.png);';
-	} else {
-		echo '  background: url(../img/jethro-white.png);';
-	}
-?>
+	background: url("@{jethrobase}/resources/img/jethro-white.png");
 	background-repeat: no-repeat;
 	background-position: left center;
 	padding-left: 116px;
@@ -239,13 +230,7 @@ body {
 }
 
 #jethro-nav-toprow .brand {
-<?php 
-	if (isset($productionrun)) {
-		echo '	background: url(resources/img/jethro-white.png);';
-	} else {
-		echo '  background: url(../img/jethro-white.png);';
-	}
-?>
+	background: url("@{jethrobase}/resources/img/jethro-white.png");
 	background-repeat: no-repeat;
 	background-position: 50% 50%;
 	font-size: 0.01em;
