@@ -291,7 +291,7 @@ class Action_Plan extends DB_Object
 			$i++;
 		}
 		$addValue = array_get($_POST, 'fields_addvalue', Array());
-		foreach ($_POST['fields_enabled'] as $k => $v) {
+		foreach (array_get($_POST, 'fields_enabled', Array()) as $k => $v) {
 			if (0 === strpos($k, 'custom_')) {
 				$fieldID = substr($k, 7);
 				$field = new Custom_Field($fieldID);
