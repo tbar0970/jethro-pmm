@@ -1973,7 +1973,7 @@ td.run-sheet-comments * {
 	a[href]:after {
 		content: "";
 	}
-	.no-print, .action-cell, .user-detail {
+	.no-print, .action-cell, .user-detail, .selector {
 		display: none;
 	}
 	#jethro-nav, #jethro-nav-toprow, #jethro-nav-toprow h1, #jethro-nav-toprow .brand {

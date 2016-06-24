@@ -79,7 +79,7 @@ class View_Attendance__Display extends View
 	private function _printParams()
 	{
 		?>
-		<form method="get" class="well well-small clearfix form-inline">
+		<form method="get" class="well well-small clearfix form-inline no-print">
 			<input type="hidden" name="view" value="<?php echo $_REQUEST['view']; ?>" />
 			<table class="attendance-config-table">
 				<tr>
@@ -207,7 +207,7 @@ class View_Attendance__Display extends View
 					<?php
 				}
 				?>
-					<th>Actions</th>
+					<th class="action-cell">Actions</th>
 					<th class="narrow selector form-inline"><input type="checkbox" class="select-all" title="Select all" /></th>
 				</tr>
 			</thead>
