@@ -6,8 +6,8 @@ class service extends db_object
 	var $_readings = Array(); // bible readings for the service, fetched from the service_bible_reading table
 	var $_old_readings = Array();
 
-	var $_load_permission_level = 0;
-	var $_save_permission_level = PERM_EDITSERVICE;
+	protected $_load_permission_level = 0;
+	protected $_save_permission_level = PERM_EDITSERVICE;
 
 	public function __construct($id=0)
 	{
@@ -163,6 +163,9 @@ class service extends db_object
 
 	function getRawBibleReadings($type='all')
 	{
+		$type = str_replace('to_', '', $type);
+		if (!in_array($type, Array('all', 'preach', 'read'))) return Array();
+		
 		$candidate_readings = Array();
 		foreach ($this->_readings as $reading) {
 			if (($type == 'all') || ($reading['to_'.$type])) {

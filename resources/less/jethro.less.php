@@ -185,7 +185,7 @@ body {
 	box-shadow: 1px 1px 6px rgba(0,0,0,.2);
 }
 #body {
-	margin: 0px 0px;
+	margin: 0px 10px;
 	max-width: 100%;
 	overflow: visible;
 	z-index: 50;
@@ -201,7 +201,6 @@ body {
 @media (min-width: 1025px) {
 	#jethro-overall-width {
 		/*min-width: 1020px;*/
-		padding-left: 10px;
 	}
 }
 @media (max-width: 1025px) {
@@ -210,9 +209,6 @@ body {
 	}
 	#jethro-nav-toprow {
 		padding-left: 10px !important;
-	}
-	#body {
-		margin: 0px 10px;
 	}
 }
 #jethro-nav-background {
@@ -225,6 +221,7 @@ body {
 
 #jethro-nav-toprow {
 	height: 40px;
+	padding-left: 10px;
 }
 #jethro-nav-toprow h1 {
 	color: @grayLighter;
@@ -1161,6 +1158,9 @@ ul.nav-tabs {
   box-shadow: 3px 3px 10px rgba(0,0,0,.2);
 	width: auto;
 }
+#body table.roster a {
+	white-space: nowrap;
+}
 #body table.roster ul.multi-person-finder {
 	margin-bottom: 0px;
 	margin-top: 0px;
@@ -1192,7 +1192,7 @@ ul.nav-tabs {
 	margin-bottom: 0px;
 }
 table.roster select.unlisted-allocee, #body table.roster select option.unlisted-allocee {
-	color: red;
+	color: orange;
 }
 table.roster select.unlisted-allocee option {
 	color: @jethroDarkText;
@@ -1991,7 +1991,7 @@ td.run-sheet-comments * {
 	a[href]:after {
 		content: "";
 	}
-	.no-print, .action-cell, .user-detail {
+	.no-print, .action-cell, .user-detail, .selector {
 		display: none;
 	}
 	#jethro-nav, #jethro-nav-toprow, #jethro-nav-toprow h1, #jethro-nav-toprow .brand {

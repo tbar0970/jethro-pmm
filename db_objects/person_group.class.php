@@ -2,7 +2,7 @@
 include_once 'include/db_object.class.php';
 class Person_Group extends db_object
 {
-	var $_save_permission_level = PERM_EDITGROUP;
+	protected $_save_permission_level = PERM_EDITGROUP;
 
 	protected static function _getFields()
 	{

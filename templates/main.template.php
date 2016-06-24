@@ -34,7 +34,7 @@
 							</a>
 							<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="user-menu">
 								<li><a href="?view=_edit_me">Edit me</a></li>
-								<li><a href="?logout=1" data-method="post">Log out</a></li>
+								<li><a href="./?logout=1" data-method="post">Log out</a></li>
 							</ul>
 						</span>
 

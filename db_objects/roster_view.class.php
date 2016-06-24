@@ -4,11 +4,13 @@ include_once 'include/bible_ref.class.php';
 include_once 'db_objects/service.class.php';
 class roster_view extends db_object
 {
-	var $_members = Array();
-	var $_members_to_set = Array();
+	private $_members = Array();
+	private $_members_to_set = Array();
 
-	var $_load_permission_level = NULL;
-	var $_save_permission_level = PERM_MANAGEROSTERS;
+	protected $_load_permission_level = NULL;
+	protected $_save_permission_level = PERM_MANAGEROSTERS;
+
+	const hiddenPersonLabel = '(Hidden)';
 
 	/**
 	* Get all the congregations related to this view
@@ -344,13 +346,22 @@ class roster_view extends db_object
 		if (empty($roleids)) return Array();
 		if (empty($start_date)) $start_date = date('Y-m-d');
 		if (empty($end_date)) $end_date = date('Y-m-d', strtotime('+1 year'));
+
+		// Normally any assignments involving a person the current user cannot see
+		// will be shown as "Hidden".  BUT if this roster is public, we might as well
+		// show all names all the time.  But even if it's public we need to know
+		// which assignments involve 'hidden' persons so we treat them as read-only.
+		$visiblePersonTable = $this->getValue('is_public') ? '_person' : 'person';
+
 		$sql = 'SELECT roster_role_id, assignment_date, rra.personid,
-				CONCAT(assignee.first_name, " ", assignee.last_name) as assignee,
-				assignee.email as email,
+				IFNULL(CONCAT(publicassignee.first_name, " ", publicassignee.last_name), "'.self::hiddenPersonLabel.'") as assignee,
+				IF(privateassignee.id IS NULL, 1, 0) as assigneehidden,
+				privateassignee.email as email,
 				CONCAT(assigner.first_name, " ", assigner.last_name) as assigner, 
 				rra.assignedon
 				FROM roster_role_assignment rra
-				JOIN person assignee ON rra.personid = assignee.id
+				LEFT JOIN person privateassignee ON rra.personid = privateassignee.id
+				LEFT JOIN '.$visiblePersonTable.' publicassignee ON rra.personid = publicassignee.id
 				LEFT JOIN person assigner ON rra.assigner = assigner.id
 				WHERE roster_role_id IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $roleids)).')
 				AND assignment_date BETWEEN '.$GLOBALS['db']->quote($start_date).' AND '.$GLOBALS['db']->quote($end_date);
@@ -362,7 +373,8 @@ class roster_view extends db_object
 				'name' => $row['assignee'],
 				'email' => $row['email'],
 				'assigner' => $row['assigner'],
-				'assignedon' => $row['assignedon']
+				'assignedon' => $row['assignedon'],
+				'assigneehidden' => $row['assigneehidden'],
 			);
 		}
 		return $res;
@@ -584,8 +596,15 @@ class roster_view extends db_object
 			$to_print[$service_details['date']]['service'][$service_details['congregationid']] = $service_details;
 			$to_print[$service_details['date']]['assignments'] = Array();
 		}
+		$haveHidden = FALSE;
 		foreach ($this->getAssignments($start_date, $end_date) as $date => $date_assignments) {
 			$to_print[$date]['assignments'] = $date_assignments;
+			foreach ($date_assignments as $rid => $asns) {
+				foreach ($asns as $pid => $dets) {
+					if ($dets['assigneehidden']) $haveHidden = TRUE;
+					break(2);
+				}
+			}
 		}
 		ksort($to_print);	
 		$role_objects = Array();
@@ -601,6 +620,13 @@ class roster_view extends db_object
 				<?php
 			}
 			return;
+		}
+		if (!$public && $haveHidden) {
+			if ($editing) {
+				print_message("Some allocations can't be edited because they involve persons you do not have permission to view", 'warning');
+			} else {
+				print_message("This roster includes some persons that you do not have permission to view", 'warning');
+			}
 		}
 
 		if ($editing) {
@@ -775,7 +801,11 @@ class roster_view extends db_object
 					<td class="<?php echo $td_class; ?>">
 					<?php
 					if ($mdetail['role_id']) {
-						if ($editing && empty($mdetail['readonly'])) {
+						$haveHidden = FALSE;
+						foreach (array_get($ddetail['assignments'], $mdetail['role_id'], Array()) as $pid => $pdetails) {
+							if ($pdetails['assigneehidden']) $haveHidden = TRUE;
+						}
+						if ($editing && empty($mdetail['readonly']) && !$haveHidden) {
 							$currentval = Array();
 							foreach (array_get($ddetail['assignments'], $mdetail['role_id'], Array()) as $pid => $pdetails) {
 								$currentval[$pid] = $pdetails['name'];
@@ -791,9 +821,9 @@ class roster_view extends db_object
 						} else {
 							$names = Array();
 							foreach (array_get($ddetail['assignments'], $mdetail['role_id'], Array()) as $personid => $vs) {
-								if (!$public) {
+								if (!$public && !$vs['assigneehidden']) {
 									$n = '<a href="'.BASE_URL.'?view=persons&personid='.$personid.'" title="Assigned by '.ents($vs['assigner']).' on '.format_datetime($vs['assignedon']).'">'.nbsp(ents($vs['name'])).'</a>';
-									if (empty($vs['email'])) $n .= '&nbsp;<img src="'.BASE_URL.'resources/img/no_email.png" style="display:inline" title="No Email Address" />';
+									if (('' === $vs['email'])) $n .= '&nbsp;<img src="'.BASE_URL.'resources/img/no_email.png" style="display:inline" title="No Email Address" />';
 									$names[] = $n;
 								} else {
 									$names[] = nbsp($vs['name']);
@@ -991,6 +1021,7 @@ class roster_view extends db_object
 			foreach ($date_allocs as $roleid => $role_allocs) {
 				if (in_array($roleid, $roles)) { // don't delete any allocations for read-only roles!!
 					foreach ($role_allocs as $personid => $person_details) {
+						if ($person_details['assigneehidden']) continue;
 						$del_clauses[] = '(roster_role_id = '.(int)$roleid.' AND assignment_date = '.$GLOBALS['db']->quote($date).' AND personid = '.(int)$personid.')';
 					}
 				}
