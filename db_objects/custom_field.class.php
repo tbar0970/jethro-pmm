@@ -406,8 +406,7 @@ class Custom_Field extends db_object
 	{
 		print_widget('custom_'.$this->id.'[]', $extraParams+$this->getWidgetParams(), $value);
 		if (($this->getValue('type') == 'date') && !empty($this->values['params']['allow_note'])) {
-			$bits = explode(' ', $value);
-			$note = array_get($bits, 1);
+			$note = substr($value, 10);
 			print_widget('custom_'.$this->id.'_note[]', Array('type' => 'text', 'placeholder' => '(Note)'), $note);
 		}
 	}
