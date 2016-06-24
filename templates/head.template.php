@@ -29,15 +29,8 @@ if (file_exists(JETHRO_ROOT.'/'.$customCSSFile)) {
 	// Load LESS and build CSS in the browser.
 	// NB we use an older version of LESS (1.7.5) because bootstrap 2.3 is not compatible with the latest LESS.
 	?>
-	<link rel="stylesheet/less" type="text/css" href="<?php echo BASE_URL; ?>resources/less/jethro.less.php" />
+	<link rel="stylesheet" type="text/css" href="<?php echo BASE_URL; ?>resources/less/jethro.less.live.php" />
 	<link type="text/css" rel="stylesheet" href="<?php echo BASE_URL; ?>resources/css/jquery-ui.css" />
-	<script>
-		less = {
-		  env: "<?php echo $devMode ? "development" : "production"; ?>",
-		  dumpLineNumbers: <?php echo $devMode ? "'comments'" : "false"; ?>
-		};
-	</script>
-	<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/less.js/1.7.5/less.min.js"></script>
 	<?php
 } else {
 	// use packaged combined CSS
