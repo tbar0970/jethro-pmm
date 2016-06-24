@@ -3,6 +3,7 @@ require_once '../lessphp/lib/Less/Autoloader.php';
 
 Less_Autoloader::register();
 
+header('Content-Type: text/css');
 $parser = new Less_Parser();
 ob_start();
 include './jethro.less.php';
