@@ -350,7 +350,7 @@ class View_Attendance__Display extends View
 		if ($this->age_brackets) $params['(age_bracket'] = $this->age_brackets;
 		if ($this->statuses) $params['(status'] = $this->statuses;
 		
-		$all_persons = Attendance_Record_Set::getPersonIDsForCohorts($this->cohortids);
+		$all_persons = Attendance_Record_Set::getPersonDataForCohorts($this->cohortids, $params);
 		$all_dates = $all_attendances = $all_totals = $all_headcounts = Array();
 		if (!empty($this->cohortids)) {
 			foreach ($this->cohortids as $cohortid) {
