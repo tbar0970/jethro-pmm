@@ -163,6 +163,9 @@ class service extends db_object
 
 	function getRawBibleReadings($type='all')
 	{
+		$type = str_replace('to_', '', $type);
+		if (!in_array($type, Array('all', 'preach', 'read'))) return Array();
+		
 		$candidate_readings = Array();
 		foreach ($this->_readings as $reading) {
 			if (($type == 'all') || ($reading['to_'.$type])) {
