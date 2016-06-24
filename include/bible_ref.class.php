@@ -406,7 +406,7 @@ class bible_ref
 	public function getLinkedShortString()
 	{
 		$url = str_replace('__REFERENCE__', $this->toShortString(), BIBLE_URL);
-		return '<a target="bible" href="'.$url.'">'.str_replace(' ', '&nbsp;', $this->toShortString()).'</a>';
+		return '<a target="bible" class="nowrap" href="'.$url.'">'.$this->toShortString().'</a>';
 	}
 
 	public function toCode()
