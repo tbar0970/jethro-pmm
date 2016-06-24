@@ -79,6 +79,9 @@ class View__Send_SMS_HTTP extends View
 			$content = str_replace('_MESSAGE_', urlencode($message), $content);
 			$content = str_replace('_RECIPIENTS_COMMAS_', urlencode(implode(',', $mobile_tels)), $content);
 			$content = str_replace('_RECIPIENTS_NEWLINES_', urlencode(implode("\n", $mobile_tels)), $content);
+			if(defined('SMS_RECIPIENT_PARAMETER')){
+				$content = str_replace('_RECIPIENTS_ARRAY_', SMS_RECIPIENT_PARAMETER . '[]=' . implode('&' . SMS_RECIPIENT_PARAMETER . '[]=', $mobile_tels), $content);	
+			}
 
 			$opts = Array(
 				'http' => Array(
