@@ -12,7 +12,7 @@ if (defined('TIMEZONE') && constant('TIMEZONE')) {
 	        date_default_timezone_set(constant('TIMEZONE'));  
 }
 $datetime = new DateTime();
-$datetime->add(new DateInterval('P1D'));
+$datetime->add(new DateInterval('PT2H'));
 $tsstring = gmdate('D, d M Y H:i:s ', $datetime->getTimestamp()) . 'GMT';
 header('Content-Type: text/css');                                                                                                                            
 header("Expires: " . $tsstring);
