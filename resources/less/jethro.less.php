@@ -1140,6 +1140,9 @@ ul.nav-tabs {
   box-shadow: 3px 3px 10px rgba(0,0,0,.2);
 	width: auto;
 }
+#body table.roster a {
+	white-space: nowrap;
+}
 #body table.roster ul.multi-person-finder {
 	margin-bottom: 0px;
 	margin-top: 0px;

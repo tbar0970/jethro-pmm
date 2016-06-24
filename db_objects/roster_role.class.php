@@ -117,7 +117,7 @@ class Roster_Role extends db_object
 	/**
 	* Print a widget for choosing people to fulfill this role, using the volunteer group if applicable
 	*/
-	function printChooser($date, $currentval=Array(''), $readonly=FALSE)
+	function printChooser($date, $currentval=Array(''))
 	{
 		if ($groupid = $this->getValue('volunteer_group')) {
 			$volunteers = $this->_getVolunteers();
@@ -127,7 +127,6 @@ class Roster_Role extends db_object
 				<table class="expandable no-borders no-padding">
 				<?php
 				foreach ($currentval as $id => $name) {
-					// TODO: implement readonly here
 					?>
 					<tr><td>
 					<select name="assignees[<?php echo $this->id; ?>][<?php echo $date; ?>][]">
