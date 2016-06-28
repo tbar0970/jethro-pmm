@@ -157,7 +157,7 @@ class View_Home extends View
                                             $occassion_date = date_format(date_create($special_date['occassion_date']), 'j M') ;
                                             ?>
                                                         <tr>
-                                                            <td><a href="?view=persons&personid=<?php echo $personid; ?>"><i class="icon-<?php echo $icon; ?>"></i> <?php echo $special_date['person_name']; ?></a></td>
+                                                            <td><a href="?view=persons&personid=<?php echo $personid; ?>"><i class="icon-person"></i> <?php echo $special_date['person_name']; ?></a></td>
                                                             <td><?php echo $occassion_date; ?></td>
                                                             <td><?php echo $occassion; ?></td>
                                                         </tr>
