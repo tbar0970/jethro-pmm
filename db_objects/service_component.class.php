@@ -1,8 +1,8 @@
 <?php
 class Service_Component extends db_object
 {
-	var $_load_permission_level = PERM_VIEWSERVICE;
-	var $_save_permission_level = PERM_EDITSERVICE;
+	protected $_load_permission_level = PERM_VIEWSERVICE;
+	protected $_save_permission_level = PERM_EDITSERVICE;
 
 	function __construct($id=0)
 	{

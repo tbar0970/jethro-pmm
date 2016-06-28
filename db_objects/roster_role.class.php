@@ -2,8 +2,8 @@
 include_once 'include/db_object.class.php';
 class Roster_Role extends db_object
 {
-	var $_load_permission_level = NULL;
-	var $_save_permission_level = PERM_MANAGEROSTERS;
+	protected $_load_permission_level = NULL;
+	protected $_save_permission_level = PERM_MANAGEROSTERS;
 	var $_volunteers = NULL;
 
 	function __construct($id=NULL) {

@@ -2,7 +2,7 @@
 include_once 'include/db_object.class.php';
 class Custom_Field extends db_object
 {
-	var $_save_permission_level = PERM_SYSADMIN;
+	protected $_save_permission_level = PERM_SYSADMIN;
 
 	public function __construct($id=NULL) {
 		parent::__construct($id);
@@ -406,8 +406,7 @@ class Custom_Field extends db_object
 	{
 		print_widget('custom_'.$this->id.'[]', $extraParams+$this->getWidgetParams(), $value);
 		if (($this->getValue('type') == 'date') && !empty($this->values['params']['allow_note'])) {
-			$bits = explode(' ', $value);
-			$note = array_get($bits, 1);
+			$note = substr($value, 11);
 			print_widget('custom_'.$this->id.'_note[]', Array('type' => 'text', 'placeholder' => '(Note)'), $note);
 		}
 	}
@@ -418,13 +417,14 @@ class Custom_Field extends db_object
 	 */
 	public function processWidget()
 	{
-		$res = process_widget('custom_'.$this->id, $this->getWidgetParams());
+		$res = process_widget('custom_'.$this->id, $this->getWidgetParams(), NULL, TRUE);
 		if (($this->getValue('type') == 'date') && !empty($this->values['params']['allow_note'])) {
-			$notes = process_widget('custom_'.$this->id.'_note', Array('type' => 'text'));
+			$notes = process_widget('custom_'.$this->id.'_note', Array('type' => 'text'), NULL, TRUE);
 			foreach ((array)$notes as $k => $v) {
-				if (!empty($res[$k])) $res[$k] .= ' '.$v;
+				if (!empty($res[$k]) && strlen($v)) $res[$k] .= ' '.$v;
 			}
 		}
+		$res = array_remove_empties($res);
 		return $res;
 	}
 

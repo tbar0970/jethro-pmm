@@ -3,7 +3,7 @@ $in_group = (array_get($_REQUEST, 'view') == 'groups') && (!empty($_REQUEST['gro
 $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid')); 
 ?>
 
-<div class="form-horizontal bulk-actions">
+<div class="form-horizontal bulk-actions no-print">
 	With selected people: 
 		<select id="bulk-action-chooser">
 			<option>-- Choose Action --</option>

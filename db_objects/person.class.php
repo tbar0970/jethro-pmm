@@ -3,7 +3,7 @@ include_once 'include/db_object.class.php';
 include_once 'include/size_detector.class.php';
 class Person extends DB_Object
 {
-	var $_save_permission_level = PERM_EDITPERSON;
+	protected $_save_permission_level = PERM_EDITPERSON;
 	var $_photo_data = NULL;
 	var $_custom_values = Array();
 	var $_old_custom_values = Array();
