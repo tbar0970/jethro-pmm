@@ -8,7 +8,7 @@ class View__Send_SMS_HTTP extends View
 
 	function printView() 
 	{
-                require_once('/include/sms_sender.class.php');
+                require_once('include/sms_sender.class.php');
                 $SMS = new SMS_Sender();
                 
 		$recips = $successes = $failures = $archived = $blanks = Array();
