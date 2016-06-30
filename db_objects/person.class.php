@@ -237,7 +237,12 @@ class Person extends DB_Object
 				if (SizeDetector::isNarrow()) {
 					// Probably a phone - use a plain sms: link
 					$smsLink = 'href="sms:'.ents($value).'"';
-				} else if (defined('SMS_HTTP_URL') && constant('SMS_HTTP_URL') && $GLOBALS['user_system']->havePerm(PERM_SENDSMS)) {
+				} else if (
+						defined('SMS_HTTP_URL')
+						&& constant('SMS_HTTP_URL')
+						&& $GLOBALS['user_system']->havePerm(PERM_SENDSMS)
+						&& $_REQUEST['view'] == 'persons'  // TODO: make this modal work in reports too - issue #139
+					) {
 					// Provide a link to send SMS through the SMS gateway
 					?>
 					<div id="send-sms-modal" class="modal hide fade" role="dialog" aria-hidden="true">
