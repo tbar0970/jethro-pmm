@@ -79,7 +79,7 @@ function format_datetime($d)
 
 function format_date($d, $includeYear=NULL)
 {
-	if ($d == '0000-00-00') return '';	
+	if ($d == '0000-00-00') return '';
 	$yearless = is_string($d) && ($d[0] == '-');
 	if (!is_int($d)) {
 		$d = strtotime($yearless ? "2012{$d}" : $d);

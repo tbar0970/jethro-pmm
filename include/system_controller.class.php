@@ -123,9 +123,17 @@ class System_Controller
 				$this->_view = new $view_classname();
 				$this->_view->processView();
 			}
-			require $this->_base_dir.'/templates/main.template.php';
+			if ($this->is_ajax() || !empty($_REQUEST['ajax'])) {
+				require $this->_base_dir.'/templates/ajax.template.php';
+			} else {
+				require $this->_base_dir.'/templates/main.template.php';
+			}
 			restore_error_handler();
 		}
+	}
+
+	function is_ajax() {
+		return isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
 	}
 
 	public function getTitle()
@@ -178,6 +186,18 @@ class System_Controller
 			$this->_view->printView();
 		}
 	}
+
+	public function printAjax()
+        {
+                if (is_null($this->_view)) {
+			$result = array();
+			$result['error'] = 'Undefined view';
+			echo json_encode($result);
+                } else {
+                        $this->_view->printAjax();
+                }
+        }
+
 
 	public function includeDBClass($classname)
 	{
