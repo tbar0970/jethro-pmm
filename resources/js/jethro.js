@@ -444,6 +444,17 @@ $(document).ready(function() {
 		JethroServiceProgram.init();
 	}
 
+	// SMS Character counting
+	$('#smscharactercount').parent().find('textarea').on('keyup propertychange paste', function() {
+		var maxlength = $(this).attr("maxlength");
+		var chars = maxlength - $(this).val().length;
+		if (chars <= 0) {
+			$(this).val($(this).val().substring(0, maxlength));
+			chars = 0;
+		}
+		$('#smscharactercount').html(chars + ' characters remaining.');
+	});	
+
 
 });
 
@@ -1162,3 +1173,4 @@ function handleFamilyFormSubmit()
 	}
 	return true;
 }
+
