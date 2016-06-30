@@ -1,28 +1,29 @@
 <?php
 class View__Send_SMS_HTTP extends View
 {
+
 	function getTitle()
 	{
 		return 'Send SMS';
 	}
 
-	function printView() 
+	private function getRecipients()
 	{
-		$recips = $successes = $failures = $archived = $blanks = Array();
+		$recips = $archived = $blanks = Array();
 		if (!empty($_REQUEST['queryid'])) {
-			$query = $GLOBALS['system']->getDBObject('person_query', (int)$_REQUEST['queryid']);
+			$query = $GLOBALS['system']->getDBObject('person_query', (int) $_REQUEST['queryid']);
 			$personids = $query->getResultPersonIDs();
 			$recips = $GLOBALS['system']->getDBObjectData('person', Array('(id' => $personids, '!mobile_tel' => '', '!status' => 'archived'), 'AND');
 			$blanks = $GLOBALS['system']->getDBObjectData('person', Array('(id' => $personids, 'mobile_tel' => '', '!status' => 'archived'), 'AND');
 			$archived = $GLOBALS['system']->getDBObjectData('person', Array('(id' => $personids, 'status' => 'archived'), 'AND');
 		} else if (!empty($_REQUEST['groupid'])) {
-			$group = $GLOBALS['system']->getDBObject('person_group', (int)$_REQUEST['groupid']);
+			$group = $GLOBALS['system']->getDBObject('person_group', (int) $_REQUEST['groupid']);
 			$personids = array_keys($group->getMembers());
 			$recips = $GLOBALS['system']->getDBObjectData('person', Array('(id' => $personids, '!mobile_tel' => '', '!status' => 'archived'), 'AND');
 			$blanks = $GLOBALS['system']->getDBObjectData('person', Array('(id' => $personids, 'mobile_tel' => '', '!status' => 'archived'), 'AND');
 			$archived = $GLOBALS['system']->getDBObjectData('person', Array('(id' => $personids, 'status' => 'archived'), 'AND');
 		} else if (!empty($_REQUEST['roster_view'])) {
-			$view = $GLOBALS['system']->getDBObject('roster_view', (int)$_REQUEST['roster_view']);
+			$view = $GLOBALS['system']->getDBObject('roster_view', (int) $_REQUEST['roster_view']);
 			$recips = $view->getAssignees($_REQUEST['start_date'], $_REQUEST['end_date']);
 			foreach ($recips as $i => $details) {
 				if ($details['status'] == 'archived') {
@@ -53,84 +54,67 @@ class View__Send_SMS_HTTP extends View
 					break;
 			}
 		}
+		return Array($recips, $blanks, $archived);
+	}
+
+	function saveAsNote($recipients, $message)
+	{
+		$GLOBALS['system']->includeDBClass('person_note');
+		$subject = ifdef('SMS_SAVE_TO_NOTE_SUBJECT', 'SMS Sent');
+		foreach ($recipients as $id => $details) {
+			// Add a note containing the SMS to the user
+			$note = new Person_Note();
+			$note->setValue('subject', $subject);
+			$note->setvalue('details', '"'.$message.'"');
+			$note->setValue('personid', $id);
+			if (!$note->create()) {
+				add_message('Failed to save SMS as a note.');
+			}
+		}
+	}
+
+	public function printView()
+	{
+		$recips = $successes = $failures = $archived = $blanks = Array();
+		list($recips, $blanks, $archived) = $this->getRecipients();
 
 		if (empty($recips)) {
 			print_message("Did not find any recipients with mobile numbers.  Message not sent.", 'error');
 		} else {
-
-			$mobile_tels = array();
-			foreach ($recips as $recip) {
-				$mobile_tels[$recip['mobile_tel']] = 1;
-			}
-			$mobile_tels = array_keys($mobile_tels);
-
-			$message = array_get($_POST, 'message');
-			// Known issue: if their session was timed out when they entered the message,
-			// the message is not propagated after they submit the login form, so they'll get the
-			// "message is empty" error here.
+			$message = $_POST['message'];
 			if (empty($message) || strlen($message) > SMS_MAX_LENGTH) {
 				print_message("Your message is empty or too long", "error");
 				return;
 			}
 
-			$content = SMS_HTTP_POST_TEMPLATE;
-			$content = str_replace('_USER_MOBILE_', urlencode($GLOBALS['user_system']->getCurrentUser('mobile_tel')), $content);
-			$content = str_replace('_USER_EMAIL_', urlencode($GLOBALS['user_system']->getCurrentUser('email')), $content);
-			$content = str_replace('_MESSAGE_', urlencode($message), $content);
-			$content = str_replace('_RECIPIENTS_COMMAS_', urlencode(implode(',', $mobile_tels)), $content);
-			$content = str_replace('_RECIPIENTS_NEWLINES_', urlencode(implode("\n", $mobile_tels)), $content);
-
-			$opts = Array(
-				'http' => Array(
-					'method'	=> 'POST',
-					'content'	=> $content,
-					'header'	=> "Content-Length: ".strlen($content)."\r\n"
-									."Content-Type: application/x-www-form-urlencoded\r\n"
-				)
-			);
-			$response = '';
-			$fp = fopen(SMS_HTTP_URL, 'r', false, stream_context_create($opts));
-			if ($fp) {
-				$response = stream_get_contents($fp);
-				fclose($fp);
-			}
-
-			if (empty($response)) {
+			$sendResponse = SMS_Sender::send($message, $recips);
+			$success = $sendResponse['success'];
+			$successes = $sendResponse['successes'];
+			$failures = $sendResponse['failures'];
+			if (!$success) {
 				add_message('Failed communicating with SMS server - please check your config', 'failure');
 				return;
 			}
-
-			$response = str_replace("\r", '', $response);
-			if (SMS_HTTP_RESPONSE_OK_REGEX) {
-				foreach ($recips as $id => $recip) {
-					$pattern = '/'.str_replace('_RECIPIENT_', preg_quote($recip['mobile_tel']), SMS_HTTP_RESPONSE_OK_REGEX).'/m';
-
-					if (preg_match($pattern, $response)) { 
-						$successes[$id] = $recip;
-					} else {
-						$failures[$id] = $recip;
-					}
-				}
+			if ((!empty($successes)) || (!empty($failures))) {
 				if (!empty($successes)) {
-					print_message('SMS sent successfully to '.count($successes).' recipients');
-					$this->logSuccess(count($successes), $message);
+					print_message('SMS sent successfully to ' . count($successes) . ' recipients');
+					$this->saveAsNote($successes, $message);
 				}
 				if (!empty($failures)) {
-					print_message('SMS sending failed for '.count($failures).' recipients', 'failure');
+					print_message('SMS sending failed for ' . count($failures) . ' recipients', 'failure');
 					?>
-					<p><b>Sending an SMS to the following recipients failed.  <span class="clickable" onclick="$('#response').toggle()">Show server response</span></b></p>
-					<div class="hidden standard" id="response"><?php bam($response); ?></div>
+					<p><b>Sending an SMS to the following recipients failed.  <span class="clickable" onclick="$('#response').toggle()">Show technical details</span></b></p>
+					<div style="display: none" class="well error" id="response"><?php bam($sendResponse['rawrequest']); bam($sendResponse['rawresponse']) ?></div>
 					<?php
 					$persons = $failures;
 					require 'templates/person_list.template.php';
 				}
 			} else {
 				// No check of the response - give a less confident success message
-				print_message('SMS sent to '.count($recips).' recipients');
-				$this->logSuccess(count($recips), $message);
+				print_message('SMS dispatched to ' . count($recips) . ' recipients');
 				?>
 				<span class="clickable" onclick="$('#response').toggle()">Show SMS server response</span></b></p>
-				<div class="hidden standard" id="response"><?php bam($response); ?></div>
+				<div class="hidden standard" id="response"><?php $response; ?></div>
 				<?php
 			}
 		}
@@ -157,12 +141,5 @@ class View__Send_SMS_HTTP extends View
 		}
 	}
 
-	function logSuccess($recip_count, $message) {
-		if (defined('SMS_SEND_LOGFILE') && ($file = constant('SMS_SEND_LOGFILE'))) {
-			$msg_trunc = strlen($message) > 30 ? substr($message, 0, 27).'...' : $message;
-			error_log(date('Y-m-d H:i').': '.$GLOBALS['user_system']->getCurrentUser('username').' (#'.$GLOBALS['user_system']->getCurrentUser('id').') to '.(int)$recip_count.' recipients: "'.$msg_trunc."\"\n", 3, $file);
-		}
-	}
-	
 }
 ?>

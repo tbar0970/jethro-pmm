@@ -8,6 +8,11 @@ function array_get($array, $index, $alt=NULL)
 	}
 }
 
+function ifdef($constantName, $fallback=NULL)
+{
+	return defined($constantName) ? constant($constantName) : $fallback;
+}
+
 function array_remove_empties($ar)
 {
 	$res = Array();
