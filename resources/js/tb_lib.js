@@ -95,10 +95,10 @@ $(document).ready(function() {
 		var myLinks = t.find('a, input');
 		if (!myLinks.length) {
 			childLinks = $(this).parent('tr').find('a');
-			if (childLinks.length) {
+			if (childLinks.length == 1) {
 				self.location = childLinks[0].href;
 			}
-		} else if (myLinks.filter('a').length) {
+		} else if (myLinks.filter('a').length == 1) {
 			self.location = myLinks[0].href;
 		}
 	});
