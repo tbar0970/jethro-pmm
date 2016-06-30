@@ -3,7 +3,7 @@
 class SMS_Send
 {
     
-  function hasmobile_tel($recips) {
+  private function hasmobile_tel($recips) {
     $mobile_tels = Array();
     if (!empty($recips)) {
       foreach ($recips as $recip) {
