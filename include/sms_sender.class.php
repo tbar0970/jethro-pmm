@@ -23,7 +23,7 @@ class SMS_Sender
     $blanks = $GLOBALS['system']->getDBObjectData('person', Array('(id' => $personids, 'mobile_tel' => '', '!status' => 'archived'), 'AND');
     $archived = $GLOBALS['system']->getDBObjectData('person', Array('(id' => $personids, 'status' => 'archived'), 'AND');
     
-    $mobile_tels = hasmobile_tel($recips);
+    $mobile_tels = $this->hasmobile_tel($recips);
     return Array($recips,$blanks,$archived,$mobile_tels);
   }
   
@@ -35,7 +35,7 @@ class SMS_Sender
     $blanks = $GLOBALS['system']->getDBObjectData('person', Array('(id' => $personids, 'mobile_tel' => '', '!status' => 'archived'), 'AND');
     $archived = $GLOBALS['system']->getDBObjectData('person', Array('(id' => $personids, 'status' => 'archived'), 'AND');
     
-    $mobile_tels = hasmobile_tel($recips);
+    $mobile_tels = $this->hasmobile_tel($recips);
     return Array($recips,$blanks,$archived,$mobile_tels);
   }
   
@@ -53,7 +53,7 @@ class SMS_Sender
       }
     }  
     
-    $mobile_tels = hasmobile_tel($recips);
+    $mobile_tels = $this->hasmobile_tel($recips);
     return Array($recips,$blanks,$archived,$mobile_tels);
   }
   
@@ -78,7 +78,7 @@ class SMS_Sender
           break;
       }
 
-    $mobile_tels = hasmobile_tel($recips);
+    $mobile_tels = $this->hasmobile_tel($recips);
     return Array($recips,$blanks,$archived,$mobile_tels);
   }
 

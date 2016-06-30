@@ -12,15 +12,14 @@ class View__Send_SMS_HTTP extends View
                 $SMS = new SMS_Sender();
                 
 		$recips = $successes = $failures = $archived = $blanks = Array();
-		
 		if (!empty($_REQUEST['queryid'])) {
                     list($recips,$blanks,$archived,$mobile_tels) = $SMS->getRecipientsForQuery((int)$_REQUEST['queryid']); 
 		} else if (!empty($_REQUEST['groupid'])) {
                     list($recips,$blanks,$archived,$mobile_tels) = $SMS->getRecipientsForGroup((int)$_REQUEST['groupid']); 
 		} else if (!empty($_REQUEST['roster_view'])) {
-                    list($recips,$blanks,$archived,$mobile_tels) = $SMS->getRecipientsForGroup((int)$_REQUEST['roster_view'],$_REQUEST['start_date'], $_REQUEST['end_date']); 
+                    list($recips,$blanks,$archived,$mobile_tels) = $SMS->getRecipientsForRoster((int)$_REQUEST['roster_view'],$_REQUEST['start_date'], $_REQUEST['end_date']); 
 		} else {
-                    list($recips,$blanks,$archived,$mobile_tels) = $SMS->getRecipientsForGroup(array_get($_REQUEST, 'sms_type'), $_POST['personid']); 
+                    list($recips,$blanks,$archived,$mobile_tels) = $SMS->getRecipients(array_get($_REQUEST, 'sms_type'), $_POST['personid']); 
 		}
 
 		if (empty($recips)) {
