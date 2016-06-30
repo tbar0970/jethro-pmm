@@ -79,7 +79,6 @@
 
 		</div>
 		<div id="body">
-			<div id="alert" class="alert hide"></div>
 			<?php 
 			
 			dump_messages(); 

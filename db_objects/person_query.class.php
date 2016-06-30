@@ -839,6 +839,7 @@ class Person_Query extends DB_Object
 							if ($values['criteria'] == 'anniversary') {
 								$qFromYear = $db->quote(substr($from, 0, 4));
 								$qToYear = $db->quote(substr($to, 0, 4));
+								
 								$w[] = "$valExp LIKE '-%' AND (
 											CONCAT($qFromYear, $valExp) $betweenExp
 											OR CONCAT($qToYear, $valExp) $betweenExp
@@ -1196,6 +1197,7 @@ class Person_Query extends DB_Object
 
 		$sql = $this->getSQL();
 		if (is_null($sql)) return;
+
 		if ($format == 'html' && in_array('checkbox', $params['show_fields'])) {
 			echo '<form method="post" enctype="multipart/form-data" class="bulk-person-action">';
 		}
@@ -1211,12 +1213,10 @@ class Person_Query extends DB_Object
 			$this->_printResultGroups($res, $params, $format);
 		}
 
-		if (($format == 'html') && in_array('checkbox', $params['show_fields'])) {
-			if ($res) {
-				echo '<div class="no-print">';
-				include 'templates/bulk_actions.template.php';
-				echo '</div>';
-			}
+		if ($res && ($format == 'html') && in_array('checkbox', $params['show_fields'])) {
+			echo '<div class="no-print">';
+			include 'templates/bulk_actions.template.php';
+			echo '</div>';
 			echo '</form>';
 		}
 	}
@@ -1369,7 +1369,7 @@ class Person_Query extends DB_Object
 								break;
 							case 'checkbox':
 								?>
-								<input data-personid="<?php echo $row[$label]; ?>" name="personid[]" type="checkbox" value="<?php echo $row[$label]; ?>" class="no-print" />
+								<input name="personid[]" type="checkbox" value="<?php echo $row[$label]; ?>" class="no-print" />
 								<?php
 								break;
 							case 'photo':
@@ -1384,7 +1384,7 @@ class Person_Query extends DB_Object
 									$var = $label[0] == 'p' ? '_dummy_person' : '_dummy_family';
 									$fieldname = substr($label, 2);
 									$this->$var->setValue($fieldname, $val);
-									$this->$var->printFieldValueForPerson($row['view_link'],$fieldname);
+									$this->$var->printFieldValue($fieldname);
 								} else if (0 === strpos($label, self::CUSTOMFIELD_PREFIX)) {
 									echo nl2br(ents($this->_formatCustomFieldValue($val, substr($label, strlen(self::CUSTOMFIELD_PREFIX)))));
 								} else {
@@ -1446,9 +1446,6 @@ class Person_Query extends DB_Object
 		}
 		if ($heading == 'checkbox') {
 			$class_list[] = 'selector narrow';
-		}
-		if ($heading == 'p.mobile_tel') {
-			$class_list[] = 'nonclickable-cell';
 		}
 		$classes = empty($class_list) ? '' : ' class="'.implode(' ', $class_list).'"';
 		return $classes;

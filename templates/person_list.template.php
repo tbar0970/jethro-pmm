@@ -107,7 +107,7 @@ if ($show_actions) {
 			}
 			?>
 			</td>
-			<td class="selector"><input data-personid="<?php echo $id; ?>" name="personid[]" type="checkbox" value="<?php echo $id; ?>" /></td>
+			<td class="selector"><input name="personid[]" type="checkbox" value="<?php echo $id; ?>" /></td>
 			<?php
 		}
 		?>

@@ -10,8 +10,6 @@ class View_Families__List_All extends View
 		$params = Array();
 		if (empty($_REQUEST['show_archived'])) {
 			$params['!status'] = 'archived';
-		} else {
-			$params['!status'] = '';
 		}
 		if (empty($_SESSION['total_families'])) {
 			$_SESSION['total_families'] = $GLOBALS['db']->queryOne('SELECT count(familyid) from family f join person p on p.familyid = f.id');
