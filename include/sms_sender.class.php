@@ -1,5 +1,5 @@
 <?php
-class SMS_Sender
+Class SMS_Sender
 {
     /**
     * Get Recipients from a query
