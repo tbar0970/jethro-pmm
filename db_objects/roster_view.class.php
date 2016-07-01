@@ -775,12 +775,12 @@ class roster_view extends db_object
 									));
 									?>
 									<form method="post" action="<?php echo $url; ?>" style="position: absolute; display: none">
-										<div class="standard" style="border-width: 2px; border-radius: 8px">
+										<div class="well well-small">
 										<h3>Send SMS</h3>
 										<textarea name="message" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
 										<br />
-										<input type="submit" value="Send" />
-										<input type="button" onclick="$(this).parents('form').toggle(); $(this).parents('tr:first').removeClass('tblib-hover')" value="Cancel" />
+										<input class="btn" type="submit" value="Send" />
+										<input class="btn" type="button" onclick="$(this).parents('form').toggle(); $(this).parents('tr:first').removeClass('tblib-hover')" value="Cancel" />
 										</div>
 									</form>
 									<?php
