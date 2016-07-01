@@ -286,11 +286,15 @@ class System_Controller
 		<?php
 		if ($send_email && defined('ERRORS_EMAIL_ADDRESS') && constant('ERRORS_EMAIL_ADDRESS')) {
 			$content = "$errstr \nLine $errline of $errfile\n\n";
-			if (!empty($GLOBALS['user_system'])) $content .= "Current user: ".$GLOBALS['user_system']->getCurrentUser('username');
-			$content .= "\n\nRequest: ".print_r($_REQUEST,1)."\n\n";
-			$content .= 'Referer: '.array_get($_SERVER, 'HTTP_REFERER', '')."\n\n";
+			if (!empty($GLOBALS['user_system'])) $content .= "USER:       ".$GLOBALS['user_system']->getCurrentUser('username')."\n";
+			$content .= 'REFERER:    '.array_get($_SERVER, 'HTTP_REFERER', '')."\n";
+			$content .= 'USER_AGENT: '.array_get($_SERVER, 'HTTP_USER_AGENT', '')."\n\n";
+			$safe_request = $_REQUEST;
+			unset($safe_request['password']);
+			$content .= "REQUEST: \n".print_r($safe_request,1)."\n\n";
+			$content .= "BACKTRACE:\n";
 			$content .= print_r($bt, 1);
-			@mail(constant('ERRORS_EMAIL_ADDRESS'), 'Jethro Error from '.build_url(array()), $content);
+			@mail(constant('ERRORS_EMAIL_ADDRESS'), 'Jethro Error from '.BASE_URL, $content);
 		}
 		if ($send_email) error_log("$errstr - Line $errline of $errfile");
 		if ($exit) exit();

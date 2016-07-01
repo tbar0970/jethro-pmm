@@ -1,26 +1,20 @@
 <?php
 class View__Send_SMS_HTTP extends View
 {
+
 	function getTitle()
 	{
 		return 'Send SMS';
 	}
 
-	function printView() 
+
+	public function printView()
 	{
                 require_once('include/sms_sender.class.php');
                 $SMS = new SMS_Sender();
                 
 		$recips = $successes = $failures = $archived = $blanks = Array();
-		if (!empty($_REQUEST['queryid'])) {
-                    list($recips,$blanks,$archived,$mobile_tels) = $SMS->getRecipientsForQuery((int)$_REQUEST['queryid']); 
-		} else if (!empty($_REQUEST['groupid'])) {
-                    list($recips,$blanks,$archived,$mobile_tels) = $SMS->getRecipientsForGroup((int)$_REQUEST['groupid']); 
-		} else if (!empty($_REQUEST['roster_view'])) {
-                    list($recips,$blanks,$archived,$mobile_tels) = $SMS->getRecipientsForRoster((int)$_REQUEST['roster_view'],$_REQUEST['start_date'], $_REQUEST['end_date']); 
-		} else {
-                    list($recips,$blanks,$archived,$mobile_tels) = $SMS->getRecipients(array_get($_REQUEST, 'sms_type'), $_POST['personid']); 
-		}
+		list($recips, $blanks, $archived) = $SMS::getRecipients();
 
 		if (empty($recips)) {
 			print_message("Did not find any recipients with mobile numbers.  Message not sent.", 'error');
@@ -34,7 +28,7 @@ class View__Send_SMS_HTTP extends View
                             return;
                     }
                     
-                    $sendResponse = $SMS->sendSMS($message,$recips,$mobile_tels);
+                    $sendResponse = $SMS::sendMessage($message,$recips);
                     $success = $sendResponse['success'];
                     $successes = $sendResponse['successes'];
                     $failures = $sendResponse['failures'];
@@ -91,12 +85,5 @@ class View__Send_SMS_HTTP extends View
             }
 	}
 
-	function logSuccess($recip_count, $message) {
-		if (defined('SMS_SEND_LOGFILE') && ($file = constant('SMS_SEND_LOGFILE'))) {
-			$msg_trunc = strlen($message) > 30 ? substr($message, 0, 27).'...' : $message;
-			error_log(date('Y-m-d H:i').': '.$GLOBALS['user_system']->getCurrentUser('username').' (#'.$GLOBALS['user_system']->getCurrentUser('id').') to '.(int)$recip_count.' recipients: "'.$msg_trunc."\"\n", 3, $file);
-		}
-	}
-	
 }
 ?>

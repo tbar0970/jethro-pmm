@@ -86,8 +86,8 @@ class View__Edit_Group extends Abstract_View_Edit_Object
 					} else {
 						add_message('Person removed from group');
 					}
+					$processed = TRUE;
 				}
-				$processed = TRUE;
 				break;
 
 			case 'delete':
