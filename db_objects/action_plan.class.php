@@ -200,22 +200,6 @@ class Action_Plan extends DB_Object
 							}
 							echo '</td></tr>';
 						}
-						/*
-						$dates = array_get($actions, 'dates');
-						if (empty($dates)) $dates = Array('' => '');
-						foreach ($dates as $typeid => $note) {
-							?>
-							<tr>
-								<td class="nowrap">
-								Set 
-								<?php print_widget('datetypes[]', $datetype_params, "$typeid"); ?>
-								to the reference date, with note
-								<?php print_widget('datenotes[]', $datenote_params, $note); ?>
-								</td>
-							</tr>
-							<?php
-						}
-						 */
 						?>
 						</table>
 					</td>
