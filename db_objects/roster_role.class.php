@@ -2,8 +2,8 @@
 include_once 'include/db_object.class.php';
 class Roster_Role extends db_object
 {
-	var $_load_permission_level = NULL;
-	var $_save_permission_level = PERM_MANAGEROSTERS;
+	protected $_load_permission_level = NULL;
+	protected $_save_permission_level = PERM_MANAGEROSTERS;
 	var $_volunteers = NULL;
 
 	function __construct($id=NULL) {
@@ -54,8 +54,6 @@ class Roster_Role extends db_object
 							   ),
 			'details'		=> Array(
 									'type'		=> 'html',
-									'width'		=> 80,
-									'height'	=> 4,
 									'note' => 'These details will be shown when a public user clicks the role name in the public roster'
 								   ),
 			'active'		=> Array(

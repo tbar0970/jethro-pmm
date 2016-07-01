@@ -2,11 +2,11 @@
 include_once 'include/db_object.class.php';
 class Person_Group extends db_object
 {
-	var $_save_permission_level = PERM_EDITGROUP;
+	protected $_save_permission_level = PERM_EDITGROUP;
 
 	protected static function _getFields()
 	{
-		return Array(
+		$fields = Array(
 			'name'		=> Array(
 									'type'		=> 'text',
 									'width'		=> 40,
@@ -27,7 +27,16 @@ class Person_Group extends db_object
 									'label' => 'Status',
 									'default'	=> 0,
 								),
-			'attendance_recording_days'	=> Array(
+			'share_member_details' => Array(
+									'type' => 'select',
+									'options' => Array('No', 'Yes'),
+									'note' => 'If set to yes, members of this group will be able to see other members\' details when they log in to the <a href="'.BASE_URL.'members">member portal</a>'
+								),
+		);
+		// Check if attendance is enabled
+		$enabled = explode(',', ENABLED_FEATURES);
+		if(in_array('ATTENDANCE', $enabled)){
+			 $fields['attendance_recording_days']	= Array(
 									'type'		=> 'bitmask',
 									'options'	=> Array(
 													1	=> 'Sunday',
@@ -43,13 +52,9 @@ class Person_Group extends db_object
 									'cols'		=> 2,
 									'note'		=> 'Select nothing if you do not plan to record attendance for this group',
 									'show_unselected' => FALSE,
-						   ),
-			'share_member_details' => Array(
-									'type' => 'select',
-									'options' => Array('No', 'Yes'),
-									'note' => 'If set to yes, members of this group will be able to see other members\' details when they log in to the <a href="'.BASE_URL.'members">member portal</a>'
-								),
-		);
+						   );
+		}
+		return $fields;
 	}
 
 	function __construct($id=NULL) {

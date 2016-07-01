@@ -5,7 +5,7 @@
 include_once 'db_objects/person.class.php';
 class Staff_Member extends Person
 {
-	var $_save_permission_level = PERM_SYSADMIN; // but see below
+	protected $_save_permission_level = PERM_SYSADMIN; // but see below
 
 	var $_restrictions = Array();
 	var $_old_restrictions = NULL;

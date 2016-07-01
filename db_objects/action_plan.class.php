@@ -200,24 +200,19 @@ class Action_Plan extends DB_Object
 							}
 							echo '</td></tr>';
 						}
-						/*
-						$dates = array_get($actions, 'dates');
-						if (empty($dates)) $dates = Array('' => '');
-						foreach ($dates as $typeid => $note) {
-							?>
-							<tr>
-								<td class="nowrap">
-								Set 
-								<?php print_widget('datetypes[]', $datetype_params, "$typeid"); ?>
-								to the reference date, with note
-								<?php print_widget('datenotes[]', $datenote_params, $note); ?>
-								</td>
-							</tr>
-							<?php
-						}
-						 */
 						?>
 						</table>
+					</td>
+				</tr>
+				<tr>
+					<th>Attendance</th>
+					<td>
+						<input type="hidden" name="mark_present" value="0" />
+						<label class="checkbox">
+							<input type="checkbox" id="mark_present" name="mark_present" value="1" <?php if (array_get($actions, 'attendance')) echo 'checked="checked"'; ?>>
+							When this plan is executed, mark the persons / family members as present at their congregation for the most recent attendance date
+						</label>
+						<p><small>This will only have effect if they are in a congregation. They will be marked present for the most recent date on which attendance has been recorded for that congregation.</small></p>
 					</td>
 				</tr>
 				<tr>
@@ -270,6 +265,7 @@ class Action_Plan extends DB_Object
 					'groups' => Array(),
 					'groups_remove' => Array(),
 					'dates' => Array(),
+					'attendance' => NULL,
 				   );
 		$i = 0;
 		while ($note = $this->_processNoteForm($i)) {
@@ -291,7 +287,7 @@ class Action_Plan extends DB_Object
 			$i++;
 		}
 		$addValue = array_get($_POST, 'fields_addvalue', Array());
-		foreach ($_POST['fields_enabled'] as $k => $v) {
+		foreach (array_get($_POST, 'fields_enabled', Array()) as $k => $v) {
 			if (0 === strpos($k, 'custom_')) {
 				$fieldID = substr($k, 7);
 				$field = new Custom_Field($fieldID);
@@ -311,6 +307,7 @@ class Action_Plan extends DB_Object
 				'add' => array_get($addValue, $k, FALSE)
 			);
 		}
+		$actions['attendance'] = $_POST['mark_present'];
 		$this->setValue('actions', $actions);
 	}
 
@@ -422,11 +419,18 @@ class Action_Plan extends DB_Object
 				}
 				$person->save();
 			}
-			//exit;
 		}
 
-
-
+		if (array_get($actions, 'attendance')) {
+			foreach ($personids as $personid) {
+				$person = $GLOBALS['system']->getDBObject('person', $personid);
+				$congID = $person->getValue('congregationid');
+				if ($congID) {
+					$date = Attendance_Record_Set::getMostRecentDate('c-'.$congID);
+					$person->saveAttendance(Array($date => 1), NULL);
+				}
+			}
+		}
 	}
 
 	public function getValue($name)

@@ -153,7 +153,8 @@ class Attendance_Record_Set
 
 		// NOW FETCH THE APPLICABLE PERSON RECORDS
 		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
-		$conds = Array('!status' => 'archived');
+
+		$conds = Array();
 		if ($this->age_brackets) {
 			$conds['(age_bracket'] = $this->age_brackets;
 		}
@@ -164,6 +165,7 @@ class Attendance_Record_Set
 				$conds[$field][] = $statusID;
 			}
 		}
+		if (!isset($conds['(status'])) $conds['!status'] = 'archived';
 		if ($this->congregationid) {
 			$conds['congregationid'] = $this->congregationid;
 			$this->_persons = $GLOBALS['system']->getDBObjectData('person', $conds, 'AND', $order);
@@ -267,51 +269,7 @@ class Attendance_Record_Set
 		return $obj->canRecordAttendanceOn($this->date);
 	}
 	
-	public static function getPersonIDsForCohorts($cohortids)
-	{
-		$db = $GLOBALS['db'];
-		$groupids = $congids = Array();
-		foreach ($cohortids as $cid) {
-			list($type, $id) = explode('-', $cid);
-			if ($type == 'c') $congids[] = $id;
-			if ($type == 'g') $groupids[] = $id;
-		}
-		$SQL = 'SELECT person.id, person.first_name, person.last_name, person.status, c.id as congregationid, c.name as congregation, '
-				.($groupids ? 'group_concat(pgm.groupid) as groupids' : '"" AS groupids').'
-				FROM person person
-				JOIN family f on person.familyid = f.id
-				LEFT JOIN congregation c ON person.congregationid = c.id
-				';
-		if ($groupids) {
-			$SQL .= '
-				LEFT JOIN person_group_membership pgm 
-					ON pgm.personid = person.id
-					AND pgm.groupid in ('.implode(', ', array_map(Array($db, 'quote'), $groupids)).')
-				LEFT JOIN person_group_membership_status pgms
-					ON pgms.id = pgm.membership_status
-				';
-		}
-		$SQL .= '
-				WHERE
-				';
-		$wheres = Array();
-		if ($congids) $wheres[] = '(person.congregationid IN ('.implode(', ', array_map(Array($db, 'quote'), $congids)).'))';
-		if ($groupids) $wheres[] = '(pgm.groupid IS NOT NULL)';
-		$SQL .= implode(" OR ", $wheres);
-		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
-		// Since we are getting persons for multiple cohorts, "status" has to mean person status here.
-		$order = preg_replace("/(^|[^.])status($| |,)/", '\\1person.status\\2', $order);
-		$SQL .=  "GROUP BY person.id \n";
-		$SQL .= ' ORDER BY '.$order."\n";
-		$res= $db->queryAll($SQL, null, null, true);
-		check_db_result($res);
-		return $res;
-		
-		
-	}
-
-
-	function printForm($prefix=0)
+	public function printForm($prefix=0)
 	{
 		if (empty($this->_persons)) return 0;
 		
@@ -603,7 +561,117 @@ class Attendance_Record_Set
 		return $stats;
 	}
 
-	function getAttendances($congregationids, $groupid, $params, $start_date, $end_date)
+	/**
+	 * Get person data for people in the specified cohorts and params
+	 * @param array	$cohortids	Eg c-1, g-2
+	 * @param array $params		Filters to apply to person, eg age bracket
+	 * @return array
+	 */
+	public static function getPersonDataForCohorts($cohortids, $params)
+	{
+		$db = $GLOBALS['db'];
+		$groupids = $congids = Array();
+		foreach ($cohortids as $cid) {
+			list($type, $id) = explode('-', $cid);
+			if ($type == 'c') $congids[] = $id;
+			if ($type == 'g') $groupids[] = $id;
+		}
+		$SQL = 'SELECT person.id, person.first_name, person.last_name, person.status, c.id as congregationid, c.name as congregation, '
+				.($groupids ? 'group_concat(pgm.groupid) as groupids' : '"" AS groupids').'
+				FROM person person
+				JOIN family f on person.familyid = f.id
+				LEFT JOIN congregation c ON person.congregationid = c.id
+				';
+		if ($groupids) {
+			$SQL .= '
+				LEFT JOIN person_group_membership pgm
+					ON pgm.personid = person.id
+					AND pgm.groupid in ('.implode(', ', array_map(Array($db, 'quote'), $groupids)).')
+				LEFT JOIN person_group_membership_status pgms
+					ON pgms.id = pgm.membership_status
+				';
+		}
+		$SQL .= '
+				WHERE
+				';
+		$wheres = Array();
+		if ($congids) $wheres[] = '(person.congregationid IN ('.implode(', ', array_map(Array($db, 'quote'), $congids)).'))';
+		if ($groupids) $wheres[] = '(pgm.groupid IS NOT NULL)';
+		$SQL .= implode(" OR ", $wheres);
+
+
+		if (!empty($params['(age_bracket'])) {
+			$SQL .= '
+				AND person.age_bracket IN ('.implode(',', array_map(Array($GLOBALS['db'], 'quote'), $params['(age_bracket'])).')';
+		}
+		$statusClauses = Array();
+		foreach (array_get($params, '(status', Array()) as $status) {
+			if (strlen($status)) {
+				list($statusType, $statusID) = explode('-', $status);
+				if (($statusType == 'g') && empty($groupids)) {
+					trigger_error("Cannot filter by group membership status for congregational attendance");
+					return Array(Array(), Array(), Array());
+				}
+				switch ($statusType) {
+					case 'g':
+						$statusClauses[] = 'pgm.membership_status = '.$GLOBALS['db']->quote($statusID);
+						break;
+					case 'p':
+						$statusClauses[] = 'person.status = '.$GLOBALS['db']->quote($statusID);
+						break;
+				}
+			}
+		}
+		if ($statusClauses) {
+			$SQL .= 'AND (('.implode(') OR (', $statusClauses).'))';
+		} else {
+			$SQL .= 'AND (person.status <> "archived")';
+		}
+
+		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
+		// Since we are getting persons for multiple cohorts, "status" has to mean person status here.
+		$order = preg_replace("/(^|[^.])status($| |,)/", '\\1person.status\\2', $order);
+		$SQL .=  "GROUP BY person.id \n";
+		$SQL .= ' ORDER BY '.$order."\n";
+		$res= $db->queryAll($SQL, null, null, true);
+		check_db_result($res);
+		return $res;
+
+
+	}
+
+	public static function getMostRecentDate($cohort)
+	{
+		list($type, $cohortID) = explode('-', $cohort);
+		switch ($type) {
+			case 'c':
+				$SQL = 'SELECT MAX(date)
+						FROM attendance_record a
+						JOIN _person p ON p.id = a.personid
+						WHERE p.congregationid = '.(int)$cohortID.'
+						AND a.groupid = 0';
+				break;
+			case 'g':
+				$SQL = 'SELECT MAX(date)
+						FROM attendance_record a
+						WHERE groupid = '.(int)$cohortID;
+				break;
+		}
+		$res = $GLOBALS['db']->queryOne($SQL);
+		check_db_result($res);
+		return $res;
+	}
+
+	/**
+	 * Get Attendance data for the specified criteria
+	 * @param array $congregationids
+	 * @param int $groupid
+	 * @param array $params		Parameters to restrict person records, eg age bracket and status
+	 * @param string $start_date
+	 * @param string $end_date
+	 * @return array
+	 */
+	public static function getAttendances($congregationids, $groupid, $params, $start_date, $end_date)
 	{
 		$SQL = 'SELECT person.id, person.last_name, person.first_name, '.($groupid ? 'pgms.label AS membership_status, ' : '').' person.status, ar.date, ar.present
 				FROM person person
@@ -630,10 +698,6 @@ class Attendance_Record_Set
 		if ($congregationids) {
 			 $SQL .= '
 				 AND person.congregationid IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congregationids)).') ';
-		}
-		if (array_get($params, 'age_bracket', '') !== '') {
-			$SQL .= '
-				AND person.age_bracket = '.$GLOBALS['db']->quote($params['age_bracket']);
 		}
 		if (!empty($params['(age_bracket'])) {
 			$SQL .= '
