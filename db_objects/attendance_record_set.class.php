@@ -640,6 +640,28 @@ class Attendance_Record_Set
 
 	}
 
+	public static function getMostRecentDate($cohort)
+	{
+		list($type, $cohortID) = explode('-', $cohort);
+		switch ($type) {
+			case 'c':
+				$SQL = 'SELECT MAX(date)
+						FROM attendance_record a
+						JOIN _person p ON p.id = a.personid
+						WHERE p.congregationid = '.(int)$cohortID.'
+						AND a.groupid = 0';
+				break;
+			case 'g':
+				$SQL = 'SELECT MAX(date)
+						FROM attendance_record a
+						WHERE groupid = '.(int)$cohortID;
+				break;
+		}
+		$res = $GLOBALS['db']->queryOne($SQL);
+		check_db_result($res);
+		return $res;
+	}
+
 	/**
 	 * Get Attendance data for the specified criteria
 	 * @param array $congregationids
