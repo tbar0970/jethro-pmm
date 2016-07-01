@@ -157,8 +157,13 @@ $(document).ready(function() {
 		}
 		target = base.find(targetExp);
 		target.hide();
-		var myFilter = '['+$(this).attr('data-match-attr')+'='+this.value+']';
-		target.filter(myFilter).show();
+		var attrName = $(this).attr('data-match-attr');
+		var targetValue = this.value;
+		target.each(function() {
+			if (-1 != $.inArray(targetValue, $(this).attr(attrName).split(' '))) {
+				$(this).show();
+			}
+		})
 	}).change();
 
 	$('[data-toggle=visible]').not('input[type!=checkbox], select').click(function(event) {
