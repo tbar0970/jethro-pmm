@@ -215,9 +215,9 @@ class Person_Query extends DB_Object
 						<td id="custom-value-<?php echo $fieldid; ?>">
 							<div class="select-rule-options" <?php if (!isset($params['custom_fields'][$fieldid])) echo 'style="display: none" '; ?>>
 							<?php
+							$value = array_get($params['custom_fields'], $fieldid, Array());
 							switch ($fieldDetails['type']) {
 								case 'date':
-									$value = array_get($params['custom_fields'], $fieldid, Array());
 									$cparams = Array(
 												'type' => 'select',
 												'options' => Array(
@@ -264,18 +264,58 @@ class Person_Query extends DB_Object
 									<?php
 									break;
 								case 'select':
-									echo 'containing';
+									$cparams = Array(
+												'type' => 'select',
+												'options' => Array(
+													'any' => 'filled in with any value',
+													'empty' => 'not filled in',
+													'contains' => 'with value that contains',
+												),
+												'attrs' => Array(
+													'data-toggle' => 'visible',
+													'data-target' => 'row .multi-select',
+													'data-match-attr' => 'data-select-rule-type'
+												),
+											);
+									print_widget('params_custom_field_'.$fieldid.'_criteria', $cparams, array_get($value, 'criteria'));
+									$vparams = Array(
+										'type' => 'select',
+										'options' => $fieldDetails['options'],
+										'allow_multiple' => true,
+										'attrs' => Array(
+											'data-select-rule-type' => 'contains'
+										)
+									);
 									print_widget(
 										'params_custom_field_'.$fieldid.'_val',
-										Array('type' => 'select', 'options' => $fieldDetails['options'], 'allow_multiple' => true),
-										array_get(array_get($params['custom_fields'], $fieldid, Array()), 'val')
+										$vparams,
+										array_get($value, 'val')
 									);
 									break;
 								case 'text':
-									echo 'equal to ';
+									$cparams = Array(
+												'type' => 'select',
+												'options' => Array(
+													'any' => 'filled in with any value',
+													'empty' => 'not filled in',
+													'equal' => 'with value equal to',
+												),
+												'attrs' => Array(
+													'data-toggle' => 'visible',
+													'data-target' => 'row input[data-select-rule-type]',
+													'data-match-attr' => 'data-select-rule-type'
+												),
+											);
+									print_widget('params_custom_field_'.$fieldid.'_criteria', $cparams, array_get($value, 'criteria'));
+									$vparams = Array(
+										'type' => 'text',
+										'attrs' => Array(
+											'data-select-rule-type' => 'equal'
+										)
+									);
 									print_widget(
 										'params_custom_field_'.$fieldid.'_val',
-										Array('type' => 'text'),
+										$vparams,
 										array_get(array_get($params['custom_fields'], $fieldid, Array()), 'val')
 									);
 									break;
@@ -616,6 +656,7 @@ class Person_Query extends DB_Object
 					case 'select':
 					case 'text':
 						$params['custom_fields'][$fieldid] = Array(
+							'criteria' => $_REQUEST['params_custom_field_'.$fieldid.'_criteria'],
 							'val' => $_REQUEST['params_custom_field_'.$fieldid.'_val']
 						);
 						break;
@@ -856,12 +897,33 @@ class Person_Query extends DB_Object
 					break;
 
 				case 'select':
-					$ids = implode(',', array_map(Array($db, 'quote'), $values['val']));
-					$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IN ('.$ids.'))';
+					switch (array_get($values, 'criteria', 'contains')) {
+						case 'contains':
+							$ids = implode(',', array_map(Array($db, 'quote'), $values['val']));
+							$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IN ('.$ids.'))';
+							break;
+						case 'any':
+							$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NOT NULL)';
+							break;
+						case 'empty':
+							$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NULL)';
+							break;
+					}
 					break;
 
 				case 'text':
-					$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid = '.$db->quote($values['val']).')';
+					switch (array_get($values, 'criteria', 'equals')) {
+						case 'equal':
+							$customFieldWheres[] = '(pd'.$fieldid.'.value_text = '.$db->quote($values['val']).')';
+							break;
+						case 'any':
+							$customFieldWheres[] = '(pd'.$fieldid.'.value_text IS NOT NULL)';
+							break;
+						case 'empty':
+							$customFieldWheres[] = '(pd'.$fieldid.'.value_text IS NULL)';
+							break;
+					}
+					break;
 					break;
 			}
 		}
@@ -1402,7 +1464,7 @@ class Person_Query extends DB_Object
 			?>
 			</tbody>
 		</table>
-		<p><strong><?php echo count($x); ?> persons listed</strong></p>
+		<p class="report-summary"><?php echo count($x); ?> persons listed</p>
 		<?php
 	}
 

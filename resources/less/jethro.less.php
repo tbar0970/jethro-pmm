@@ -761,6 +761,10 @@ input.btn-link, button.btn-link {
 table.query-results {
 	margin-bottom: 2px; /*  so the X persons listed text can snuggle underneath */
 }
+p.report-summary {
+	font-weight: bold;
+	color: @grayLight;
+}
 
 
 /************** USER ACCOUNT ****************/
