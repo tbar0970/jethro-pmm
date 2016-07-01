@@ -1313,7 +1313,7 @@ table.service-details td table td input {
 }
 #body .notes-history-entry p {
 	margin: 0px;
-	font-size: 0.9em;
+	font-size: 14px; /* override bootstrap special blockquote size */
 	line-height: 1.3em;
 	margin-bottom: 4px;
 }
@@ -1329,12 +1329,14 @@ table.service-details td table td input {
 	line-height: 1.1em;
 }
 .notes-history-entry h4 {
-	margin-left: 50px;
-	border-bottom: 1px solid @jethroGrayish;
-	margin-top: 20px;
+	margin-left: 45px;
+	color: @grayLight;
+	border-bottom: 1px solid @jethroDarkish;
+	margin-top: 15px;
 }
 .notes-history-entry .comments {
-	margin-left: 30px;
+	margin-left: 25px;
+	margin-top: 15px;
 }
 
 /********* ATTENDANCE AND COLOURED RADIO BUTTONS **********/
