@@ -180,7 +180,7 @@ class SMS_Sender
     // To work with HTTP Server errors ourselves, override the system error_handler
     set_error_handler(null);
     try {
-        $fp = @fopen(SMS_HTTP_URL, 'r', false, stream_context_create($opts));
+        $fp = fopen(SMS_HTTP_URL, 'r', false, stream_context_create($opts));
         if (!$fp) {
                 $http_error = "ERROR: Unable to connect to SMS Server.<br>" . join("<br>", $http_response_header);
                 return array("success" => false, "successes" => array(), "failures" => array(), "rawresponse" => $http_error);
@@ -199,7 +199,7 @@ class SMS_Sender
       $response = str_replace("\r", '', $response);
       if (SMS_HTTP_RESPONSE_OK_REGEX) {
         foreach ($recips as $id => $recip) {
-            $reps['_RECIPIENT_INTERNATIONAL_'] = self::internationalizeNumber($recip['mobile_tel']);
+            $reps['_RECIPIENT_INTERNATIONAL_'] = self::internationaliseNumber($recip['mobile_tel']);
             $reps['_RECIPIENT_'] = $recip['mobile_tel'];
             $pattern = '/' . str_replace(array_keys($reps), array_values($reps), SMS_HTTP_RESPONSE_OK_REGEX) . '/m';
             if (preg_match($pattern, $response)) {
@@ -227,11 +227,11 @@ class SMS_Sender
       * @param string $number  Number in local format
       * @return string  Nummber in international format, if prefixes configured, else unchanged number
       */
-    private static function internationalizeNumber($number)
+    private static function internationaliseNumber($number)
     {
         if (strlen(ifdef('SMS_LOCAL_PREFIX'))
                 && strlen(ifdef('SMS_INTERNATIONAL_PREFIX'))
-                && (0 === strpos($number, SMS_LOCAL_PREFIX))
+                && (0 === strpos($number,(string)SMS_LOCAL_PREFIX)) // convert to string in case it is just a number, eg 0
         ) {
             $number = SMS_INTERNATIONAL_PREFIX . substr($number, strlen(SMS_LOCAL_PREFIX));
         }

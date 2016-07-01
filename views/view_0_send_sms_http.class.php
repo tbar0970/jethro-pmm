@@ -41,7 +41,6 @@ class View__Send_SMS_HTTP extends View
                     if ((!empty($successes)) || (!empty($failures))) {
                         if (!empty($successes)) {
                         print_message('SMS sent successfully to '.count($successes).' recipients');
-                        $this->logSuccess(count($successes), $message);
                         }
                         if (!empty($failures)) {
                         print_message('SMS sending failed for '.count($failures).' recipients', 'failure');
@@ -55,7 +54,6 @@ class View__Send_SMS_HTTP extends View
                     } else {
                         // No check of the response - give a less confident success message
                         print_message('SMS sent to '.count($recips).' recipients');
-                        $this->logSuccess(count($recips), $message);
                 ?>
                 <span class="clickable" onclick="$('#response').toggle()">Show SMS server response</span></b></p>
                 <div class="hidden standard" id="response"><?php $response; ?></div>
