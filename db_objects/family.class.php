@@ -154,6 +154,10 @@ class family extends db_object
 
 	function printFieldValue($name, $value=NULL)
 	{
+		if ($name == 'members') {
+			$this->printMemberList($this->_tmp['abbreviate_member_list']);
+			return;
+		}
 		if (is_null($value)) $value = $this->values[$name];
 		if (($name == 'address_street') && MAP_LOOKUP_URL) {
 			parent::printFieldValue($name, $value);
@@ -166,6 +170,64 @@ class family extends db_object
 			}
 		} else {
 			parent::printFieldValue($name, $value);
+		}
+	}
+
+	function printMemberList($abbreviated=NULL)
+	{
+		$persons = $this->getMemberData();
+		$show_actions = !empty($this->id); // hide actions if this is a "draft" family
+
+		if (isset($this->_tmp['show_member_callback'])) {
+			call_user_func($this->_tmp['show_member_callback'], $persons);
+
+		} else if (!$abbreviated) {
+			?>
+			<div style="float: left" id="member-details-container">
+			<?php
+			// full blown version
+			$special_fields = Array('congregation');
+			if (!empty($this->_tmp['member_list_special_fields'])) {
+				$special_fields = $this->_tmp['member_list_special_fields'];
+			}
+			include 'templates/person_list.template.php';
+			?>
+			</div>
+			<?php
+			if ($GLOBALS['system']->featureEnabled('PHOTOS') && $this->id) {
+				?>
+				<div style="float: left; " id="family-photos-container">
+				<?php
+				foreach ($persons as $personid => $details) {
+					?>
+					<a href="?view=persons&personid=<?php echo (int)$personid; ?>"><img title="<?php echo ents($details['first_name'].' '.$details['last_name']); ?>" src="?call=photo&personid=<?php echo (int)$personid; ?>" /></a>
+					<?php
+				}
+				?>
+				</div>
+				<?php
+			}
+		} else {
+			// abbreviated version
+			$GLOBALS['system']->includeDBClass('person');
+			$dummy_person = new Person();
+			?>
+			<table>
+			<?php
+			foreach ($persons as $id => $person) {
+				$dummy_person->populate($id, $person);
+				$tr_class = ($person['status'] == 'archived') ? ' class="archived"' : '';
+				?>
+				<tr<?php echo $tr_class; ?>>
+					<td class="nowrap"><a href="?view=persons&personid=<?php echo $id; ?>"><?php echo ents($dummy_person->toString()); ?></a></td>
+					<td><?php $dummy_person->printFieldValue('gender'); ?></td>
+					<td><?php $dummy_person->printFieldValue('age_bracket'); ?></td>
+				</tr>
+				<?php
+			}
+			?>
+			</table>
+			<?php
 		}
 	}
 
@@ -249,101 +311,26 @@ class family extends db_object
 		return $res;
 	}
 
-	function printSummary($abbreviate_member_list=TRUE, $member_data=NULL)
+	function printSummaryWithMembers($abbreviate_member_list=TRUE, $member_data=NULL)
 	{
 		$this->_tmp['abbreviate_member_list'] = $abbreviate_member_list;
 		if (!empty($member_data)) {
 			$this->_tmp['members'] = $member_data;
 			$this->_tmp['member_list_special_fields'] = array_diff(array_keys(reset($member_data)), Array('first_name', 'last_name', 'familyid', 'gender', 'status', 'age_bracket', 'congregationid'));
 		}
+		$this->fields['members'] = Array('divider_before' => 1);
 		parent::printSummary();
+		unset($this->fields['members']);
 	}
 	
 	function printCustomSummary($showMembersCallback)
 	{
+		// TODO: test this in the mmebers interface
+		$this->fields['members'] = Array('divider_before' => 1);
 		$this->_tmp['show_member_callback'] = $showMembersCallback;
 		parent::printSummary();
 		unset($this->_tmp['show_member_callback']);
-	}
-
-	function _printSummaryRows()
-	{
-		parent::_printSummaryRows();
-		
-		include_once 'include/size_detector.class.php';
-		if (SizeDetector::isNarrow()) {
-			?>
-			<tr class="divider-before">
-				<td colspan="2" id="family-members-container">
-				<h4>&nbsp;Members:</h4>
-			<?php
-
-		} else {
-			?>
-			<tr class="divider-before">
-				<th>Members</th>
-				<td id="family-members-container">
-			<?php
-		}
-
-				$persons = $this->getMemberData();
-				$show_actions = !empty($this->id); // hide actions if this is a "draft" family
-				
-				if (isset($this->_tmp['show_member_callback'])) {
-					call_user_func($this->_tmp['show_member_callback'], $persons);
-					
-				} else if (empty($this->_tmp['abbreviate_member_list'])) {
-					?>
-					<div style="float: left" id="member-details-container">
-					<?php
-					// full blown version
-					$special_fields = Array('congregation');
-					if (!empty($this->_tmp['member_list_special_fields'])) {
-						$special_fields = $this->_tmp['member_list_special_fields'];
-					}
-					include 'templates/person_list.template.php';
-					?>
-					</div>
-					<?php
-					if ($GLOBALS['system']->featureEnabled('PHOTOS') && $this->id) {
-						?>
-						<div style="float: left; " id="family-photos-container">
-						<?php
-						foreach ($persons as $personid => $details) {
-							?>
-							<a href="?view=persons&personid=<?php echo (int)$personid; ?>"><img title="<?php echo ents($details['first_name'].' '.$details['last_name']); ?>" src="?call=photo&personid=<?php echo (int)$personid; ?>" /></a>
-							<?php
-						}
-						?>
-						</div>
-						<?php
-					}
-				} else {
-					// abbreviated version
-					$GLOBALS['system']->includeDBClass('person');
-					$dummy_person = new Person();
-					?>
-					<table>
-					<?php
-					foreach ($persons as $id => $person) {
-						$dummy_person->populate($id, $person);
-						$tr_class = ($person['status'] == 'archived') ? ' class="archived"' : '';
-						?>
-						<tr<?php echo $tr_class; ?>>
-							<td class="nowrap"><a href="?view=persons&personid=<?php echo $id; ?>"><?php echo ents($dummy_person->toString()); ?></a></td>
-							<td><?php $dummy_person->printFieldValue('gender'); ?></td>
-							<td><?php $dummy_person->printFieldValue('age_bracket'); ?></td>
-						</tr>
-						<?php
-					}
-					?>
-					</table>
-					<?php
-				}
-				?>
-			</td>
-		</tr>
-		<?php
+		unset($this->fields['members']);
 	}
 
 	function getMemberData()

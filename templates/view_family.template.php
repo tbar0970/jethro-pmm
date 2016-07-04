@@ -56,44 +56,64 @@ if (!$accordion) {
 /**************** BASIC DETAILS TAB *************/ 
 
 printf($panel_header, 'basic', 'Basic Details & Members', 'active'); 
-$links = Array();
-if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
-	$links[] = '<a href="?view=_edit_family&familyid='.$family->id.'"><i class="icon-wrench"></i>Edit</a>';
-	if (Person::allowedToAdd()) {
-		// users with group or cong restrictions are not allowed to add persons
-		$links[] = '<a href="?view=_add_person_to_family&familyid='.$family->id.'"><i class="icon-plus-sign"></i>Add Member</a>';
-	}
-}
-if (!empty($links)) {
 	?>
-	<div class="align-right">
-		<?php echo implode(' &nbsp; ', $links); ?>
+	<div class="person-details">
+
+		<div class="person-details-box match-height">
+			<?php
+			if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
+				?>
+				<div class="header-link pull-right">
+					<a href="?view=_edit_family&familyid=<?php echo $family->id; ?>"><i class="icon-white icon-wrench"></i>Edit</a>
+				</div>
+				<?php
+			}
+			?>
+
+			<h3>Family Details</h3>
+
+			<?php
+			$family->printSummary();
+
+			if ($family->getPostalAddress() != '') {
+				echo '<a class="pull-right" href="?call=envelopes&familyid='.$family->id.'" class="envelope-popup"><i class="icon-envelope"></i>Print Envelope</a>';
+			}
+			?>
+		</div>
+
+		<div class="person-details-box match-height">
+			<?php
+			if (Person::allowedToAdd()) {
+				?>
+				<div class="header-link pull-right">
+					<a href="?view=_add_person_to_family&familyid=<?php echo $family->id; ?>"><i class="icon-white icon-plus-sign"></i>Add Member</a>
+				</div>
+				<?php
+			}
+			?>
+			<h3>Members</h3>
+			<?php
+			$family->printMemberList();
+
+			$all_emails = $family->getAllEmailAddrs();
+			if (!empty($all_emails)) {
+				echo '<a class="pull-right" href="'.get_email_href($all_emails).'" '.email_link_extras().'><i class="icon-email">@</i>Email All</a>';
+			}
+			?>
+			<br class="clearfix" />
+
+		</div>
 	</div>
-	<?php
-}
-if (!$accordion && $GLOBALS['system']->featureEnabled('PHOTOS')) {
-	?>
-	<img style="float: right; position: absolute;" width="<?php echo Photo_Handler::MAX_PHOTO_WIDTH; ?>" src="?call=photo&familyid=<?php echo (int)$family->id; ?>" />
-	<?php
-}
 
-
-$family->printSummary($accordion ? TRUE : FALSE);
-
-?>
-<div class="align-right">
 	<?php
-	$links = Array();
-	if ($family->getPostalAddress() != '') {
-		$links[] = '<a href="?call=envelopes&familyid='.$family->id.'" class="envelope-popup"><i class="icon-envelope"></i>Print Envelope</a>';
+	if (!$accordion && $GLOBALS['system']->featureEnabled('PHOTOS')) {
+		?>
+		<img class="person-photo" width="<?php echo Photo_Handler::MAX_PHOTO_WIDTH; ?>" src="?call=photo&familyid=<?php echo (int)$family->id; ?>" />
+		<?php
 	}
-	$all_emails = $family->getAllEmailAddrs();
-	if (!empty($all_emails)) {
-		$links[] = '<a href="'.get_email_href($all_emails).'" '.email_link_extras().'><i class="icon-email">@</i>Email All</a>';
-	}
-	echo implode(' &nbsp; ', $links);
 	?>
-</div>
+	<br class="clearfix" />
+
 <?php
 echo $panel_footer;
 

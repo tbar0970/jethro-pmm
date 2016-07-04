@@ -141,20 +141,11 @@ if (!$accordion) {
 
 /**************** BASIC DETAILS TAB *************/
 
-printf($panel_header, 'basic', 'Basic Details', 'active'); 
-
-if (!$accordion && $GLOBALS['system']->featureEnabled('PHOTOS')) {
-	?>
-	<img class="person-photo" width="<?php echo Photo_Handler::MAX_PHOTO_WIDTH; ?>" src="?call=photo&personid=<?php echo (int)$person->id; ?>" />
-	<div class="person-details-withphoto">
-	<?php
-} else {
-	?>
-	<div class="person-details-nophoto">
-	<?php
-}
+printf($panel_header, 'basic', 'Basic Details', 'active');
 ?>
-		<div class="person-details-box">
+	<div class="person-details">
+
+		<div class="person-details-box match-height">
 			<div class="header-link pull-right">
 				<?php
 				if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
@@ -182,10 +173,9 @@ if (!$accordion && $GLOBALS['system']->featureEnabled('PHOTOS')) {
 				<?php
 			}
 			?>
-			<br class="clearfix" />
 		</div>
-		
-		<div class="person-details-box">
+
+		<div class="person-details-box match-height">
 			<div class="header-link pull-right">
 				<a href="?view=families&familyid=<?php echo $family->id; ?>"><i class="icon-home icon-white"></i>View</a>
 				<?php
@@ -198,10 +188,20 @@ if (!$accordion && $GLOBALS['system']->featureEnabled('PHOTOS')) {
 			</div>
 			<h3>Family Details</h3>
 			<?php
-			$family->printSummary(); 
+			$family->printSummaryWithMembers();
 			?>
 		</div>
 	</div>
+
+	<?php
+	if (!$accordion && $GLOBALS['system']->featureEnabled('PHOTOS')) {
+		?>
+		<img class="person-photo" width="<?php echo Photo_Handler::MAX_PHOTO_WIDTH; ?>" src="?call=photo&personid=<?php echo (int)$person->id; ?>" />
+		<?php
+	}
+	?>
+	<br class="clearfix" />
+
 <?php 
 echo $panel_footer;
 

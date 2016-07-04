@@ -802,55 +802,62 @@ p.report-summary {
 
 /************* VIEW PERSON ************/
 
-/*
-if there is a photo it will always go top right
-If there is enough width, person and family details go next to each other
- - with identical heights.
- - with half the width each
-Otherwise they go beneath each other
- - with 100% width
-
-*/
-
-.view-person img.person-photo {
-	float: right;
-	width: 200px;
-	margin: 0px;
-}
-
 .view-person h4 {
 	border-bottom: 1px solid #ddd;
 }
-
-.person-details-withphoto {
-	margin-right: 200px;
-	padding-right: 15px;
-	width: auto;
-	overflow: hidden;
+.person-details {
+	float: left;
+	margin-right: 15px;
 }
-
+img.person-photo {
+	width: 200px;
+	float: left;
+	border-radius: 5px;
+	border: 1px solid @jethroDarkest;
+}
 .person-details-box {
-
-	width: auto;
-	min-width: 40%;
 	box-sizing: border-box;
 	-webkit-box-sizing: border-box;
 	-moz-box-sizing: border-box;
-	float: left;
 	border: 1px solid @jethroDarkest;
 	padding: 15px;
-	margin: 0 15px 15px 0;
 	position: relative;
 	z-index: 50;
 	overflow: hidden;
 	background: @jethroLight;
 	border-radius: 5px;
+	width: 500px;
+	margin-bottom: 15px;
 }
+@media(min-width:1100px) {
+	.person-details {
+		width: 860px;
+		margin-right: 0px;
+	}
+	/* person details 380 + family details 380 + photo 200px wide */
+	.person-details-box {
+		width: 415px;
+		overflow: auto;
+		float: left;
+		margin-right: 15px;
+	}
+	.view-person img.person-photo {
+		float: right;
+	}
+}
+
+@media(max-width:600px) {
+	.person-details, .person-photo, .person-details-box {
+		float: none;
+		width: 100%;
+		margin-left: 0px;
+	}
+}
+
+
+
 .person-details-box table {
 	width: 100%;
-}
-.accordion .person-details-box {
-	padding: 8px;
 }
 
 .person-details-box h3 {
@@ -860,8 +867,11 @@ Otherwise they go beneath each other
 	text-shadow: 0 1px 0 @jethroDarkText;
 	font-size: 14px;
 	font-weight: bold;
+	color: white  !important;
+	line-height: 30px;
 }
 .accordion .person-details-box {
+	padding: 8px;
 	max-width: 100%;
 }
 .accordion .person-details-box h3 {
@@ -871,10 +881,6 @@ Otherwise they go beneath each other
 	padding-top: 2px;
 	padding-bottom: 2px;
 	margin: -8px -8px 8px -8px;
-}
-.person-details-box h3 {
-	color: white  !important;
-	line-height: 30px;
 }
 .person-details-box .header-link {
 	position: absolute;

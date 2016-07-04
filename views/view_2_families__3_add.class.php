@@ -136,7 +136,7 @@ class View_Families__Add extends View
 			?>
 			<h4><a href="<?php echo build_url(array('view' => 'families', 'familyid' => $family->id)); ?>">Family #<?php echo $family->id; ?></a></h4>
 			<?php
-			$family->printSummary();
+			$family->printSummaryWithMembers();
 		}
 		?>
 

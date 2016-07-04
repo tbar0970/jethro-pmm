@@ -981,7 +981,20 @@ var applyNarrowColumns = function(root) {
 * If they can fit next to each other, make them the same height
 * Otherwise, give them 100% of the width (unless they need even more than that).
 */
-function layOutMatchBoxes() {
+function layOutMatchBoxes()
+{
+	var maxHeight = 0;
+	var lastTop = -1;
+	var sameTop = true;
+	$('.match-height').each(function() {
+		$(this).css('height', '');
+		if ($(this).height() > maxHeight) maxHeight = $(this).height();
+		if (lastTop == -1) lastTop = $(this).position().top;
+		sameTop = (lastTop == $(this).position().top);
+	});
+	if (sameTop) $('.match-height').height(maxHeight);
+	return;
+
 
 	// Only run it once, because applyNarrowColumns will have messed with the table widths after the initial one
 	if (window.haveLaidOutMatchBoxes) return;
