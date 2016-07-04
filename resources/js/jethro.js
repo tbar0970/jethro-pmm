@@ -92,6 +92,9 @@ $(document).ready(function() {
 		}
 	});
 
+	/*********************** LOCK EXPIRY WARNING ****************/
+	initLockExpiry();
+
 
 	/*************************** REPORTS *********************/
 	$('input.select-rule-toggle').click(function() {
@@ -260,28 +263,6 @@ $(document).ready(function() {
 	if (document.location.hash) {
 		$(document.location.hash).filter('.notes-history-entry').addClass('highlight');
 	}
-	
-	/****** ROSTERING *******/
-	var CUSTOM_ASSIGNEE_TARGET = null;
-	$('.roster select').change(function() {
-			$opt = $(this.options[this.selectedIndex]);
-			if ($opt.hasClass('other')) {
-				CUSTOM_ASSIGNEE_TARGET = this;
-				$('#choose-assignee-modal').modal({});
-			}
-	});
-	$('#choose-assignee-save').click(function() {
-		$target = $(CUSTOM_ASSIGNEE_TARGET)
-		$target.find('.unlisted-allocee').remove();
-		var newID = $('#choose-assignee-modal input[name=personid]').val();
-		var newName = $('#personid-input').val();
-		$newOption = $('<option selected="selected" class="unlisted-allocee" value="'+newID+'">'+newName+'</option>')
-		$target.find('.other').before($newOption);
-		$('#choose-assignee-modal input').val('');
-		$target.change(); //bubbles the props up so it looks orange
-		setTimeout(function() { $target.effect("pulsate", {times: 2}, 700) }, 600);
-	});
-
 
 
 	/***************** LAYOUT FIXES *******************/
@@ -394,9 +375,10 @@ $(document).ready(function() {
 
 	setTimeout( "applyNarrowColumns('body'); ", 30);
 
-	if (document.getElementById('service-planner')) {
-		JethroServicePlanner.init();
-	}
+	JethroServicePlanner.init();
+
+	JethroRoster.init();
+
 
 	$('table.reorderable tbody').sortable(	{
 			cursor: "move",
@@ -540,6 +522,8 @@ JethroServicePlanner._getTRDragHelper = function(event, tr) {
 }
 
 JethroServicePlanner.init = function() {
+
+	if (!document.getElementById('service-planner')) return;
 
 	// COMPONENTS TABLES:
 	// We have to start off with these hidden so we can set their width explicitly
@@ -860,7 +844,97 @@ JethroServicePlanner._addTime = function(clockTime, addMins) {
 }
 
 
+var JethroRoster = {}
 
+JethroRoster.CUSTOM_ASSIGNEE_TARGET = null;
+
+JethroRoster.init = function() {
+	if (!$('form#roster').length) return;
+
+	$('table.roster select').keypress(function() { JethroRoster.onAssignmentChange(this); }).change(function() { JethroRoster.onAssignmentChange(this); });
+	$('table.roster input.person-search-single, table.roster input.person-search-multiple').each(function() {
+		this.onchange = function() { JethroRoster.onAssignmentChange(this); };
+	});
+	$('table.roster > tbody > tr').each(function() { JethroRoster.updateClashesForRow($(this)); });
+
+	$('.roster select').change(function() {
+			$opt = $(this.options[this.selectedIndex]);
+			if ($opt.hasClass('other')) {
+				JethroRoster.CUSTOM_ASSIGNEE_TARGET = this;
+				$('#choose-assignee-modal').modal({});
+			}
+	});
+	
+	$('#choose-assignee-save').click(function() {
+		$target = $(JethroRoster.CUSTOM_ASSIGNEE_TARGET)
+		$target.find('.unlisted-allocee').remove();
+		var newID = $('#choose-assignee-modal input[name=personid]').val();
+		var newName = $('#personid-input').val();
+		$newOption = $('<option selected="selected" class="unlisted-allocee" value="'+newID+'">'+newName+'</option>')
+		$target.find('.other').before($newOption);
+		$('#choose-assignee-modal input').val('');
+		$target.change(); //bubbles the props up so it looks orange
+		setTimeout(function() { $target.effect("pulsate", {times: 2}, 700) }, 600);
+	});
+}
+
+JethroRoster.onAssignmentChange = function(inputField) {
+	var row = null;
+	if ($(inputField).hasClass('person-search-single') || $(inputField).hasClass('person-search-multiple')) {
+		row = $(inputField).parents('tr:first');
+	} else if (inputField.tagName == 'SELECT' || inputField.type == 'hidden') {
+		var expandableParent = $(inputField).parents('table.expandable');
+		if (expandableParent.length) {
+			var row = $(inputField).parents('table:first').parents('tr:first');
+		} else {
+			var row = $(inputField).parents('tr:first');
+		}
+	}
+	if (row) {
+		JethroRoster.updateClashesForRow(row);
+	}
+}
+
+JethroRoster.updateClashesForRow = function(row) {
+	var uses = new Object();
+	// Deal with the single person choosers and select boxes first
+	var sameRowInputs = row.find('input.person-search-single, select');
+	sameRowInputs.removeClass('clash');
+	sameRowInputs.each(function() {
+		var thisElt = this;
+		var thisVal = 0;
+		if (this.className == 'person-search-single') {
+			var hiddenInput = document.getElementsByName(this.id.substr(0, this.id.length-6))[0];
+			thisVal = hiddenInput.value;
+		} else if (this.tagName == 'SELECT') {
+			thisVal = this.value;
+		}
+		if (thisVal != 0) {
+			if (!uses[thisVal]) {
+				uses[thisVal] = new Array();
+			}
+			uses[thisVal].push(thisElt);
+		}
+	});
+	// Now add the multi person choosers
+	row.find('ul.multi-person-finder li').removeClass('clash').each(function() {
+		var thisVal = $(this).find('input')[0].value;
+		if (thisVal != 0) {
+			if (!uses[thisVal]) {
+				uses[thisVal] = new Array();
+			}
+			uses[thisVal].push(this);
+		}
+	});
+	for (i in uses) {
+		if (uses[i].length > 1) {
+			for (j in uses[i]) {
+				if (typeof uses[i][j] == 'function') continue;
+				$(uses[i][j]).addClass('clash');
+			}
+		}
+	}
+}
 
 function handleFamilyPhotosLayout() {
 	var photoContainer = $('#family-photos-container');
@@ -963,6 +1037,26 @@ function handleSearchLinkClick()
 
 
 /************************** LOCKING ********************************/
+
+function initLockExpiry()
+{
+	$('form[data-lock-length]').each(function() {
+		var length = $(this).attr('data-lock-length');
+		var bits = length.split(' ');
+		var units = parseInt(bits[0],10) * 1000;
+		var warningTime = 60000; // 1 minute
+		switch (bits[1].toLowerCase()) {
+			case 'minute':
+				units = units * 60;
+				break;
+			case 'hour':
+				units = units * 60 * 60;
+				break;
+		}
+		setTimeout('showLockExpiryWarning()', units - warningTime);
+		setTimeout('showLockExpiredWarning()', units);
+	})
+}
 
 function showLockExpiryWarning()
 {
