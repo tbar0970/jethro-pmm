@@ -3,6 +3,7 @@ include_once 'include/db_object.class.php';
 class family extends db_object
 {
 	protected $_save_permission_level = PERM_EDITPERSON;
+	private $_photo_data = NULL;
 
 	protected static function _getFields()
 	{
@@ -123,6 +124,34 @@ class family extends db_object
 		";
 	}
 
+	function printForm($prefix='', $fields=NULL)
+	{
+		include_once 'include/size_detector.class.php';
+		if ($GLOBALS['system']->featureEnabled('PHOTOS')
+			&& (is_null($fields) || in_array('photo', $fields))
+		) {
+			$this->fields['photo'] = Array('divider_before' => true); // fake field for interface purposes
+			if ($this->id && !SizeDetector::isNarrow()) {
+				?>
+				<div class="person-photo-container">
+					<img src="?call=photo&familyid=<?php echo (int)$this->id; ?>" />
+				</div>
+				<?php
+			}
+		}
+
+		parent::printForm($prefix, $fields);
+
+		unset($this->fields['photo']);
+	}
+
+	function processForm($prefix='', $fields=NULL)
+	{
+		$res = parent::processForm($prefix, $fields);
+		$this->_photo_data = Photo_Handler::getUploadedPhotoData('photo');
+		return $res;
+	}
+
 	function printFieldValue($name, $value=NULL)
 	{
 		if (is_null($value)) $value = $this->values[$name];
@@ -142,7 +171,15 @@ class family extends db_object
 
 	function printFieldInterface($name)
 	{
+		if ($name == 'photo') {
+			?>
+			<input type="file" name="photo" />
+			<?php
+			return;
+		}
+		
 		parent::printFieldInterface($name);
+		
 		$postcode_url = POSTCODE_LOOKUP_URL;
 		if (($name == 'address_suburb') && !empty($postcode_url)) {
 			?>
@@ -274,7 +311,7 @@ class family extends db_object
 						<?php
 						foreach ($persons as $personid => $details) {
 							?>
-							<a href="?view=persons&personid=<?php echo (int)$personid; ?>"><img title="<?php echo ents($details['first_name'].' '.$details['last_name']); ?>" src="?call=person_photo&personid=<?php echo (int)$personid; ?>" /></a>
+							<a href="?view=persons&personid=<?php echo (int)$personid; ?>"><img title="<?php echo ents($details['first_name'].' '.$details['last_name']); ?>" src="?call=photo&personid=<?php echo (int)$personid; ?>" /></a>
 							<?php
 						}
 						?>
@@ -334,6 +371,15 @@ class family extends db_object
 			$value = strtoupper($value); // for the UK
 		}
 		return parent::setValue($name, $value);
+	}
+
+	function create()
+	{
+		if (parent::create()) {
+			$this->savePhoto();
+			return TRUE;
+		}
+		return FALSE;
 	}
 
 	function save($update_members=TRUE)
@@ -423,13 +469,24 @@ class family extends db_object
 			}
 		}
 		$res = parent::save();
+		$this->savePhoto();
 		if ($msg) add_message($msg);
 		return $res;
 	}
 
+	private function savePhoto() {
+		$db =& $GLOBALS['db'];
+		if ($this->_photo_data) {
+			$SQL = 'REPLACE INTO family_photo (familyid, photodata)
+					VALUES ('.(int)$this->id.', '.$db->quote($this->_photo_data).')';
+			$res = $db->query($SQL);
+			check_db_result($res);
+		}
+	}
+
 	/* Find a family that looks like a duplicate of this one - if it has the same family name and a member with the same name
 	*/
-	function findSimilarFamilies()
+	public function findSimilarFamilies()
 	{
 		$res = Array();
 		$same_names = $GLOBALS['system']->getDBObjectData('family', Array('family_name' => $this->getValue('family_name'), '!id' => $this->id), 'AND');

@@ -71,6 +71,12 @@ if (!empty($links)) {
 	</div>
 	<?php
 }
+if (!$accordion && $GLOBALS['system']->featureEnabled('PHOTOS')) {
+	?>
+	<img style="float: right; position: absolute;" width="<?php echo Photo_Handler::MAX_PHOTO_WIDTH; ?>" src="?call=photo&familyid=<?php echo (int)$family->id; ?>" />
+	<?php
+}
+
 
 $family->printSummary($accordion ? TRUE : FALSE);
 

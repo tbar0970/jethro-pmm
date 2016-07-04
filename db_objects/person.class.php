@@ -4,12 +4,9 @@ include_once 'include/size_detector.class.php';
 class Person extends DB_Object
 {
 	protected $_save_permission_level = PERM_EDITPERSON;
-	var $_photo_data = NULL;
-	var $_custom_values = Array();
-	var $_old_custom_values = Array();
-
-	const MAX_PHOTO_WIDTH = 200;
-	const MAX_PHOTO_HEIGHT = 200;
+	private $_photo_data = NULL;
+	private $_custom_values = Array();
+	private $_old_custom_values = Array();
 
 	function __construct($id=0)
 	{
@@ -678,7 +675,7 @@ class Person extends DB_Object
 			if ($this->id) {
 				?>
 				<div class="person-photo-container">
-					<img src="?call=person_photo&personid=<?php echo (int)$this->id; ?>" />
+					<img src="?call=photo&personid=<?php echo (int)$this->id; ?>" />
 				</div>
 				<?php
 			}
@@ -751,55 +748,7 @@ class Person extends DB_Object
 			$this->setCustomValue($fieldid, $field->processWidget());
 		}
 
-		if (!empty($_FILES['photo']) && !$_FILES['photo']['error']) {
-			if (!in_array($_FILES['photo']['type'], Array('image/jpeg', 'image/gif', 'image/png', 'image/jpg'))) {
-				add_message("The uploaded photo was not of a permitted type and has not been saved.  Photos must be JPEG, GIF or PNG", 'error');
-			} else if (!is_uploaded_file($_FILES['photo']['tmp_name'])) {
-				trigger_error("Security error with file upload", E_USER_ERROR);
-			} else {
-				$ext = strtolower(end(explode('.', $_FILES['photo']['name'])));
-				if ($ext == 'jpg') $ext = 'jpeg';
-				if (!in_array($ext, Array('jpeg', 'gif', 'png'))) {
-					add_message("The uploaded photo was not of a permitted type and has not been saved.  Photos must be JPEG, GIF or PNG", 'error');
-					return $res;
-				}
-				if (function_exists('imagepng')) {
-					$fn = 'imagecreatefrom'.$ext;
-					list($orig_width, $orig_height) = getimagesize($_FILES['photo']['tmp_name']);
-					$input_img = $fn($_FILES['photo']['tmp_name']);
-					if (!$input_img) exit;
-					$orig_ratio = $orig_width / $orig_height;
-					if (($orig_width > self::MAX_PHOTO_WIDTH) || ($orig_height > self::MAX_PHOTO_HEIGHT)) {
-						if (self::MAX_PHOTO_WIDTH > self::MAX_PHOTO_HEIGHT) {
-							// resize to fit width then crop to fit height
-							$new_width = self::MAX_PHOTO_WIDTH;
-							$new_height = min(self::MAX_PHOTO_HEIGHT, $new_width / $orig_ratio);
-							$src_x = 0;
-							$src_w = $orig_width;
-							$src_h = $new_height * ($orig_width / $new_width);
-							$src_y = (int)max(0, ($orig_height - $src_h) / 2);
-						} else {
-							// resize to fit height then crop to fit width
-							$new_height = self::MAX_PHOTO_HEIGHT;
-							$new_width = min(self::MAX_PHOTO_WIDTH, $new_height * $orig_ratio);
-							$src_y = 0;
-							$src_h = $orig_height;
-							$src_w = $new_width * ($orig_height / $new_height);
-							$src_x = (int)max(0, ($orig_width - $src_w) / 2);
-						}
-						$output_img = imagecreatetruecolor($new_width, $new_height);
-						imagecopyresized($output_img, $input_img, 0, 0, $src_x, $src_y, $new_width, $new_height, $src_w, $src_h);
-						imagedestroy($input_img);
-					} else {
-						$output_img = $input_img;
-					}
-					$fn = 'image'.$ext;
-					$fn($output_img, $_FILES['photo']['tmp_name']);
-				}
-				$this->_photo_data = file_get_contents($_FILES['photo']['tmp_name']);
-				unlink($_FILES['photo']['tmp_name']);
-			}
-		}
+		$this->_photo_data = Photo_Handler::getUploadedPhotoData('photo');
 		return $res;
 	}
 

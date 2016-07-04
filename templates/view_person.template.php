@@ -145,7 +145,7 @@ printf($panel_header, 'basic', 'Basic Details', 'active');
 
 if (!$accordion && $GLOBALS['system']->featureEnabled('PHOTOS')) {
 	?>
-	<img class="person-photo" width="<?php echo Person::MAX_PHOTO_WIDTH; ?>" src="?call=person_photo&personid=<?php echo (int)$person->id; ?>" />
+	<img class="person-photo" width="<?php echo Photo_Handler::MAX_PHOTO_WIDTH; ?>" src="?call=photo&personid=<?php echo (int)$person->id; ?>" />
 	<div class="person-details-withphoto">
 	<?php
 } else {

@@ -1441,7 +1441,7 @@ class Person_Query extends DB_Object
 							case 'photo':
 								?>
 								<a class="med-popup" href="?view=persons&personid=<?php echo $row[$label]; ?>">
-								<img height="60" src="?call=person_photo&personid=<?php echo $row[$label]; ?>" />
+								<img height="60" src="?call=photo&personid=<?php echo $row[$label]; ?>" />
 								</a>
 								<?php
 								break;
