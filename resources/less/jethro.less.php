@@ -1178,7 +1178,7 @@ ul.nav-tabs {
 	margin-bottom: 0px;
 }
 table.roster select.unlisted-allocee, #body table.roster select option.unlisted-allocee {
-	color: orange;
+	color: #e68a00;
 }
 table.roster select.unlisted-allocee option {
 	color: @jethroDarkText;

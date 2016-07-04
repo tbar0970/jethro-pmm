@@ -262,11 +262,24 @@ $(document).ready(function() {
 	}
 	
 	/****** ROSTERING *******/
+	var CUSTOM_ASSIGNEE_TARGET = null;
 	$('.roster select').change(function() {
 			$opt = $(this.options[this.selectedIndex]);
 			if ($opt.hasClass('other')) {
-				alert('other');
+				CUSTOM_ASSIGNEE_TARGET = this;
+				$('#choose-assignee-modal').modal({});
 			}
+	});
+	$('#choose-assignee-save').click(function() {
+		$target = $(CUSTOM_ASSIGNEE_TARGET)
+		$target.find('.unlisted-allocee').remove();
+		var newID = $('#choose-assignee-modal input[name=personid]').val();
+		var newName = $('#personid-input').val();
+		$newOption = $('<option selected="selected" class="unlisted-allocee" value="'+newID+'">'+newName+'</option>')
+		$target.find('.other').before($newOption);
+		$('#choose-assignee-modal input').val('');
+		$target.change(); //bubbles the props up so it looks orange
+		setTimeout(function() { $target.effect("pulsate", {times: 2}, 700) }, 600);
 	});
 
 

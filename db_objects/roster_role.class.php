@@ -110,7 +110,7 @@ class Roster_Role extends db_object
 	function _printUnlistedAlloceeOption($personid, $name)
 	{
 		?>
-		<option value="<?php echo (int)$personid; ?>" class="unlisted-allocee" selected="selected" title="This person is no longer in the volunteer group for this role"><?php echo ents($name); ?></option>
+		<option value="<?php echo (int)$personid; ?>" class="unlisted-allocee" selected="selected" title="This person is not in the volunteer group for this role"><?php echo ents($name); ?></option>
 		<?php
 	}
 
@@ -139,6 +139,7 @@ class Roster_Role extends db_object
 						<?php
 					}
 					?>
+						<option class="other">Other...</option>
 					</select>
 					</td></tr>
 					<?php

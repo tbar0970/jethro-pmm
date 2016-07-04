@@ -655,6 +655,7 @@ class roster_view extends db_object
 			?>
 			<form method="post" class="warn-unsaved bubble-option-props">
 			<script>
+				// TODO: move this to jethro.js
 				$(document).ready(function() {
 
 					setTimeout('showLockExpiryWarning()', <?php echo (strtotime('+'.LOCK_LENGTH, 0)-60)*1000; ?>);
@@ -729,6 +730,18 @@ class roster_view extends db_object
 			<?php
 		}
 		?>
+		<div id="choose-assignee-modal" class="modal hide fade" role="dialog" aria-hidden="true">
+			<div class="modal-header">
+				<h4>Choose assignee</h4>
+			</div>
+			<div class="modal-body">
+				<?php Person::printSingleFinder('personid', NULL); ?>
+			</div>
+			<div class="modal-footer">
+				<button class="btn" data-dismiss="modal" id="choose-assignee-save">Save</button>
+				<button class="btn" data-dismiss="modal">Cancel</button>
+			</div>
+		</div>
 		<table class="table roster" border="1" cellspacing="0" cellpadding="1">
 
 			<?php $this->_printTableHeader($editing, $public); ?>
