@@ -97,7 +97,7 @@ class Abstract_View_Edit_Object extends View
 		}
 		if ($show_form) {
 			?>
-			<form method="post" enctype="multipart/form-data" id="edit-<?php echo $this->_editing_type; ?>" class="<?php echo $this->_form_classnames; ?>">
+			<form method="post" enctype="multipart/form-data" data-lock-length="<?php echo LOCK_LENGTH; ?>" id="edit-<?php echo $this->_editing_type; ?>" class="<?php echo $this->_form_classnames; ?>">
 				<input type="hidden" name="edit_object_submitted" value="1" />
 				<?php $this->_edited_object->printForm(); ?>
 				<hr />
@@ -112,10 +112,6 @@ class Abstract_View_Edit_Object extends View
 				?>
 				</div></div></div>
 			</form>
-			<script type="text/javascript">
-				setTimeout('showLockExpiryWarning()', <?php echo max(1000,(strtotime('+'.LOCK_LENGTH, 0)-60)*1000); ?>);
-				setTimeout('showLockExpiredWarning()', <?php echo (strtotime('+'.LOCK_LENGTH, 0))*1000; ?>);
-			</script>
 			<?php
 		}
 	}

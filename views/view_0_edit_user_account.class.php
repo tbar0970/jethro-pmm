@@ -62,7 +62,7 @@ class View__Edit_User_Account extends View
 		}
 		if ($show_form) {
 			?>
-			<form method="post" id="person_form" class="form-horizontal">
+			<form method="post" id="person_form" class="form-horizontal" data-lock-length="<?php echo LOCK_LENGTH; ?>">
 				<input type="hidden" name="edit_staff_submitted" value="1" />
 				<?php $this->_staff_member->printForm(); ?>
 				<div class="controls">
@@ -70,10 +70,6 @@ class View__Edit_User_Account extends View
 					<a href="?view=persons&personid=<?php echo $this->_staff_member->id; ?>" class="btn">Cancel</a>
 				</div>
 			</form>
-			<script type="text/javascript">
-				setTimeout('showLockExpiryWarning()', <?php echo (strtotime('+'.LOCK_LENGTH, 0)-60)*1000; ?>);
-				setTimeout('showLockExpiredWarning()', <?php echo (strtotime('+'.LOCK_LENGTH, 0))*1000; ?>);
-			</script>
 			<?php
 		}
 	}

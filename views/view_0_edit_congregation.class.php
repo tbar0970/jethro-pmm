@@ -81,7 +81,7 @@ class View__Edit_Congregation extends View
 		}
 		if ($show_form) {
 			?>
-			<form method="post" class="form form-horizontal" id="congregation_form">
+			<form method="post" class="form form-horizontal" id="congregation_form" data-lock-length="<?php echo LOCK_LENGTH; ?>">
 				<input type="hidden" name="edit_congregation_submitted" value="1" />
 				<?php $this->_congregation->printForm(); ?>
 				<div class="controls">
@@ -89,10 +89,7 @@ class View__Edit_Congregation extends View
 					<a href="?view=admin__congregations" class="btn">Cancel</a>
 				</div>
 			</form>
-			<script type="text/javascript">
-				setTimeout('showLockExpiryWarning()', <?php echo (strtotime('+'.LOCK_LENGTH, 0)-60)*1000; ?>);
-				setTimeout('showLockExpiredWarning()', <?php echo (strtotime('+'.LOCK_LENGTH, 0))*1000; ?>);
-			</script>
+
 			<?php
 		}
 	}

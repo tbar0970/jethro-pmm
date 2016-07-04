@@ -316,7 +316,7 @@ class View_Attendance__Record extends View
 					?>
 					<td>
 						<a class="med-popup" tabindex="-1" href="?view=persons&personid=<?php echo $personid; ?>">
-							<img style="width: 50px; max-width: 50px" src="?call=person_photo&personid=<?php echo (int)$personid; ?>" />
+							<img style="width: 50px; max-width: 50px" src="?call=photo&personid=<?php echo (int)$personid; ?>" />
 						</a>
 					</td>
 					<?php
