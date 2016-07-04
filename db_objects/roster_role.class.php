@@ -160,6 +160,7 @@ class Roster_Role extends db_object
 					<?php
 				}
 				?>
+					<option class="other">Other...</option>
 				</select>
 				<?php
 			}

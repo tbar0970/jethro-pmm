@@ -260,6 +260,14 @@ $(document).ready(function() {
 	if (document.location.hash) {
 		$(document.location.hash).filter('.notes-history-entry').addClass('highlight');
 	}
+	
+	/****** ROSTERING *******/
+	$('.roster select').change(function() {
+			$opt = $(this.options[this.selectedIndex]);
+			if ($opt.hasClass('other')) {
+				alert('other');
+			}
+	});
 
 
 
