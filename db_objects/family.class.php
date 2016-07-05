@@ -164,7 +164,7 @@ class family extends db_object
 	function printFieldValue($name, $value=NULL)
 	{
 		if ($name == 'members') {
-			$this->printMemberList($this->_tmp['abbreviate_member_list']);
+			$this->printMemberList(array_get($this->_tmp, 'abbreviate_member_list', FALSE));
 			return;
 		}
 		if (is_null($value)) $value = $this->values[$name];
