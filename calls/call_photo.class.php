@@ -38,7 +38,7 @@ class Call_Photo extends Call
 			$res = $db->queryRow($SQL);
 			check_db_result($res);
 			if ($res && $res['photodata']) {
-				header('Content-type: image/jpeg'); // FIXME
+				header('Content-type: image/jpeg');
 				echo $res['photodata'];
 				return;
 			}

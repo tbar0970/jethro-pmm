@@ -60,8 +60,7 @@ Class Photo_Handler {
 					} else {
 						$output_img = $input_img;
 					}
-					$fn = 'image'.$ext;
-					$fn($output_img, $_FILES[$fieldName]['tmp_name']);
+					imagejpeg($output_img, $_FILES[$fieldName]['tmp_name'], 90);
 				}
 				$res = file_get_contents($_FILES[$fieldName]['tmp_name']);
 				unlink($_FILES[$fieldName]['tmp_name']);
