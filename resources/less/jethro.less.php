@@ -1921,7 +1921,7 @@ td.run-sheet-comments * {
 
 
 /*************** SMS MESSAGING ************************/
-div#sms_message {
+div.sms_editor {
   border: 1px solid @grayMid;
   height: 8em;
   margin: .5em 0 0 0;
@@ -1930,9 +1930,10 @@ div#sms_message {
   border-radius: @baseBorderRadius;
 }
 
-div#sms_message:focus {
+div#sms_message:focus, div#bulk_sms_message:focus {
   outline: none;
 }
+
 
 /*************** CUSTOM FIELDS EDITOR *****************/
 

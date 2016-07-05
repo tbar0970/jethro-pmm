@@ -500,13 +500,10 @@ $(document).ready(function() {
       $(this).html("Sending");
       smsData = {
         personid: modalDiv.data("personids"),
-//        saveasnote: (modalDiv.find('.saveasnote').attr('checked') == 'checked')?'1':'0',
+        saveasnote: ($("#send-sms-modal .saveasnote").attr("checked") === "checked")?'1':'0',
         ajax: 1,
         message: sms_message
       }
-      console.log("smsData:");
-      console.log(smsData);
-//        smsData = $(this).serialize();
       $.ajax({
         type: 'POST',
         dataType: 'JSON',

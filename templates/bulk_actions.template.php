@@ -272,8 +272,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 			<div class="control-group">
 				<label class="control-label">Message: </label>
 				<div class="controls">
-					<textarea name="message" class="span4" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
-					<br />
+          <div contenteditable="true" autofocus="autofocus" id="bulk_sms_message" class="sms_editor span4" data-maxlength="<?php echo SMS_MAX_LENGTH; ?>"></div>
 					<input type="submit" class="btn bulk-sms-submit" value="Send" data-set-form-action="<?php echo BASE_URL; ?>?view=_send_sms_http" />
                     <span id="bulksmscharactercount"><?php echo SMS_MAX_LENGTH; ?> characters remaining.</span>
 				</div>

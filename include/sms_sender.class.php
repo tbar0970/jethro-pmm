@@ -251,11 +251,20 @@ Class SMS_Sender
         </div>
         <div class="modal-body">
           Message:<br />
-          <div contenteditable="true" autofocus="autofocus" id="sms_message" class="editor" data-maxlength="<?php echo SMS_MAX_LENGTH; ?>"></div>
+          <div contenteditable="true" autofocus="autofocus" id="sms_message" class="sms_editor" data-maxlength="<?php echo SMS_MAX_LENGTH; ?>"></div>
           <span id="smscharactercount"><?php echo SMS_MAX_LENGTH; ?> characters remaining.</span>
         </div>
         <div class="modal-footer">
           <button class="btn btn-warning single-sms-status fade">Send failed - see details</button>
+          <?php
+            $savebydefault = "";
+            if (defined("SMS_SAVE_TO_NOTE_BY_DEFAULT")) { 
+              if (SMS_SAVE_TO_NOTE_BY_DEFAULT) {
+                $savebydefault = 'checked="checked"';
+              }
+            }
+          ?>
+          <span class="sms-modal-option"><input type="checkbox" name="saveasnote" class="saveasnote" <?php echo $savebydefault; ?> />Save as Note</span>
           <button class="btn sms-submit" accesskey="s">Send</button>
           <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
         </div>
