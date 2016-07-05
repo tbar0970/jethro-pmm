@@ -74,7 +74,7 @@ Class SMS_Sender
   }
   /**
     * Get Recipient information for a person
-    * @param int $personid      The ID of a person
+    * @param $personid      The ID of a person
     * @return array('recips' => array, 'blanks' => array, 'archived' => array)
     */
   function getRecipientForPerson( $personid  ) {
@@ -108,11 +108,11 @@ Class SMS_Sender
         }
         switch ($smstype) {
           case 'family':
-            list($recips,$blanks,$archived) = self::getRecipientsForFamily((int)($_REQUEST['personid']));
+            list($recips,$blanks,$archived) = self::getRecipientsForFamily($_REQUEST['personid']);
             break;
           case 'person':
           default:
-            list($recips,$blanks,$archived) = self::getRecipientForPerson((int)($_REQUEST['personid']));
+            list($recips,$blanks,$archived) = self::getRecipientForPerson($_REQUEST['personid']);
             break;
         }
     }
@@ -271,5 +271,23 @@ Class SMS_Sender
       </div>
       <?php
     }
+    
+  public function saveAsNote($recipients, $message) {
+    $GLOBALS['system']->includeDBClass('person_note');
+    $subject = "SMS Sent";
+    if (!SMS_SAVE_TO_NOTE_SUBJECT) {
+      $subect = SMS_SAVE_TO_NOT_SUBJECT;
+    } //!SMS_SAVE_TO_NOTE_SUBJECT
+    foreach ($recipients as $id => $details) {
+      // Add a note containing the SMS to the user
+      $note = new Person_Note();
+      $note->setValue('subject', $subject);
+      $note->setvalue('details', $message);
+      $note->setValue('personid', $id);
+      if (!$note->create()) {
+        add_message('Failed to save SMS as a note.');
+      } //!$note->create()
+    } //$recipients as $id => $details
+  }
 }
 ?>

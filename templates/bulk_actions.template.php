@@ -272,20 +272,23 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 			<div class="control-group">
 				<label class="control-label">Message: </label>
 				<div class="controls">
-          <div contenteditable="true" autofocus="autofocus" id="bulk_sms_message" class="sms_editor span4" data-maxlength="<?php echo SMS_MAX_LENGTH; ?>"></div>
-					<input type="submit" class="btn bulk-sms-submit" value="Send" data-set-form-action="<?php echo BASE_URL; ?>?view=_send_sms_http" />
+					<textarea id="bulk_sms_message" name="message" class="span4" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
+					<br />
+					<input type="submit" class="btn bulk-sms-submit" value="Send" data-set-form-action="<?php echo BASE_URL; ?>?call=sms" />
                     <span id="bulksmscharactercount"><?php echo SMS_MAX_LENGTH; ?> characters remaining.</span>
 				</div>
 			</div>
-            <div class="control-group">
-                <label class="control-label">After sending:</label>
-              <div class="controls">
-                <label class="checkbox">
-                  <input type="checkbox" name="saveasnote" accesskey="n" <?php if (SMS_SAVE_TO_NOTE_BY_DEFAULT) { echo 'checked="checked"'; } ?>  />
-                  save as note
-                </label>
-              </div>
-            </div>
+      <div class="control-group">
+          <label class="control-label">After sending:</label>
+        <div class="controls">
+          <label class="checkbox">
+            <input type="checkbox" name="saveasnote" accesskey="n" <?php if (SMS_SAVE_TO_NOTE_BY_DEFAULT) { echo 'checked="checked"'; } ?>  />
+            save as note
+          </label>
+        </div>
+      </div>
+      <div class="control-group" id="bulk-sms-failed">                                                                                          
+      </div>
 		</div>
 		<?php
 	}

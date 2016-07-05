@@ -41,6 +41,10 @@ $(document).ready(function() {
     })
   });
   
+  $('input[data-ajax-call], button[data-ajax-call]').click(function(e) { 
+    
+  });
+  
 	// Attach the quick-search handlers
 	$('.nav a').each(function() {
 		if (this.innerHTML && (this.innerHTML.toLowerCase() == 'search')) {
@@ -262,20 +266,120 @@ $(document).ready(function() {
 		selectedInputs.filter('[data-toggle=enable]').attr('disabled', false).change();
 	});
 
-	$('form.bulk-person-action').submit(function() {
+	$('form.bulk-person-action').submit(function(event) {
 		var checkboxes = document.getElementsByName('personid[]');
-		for (var i=0; i < checkboxes.length; i++) {
-			if (checkboxes[i].checked) return true;
-		}
-		if (confirm('You have not selected any persons. Would you like to perform this action on every person listed?')) {
-			for (var i=0; i < checkboxes.length; i++) {
-				checkboxes[i].checked = true;
-			}
-			return true;
-		} else {
-			TBLib.cancelValidation();
-			return false;
-		}
+    if ($("input[name='personid[]']:checked").length === 0) {
+      if (confirm('You have not selected any persons. Would you like to perform this action on every person listed?')) {
+        for (var i = 0; i < checkboxes.length; i++) {
+          checkboxes[i].checked = true;
+        }
+      } else {
+        TBLib.cancelValidation();
+        return false;
+      }
+    }
+    if ($(this).prop('action').match('call=sms$')) {
+      event.preventDefault();
+      var submitBtn = $(this).find('.bulk-sms-submit');
+      submitBtn.prop('disabled', true);
+      submitBtn.prop('value', 'Sending...');
+      var smsData = $(this).serialize();
+      $.ajax({
+        type: 'POST',
+        dataType: 'JSON',
+        url: $(this).attr('action'),
+        data: smsData,
+        context: $(this),
+        error: function (jqXHR, status, error) {
+          console.log('Error sending SMS: ', status, error);
+          var failDiv = $('#bulk-sms-failed');
+          failDiv.append("<h4>SMS Sending error<h4>");
+          failDiv.append('<span class="clickable" onclick="$(\'.bulk-sms-failed #response\').toggle()\'">Show SMS server response</span></b></p><div class="hidden standard" id="response">' + error + '</div>');
+        },
+        success: function (data) {
+          console.log("DATA: ", data);
+          var smsRequestCount = $("input[name='personid[]']:checked").length;
+          var sentCount = 0;
+          var failedCount = 0;
+          var archivedCount = 0;
+          var blankCount = 0;
+          var rawresponse = '';
+          var error = 'No details available. Please check the number is right.';
+          var failDiv = $('.bulk-sms-failed');
+          
+          if (data.sent !== undefined) { sentCount = data.sent.count; }
+          if (data.failed !== undefined) { failedCount = data.failed.count; }
+          if (data.failed_archived !== undefined) { archivedCount = data.failed_archived.count; }
+          if (data.failed_blank !== undefined) { blankCount = data.failed_blank.count; }
+          if (data.rawresponse !== undefined) { rawresponse = data.rawresponse; }
+          if (data.error !== undefined) { error = data.error; }
+
+          setActionStatusColumn('SMS');
+
+          failDiv.html('');
+          if (failedCount > 0) {
+            failDiv.append("<h4>SMS Failures</h4><p style='clear:both'>SMS sending failed for " + failedCount + ' recipients.</p>');
+            for (var personID in data.failed.recipients) {
+              $("[data-personid=" + personID + "]").closest('tr').find("td.action_status").html("Failed (General)");
+            }
+          }
+          if ((blankCount > 0) || (archivedCount >0)) {
+            if (blankCount > 0) {
+              failDiv.append("<h4>No Mobile</h4><p style='clear:both'>SMS sending failed for " + blankCount + ' recipients due to the lack of a mobile number.</p>');
+              for (var personID in data.failed_blank.recipients) {
+                alert(personID);
+                $("[data-personid=" + personID + "]").closest('tr').find("td.action_status").html("Failed (No mobile)");
+              }
+            }
+            if (archivedCount > 0) {
+              failDiv.append("<h4>Archived Recipients</h4><p style='clear:both'>" + archivedCount + ' of the intended recipients were not sent the message because they are archived.</p>');
+              for (var personID in data.failed_archived.recipients) {
+                $("[data-personid=" + personID + "]").closest('tr').find("td.action_status").html("Failed (Archived)");
+              }
+            }
+          }
+
+          if (sentCount > 0) {
+            for (var personID in data.sent.recipients) {
+              console.log("KEY: ", personID, " DATA: ", data.sent.recipients[personID]);
+              var sentStatus = "Sent";
+              if (!data.sent.confirmed) {
+                failDiv.appen("'<h4>Sending could not be confirmed</h4><p style='clear:both'>Unable to confirm whether SMS sending was successful. Please check your SMS settings.</p>");
+                sentStatus = sentStatus + " (Assumed))";
+              }
+              $("[data-personid=" + personID + "]").closest('tr').find("td.action_status").html("Sent");
+              $("[data-personid=" + personID + "]").closest('tr').find("[type=checkbox]").prop("checked", false);
+            }
+          }
+          failDiv.append(data);
+          if (sentCount !== smsRequestCount) {
+            if (data.error!==undefined) {
+              failDiv.append("<h4>More details<h4>");
+              failDiv.append('<span class="clickable" onclick="$(\'.bulk-sms-failed #response\').toggleClass(\'hidden\');">Show SMS server response</span></b></p><div class="hidden standard alert alert-warning" id="response">' + data.error + '</div>');
+            }
+            $('#alert').removeClass('alert-info').removeClass('alert-error').removeClass('alert-success');
+            $('#alert').addClass('alert-error');
+            $("#alert").html("<strong>SMS Failure:</strong> Sending failed for some (or all) recipients.");
+            $("#alert").fadeIn();
+          } else {
+            $('#smshttp').toggle();
+            $("#bulk-action-chooser").val(0);
+            $('#alert').removeClass('alert-info').removeClass('alert-error').removeClass('alert-success');
+            $('#alert').addClass('alert-success');
+            $("#alert").html("<strong>SMS Success!</strong> All messages successfully sent.");
+            $("#alert").fadeIn();
+            setTimeout(function() {$("#alert").fadeOut();}, 10000);
+          }
+                
+          var submitBtn = $(this).find('.bulk-sms-submit');
+          submitBtn.prop('disabled', false);
+          submitBtn.prop('value', 'Send');
+        }
+      });
+      return false;
+    } else {
+      return true;
+    }
 	});
 
 	/********************** TAGGING ******************/
@@ -477,13 +581,13 @@ $(document).ready(function() {
 	});
   
   $('#bulk_sms_message').on('keyup propertychange paste', function() {
-    var maxlength = $(this).attr("data-maxlength");
-    var chars = maxlength - $(this).text().length;
+    var maxlength = $(this).attr("maxlength");
+    var chars = maxlength - $(this).val().length;
     if (chars <= 0) {
-      $(this).val($(this).text().substring(0, maxlength));
+      $(this).val( $(this).val().substring(0,maxlength) );
       chars = 0;
     }
-    $('#bulksmscharactercount').html(chars + ' characters remaining.');
+    $('#bulksmscharactercount').html(chars +' characters remaining.');
   });
   
   /*************************** SMS AJAX ********************/
@@ -537,14 +641,14 @@ $(document).ready(function() {
           var personid = modalDiv.data("personids");
           
           if (failedCount > 0) {
-            $("[data-personid=" + modalDiv.data("personids") + "]").closest('tr').find("td:last").html("Failed (General)");
+            $("[data-personid=" + modalDiv.data("personids") + "]").closest('tr').find("td.action_status").html("Failed (General)");
             statusBtn = modalDiv.find('.single-sms-status');
             statusBtn.unbind('click');
             statusBtn.on('click', function (event) { event.preventDefault(); alert(error); });
             modalDiv.data("personids")
             statusBtn.toggleClass('fade');
           } else {
-            $("[data-personid=" + modalDiv.data("personids") + "]").closest('tr').find("td:last").html("Sent");
+            $("[data-personid=" + modalDiv.data("personids") + "]").closest('tr').find("td.action_status").html("Sent");
             modalDiv.modal('hide');
           }
           $(this).prop('disabled', false);

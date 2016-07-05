@@ -1924,7 +1924,8 @@ td.run-sheet-comments * {
 div.sms_editor {
   border: 1px solid @grayMid;
   height: 8em;
-  margin: .5em 0 0 0;
+  width: 100%;
+  margin: .5em 0 .5em 0;
   padding: .25em;
   overflow-y: auto;
   border-radius: @baseBorderRadius;

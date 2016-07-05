@@ -7,10 +7,19 @@ class Call_sms extends Call
     $SMS = new SMS_Sender();
     $recips = $successes = $failures = $archived = $blanks = Array();
     list($recips, $blanks, $archived) = $SMS::getRecipients();
-    
+
     $ajax = array();
 
-    if (empty($recips)) {
+    if (!empty($archived)) {
+      $ajax['failed_archived']['count'] = count($archived);
+      $ajax['failed_archived']['recipients'] = $archived;
+    }
+    if (!empty($blanks)) {
+      $ajax['failed_blank']['count'] = count($blanks);
+      $ajax['failed_blank']['recipients'] = $blanks;
+    }
+        
+    if (empty($recips))  {
       $ajax['error']='No recipients selected. Message not sent';
       $ajax['rawresponse']='ERROR: No recipients selected.';
     } else {
@@ -20,11 +29,16 @@ class Call_sms extends Call
       } else if (strlen($message) > SMS_MAX_LENGTH) {
         $ajax['error']="Message too long";
       } else {
-        $sendResponse = $SMS::sendMessage($message,$recips);
-        $success = $sendResponse['success'];
-        $successes = $sendResponse['successes'];
-        $failures = $sendResponse['failures'];
-        $rawresponse = $sendResponse['rawresponse'];
+        $success = true;
+        $successes = $failures = $rawresponse = Array();
+        
+        if (!empty($recips)) {
+          $sendResponse = $SMS::sendMessage($message,$recips);
+          $success = $sendResponse['success'];
+          $successes = $sendResponse['successes'];
+          $failures = $sendResponse['failures'];
+          $rawresponse = $sendResponse['rawresponse'];
+        }
 
         $ajax['rawresponse'] = $rawresponse;
         if (!$success) {
@@ -58,14 +72,6 @@ class Call_sms extends Call
             $ajax['sent']['recipients'] = $recips;
             $ajax['sent']['confirmed'] = false;
           }
-        }
-        if (!empty($archived)) {
-          $ajax['failed_archived']['count'] = count($archived);
-          $ajax['failed_archived']['recipients'] = $archived;
-        }
-        if (!empty($blanks)) {
-          $ajax['failed_blank']['count'] = count($blanks);
-          $ajax['failed_blank']['recipients'] = $blanks;
         }
       }
     }
