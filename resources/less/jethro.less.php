@@ -63,7 +63,7 @@ if (is_readable($confFile)) {
 }
 .table thead th, .table tfoot th, .table thead th *, .table tfoot th * {
 	/* use a colour that will contrast with the background */
-	color: contrast(@jethroDarkish, @jethroDarkText, @jethroLightText);
+	color: contrast(@jethroDarkish, @jethroDarkText, @jethroLightText) !important;
 	font-weight: normal !important; /* bold makes the contrast too stark */
 }
 
