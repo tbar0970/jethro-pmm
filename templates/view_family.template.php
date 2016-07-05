@@ -65,8 +65,7 @@ printf($panel_header, 'basic', 'Basic Details & Members', 'active');
 				?>
 				<div class="header-link pull-right">
 					<a href="?view=_edit_family&familyid=<?php echo $family->id; ?>">
-						<i class="icon-white icon-wrench"></i>
-						<?php echo _('Edit'); ?>
+						<i class="icon-white icon-wrench"></i><?php echo _('Edit'); ?>
 					</a>
 				</div>
 				<?php
@@ -90,8 +89,7 @@ printf($panel_header, 'basic', 'Basic Details & Members', 'active');
 				?>
 				<div class="header-link pull-right">
 					<a href="?view=_add_person_to_family&familyid=<?php echo $family->id; ?>">
-						<i class="icon-white icon-plus-sign"></i>
-						<?php echo _('Add Member'); ?>
+						<i class="icon-white icon-plus-sign"></i><?php echo _('Add Member'); ?>
 					</a>
 				</div>
 				<?php
