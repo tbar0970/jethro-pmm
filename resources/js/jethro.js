@@ -870,6 +870,10 @@ JethroRoster.init = function() {
 		$target.find('.unlisted-allocee').remove();
 		var newID = $('#choose-assignee-modal input[name=personid]').val();
 		var newName = $('#personid-input').val();
+		if (!newID || !newName) {
+			alert("Please choose an assignee");
+			return false;
+		}
 		$newOption = $('<option selected="selected" class="unlisted-allocee" value="'+newID+'">'+newName+'</option>')
 		$target.find('.other').before($newOption);
 		$('#choose-assignee-modal input').val('');
