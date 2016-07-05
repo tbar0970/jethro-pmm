@@ -55,7 +55,7 @@ Class Photo_Handler {
 							$src_x = (int)max(0, ($orig_width - $src_w) / 2);
 						}
 						$output_img = imagecreatetruecolor($new_width, $new_height);
-						imagecopyresized($output_img, $input_img, 0, 0, $src_x, $src_y, $new_width, $new_height, $src_w, $src_h);
+						imagecopyresampled($output_img, $input_img, 0, 0, $src_x, $src_y, $new_width, $new_height, $src_w, $src_h);
 						imagedestroy($input_img);
 					} else {
 						$output_img = $input_img;
