@@ -1043,9 +1043,11 @@ function initLockExpiry()
 		var warningTime = 60000; // 1 minute
 		switch (bits[1].toLowerCase()) {
 			case 'minute':
+			case 'minutes':
 				units = units * 60;
 				break;
 			case 'hour':
+			case 'hours':
 				units = units * 60 * 60;
 				break;
 		}
