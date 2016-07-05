@@ -94,9 +94,6 @@ Class SMS_Sender
     * @return array('recips' => array, 'blanks' => array, 'archived' => array)
     */  
   public function getRecipients()
-  { echo "<pre>";       
-    print_r($_REQUEST);
-    echo "</pre>";
     $recips = $archived = $blanks = Array();
     if (!empty($_REQUEST['queryid'])) {
         list($recips,$blanks,$archived) = self::getRecipientsForQuery((int)$_REQUEST['queryid']); 
