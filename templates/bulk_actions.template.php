@@ -4,7 +4,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 ?>
 
 <div class="form-horizontal bulk-actions no-print">
-	With selected people: 
+	With selected persons:
 		<select id="bulk-action-chooser">
 			<option>-- Choose Action --</option>
 				<?php
