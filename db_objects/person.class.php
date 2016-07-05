@@ -221,8 +221,12 @@ class Person extends DB_Object
 	}
 
 
-	function printFieldValue($name, $value=null)
+	function printFieldValue($name, $value=null, $personid=null)
 	{
+    if (isset($this->id)) {
+      $personid = $this->id;
+    }
+    
 		if (is_null($value)) $value = $this->getValue($name);
 		$person_name = ents($this->getValue('first_name')).'&nbsp;'.ents($this->getValue('last_name'));
 		switch ($name) {
@@ -241,10 +245,10 @@ class Person extends DB_Object
 						defined('SMS_HTTP_URL')
 						&& constant('SMS_HTTP_URL')
 						&& $GLOBALS['user_system']->havePerm(PERM_SENDSMS)
-						&& $_REQUEST['view'] == 'persons'  // TODO: make this modal work in reports too - issue #139
+						&& isset($personid)
 					) {
 					// Provide a link to send SMS through the SMS gateway
-					$smsLink = 'href="#send-sms-modal" data-toggle="sms-modal" data-personid="' . $this->id . '" data-name="' . $person_name . '"';
+					$smsLink = 'href="#send-sms-modal" data-toggle="sms-modal" data-personid="' . $personid . '" data-name="' . $person_name . '"';
 				}
 				?>
 				<span class="nowrap">

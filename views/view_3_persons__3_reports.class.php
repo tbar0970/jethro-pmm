@@ -90,6 +90,8 @@ class View_Persons__Reports extends View
 			<?php
 			
 		} else if (!empty($this->_query)) {
+			require_once('include/sms_sender.class.php');
+			SMS_Sender::printModal();
 			$this->_query->printResults();
 			?>
 			<hr />

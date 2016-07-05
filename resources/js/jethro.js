@@ -476,6 +476,16 @@ $(document).ready(function() {
 		$('#smscharactercount').html(chars + ' characters remaining.');
 	});
   
+  $('#bulk_sms_message').on('keyup propertychange paste', function() {
+    var maxlength = $(this).attr("data-maxlength");
+    var chars = maxlength - $(this).text().length;
+    if (chars <= 0) {
+      $(this).val($(this).text().substring(0, maxlength));
+      chars = 0;
+    }
+    $('#bulksmscharactercount').html(chars + ' characters remaining.');
+  });
+  
   /*************************** SMS AJAX ********************/
   $('#send-sms-modal .sms-submit').on('click', function(event) {
     event.preventDefault();
@@ -520,17 +530,24 @@ $(document).ready(function() {
           error = 'No details available. Please check the number is right.',
           statusBtn,
           submitBtn;
+          
           if (data.success !== undefined) { successCount = data.success.count; }
           if (data.failed !== undefined) { failedCount = data.failed.count; }
           if (data.rawresponse !== undefined) { rawresponse = data.rawresponse; }
           if (data.error !== undefined) { error = data.error; }
-
+          
+          setActionStatusColumn("SMS");
+          var personid = modalDiv.data("personids");
+          
           if (failedCount > 0) {
+            $("[data-personid=" + modalDiv.data("personids") + "]").closest('tr').find("td:last").html("Failed (General)");
             statusBtn = modalDiv.find('.single-sms-status');
             statusBtn.unbind('click');
             statusBtn.on('click', function (event) { event.preventDefault(); alert(error); });
+            modalDiv.data("personids")
             statusBtn.toggleClass('fade');
           } else {
+            $("[data-personid=" + modalDiv.data("personids") + "]").closest('tr').find("td:last").html("Sent");
             modalDiv.modal('hide');
           }
           $(this).prop('disabled', false);
@@ -542,6 +559,19 @@ $(document).ready(function() {
   });
 
 });
+
+// Add Action_Status column to bulk action tables
+function setActionStatusColumn(title) {
+  if ($('#action_status').length) { // action status already exists
+    if ($('#action_status').html() != title) {
+      $('#action_status').html(title);
+      $('.bulk-person-action tbody tr td.action_status').each(function () { $(this).html(""); });
+    }
+  } else {
+    $('.bulk-person-action thead tr').append("<th id='action_status'>" + title + "</th>");
+    $('.bulk-person-action tbody tr').each(function () { $(this).append('<td class="action_status"></td>'); });
+  }
+}
 
 var JethroServiceProgram = {};
 
