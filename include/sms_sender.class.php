@@ -93,7 +93,7 @@ Class SMS_Sender
     * Get Recipients based on the $_REQUEST
     * @return array('recips' => array, 'blanks' => array, 'archived' => array)
     */  
-  public function getRecipients()
+  public function getRecipients() {
     $recips = $archived = $blanks = Array();
     if (!empty($_REQUEST['queryid'])) {
         list($recips,$blanks,$archived) = self::getRecipientsForQuery((int)$_REQUEST['queryid']); 
@@ -242,6 +242,27 @@ Class SMS_Sender
             error_log(date('Y-m-d H:i') . ': ' . $GLOBALS['user_system']->getCurrentUser('username') . ' (#' . $GLOBALS['user_system']->getCurrentUser('id') . ') to ' . (int) $recip_count . ' recipients: "' . $msg_trunc . "\"\n", 3, $file);
         }
     }
-  
+    
+    public static function printModal() {
+      ?>	
+      <div id="send-sms-modal" class="modal sms-modal hide fade" role="dialog" aria-hidden="true">
+        <form method="post" action="?call=_send_sms">
+          <div class="modal-header">
+            <h4>Send SMS to <span class="sms_recipients"></span></h4>
+          </div>
+          <div class="modal-body">
+            Message:<br />
+            <textarea autofocus="autofocus" name="single_sms_message" class="span8" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
+            <span class="charactercount"><?php echo SMS_MAX_LENGTH; ?> characters remaining.</span>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-warning single-sms-status fade">Send failed - see details</button>
+            <button class="btn sms-submit" accesskey="s">Send</button>
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+          </div>
+        </form>
+      </div>
+      <?php
+    }
 }
 ?>

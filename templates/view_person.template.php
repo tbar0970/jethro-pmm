@@ -2,6 +2,9 @@
 include_once 'size_detector.class.php';
 // ------------------------ MODALS --------------------------
 
+// -------SMS MODAL ----------------- //
+require_once 'include/sms_sender.class.php';
+SMS_Sender::printModal();
 // -------ACTION PLAN MODAL --------- //
 $GLOBALS['system']->includeDBClass('action_plan');
 $plan_chooser = Action_Plan::getMultiChooser('planid', Array());
