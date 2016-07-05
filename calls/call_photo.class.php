@@ -39,7 +39,8 @@ class Call_Photo extends Call
 			}
 		} 
 		header('Content-type: image/gif');
-		readfile(dirname(dirname(__FILE__)).'/resources/img/unknown.gif');
+		$placeholder = !empty($_REQUEST['personid']) ? 'unknown.gif' : 'unknown_family.gif';
+		readfile(dirname(dirname(__FILE__)).'/resources/img/'.$placeholder);
 	}
 }
 ?>

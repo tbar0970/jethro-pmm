@@ -6,7 +6,17 @@ Class Photo_Handler {
 	
 	function getUploadedPhotoData($fieldName)
 	{
-		if (!empty($_FILES[$fieldName]) && !$_FILES[$fieldName]['error']) {
+		if (!empty($_FILES[$fieldName])) {
+			if (!empty($_FILES[$fieldName]['error'])) {
+				$err = $_FILES[$fieldName]['error'];
+				if (in_array($err, Array(UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE))) {
+					add_message("Your photo could not be saved because the file is too big. Please try a smaller image.", 'error');
+					return NULL;
+				} else {
+					trigger_error("Technical error uploading photo file: Error #".$err, E_USER_ERROR);
+				}
+			}
+
 			if (!in_array($_FILES[$fieldName]['type'], Array('image/jpeg', 'image/gif', 'image/png', 'image/jpg'))) {
 				add_message("The uploaded photo was not of a permitted type and has not been saved.  Photos must be JPEG, GIF or PNG", 'error');
 				return NULL;
@@ -59,4 +69,13 @@ Class Photo_Handler {
 			}
 		}
 	}
+
+	public static function getDataURL($type, $id)
+	{
+		$SQL = 'SELECT photodata FROM '.$type.'_photo WHERE '.$type.'id = '.(int)$id;
+		$res = $GLOBALS['db']->queryOne($SQL);
+		check_db_result($res);
+		return 'data:image/jpg;base64,'.base64_encode($res);
+	}
+
 }

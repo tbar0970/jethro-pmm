@@ -9,7 +9,7 @@ class Call_Contact_List extends Call
 		$view = new View_Families__Contact_List();
 		header('Content-disposition: attachment; filename="Contact-List.html"');
 		$view->processView();
-		$view->printResults();
+		$view->printResults(TRUE);
 	}
 }
 
