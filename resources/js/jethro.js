@@ -29,8 +29,10 @@ $(document).ready(function() {
     var $recipients = $this.attr('data-name');
     
     e.preventDefault();
-    
+    $("#send-sms-modal").data("personids", $this.attr('data-personid'));
     $("#send-sms-modal .sms_recipients").html($recipients);
+    $("#sms_message").text(""); // Empty the textarea in case of reuse
+    $('#smscharactercount').html($("#sms_message").attr("data-maxlength") + ' characters remaining.'); // reset character count
     
     $target
     .modal(option)
@@ -464,16 +466,80 @@ $(document).ready(function() {
 	}
 
 	// SMS Character counting
-	$('#smscharactercount').parent().find('textarea').on('keyup propertychange paste', function() {
-		var maxlength = $(this).attr("maxlength");
-		var chars = maxlength - $(this).val().length;
+	$('#sms_message').on('keyup propertychange paste', function() {
+		var maxlength = $(this).attr("data-maxlength");
+		var chars = maxlength - $(this).text().length;
 		if (chars <= 0) {
-			$(this).val($(this).val().substring(0, maxlength));
+			$(this).val($(this).text().substring(0, maxlength));
 			chars = 0;
 		}
 		$('#smscharactercount').html(chars + ' characters remaining.');
-	});	
+	});
+  
+  /*************************** SMS AJAX ********************/
+  $('#send-sms-modal .sms-submit').on('click', function(event) {
+    event.preventDefault();
+    var modalDiv = $("#send-sms-modal");
+    var sms_message = $("#sms_message").text();
+    if (!sms_message) {
+      alert("Please enter a message first.");
+      return false;
+    } else {
+      var submitBtn, smsData,personid;
+      $(this).prop('disabled', true);
+      $(this).html("Sending");
+      smsData = {
+        personid: modalDiv.data("personids"),
+//        saveasnote: (modalDiv.find('.saveasnote').attr('checked') == 'checked')?'1':'0',
+        ajax: 1,
+        message: sms_message
+      }
+      console.log("smsData:");
+      console.log(smsData);
+//        smsData = $(this).serialize();
+      $.ajax({
+        type: 'POST',
+        dataType: 'JSON',
+        url: '?call=sms',
+        data: smsData,
+        context: $(this),
+        error: function (jqXHR, status, error) {
+          var modalDiv = $("#send-sms-modal");
+          console.log('Error sending SMS', status, error);
+          var statusBtn = modalDiv.find('.single-sms-status');
+          statusBtn.unbind('click');
+          statusBtn.on('click', function (event) { event.preventDefault(); alert(error); });
+          statusBtn.toggleClass('fade');
+        },
+        success: function (data) {
+          console.log(data);
+          var modalDiv = $("#send-sms-modal");
+          var successCount = 0,
+          failedCount = 0,
+          rawresponse = '',
+          error = 'No details available. Please check the number is right.',
+          statusBtn,
+          submitBtn;
+          if (data.success !== undefined) { successCount = data.success.count; }
+          if (data.failed !== undefined) { failedCount = data.failed.count; }
+          if (data.rawresponse !== undefined) { rawresponse = data.rawresponse; }
+          if (data.error !== undefined) { error = data.error; }
 
+          if (failedCount > 0) {
+            statusBtn = modalDiv.find('.single-sms-status');
+            statusBtn.unbind('click');
+            statusBtn.on('click', function (event) { event.preventDefault(); alert(error); });
+            statusBtn.toggleClass('fade');
+          } else {
+            modalDiv.modal('hide');
+          }
+          $(this).prop('disabled', false);
+          $(this).html("Send");
+        }
+      });
+      return false;
+    }
+  });
 
 });
 

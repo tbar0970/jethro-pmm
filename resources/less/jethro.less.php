@@ -662,7 +662,7 @@ td.narrow, th.narrow, .object-summary th {
 .right {
 	text-align: right !important;
 }
-select, input, textarea {
+select, input, textarea,div.editor {
 	width: auto;
 	max-width: 97%;
 }
@@ -1915,11 +1915,24 @@ td.run-sheet-comments * {
 @media (max-width: 480px) {
 	#service-personnel div.column {
 		width: 100%;
-		margin: 0;
+		margin: .5em 0 0 0;
 	}
 }
 
 
+/*************** SMS MESSAGING ************************/
+div#sms_message {
+  border: 1px solid @grayMid;
+  height: 8em;
+  margin: .5em 0 0 0;
+  padding: .25em;
+  overflow-y: auto;
+  border-radius: @baseBorderRadius;
+}
+
+div#sms_message:focus {
+  outline: none;
+}
 
 /*************** CUSTOM FIELDS EDITOR *****************/
 

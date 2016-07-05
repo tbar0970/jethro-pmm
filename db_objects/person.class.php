@@ -244,7 +244,7 @@ class Person extends DB_Object
 						&& $_REQUEST['view'] == 'persons'  // TODO: make this modal work in reports too - issue #139
 					) {
 					// Provide a link to send SMS through the SMS gateway
-					$smsLink = 'href="#send-sms-modal" data-toggle="sms-modal" data-name="' . $person_name . '"';
+					$smsLink = 'href="#send-sms-modal" data-toggle="sms-modal" data-personid="' . $this->id . '" data-name="' . $person_name . '"';
 				}
 				?>
 				<span class="nowrap">

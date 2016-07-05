@@ -9,7 +9,7 @@ class Call_sms extends Call
     list($recips, $blanks, $archived) = $SMS::getRecipients();
     
     $ajax = array();
-    
+
     if (empty($recips)) {
       $ajax['error']='No recipients selected. Message not sent';
       $ajax['rawresponse']='ERROR: No recipients selected.';
