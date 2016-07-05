@@ -21,18 +21,23 @@ class Call_Photo extends Call
 		$db = $GLOBALS['db'];
 		if (!empty($_REQUEST['personid'])) {
 			$obj = $GLOBALS['system']->getDBObject('person', (int)$_REQUEST['personid']);
-			$table = 'person_photo';
-			$column = 'personid';
+			$SQL = 'SELECT photodata FROM person_photo WHERE personid = '.$obj->id;
 		} else if (!empty($_REQUEST['familyid'])) {
 			$obj = $GLOBALS['system']->getDBObject('family', (int)$_REQUEST['familyid']);
-			$table = 'family_photo';
-			$column = 'familyid';
+			// for single-member families, treat person photo as family photo
+			$SQL = 'SELECT COALESCE(fp.photodata, IF(count(p.id) = 1, pp.photodata, NULL)) as photodata
+					FROM family f
+					LEFT JOIN family_photo fp ON fp.familyid = f.id
+					LEFT JOIN person p ON p.familyid = f.id
+					LEFT JOIN person_photo pp ON pp.personid = p.id
+					WHERE f.id = '.(int)$obj->id.'
+					GROUP BY f.id';
+
 		}
 		if ($obj) {
-			$sql = 'SELECT * FROM '.$table.' WHERE '.$column.' = '.(int)$obj->id;
-			$res = $db->queryRow($sql);
+			$res = $db->queryRow($SQL);
 			check_db_result($res);
-			if ($res) {
+			if ($res && $res['photodata']) {
 				header('Content-type: image/jpeg'); // FIXME
 				echo $res['photodata'];
 				return;

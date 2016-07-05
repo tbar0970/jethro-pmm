@@ -99,7 +99,7 @@ class View_Families__Contact_List extends View
 		<?php
 	}
 
-	function printResults($dataURLs=TRUE)
+	function printResults($dataURLs=FALSE)
 	{
 		$db = $GLOBALS['db'];
 		$groupid = (int)$_REQUEST['groupid'];
