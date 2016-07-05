@@ -105,7 +105,8 @@ class family extends db_object
 
 	function getInitSQL()
 	{
-		return "
+		return Array(
+			 "
 			CREATE TABLE `family` (
 			  `id` int(11) NOT NULL auto_increment,
 			  `family_name` varchar(128) collate latin1_general_ci NOT NULL default '',
@@ -121,7 +122,15 @@ class family extends db_object
 			  PRIMARY KEY  (`id`),
 			  KEY `family_name` (`family_name`,`address_suburb`,`address_postcode`,`home_tel`,`status`)
 			) ENGINE=InnoDB;
-		";
+			",
+			"CREATE TABLE family_photo (
+				familyid INT NOT NULL,
+				photodata MEDIUMBLOB NOT NULL,
+				CONSTRAINT `famliyphotofamilyid` FOREIGN KEY (`familyid`) REFERENCES `family` (`id`),
+				PRIMARY KEY (familyid)
+			 ) ENGINE=InnoDB;
+			"
+		);
 	}
 
 	function printForm($prefix='', $fields=NULL)
