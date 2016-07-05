@@ -979,7 +979,6 @@ var applyNarrowColumns = function(root) {
 /**
 * Lay out a pair of matching boxes.
 * If they can fit next to each other, make them the same height
-* Otherwise, give them 100% of the width (unless they need even more than that).
 */
 function layOutMatchBoxes()
 {
@@ -993,26 +992,6 @@ function layOutMatchBoxes()
 		sameTop = (lastTop == $(this).position().top);
 	});
 	if (sameTop) $('.match-height').height(maxHeight);
-	return;
-
-
-	// Only run it once, because applyNarrowColumns will have messed with the table widths after the initial one
-	if (window.haveLaidOutMatchBoxes) return;
-	var matchBoxes = $('.person-details-box:visible');
-	// Remove prior formatting
-	matchBoxes.css('width', 'auto').css('height', 'auto').css('clear', 'none'); //.css('margin-right', 0);
-	if (matchBoxes.length) {
-		window.haveLaidOutMatchBoxes =  1;
-		var first = matchBoxes.first();
-		var second = matchBoxes.last();
-		if (first.position().top == second.position().top) {
-			// make the heights the same and remove margin bottom
-			matchBoxes.height(Math.max(first.height(), second.height())+20).css('margin-bottom', 0);
-		} else {
-			// make the widths equal
-			matchBoxes.css('min-width', '97%');
-		}
-	}
 }
 
 /* handle clicks on 'search' links in the top nav by building a modal */

@@ -47,7 +47,7 @@ if (is_readable($confFile)) {
 /*** GRADIENT ****/
 
 #login-header,
-.person-details-box h3,
+.details-box h3,
 #jethro-nav-background,
 .table thead th, .table tfoot th,
 .accordion-heading
@@ -640,14 +640,14 @@ td.narrow, th.narrow, .object-summary th {
 	margin-top: 5px;
 	margin-bottom: 0px;
 }
-
+/* in the add-family page */
 .family-member-box {
 	border: 1px solid @jethroDarkest;;
 	border-radius: 5px;
 	padding: 0px 5px 5px 5px;
 	overflow: auto;
 	height: auto;
-	background: @jethroLightest; /* lighter yellow */
+	background: @jethroLightest;
 	margin-bottom: 10px;
 }
 .align-right {
@@ -815,7 +815,7 @@ img.person-photo {
 	border-radius: 5px;
 	border: 1px solid @jethroDarkest;
 }
-.person-details-box {
+.details-box {
 	box-sizing: border-box;
 	-webkit-box-sizing: border-box;
 	-moz-box-sizing: border-box;
@@ -826,8 +826,10 @@ img.person-photo {
 	overflow: hidden;
 	background: @jethroLight;
 	border-radius: 5px;
-	width: 500px;
 	margin-bottom: 15px;
+}
+.view-person .details-box {
+	width: 500px;
 }
 @media(min-width:1100px) {
 	.person-details {
@@ -835,7 +837,7 @@ img.person-photo {
 		margin-right: 0px;
 	}
 	/* person details 380 + family details 380 + photo 200px wide */
-	.person-details-box {
+	.view-person .details-box {
 		width: 415px;
 		overflow: auto;
 		float: left;
@@ -847,7 +849,7 @@ img.person-photo {
 }
 
 @media(max-width:600px) {
-	.person-details, .person-photo, .person-details-box {
+	.person-details, .person-photo, .view-person .details-box {
 		float: none;
 		width: 100%;
 		margin-left: 0px;
@@ -856,11 +858,11 @@ img.person-photo {
 
 
 
-.person-details-box table {
+.details-box table {
 	width: 100%;
 }
 
-.person-details-box h3 {
+.details-box h3 {
 	margin: -15px -15px 15px -15px;
 	padding-left: 15px;
 	white-space: nowrap;
@@ -870,11 +872,11 @@ img.person-photo {
 	color: white  !important;
 	line-height: 30px;
 }
-.accordion .person-details-box {
+.accordion .details-box {
 	padding: 8px;
 	max-width: 100%;
 }
-.accordion .person-details-box h3 {
+.accordion .details-box h3 {
 	/* prevent the inside heading being bigger than the accordion heading */
 	font-size: 14px;
 	font-weight: bold;
@@ -882,21 +884,26 @@ img.person-photo {
 	padding-bottom: 2px;
 	margin: -8px -8px 8px -8px;
 }
-.person-details-box .header-link {
+.details-box .header-link {
 	position: absolute;
 	right: 10px;
 }
-.person-details-box .header-link, .person-details-box .header-link a  {
+.details-box .header-link, .details-box .header-link a  {
 	line-height: 30px;
 	color: white  !important;
 	margin-top: -15px;
 }
-.accordion .person-details-box .header-link {
+.accordion .details-box .header-link {
 	margin-top: -8px;
 }
-.person-details-box .table {
+.details-box .table {
 	margin-bottom: 5px;
 }
+
+
+
+
+
 
 /* when editing (I think) */
 .person-photo-container {
@@ -911,36 +918,61 @@ img.person-photo {
 
 
 /************** VIEW FAMILY ****************/
-#member-details-container {
-	padding: 0px;
+.details-box form {
+	margin: 0px;
 }
-#body #member-details-container .table {
-	margin-bottom: 2px;
-}
-#body #member-details-container form {
-	margin-bottom: 0px;
-}
-#family-photos-container img {
-	width: 50px;
-	display: inline;
-}
-#family-photos-container a {
+.family-details {
+	margin-right: 15px;
 	float: left;
-	margin: 0 1ex 1ex 0;
 }
-#family-members-container h4 {
-	margin-bottom: 0;
+.family-details .details-box {
+	width: 630px;
 }
-#family-members-container table tr:first-child td {
-	padding-top: 0px;
+.family-member {
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	border: 1px solid @jethroDarkest;
+	background-color: @jethroLightest;
+	padding: 5px;
+	border-radius: 5px;
+	width: 47.1%;
+	margin: 0 15px 15px 0;
+	height: 72px;
+	float: left;
+	overflow: hidden;
+	color: @jethroDarkText;
 }
-#family-members-container table tr:last-child td {
-	padding-bottom: 0px;
+.family-member:hover {
+	background-color: @jethroGrayish;
 }
-#family-members-container table tr td:first-child {
-	padding-left: 0px;
+.family-member label {
+	float: right;
+	margin: -5px -5px 0 0;
+	padding: 5px 5px 0 0;
+	display: block;
+	height: 20px;
+	width: 20px;
 }
-
+.family-member * {
+	text-decoration: none !important;
+}
+.family-member img {
+	margin: -5px 5px -5px -5px;
+	width: 70px;
+	float: left;
+	border-top-left-radius: 5px;
+	border-bottom-left-radius: 5px;
+}
+@media (max-width: 600px) {
+	.family-details .details-box {
+		width: 100%;
+	}
+	.family-member {
+		width: 100%;
+		margin: 0 0 15px 0;
+	}
+}
 
 /**************** hOME PAGE *****************/
 

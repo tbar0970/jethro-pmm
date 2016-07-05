@@ -145,7 +145,7 @@ printf($panel_header, 'basic', 'Basic Details', 'active');
 ?>
 	<div class="person-details">
 
-		<div class="person-details-box match-height">
+		<div class="details-box match-height">
 			<div class="header-link pull-right">
 				<?php
 				if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
@@ -175,7 +175,7 @@ printf($panel_header, 'basic', 'Basic Details', 'active');
 			?>
 		</div>
 
-		<div class="person-details-box match-height">
+		<div class="details-box match-height">
 			<div class="header-link pull-right">
 				<a href="?view=families&familyid=<?php echo $family->id; ?>"><i class="icon-home icon-white"></i>View</a>
 				<?php

@@ -57,9 +57,9 @@ if (!$accordion) {
 
 printf($panel_header, 'basic', 'Basic Details & Members', 'active'); 
 	?>
-	<div class="person-details">
+	<div class="family-details">
 
-		<div class="person-details-box match-height">
+		<div class="details-box">
 			<?php
 			if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
 				?>
@@ -81,7 +81,7 @@ printf($panel_header, 'basic', 'Basic Details & Members', 'active');
 			?>
 		</div>
 
-		<div class="person-details-box match-height">
+		<div class="details-box">
 			<?php
 			if (Person::allowedToAdd()) {
 				?>
@@ -92,8 +92,43 @@ printf($panel_header, 'basic', 'Basic Details & Members', 'active');
 			}
 			?>
 			<h3>Members</h3>
+			<form method="post" enctype="multipart/form-data" action="" class="bulk-person-action">
+
 			<?php
-			$family->printMemberList();
+			$dummy = new Person();
+			foreach ($family->getMemberData() as $personid => $person) {
+				$dummy->populate($personid, $person);
+				?>
+				<a href="?view=persons&personid=<?php echo (int)$personid; ?>">
+				<div class="family-member">
+					<?php
+					if ($GLOBALS['system']->featureEnabled('PHOTOS')) {
+						?>
+						<img src="?call=photo&personid=<?php echo $personid; ?>" />
+						<?php
+					}
+					?>
+					<label>
+						<input type="checkbox" checked="checked" value="<?php echo (int)$personid; ?>" />
+					</label>
+					<div>
+						<strong><?php echo ents($dummy->toString()); ?></strong>
+						<br />
+						<?php
+						echo ents($dummy->getFormattedValue('age_bracket'));
+						echo ' &bull; ';
+						echo ents($dummy->getFormattedValue('gender'));
+						echo '<br />';
+						echo ents($dummy->getFormattedValue('status'));
+						echo ' &bull; ';
+						echo ents($dummy->getFormattedValue('congregationid'));
+						?>
+					</div>
+
+				</div>
+				</a>
+				<?php
+			}
 
 			$all_emails = $family->getAllEmailAddrs();
 			if (!empty($all_emails)) {
@@ -101,6 +136,10 @@ printf($panel_header, 'basic', 'Basic Details & Members', 'active');
 			}
 			?>
 			<br class="clearfix" />
+
+			<?php include 'templates/bulk_actions.template.php'; ?>
+
+			</form>
 
 		</div>
 	</div>
