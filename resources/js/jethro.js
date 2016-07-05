@@ -20,6 +20,25 @@ $(document).ready(function() {
 		});
 	});
 	
+  $(document).on('click','[data-toggle="sms-modal"]', function(e) {
+    var $this = $(this)
+    , href = $this.attr('href')
+    , $target = $($this.attr('data-target') || (href && href.replace(/.*(?=#[^\s]+$)/, ''))) //strip for ie7
+    , option = $target.data('modal') ? 'toggle' : $.extend({ remote:!/#/.test(href) && href }, $target.data(), $this.data());
+    
+    var $recipients = $this.attr('data-name');
+    
+    e.preventDefault();
+    
+    $("#send-sms-modal .sms_recipients").html($recipients);
+    
+    $target
+    .modal(option)
+    .one('hide', function () {
+      $this.focus()
+    })
+  });
+  
 	// Attach the quick-search handlers
 	$('.nav a').each(function() {
 		if (this.innerHTML && (this.innerHTML.toLowerCase() == 'search')) {

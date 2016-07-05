@@ -224,12 +224,12 @@ class Person extends DB_Object
 	function printFieldValue($name, $value=null)
 	{
 		if (is_null($value)) $value = $this->getValue($name);
+		$person_name = ents($this->getValue('first_name')).'&nbsp;'.ents($this->getValue('last_name'));
 		switch ($name) {
 			case 'name':
-				echo ents($this->getValue('first_name')).'&nbsp;'.ents($this->getValue('last_name'));
+				echo $person_name;
 				return;
 			case 'mobile_tel':
-				
 				if (!strlen($value)) return;
 				echo ents($this->getFormattedValue($name, $value));
 
@@ -244,7 +244,7 @@ class Person extends DB_Object
 						&& $_REQUEST['view'] == 'persons'  // TODO: make this modal work in reports too - issue #139
 					) {
 					// Provide a link to send SMS through the SMS gateway
-					$smsLink = 'href="#send-sms-modal" data-toggle="modal"';
+					$smsLink = 'href="#send-sms-modal" data-toggle="sms-modal" data-name="' . $person_name . '"';
 				}
 				?>
 				<span class="nowrap">
