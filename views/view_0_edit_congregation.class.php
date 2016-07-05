@@ -39,7 +39,7 @@ class View__Edit_Congregation extends View
 	function getTitle()
 	{
 		if ($this->_congregation) {
-			return 'Editing Congregation '.$this->_congregation->toString();
+			return _('Editing Congregation ').$this->_congregation->toString();
 		} else {
 			return 'Error';
 		}
@@ -56,13 +56,13 @@ class View__Edit_Congregation extends View
 				if ($this->_congregation->acquireLock()) {
 					// managed to reacquire lock - ask them to try again
 					?>
-					<div class="failure">Your changes could not be saved because your lock had expired.  Try making your changes again using the form below</div>
+					<div class="failure"><?php echo _('Your changes could not be saved because your lock had expired.  Try making your changes again using the form below')?></div>
 					<?php
 					$show_form = true;
 				} else {
 					// could not re-acquire lock
 					?>
-					<div class="failure">Your changes could not be saved because your lock has expired.  The lock has now been acquired by another user.  Wait some time for them to finish and then <a href="?view=_edit_congregation&congregationid=<?php echo $this->_congregation->id; ?>">try again</a></div>
+					<div class="failure"><?php echo _('Your changes could not be saved because your lock has expired.  The lock has now been acquired by another user.  Wait some time for them to finish and then ')?><a href="?view=_edit_congregation&congregationid=<?php echo $this->_congregation->id; ?>"><?php echo _('try again')?></a></div>
 					<?php
 					$show_form = false;
 				}
@@ -74,7 +74,7 @@ class View__Edit_Congregation extends View
 			// hasn't been submitted yet
 			if (!$this->_congregation->acquireLock()) {
 				?>
-				<div class="failure">This congregation cannot currently be edited because another user has the lock.  Wait some time for them to finish and then <a href="?view=_edit_congregation&congregationid=<?php echo $this->_congregation->id; ?>">try again</a></div>
+				<div class="failure"><?php echo _('This congregation cannot currently be edited because another user has the lock.  Wait some time for them to finish and then ')?><a href="?view=_edit_congregation&congregationid=<?php echo $this->_congregation->id; ?>"><?php echo _('try again')?></a></div>
 				<?php
 				$show_form = false;
 			}
@@ -85,7 +85,7 @@ class View__Edit_Congregation extends View
 				<input type="hidden" name="edit_congregation_submitted" value="1" />
 				<?php $this->_congregation->printForm(); ?>
 				<div class="controls">
-					<button type="submit" class="btn">Update Congregation</button>
+					<button type="submit" class="btn"><?php echo _('Update Congregation')?></button>
 					<a href="?view=admin__congregations" class="btn">Cancel</a>
 				</div>
 			</form>

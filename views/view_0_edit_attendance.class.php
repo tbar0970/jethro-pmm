@@ -24,9 +24,9 @@ class View__Edit_Attendance extends View
 	function getTitle()
 	{
 		if ($this->_group) {
-			return 'Edit attendance at '.$this->_group->getValue('name').' for '.$this->_person->toString();
+			return _('Edit attendance at ').$this->_group->getValue('name')._(' for ').$this->_person->toString();
 		} else {
-			return 'Edit congregational attendance for '.$this->_person->toString();
+			return _('Edit congregational attendance for ').$this->_person->toString();
 		}
 	}
 

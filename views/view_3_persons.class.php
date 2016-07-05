@@ -19,9 +19,9 @@ class View_Persons extends View
 	function getTitle()
 	{
 		if ($this->_person) {
-			return 'Viewing Person: '.$this->_person->toString();
+			return _('Viewing Person: ').$this->_person->toString();
 		} else {
-			return 'Person not found';
+			return _('Person not found');
 		}
 	}
 

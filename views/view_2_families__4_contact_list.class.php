@@ -4,7 +4,7 @@ class View_Families__Contact_List extends View
 
 	static function getMenuPermissionLevel()
 	{
-		return PERM_RUNREPORT;
+		return PERM_SYSADMIN;
 	}
 
 	function processView()
@@ -16,7 +16,7 @@ class View_Families__Contact_List extends View
 	
 	function getTitle()
 	{
-		return 'Contact List';
+		return _('Contact List');
 	}
 
 
@@ -30,7 +30,7 @@ class View_Families__Contact_List extends View
 				$this->printResults();
 				return;
 			} else {
-				print_message("You must choose an opt-in group", 'error');
+				print_message(_("You must choose an opt-in group"), 'error');
 			}
 		}
 		$this->printForm();
@@ -46,38 +46,38 @@ class View_Families__Contact_List extends View
 		<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
 		<table>
 			<tr>
-				<th>Opt-in group</th>
+				<th><?php echo _('Opt-in group');?></th>
 				<td><?php Person_Group::printChooser('groupid', 0); ?></td>
 			</tr>
 			<tr>
-				<th>Congregation</th>
-				<td>Only include opted-in persons from<br />
+				<th><?php echo _('Congregation');?></th>
+				<td><?php echo _('Only include opted-in persons from');?><br />
 				<?php $dummy_person->printFieldInterface('congregationid'); ?></td>
 			</tr>
 			<tr>
-				<th>Age brackets</th>
-				<td>Only show contact details for persons who are<br />
+				<th><?php echo _('Age brackets');?></th>
+				<td><?php echo _('Only show contact details for persons who are');?><br />
 				<?php $dummy_person->printFieldInterface('age_bracket'); ?>
 				</td>
 			</tr>
 			<tr>
-				<th>Other family members</th>
-				<td>For other members of the families of persons who opted in, show<br />
+				<th><?php echo _('Other family members');?></th>
+				<td><?php echo _('For other members of the families of persons who opted in, show');?><br />
 				<label class="radio">
 					<input type="radio" name="all_member_details" value="0" checked="checked" id="all_member_details_0" />
-					only their names
+					<?php echo _('only their names');?>
 				</label>
 				<label class="radio">
 					<input type="radio" name="all_member_details" value="1" id="all_member_details_1" />
-					their contact details, same as for opted-in persons
+					<?php echo _('their contact details, same as for opted-in persons');?>
 				</label>
 			</tr>
 			<tr>
-					<th>Addresses</th>
+					<th><?php echo _('Addresses');?></th>
 					<td>
 						<label class="checkbox">
 							<input type="checkbox" name="include_address" />
-							Include home addresses in results
+							<?php echo _('Include home addresses in results');?>
 						</label>
 					</td>
 			</tr>
@@ -133,7 +133,7 @@ class View_Families__Contact_List extends View
 		check_db_result($res);
 
 		if (empty($res)) {
-			?><p><i>No families to show</i></p><?php
+			?><p><i><?php echo _('No families to show');?></i></p><?php
 			return;
 		}
 

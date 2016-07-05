@@ -15,7 +15,7 @@ $type = (!empty($entry['familyid']) ? 'family' : 'person');
 	<?php
 	if (!empty($show_form) && $dummy->canEditOriginal()) {
 		?>
-		<a class="pull-right" href="<?php echo build_url(Array('edit_original' => 1)); ?>"><i class="icon-wrench"></i>Edit original note</a>
+		<a class="pull-right" href="<?php echo build_url(Array('edit_original' => 1)); ?>"><i class="icon-wrench"></i><?php echo _('Edit original note')?></a>
 		<?php
 	}
 	?>
@@ -30,14 +30,14 @@ $type = (!empty($entry['familyid']) ? 'family' : 'person');
 	}
 	?>
 		<small class="author">
-			Added by 
+			<?php echo _('Added by')?> 
 			<?php echo $entry['creator_fn'].' '.$entry['creator_ln'].' (#'.$entry['creator'].')'; ?>
 			<?php echo format_datetime($entry['created']); ?>
 			<?php
 			if ($entry['editor']) {
 				$editor = $GLOBALS['system']->getDBObject('person', $entry['editor']);
 				$name = $editor ? $editor->toString() : '(restricted user)';
-				echo ". Edited by ".ents($name)." (#{$entry['editor']}) ".format_datetime($entry['edited']);
+				echo _('". Edited by "').ents($name)." (#{$entry['editor']}) ".format_datetime($entry['edited']);
 			}
 			?>
 		</small>
@@ -76,7 +76,7 @@ $type = (!empty($entry['familyid']) ? 'family' : 'person');
 			<?php
 			if (!empty($show_edit_link) && $GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
 				?>
-				<a class="pull-right" href="?view=_edit_note&note_type=<?php echo $type; ?>&noteid=<?php echo $id; ?>"><i class="icon-wrench"></i>Edit / Comment</a>
+				<a class="pull-right" href="?view=_edit_note&note_type=<?php echo $type; ?>&noteid=<?php echo $id; ?>"><i class="icon-wrench"></i><?php echo _('Edit / Comment')?></a>
 				<?php
 			}
 			$statusClasses = Array(
