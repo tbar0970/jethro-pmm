@@ -46,7 +46,7 @@ if ($show_actions) {
 		$dummy_person->populate($id, $details);
 		$tr_class = ($details['status'] === 'archived') ? ' class="archived"' : '';
 		?>
-		<tr<?php echo $tr_class; ?>>
+		<tr data-personid="<?php echo $id; ?>" <?php echo $tr_class; ?>>
 			<td><?php echo $id; ?></td>
 			<td class="nowrap"><?php echo $dummy_person->printFieldvalue('name'); ?></td>
 		<?php
