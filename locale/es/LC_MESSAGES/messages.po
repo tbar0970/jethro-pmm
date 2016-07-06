@@ -1,0 +1,1799 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2016-04-28 20:03-0300\n"
+"PO-Revision-Date: 2016-05-04 16:24-0300\n"
+"Last-Translator: Andres Sereno <andres.sereno@gmail.com>\n"
+"Language-Team: \n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.5\n"
+"X-Poedit-Basepath: ../../..\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-SearchPath-0: views\n"
+"X-Poedit-SearchPath-1: include\n"
+"X-Poedit-SearchPath-2: templates\n"
+"X-Poedit-SearchPath-3: db_objects\n"
+"X-Poedit-SearchPathExcluded-0: include/phpword\n"
+"X-Poedit-SearchPathExcluded-1: include/swiftmailer\n"
+
+#: db_objects/attendance_record_set.class.php:763
+msgid "All age brackets"
+msgstr "Todas las edades"
+
+#: db_objects/attendance_record_set.class.php:794
+msgid "All statuses"
+msgstr "Todos los estados"
+
+#: db_objects/person.class.php:776
+msgid "Edit family details"
+msgstr "Editar familia"
+
+#: db_objects/person.class.php:779
+msgid "Move to different family"
+msgstr "Mover a otra familia"
+
+#: db_objects/person_group.class.php:33
+msgid "Sunday"
+msgstr "Domingo"
+
+#: db_objects/person_group.class.php:34
+msgid "Monday"
+msgstr "Lunes"
+
+#: db_objects/person_group.class.php:35
+msgid "Tuesday"
+msgstr "Martes"
+
+#: db_objects/person_group.class.php:36
+msgid "Wednesday"
+msgstr "Miercoles"
+
+#: db_objects/person_group.class.php:37
+msgid "Thursday"
+msgstr "Jueves"
+
+#: db_objects/person_group.class.php:38
+msgid "Friday"
+msgstr "Viernes"
+
+#: db_objects/person_group.class.php:39
+msgid "Saturday"
+msgstr "Sabado"
+
+#: db_objects/person_group.class.php:42
+msgid "Attendance Recording Days"
+msgstr "Dias de tomar Asistencia"
+
+#: db_objects/person_group.class.php:44
+msgid "Select nothing if you do not plan to record attendance for this group"
+msgstr "No seleccione nada si no es necesario tomar asistencia a este grupo"
+
+#: db_objects/person_group.class.php:50
+msgid ""
+"If set to yes, members of this group will be able to see other members' "
+"details when they log in to the <a href=\""
+msgstr ""
+"Si elige si, los miembros de este grupo podrán ver los detalles de otros "
+"miembros' cuando ingresen a  <a href=\""
+
+#: db_objects/person_group.class.php:50
+msgid "member portal"
+msgstr "portal de miembro"
+
+#: db_objects/person_group.class.php:222 templates/view_person.template.php:256
+msgid "Group Name"
+msgstr "Nombre de grupo"
+
+#: db_objects/person_group.class.php:226
+#: views/view_10_admin__1_congregations.class.php:43
+#: views/view_5_groups__1_list_all.class.php:51
+msgid "Members"
+msgstr "Miembros"
+
+#: db_objects/person_group.class.php:308
+msgid "Manage Categories"
+msgstr "Administrar Categorias"
+
+#: db_objects/person_group.class.php:398
+msgid "There are no groups in the system yet"
+msgstr "Todavía no hay grupos en el sistema"
+
+#: db_objects/person_group.class.php:414
+#: views/view_5_groups__1_list_all.class.php:124
+msgid "Uncategorised Groups"
+msgstr "Grupos sin categoria"
+
+#: templates/bulk_actions.template.php:7
+msgid "With selected people:"
+msgstr "Con gente seleccionada:"
+
+#: templates/bulk_actions.template.php:9
+msgid "-- Choose Action --"
+msgstr "-- Elegir Accion --"
+
+#: templates/bulk_actions.template.php:14
+msgid "Remove from this group"
+msgstr "Sacar de este grupo"
+
+#: templates/bulk_actions.template.php:15
+msgid "Move to a different group"
+msgstr "Agregar a otro grupo"
+
+#: templates/bulk_actions.template.php:16
+msgid "Add to another group"
+msgstr "Agregar a otro grupo"
+
+#: templates/bulk_actions.template.php:20
+#: templates/view_person.template.php:241
+msgid "Add to a group"
+msgstr "Agregar a grupo"
+
+#: templates/bulk_actions.template.php:24
+msgid "Set field(s)"
+msgstr "Setear Campo(s)"
+
+#: templates/bulk_actions.template.php:29
+msgid "Add note"
+msgstr "Agregar Nota"
+
+#: templates/bulk_actions.template.php:33
+msgid "Send email"
+msgstr "Enviar Mail"
+
+#: templates/bulk_actions.template.php:38
+msgid "Send SMS"
+msgstr "Enviar SMS"
+
+#: templates/bulk_actions.template.php:42
+msgid "Print envelopes"
+msgstr "Imprimir Sobres"
+
+#: templates/bulk_actions.template.php:43
+msgid "Export as CSV"
+msgstr "Exportar a CVS"
+
+#: templates/bulk_actions.template.php:44
+msgid "Export as vCard"
+msgstr "Exportar a vCard"
+
+#: templates/bulk_actions.template.php:48
+msgid "Mail merge a document"
+msgstr "Unir Mail al documento"
+
+#: templates/bulk_actions.template.php:55
+msgid "Execute an action plan"
+msgstr "Ejecutar un plan de accion"
+
+#: templates/bulk_actions.template.php:116
+msgid "Move selected persons to "
+msgstr "Mover personas seleccionadas a "
+
+#: templates/bulk_actions.template.php:119
+msgid "Add selected persons as "
+msgstr "Agregar personas seleccionadas a "
+
+#: templates/bulk_actions.template.php:131
+msgid "an existing group:"
+msgstr "un grupo existente:"
+
+#: templates/bulk_actions.template.php:151
+msgid "a new group:"
+msgstr "un nuevo grupo:"
+
+#: templates/bulk_actions.template.php:155
+msgid "New group name: "
+msgstr "Nombre del grupo"
+
+#: templates/bulk_actions.template.php:208
+msgid "Source Document"
+msgstr "Origen del documento"
+
+#: templates/bulk_actions.template.php:215
+msgid "Merge for"
+msgstr "Unir con"
+
+#: templates/bulk_actions.template.php:219
+msgid "each of the selected persons"
+msgstr "cada persona seleccionada"
+
+#: templates/bulk_actions.template.php:221
+msgid "(Sample file: "
+msgstr "(Ejemplo: "
+
+#: templates/bulk_actions.template.php:228
+msgid "each of the families that the selected persons belong to"
+msgstr "cada familia de las personas seleccionadas pertenecen a "
+
+#: templates/bulk_actions.template.php:249
+msgid "Send an email to"
+msgstr "Enviar mail a "
+
+#: templates/bulk_actions.template.php:250
+#: templates/bulk_actions.template.php:264
+#: templates/bulk_actions.template.php:286
+msgid "the selected persons"
+msgstr "las personas selecciondas"
+
+#: templates/bulk_actions.template.php:251
+msgid "the adults in the selected persons&#8217; families"
+msgstr "los adultos en las personas selecciondas&#8217;familias"
+
+#: templates/bulk_actions.template.php:252
+msgid "Allow recipients to see each other&#8217;s email addresses"
+msgstr "Permitir recipientes para ver cada uno&#8217;s direcciones de mail"
+
+#: templates/bulk_actions.template.php:260
+msgid "To:"
+msgstr "Para:"
+
+#: templates/bulk_actions.template.php:268
+msgid "the adults in the selected persons families"
+msgstr "los adultos en las familas seleccionadas"
+
+#: templates/bulk_actions.template.php:287
+msgid "the families the selected persons belong to"
+msgstr "las familias de las personas seleccionadas pertenecen a "
+
+#: templates/bulk_actions.template.php:292
+msgid "Print envelopes addressed to "
+msgstr "Imprimir sobres dirigidos a "
+
+#: templates/bulk_actions.template.php:295
+msgid ""
+"the selected persons themselves, grouped by family (eg &#8220;John, Joanne "
+"&amp; James Smith&#8221;)"
+msgstr ""
+"las personas seleccionadas, agrupadas por familia (eg &#8220;John, Joanne "
+"&amp; James Smith&#8221;)"
+
+#: templates/bulk_actions.template.php:299
+msgid ""
+"the families the selected persons belong to (eg &#8220;Jones Family&#8221;)"
+msgstr ""
+"las familias seleccionadas pertenecen a  (eg &#8220;Jones Family&#8221;)"
+
+#: templates/bulk_actions.template.php:303
+msgid ""
+"adult members of the selected persons&#8217; families (eg &#8220;Bert and "
+"Marjorie Citizen&#8221;)"
+msgstr ""
+"los adultos de las personas seleccionadas&#8217; families (eg &#8220;Bert "
+"and Marjorie Citizen&#8221;)"
+
+#: templates/bulk_actions.template.php:312
+#: views/view_0_add_person_to_family.class.php:65
+#: views/view_2_families__3_add.class.php:267
+msgid "Reference date for plans:"
+msgstr "Fecha de referencia para planes:"
+
+#: templates/family_list.template.php:5
+msgid "Family Name"
+msgstr "Nombre de Familia"
+
+#: templates/family_list.template.php:6
+#: views/view_2_families__3_add.class.php:172
+msgid "Family Members"
+msgstr "Miembros de la familia"
+
+#: templates/family_list.template.php:11
+msgid "Home Phone"
+msgstr "Teléfono Casa"
+
+#: templates/family_list.template.php:15
+#: templates/person_list_header_footer.template.php:22
+#: views/view_3_persons__3_reports.class.php:130
+#: views/view_6_attendance__1_record.class.php:293
+#: views/view_6_attendance__2_display.class.php:210
+msgid "Actions"
+msgstr "Acciones"
+
+#: templates/family_list.template.php:35
+#: templates/list_notes_assorted.template.php:61
+#: templates/person_list.template.php:96 templates/view_person.template.php:190
+#: views/view_3_persons__3_reports.class.php:175
+#: views/view_6_attendance__1_record.class.php:341
+#: views/view_6_attendance__2_display.class.php:325
+msgid "View"
+msgstr "Ver"
+
+#: templates/family_list.template.php:39 templates/person_list.template.php:100
+#: templates/view_family.template.php:61 templates/view_person.template.php:162
+#: templates/view_person.template.php:194
+#: templates/view_person.template.php:324
+#: views/view_10_admin__1_congregations.class.php:60
+#: views/view_10_admin__2_user_accounts.class.php:32
+#: views/view_10_admin__4_action_plans.class.php:106
+#: views/view_5_groups__1_list_all.class.php:74
+#: views/view_5_groups__4_manage_categories.class.php:61
+#: views/view_6_attendance__1_record.class.php:342
+#: views/view_6_attendance__2_display.class.php:329
+msgid "Edit"
+msgstr "Editar"
+
+#: templates/family_list.template.php:44 templates/person_list.template.php:105
+#: templates/view_person.template.php:216
+#: views/view_6_attendance__1_record.class.php:343
+#: views/view_6_attendance__2_display.class.php:334
+msgid "Add Note"
+msgstr "Agregar Nota"
+
+#: templates/list_notes_assorted.template.php:16
+msgid "ID"
+msgstr "ID"
+
+#: templates/list_notes_assorted.template.php:17 views/view_1_home.class.php:55
+#: views/view_6_attendance__1_record.class.php:150
+#: views/view_6_attendance__2_display.class.php:86
+msgid "For"
+msgstr "Para"
+
+#: templates/list_notes_assorted.template.php:18 views/view_1_home.class.php:56
+msgid "Subject"
+msgstr "Asunto"
+
+#: templates/list_notes_assorted.template.php:19
+msgid "Assignee"
+msgstr "Asignado a"
+
+#: templates/list_notes_assorted.template.php:20
+msgid "Action Date"
+msgstr "Fecha de accion"
+
+#: templates/list_notes_assorted.template.php:52
+msgid "This note is locked by another user and cannot be edited at this time."
+msgstr ""
+"Esta nota esta bloqueada por otro usuario y no puede ser editada ahora."
+
+#: templates/list_notes_assorted.template.php:62
+msgid "Edit/Comment"
+msgstr "Editar/Comentar"
+
+#: templates/list_notes_assorted.template.php:74
+#: views/abstract_view_add_object.class.php:57
+#: views/view_10_admin__4_action_plans.class.php:69
+#: views/view_2_families__3_add.class.php:275 views/view_5_groups.class.php:186
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: templates/login_form.template.php:17
+msgid "Error: Javascript is Disabled"
+msgstr "Error: JavaScript desabilitado"
+
+#: templates/login_form.template.php:17
+msgid ""
+"For Jethro to function correctly you must enable javascript, which is done "
+"most simply by lowering the security level your browser uses for this website"
+msgstr ""
+"Para que Jethro funcione correctamente tienes que habilitar javascript, lo "
+"cual puede hacerse facilmente bajando el nivel de seguridad en su browser "
+"para este sitio"
+
+#: templates/login_form.template.php:27
+msgid "Username"
+msgstr "Usuario"
+
+#: templates/login_form.template.php:35
+msgid "Password"
+msgstr "Password"
+
+#: templates/main.template.php:29
+msgid "Logged in as"
+msgstr "Logeado como"
+
+#: templates/main.template.php:36 templates/main.template.php:66
+msgid "Edit me"
+msgstr "Editar"
+
+#: templates/main.template.php:37
+msgid "Log out"
+msgstr "Salir"
+
+#: templates/main.template.php:44
+msgid ""
+"\"This user account can only see persons in certain congregations or groups\""
+msgstr "\"Este usuario solo puede ver personas de ciertos grupos\""
+
+#: templates/main.template.php:44
+msgid "Restrictions in effect"
+msgstr "Con restricciones"
+
+#: templates/main.template.php:70
+msgid "Log ou"
+msgstr "Salir"
+
+#: templates/person_list_header_footer.template.php:3
+#: views/view_10_admin__3_custom_fields.class.php:85
+#: views/view_10_admin__4_action_plans.class.php:90
+#: views/view_5_groups__1_list_all.class.php:50
+#: views/view_6_attendance__1_record.class.php:279
+#: views/view_6_attendance__2_display.class.php:201
+#: views/view_6_attendance__2_display.class.php:384
+msgid "Name"
+msgstr "Nombre"
+
+#: templates/person_list_header_footer.template.php:11
+#: views/view_2_families__3_add.class.php:191
+#: views/view_2_families__3_add.class.php:216 views/view_5_groups.class.php:48
+#: views/view_6_attendance__1_record.class.php:283
+#: views/view_6_attendance__2_display.class.php:388
+msgid "Status"
+msgstr "Estado"
+
+#: templates/person_list_header_footer.template.php:12
+#: views/view_2_families__3_add.class.php:187
+#: views/view_2_families__3_add.class.php:215
+msgid "Age"
+msgstr "Edad"
+
+#: templates/person_list_header_footer.template.php:13
+#: views/view_2_families__3_add.class.php:186
+#: views/view_2_families__3_add.class.php:214
+msgid "Gender"
+msgstr "Sexo"
+
+#: templates/person_list_header_footer.template.php:17
+#: templates/view_person.template.php:75
+#: views/view_6_attendance__3_statistics.class.php:100
+msgid "Groups"
+msgstr "Grupos"
+
+#: templates/person_list_header_footer.template.php:23
+#: views/view_6_attendance__2_display.class.php:405
+msgid "\"Select all\""
+msgstr "\"Seleccionar todos\""
+
+#: templates/single_note.template.php:18
+msgid "Edit original note"
+msgstr "Editar nota original"
+
+#: templates/single_note.template.php:33
+msgid "Added by"
+msgstr "Agregado por"
+
+#: templates/single_note.template.php:40
+msgid "\". Edited by \""
+msgstr "\".Editada por \""
+
+#: templates/single_note.template.php:79
+msgid "Edit / Comment"
+msgstr "Editar/Comentar"
+
+#: templates/view_family.template.php:14 templates/view_person.template.php:68
+msgid "Basic Details"
+msgstr "Datos Basicos"
+
+#: templates/view_family.template.php:19 templates/view_person.template.php:72
+msgid "Notes"
+msgstr "Notas"
+
+#: templates/view_family.template.php:24 templates/view_person.template.php:88
+msgid "History"
+msgstr "Historia"
+
+#: templates/view_family.template.php:64
+msgid "Add Member"
+msgstr "Agregar miembro"
+
+#: templates/view_family.template.php:82 templates/view_person.template.php:176
+msgid "Print Envelope"
+msgstr "Imprimir sobre"
+
+#: templates/view_family.template.php:86
+msgid "Email All"
+msgstr "Mail a todos"
+
+#: templates/view_family.template.php:106
+msgid "Add Family Note"
+msgstr "Agregar Nota de familia"
+
+#: templates/view_family.template.php:110
+msgid "Add Person Note"
+msgstr "Agregar Nota de persona"
+
+#: templates/view_family.template.php:127
+msgid "Family Record Created on "
+msgstr "Registro de familia creado el:"
+
+#: templates/view_person.template.php:13
+msgid "Execute Action Plan for "
+msgstr "Ejecutar plan de accion"
+
+#: templates/view_person.template.php:17
+msgid "Reference date for plans: "
+msgstr "Fecha de referencia para planes: "
+
+#: templates/view_person.template.php:43
+msgid "Add "
+msgstr "Agregar"
+
+#: templates/view_person.template.php:43
+msgid " to a group"
+msgstr " a un grupo"
+
+#: templates/view_person.template.php:48
+msgid "Add as a "
+msgstr "Agregar como "
+
+#: templates/view_person.template.php:50
+msgid " of "
+msgstr " de"
+
+#: templates/view_person.template.php:55
+msgid "\"Choose a group first\""
+msgstr "\"Elegir un grupo primero\""
+
+#: templates/view_person.template.php:78
+msgid "Attendance"
+msgstr "Asistencia"
+
+#: templates/view_person.template.php:81
+msgid "Rosters"
+msgstr "Listas"
+
+#: templates/view_person.template.php:168
+msgid "Person Details"
+msgstr "Detalle de la persona"
+
+#: templates/view_person.template.php:181
+msgid "Execute Action Plan"
+msgstr "Ejecutar plan de accion"
+
+#: templates/view_person.template.php:199
+#: views/view_2_families__3_add.class.php:240
+msgid "Family Details"
+msgstr "Detalles de la familia"
+
+#: templates/view_person.template.php:221
+msgid "There are no person or family notes for "
+msgstr "No hay notas disponibles para "
+
+#: templates/view_person.template.php:225
+msgid "Person and Family Notes for "
+msgstr "Notas para"
+
+#: templates/view_person.template.php:247
+msgid " is not a member of any active groups"
+msgstr " no es miembro de ningun grupo activo"
+
+#: templates/view_person.template.php:251
+msgid " is a member of:"
+msgstr "es miembro de:"
+
+#: templates/view_person.template.php:257
+msgid "Membership Status"
+msgstr "Estado de membresia"
+
+#: templates/view_person.template.php:258
+msgid "Joined Group"
+msgstr "Parte del grupo"
+
+#: templates/view_person.template.php:272
+msgid "Remove"
+msgstr "Remover"
+
+#: templates/view_person.template.php:302
+msgid "No attendance has been recorded for "
+msgstr "No ha sido tomada asistencia para "
+
+#: views/abstract_view_edit_object.class.php:60
+msgid "Error"
+msgstr "Error"
+
+#: views/abstract_view_edit_object.class.php:61
+msgid "Editing "
+msgstr "Editando "
+
+#: views/abstract_view_edit_object.class.php:75
+#: views/view_0_edit_congregation.class.php:59
+msgid ""
+"Your changes could not be saved because your lock had expired.  Try making "
+"your changes again using the form below"
+msgstr ""
+"Sus cambios podrían no ser guardados porque su bloqueo expiro. Ingrese los "
+"cambios nuevamente usando el sig. formulario"
+
+#: views/abstract_view_edit_object.class.php:81
+#: views/view_0_edit_user_account.class.php:46
+msgid ""
+"Your changes could not be saved because your lock has expired.  The lock has "
+"now been acquired by another user.  Wait some time for them to finish and "
+"then"
+msgstr ""
+"Sus cambios podrían no ser guardados porque su bloqueo expiro. Otro usuario "
+"ha bloqueado ese registro. Espere un tiempo a que termine y luego"
+
+#: views/abstract_view_notes_list.class.php:25
+msgid "Assignments Saved"
+msgstr "Asignación grabada"
+
+#: views/abstract_view_notes_list.class.php:45
+msgid "Show notes assigned to"
+msgstr "Mostrar notas asignadas a "
+
+#: views/abstract_view_notes_list.class.php:59
+msgid "Go"
+msgstr "Ir"
+
+#: views/abstract_view_notes_list.class.php:66
+msgid "There are no notes to show"
+msgstr "No hay notas para mostrar"
+
+#: views/abstract_view_notes_list.class.php:72
+msgid "Edit the assignees for all these notes"
+msgstr "Editar los asignados para todas las notas"
+
+#: views/abstract_view_notes_list.class.php:77
+msgid "notes in total"
+msgstr "notas en total"
+
+#: views/view_0_add_note_to_family.class.php:25
+#: views/view_0_add_note_to_person.class.php:55
+msgid "Note added"
+msgstr "Nota agregada"
+
+#: views/view_0_add_note_to_family.class.php:31
+msgid "Family has only one member, so adding note to that person instead"
+msgstr "La familia solo tiene un miembro, la nota sera agregada a la persona"
+
+#: views/view_0_add_note_to_family.class.php:49
+msgid "New Note Details"
+msgstr "Detalle de la nota"
+
+#: views/view_0_add_note_to_family.class.php:54
+msgid "Add Note to Family"
+msgstr "Agregar nota a la famila"
+
+#: views/view_0_add_note_to_person.class.php:16
+msgid "Cannot add note, no person ID specified"
+msgstr "No se puede agregar nota, persona no especificada"
+
+#: views/view_0_add_note_to_person.class.php:59
+msgid "Note added to "
+msgstr "Nota agregada a "
+
+#: views/view_0_add_note_to_person.class.php:59
+msgid " persons"
+msgstr " personas"
+
+#: views/view_0_add_note_to_person.class.php:61
+msgid "Note successfully added to "
+msgstr "Nota agregada para "
+
+#: views/view_0_add_note_to_person.class.php:61
+msgid " of the "
+msgstr "del"
+
+#: views/view_0_add_note_to_person.class.php:61
+msgid " selected persons"
+msgstr "personas selecionadas"
+
+#: views/view_0_add_note_to_person.class.php:74
+msgid "Add note to "
+msgstr "Agregar nota a "
+
+#: views/view_0_add_note_to_person.class.php:94
+msgid "Add Note to Person"
+msgstr "Agregar nota a la persona "
+
+#: views/view_0_add_person_to_family.class.php:56
+msgid "New Person Details"
+msgstr "Nueva persona"
+
+#: views/view_0_add_person_to_family.class.php:62
+msgid "Action Plans"
+msgstr "Planes de accion"
+
+#: views/view_0_add_person_to_family.class.php:63
+msgid "Execute the following action plans for the new person:"
+msgstr "Ejecutar el siguiente plan de acción para la nueva persona:"
+
+#: views/view_0_add_person_to_family.class.php:69
+msgid "Add Family Member"
+msgstr "Agregar miembro de familia"
+
+#: views/view_0_delete_person.class.php:48
+msgid "Delete "
+msgstr "Borrar"
+
+#: views/view_0_delete_person.class.php:54
+msgid "Delete altogether"
+msgstr "Borrar en conjunto"
+
+#: views/view_0_delete_person.class.php:55
+msgid "Archive and Clean"
+msgstr "Archivar y limpiar"
+
+#: views/view_0_delete_person.class.php:60
+msgid "This person has a user account and cannot be deleted altogether."
+msgstr ""
+"Esta persona tiene una cuenta de usuario y no se puede borrar en conjunto"
+
+#: views/view_0_delete_person.class.php:61
+msgid "You can archive and clean this person, which will"
+msgstr "Puede archivar y limpiar esta persona, la cual sera"
+
+#: views/view_0_delete_person.class.php:67
+msgid ""
+"Deleting this person is not recommended since they have roster assignments "
+"and/or attendance records, and deleting them will affect historical "
+"statistics."
+msgstr "No se recomienda borrar esta persona por tener datos asociados."
+
+#: views/view_0_delete_person.class.php:68
+msgid "It is recommended that you archive and clean the person, which will"
+msgstr "Se recomienda archivar y limpiar esta persona, la cual sera"
+
+#: views/view_0_edit_attendance.class.php:27
+msgid "Edit attendance at "
+msgstr "Editar asistencia del "
+
+#: views/view_0_edit_attendance.class.php:27
+msgid " for "
+msgstr " para"
+
+#: views/view_0_edit_attendance.class.php:29
+msgid "Edit congregational attendance for "
+msgstr "Editar asistencia congregacional para "
+
+#: views/view_0_edit_congregation.class.php:42
+msgid "Editing Congregation "
+msgstr "Editando congregacion"
+
+#: views/view_0_edit_congregation.class.php:65
+msgid ""
+"Your changes could not be saved because your lock has expired.  The lock has "
+"now been acquired by another user.  Wait some time for them to finish and "
+"then "
+msgstr ""
+"Sus cambios podrian no ser guardados porque su bloqueo ha expirado. El "
+"bloqueo ha sido tomado por otro usuario. Espere un momento hasta que termine "
+"y "
+
+#: views/view_0_edit_congregation.class.php:65
+#: views/view_0_edit_congregation.class.php:77
+#: views/view_0_edit_note.class.php:119
+#: views/view_0_edit_user_account.class.php:46
+#: views/view_0_edit_user_account.class.php:59
+msgid "try again"
+msgstr "intentelo nuevamente"
+
+#: views/view_0_edit_congregation.class.php:77
+msgid ""
+"This congregation cannot currently be edited because another user has the "
+"lock.  Wait some time for them to finish and then "
+msgstr ""
+"Esta congregacion no puede ser editada ahora porque otro usuario tiene "
+"bloqueado el registro. Espere un momento a que finalice y luego"
+
+#: views/view_0_edit_congregation.class.php:88
+msgid "Update Congregation"
+msgstr "modificar congregacion"
+
+#: views/view_0_edit_me.class.php:18
+#: views/view_0_edit_user_account.class.php:28
+msgid "Editing User Account for "
+msgstr "Editando cuenta de usuario para "
+
+#: views/view_0_edit_note.class.php:19
+msgid "Note deleted"
+msgstr "Nota borrada"
+
+#: views/view_0_edit_note.class.php:22
+msgid "Failed to delete note"
+msgstr "Fallo al borrar nota"
+
+#: views/view_0_edit_note.class.php:101
+msgid "Editing Person Note for "
+msgstr "Editando nota personal para "
+
+#: views/view_0_edit_note.class.php:103
+msgid "Editing Note for "
+msgstr "Editando nota para "
+
+#: views/view_0_edit_note.class.php:116 views/view_0_edit_note.class.php:119
+msgid "Your changes could not be saved because your lock had expired. "
+msgstr "Sus cambio no pueden ser guardados porque su bloqueo expiro."
+
+#: views/view_0_edit_note.class.php:116
+msgid "Try making your changes again using the form below"
+msgstr "Intente hacer los cambio nuevamente usando el siguiente formulario"
+
+#: views/view_0_edit_note.class.php:119
+msgid "The lock has now been acquired by another user. "
+msgstr "Otro usuario ha bloqueado el registro."
+
+#: views/view_0_edit_note.class.php:119
+msgid "Wait some time for them to finish and then "
+msgstr "Espere un tiempo y luego "
+
+#: views/view_0_edit_user_account.class.php:40
+msgid ""
+"Your changes could not be saved because your lock had expired. Try making "
+"your changes again using the form below"
+msgstr ""
+"Sus cambio no pueden ser guardados porque su bloqueo expiro. Intente hacer "
+"los cambio nuevamente usando el siguiente formulario"
+
+#: views/view_0_edit_user_account.class.php:59
+msgid ""
+"This person cannot currently be edited because another user has the lock. "
+msgstr ""
+"Esta persona no puede ser editada ahora porque otro usuario tiene bloqueado "
+"el registro."
+
+#: views/view_0_edit_user_account.class.php:59
+msgid "Wait some time for them to finish and then"
+msgstr "Espere un tiempo y luego "
+
+#: views/view_0_edit_user_account.class.php:70
+msgid "Update Account"
+msgstr "Modificar Cuenta"
+
+#: views/view_10_admin__1_congregations.class.php:11
+#: views/view_6_attendance__3_statistics.class.php:91
+msgid "Congregations"
+msgstr "Congregaciones"
+
+#: views/view_10_admin__1_congregations.class.php:21
+msgid "Cannot delete congregation because it is not empty"
+msgstr "No puede borrar la congregación porque no esta vacia"
+
+#: views/view_10_admin__1_congregations.class.php:24
+msgid "Congregation deleted"
+msgstr "Congregación borrada"
+
+#: views/view_10_admin__1_congregations.class.php:40
+msgid "Long Name"
+msgstr "Nombre largo"
+
+#: views/view_10_admin__1_congregations.class.php:41
+msgid "Short Name"
+msgstr "Nombre Corto"
+
+#: views/view_10_admin__1_congregations.class.php:42
+msgid "Code Name"
+msgstr "Nombre Codigo"
+
+#: views/view_10_admin__1_congregations.class.php:64
+#: views/view_10_admin__4_action_plans.class.php:107
+#: views/view_3_persons__3_reports.class.php:181
+#: views/view_5_groups__1_list_all.class.php:78
+#: views/view_5_groups__4_manage_categories.class.php:63
+msgid "Delete"
+msgstr "Borrar"
+
+#: views/view_10_admin__1_congregations.class.php:79
+msgid ""
+"To delete a congregation, first ensure it contains no members, then it can "
+"be deleted via this page"
+msgstr ""
+"Antes de borrar una congregación asegúrese que no tiene miembros, luego "
+"podrá borrarla desde esta pagina "
+
+#: views/view_10_admin__2_user_accounts.class.php:11
+msgid "User Accounts"
+msgstr "Cuentas de Usuarios"
+
+#: views/view_10_admin__2_user_accounts.class.php:21
+msgid "Add User Account"
+msgstr "Agregar cuenta de usuario"
+
+#: views/view_10_admin__2_user_accounts.class.php:31
+msgid "Active"
+msgstr "Activo"
+
+#: views/view_10_admin__2_user_accounts.class.php:31
+msgid "Inactive"
+msgstr "Inactivo"
+
+#: views/view_10_admin__3_custom_fields.class.php:13
+msgid "Configure Custom Fields"
+msgstr "Configurar Campos Personalizados"
+
+#: views/view_10_admin__3_custom_fields.class.php:23
+msgid ""
+"Somebody else is currently editing the custom fields.  Please try again later"
+msgstr ""
+"Alguien mas esta editando los campos personalizados. Por favor intente mas "
+"tarde."
+
+#: views/view_10_admin__3_custom_fields.class.php:74
+msgid "No custom fields have been set up in the system yet."
+msgstr "Todavía no se han configurado campos personalizados en el sistema."
+
+#: views/view_10_admin__3_custom_fields.class.php:86
+msgid "Type"
+msgstr "Tipo"
+
+#: views/view_10_admin__3_custom_fields.class.php:87
+msgid "Multi?"
+msgstr "Multi?"
+
+#: views/view_10_admin__3_custom_fields.class.php:88
+msgid "Parameters"
+msgstr "Parametros"
+
+#: views/view_10_admin__3_custom_fields.class.php:130
+msgid "\"Click to delete this field\""
+msgstr "\"Click para borrar este campo\""
+
+#: views/view_10_admin__3_custom_fields.class.php:142
+#: views/view_10_admin__3_date_types.class.php:85
+msgid "\"Save\""
+msgstr "\"Grabar\""
+
+#: views/view_10_admin__3_date_types.class.php:16
+msgid "Configure Date Types"
+msgstr "Configurar "
+
+#: views/view_10_admin__3_date_types.class.php:46
+msgid "Date types updated"
+msgstr ""
+
+#: views/view_10_admin__3_date_types.class.php:56
+msgid "No date types have been set up in the system yet."
+msgstr ""
+
+#: views/view_10_admin__4_action_plans.class.php:25
+msgid ""
+"The plan could not be deleted because another user currently holds the "
+"lock.  Wait for them to finish editing then try again."
+msgstr ""
+
+#: views/view_10_admin__4_action_plans.class.php:32
+msgid "Action plan updated"
+msgstr ""
+
+#: views/view_10_admin__4_action_plans.class.php:35
+msgid "Action plan created"
+msgstr ""
+
+#: views/view_10_admin__4_action_plans.class.php:40
+msgid ""
+"This plan cannot be edited because another user holds the lock.  Please wait "
+"for them to finish editing and try again."
+msgstr ""
+
+#: views/view_10_admin__4_action_plans.class.php:49
+msgid "Edit action plan: "
+msgstr ""
+
+#: views/view_10_admin__4_action_plans.class.php:51
+msgid "Add action plan"
+msgstr ""
+
+#: views/view_10_admin__4_action_plans.class.php:54
+#: views/view_2_families__3_add.class.php:263
+msgid "Action plans"
+msgstr "Planes de accion"
+
+#: views/view_10_admin__4_action_plans.class.php:68
+msgid "\"Save Action Plan\""
+msgstr ""
+
+#: views/view_10_admin__4_action_plans.class.php:77
+msgid "Add new plan"
+msgstr ""
+
+#: views/view_10_admin__4_action_plans.class.php:82
+msgid "There are not yet any action plans saved in the system"
+msgstr ""
+
+#: views/view_10_admin__4_action_plans.class.php:91
+msgid "Last modified"
+msgstr ""
+
+#: views/view_10_admin__4_action_plans.class.php:107
+msgid "\"Delete this action plan\""
+msgstr ""
+
+#: views/view_10_admin__5_import.class.php:13
+msgid "Import"
+msgstr "Importar"
+
+#: views/view_10_admin__5_import.class.php:80
+msgid "Importing..."
+msgstr ""
+
+#: views/view_10_admin__5_import.class.php:82
+msgid ""
+"If this indicator stops making progress, your import may still be running in "
+"the background."
+msgstr ""
+
+#: views/view_10_admin__5_import.class.php:82
+msgid "You should"
+msgstr ""
+
+#: views/view_10_admin__5_import.class.php:82
+msgid ""
+"check your system for the imported persons</a> before running the import "
+"again."
+msgstr ""
+
+#: views/view_1_home.class.php:30
+msgid "System-Wide Search"
+msgstr "Búsqueda en todo el sistema"
+
+#: views/view_1_home.class.php:36
+msgid "\"Name, Phone or Email\""
+msgstr "Nombre, Teléfono o Email"
+
+#: views/view_1_home.class.php:48
+msgid "Notes "
+msgstr "Notas "
+
+#: views/view_1_home.class.php:48
+msgid "for immediate action"
+msgstr "Para Acción Inmediata"
+
+#: views/view_1_home.class.php:84
+msgid "You have "
+msgstr "Tienes"
+
+#: views/view_1_home.class.php:84
+msgid "for future action"
+msgstr "Para Acción Futura"
+
+#: views/view_2_families.class.php:17
+msgid "Viewing Family: "
+msgstr "Viendo Familia: "
+
+#: views/view_2_families.class.php:19
+msgid "Error: No family supplied"
+msgstr "Error: No se indico familia"
+
+#: views/view_2_families__1_list_all.class.php:31
+msgid "All Families"
+msgstr "Todas las familias"
+
+#: views/view_2_families__1_list_all.class.php:46
+msgid "Include Archived"
+msgstr "Incluir Archivadas"
+
+#: views/view_2_families__1_list_all.class.php:48
+msgid "Exclude Archived"
+msgstr "Excluir Archivadas"
+
+#: views/view_2_families__1_list_all.class.php:57
+msgid "No families in this range"
+msgstr "No hay familias en este ramgo"
+
+#: views/view_2_families__1_list_all.class.php:61
+msgid "No families were found"
+msgstr "No se encontraron familias"
+
+#: views/view_2_families__1_list_all.class.php:62
+msgid "Include Archived families"
+msgstr "Incluir familias archivadas"
+
+#: views/view_2_families__1_list_all.class.php:67
+msgid "families in this range"
+msgstr "familias en este rango"
+
+#: views/view_2_families__1_list_all.class.php:69
+msgid "families in total"
+msgstr "familias en total"
+
+#: views/view_2_families__2_search.class.php:48
+msgid "Family Search Results"
+msgstr "Resultado de la busqueda"
+
+#: views/view_2_families__2_search.class.php:56
+msgid "No matching families were found"
+msgstr "No se encontraron familias"
+
+#: views/view_2_families__3_add.class.php:29
+msgid "New family must have at least one member"
+msgstr "La nueva familia debe tener al menos un miembro"
+
+#: views/view_2_families__3_add.class.php:34
+msgid "A subject must be supplied for the initial family note"
+msgstr "Se debe agregar asunto a la nota de familia inicial"
+
+#: views/view_2_families__3_add.class.php:102
+msgid "Family Created"
+msgstr "Familia creada"
+
+#: views/view_2_families__3_add.class.php:107
+msgid "Error during family creation, family not created"
+msgstr "Error durante la creación de la familia."
+
+#: views/view_2_families__3_add.class.php:114
+msgid "Add Family"
+msgstr "Añadir familia"
+
+#: views/view_2_families__3_add.class.php:130
+msgid ""
+"Several families already exist that are similar to the one you are creating"
+msgstr "Existen familias similares a la que esta creando"
+
+#: views/view_2_families__3_add.class.php:131
+msgid "A family similar to the one you are creating already exists"
+msgstr "Existe una familia similar a la que se esta creando"
+
+#: views/view_2_families__3_add.class.php:137
+msgid "Family"
+msgstr "Familia "
+
+#: views/view_2_families__3_add.class.php:145
+msgid "Create new family anyway"
+msgstr "Crear la familia de todas formas"
+
+#: views/view_2_families__3_add.class.php:149
+msgid "Cancel family creation"
+msgstr "Anula creación de familia"
+
+#: views/view_2_families__3_add.class.php:166
+msgid "Family Name:"
+msgstr "Nombre de Familia"
+
+#: views/view_2_families__3_add.class.php:181
+#: views/view_2_families__3_add.class.php:212
+msgid "First Name"
+msgstr "Nombre"
+
+#: views/view_2_families__3_add.class.php:182
+#: views/view_2_families__3_add.class.php:213
+msgid "Last Name"
+msgstr "Apellido"
+
+#: views/view_2_families__3_add.class.php:192
+#: views/view_2_families__4_contact_list.class.php:53
+msgid "Congregation"
+msgstr "Turno"
+
+#: views/view_2_families__3_add.class.php:196
+msgid "Mobile"
+msgstr "Celular"
+
+#: views/view_2_families__3_add.class.php:197
+#: views/view_2_families__3_add.class.php:219
+#: views/view_3_persons__3_reports.class.php:176
+msgid "Email"
+msgstr "Email"
+
+#: views/view_2_families__3_add.class.php:217
+msgid "Cong."
+msgstr "Turno"
+
+#: views/view_2_families__3_add.class.php:218
+msgid "Mobile Tel"
+msgstr "Celular"
+
+#: views/view_2_families__3_add.class.php:240
+#: views/view_2_families__3_add.class.php:263
+msgid "(optional)"
+msgstr "(opcional)"
+
+#: views/view_2_families__3_add.class.php:250
+msgid "REQUIRE_INITIAL_NOTE"
+msgstr "REQUIERE_NOTA_INICIAL"
+
+#: views/view_2_families__3_add.class.php:251
+msgid "Initial Note"
+msgstr "Nota inicial"
+
+#: views/view_2_families__3_add.class.php:251
+msgid "required"
+msgstr "requerido"
+
+#: views/view_2_families__3_add.class.php:251
+msgid "optional"
+msgstr "opcional"
+
+#: views/view_2_families__3_add.class.php:264
+msgid "Execute the following action plans for the new family:"
+msgstr "Ejecutar el siguiente plan de acción para la nueva familia:"
+
+#: views/view_2_families__3_add.class.php:272
+msgid "Create"
+msgstr "Crear"
+
+#: views/view_2_families__3_add.class.php:274
+msgid "Create Family"
+msgstr "Crear familia"
+
+#: views/view_2_families__4_contact_list.class.php:19
+msgid "Contact List"
+msgstr "Contactos"
+
+#: views/view_2_families__4_contact_list.class.php:33
+msgid "You must choose an opt-in group"
+msgstr "Debe elegir un grupo"
+
+#: views/view_2_families__4_contact_list.class.php:49
+msgid "Opt-in group"
+msgstr "Opción de grupo"
+
+#: views/view_2_families__4_contact_list.class.php:54
+msgid "Only include opted-in persons from"
+msgstr "Solo incluir personas seleccionadas de"
+
+#: views/view_2_families__4_contact_list.class.php:58
+msgid "Age brackets"
+msgstr "Edades"
+
+#: views/view_2_families__4_contact_list.class.php:59
+msgid "Only show contact details for persons who are"
+msgstr "Solo mostrar detalles para personas que pertenecen a "
+
+#: views/view_2_families__4_contact_list.class.php:64
+msgid "Other family members"
+msgstr "Otros miembros de la familia"
+
+#: views/view_2_families__4_contact_list.class.php:65
+msgid "For other members of the families of persons who opted in, show"
+msgstr "Para otros miembros de la familia seleccionadas, mostrar"
+
+#: views/view_2_families__4_contact_list.class.php:68
+msgid "only their names"
+msgstr "solo sus nombres"
+
+#: views/view_2_families__4_contact_list.class.php:72
+msgid "their contact details, same as for opted-in persons"
+msgstr "sus datos de contacto, como de las personas seleccionadas"
+
+#: views/view_2_families__4_contact_list.class.php:76
+msgid "Addresses"
+msgstr "Direcciones"
+
+#: views/view_2_families__4_contact_list.class.php:80
+msgid "Include home addresses in results"
+msgstr "Incluir dirección en el resultado"
+
+#: views/view_2_families__4_contact_list.class.php:125
+msgid "No families to show"
+msgstr "No hay familias para mostrar"
+
+#: views/view_3_persons.class.php:22
+msgid "Viewing Person: "
+msgstr "Viendo persona:"
+
+#: views/view_3_persons.class.php:24
+msgid "Person not found"
+msgstr "Persona no encontrada"
+
+#: views/view_3_persons__1_list_all.class.php:31
+msgid "All Persons"
+msgstr "Todas las personas"
+
+#: views/view_3_persons__1_list_all.class.php:56
+msgid "No persons in this range"
+msgstr "No hay personas para mostrar"
+
+#: views/view_3_persons__1_list_all.class.php:60
+msgid "No persons were found"
+msgstr "No se encontraron personas"
+
+#: views/view_3_persons__1_list_all.class.php:61
+msgid "Include Archived Persons"
+msgstr "Incluir archivadas"
+
+#: views/view_3_persons__1_list_all.class.php:66
+msgid " persons in this range"
+msgstr " personas en este rango"
+
+#: views/view_3_persons__1_list_all.class.php:68
+msgid " persons in total"
+msgstr " personas en total"
+
+#: views/view_3_persons__3_reports.class.php:58
+#: views/view_3_persons__3_reports.class.php:67
+msgid "Configure Person Report"
+msgstr "Configurar Reporte de Persona"
+
+#: views/view_3_persons__3_reports.class.php:63
+msgid "Person Report Results"
+msgstr "Resultados de reporte"
+
+#: views/view_3_persons__3_reports.class.php:70
+msgid "Person Reports"
+msgstr "Reportes de personas"
+
+#: views/view_3_persons__3_reports.class.php:85
+msgid "\"Save and view results\""
+msgstr "\"Guardar y ver resultados\""
+
+#: views/view_3_persons__3_reports.class.php:86
+msgid "\"Save and return to report list\""
+msgstr "\"Grabar y volver a la lista\""
+
+#: views/view_3_persons__3_reports.class.php:87
+msgid "Cancel and return to report list"
+msgstr "Cancelar y volver a la lista"
+
+#: views/view_3_persons__3_reports.class.php:98
+msgid "Back to list of reports"
+msgstr "Volver a la lista de reportes"
+
+#: views/view_3_persons__3_reports.class.php:101
+msgid "Reconfigure this report"
+msgstr "Reconfigurar este reporte"
+
+#: views/view_3_persons__3_reports.class.php:104
+msgid "Download CSV"
+msgstr "Bajar CSV"
+
+#: views/view_3_persons__3_reports.class.php:112
+msgid "Create a new report"
+msgstr "Crear un nuevo reporte"
+
+#: views/view_3_persons__3_reports.class.php:119
+msgid "There are not yet any reports saved in the system"
+msgstr "Todavía no hay guardado ningún reporte en el sistema"
+
+#: views/view_3_persons__3_reports.class.php:128
+msgid "Report Name"
+msgstr "Nombre de reporte"
+
+#: views/view_3_persons__3_reports.class.php:129
+msgid "Visible To"
+msgstr "Visible para"
+
+#: views/view_3_persons__3_reports.class.php:135
+msgid "Results"
+msgstr "Resultados"
+
+#: views/view_3_persons__3_reports.class.php:148
+msgid "Last ad-hoc query"
+msgstr "Ultima consulta personalizada"
+
+#: views/view_3_persons__3_reports.class.php:150
+#: views/view_3_persons__3_reports.class.php:174
+msgid "Configure"
+msgstr "Configurar"
+
+#: views/view_3_persons__3_reports.class.php:151
+msgid "View Results"
+msgstr "Ver Resultados"
+
+#: views/view_3_persons__3_reports.class.php:172
+msgid "Everyone"
+msgstr "Todos"
+
+#: views/view_3_persons__3_reports.class.php:172
+msgid "Only Me"
+msgstr "Solo yo"
+
+#: views/view_3_persons__3_reports.class.php:200
+msgid "\"Show result counts for selected reports\""
+msgstr "\"Mostrar resultados para el informe seleccionado\""
+
+#: views/view_3_persons__4_statistics.class.php:12
+msgid "System-wide Person Statistics"
+msgstr "Estadísticas de Personas"
+
+#: views/view_4_notes__1_for_immediate_action.class.php:27
+msgid "Notes For Immediate Action"
+msgstr "Notas para acción inmediata"
+
+#: views/view_4_notes__2_for_future_action.class.php:21
+msgid "Notes For Future Action"
+msgstr "Notas para acción futura"
+
+#: views/view_5_groups.class.php:9
+msgid "Viewing Group: "
+msgstr "Mostrando Grupo: "
+
+#: views/view_5_groups.class.php:36
+msgid "Group Details"
+msgstr "Detalles de Grupo"
+
+#: views/view_5_groups.class.php:39
+msgid "Category"
+msgstr "Categoria"
+
+#: views/view_5_groups.class.php:41
+msgid "Record Attendance?"
+msgstr "Registra asistencia?"
+
+#: views/view_5_groups.class.php:44
+msgid "Edit group details"
+msgstr "Editar detalles de grupo"
+
+#: views/view_5_groups.class.php:50
+msgid "Share Member Details?"
+msgstr "Comparte detalles del miembro?"
+
+#: views/view_5_groups.class.php:56
+msgid "Delete group"
+msgstr "Borrar grupo"
+
+#: views/view_5_groups.class.php:66
+msgid "Add Members by Name Search"
+msgstr "Agregar miembros buscando por nombre"
+
+#: views/view_5_groups.class.php:71
+msgid "Select persons:"
+msgstr "Seleccionar personas:"
+
+#: views/view_5_groups.class.php:80
+msgid "Membership status:"
+msgstr "Estado de membresía:"
+
+#: views/view_5_groups.class.php:99
+msgid "Email members of "
+msgstr "Email a miembros de "
+
+#: views/view_5_groups.class.php:115
+msgid "Group Members "
+msgstr "Miembros del Grupo "
+
+#: views/view_5_groups.class.php:125
+msgid "Show archived members"
+msgstr "Mostar miembros archivados"
+
+#: views/view_5_groups.class.php:129
+msgid "Hide archived members"
+msgstr "Ocultar miembros archivados"
+
+#: views/view_5_groups.class.php:138
+msgid "Email members"
+msgstr "Email a los miembros"
+
+#: views/view_5_groups.class.php:146
+msgid "Edit membership statuses"
+msgstr "Editar estado de miembro"
+
+#: views/view_5_groups.class.php:153
+msgid "Add members"
+msgstr "Agregar miembros"
+
+#: views/view_5_groups.class.php:185
+msgid "Save membership statuses"
+msgstr "Grabar estado de miembro"
+
+#: views/view_5_groups.class.php:194
+msgid "This group does not currently have any members"
+msgstr "Este grupo no tiene miembros actualmente"
+
+#: views/view_5_groups__1_list_all.class.php:10
+msgid "All Groups"
+msgstr "Todos los grupos"
+
+#: views/view_5_groups__1_list_all.class.php:104
+msgid "Include Archived Groups"
+msgstr "Incluir grupos archivados"
+
+#: views/view_5_groups__1_list_all.class.php:108
+msgid "Exclude Archived Groups"
+msgstr "Excluir grupos archivados"
+
+#: views/view_5_groups__1_list_all.class.php:114
+msgid "Add a new group"
+msgstr "Agregar nuevo grupo"
+
+#: views/view_5_groups__3_add.class.php:33
+msgid "Save and view group"
+msgstr "Grabar y Ver grupo"
+
+#: views/view_5_groups__3_add.class.php:34
+msgid "Save group and create another"
+msgstr "Grabar y crear otro grupo"
+
+#: views/view_5_groups__4_manage_categories.class.php:16
+msgid "Category deleted"
+msgstr "Categoría borrada"
+
+#: views/view_5_groups__4_manage_categories.class.php:23
+msgid "Person Group Categories"
+msgstr "Categorías de grupo"
+
+#: views/view_5_groups__4_manage_categories.class.php:32
+msgid ""
+"A person group in Jethro can be uncategorised, or it can belong to one group "
+"category.<br />Group categories may exist at the top level, or within "
+"another category."
+msgstr ""
+"En Jetro un grupo de personas puede no tener categoría.<br />Una categoría "
+"de grupo puede existir sola o como subcategoría."
+
+#: views/view_5_groups__4_manage_categories.class.php:35
+msgid "Add a new group category"
+msgstr "Agregar nueva categoría de grupo"
+
+#: views/view_5_groups__4_manage_categories.class.php:60
+msgid "Are you sure you want to delete this category?"
+msgstr "Está seguro que desea borrar esta categoría?"
+
+#: views/view_6_attendance__1_record.class.php:25
+msgid "Attendance recorded for "
+msgstr "Tomador de asistencia"
+
+#: views/view_6_attendance__1_record.class.php:27
+msgid "Record Attendance for "
+msgstr "Registrar asistencia para"
+
+#: views/view_6_attendance__1_record.class.php:29
+msgid "Record Attendance"
+msgstr "Registrar asistencia"
+
+#: views/view_6_attendance__1_record.class.php:80
+msgid "\"Attendance for \""
+msgstr "\"Asistencia para \""
+
+#: views/view_6_attendance__1_record.class.php:80
+msgid "\" cannot be recorded on a \""
+msgstr "\" no puede registrarse sobre \""
+
+#: views/view_6_attendance__1_record.class.php:87
+msgid "\"Another user is currently recording attendance for \""
+msgstr "\"Otro usuario esta tomando asistencia para \""
+
+#: views/view_6_attendance__1_record.class.php:87
+msgid "\".  Please wait until they finish then try again.\""
+msgstr "\". Por favor espere hasta que terminen e intente nuevamente.\" "
+
+#: views/view_6_attendance__1_record.class.php:158
+#: views/view_6_attendance__2_display.class.php:94
+msgid "In"
+msgstr "En"
+
+#: views/view_6_attendance__1_record.class.php:174
+msgid "On"
+msgstr "Sobre"
+
+#: views/view_6_attendance__1_record.class.php:188
+msgid "Show photos"
+msgstr "Mostrar foto"
+
+#: views/view_6_attendance__1_record.class.php:196
+msgid "Use tabular format"
+msgstr "Usar formato tabular"
+
+#: views/view_6_attendance__1_record.class.php:207
+msgid "Continue"
+msgstr "Continuar"
+
+#: views/view_6_attendance__1_record.class.php:246
+msgid "The parameters you have selected will list more persons "
+msgstr "Los parámetros que ha seleccionado mostraran mas personas "
+
+#: views/view_6_attendance__1_record.class.php:247
+msgid "than your server can process.  Please narrow down your parameters, "
+msgstr ""
+"de las que su servidor puede procesar. Por favor achique los parámetros, "
+
+#: views/view_6_attendance__1_record.class.php:248
+msgid ""
+"or ask your server administrator to increase the PHP max_input_vars setting"
+msgstr ""
+"o pida al administrador del servidor que aumente la configuración de PHP "
+"max_input_vars"
+
+#: views/view_6_attendance__1_record.class.php:249
+msgid " (currently "
+msgstr "(actualmente "
+
+#: views/view_6_attendance__1_record.class.php:353
+msgid "Total Headcount:"
+msgstr "Total Personas:"
+
+#: views/view_6_attendance__1_record.class.php:413
+msgid "Total headcount:"
+msgstr "Total personas:"
+
+#: views/view_6_attendance__1_record.class.php:424
+msgid "(No persons in this listing)"
+msgstr "(Ninguna persona en este listado)"
+
+#: views/view_6_attendance__1_record.class.php:450
+msgid "Record more attendances"
+msgstr "Registrar mas asistencias"
+
+#: views/view_6_attendance__1_record.class.php:451
+msgid "Analyse attendance using a person report"
+msgstr "Analizar asistencia usando un reporte personal "
+
+#: views/view_6_attendance__2_display.class.php:21
+msgid "Display attendance"
+msgstr "Mostrar asistencia"
+
+#: views/view_6_attendance__2_display.class.php:110
+msgid "Between"
+msgstr "Entre"
+
+#: views/view_6_attendance__2_display.class.php:116
+msgid "And"
+msgstr "Y"
+
+#: views/view_6_attendance__2_display.class.php:122
+msgid "Format"
+msgstr "Formato"
+
+#: views/view_6_attendance__2_display.class.php:170
+msgid " Congregation"
+msgstr "Congregación"
+
+#: views/view_6_attendance__2_display.class.php:174
+msgid " Group"
+msgstr "Grupo"
+
+#: views/view_6_attendance__2_display.class.php:183
+msgid ""
+"\"Congregational attendance cannot be filtered by a group membership status. "
+"Please clear the status filter to display attendance for this congregation.\""
+msgstr ""
+"\"La asistencia congregacional no puede filtrarse por estado de la persona "
+"en el grupo. Por favor saque el filtro de estado para mostrar la asistencia "
+"para esta congregación.\""
+
+#: views/view_6_attendance__2_display.class.php:190
+msgid "No attendance records found.  Try adjusting your criteria."
+msgstr ""
+"No se encuentra ningún registro de asistencia. Intente modificando su "
+"búsqueda."
+
+#: views/view_6_attendance__2_display.class.php:248
+#: views/view_6_attendance__2_display.class.php:502
+msgid "Total Headcount"
+msgstr "Total Personas:"
+
+#: views/view_6_attendance__2_display.class.php:521
+msgid "Total Present"
+msgstr "Total Presentes"
+
+#: views/view_6_attendance__2_display.class.php:521
+msgid "Present"
+msgstr "Presente"
+
+#: views/view_6_attendance__2_display.class.php:537
+msgid "Total Absent"
+msgstr "Total Ausentes"
+
+#: views/view_6_attendance__2_display.class.php:537
+msgid "Absent"
+msgstr "Ausente"
+
+#: views/view_6_attendance__2_display.class.php:556
+msgid "Extras"
+msgstr "Extras"
+
+#: views/view_6_attendance__3_statistics.class.php:14
+msgid "Attendance Statistics"
+msgstr "Estadísticas de asistencia"
+
+#: views/view_6_attendance__3_statistics.class.php:42
+msgid "Show the attendance statistics for persons of each (current) status"
+msgstr ""
+"Mostrar estadísticas de asistencia para personas de cada estado (actual)"
+
+#: views/view_6_attendance__3_statistics.class.php:43
+msgid "between"
+msgstr "entre"
+
+#: views/view_6_attendance__3_statistics.class.php:44
+msgid "and"
+msgstr "y"
+
+#: views/view_6_attendance__3_statistics.class.php:46
+msgid ""
+"Note: Any weeks where a person attendance is left blank (neither present nor "
+"absent) are ignored when calculating attendance percentages."
+msgstr ""
+"Nota: Si alguna semana una persona tiene asistencia en blanco sera ignorada "
+"para el calculo de estadísticas."
+
+#: views/view_6_attendance__3_statistics.class.php:124
+msgid "Segment"
+msgstr "Segmento"
+
+#: views/view_6_attendance__3_statistics.class.php:125
+msgid "\"Percentage of dates marked present rather than absent\""
+msgstr "\"Porcentaje de presentes contra ausentes\""
+
+#: views/view_6_attendance__3_statistics.class.php:125
+msgid "Rate"
+msgstr "Tasa"
+
+#: views/view_6_attendance__3_statistics.class.php:126
+msgid "\"Average number marked present per date\""
+msgstr "\"Promedio de presentes por fecha\""
+
+#: views/view_6_attendance__3_statistics.class.php:126
+msgid "Avg&nbsp;P"
+msgstr "Prom. P "
+
+#: views/view_6_attendance__3_statistics.class.php:127
+msgid "Average number marked absent per date\""
+msgstr "Promedio de ausentes por fecha\""
+
+#: views/view_6_attendance__3_statistics.class.php:127
+msgid "Avg&nbsp;A"
+msgstr "Prom. A"
+
+#: views/view_6_attendance__3_statistics.class.php:166
+msgid "Overall"
+msgstr "Total"
+
+#: views/view_6_attendance__3_statistics.class.php:173
+msgid "Avg&nbsp;Headcount"
+msgstr "Prom. Cant. Personas"
+
+msgid "Share Member Details"
+msgstr "Comparte detalles de los integrantes?"
+
+msgid "Families"
+msgstr "Familias"
+
+msgid "Persons"
+msgstr "Personas"
+
+msgid "Documents"
+msgstr "Documentos"
+
+msgid "List All"
+msgstr "Listar Todas"
+
+msgid "Search"
+msgstr "Buscar"
+
+msgid "Add"
+msgstr "Agregar"
+
+msgid "Reports"
+msgstr "Reportes"
+
+msgid "Statistics"
+msgstr "Estadisticas"
+
+msgid "For Immediate Action"
+msgstr "Para Accion Inmediata"
+
+msgid "For Future Action"
+msgstr "Para Accion Futura"
+
+msgid "Record"
+msgstr "Registrar"
+
+msgid "Display"
+msgstr "Mostrar"
+
+msgid "Street Address"
+msgstr "Direccion"
+
+msgid "Home Tel"
+msgstr "Tel. Casa"
+
+msgid "Details"
+msgstr "Detalles"
+
+msgid "Age Bracket"
+msgstr "Grupo Edad"
+
+msgid "Work Tel"
+msgstr "Tel. Trabajo"
+
+msgid "contact remarks"
+msgstr "Observaciones"
+
+msgid "Street Address\t"
+msgstr "Direccion"
+
+msgid "New group created"
+msgstr "Nuevo grupo creado"
+
+msgid "Error creating group"
+msgstr "Error creando grupo"
+
+msgid "Create Group"
+msgstr "Crear Grupo"
+
+msgid "Add Person Group"
+msgstr "Agregar Grupo de Personas"
+
+msgid "Custom Fields"
+msgstr "Campos Personalizados"
+
+msgid "Note Templates"
+msgstr "Plantilla de Notas"
+
+msgid "System Configuration"
+msgstr "Configuracion Sistema"
+
+msgid "Upgrade"
+msgstr "Actualizar"

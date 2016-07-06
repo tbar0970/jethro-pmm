@@ -47,7 +47,7 @@ if (is_readable($confFile)) {
 /*** GRADIENT ****/
 
 #login-header,
-.person-details-box h3,
+.details-box h3,
 #jethro-nav-background,
 .table thead th, .table tfoot th,
 .accordion-heading
@@ -63,7 +63,7 @@ if (is_readable($confFile)) {
 }
 .table thead th, .table tfoot th, .table thead th *, .table tfoot th * {
 	/* use a colour that will contrast with the background */
-	color: contrast(@jethroDarkish, @jethroDarkText, @jethroLightText);
+	color: contrast(@jethroDarkish, @jethroDarkText, @jethroLightText) !important;
 	font-weight: normal !important; /* bold makes the contrast too stark */
 }
 
@@ -640,14 +640,14 @@ td.narrow, th.narrow, .object-summary th {
 	margin-top: 5px;
 	margin-bottom: 0px;
 }
-
+/* in the add-family page */
 .family-member-box {
 	border: 1px solid @jethroDarkest;;
 	border-radius: 5px;
 	padding: 0px 5px 5px 5px;
 	overflow: auto;
 	height: auto;
-	background: @jethroLightest; /* lighter yellow */
+	background: @jethroLightest;
 	margin-bottom: 10px;
 }
 .align-right {
@@ -802,69 +802,81 @@ p.report-summary {
 
 /************* VIEW PERSON ************/
 
-/*
-if there is a photo it will always go top right
-If there is enough width, person and family details go next to each other
- - with identical heights.
- - with half the width each
-Otherwise they go beneath each other
- - with 100% width
-
-*/
-
-.view-person img.person-photo {
-	float: right;
-	width: 200px;
-	margin: 0px;
-}
-
 .view-person h4 {
 	border-bottom: 1px solid #ddd;
 }
-
-.person-details-withphoto {
-	margin-right: 200px;
-	padding-right: 15px;
-	width: auto;
-	overflow: hidden;
+.person-details {
+	float: left;
+	margin-right: 15px;
 }
-
-.person-details-box {
-
-	width: auto;
-	min-width: 40%;
+img.person-photo {
+	width: 200px;
+	float: left;
+	border-radius: 5px;
+	border: 1px solid @jethroDarkest;
+}
+.details-box {
 	box-sizing: border-box;
 	-webkit-box-sizing: border-box;
 	-moz-box-sizing: border-box;
-	float: left;
 	border: 1px solid @jethroDarkest;
 	padding: 15px;
-	margin: 0 15px 15px 0;
 	position: relative;
 	z-index: 50;
 	overflow: hidden;
 	background: @jethroLight;
 	border-radius: 5px;
+	margin-bottom: 15px;
 }
-.person-details-box table {
-	width: 100%;
+.view-person .details-box {
+	width: 500px;
 }
-.accordion .person-details-box {
-	padding: 8px;
+@media(min-width:1100px) {
+	.person-details {
+		width: 860px;
+		margin-right: 0px;
+	}
+	/* person details 380 + family details 380 + photo 200px wide */
+	.view-person .details-box {
+		width: 415px;
+		overflow: auto;
+		float: left;
+		margin-right: 15px;
+	}
+	.view-person img.person-photo {
+		float: right;
+	}
 }
 
-.person-details-box h3 {
+@media(max-width:600px) {
+	.person-details, .person-photo, .view-person .details-box {
+		float: none;
+		width: 100%;
+		margin-left: 0px;
+	}
+}
+
+
+
+.details-box table {
+	width: 100%;
+}
+
+.details-box h3 {
 	margin: -15px -15px 15px -15px;
 	padding-left: 15px;
 	white-space: nowrap;
 	text-shadow: 0 1px 0 @jethroDarkText;
 	font-size: 14px;
 	font-weight: bold;
+	color: white  !important;
+	line-height: 30px;
 }
-.accordion .person-details-box {
+.accordion .details-box {
+	padding: 8px;
 	max-width: 100%;
 }
-.accordion .person-details-box h3 {
+.accordion .details-box h3 {
 	/* prevent the inside heading being bigger than the accordion heading */
 	font-size: 14px;
 	font-weight: bold;
@@ -872,25 +884,26 @@ Otherwise they go beneath each other
 	padding-bottom: 2px;
 	margin: -8px -8px 8px -8px;
 }
-.person-details-box h3 {
-	color: white  !important;
-	line-height: 30px;
-}
-.person-details-box .header-link {
+.details-box .header-link {
 	position: absolute;
 	right: 10px;
 }
-.person-details-box .header-link, .person-details-box .header-link a  {
+.details-box .header-link, .details-box .header-link a  {
 	line-height: 30px;
 	color: white  !important;
 	margin-top: -15px;
 }
-.accordion .person-details-box .header-link {
+.accordion .details-box .header-link {
 	margin-top: -8px;
 }
-.person-details-box .table {
+.details-box .table {
 	margin-bottom: 5px;
 }
+
+
+
+
+
 
 /* when editing (I think) */
 .person-photo-container {
@@ -905,36 +918,61 @@ Otherwise they go beneath each other
 
 
 /************** VIEW FAMILY ****************/
-#member-details-container {
-	padding: 0px;
+.details-box form {
+	margin: 0px;
 }
-#body #member-details-container .table {
-	margin-bottom: 2px;
-}
-#body #member-details-container form {
-	margin-bottom: 0px;
-}
-#family-photos-container img {
-	width: 50px;
-	display: inline;
-}
-#family-photos-container a {
+.family-details {
+	margin-right: 15px;
 	float: left;
-	margin: 0 1ex 1ex 0;
 }
-#family-members-container h4 {
-	margin-bottom: 0;
+.family-details .details-box {
+	width: 630px;
 }
-#family-members-container table tr:first-child td {
-	padding-top: 0px;
+.family-member {
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	border: 1px solid @jethroDarkest;
+	background-color: @jethroLightest;
+	padding: 5px;
+	border-radius: 5px;
+	width: 47.1%;
+	margin: 0 15px 15px 0;
+	height: 72px;
+	float: left;
+	overflow: hidden;
+	color: @jethroDarkText;
 }
-#family-members-container table tr:last-child td {
-	padding-bottom: 0px;
+.family-member:hover {
+	background-color: @jethroGrayish;
 }
-#family-members-container table tr td:first-child {
-	padding-left: 0px;
+.family-member label {
+	float: right;
+	margin: -5px -5px 0 0;
+	padding: 5px 5px 0 0;
+	display: block;
+	height: 20px;
+	width: 20px;
 }
-
+.family-member * {
+	text-decoration: none !important;
+}
+.family-member img {
+	margin: -5px 5px -5px -5px;
+	width: 70px;
+	float: left;
+	border-top-left-radius: 5px;
+	border-bottom-left-radius: 5px;
+}
+@media (max-width: 600px) {
+	.family-details .details-box {
+		width: 100%;
+	}
+	.family-member {
+		width: 100%;
+		margin: 0 0 15px 0;
+	}
+}
 
 /**************** hOME PAGE *****************/
 
@@ -1178,7 +1216,7 @@ ul.nav-tabs {
 	margin-bottom: 0px;
 }
 table.roster select.unlisted-allocee, #body table.roster select option.unlisted-allocee {
-	color: orange;
+	color: #e68a00;
 }
 table.roster select.unlisted-allocee option {
 	color: @jethroDarkText;

@@ -18,7 +18,7 @@ class View_Notes__For_Future_Action extends Abstract_View_Notes_List
 
 	function getTitle()
 	{
-		return 'Notes For Future Action';
+		return _('Notes For Future Action');
 	}
 }
 ?>

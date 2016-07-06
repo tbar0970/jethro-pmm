@@ -6,7 +6,7 @@ class View_Groups extends View
 	function getTitle()
 	{
 		if ($this->_group) {
-			return 'Viewing Group: '.$this->_group->getValue('name');
+			return _('Viewing Group: ').$this->_group->getValue('name');
 		}
 	}
 
@@ -33,27 +33,27 @@ class View_Groups extends View
 	{
 		if ($this->_group) {
 			?>
-			<h3>Group Details</h3>
+			<h3><?php echo _('Group Details');?></h3>
 			<table class="table-full-width">
 				<tr>
-					<th class="narrow" style="padding-bottom: 10px">Category</th>
+					<th class="narrow" style="padding-bottom: 10px"><?php echo _('Category');?></th>
 					<td><?php $this->_group->printFieldValue('categoryid'); ?>&nbsp;&nbsp;</td>
-					<th class="narrow hidden-phone">Record Attendance?</th>
+					<th class="narrow hidden-phone"><?php echo _('Record Attendance?');?></th>
 					<td class="hidden-phone"><?php $this->_group->printFieldValue('attendance_recording_days'); ?></td>
 					<td class="align-right">
-						<a class="link-collapse" href="?view=_edit_group&groupid=<?php echo $this->_group->id; ?>"><i class="icon-wrench"></i>Edit group details</a>
+						<a class="link-collapse" href="?view=_edit_group&groupid=<?php echo $this->_group->id; ?>"><i class="icon-wrench"></i><?php echo _('Edit group details');?></a>
 					</td>
 				</tr>
 				<tr>
-					<th class="narrow">Status</th>
+					<th class="narrow"><?php echo _('Status');?></th>
 					<td><?php $this->_group->printFieldValue('is_archived'); ?></td>
-					<th class="narrow hidden-phone">Share Member Details?</th>
+					<th class="narrow hidden-phone"><?php echo _('Share Member Details?');?></th>
 					<td class="hidden-phone"><?php $this->_group->printFieldValue('share_member_details'); ?></td>
 					<td class="align-right">
 						<form class="min" method="post" action="?view=_edit_group&groupid=<?php echo $this->_group->id; ?>">
 							<input type="hidden" name="action" value="delete" />
 							<button class="btn-link double-confirm-title link-collapse" type="submit" title="Delete this group">
-								<i class="icon-trash"></i>Delete group
+								<i class="icon-trash"></i><?php echo _('Delete group');?>
 							</button>
 						</form>
 					</td>
@@ -63,12 +63,12 @@ class View_Groups extends View
 			<div class="modal hide fade" id="action-plan-modal" role="dialog" aria-hidden="true">
 				<form method="post" action="?view=_edit_group&action=add_member&groupid=<?php echo $this->_group->id; ?>">
 					<div class="modal-header">
-						<h4>Add Members by Name Search</h4>
+						<h4><?php echo _('Add Members by Name Search');?></h4>
 					</div>
 					<div class="modal-body">
 						<table>
 							<tr>
-								<td>Select persons:</td>
+								<td><?php echo _('Select persons:');?></td>
 								<td>
 									<?php
 									$GLOBALS['system']->includeDBClass('person');
@@ -77,7 +77,7 @@ class View_Groups extends View
 								</td>
 							</tr>
 							<tr>
-								<td>Membership status:</td>
+								<td><?php echo _('Membership status:');?></td>
 								<td>
 									<?php
 									$GLOBALS['system']->includeDBClass('person_group');
@@ -96,7 +96,7 @@ class View_Groups extends View
 
 			<div class="modal hide fade autosize" id="email-modal" role="dialog" aria-hidden="true">
 				<div class="modal-header">
-					<h4>Email members of <?php echo ents($this->_group->getValue('name')); ?></h4>
+					<h4><?php echo _('Email members of ');?><?php echo ents($this->_group->getValue('name')); ?></h4>
 				</div>
 				<div class="modal-body">
 					<!-- to be populated with ajax -->
@@ -115,7 +115,7 @@ class View_Groups extends View
 			$persons = $this->_group->getMembers($mParams);
 			list ($status_options, $default_status) = Person_Group::getMembershipStatusOptionsAndDefault();
 			?>
-			<h3>Group Members (<?php echo count($persons); ?>)</h3>
+			<h3><?php echo _('Group Members');?> (<?php echo count($persons); ?>)</h3>
 
 			<?php
 			if (empty($_REQUEST['edit_statuses'])) {
@@ -125,11 +125,11 @@ class View_Groups extends View
 						<?php
 						if (empty($_SESSION['show_archived_group_members'])) {
 							?>
-							<a class="hidden-phone" href="<?php echo build_url(Array('show_archived' => 1)); ?>"><i class="icon-eye-open"></i>Show archived members</a>
+							<a class="hidden-phone" href="<?php echo build_url(Array('show_archived' => 1)); ?>"><i class="icon-eye-open"></i><?php echo _('Show archived members');?></a>
 							<?php
 						} else {
 							?>
-							<a class="hidden-phone" href="<?php echo build_url(Array('show_archived' => 0)); ?>"><i class="icon-eye-close"></i>Hide archived members</a>
+							<a class="hidden-phone" href="<?php echo build_url(Array('show_archived' => 0)); ?>"><i class="icon-eye-close"></i><?php echo _('Hide archived members');?></a>
 							<?php
 						}
 						?>
@@ -138,7 +138,7 @@ class View_Groups extends View
 				if (!empty($persons)) {
 					?>
 					<div class="email-link">
-						<a href="<?php echo build_url(Array('view' => NULL, 'call' => 'email', 'groupid' => $this->_group->id, 'show_modal' => 1)); ?>" data-target="#email-modal" data-toggle="modal"><i class="icon-email">@</i>Email members</a>
+						<a href="<?php echo build_url(Array('view' => NULL, 'call' => 'email', 'groupid' => $this->_group->id, 'show_modal' => 1)); ?>" data-target="#email-modal" data-toggle="modal"><i class="icon-email">@</i><?php echo _('Email members');?></a>
 					</div>
 					<?php
 				}
@@ -146,14 +146,14 @@ class View_Groups extends View
 					if (count($status_options) > 1) {
 						?>
 						<div class="edit-status-link">
-							<a href="<?php echo build_url(Array('edit_statuses' => 1)); ?>"><i class="icon-wrench"></i>Edit membership statuses</a>
+							<a href="<?php echo build_url(Array('edit_statuses' => 1)); ?>"><i class="icon-wrench"></i><?php echo _('Edit membership statuses');?></a>
 						</div>
 						<?php
 					}
 				}
 				?>
 					<div class="add-link">
-						<a href="#action-plan-modal" data-toggle="modal"><i class="icon-plus-sign"></i>Add members</a>
+						<a href="#action-plan-modal" data-toggle="modal"><i class="icon-plus-sign"></i><?php echo _('Add members');?></a>
 					</div>
 				</div>
 				<?php
@@ -185,8 +185,8 @@ class View_Groups extends View
 				if (!empty($_REQUEST['edit_statuses'])) {
 					?>
 					<div class="align-right">
-						<input type="submit" class="btn" value="Save membership statuses" />
-						<a class="btn" href="<?php echo build_url(Array('edit_statuses' => NULL)); ?>">Cancel</a>
+						<input type="submit" class="btn" value="<?php echo _('Save membership statuses');?>" />
+						<a class="btn" href="<?php echo build_url(Array('edit_statuses' => NULL)); ?>"><?php echo _('Cancel');?></a>
 					</div>
 					</form>
 					<?php
@@ -194,7 +194,7 @@ class View_Groups extends View
 
 			} else {
 				?>
-				<p><em>This group does not currently have any members</em></p>
+				<p><em><?php echo _('This group does not currently have any members');?></em></p>
 				<?php
 			}
 		}

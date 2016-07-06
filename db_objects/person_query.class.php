@@ -226,13 +226,17 @@ class Person_Query extends DB_Object
 													'exact' => 'with exact value within...',
 													'anniversary' => 'with exact value or anniversary within...',
 												),
-												'class' => 'datefield-rule-criteria',
+												'attrs' => Array(
+													'data-toggle' => 'visible',
+													'data-target' => 'row .datefield-rule-period',
+													'data-match-attr' => 'data-select-rule-type'
+												),
 											);
 									print_widget('params_custom_field_'.$fieldid.'_criteria', $cparams, array_get($value, 'criteria'));
 									$pts = Array('fixed' => '', 'relative' => '');
 									$pts[array_get($value, 'periodtype', 'fixed')] = 'checked="checked"';
 									?>
-									<div class="datefield-rule-period">
+									<div class="datefield-rule-period" data-select-rule-type="exact anniversary">
 										<label class="checkbox nowrap">
 											<input type="radio" name="params_custom_field_<?php echo $fieldid; ?>_periodtype" value="fixed" <?php echo $pts['fixed']; ?> />
 											the period from
@@ -1439,7 +1443,7 @@ class Person_Query extends DB_Object
 							case 'photo':
 								?>
 								<a class="med-popup" href="?view=persons&personid=<?php echo $row[$label]; ?>">
-								<img height="60" src="?call=person_photo&personid=<?php echo $row[$label]; ?>" />
+								<img height="60" src="?call=photo&personid=<?php echo $row[$label]; ?>" />
 								</a>
 								<?php
 								break;

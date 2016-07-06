@@ -14,7 +14,7 @@
 		</div>
 		<div id="login-body" class="form-horizontal">
 			<noscript>
-				<div class="alert"><strong>Error: Javascript is Disabled</strong><br />For Jethro to function correctly you must enable javascript, which is done most simply by lowering the security level your browser uses for this website</div>
+				<div class="alert"><strong><?php echo _('Error: Javascript is Disabled')?></strong><br /><?php echo _('For Jethro to function correctly you must enable javascript, which is done most simply by lowering the security level your browser uses for this website')?></div>
 			</noscript>
 			<?php
 			if (!empty($this->_error)) {
@@ -24,7 +24,7 @@
 			}
 			?>
 			<div class="control-group">
-				<label class="control-label" for="username">Username</label>
+				<label class="control-label" for="username"><?php echo _('Username')?></label>
 				<div class="controls">
 					<input type="text" name="username" id="username" placeholder="Username"
 					<?php if (defined('PREFILL_USERNAME')) echo 'value="'.PREFILL_USERNAME.'"'; ?>						   
@@ -32,14 +32,13 @@
 				</div>
 			</div>
 			<div class="control-group">
-				<label class="control-label" for="password">Password</label>
+				<label class="control-label" for="password"><?php echo _('Password')?></label>
 				<div class="controls">
 					<input type="password" name="password" id="password" 
 		   			<?php if (defined('PREFILL_PASSWORD')) echo 'value="'.PREFILL_PASSWORD.'"'; ?>
 					placeholder="Password" />
 				</div>
 			</div>
-
 			<div class="control-group">
 				<div class="controls">
 					<input type="submit" value="Log In" class="btn" />

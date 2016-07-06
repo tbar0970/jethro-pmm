@@ -290,7 +290,7 @@ class View_Admin__Import extends View
 					<h3><?php echo ents($family['family_name']); ?> family</h3>
 					<?php
 					$this->_dummy_family->populate(0, $family);
-					$this->_dummy_family->printSummary(FALSE, $family['members']);
+					$this->_dummy_family->printSummaryWithMembers(FALSE, $family['members']);
 				}
 				?>
 				<form class="stop-js" method="post"><input type="submit" name="confirm_import" value="Proceed with import" class="confirm-title btn" title="Proceed with import" />

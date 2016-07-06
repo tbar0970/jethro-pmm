@@ -101,7 +101,7 @@ class View__Move_Person_To_Family extends View
 		}
 		if ($show_form) {
 			?>
-			<form method="post" class="form-horizontal">
+			<form method="post" class="form-horizontal" data-lock-length="<?php echo LOCK_LENGTH; ?>">
 				<div class="control-group">
 					<label class="control-label">Current Family</label>
 					<div class="controls controls-text">
@@ -134,10 +134,6 @@ class View__Move_Person_To_Family extends View
 					<a class="btn" href="?view=persons&personid=<?php echo $this->_person->id; ?>">Cancel</a>
 				</div>
 			</form>
-			<script type="text/javascript">
-				setTimeout('showLockExpiryWarning()', <?php echo (strtotime('+'.LOCK_LENGTH, 0)-60)*1000; ?>);
-				setTimeout('showLockExpiredWarning()', <?php echo (strtotime('+'.LOCK_LENGTH, 0))*1000; ?>);
-			</script>
 			<?php
 		}
 	}

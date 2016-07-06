@@ -55,19 +55,19 @@ class View_Persons__Reports extends View
 		if ($this->_query) {
 			if ($this->_query->id) {
 				if (!empty($_REQUEST['configure'])) {
-					return 'Configure Person Report';
+					return _('Configure Person Report');
 				} else {
 					if ($this->_query->getValue('name')) {
 						return $this->_query->getValue('name');
 					} else {
-						return 'Person Report Results';
+						return _('Person Report Results');
 					}
 				}
 			} else {
-				return 'Configure Person Report';
+				return _('Configure Person Report');
 			}
 		} else {
-			return 'Person Reports';
+			return _('Person Reports');
 		}
 	}
 	
@@ -82,9 +82,9 @@ class View_Persons__Reports extends View
 				$this->_query->printForm();
 				?>
 				<h3>&nbsp</h3>
-				<input type="submit" class="btn" value="Save and view results" />
-				<input type="submit" class="btn" name="return" value="Save and return to report list" />
-				<a class="btn" href="?view=<?php echo ents($_REQUEST['view']); ?>">Cancel and return to report list</a>
+				<input type="submit" class="btn" value=<?php echo _('"Save and view results"');?> />
+				<input type="submit" class="btn" name="return" value=<?php echo _('"Save and return to report list"');?> />
+				<a class="btn" href="?view=<?php echo ents($_REQUEST['view']); ?>"><?php echo _('Cancel and return to report list');?></a>
 
 			</form>
 			<?php
@@ -97,13 +97,13 @@ class View_Persons__Reports extends View
 			<hr />
 			<div class="row-fluid no-print">
 				<div class="span4">
-					<a href="?view=<?php echo ents($_REQUEST['view']); ?>"><i class="icon-chevron-left"></i>Back to list of reports</a>
+					<a href="?view=<?php echo ents($_REQUEST['view']); ?>"><i class="icon-chevron-left"></i><?php echo _('Back to list of reports');?></a>
 				</div>
 				<div class="span4 align-centre">
-					<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $this->_query->id; ?>&configure=1"><i class="icon-wrench"></i>Reconfigure this report</a>
+					<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $this->_query->id; ?>&configure=1"><i class="icon-wrench"></i><?php echo _('Reconfigure this report');?></a>
 				</div>
 				<div class="span4 align-right">
-					<a href="?call=report_csv&queryid=<?php echo $this->_query->id; ?>"><i class="icon-download-alt"></i>Download CSV</a>
+					<a href="?call=report_csv&queryid=<?php echo $this->_query->id; ?>"><i class="icon-download-alt"></i><?php echo _('Download CSV');?></a>
 				</div>
 			</div>
 			<?php
@@ -111,14 +111,14 @@ class View_Persons__Reports extends View
 		} else {
 			?>
 			<p>
-				<a href="<?php echo build_url(Array('*' => NULL, 'view' => $_REQUEST['view'], 'queryid' => 0, 'configure' => 1)); ?>"><i class="icon-plus-sign"></i>Create a new report</a>
+				<a href="<?php echo build_url(Array('*' => NULL, 'view' => $_REQUEST['view'], 'queryid' => 0, 'configure' => 1)); ?>"><i class="icon-plus-sign"></i><?php echo _('Create a new report');?></a>
 			</p>
 
 			<?php
 			$saved_reports = $GLOBALS['system']->getDBObjectData('person_query', Array('(owner' => Array(NULL, $GLOBALS['user_system']->getCurrentUser('id'))), 'OR', 'name');
 			if (empty($saved_reports) && empty($_SESSION['saved_query'])) {
 				?>
-				<p><i>There are not yet any reports saved in the system</i></p>
+				<p><i><?php echo _('There are not yet any reports saved in the system');?></i></p>
 				<?php
 			} else {
 				?>
@@ -127,14 +127,14 @@ class View_Persons__Reports extends View
 					<thead>
 						<tr>
 							<th>ID</th>
-							<th>Report Name</th>
-							<th>Visible To</th>
-							<th>Actions</th>
+							<th><?php echo _('Report Name');?></th>
+							<th><?php echo _('Visible To');?></th>
+							<th><?php echo _('Actions');?></th>
 							<th></th>
 						<?php
 						if (!empty($this->_result_counts)) {
 							?>
-							<th>Results</th>
+							<th><?php echo _('Results');?></th>
 							<?php
 						}
 						?>
@@ -147,10 +147,10 @@ class View_Persons__Reports extends View
 						?>
 						<tr>
 							<td>-</td>
-							<td><i>Last ad-hoc query</i></td>
+							<td><i><?php echo _('Last ad-hoc query');?></i></td>
 							<td class="action-cell">
-								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=TEMP&configure=1"><i class="icon-wrench"></i>Configure</a> &nbsp;
-								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=TEMP"><i class="icon-list"></i>View Results</a> &nbsp;
+								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=TEMP&configure=1"><i class="icon-wrench"></i><?php echo _('Configure');?></a> &nbsp;
+								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=TEMP"><i class="icon-list"></i><?php echo _('View Results');?></a> &nbsp;
 							</td>
 							<td>&nbsp;</td>
 						<?php
@@ -171,16 +171,16 @@ class View_Persons__Reports extends View
 						<tr>
 							<td class="narrow"><?php echo (int)$id; ?></td>
 							<td><?php echo $details['name']; ?></td>
-							<td><?php echo ($details['owner'] === NULL) ? 'Everyone' : 'Only Me'; ?></td>
+							<td><?php echo ($details['owner'] === NULL) ? _('Everyone') : _('Only Me'); ?></td>
 							<td class="action-cell narrow">
-								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>&configure=1"><i class="icon-wrench"></i>Configure</a> &nbsp;
-								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>"><i class="icon-list"></i>View</a> &nbsp;
-								<a href="?call=email&queryid=<?php echo $id; ?>" class="hidden-frame"><i class="icon-email">@</i>Email</a>
+								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>&configure=1"><i class="icon-wrench"></i><?php echo _('Configure');?></a> &nbsp;
+								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>"><i class="icon-list"></i><?php echo _('View');?></a> &nbsp;
+								<a href="?call=email&queryid=<?php echo $id; ?>" class="hidden-frame"><i class="icon-email">@</i><?php echo _('Email');?></a>
 							<?php
 							if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
 								?>
 								&nbsp;
-								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>&delete=1" data-method="post" class="double-confirm-title" title="Delete this report"><i class="icon-trash"></i>Delete</a>
+								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>&delete=1" data-method="post" class="double-confirm-title" title="Delete this report"><i class="icon-trash"></i><?php echo _('Delete');?></a>
 								<?php
 							}
 							?>
@@ -199,7 +199,7 @@ class View_Persons__Reports extends View
 					?>
 					</tbody>
 				</table>
-				<input type="submit" class="btn-link pull-right" name="show_result_count" value="Show result counts for selected reports" />
+				<input type="submit" class="btn-link pull-right" name="show_result_count" value=<?php echo _('"Show result counts for selected reports"');?> />
 				</form>
 				<?php
 			}
