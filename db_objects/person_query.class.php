@@ -1414,11 +1414,11 @@ class Person_Query extends DB_Object
 
 			foreach ($x as $personid => $row) {
 				?>
-				<tr>
+				<tr data-personid="<?php echo $personid; ?>">
 				<?php
 				foreach ($row as $label => $val) {
 					?>
-					<td<?php echo $this->_getColClasses($label); ?>>
+					<td <?php echo $this->_getColClasses($label); ?>>
 						<?php
 						switch ($label) {
 							case 'edit_link':
