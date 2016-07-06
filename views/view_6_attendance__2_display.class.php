@@ -215,7 +215,7 @@ class View_Attendance__Display extends View
 			<?php
 			foreach ($attendances as $personid => $record) {
 				?>
-				<tr <?php if ($record['status'] == 'archived') echo 'class="archived"'; ?>>
+				<tr data-personid="<?php echo $personid; ?>" <?php if ($record['status'] == 'archived') echo 'class="archived"'; ?>>
 					<td><?php echo ents($record['first_name'].' '.$record['last_name']); ?></td>
 					<td>
 						<?php
