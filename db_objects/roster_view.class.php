@@ -578,6 +578,10 @@ class roster_view extends db_object
 
 	function printView($start_date=NULL, $end_date=NULL, $editing=FALSE, $public=FALSE)
 	{
+    // -------SMS MODAL ----------------- //                                                                                                                     
+    require_once 'include/sms_sender.class.php';                                                                                                                 
+    SMS_Sender::printModal(); 
+
 		if (empty($this->_members)) return;
 		if (!$editing && !$public) {
 			$my_email = $GLOBALS['user_system']->getCurrentUser('email');
@@ -694,37 +698,18 @@ class roster_view extends db_object
 							}
 							$emails = array_unique($emails);
 							if (!empty($emails)) {
-								?>
-								<p class="smallprint no-print">
+                ?>
+                <span class="smallprint no-print">
 									<a href="<?php echo get_email_href($my_email, NULL, $emails, date('jS F', strtotime($date))); ?>" <?php echo email_link_extras(); ?>>Email All</a>
-									<?php
-									if (defined('SMS_HTTP_URL') && constant('SMS_HTTP_URL') && $GLOBALS['user_system']->havePerm(PERM_SENDSMS)) {
-										?>
-										| <span class="clickable" onclick="$(this).parent().next('form').toggle(); $(this).parents('tr:first').addClass('tblib-hover')">SMS All</span>
-										<?php
-									}
-									?>
-								</p>
+                </span>
+                <?php
+                if (defined('SMS_HTTP_URL') && constant('SMS_HTTP_URL') && $GLOBALS['user_system']->havePerm(PERM_SENDSMS)) {
+                ?>
+                  <span class="smallprint no-print clickable">
+                    <a href="#sms-modal" data-rosterview="<?php echo $this->id; ?>" data-start-date="<?php echo $date; ?>" data-end-date="<?php echo $date; ?>" data-toggle="sms-modal" data-name="Roster for <?php echo $date;?>" onclick="$(this).parents('tr:first').addClass('tblib-hover')">SMS All</a>
+                  </span>
 								<?php
-								if (defined('SMS_HTTP_URL') && constant('SMS_HTTP_URL') && $GLOBALS['user_system']->havePerm(PERM_SENDSMS)) {
-									$url = build_url(Array(
-										'view' => '_send_sms_http',
-										'roster_view' => $this->id,
-										'start_date' => $date,
-										'end_date' => $date
-									));
-									?>
-									<form method="post" action="<?php echo $url; ?>" style="position: absolute; display: none">
-										<div class="well well-small">
-										<h3>Send SMS</h3>
-										<textarea name="message" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
-										<br />
-										<input class="btn" type="submit" value="Send" />
-										<input class="btn" type="button" onclick="$(this).parents('form').toggle(); $(this).parents('tr:first').removeClass('tblib-hover')" value="Cancel" />
-										</div>
-									</form>
-									<?php
-								}
+                }
 							}
 						}
 						?>
