@@ -11,6 +11,7 @@
 			<th><?php echo _('Status')?></th>
 			<th><?php echo _('Age')?></th>
 			<th><?php echo _('Gender')?></th>
+			<th><?php echo _('Mobile')?></th>
 		<?php 
 		if (defined('PERSON_LIST_SHOW_GROUPS') && PERSON_LIST_SHOW_GROUPS){
 			?>
