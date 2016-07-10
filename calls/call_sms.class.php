@@ -58,8 +58,10 @@ class Call_sms extends Call
               $ajax['sent']['request'] = $_REQUEST;
               if (isset($_REQUEST['saveasnote'])) {
                 if (($_REQUEST['saveasnote'] == '1') || ($_REQUEST['saveasnote'] == 'on')) {
-                  $SMS::saveAsNote($successes, $message);
-                  $ajax['sent']['saveasnote'] = $_REQUEST['saveasnote'];
+                  if (!empty($_REQUEST['sms_type']) && ($_REQUEST['sms_type'] !== "roster")) {
+                    $SMS::saveAsNote($successes, $message);
+                    $ajax['sent']['saveasnote'] = $_REQUEST['saveasnote'];
+                  }
                 }
               }
             }

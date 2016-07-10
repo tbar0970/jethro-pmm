@@ -28,33 +28,39 @@ $(document).ready(function() {
     
     var $recipients = $this.attr('data-name');
     var $personid = $this.attr('data-personid');
-    var $rosterview = $this.attr('data-rosterview');
-    var $rosterstart = $this.attr('data-start-date');
-    var $rosterend = $this.attr('data-end-date');
-    
-    if (!!$personid) {
-      $("#send-sms-modal").data("modal-sms-type", 'person');
-      $("#send-sms-modal").data("modal-personid", $personid);
-      $("#send-sms-modal .sms-modal-option").show();
-    } else if (!!$rosterview) {
-      $("#send-sms-modal").data("modal-sms-type", 'roster');
-      $("#send-sms-modal").data("modal-rosterid", $rosterview);
-      $("#send-sms-modal").data("modal-rosterstart", $rosterstart);
-      $("#send-sms-modal").data("modal-rosterend", $rosterend);
-      $("#send-sms-modal .sms-modal-option").hide();      
-    }
-    alert($personid);
-    e.preventDefault();
-    
+    var $rosterview = $this.attr('data-roster_view');
+    var $rosterstart = $this.attr('data-start_date');
+    var $rosterend = $this.attr('data-end_date');
+
     $("#send-sms-modal .sms_recipients").html($recipients);
     $("#sms_message").text(""); // Empty the textarea in case of reuse
     $('#smscharactercount').html($("#sms_message").attr("data-maxlength") + ' characters remaining.'); // reset character count    
     
-    $target
-    .modal(option)
-    .one('hide', function () {
-      $this.focus()
-    })
+    if (!!$personid) {
+      $("#send-sms-modal").attr("data-sms_type", "person");
+      $("#send-sms-modal").attr("data-personid", $personid);
+      $("#send-sms-modal").attr("data-roster_view", "");
+      $("#send-sms-modal").attr("data-start_date", "");
+      $("#send-sms-modal").attr("data-end_date", "");
+      $("#send-sms-modal .sms-modal-option").show();
+      e.preventDefault();
+      $target.modal(option).one('hide', function () {
+        $this.focus()
+      })      
+    } else if (!!$rosterview && !!$rosterstart && !!$rosterend) {
+      $("#send-sms-modal").attr("data-sms_type", "roster");
+      $("#send-sms-modal").attr("data-personid", "");      
+      $("#send-sms-modal").attr("data-roster_view", $rosterview);
+      $("#send-sms-modal").attr("data-start_date", $rosterstart);
+      $("#send-sms-modal").attr("data-end_date", $rosterend);
+      $("#send-sms-modal .sms-modal-option").hide();
+      e.preventDefault();
+      $target.modal(option).one('hide', function () {
+        $this.focus()
+      })      
+    } else {
+      alert('No SMS recipients found');
+    }
   });
   
   $('input[data-ajax-call], button[data-ajax-call]').click(function(e) { 
@@ -609,10 +615,13 @@ $(document).ready(function() {
     } else {
       var submitBtn, smsData,personid;
       $(this).prop('disabled', true);
-      $(this).html("Sending");
-      alert(modalDiv.data("modal-personid"));
+      $(this).html("Sending...");
       smsData = {
-        personid: modalDiv.data("modal-personid"),
+        personid: modalDiv.attr("data-personid"),
+        sms_type: modalDiv.attr("data-sms_type"),
+        roster_view: modalDiv.attr("data-roster_view"),
+        start_date: modalDiv.attr("data-start_date"),
+        end_date: modalDiv.attr("data-end_date"),
         saveasnote: ($("#send-sms-modal .saveasnote").attr("checked") === "checked")?'1':'0',
         ajax: 1,
         message: sms_message
@@ -646,22 +655,26 @@ $(document).ready(function() {
           if (data.rawresponse !== undefined) { rawresponse = data.rawresponse; }
           if (data.error !== undefined) { error = data.error; }
           
-          setActionStatusColumn("SMS");
-          var personid = modalDiv.data("modal-personid");
-          
+          var personid = modalDiv.attr("data-personid");
           if (failedCount > 0) {
-            $("[data-personid=" + modalDiv.data("modal-personid") + "]").find("td.action_status").html("Failed (General)");
+            if (modalDiv.attr("data-sms_type") !== "roster") {
+              setActionStatusColumn("SMS");
+              $("[data-personid=" + modalDiv.attr("data-personid") + "]").find("td.action_status").html("Failed (General)");
+            }
             statusBtn = modalDiv.find('.single-sms-status');
             statusBtn.unbind('click');
             statusBtn.on('click', function (event) { event.preventDefault(); alert(error); });
-            modalDiv.data("modal-personid")
+            modalDiv.attr("datamodal-personid")
             statusBtn.toggleClass('fade');
           } else {
-            $("[data-personid=" + modalDiv.data("modal-personid") + "]").find("td.action_status").html("Sent");
+            if (modalDiv.attr("data-sms_type") !== "roster") {
+              setActionStatusColumn("SMS");
+              $("[data-personid=" + modalDiv.attr("data-personid") + "]").find("td.action_status").html("Sent");
+            }
             modalDiv.modal('hide');
           }
-          $(this).prop('disabled', false);
-          $(this).html("Send");
+          $('#send-sms-modal .sms-submit').prop('disabled', false);
+          $('#send-sms-modal .sms-submit').html("Send");
         }
       });
       return false;

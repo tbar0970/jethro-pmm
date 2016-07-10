@@ -100,6 +100,7 @@ Class SMS_Sender
     } else if (!empty($_REQUEST['groupid'])) {
         list($recips,$blanks,$archived) = self::getRecipientsForGroup((int)$_REQUEST['groupid']); 
     } else if (!empty($_REQUEST['roster_view'])) {
+        error_log("Foudn roster " . $_REQUEST['roster_view']);
         list($recips,$blanks,$archived) = self::getRecipientsForRoster((int)$_REQUEST['roster_view'],$_REQUEST['start_date'], $_REQUEST['end_date']); 
     } else if (!empty($_REQUEST['personid'])) {
         $smstype = 'person';
@@ -126,7 +127,7 @@ Class SMS_Sender
     * @param array $recips	Array of person records
     * @return array('success' => bool, 'successes' => array, 'failures' => array, 'rawresponse' => string)
     */
-  function sendMessage($message, $recips)
+  function sendMessage($message, $recip)
   {
   
     $mobile_tels = Array();
@@ -210,6 +211,7 @@ Class SMS_Sender
         self::logSuccess(count($mobile_tels), $message);
       }
     } //$success
+
     return array(
       "success" => $success,
       "successes" => $successes,
@@ -279,13 +281,14 @@ Class SMS_Sender
       $subect = SMS_SAVE_TO_NOT_SUBJECT;
     } //!SMS_SAVE_TO_NOTE_SUBJECT
     foreach ($recipients as $id => $details) {
+      error_log("ID: $id, $subject, $message");
       // Add a note containing the SMS to the user
       $note = new Person_Note();
       $note->setValue('subject', $subject);
       $note->setvalue('details', $message);
       $note->setValue('personid', $id);
       if (!$note->create()) {
-        add_message('Failed to save SMS as a note.');
+        error_log('Failed to save SMS as a note.');
       } //!$note->create()
     } //$recipients as $id => $details
   }

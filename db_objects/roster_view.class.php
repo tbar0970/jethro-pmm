@@ -720,7 +720,7 @@ class roster_view extends db_object
               if (!empty($mobiles) && defined('SMS_HTTP_URL') && constant('SMS_HTTP_URL') && $GLOBALS['user_system']->havePerm(PERM_SENDSMS)) {
                 ?>
                 <span class="smallprint no-print clickable">
-                  <a href="#send-sms-modal" data-rosterview="<?php echo $this->id; ?>" data-start-date="<?php echo $date; ?>" data-end-date="<?php echo $date; ?>" data-toggle="sms-modal" data-name="People Rostered on <?php echo $date;?>" onclick="$(this).parents('tr:first').addClass('tblib-hover')">SMS All</a>
+                  <a href="#send-sms-modal" data-roster_view="<?php echo $this->id; ?>" data-start_date="<?php echo $date; ?>" data-end_date="<?php echo $date; ?>" data-toggle="sms-modal" data-name="People Rostered on <?php echo $date;?>" onclick="$(this).parents('tr:first').addClass('tblib-hover')">SMS All</a>
                 </span>
                 <?php
 							}
@@ -765,7 +765,7 @@ class roster_view extends db_object
 									if (('' === $vs['mobile'])) {
                     $n .= '&nbsp;<img src="'.BASE_URL.'resources/img/no_phone.png" style="display:inline" title="No Mobile" />';
                   } else {
-                    $n .= '&nbsp;<a href="#send-sms-modal" data-toggle="sms-modal" data-name="' . $vs['name']; . '" class="btn btn-mini"><i class="icon-envelope"></i></a>';
+                    $n .= '&nbsp;<a href="#send-sms-modal" data-toggle="sms-modal" data-personid="' . $personid . '" data-name="' . $vs['name'] . '" class="btn btn-mini"><i class="icon-envelope"></i></a>';
                   }
 									$names[] = $n;
 								} else {
