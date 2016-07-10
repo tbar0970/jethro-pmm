@@ -27,12 +27,28 @@ $(document).ready(function() {
     , option = $target.data('modal') ? 'toggle' : $.extend({ remote:!/#/.test(href) && href }, $target.data(), $this.data());
     
     var $recipients = $this.attr('data-name');
+    var $personid = $this.attr('data-personid');
+    var $rosterview = $this.attr('data-rosterview');
+    var $rosterstart = $this.attr('data-start-date');
+    var $rosterend = $this.attr('data-end-date');
     
+    if (!!$personid) {
+      $("#send-sms-modal").data("modal-sms-type", 'person');
+      $("#send-sms-modal").data("modal-personid", $personid);
+      $("#send-sms-modal .sms-modal-option").show();
+    } else if (!!$rosterview) {
+      $("#send-sms-modal").data("modal-sms-type", 'roster');
+      $("#send-sms-modal").data("modal-rosterid", $rosterview);
+      $("#send-sms-modal").data("modal-rosterstart", $rosterstart);
+      $("#send-sms-modal").data("modal-rosterend", $rosterend);
+      $("#send-sms-modal .sms-modal-option").hide();      
+    }
+    alert($personid);
     e.preventDefault();
-    $("#send-sms-modal").data("modal-personid", $this.attr('data-personid'));
+    
     $("#send-sms-modal .sms_recipients").html($recipients);
     $("#sms_message").text(""); // Empty the textarea in case of reuse
-    $('#smscharactercount').html($("#sms_message").attr("data-maxlength") + ' characters remaining.'); // reset character count
+    $('#smscharactercount').html($("#sms_message").attr("data-maxlength") + ' characters remaining.'); // reset character count    
     
     $target
     .modal(option)
@@ -594,6 +610,7 @@ $(document).ready(function() {
       var submitBtn, smsData,personid;
       $(this).prop('disabled', true);
       $(this).html("Sending");
+      alert(modalDiv.data("modal-personid"));
       smsData = {
         personid: modalDiv.data("modal-personid"),
         saveasnote: ($("#send-sms-modal .saveasnote").attr("checked") === "checked")?'1':'0',
