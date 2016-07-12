@@ -1976,8 +1976,13 @@ div#send-sms-modal div.results {
   display: none;
 }
 
-div#send-sms-modal div.results p.namelist {
+div#send-sms-modal div.results p.namelist, #smshttp #bulk-sms-failed p.namelist  {
   margin-left: 1em;
+}
+
+#smshttp #bulk-sms-failed h4 {
+  width: auto;
+  text-align: left;
 }
 
 

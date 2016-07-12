@@ -316,14 +316,15 @@ $(document).ready(function() {
           var sentCount = 0;
           if (data.sent !== undefined) { sentCount = data.sent.count; }
           var smsRequestCount = $("input[name='personid[]']:checked").length;          
-          var resultsDiv = $('.bulk-sms-failed');
+          var resultsDiv = $('#bulk-sms-failed');
           
-          smsSuccessCallback(data,resultsDiv,true) {
+          smsSuccessCallback(data,resultsDiv,true);
           if (sentCount !== smsRequestCount) {
             $('#alert').removeClass('alert-info').removeClass('alert-error').removeClass('alert-success');
             $('#alert').addClass('alert-error');
             $("#alert").html("<strong>SMS Failure:</strong> Sending failed for some (or all) recipients.");
             $("#alert").fadeIn();
+            
             setTimeout(function() {$("#alert").fadeOut();}, 10000);
           } else {
             $('#smshttp').toggle();
@@ -332,14 +333,14 @@ $(document).ready(function() {
             $('#alert').addClass('alert-success');
             $("#alert").html("<strong>SMS Success!</strong> All messages successfully sent.");
             $("#alert").fadeIn();
+            $('.bulk-action').hide();
+            $("#bulk_sms_message").val("");            
             setTimeout(function() {$("#alert").fadeOut();}, 10000);
           }
                 
-          var submitBtn = $(this).find('.bulk-sms-submit');
+          var submitBtn = $("#smshttp .bulk-sms-submit");
           submitBtn.prop('disabled', false);
           submitBtn.prop('value', 'Send');
-          $('.bulk-action').hide();
-          $("#bulk_sms_message").val("");
         }
       });
       return false;
