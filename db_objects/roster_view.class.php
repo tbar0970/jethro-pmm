@@ -709,7 +709,6 @@ class roster_view extends db_object
 								}
 							}
 							$mobiles = array_unique($mobiles);
-							
 							if (!empty($emails)) {
                 ?>
                 <span class="smallprint no-print">
