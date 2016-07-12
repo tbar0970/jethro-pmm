@@ -1972,6 +1972,13 @@ div.sms_editor {
 div#sms_message:focus, div#bulk_sms_message:focus {
   outline: none;
 }
+div#send-sms-modal div.results {
+  display: none;
+}
+
+div#send-sms-modal div.results p.namelist {
+  margin-left: 1em;
+}
 
 
 /*************** CUSTOM FIELDS EDITOR *****************/

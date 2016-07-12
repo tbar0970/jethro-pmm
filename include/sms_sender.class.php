@@ -1,6 +1,21 @@
 <?php
 Class SMS_Sender
 {
+  private static function uniqueRecipients($recipients) {
+    $recipientIDs = Array();
+    $uniqueRecipients = Array();
+    if (!empty($recipients)) {
+      foreach ($recipients as $recipient) {
+        if (!in_array($recipient['id'], $recipientIDs)) {
+          $recipientIDs[] = $recipient['id'];
+          $uniqueRecipients[] = $recipient;
+        }
+      }
+    }
+
+    return $uniqueRecipients;
+  }
+  
     /**
     * Get Recipients from a query
     * @param int $queryid      The ID of a query
@@ -13,8 +28,8 @@ Class SMS_Sender
     $recips = $GLOBALS['system']->getDBObjectData('person', Array('(id' => $personids, '!mobile_tel' => '', '!status' => 'archived'), 'AND');
     $blanks = $GLOBALS['system']->getDBObjectData('person', Array('(id' => $personids, 'mobile_tel' => '', '!status' => 'archived'), 'AND');
     $archived = $GLOBALS['system']->getDBObjectData('person', Array('(id' => $personids, 'status' => 'archived'), 'AND');
-    
-    return Array($recips,$blanks,$archived);
+
+    return Array(array_unique($recips),array_unique($blanks),array_unique($archived));
   }
   
 /**
@@ -52,9 +67,9 @@ Class SMS_Sender
         $blanks[$i] = $details;
         unset($recips[$i]);
       }
-    }  
+    }
     
-    return Array($recips,$blanks,$archived);
+    return Array(self::uniqueRecipients($recips), self::uniqueRecipients($blanks), self::uniqueRecipients($archived));
   }
   
   /**
@@ -119,7 +134,6 @@ Class SMS_Sender
     }
     return Array($recips, $blanks, $archived);
   }
-
   
   /**
     * Send an SMS message
@@ -127,7 +141,7 @@ Class SMS_Sender
     * @param array $recips	Array of person records
     * @return array('success' => bool, 'successes' => array, 'failures' => array, 'rawresponse' => string)
     */
-  function sendMessage($message, $recip)
+  function sendMessage($message, $recips)
   {
   
     $mobile_tels = Array();
@@ -255,9 +269,10 @@ Class SMS_Sender
           Message:<br />
           <div contenteditable="true" autofocus="autofocus" id="sms_message" class="sms_editor" data-maxlength="<?php echo SMS_MAX_LENGTH; ?>"></div>
           <span id="smscharactercount"><?php echo SMS_MAX_LENGTH; ?> characters remaining.</span>
+          <div class="results"></div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-warning single-sms-status fade">Send failed - see details</button>
+          <button class="btn btn-warning sms-status fade">Send failed - see details</button>
           <?php
             $savebydefault = "";
             if (defined("SMS_SAVE_TO_NOTE_BY_DEFAULT")) { 
