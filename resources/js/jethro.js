@@ -641,7 +641,7 @@ function fillSMSNotice(resultsDiv, notice, recipients,update_table=true,uncheck=
   var personID, count = 0;
   for(personID in recipients) {
     if(recipients.hasOwnProperty(personID)) {
-      if (count > 0) { fail_list = fail_list + ", "; }
+      if (count > 0) { fail_list = fail_list + ", "; } else { count = count + 1; }
       fail_list = fail_list + recipients[personID]['first_name'] + " " + recipients[personID]['last_name'];
       if (update_table) {
         $("[data-personid=" + personID + "]").find("td.action_status").html(notice);
