@@ -29,7 +29,7 @@ Class SMS_Sender
     $blanks = $GLOBALS['system']->getDBObjectData('person', Array('(id' => $personids, 'mobile_tel' => '', '!status' => 'archived'), 'AND');
     $archived = $GLOBALS['system']->getDBObjectData('person', Array('(id' => $personids, 'status' => 'archived'), 'AND');
 
-    return Array(array_unique($recips),array_unique($blanks),array_unique($archived));
+    return Array(self::uniqueRecipients($recips), self::uniqueRecipients($blanks), self::uniqueRecipients($archived));
   }
   
 /**
@@ -45,7 +45,7 @@ Class SMS_Sender
     $blanks = $GLOBALS['system']->getDBObjectData('person', Array('(id' => $personids, 'mobile_tel' => '', '!status' => 'archived'), 'AND');
     $archived = $GLOBALS['system']->getDBObjectData('person', Array('(id' => $personids, 'status' => 'archived'), 'AND');
     
-    return Array($recips,$blanks,$archived);
+    return Array(self::uniqueRecipients($recips), self::uniqueRecipients($blanks), self::uniqueRecipients($archived));
   }
   
   /**
