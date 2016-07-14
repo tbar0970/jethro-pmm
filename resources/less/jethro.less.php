@@ -2017,7 +2017,7 @@ td.run-sheet-comments * {
 	a[href]:after {
 		content: "";
 	}
-	.no-print, .action-cell, .user-detail, .selector {
+	.no-print, .action-cell, .user-detail, .selector, .bulk-actions {
 		display: none;
 	}
 	#jethro-nav, #jethro-nav-toprow, #jethro-nav-toprow h1, #jethro-nav-toprow .brand {
