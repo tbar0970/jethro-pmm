@@ -1454,13 +1454,15 @@ table.service-details td table td input {
 	table.attendance-stats td {
 		text-align: right;
 		width: 6ex;
+		color: @jethroDarkText !important;
 	}
 
-	.attendance-stats th, .attendance-stats td {
+	#body .attendance-stats th, #body .attendance-stats td {
 		white-space: nowrap;
+		color: @jethroDarkText !important;
 	}
 
-	.attendance-stats .headcount *{
+	.attendance-stats .headcount * {
 		background: @grayMid !important;
 	}
 
