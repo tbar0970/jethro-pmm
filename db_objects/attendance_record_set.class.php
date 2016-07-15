@@ -417,7 +417,7 @@ class Attendance_Record_Set
 		if ($headcount) {
 			?>
 			<tr class="headcount">
-				<th>Total Headcount</th>
+				<th><?php echo _('Total Headcount'); ?></th>
 				<td colspan="3">
 					<b>
 					<?php

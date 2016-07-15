@@ -15,7 +15,7 @@ Class SMS_Sender
 
     return $uniqueRecipients;
   }
-  
+
     /**
     * Get Recipients from a query
     * @param int $queryid      The ID of a query
@@ -31,12 +31,12 @@ Class SMS_Sender
 
     return Array(self::uniqueRecipients($recips), self::uniqueRecipients($blanks), self::uniqueRecipients($archived));
   }
-  
+
 /**
     * Get Recipients from a group
     * @param int $groupid      The ID of a group
     * @return array('recips' => array, 'blanks' => array, 'archived' => array)
-    */  
+    */
   function getRecipientsForGroup($groupid) {
     $recips = $archived = $blanks = Array();
     $group = $GLOBALS['system']->getDBObject('person_group', $groupid);
@@ -44,10 +44,10 @@ Class SMS_Sender
     $recips = $GLOBALS['system']->getDBObjectData('person', Array('(id' => $personids, '!mobile_tel' => '', '!status' => 'archived'), 'AND');
     $blanks = $GLOBALS['system']->getDBObjectData('person', Array('(id' => $personids, 'mobile_tel' => '', '!status' => 'archived'), 'AND');
     $archived = $GLOBALS['system']->getDBObjectData('person', Array('(id' => $personids, 'status' => 'archived'), 'AND');
-    
+
     return Array(self::uniqueRecipients($recips), self::uniqueRecipients($blanks), self::uniqueRecipients($archived));
   }
-  
+
   /**
     * Get Recipients from a roster
     * @param int $roster_view   The ID of a roster
@@ -68,10 +68,10 @@ Class SMS_Sender
         unset($recips[$i]);
       }
     }
-    
+
     return Array(self::uniqueRecipients($recips), self::uniqueRecipients($blanks), self::uniqueRecipients($archived));
   }
-  
+
   /**
     * Get Recipients for either a person or a family
     * @param int $personid      The ID of a person in the family
@@ -107,16 +107,16 @@ Class SMS_Sender
   /**
     * Get Recipients based on the $_REQUEST
     * @return array('recips' => array, 'blanks' => array, 'archived' => array)
-    */  
+    */
   public function getRecipients() {
     $recips = $archived = $blanks = Array();
     if (!empty($_REQUEST['queryid'])) {
-        list($recips,$blanks,$archived) = self::getRecipientsForQuery((int)$_REQUEST['queryid']); 
+        list($recips,$blanks,$archived) = self::getRecipientsForQuery((int)$_REQUEST['queryid']);
     } else if (!empty($_REQUEST['groupid'])) {
-        list($recips,$blanks,$archived) = self::getRecipientsForGroup((int)$_REQUEST['groupid']); 
+        list($recips,$blanks,$archived) = self::getRecipientsForGroup((int)$_REQUEST['groupid']);
     } else if (!empty($_REQUEST['roster_view'])) {
         error_log("Foudn roster " . $_REQUEST['roster_view']);
-        list($recips,$blanks,$archived) = self::getRecipientsForRoster((int)$_REQUEST['roster_view'],$_REQUEST['start_date'], $_REQUEST['end_date']); 
+        list($recips,$blanks,$archived) = self::getRecipientsForRoster((int)$_REQUEST['roster_view'],$_REQUEST['start_date'], $_REQUEST['end_date']);
     } else if (!empty($_REQUEST['personid'])) {
         $smstype = 'person';
         if (!empty($_REQUEST['sms_type'])) {
@@ -134,7 +134,7 @@ Class SMS_Sender
     }
     return Array($recips, $blanks, $archived);
   }
-  
+
   /**
     * Send an SMS message
     * @param string $message
@@ -143,7 +143,7 @@ Class SMS_Sender
     */
   function sendMessage($message, $recips)
   {
-  
+
     $mobile_tels = Array();
     if (!empty($recips)) {
       foreach ($recips as $recip) {
@@ -178,10 +178,9 @@ Class SMS_Sender
         }
     }
 
-    
-    $header = "" . SMS_HTTP_HEADER_TEMPLATE;
+    $header = "" . ifdef('SMS_HTTP_HEADER_TEMPLATE', '');
     $header = $header . "Content-Length: " . strlen($content) . "\r\n" . "Content-Type: application/x-www-form-urlencoded\r\n";
-    
+
     $opts = Array(
       'http' => Array(
         'method' => 'POST',
@@ -239,7 +238,7 @@ Class SMS_Sender
       "rawresponse" => $response,
       );
   }
-  
+
     /**
       * Returns the international version of the supplied number
       * @see config: SMS_LOCAL_PREFIX SMS_INTERNATIONAL_PREFIX
@@ -264,9 +263,9 @@ Class SMS_Sender
             error_log(date('Y-m-d H:i') . ': ' . $GLOBALS['user_system']->getCurrentUser('username') . ' (#' . $GLOBALS['user_system']->getCurrentUser('id') . ') to ' . (int) $recip_count . ' recipients: "' . $msg_trunc . "\"\n", 3, $file);
         }
     }
-    
+
     public static function printModal() {
-      ?>	
+      ?>
       <div id="send-sms-modal" class="modal sms-modal hide fade" role="dialog" aria-hidden="true">
         <div class="modal-header">
           <h4>Send SMS to <span class="sms_recipients"></span></h4>
@@ -281,7 +280,7 @@ Class SMS_Sender
           <button class="btn btn-warning sms-status fade">Send failed - see details</button>
           <?php
             $savebydefault = "";
-            if (defined("SMS_SAVE_TO_NOTE_BY_DEFAULT")) { 
+            if (defined("SMS_SAVE_TO_NOTE_BY_DEFAULT")) {
               if (SMS_SAVE_TO_NOTE_BY_DEFAULT) {
                 $savebydefault = 'checked="checked"';
               }
@@ -294,7 +293,7 @@ Class SMS_Sender
       </div>
       <?php
     }
-    
+
   public function saveAsNote($recipients, $message) {
     $GLOBALS['system']->includeDBClass('person_note');
     $subject = "SMS Sent";
