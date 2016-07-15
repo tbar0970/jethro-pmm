@@ -670,7 +670,7 @@ function smsSuccessCallback(data,resultsDiv,update_table=true) {
   if (update_table) {
     setActionStatusColumn("SMS");
   }
-  
+
   resultsDiv.html(""); // Reset results in case there's something there
   
   if (data.error!==undefined) {
@@ -697,7 +697,8 @@ function smsSuccessCallback(data,resultsDiv,update_table=true) {
     resultsDiv.append("<h4>Archived Recipients</h4><p>" + archivedCount + ' of the intended recipients were not sent the message because they are archived.</p>');
     fillSMSNotice(resultsDiv, 'Failed (Archived)', data.failed_archived.recipients, update_table, false);
   }
-  return ((failedCount > 0) || (archivedCount > 0) || ( blankCount > 0));
+
+  return ((failedCount > 0) || (archivedCount > 0) || ( blankCount > 0) || ( sentCount = 0) || (data.error!==undefined));
 }
 
 var JethroServiceProgram = {};
