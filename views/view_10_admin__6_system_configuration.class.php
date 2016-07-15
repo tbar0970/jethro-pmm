@@ -310,14 +310,14 @@ class View_Admin__System_Configuration extends View {
             <tr>
               <th>Default to saving sent SMS as note</th>
               <td>
-                <?php echo SMS_SAVE_TO_NOTE_BY_DEFAULT; ?>
+                <?php echo ifdef('SMS_SAVE_TO_NOTE_BY_DEFAULT', 0); ?>
                 <br />
               </td>
             </tr>
             <tr>
               <th>Default Subject for SMS saved as a note</th>
               <td>
-                <?php echo SMS_SAVE_TO_NOTE_SUBJECT; ?>
+                <?php echo ifdef('SMS_SAVE_TO_NOTE_SUBJECT', ''); ?>
                 <br />
               </td>
             </tr>
