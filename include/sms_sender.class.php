@@ -44,7 +44,7 @@ Class SMS_Sender
 			}
 		}
 
-		$header = "" . SMS_HTTP_HEADER_TEMPLATE;
+		$header = "" . ifdef('SMS_HTTP_HEADER_TEMPLATE', '');
 		$header = $header . "Content-Length: " . strlen($content) . "\r\n"
 				. "Content-Type: application/x-www-form-urlencoded\r\n";
 
