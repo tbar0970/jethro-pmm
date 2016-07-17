@@ -55,8 +55,14 @@ Class SMS_Sender
 				'header' => $header
 			)
 		);
-		// To work with HTTP Server errors ourselves, override the system error_handler
-		set_error_handler(null);
+		// Convert errors to exceptions so we can catch them
+		set_error_handler(function($errno, $errstr, $errfile, $errline, array $errcontext) {
+			// error was suppressed with the @-operator
+			if (0 === error_reporting()) {
+				return false; 
+			}
+			throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
+		});
 		try {
 			$fp = @fopen(SMS_HTTP_URL, 'r', false, stream_context_create($opts));
 			if (!$fp) {
