@@ -1,6 +1,7 @@
 <?php
 Class SMS_Sender
 {
+
   private static function uniqueRecipients($recipients) {
     $recipientIDs = Array();
     $uniqueRecipients = Array();
@@ -12,7 +13,6 @@ Class SMS_Sender
         }
       }
     }
-
     return $uniqueRecipients;
   }
 

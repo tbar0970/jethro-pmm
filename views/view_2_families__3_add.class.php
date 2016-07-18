@@ -247,8 +247,8 @@ class View_Families__Add extends View
 		<?php
 		if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
 			?>
-			<div <?php echo _('REQUIRE_INITIAL_NOTE') ? '' : 'class="optional"'; ?>>
-			<h3><?php echo _('Initial Note');?> <small>(<?php REQUIRE_INITIAL_NOTE ? _('required') : _('optional'); ?>)</small></h3>
+			<div <?php echo REQUIRE_INITIAL_NOTE ? '' : 'class="optional"'; ?>>
+			<h3><?php echo _('Initial Note');?> <small>(<?php echo REQUIRE_INITIAL_NOTE ? _('required') : _('optional'); ?>)</small></h3>
 			<?php
 				$GLOBALS['system']->includeDBClass('family_note');
 				$note = new Family_Note();

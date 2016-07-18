@@ -152,7 +152,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 				</label>
 				<table class="indent-left" id="<?php echo $verb; ?>_new_group">
 					<tr>
-						<<td><?php echo _('New group name: ')?></td>
+						<td><?php echo _('New group name: ')?></td>
 						<td>
 							<?php
 							$GLOBALS['system']->includeDBClass('person_group');
