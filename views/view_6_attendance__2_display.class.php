@@ -245,7 +245,7 @@ class View_Attendance__Display extends View
 			if (empty($params)) {
 				?>
 				<tr class="headcount">
-					<th colspan="2"><?php echo _('Total Headcount')?>;</th>
+					<th colspan="2"><?php echo _('Total Headcount'); ?></th>
 				<?php
 				foreach ($dates as $date) {
 					?>

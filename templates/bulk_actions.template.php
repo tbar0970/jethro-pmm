@@ -1,6 +1,6 @@
 <?php
 $in_group = (array_get($_REQUEST, 'view') == 'groups') && (!empty($_REQUEST['groupid']) || !empty($_REQUEST['person_groupid']));
-$groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid')); 
+$groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'));
 ?>
 
 <div class="form-horizontal bulk-actions">
@@ -55,12 +55,12 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 					<option value="execute-plan"><?php echo _('Execute an action plan')?></option>
 					<?php
 				}
-				
+
 				if (function_exists('custom_bulk_action_options')) {
 					custom_bulk_action_options();
 				}
 				?>
-				
+
 	</select>
 	<?php
 	if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
@@ -68,8 +68,8 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 		<span class="bulk-action" id="remove-from-group">
 			<input type="submit" class="btn " value="Go" data-set-form-action="<?php echo BASE_URL; ?>?view=_edit_group&action=remove_members&groupid=<?php echo $groupid; ?>" />
 		</span>
-		
-		
+
+
 		<div class="bulk-action well" id="update-field">
 			<table class="valign-middle">
 			<?php
@@ -152,12 +152,12 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 				</label>
 				<table class="indent-left" id="<?php echo $verb; ?>_new_group">
 					<tr>
-						<<td><?php echo _('New group name: ')?></td>
+						<td><?php echo _('New group name: ')?></td>
 						<td>
 							<?php
 							$GLOBALS['system']->includeDBClass('person_group');
 							$g = new Person_Group();
-							$g->printFieldInterface('name'); 
+							$g->printFieldInterface('name');
 							?>
 						</td>
 					</tr>
@@ -188,7 +188,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 	if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
 		?>
 		<div class="bulk-action well" id="add-note">
-			<?php 
+			<?php
 			$GLOBALS['system']->includeDBClass('person_note');
 			$note = new Person_Note();
 			$note->printForm();
@@ -208,7 +208,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 				<label class="control-label"><?php echo _('Source Document')?></label>
 				<div class="controls">
 					<input class="compulsory" type="file" name="source_document" />
-					<p class="help-inline">(ODT or DOCX format)</p> 
+					<p class="help-inline">(ODT or DOCX format)</p>
 				</div>
 			</div>
 			<div class="control-group">
@@ -219,7 +219,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 							<?php echo _('each of the selected persons')?>
 							<span class="smallprint">
 								<?php echo _('(Sample file: ')?>
-								<a href="<?php echo BASE_URL; ?>/resources/sample_mail_merge.odt">ODT</a>, 
+								<a href="<?php echo BASE_URL; ?>/resources/sample_mail_merge.odt">ODT</a>,
 								<a href="<?php echo BASE_URL; ?>/resources/sample_mail_merge.docx">DOCX</a>)
 							</span>
 						</label>
@@ -227,7 +227,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 							<input type="radio" name="merge_type" value="family" id="merge_type_family" />
 							<?php echo _('each of the families that the selected persons belong to')?>
 							<span class="smallprint">
-								(Sample file: 
+								(Sample file:
 								<a href="<?php echo BASE_URL; ?>/resources/sample_mail_merge_family.odt">ODT</a>,
 								<a href="<?php echo BASE_URL; ?>/resources/sample_mail_merge_family.docx">DOCX</a>)
 							</span>
@@ -238,9 +238,9 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 				<div class="controls">
 					<input type="submit" class="btn " value="Go" data-set-form-action="<?php echo BASE_URL; ?>?call=odf_merge" />
 				</div>
-			</div>		
+			</div>
 
-			
+
 		</div>
  		<?php
 	}
@@ -282,7 +282,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
                 <label class="control-label">After sending:</label>
               <div class="controls">
                 <label class="checkbox">
-                  <input type="checkbox" name="saveasnote" accesskey="n" <?php if (SMS_SAVE_TO_NOTE_BY_DEFAULT) { echo 'checked="checked"'; } ?>  />
+                  <input type="checkbox" name="saveasnote" accesskey="n" <?php if (ifdef('SMS_SAVE_TO_NOTE_BY_DEFAULT')) { echo 'checked="checked"'; } ?>  />
                   save as note
                 </label>
               </div>

@@ -6,7 +6,7 @@ Class Photo_Handler {
 	
 	function getUploadedPhotoData($fieldName)
 	{
-		if (!empty($_FILES[$fieldName])) {
+		if (!empty($_FILES[$fieldName]) && !empty($_FILES[$fieldName]['name'])) {
 			if (!empty($_FILES[$fieldName]['error'])) {
 				$err = $_FILES[$fieldName]['error'];
 				if (in_array($err, Array(UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE))) {

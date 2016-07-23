@@ -424,7 +424,7 @@ class Custom_Field extends db_object
 				if (!empty($res[$k]) && strlen($v)) $res[$k] .= ' '.$v;
 			}
 		}
-		$res = array_remove_empties($res);
+		if (is_array($res)) $res = array_remove_empties($res);
 		return $res;
 	}
 

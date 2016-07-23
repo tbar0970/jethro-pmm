@@ -1454,13 +1454,15 @@ table.service-details td table td input {
 	table.attendance-stats td {
 		text-align: right;
 		width: 6ex;
+		color: @jethroDarkText !important;
 	}
 
-	.attendance-stats th, .attendance-stats td {
+	#body .attendance-stats th, #body .attendance-stats td {
 		white-space: nowrap;
+		color: @jethroDarkText !important;
 	}
 
-	.attendance-stats .headcount *{
+	.attendance-stats .headcount * {
 		background: @grayMid !important;
 	}
 
@@ -2017,7 +2019,7 @@ td.run-sheet-comments * {
 	a[href]:after {
 		content: "";
 	}
-	.no-print, .action-cell, .user-detail, .selector {
+	.no-print, .action-cell, .user-detail, .selector, .bulk-actions {
 		display: none;
 	}
 	#jethro-nav, #jethro-nav-toprow, #jethro-nav-toprow h1, #jethro-nav-toprow .brand {
