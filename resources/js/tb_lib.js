@@ -191,6 +191,21 @@ $(document).ready(function() {
 		this.form.action = $(this).attr('data-set-form-action');
 	});
 
+	// Ability to have input fields that become compulsory only when certain submit buttons are clicked
+	$('input[data-require-fields]').click(function() {
+		var ok = true;
+
+		$($(this).attr('data-require-fields')).each(function() {
+			if (!this.value) {
+				alert('A mandatory field has been left blank');
+				TBLib.markErroredInput(this);
+				ok = false;
+				return;
+			}
+		})
+		return ok;
+	})
+
 	var selectChooserRadios = $('input.select-chooser-radio');
 	if (selectChooserRadios.length) {
 		selectChooserRadios.change(function() {

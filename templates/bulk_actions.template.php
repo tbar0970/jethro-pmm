@@ -140,7 +140,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 						<?php
 					}
 					?>
-					<input type="submit" class="btn " value="Go" data-set-form-action="<?php echo BASE_URL; ?>?view=_edit_group&action=add_members" />
+					<input type="submit" class="btn " value="Go" data-require-fields="#<?php echo $verb; ?>_existing_group [name=groupid]" data-set-form-action="<?php echo BASE_URL; ?>?view=_edit_group&action=add_members" />
 				</div>
 				</p>
 
@@ -176,7 +176,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 						}
 						?>
 							<input type="hidden" name="new_person_group_submitted" value="1" />
-							<input type="submit" class="btn " value="Go" data-set-form-action="<?php echo BASE_URL; ?>?view=groups__add" />
+							<input type="submit" class="btn " value="Go" data-require-fields="<?php echo $verb; ?>_new_group [name=name]" data-set-form-action="<?php echo BASE_URL; ?>?view=groups__add" />
 						</td>
 					</tr>
 				</table>
