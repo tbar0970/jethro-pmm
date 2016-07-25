@@ -932,6 +932,9 @@ class roster_view extends db_object
 			if (!$role->haveLock('assignments')) {
 				unset($roles[$i]);
 			}
+			if (!$role->canEditAssignments()) {
+				unset($roles[$i]);
+			}
 		}
 
 		if (empty($roles)) {
