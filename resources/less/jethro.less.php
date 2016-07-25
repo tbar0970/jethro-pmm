@@ -225,7 +225,11 @@ body {
 #jethro-public #jethro-nav-toprow h1 {
 	line-height: 40px;
 }
-
+/* mobile back button */
+#jethro-nav-toprow .icon-chevron-left {
+	float: left;
+	margin-top: 9px;
+}
 #jethro-nav-toprow .brand {
 	background: url(../img/jethro-white.png);
 	background-repeat: no-repeat;

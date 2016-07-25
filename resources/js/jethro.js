@@ -1,8 +1,23 @@
-// TODO: more sniffing of the relevant bits (like attendance does) to speed up page load
-
 $(document).ready(function() {
-
+	
 	if ($('.stop-js').length) return; /* Classname flag for big pages that don't want JS to run */
+
+	// Make standalone safari stay standalone
+	if (("standalone" in window.navigator) && window.navigator.standalone) {
+		$('a.brand').parent().prepend('<i class="icon-white icon-chevron-left" onclick="history.back()"></i>')
+		$("a").click(function (event) {
+			if ((!$(this).attr('target'))
+					&& this.href != ''
+					&& this.href != '#'
+					&& this.href.indexOf('javascript:') != 0
+					&& !((this.innerHTML = 'Search') && $(this).parents('.nav').length)
+			) {
+				event.preventDefault();
+				window.location = $(this).attr("href");
+				return false;
+			}
+		});
+	}
 
 	// This needs to be first!
 	// https://github.com/twitter/bootstrap/issues/3217
