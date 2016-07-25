@@ -73,8 +73,11 @@ class View_Documents extends View
 								$this->_addMessage('File "'.$name.'" saved');
 							}
 						}
+					} else if (in_array($error, Array(UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE))) {
+						add_message("Your file could not be saved because the file is too big.", 'error');
+						return NULL;
 					} else {
-						trigger_error("There was an error ($error) uploading a file");
+						trigger_error("Technical error uploading photo file: Error #".$err, E_USER_ERROR);
 					}
 				}
 			}
