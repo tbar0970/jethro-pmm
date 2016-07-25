@@ -666,7 +666,7 @@ class roster_view extends db_object
 			</div>
 			<div class="modal-footer">
 				<button class="btn" data-dismiss="modal" id="choose-assignee-save">Save</button>
-				<button class="btn" data-dismiss="modal">Cancel</button>
+				<button class="btn" data-dismiss="modal"id="choose-assignee-cancel">Cancel</button>
 			</div>
 		</div>
 		<table class="table roster" border="1" cellspacing="0" cellpadding="1">
@@ -947,6 +947,7 @@ class roster_view extends db_object
 				foreach ($_POST['assignees'][$roleid] as $date => $assignee) {
 					if (!is_array($assignee)) $assignee = Array($assignee);
 					foreach ($assignee as $new_personid) {
+						$new_personid = (int)$new_personid;
 						if (empty($new_personid)) continue;
 						if (isset($to_delete[$date][$roleid][$new_personid])) {
 							// unchanged allocation - leave it as is

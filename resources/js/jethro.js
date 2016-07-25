@@ -895,6 +895,9 @@ JethroRoster.init = function() {
 		$target.change(); //bubbles the props up so it looks orange
 		setTimeout(function() { $target.effect("pulsate", {times: 2}, 700) }, 600);
 	});
+	$('#choose-assignee-cancel').click(function() {
+		$(JethroRoster.CUSTOM_ASSIGNEE_TARGET).val('');
+	});
 }
 
 JethroRoster.onAssignmentChange = function(inputField) {
