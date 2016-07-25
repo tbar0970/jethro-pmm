@@ -10,7 +10,7 @@ $(document).ready(function() {
 					&& this.href != ''
 					&& this.href != '#'
 					&& this.href.indexOf('javascript:') != 0
-					&& !((this.innerHTML = 'Search') && $(this).parents('.nav').length)
+					&& !((this.innerHTML == 'Search') && $(this).parents('.nav').length)
 			) {
 				event.preventDefault();
 				window.location = $(this).attr("href");
