@@ -126,7 +126,7 @@ class Action_Plan extends DB_Object
 					<td>
 						When this plan is executed, <b>add</b> the persons / famiy members to these groups:
 						<?php
-						Person_Group::printMultiChooser('groups', array_get($actions, 'groups', Array()), Array(), TRUE);
+						Person_Group::printMultiChooser('groups', array_get($actions, 'groups', Array()), Array(), FALSE);
 						?>
 					</td>
 				</tr>
@@ -135,7 +135,7 @@ class Action_Plan extends DB_Object
 					<td>
 						When this plan is executed, <b>remove</b> the persons / famiy members from these groups:
 						<?php
-						Person_Group::printMultiChooser('groups_remove', array_get($actions, 'groups_remove', Array()), Array(), TRUE);
+						Person_Group::printMultiChooser('groups_remove', array_get($actions, 'groups_remove', Array()), Array(), FALSE);
 						?>
 					</td>
 				</tr>
