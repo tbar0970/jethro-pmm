@@ -979,7 +979,7 @@ var applyNarrowColumns = function(root) {
 	// (even if its parent is less than 100% width).
 	// We want the whole table to be as wide as it needs to be but no wider.
 	var expr = 'td.narrow, th.narrow, table.object-summary th'
-	var cells = $(root).find(expr);
+	var cells = $(root).find(expr).not('table.table-full-width *');
 	var parents = cells.parents('table:visible');
 	parents.each(function() {
 		var table = $(this);
