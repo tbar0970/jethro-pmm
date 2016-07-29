@@ -10,6 +10,11 @@ Jethro PMM is the software that powers online services such as [Easy Jethro](htt
 
 Download the latest version of Jethro from the [releases page](https://github.com/tbar0970/jethro-pmm/releases)
 
+System requirements are:
+* MySQL 5.1 or above
+* PHP 5.3.0 or above
+* Some web server (apache suggested)
+
 The steps to install are:
 
 1. Unzip the files into a web-accessible folder on your web server
@@ -21,7 +26,6 @@ The steps to install are:
 pear install MDB2_Driver_mysql</code>
 If you don't have command line access you can unzip [this ZIP file](http://sourceforge.net/project/showfiles.php?group_id=192555&package_id=247862&release_id=544189) into your Jethro folder.
 6. In your web browser, the Jethro installer will start automatically and will prompt you for details to create the initial user account.  When the installer completes, it will prompt you to log into the installed system.
-7. 
 
 # Documentation
 
@@ -74,4 +78,6 @@ Jethro development has been sponsored or contributed to by several churches worl
 * [Coast Evangelical Church](http://www.coastec.net.au)</a>, Forster, Australia (sponsor of group-membership statuses, attendance enhancements and more)
 * [St George North Anglican Church](http://snac.org.au)</a>, Sydney, Australia (contributor of vCard export)
 * [Macquarie Anglican Church](http://www.macquarieanglican.org/)</a>, Sydney, Australia (contributor of note-search and SMS-family feature)
-* [Dalby Presbyterian Church](http://www.dpc.cc/)</a>, Queensland, Australia (sponsor of edit/delete note features)
+* [Dalby Presbyterian Church](http://www.dpc.cc/)</a>, Queensland, Australia (sponsor of edit/delete note features and family photos)
+* [Professional Standards Unit](http://safeministry.org.au), Anglican Diocese of Sydney (sponsor of custom fields etc)
+There are also several github contributors whose input is invaluable.
