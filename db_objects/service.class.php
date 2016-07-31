@@ -626,7 +626,7 @@ class service extends db_object
 		?>
 		<table cellspacing="0" cellpadding="5"
 			<?php if (empty($_REQUEST['view'])) echo 'border="1" style="width: 10cm; border-collapse: collapse" '; ?>
-			class="table table-bordered table-condensed run-sheet"
+			class="table table-bordered table-condensed table-full-width run-sheet"
 		>
 			<thead>
 				<tr>

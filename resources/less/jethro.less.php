@@ -582,7 +582,7 @@ input[type="radio"] {
 	min-width: 50ex;
 }
 .table {
-	border-bottom: 1px solid @grayLighter;
+	border-bottom: 1px solid @tableBorder;
 }
 /* nested tables - see list of family members within single person view */
 .table td table {
@@ -600,10 +600,11 @@ input[type="radio"] {
 }
 /* THIS IS MOSTLY IMPLEMENTED BY JETHRO.JS IN A SPECIAL WAY*/
 td.narrow, th.narrow, .object-summary th {
-	xwidth: 1%;
 	white-space: nowrap;
 }
-
+table.table-full-width td.narrow, table.table-full-width th.narrow {
+	width: 1%;
+}
 .fill-me * {
 	width: 100%;
 	margin-right: 0;
