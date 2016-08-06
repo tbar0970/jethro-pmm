@@ -319,7 +319,7 @@ class Staff_Member extends Person
 		return $res;
 	}
 
-	function save()
+	function save($update_family = true)
 	{
 		// Only admins can edit staff other than themselves
 		if (!empty($GLOBALS['JETHRO_INSTALLING']) || ($GLOBALS['user_system']->getCurrentUser('id') == $this->id) || $GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
