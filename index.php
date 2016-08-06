@@ -35,9 +35,8 @@ if (!is_readable(JETHRO_ROOT.'/conf.php')) {
 require_once JETHRO_ROOT.'/conf.php';
 
 // Initialise system
-// Check for old style DSN - and complain!
+// Check for old style DSN - and try to work - but this is messy and horrible to use
 if (defined('PRIVATE_DSN')) {
-		trigger_error('Using old style database connection. Please update your config. Trying to continue', E_USER_ERROR);
 		preg_match('|([a-z]+)://([^:]*)(:(.*))?@([A-Za-z0-9\.-]*)(/([0-9a-zA-Z_/\.]*))|',
      PRIVATE_DSN,$matches);
 		 define('DB_TYPE', $matches[1]);

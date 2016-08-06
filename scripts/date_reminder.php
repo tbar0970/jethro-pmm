@@ -5,7 +5,7 @@
  *
  * It is called with an ini file as first argument
  * eg: php date_reminder.php my-config-file.ini
- * 
+ *
  * @see date_reminder_sample.ini for config file format.
  */
 
@@ -22,7 +22,21 @@ if (!is_readable(JETHRO_ROOT.'/conf.php')) {
 	exit();
 }
 require_once JETHRO_ROOT.'/conf.php';
-if (!defined('DSN')) define('DSN', constant('PRIVATE_DSN'));
+// Check for old style DSN - and try to work - but this is messy and horrible to use
+if (defined('PRIVATE_DSN')) {
+		preg_match('|([a-z]+)://([^:]*)(:(.*))?@([A-Za-z0-9\.-]*)(/([0-9a-zA-Z_/\.]*))|',
+     PRIVATE_DSN,$matches);
+		 define('DB_TYPE', $matches[1]);
+		 define('DB_HOST', $matches[5]);
+		 define('DB_DATABASE', $matches[7]);
+		 define('DB_PRIVATE_USERNAME', $matches[2]);
+		 define('DB_PRIVATE_PASSWORD', $matches[4]);
+}
+if (!defined('DSN')) {
+		define('DSN', DB_TYPE . ':host=' . DB_HOST . (!empty(DB_PORT)? (';port=' . DB_PORT):'') . ';dbname=' . DB_DATABASE . ';charset=utf8');
+}
+if (!defined('DB_USERNAME')) define('DB_USERNAME', DB_PRIVATE_USERNAME);
+if (!defined('DB_PASSWORD')) define('DB_PASSWORD', DB_PRIVATE_PASSWORD);
 require_once JETHRO_ROOT.'/include/init.php';
 require_once JETHRO_ROOT.'/include/user_system.class.php';
 require_once JETHRO_ROOT.'/include/emailer.class.php';
@@ -61,12 +75,12 @@ function send_reminder($person)
 	global $ini;
 	$toEmail = $person['email'];
 	if (!empty($ini['OVERRIDE_RECIPIENT'])) $toEmail = $ini['OVERRIDE_RECIPIENT'];
-	
+
 	if (!strlen($person['email'])) {
 		if (!empty($ini['VERBOSE'])) echo $person['first_name'].' '.$person['last_name']." has no email address - skipping \n";
 		return;
 	}
-	
+
 	$content = replace_keywords($ini['EMAIL_BODY'], $person);
 	$html = nl2br($content);
 	$message = Emailer::newMessage()
@@ -115,4 +129,3 @@ function replace_keywords($content, $person)
 	}
 	return $content;
 }
-
