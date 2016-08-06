@@ -9,7 +9,7 @@ class View_Home extends View
 	function processView()
 	{
 	}
-	
+
 	function printView()
 	{
 		$num_cols = 1;
@@ -21,7 +21,7 @@ class View_Home extends View
 
 		<div class="homepage-box search-forms">
 			<h3>
-				<a class="pull-right hide-phone" 
+				<a class="pull-right hide-phone"
 				   href="javascript:if (sp = prompt('Search <?php echo SYSTEM_NAME; ?> for: ')) window.location='<?php echo BASE_URL; ?>?view=_mixed_search&search='+sp"
 				   onclick="prompt('To create a search-jethro button in your browser, save the following code as a bookmark/favourite: ', this.href); return false"
 				>
@@ -33,7 +33,7 @@ class View_Home extends View
 				<input type="hidden" name="view" value="_mixed_search" />
 				<span class="input-prepend input-append">
 					<span class="add-on"><i class="icon-search"></i></span>
-					<input type="text" name="search" class="" placeholder=<?php echo _('"Name, Phone or Email"');?> /> 
+					<input type="text" name="search" class="" placeholder=<?php echo _('"Name, Phone or Email"');?> />
 					<button type="submit" class="btn">Go</button>
 				</span>
 			</form>
@@ -41,7 +41,7 @@ class View_Home extends View
 
 		<?php
 		if ( $GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
-			$user =& $GLOBALS['system']->getDBObject('staff_member', $GLOBALS['user_system']->getCurrentUser('id'));
+			$user = $GLOBALS['system']->getDBObject('staff_member', $GLOBALS['user_system']->getCurrentUser('id'));
 			$tasks = $user->getTasks('now');
 			?>
 			<div class="homepage-box my-notes">
