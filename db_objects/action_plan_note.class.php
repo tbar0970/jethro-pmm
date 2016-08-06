@@ -73,7 +73,7 @@ class Action_Plan_Note extends Abstract_Note {
 		}
 	}
 
-	function processForm($prefix) {
+	function processForm($prefix='', $fields=NULL) {
 		parent::processForm($prefix);
 		if ($this->values['subject']) {
 			$this->processFieldInterface('action_date_type', $prefix);
