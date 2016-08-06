@@ -37,6 +37,7 @@ require_once JETHRO_ROOT.'/conf.php';
 // Initialise system
 // Check for old style DSN - and try to work - but this is messy and horrible to use
 if (defined('PRIVATE_DSN')) {
+	  // This solution found on stackoverflow!
 		preg_match('|([a-z]+)://([^:]*)(:(.*))?@([A-Za-z0-9\.-]*)(/([0-9a-zA-Z_/\.]*))|',
      PRIVATE_DSN,$matches);
 		 define('DB_TYPE', $matches[1]);
