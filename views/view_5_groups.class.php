@@ -16,7 +16,7 @@ class View_Groups extends View
 			$_REQUEST['groupid'] = $_REQUEST['person_groupid'];
 		}
 		if (!empty($_REQUEST['groupid'])) {
-			$this->_group =& $GLOBALS['system']->getDBObject('person_group', (int)$_REQUEST['groupid']);
+			$this->_group = $GLOBALS['system']->getDBObject('person_group', (int)$_REQUEST['groupid']);
 		}
 		if (isset($_REQUEST['show_archived'])) {
 			$_SESSION['show_archived_group_members'] = (int)$_REQUEST['show_archived'];

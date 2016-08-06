@@ -755,7 +755,7 @@ class roster_view extends db_object
 								$currentval[$pid] = $pdetails['name'];
 							}
 							if (empty($role_objects[$mdetail['role_id']])) {
-								$role_objects[$mdetail['role_id']] =& $GLOBALS['system']->getDBObject('roster_role', $mdetail['role_id']);
+								$role_objects[$mdetail['role_id']] = $GLOBALS['system']->getDBObject('roster_role', $mdetail['role_id']);
 							}
 							if (empty($role_objects[$mdetail['role_id']])) {
 								// must've been a problem

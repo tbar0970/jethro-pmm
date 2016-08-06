@@ -17,7 +17,7 @@ class View__Add_Note_To_Person extends View
 			return;
 		}
 		if (!is_array($_REQUEST['personid'])) {
-			$this->_person =& $GLOBALS['system']->getDBObject('person', $_REQUEST['personid']);
+			$this->_person = $GLOBALS['system']->getDBObject('person', $_REQUEST['personid']);
 			$_REQUEST['personid'] = Array($_REQUEST['personid']);
 		}
 		if ($templateID = array_get($_REQUEST, 'note_template_id')) {
