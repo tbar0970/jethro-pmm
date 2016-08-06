@@ -313,7 +313,7 @@ class View_Admin__System_Configuration extends View {
 				if ($sql) {
 					$res = $db->query($sql);
 					check_db_result($res);
-					$db->closeCursor();
+					$res->closeCursor();
 					if ($is_default) $saved_default = true;
 				}
 				$i++;
@@ -321,6 +321,7 @@ class View_Admin__System_Configuration extends View {
 			if (!$saved_default) {
 				$db->query('UPDATE person_group_membership_status SET is_default = 1 ORDER BY label LIMIT 1');
 				check_db_result($res);
+				$res->closeCursor();
 			}
 			if (!empty($_POST['membership_status_delete'])) {
 				$idSet = implode(',', array_map(Array($db, 'quote'), $_POST['membership_status_delete']));
@@ -330,15 +331,17 @@ class View_Admin__System_Configuration extends View {
 						WHERE membership_status IN ('.$idSet.')';
 				$res = $db->query($sql);
 				check_db_result($res);
+				$res->closeCursor();
+				
 				$sql = 'DELETE FROM person_group_membership_status
 						WHERE id IN ('.$idSet.')';
 				$res = $db->query($sql);
+				
 				check_db_result($res);
-				$db->closeCursor();
+				$res->closeCursor();
 			}
-
 			check_db_result($res);
-			$db->closeCursor();
+			$res->closeCursor();
 		}
 	}
 	

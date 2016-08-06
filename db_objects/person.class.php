@@ -562,7 +562,7 @@ class Person extends DB_Object
 					VALUES ('.(int)$this->id.', '.$db->quote($this->_photo_data).')';
 			$res = $db->query($SQL);
 			check_db_result($res);
-			$db->closeCursor();
+			$res->closeCursor();
 		}
 	}
 
@@ -570,7 +570,7 @@ class Person extends DB_Object
 		$db =& $GLOBALS['db'];
 		$SQL = 'DELETE FROM custom_field_value WHERE personid = '.(int)$this->id;
 		check_db_result($db->query($SQL));
-		$db->closeCursor();
+		$res->closeCursor();
 		$SQL = 'INSERT INTO custom_field_value
 				(personid, fieldid, value_text, value_date, value_optionid)
 				VALUES ';
@@ -599,8 +599,9 @@ class Person extends DB_Object
 		}
 		if ($sets) {
 			$SQL .= implode(",\n", $sets);
-			check_db_result($GLOBALS['db']->query($SQL));
-			$GLOBALS['db']->closeCursor();
+			$res = $GLOBALS['db']->query($SQL);
+			check_db_result($res);
+			$res->closeCursor();
 		}
 	}
 

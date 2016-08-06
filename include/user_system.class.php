@@ -65,7 +65,7 @@ class User_System extends Abstract_User_System
 
 			$res = $GLOBALS['db']->query('SET @current_user_id = '.(int)$_SESSION['user']['id']);
 			if ($GLOBALS['db']->check_db_error()) trigger_error('Failed to set user id in database', E_USER_ERROR);
-			$GLOBALS['db']->closeCursor();
+			$res->closeCursor();
 		}
 
 	}//end constructor
@@ -162,7 +162,7 @@ class User_System extends Abstract_User_System
 		$res = $GLOBALS['db']->query('SET @current_user_id = -1');
 		if ($GLOBALS['db']->check_db_error()) trigger_error('Failed to set user id in database', E_USER_ERROR);
 		$this->_is_public = TRUE;
-		$GLOBALS['db']->closeCursor();
+		$res->closeCursor();
 	}
 
 	public function printLogin()

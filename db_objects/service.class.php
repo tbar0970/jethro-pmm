@@ -133,7 +133,7 @@ class service extends db_object
 				WHERE service_id = '.(int)$this->id;
 		$res = $GLOBALS['db']->query($sql);
 		check_db_result($res);
-		$GLOBALS['db']->closeCursor();
+		$res->closeCursor();
 	}
 
 	function __insertBibleReadings()
@@ -149,7 +149,7 @@ class service extends db_object
 				VALUES '.implode(', ', $values);
 			$res = $GLOBALS['db']->query($sql);
 			check_db_result($res);
-			$GLOBALS['db']->closeCursor();
+			$res->closeCursor();
 		}
 		$this->_old_readings = $this->_readings;
 	}
@@ -225,7 +225,7 @@ class service extends db_object
 				ORDER BY date '.(($shift_by > 0) ? 'DESC' : 'ASC');
 		$res = $GLOBALS['db']->query($sql);
 		check_db_result($res);
-		$GLOBALS['db']->closeCursor();
+		$res->closeCursor();
 	}
 
 	function getFormattedValue($fieldname, $value=null)
