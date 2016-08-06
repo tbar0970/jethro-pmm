@@ -42,7 +42,7 @@ if (php_sapi_name() != 'cli') {
 
 // Set up the DB
 require_once JETHRO_ROOT .'/include/jethrodb.php';
-$GLOBALS['db'] =& new JethroDB(DSN, DB_USERNAME,DB_PASSWORD);
+$GLOBALS['db'] = new JethroDB(DSN, DB_USERNAME,DB_PASSWORD);
 
 if (defined('TIMEZONE') && constant('TIMEZONE')) {
 	date_default_timezone_set(constant('TIMEZONE'));
