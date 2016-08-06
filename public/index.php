@@ -35,11 +35,11 @@ require_once dirname(THIS_DIR).'/conf.php';
 if (defined('PUBLIC_DSN')) {
 		preg_match('|([a-z]+)://([^:]*)(:(.*))?@([A-Za-z0-9\.-]*)(/([0-9a-zA-Z_/\.]*))|',
      PRIVATE_DSN,$matches);
-		 define('DB_TYPE', $matches[1]);
-		 define('DB_HOST', $matches[5]);
-		 define('DB_DATABASE', $matches[7]);
-		 define('DB_PUBLIC_USERNAME', $matches[2]);
-		 define('DB_PUBLIC_PASSWORD', $matches[4]);
+		 if (!defined('DB_TYPE')) define('DB_TYPE', $matches[1]);
+		 if (!defined('DB_HOST')) define('DB_HOST', $matches[5]);
+		 if (!defined('DB_DATABASE')) define('DB_DATABASE', $matches[7]);
+		 if (!defined('DB_PUBLIC_USERNAME')) define('DB_PUBLIC_USERNAME', $matches[2]);
+		 if (!defined('DB_PUBLIC_PASSWORD')) define('DB_PUBLIC_PASSWORD', $matches[4]);
 }
 if (!defined('DSN')) {
 		define('DSN', DB_TYPE . ':host=' . DB_HOST . (!empty(DB_PORT)? (';port=' . DB_PORT):'') . ';dbname=' . DB_DATABASE . ';charset=utf8');

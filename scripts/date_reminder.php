@@ -26,11 +26,11 @@ require_once JETHRO_ROOT.'/conf.php';
 if (defined('PRIVATE_DSN')) {
 		preg_match('|([a-z]+)://([^:]*)(:(.*))?@([A-Za-z0-9\.-]*)(/([0-9a-zA-Z_/\.]*))|',
      PRIVATE_DSN,$matches);
-		 define('DB_TYPE', $matches[1]);
-		 define('DB_HOST', $matches[5]);
-		 define('DB_DATABASE', $matches[7]);
-		 define('DB_PRIVATE_USERNAME', $matches[2]);
-		 define('DB_PRIVATE_PASSWORD', $matches[4]);
+		 if (!defined('DB_TYPE')) define('DB_TYPE', $matches[1]);
+		 if (!defined('DB_HOST')) define('DB_HOST', $matches[5]);
+		 if (!defined('DB_DATABASE')) define('DB_DATABASE', $matches[7]);
+		 if (!defined('DB_PRIVATE_USERNAME')) define('DB_PRIVATE_USERNAME', $matches[2]);
+		 if (!defined('DB_PRIVATE_PASSWORD')) define('DB_PRIVATE_PASSWORD', $matches[4]);
 }
 if (!defined('DSN')) {
 		define('DSN', DB_TYPE . ':host=' . DB_HOST . (!empty(DB_PORT)? (';port=' . DB_PORT):'') . ';dbname=' . DB_DATABASE . ';charset=utf8');
