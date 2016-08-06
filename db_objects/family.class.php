@@ -477,7 +477,7 @@ class family extends db_object
 					VALUES ('.(int)$this->id.', '.$db->quote($this->_photo_data).')';
 			$res = $db->query($SQL);
 			check_db_result($res);
-			$db->closeCursor();
+			$res->closeCursor();
 		}
 	}
 

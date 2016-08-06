@@ -42,7 +42,7 @@ class Member_User_System extends Abstract_User_System
 
 			$res = $GLOBALS['db']->query('SET @current_user_id = '.(int)$_SESSION['member']['id']);
 			if ($GLOBALS['db']->check_db_statement($res)) trigger_error('Failed to set user id in database', E_USER_ERROR);
-			$GLOBALS['db']->closeCursor();
+			$res->closeCursor();
 
 			include JETHRO_ROOT.'/include/permission_levels.php';
 			foreach ($PERM_LEVELS as $i => $detail) {

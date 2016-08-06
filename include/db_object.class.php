@@ -222,7 +222,7 @@ class db_object
 		check_db_result($res);
 		if (empty($this->id)) $this->id = $db->lastInsertId();
 		$this->_old_values = Array();
-		$GLOBALS['db']->closeCursor();
+		$res->closeCursor();
 		return TRUE;
 	}
 
@@ -368,7 +368,7 @@ class db_object
 					WHERE id = '.$db->quote($this->id);
 			$res = $db->query($sql);
 			check_db_result($res);
-			$db->closeCursor();
+			$res->closeCursor();
 		}
 
 		$this->_old_values = Array();
@@ -414,7 +414,7 @@ class db_object
 			$sql = 'DELETE FROM '.$table_name.' WHERE id='.$db->quote($this->id);
 			$res = $db->query($sql);
 			check_db_result($res);
-			$db->closeCursor();
+			$res->closeCursor();
 			$table_name = strtolower(get_parent_class($table_name));
 		}
 		$GLOBALS['system']->doTransaction('commit');
@@ -780,7 +780,7 @@ class db_object
 					'.$db->quote(MDB2_Date::unix2Mdbstamp(strtotime('+'.LOCK_LENGTH))).')';
 		$res = $db->query($sql);
 		check_db_result($res);
-		$db->closeCursor();
+		$res->closeCursor();
 		$this->_held_locks[$type] = TRUE;
 		$this->_acquirable_locks[$type] = TRUE;
 
@@ -789,7 +789,7 @@ class db_object
 					WHERE expires < '.$db->quote(MDB2_Date::unix2Mdbstamp(time()));
 			$res = $db->query($sql);
 			check_db_result($res);
-			$db->closeCursor();
+			$res->closeCursor();
 		}
 
 		return TRUE;
@@ -806,7 +806,7 @@ class db_object
 		$SQL = 'DELETE FROM db_object_lock
 				WHERE userid = '.$db->quote($userid);
 		$res = $db->query($SQL);
-		$db->closeCursor();
+		$res->closeCursor();
 		// We actually don't care if this fails - it shouldn't hold up the logout.
 		//check_db_result($res);
 	}
@@ -822,7 +822,7 @@ class db_object
 					AND object_type = '.$db->quote(strtolower(get_class($this)));
 		$res = $db->query($sql);
 		check_db_result($res);
-		$db->closeCursor();		
+		$res->closeCursor();
 		$this->_held_locks[$type] = FALSE;
 		$this->_acquirable_locks[$type] = NULL;
 	}

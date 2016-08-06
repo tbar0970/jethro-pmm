@@ -333,7 +333,7 @@ class Staff_Member extends Person
 					if (array_get($this->_restrictions, $type, Array()) != array_get($this->_old_restrictions, $type, Array())) {
 						$res = $GLOBALS['db']->query('DELETE FROM account_'.$type.'_restriction WHERE personid = '.(int)$this->id);
 						check_db_result($res);
-						$GLOBALS['db']->closeCursor();
+						$res->closeCursor();
 					}
 				}
 				$this->_insertRestrictions();
@@ -361,7 +361,7 @@ class Staff_Member extends Person
 				}
 				$res = $GLOBALS['db']->query('INSERT IGNORE INTO account_'.$type.'_restriction (personid, '.$type.'id) VALUES '.implode(',', $rows));
 				check_db_result($res);
-				$GLOBALS['db']->closeCursor();
+				$res->closeCursor();
 			}
 		}
 	}

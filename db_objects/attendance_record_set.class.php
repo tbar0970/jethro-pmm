@@ -216,7 +216,7 @@ class Attendance_Record_Set
 
 		$res = $db->query($sql);
 		check_db_result($res);
-		$db->closeCursor();
+		$res->closeCursor();
 	}
 
 
@@ -754,7 +754,7 @@ class Attendance_Record_Set
 		}
 		$dates = array_keys($dates);
 		sort($dates);
-		$db->closeCursor();
+		$res->closeCursor();
 		return Array($dates, $attendances, $totals);
 	}
 

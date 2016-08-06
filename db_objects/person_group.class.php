@@ -158,7 +158,7 @@ class Person_Group extends db_object
 			}
 			$res = $db->query($sql);
 			check_db_result($res);
-			$db->closeCursor();
+			$res->closeCursor();
 			return TRUE;
 		}
 		return FALSE;
@@ -178,7 +178,7 @@ class Person_Group extends db_object
 						AND personid = '.$db->quote((int)$personid);
 			$res = $db->query($sql);
 			check_db_result($res);
-			$db->closeCursor();
+			$res->closeCursor();
 			return TRUE;
 		}
 		return FALSE;
@@ -199,7 +199,7 @@ class Person_Group extends db_object
 						AND personid IN ('.implode(',', array_map(Array($db, 'quote'), array_keys($members))).')';
 			$res = $db->query($SQL);
 			check_db_result($res);
-			$db->closeCursor();
+			$res->closeCursor();
 			return TRUE;
 		}
 		return FALSE;
@@ -277,7 +277,7 @@ class Person_Group extends db_object
 		$sql = 'DELETE FROM person_group_membership WHERE groupid = '.$db->quote($this->id);
 		$res = $db->query($sql);
 		check_db_result($res);
-		$db->closeCursor();
+		$res->closeCursor();
 		return $r;
 	}
 
@@ -366,7 +366,7 @@ class Person_Group extends db_object
 										WHERE groupid = '.(int)$this->id.'
 											AND personid = '.(int)$personid);
 			check_db_result($res);
-			$GLOBALS['db']->closeCursor();
+			$res->closeCursor();
 		}
 		$GLOBALS['system']->doTransaction('COMMIT');
 		return TRUE;
