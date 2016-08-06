@@ -34,11 +34,10 @@ class JethroDB extends PDO {
     $stmnt->execute();
     self::check_db_statement_and_exit($stmnt);
     if (!$rekey) {
-
       $all = $stmnt->fetchAll();
-    //  print_r($all);
     } else {
       $row = $stmnt->fetch();
+      if ($row === false) { return $all; } // return an empty array if there is nothing here
       $shift_array = $rekey ? false: null;
       if (null !== $shift_array) {
         $colnum = count($row);
