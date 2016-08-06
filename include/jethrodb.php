@@ -1,4 +1,8 @@
 <?php
+/* Utility class for switching from MDB2 to PDO
+ * Some of the routines in this class are derived/copied(and adapted) from the MDB2 source.
+ * See https://pear.php.net/package/MDB2/ for the latest download of MDB2
+ */
 class JethroDB extends PDO {
 
   public function __construct ($dsn, $username, $password, $options=array()) {
