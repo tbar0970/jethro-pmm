@@ -126,7 +126,7 @@ class Person_Query extends DB_Object
 	}
 
 
-	function printForm()
+	function printForm($prefix='', $fields=NULL)
 	{
 		$GLOBALS['system']->includeDBClass('person_group');
 		$params = $this->_convertParams($this->getValue('params'));
@@ -610,7 +610,7 @@ class Person_Query extends DB_Object
 		}
 	}
 
-	function processForm()
+	function processForm($prefix='', $fields=NULL)
 	{
 		if ($GLOBALS['user_system']->havePerm('PERM_MANAGEREPORTS')) {
 			switch ($_POST['save_option']) {
