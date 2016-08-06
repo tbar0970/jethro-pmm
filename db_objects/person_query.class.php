@@ -370,7 +370,7 @@ class Person_Query extends DB_Object
 			Person_Group::printMultiChooser('exclude_groupids', array_get($params, 'exclude_groups', Array()), Array(), TRUE);
 			?>
 		</div>
-	
+
 	<?php
 	if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
 		?>
@@ -385,10 +385,10 @@ class Person_Query extends DB_Object
 		?>
 		<h4>whose attendance...</h4>
 		<div class="indent-left">
-			at 
+			at
 			<?php
 			$groupid_params = Array(
-				'type' => 'select', 
+				'type' => 'select',
 				'options' => Array(null => '(Nothing)', '__cong__' => 'their congregation'),
 				'attrs' => Array('data-toggle' => 'enable', 'data-target' => '.attendance-input'),
 			);
@@ -400,9 +400,9 @@ class Person_Query extends DB_Object
 			?>
 			<br />
 
-			has been 
+			has been
 
-			<?php 
+			<?php
 			$operator_params = Array(
 							'type'		=> 'select',
 							'options'	=> Array('<' => 'less than', '>' => 'more than'),
@@ -467,7 +467,7 @@ class Person_Query extends DB_Object
 					}
 					$options['groups']	= 'Which of the selected groups they are in';
 					$options['membershipstatus'] = 'Group membership status';
-					
+
 					$options['all_members'] = 'Names of all their family members';
 					$options['adult_members'] = 'Names of their adult family members';
 					if ($GLOBALS['system']->featureEnabled('PHOTOS')) {
@@ -566,9 +566,9 @@ class Person_Query extends DB_Object
 						<?php if (empty($this->id)) echo 'checked="checked"'; ?>
 						 data-toggle="enable"
 					/>
-					as a new report 
+					as a new report
 				</label>
-		
+
 				<label type="radio">
 					<input type="radio" name="save_option" value="replace" id="save_option_replace" <?php if ($this->id && ($this->id != 'TEMP')) echo 'checked="checked"'; ?>
 						 data-toggle="enable"
@@ -587,7 +587,7 @@ class Person_Query extends DB_Object
 					only temporarily as an ad-hoc report
 				</label>
 				</p>
-				
+
 				<table id="save-options">
 					<tr>
 						<th>Report title &nbsp;</th>
@@ -641,7 +641,7 @@ class Person_Query extends DB_Object
 			}
 		}
 		$params['rules'] = $rules;
-		
+
 		// CUSTOM FIELD RULES
 		$params['custom_fields'] = Array();
 		foreach ($this->_custom_fields as $fieldid => $fieldDetails) {
@@ -757,7 +757,7 @@ class Person_Query extends DB_Object
 				$int_groupids[] = (int)$groupid;
 			}
 		}
-		
+
 		if (!empty($int_categoryids)) {
 			// Add the IDs of subcategories too
 			$prevsubids = $int_categoryids;
@@ -798,11 +798,11 @@ class Person_Query extends DB_Object
 	function getSQL($select_fields=NULL)
 	{
 		$db =& $GLOBALS['db'];
-		
+
 		$params = $this->_convertParams($this->getValue('params'));
 		if (empty($params)) return null;
 		$query = Array();
-		$query['from'] = 'person p 
+		$query['from'] = 'person p
 						JOIN family f ON p.familyid = f.id
 						';
 		$query['where'] = Array();
@@ -811,7 +811,7 @@ class Person_Query extends DB_Object
 		foreach ($params['rules'] as $field => $values) {
 			if ($field == 'date') {
 				continue;
-		
+
 			} else if (is_array($values) && isset($values['from'])) {
 				if (($this->_field_details[$field]['type'] == 'datetime') && (strlen($values['from']) == 10)) {
 					// we're searching on a datetime field using only date values
@@ -837,7 +837,7 @@ class Person_Query extends DB_Object
 				}
 			}
 		}
-		
+
 		// CUSTOM FIELD FILTERS
 		$customFieldWheres = Array();
 		foreach (array_get($params, 'custom_fields', Array()) as $fieldid => $values) {
@@ -884,7 +884,7 @@ class Person_Query extends DB_Object
 							if ($values['criteria'] == 'anniversary') {
 								$qFromYear = $db->quote(substr($from, 0, 4));
 								$qToYear = $db->quote(substr($to, 0, 4));
-								
+
 								$w[] = "$valExp LIKE '-%' AND (
 											CONCAT($qFromYear, $valExp) $betweenExp
 											OR CONCAT($qToYear, $valExp) $betweenExp
@@ -944,8 +944,8 @@ class Person_Query extends DB_Object
 												array_get($params, 'group_join_date_from'),
 												array_get($params, 'group_join_date_to'),
 												array_get($params, 'group_membership_status'));
-			$group_members_sql = 'SELECT personid 
-								FROM person_group_membership pgm 
+			$group_members_sql = 'SELECT personid
+								FROM person_group_membership pgm
 								JOIN person_group pg ON pgm.groupid = pg.id
 								WHERE ('.$include_groupids_clause.')';
 			$query['where'][] = 'p.id IN ('.$group_members_sql.')';
@@ -955,7 +955,7 @@ class Person_Query extends DB_Object
 
 			$exclude_groupids_clause = $this->_getGroupAndCategoryRestrictionSQL($params['exclude_groups']);
 			$query['where'][] = 'p.id NOT IN (
-									SELECT personid 
+									SELECT personid
 									FROM person_group_membership pgm
 									JOIN person_group pg ON pgm.groupid = pg.id
 									WHERE ('.$exclude_groupids_clause.')
@@ -978,9 +978,9 @@ class Person_Query extends DB_Object
 			$groupid = $params['attendance_groupid'] == '__cong__' ? 0 : $params['attendance_groupid'];
 			$min_date = date('Y-m-d', strtotime('-'.(int)$params['attendance_weeks'].' weeks'));
 			$operator = ($params['attendance_operator'] == '>') ? '>' : '<'; // nb whitelist because it will be used in the query directly
-			$query['where'][] = '(SELECT SUM(present)/COUNT(*)*100 
-									FROM attendance_record 
-									WHERE date >= '.$GLOBALS['db']->quote($min_date).' 
+			$query['where'][] = '(SELECT SUM(present)/COUNT(*)*100
+									FROM attendance_record
+									WHERE date >= '.$GLOBALS['db']->quote($min_date).'
 									AND groupid = '.(int)$groupid.'
 									AND personid = p.id) '.$operator.' '.(int)$params['attendance_percent'];
 		}
@@ -1015,7 +1015,7 @@ class Person_Query extends DB_Object
 		$joined_groups = FALSE;
 		if (empty($select_fields)) {
 			/*
-			 * If the user chose to sort by Attendance or Absences but didn't 
+			 * If the user chose to sort by Attendance or Absences but didn't
 			 * include them in the list of required columns, just add them to the
 			 * results.  There is client-side code to deal with this,
 			 * but this check here is for extra robustness.
@@ -1031,11 +1031,11 @@ class Person_Query extends DB_Object
 			foreach ($params['show_fields'] as $field) {
 				if (substr($field, 0, 2) == '--') continue; // they selected a separator
 				switch ($field) {
-					
+
 					case 'groups':
 					case 'membershipstatus':
 						if (empty($params['include_groups'])) continue;
-						
+
 						if ($params['group_by'] == 'groupid') {
 							/* pg and pgm already joined for grouping purposes */
 							if ($field == 'groups') {
@@ -1043,7 +1043,7 @@ class Person_Query extends DB_Object
 							} else if ($field == 'membershipstatus') {
 								$query['from'] .= ' LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status';
 								$query['select'][] = 'pgms.label as `Membership Status`';
-							}							
+							}
 						} else {
 							if (!$joined_groups) {
 								$query['from'] .= ' LEFT JOIN person_group_membership pgm ON p.id = pgm.personid
@@ -1072,10 +1072,10 @@ class Person_Query extends DB_Object
 						$query['select'][] = 'p.id as '.$field;
 						break;
 					case 'all_members':
-						$query['from'] .= ' 
+						$query['from'] .= '
 										JOIN (
 											SELECT familyid, IF (
-												GROUP_CONCAT(DISTINCT last_name) = ff.family_name, 
+												GROUP_CONCAT(DISTINCT last_name) = ff.family_name,
 												GROUP_CONCAT(first_name ORDER BY age_bracket, gender DESC SEPARATOR ", "),
 												GROUP_CONCAT(CONCAT(first_name, " ", last_name) ORDER BY age_bracket, gender DESC SEPARATOR ", ")
 											  ) AS `names`
@@ -1088,8 +1088,8 @@ class Person_Query extends DB_Object
 						$query['select'][] = 'all_members.names as `All Family Members`';
 						break;
 					case 'adult_members':
-						/* 
-						 * For a left join to be efficient we need to 
+						/*
+						 * For a left join to be efficient we need to
 						 * create a temp table with an index rather than
 						 * just joining a subquery.
 						 */
@@ -1098,9 +1098,10 @@ class Person_Query extends DB_Object
 													names varchar(512) not null
 													)');
 						check_db_result($r1);
+						$GLOBALS['db']->closeCursor();
 						$r2 = $GLOBALS['db']->query('INSERT INTO _family_adults'.$this->id.' (familyid, names)
 											SELECT familyid, IF (
-												GROUP_CONCAT(DISTINCT last_name) = ff.family_name, 
+												GROUP_CONCAT(DISTINCT last_name) = ff.family_name,
 												GROUP_CONCAT(first_name ORDER BY age_bracket, gender DESC SEPARATOR ", "),
 												GROUP_CONCAT(CONCAT(first_name, " ", last_name) ORDER BY age_bracket, gender DESC SEPARATOR ", ")
 											  )
@@ -1109,6 +1110,7 @@ class Person_Query extends DB_Object
 											WHERE pp.status <> "archived" AND pp.age_bracket = 0
 											GROUP BY familyid');
 						check_db_result($r2);
+						$GLOBALS['db']->closeCursor();
 						$query['from'] .= 'LEFT JOIN _family_adults'.$this->id.' ON _family_adults'.$this->id.'.familyid = p.familyid
 											';
 						$query['select'][] = '_family_adults'.$this->id.'.names as `Adult Family Members`';
@@ -1116,9 +1118,9 @@ class Person_Query extends DB_Object
 					case 'attendance_percent':
 							$groupid = $params['attendance_groupid'] == '__cong__' ? 0 : $params['attendance_groupid'];
 							$min_date = date('Y-m-d', strtotime('-'.(int)$params['attendance_weeks'].' weeks'));
-							$query['select'][] = '(SELECT CONCAT(ROUND(SUM(present)/COUNT(*)*100), "%") 
-													FROM attendance_record 
-													WHERE date >= '.$GLOBALS['db']->quote($min_date).' 
+							$query['select'][] = '(SELECT CONCAT(ROUND(SUM(present)/COUNT(*)*100), "%")
+													FROM attendance_record
+													WHERE date >= '.$GLOBALS['db']->quote($min_date).'
 													AND groupid = '.(int)$groupid.'
 													AND personid = p.id) AS `Attendance`';
 						break;
@@ -1132,9 +1134,9 @@ class Person_Query extends DB_Object
 													AND date > (SELECT COALESCE(MAX(date), "2000-01-01") FROM attendance_record ar2 WHERE ar2.personid = ar.personid AND present = 1)) AS `Running Absences`';
 						break;
 					case 'actionnotes.subjects':
-						$query['select'][] = '(SELECT GROUP_CONCAT(subject SEPARATOR ", ") 
-												FROM abstract_note an 
-												JOIN person_note pn ON an.id = pn.id 
+						$query['select'][] = '(SELECT GROUP_CONCAT(subject SEPARATOR ", ")
+												FROM abstract_note an
+												JOIN person_note pn ON an.id = pn.id
 												WHERE pn.personid = p.id
 												AND an.status = "pending"
 												AND an.action_date <= NOW()) AS `Notes`';
@@ -1241,7 +1243,9 @@ class Person_Query extends DB_Object
 		if (is_null($sql)) return 0;
 		$res = $db->query($sql);
 		check_db_result($res);
-		return $res->numRows();
+		$result = $res->numRows();
+		$db->closeCursor();
+		return $result;
 	}
 
 
@@ -1253,7 +1257,7 @@ class Person_Query extends DB_Object
 		$res = $db->queryCol($sql);
 		check_db_result($res);
 		return $res;
-	}	
+	}
 
 
 	function printResults($format='html')
@@ -1267,7 +1271,7 @@ class Person_Query extends DB_Object
 		if ($format == 'html' && in_array('checkbox', $params['show_fields'])) {
 			echo '<form method="post" enctype="multipart/form-data" class="bulk-person-action">';
 		}
-		
+
 		$grouping_field = $params['group_by'];
 		if (empty($grouping_field)) {
 			$res = $db->queryAll($sql, null, null, true, true);
@@ -1516,7 +1520,7 @@ class Person_Query extends DB_Object
 		$classes = empty($class_list) ? '' : ' class="'.implode(' ', $class_list).'"';
 		return $classes;
 	}
-	
+
 	private function _quoteAliasAndColumn($field)
 	{
 		$db = $GLOBALS['db'];

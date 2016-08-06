@@ -10,7 +10,7 @@ class View_Admin__System_Configuration extends View {
 		return PERM_SYSADMIN;
 	}
 
-	public function processView() 
+	public function processView()
 	{
 		$db = $GLOBALS['db'];
 		if (!empty($_POST['group_membership_statuses_submitted'])) {
@@ -21,7 +21,7 @@ class View_Admin__System_Configuration extends View {
 				if ($v == '') $rankMap[$k] = max($rankMap)+1;
 			}
 			$ranks = array_flip($rankMap);
-			
+
 			while (isset($_POST['membership_status_'.$i.'_label'])) {
 				$sql = null;
 				$is_default = (int)($_POST['membership_status_default_rank'] == $i);
@@ -40,6 +40,7 @@ class View_Admin__System_Configuration extends View {
 				if ($sql) {
 					$res = $db->query($sql);
 					check_db_result($res);
+					$db->closeCursor();
 					if ($is_default) $saved_default = true;
 				}
 				$i++;
@@ -48,21 +49,24 @@ class View_Admin__System_Configuration extends View {
 				$sql = 'DELETE FROM person_group_membership_status WHERE id IN ('.implode(',', array_map(Array($db, 'quote'), $_POST['membership_status_delete'])).')';
 				$res = $db->query($sql);
 				check_db_result($res);
+				$db->closeCursor();
 			}
 			if (!$saved_default) {
 				$db->query('UPDATE person_group_membership_status SET is_default = 1 ORDER BY label LIMIT 1');
 				check_db_result($res);
+				$db->closeCursor();
 			}
 
 			$db->query('UPDATE person_group_membership SET membership_status = (SELECT id FROM person_group_membership_status WHERE is_default) WHERE membership_status IS NULL');
 			check_db_result($res);
+			$db->closeCursor();
 		}
 	}
 
-	public function printView() 
+	public function printView()
 	{
 		?>
-		<p>Some of the following settings can be edited on this page.  Other settings are read only on this page, but can be adjusted by getting your 
+		<p>Some of the following settings can be edited on this page.  Other settings are read only on this page, but can be adjusted by getting your
 		<?php if (defined('SYSADMIN_HREF')) echo '<a href="'.SYSADMIN_HREF.'">'; ?>
 		system administrator
 		<?php if (defined('SYSADMIN_HREF')) echo '</a>'; ?>
@@ -112,9 +116,9 @@ class View_Admin__System_Configuration extends View {
 				<td>
 					<?php echo CHUNK_SIZE; ?>
 					<br /><small>When listing all persons or families, Jethro will paginate the results and aim for this number per page (up to a maximum of 26 pages).</small>
-				
+
 				</td>
-			</tr>			
+			</tr>
 			<tr>
 				<th>Lock length for editing objects</th>
 				<td><?php echo LOCK_LENGTH; ?>
@@ -145,7 +149,7 @@ class View_Admin__System_Configuration extends View {
 			<tr>
 				<th>Maximum Session Length</th>
 				<td>
-					<?php 
+					<?php
 					$val= (defined('SESSION_MAXLENGTH_MINS') && (SESSION_MAXLENGTH_MINS > 0)) ? SESSION_MAXLENGTH_MINS : 8*60;
 					if (($val % 60 == 0) && ($val > 60)) {
 						echo ($val/60).' hours';
@@ -155,7 +159,7 @@ class View_Admin__System_Configuration extends View {
 					?>
 					<br /><small>Active users will be asked to log in again after this length of time.  This is important for security, especially on mobile devices.</small>
 				</td>
-			</tr>			
+			</tr>
 			<tr>
 				<td colspan="2"><h3>Jethro data structure settings</h3></td>
 			</tr>
@@ -197,7 +201,7 @@ class View_Admin__System_Configuration extends View {
 							<td>
 								<?php
 								if ($id) {
-									echo $id; 
+									echo $id;
 									echo '<input type="hidden" name="membership_status_'.$i.'_id" value="'.$id.'" />';
 								}
 								echo '<input type="hidden" name="membership_status_ranking[]" value="'.$i.'" />';
@@ -250,8 +254,8 @@ class View_Admin__System_Configuration extends View {
 				<th>Service Documents: Folders to populate</th>
 				<td>
 					<?php
-					
-					
+
+
 					if (SERVICE_DOCS_TO_POPULATE_DIRS) {
 						echo implode('<br />', explode('|', SERVICE_DOCS_TO_POPULATE_DIRS));
 					}
@@ -343,7 +347,7 @@ class View_Admin__System_Configuration extends View {
 			<tr>
 				<th>Label for the address 'state' field</th>
 				<td>
-					<?php 
+					<?php
 					if (!defined('ADDRESS_STATE_LABEL')) {
 						echo 'State';
 					} else if (ADDRESS_STATE_LABEL) {
@@ -351,7 +355,7 @@ class View_Admin__System_Configuration extends View {
 					} else {
 						echo '(State field disabled)';
 					}
-					echo '<br /><small>The state field can be hidden altogether by setting this to blank</small>'; 
+					echo '<br /><small>The state field can be hidden altogether by setting this to blank</small>';
 					?>
 				</td>
 			</tr>
