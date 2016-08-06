@@ -14,7 +14,7 @@ class Installer
 	{
 		$sql = 'SELECT count(*) FROM _person';
 		$res = $GLOBALS['db']->queryOne($sql);
-		if (!PEAR::isError($res)) {
+		if (($res->errorCode() === NULL) || ($res->errorCode() === 0)) {
 			trigger_error('System has already been installed, installer is aborting');
 			exit();
 		}
@@ -187,7 +187,7 @@ class Installer
 			FROM _person mp
 			JOIN family mf ON mf.id = mp.familyid
 			JOIN _person self ON self.familyid = mp.familyid
-			WHERE 
+			WHERE
 				self.id = getCurrentUserID()
 				AND mp.status <> "archived"
 				AND mf.status <> "archived"
@@ -227,7 +227,7 @@ class Installer
 			$this->congregations[] = $c;
 			if (!$c->validateFields()) return FALSE;
 		}
-		
+
 		$this->user = new Staff_Member();
 		foreach ($this->initial_person_fields as $field) {
 			$this->user->processFieldInterface($field, 'install_');
@@ -254,7 +254,7 @@ class Installer
 			}
 			$cong_ids[] = $cong->id;
 		}
-		
+
 		if (!$this->family->create()) {
 			$this->reportFailure();
 			return;
@@ -266,7 +266,7 @@ class Installer
 			$this->reportFailure();
 			return;
 		}
-		
+
 
 		$this->user->setValue('creator', $this->user->id);
 		$this->user->save();
@@ -293,7 +293,7 @@ class Installer
 		?>
 		<h2>Welcome</h2>
 		<p>Welcome to the Jethro installer.  The installation process will set up your MySQL database so that <br />it's ready to run Jethro.  First we need to collect some details to get things started.</p>
-		
+
 		<form method="post">
 			<h3>Initial User Account</h3>
 			<p>Please enter the details of the first user you want to add to the system.  <br />This is the user as which you will initially log in.  <br />After you have logged in you can edit the rest of your details.</p>
@@ -336,7 +336,7 @@ class Installer
 		<h2>Installation Complete!</h2>
 
 		You can now <a href="<?php echo BASE_URL; ?>">log in to the system</a> to start work.
-		
+
 		<?php
 	}
 }
