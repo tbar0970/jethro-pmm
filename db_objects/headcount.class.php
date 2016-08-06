@@ -1,7 +1,7 @@
 <?php
 class Headcount
 {
-	public function getInitSQL()
+	public function getInitSQL($table_name=NULL)
 	{
 		return Array(
 			'CREATE TABLE congregation_headcount (

@@ -71,7 +71,7 @@ class Person_Group extends db_object
 		}
 	}
 
-	function getInitSQL()
+	function getInitSQL($table_name=NULL)
 	{
 		// Need to create the group-membership table as well as the group table
 		return Array(

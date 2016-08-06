@@ -59,7 +59,7 @@ class Person_Query extends DB_Object
 		return parent::__construct($id);
 	}
 
-	function getInitSQL()
+	function getInitSQL($table_name=NULL)
 	{
 		return "
 			CREATE TABLE `person_query` (

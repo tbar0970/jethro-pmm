@@ -14,7 +14,7 @@ class Action_Plan_Note extends Abstract_Note {
 		return $action_note_data;
 	}
 
-	function getInitSQL()
+	function getInitSQL($table_name=NULL)
 	{
 		return '';
 	}
@@ -62,7 +62,7 @@ class Action_Plan_Note extends Abstract_Note {
 					<input type="radio" name="<?php echo $prefix; ?>action_date_type" value="relative"
 					<?php if ($this->getValue('action_date_type') == 'relative') echo 'checked="checked"'; ?>
 					>
-					<?php $this->printFieldInterface('action_date_offset', $prefix); ?> days 
+					<?php $this->printFieldInterface('action_date_offset', $prefix); ?> days
 					<?php $this->printFieldInterface('action_date_operator', $prefix); ?>
 					the reference date
 				</span>
