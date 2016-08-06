@@ -98,7 +98,3 @@ class JethroDB extends PDO {
     return ((self::errorCode() !== NULL) && (self::errorCode() > 0));
   }
 }
-
-class JethroStatement extends PDOStatement {
-
-}
