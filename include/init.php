@@ -44,9 +44,6 @@ if (php_sapi_name() != 'cli') {
 }
 
 // Set up the DB
-if (defined('PRIVATE_DSN') || defined('PUBLIC_DSN') || defined('MEMBERS_DSN') ) {
-		add_message('Using old style database connection. Please update your config. Trying to continue', 'warning');
-}
 require_once JETHRO_ROOT .'/include/jethrodb.php';
 
 $GLOBALS['db'] =& new JethroDB(DSN, DB_USERNAME,DB_PASSWORD);
