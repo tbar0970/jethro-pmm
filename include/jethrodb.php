@@ -15,8 +15,12 @@ class JethroDB extends PDO {
     return 	$result;
   }
 
-  public function query($sql) {
-    return parent::query($sql);
+  public function quoteIdentifier($field) {
+    $parts = explode('.', $field);
+    foreach (array_keys($parts) as $k) {
+        $parts[$k] = "`" . str_replace("`", "``",$parts[$k]) . "`";
+    }
+    return implode('.', $parts);
   }
 
   public function queryRow($sql) {
