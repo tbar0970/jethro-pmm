@@ -152,7 +152,7 @@ class Abstract_Note extends DB_Object
 
 
 
-	function getInstancesData($params, $logic='OR', $order)
+	function getInstancesData($params, $logic='OR', $order='')
 	{
 		$res = parent::getInstancesData($params, $logic, $order);
 
