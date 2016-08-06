@@ -47,7 +47,7 @@ class Family_Note extends Abstract_Note
 		if (is_null($value)) $value = $this->values[$name];
 		if ($name == 'familyid') {
 			if (!empty($value)) {
-				$family =& $GLOBALS['system']->getDBObject('family', $value);
+				$family = $GLOBALS['system']->getDBObject('family', $value);
 				?>
 				<a href="?view=families&familyid=<?php echo $value; ?>"><?php echo $family->toString(); ?></a> (#<?php echo $value; ?>)
 				<?php

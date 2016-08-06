@@ -419,7 +419,7 @@ class View_Attendance__Display extends View
 							$congregation = $GLOBALS['system']->getDBObject('congregation', $id);
 							$name = $congregation->getValue('name');
 						} else if ($type == 'g') {
-							$group =& $GLOBALS['system']->getDBObject('person_group', $id);
+							$group = $GLOBALS['system']->getDBObject('person_group', $id);
 							$name = $group->getValue('name');
 						}
 						$short = reset(explode(' ', $name));

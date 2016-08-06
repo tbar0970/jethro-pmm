@@ -19,7 +19,7 @@ class View__Add_User_Account extends View
 				trigger_error('You must choose a person record to create the user account for');
 				return;
 			}
-			$person =& $GLOBALS['system']->getDBObject('person', $_REQUEST['personid']);
+			$person = $GLOBALS['system']->getDBObject('person', $_REQUEST['personid']);
 			$this->_sm->processForm('', $this->_sm_fields);
 			if ($this->_sm->checkUniqueUsername()) {
 				if ($this->_sm->createFromChild($person)) {

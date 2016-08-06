@@ -11,7 +11,7 @@ class View_Rosters extends View
 	function processView()
 	{
 		if (!empty($_REQUEST['roster_view'])) {
-			$this->_roster_view =& $GLOBALS['system']->getDBObject('roster_view', (int)$_REQUEST['roster_view']);
+			$this->_roster_view = $GLOBALS['system']->getDBObject('roster_view', (int)$_REQUEST['roster_view']);
 		}
 	}
 	

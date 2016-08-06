@@ -6,7 +6,7 @@ class View_Display_Role_Description extends View
 	function processView()
 	{
 		if (!empty($_REQUEST['role'])) {
-			$this->_role =& $GLOBALS['system']->getDBObject('roster_role', (int)$_REQUEST['role']);
+			$this->_role = $GLOBALS['system']->getDBObject('roster_role', (int)$_REQUEST['role']);
 		}
 	}
 	

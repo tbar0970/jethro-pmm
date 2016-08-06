@@ -12,7 +12,7 @@ class View__Add_Person_To_Family extends View
 
 	function processView()
 	{
-		$this->_family =& $GLOBALS['system']->getDBObject('family', $_REQUEST['familyid']);
+		$this->_family = $GLOBALS['system']->getDBObject('family', $_REQUEST['familyid']);
 		$GLOBALS['system']->includeDBClass('person');
 		$this->_person = new Person();
 		if (array_get($_REQUEST, 'new_person_submitted')) {
