@@ -478,7 +478,8 @@ class service extends db_object
 				JOIN roster_role_assignment rra ON rra.personid = person.id
 				JOIN roster_role rr ON rra.roster_role_id = rr.id
 			WHERE LOWER(REPLACE(rr.title, \' \', \'_\')) = '.$GLOBALS['db']->quote($role_title).'
-				AND rr.congregationid = '.$GLOBALS['db']->quote($this->getValue('congregationid')).'
+				AND (rr.congregationid = '.$GLOBALS['db']->quote($this->getValue('congregationid')).'
+					OR (IFNULL(rr.congregationid, 0) = 0))
 				AND rra.assignment_date = '.$GLOBALS['db']->quote($this->getValue('date'));
 		$assignments =  $GLOBALS['db']->queryAll($sql, null, null, false);
 		$role_ids = Array();
@@ -628,7 +629,7 @@ class service extends db_object
 		?>
 		<table cellspacing="0" cellpadding="5"
 			<?php if (empty($_REQUEST['view'])) echo 'border="1" style="width: 10cm; border-collapse: collapse" '; ?>
-			class="table table-bordered table-condensed run-sheet"
+			class="table table-bordered table-condensed table-full-width run-sheet"
 		>
 			<thead>
 				<tr>

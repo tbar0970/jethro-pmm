@@ -1,8 +1,23 @@
-// TODO: more sniffing of the relevant bits (like attendance does) to speed up page load
-
 $(document).ready(function() {
-
+	
 	if ($('.stop-js').length) return; /* Classname flag for big pages that don't want JS to run */
+
+	// Make standalone safari stay standalone
+	if (("standalone" in window.navigator) && window.navigator.standalone) {
+		$('a.brand').parent().prepend('<i class="icon-white icon-chevron-left" onclick="history.back()"></i>')
+		$("a").click(function (event) {
+			if ((!$(this).attr('target'))
+					&& this.href != ''
+					&& this.href != '#'
+					&& this.href.indexOf('javascript:') != 0
+					&& !((this.innerHTML == 'Search') && $(this).parents('.nav').length)
+			) {
+				event.preventDefault();
+				window.location = $(this).attr("href");
+				return false;
+			}
+		});
+	}
 
 	// This needs to be first!
 	// https://github.com/twitter/bootstrap/issues/3217
@@ -880,6 +895,9 @@ JethroRoster.init = function() {
 		$target.change(); //bubbles the props up so it looks orange
 		setTimeout(function() { $target.effect("pulsate", {times: 2}, 700) }, 600);
 	});
+	$('#choose-assignee-cancel').click(function() {
+		$(JethroRoster.CUSTOM_ASSIGNEE_TARGET).val('');
+	});
 }
 
 JethroRoster.onAssignmentChange = function(inputField) {
@@ -961,7 +979,7 @@ var applyNarrowColumns = function(root) {
 	// (even if its parent is less than 100% width).
 	// We want the whole table to be as wide as it needs to be but no wider.
 	var expr = 'td.narrow, th.narrow, table.object-summary th'
-	var cells = $(root).find(expr);
+	var cells = $(root).find(expr).not('table.table-full-width *');
 	var parents = cells.parents('table:visible');
 	parents.each(function() {
 		var table = $(this);
