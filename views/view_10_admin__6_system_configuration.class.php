@@ -313,6 +313,7 @@ class View_Admin__System_Configuration extends View {
 				if ($sql) {
 					$res = $db->query($sql);
 					check_db_result($res);
+					$db->closeCursor();
 					if ($is_default) $saved_default = true;
 				}
 				$i++;
@@ -333,9 +334,11 @@ class View_Admin__System_Configuration extends View {
 						WHERE id IN ('.$idSet.')';
 				$res = $db->query($sql);
 				check_db_result($res);
+				$db->closeCursor();
 			}
 
 			check_db_result($res);
+			$db->closeCursor();
 		}
 	}
 	
@@ -441,6 +444,7 @@ class View_Admin__System_Configuration extends View {
 			if (!$saved_default) {
 				$db->query('UPDATE age_bracket SET is_default = 1 ORDER BY rank LIMIT 1');
 				check_db_result($res);
+				$db->closeCursor();
 			}
 			if (!empty($_POST['age_bracket_delete'])) {
 				$idSet = implode(',', array_map(Array($db, 'quote'), $_POST['age_bracket_delete']));
@@ -450,13 +454,16 @@ class View_Admin__System_Configuration extends View {
 						WHERE age_bracketid IN ('.$idSet.')';
 				$res = $db->query($sql);
 				check_db_result($res);
+				$db->closeCursor();
 				$sql = 'DELETE FROM age_bracket
 						WHERE id IN ('.$idSet.')';
 				$res = $db->query($sql);
 				check_db_result($res);
+				$db->closeCursor();
 			}
 
 			check_db_result($res);
+			$db->closeCursor();
 		}
 
 	}

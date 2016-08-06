@@ -148,7 +148,7 @@ class Person extends DB_Object
 									'editable'		=> false,
 									'show_in_summary'	=> false,
 									)
-	
+
 		);
 		if (defined('PERSON_STATUS_DEFAULT')) {
 			if (FALSE !== ($i = array_search(constant('PERSON_STATUS_DEFAULT'), $res['status']['options']))) {
@@ -396,7 +396,7 @@ class Person extends DB_Object
 						AND ar.groupid = recorded.groupid
 						AND ar.personid = '.$db->quote($this->id).'
 					LEFT JOIN person_group g ON recorded.groupid = g.id
-				WHERE 
+				WHERE
 				';
 		if ($groupid != -1) {
 			$sql .= ' recorded.groupid = '.(int)$groupid;
@@ -431,7 +431,7 @@ class Person extends DB_Object
 		$SQL .= implode(",\n", $sets);
 		$res = $db->exec($SQL);
 		check_db_result($res);
-		
+
 	}
 
 	public static function getPersonsBySearch($searchTerm, $includeArchived=true)
@@ -489,7 +489,7 @@ class Person extends DB_Object
 			if (!empty($this->_old_values['status']) || !empty($this->_old_values['last_name'])) {
 				$family = $GLOBALS['system']->getDBObject('family', $this->getValue('familyid'));
 				$members = $family->getMemberData();
-				
+
 				if (!empty($this->_old_values['status']) && ($this->getValue('status') == 'archived')) {
 					// status has just been changed to 'archived' so archive family if no live members
 
@@ -562,6 +562,7 @@ class Person extends DB_Object
 					VALUES ('.(int)$this->id.', '.$db->quote($this->_photo_data).')';
 			$res = $db->query($SQL);
 			check_db_result($res);
+			$db->closeCursor();
 		}
 	}
 
@@ -569,6 +570,7 @@ class Person extends DB_Object
 		$db =& $GLOBALS['db'];
 		$SQL = 'DELETE FROM custom_field_value WHERE personid = '.(int)$this->id;
 		check_db_result($db->query($SQL));
+		$db->closeCursor();
 		$SQL = 'INSERT INTO custom_field_value
 				(personid, fieldid, value_text, value_date, value_optionid)
 				VALUES ';
@@ -598,6 +600,7 @@ class Person extends DB_Object
 		if ($sets) {
 			$SQL .= implode(",\n", $sets);
 			check_db_result($GLOBALS['db']->query($SQL));
+			$GLOBALS['db']->closeCursor();
 		}
 	}
 
