@@ -64,7 +64,7 @@ class User_System extends Abstract_User_System
 			$_SESSION['last_activity_time'] = time();
 
 			$res = $GLOBALS['db']->query('SET @current_user_id = '.(int)$_SESSION['user']['id']);
-			if (PEAR::isError($res)) trigger_error('Failed to set user id in database', E_USER_ERROR);
+			if ($GLOBALS['db']->check_db_error()) trigger_error('Failed to set user id in database', E_USER_ERROR);
 		}
 
 	}//end constructor
@@ -86,9 +86,9 @@ class User_System extends Abstract_User_System
 
 	public function hasUsers()
 	{
-		$sql = 'SELECT count(*) FROM staff_member';
+		$sql = 'SELECT count(*) FROM staff_member LIMIT 1';
 		$res = $GLOBALS['db']->queryRow($sql);
-		if (PEAR::isError($res)) {
+		if ($GLOBALS['db']->check_db_error()) {
 			$res = 0;
 		}
 		return (bool)$res;
@@ -159,7 +159,7 @@ class User_System extends Abstract_User_System
 	public function setPublic()
 	{
 		$res = $GLOBALS['db']->query('SET @current_user_id = -1');
-		if (PEAR::isError($res)) trigger_error('Failed to set user id in database', E_USER_ERROR);
+		if ($GLOBALS['db']->check_db_error()) trigger_error('Failed to set user id in database', E_USER_ERROR);
 		$this->_is_public = TRUE;
 	}
 
