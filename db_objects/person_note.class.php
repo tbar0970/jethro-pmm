@@ -19,7 +19,7 @@ class Person_Note extends Abstract_Note
 	}
 
 
-	function getInitSQL()
+	function getInitSQL($table_name=NULL)
 	{
 		return "
 			CREATE TABLE `person_note` (

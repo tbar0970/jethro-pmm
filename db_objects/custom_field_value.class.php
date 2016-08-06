@@ -2,7 +2,7 @@
 include_once 'include/db_object.class.php';
 class Custom_Field_Value extends db_object
 {
-	function getInitSQL() {
+	function getInitSQL($table_name=NULL) {
 		return '
 			CREATE TABLE custom_field_value (
 				id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,

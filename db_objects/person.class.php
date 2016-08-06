@@ -157,7 +157,7 @@ class Person extends DB_Object
 		return $res;
 	}
 
-	function getInitSQL()
+	function getInitSQL($table_name=NULL)
 	{
 		return Array(
 			"CREATE TABLE `_person` (

@@ -73,7 +73,7 @@ class Attendance_Record_Set
 	}
 
 
-	function getInitSQL()
+	function getInitSQL($table_name=NULL)
 	{
 		return "
 			CREATE TABLE `attendance_record` (

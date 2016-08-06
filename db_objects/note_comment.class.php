@@ -34,7 +34,7 @@ class Note_Comment extends DB_Object
 			   );
 	}
 
-	function getInitSQL()
+	function getInitSQL($table_name=NULL)
 	{
 		return "
 			CREATE TABLE `note_comment` (

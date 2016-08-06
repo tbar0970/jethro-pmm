@@ -80,7 +80,7 @@ class Staff_Member extends Person
 
 
 	// We need this to override person::getInitSQL
-	function getInitSQL()
+	function getInitSQL($table_name=NULL)
 	{
 		return $this->_getInitSQL();
 	}

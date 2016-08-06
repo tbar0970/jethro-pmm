@@ -16,7 +16,7 @@ class Family_Note extends Abstract_Note
 
 	}
 
-	function getInitSQL()
+	function getInitSQL($table_name=NULL)
 	{
 		return "
 			CREATE TABLE `family_note` (
