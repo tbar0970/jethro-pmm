@@ -240,7 +240,7 @@ class family extends db_object
 		}
 	}
 
-	function printFieldInterface($name)
+	function printFieldInterface($name, $prefix='')
 	{
 		if ($name == 'photo') {
 			?>

@@ -561,7 +561,7 @@ function process_widget($name, $params, $index=NULL, $preserveEmpties=FALSE)
 function format_value($value, $params)
 {
 	if (!empty($params['references'])) {
-		$obj =& $GLOBALS['system']->getDBObject($params['references'], $value);
+		$obj = $GLOBALS['system']->getDBObject($params['references'], $value);
 		if (!is_null($obj)) {
 			if (!array_get($params, 'show_id', true)) {
 				return $obj->toString();

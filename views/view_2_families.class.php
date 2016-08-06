@@ -7,7 +7,7 @@ class View_Families extends View
 	function processView()
 	{
 		if (!empty($_REQUEST['familyid'])) {
-			$this->_family =& $GLOBALS['system']->getDBObject('family', (int)$_REQUEST['familyid']);
+			$this->_family = $GLOBALS['system']->getDBObject('family', (int)$_REQUEST['familyid']);
 		}
 	}
 
@@ -19,7 +19,7 @@ class View_Families extends View
 		return _('Error: No family supplied');
 	}
 
-	
+
 	function printView()
 	{
 		if ($this->_family) {
