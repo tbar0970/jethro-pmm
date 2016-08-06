@@ -41,10 +41,7 @@ if (php_sapi_name() != 'cli') {
 }
 
 // Set up the DB
-if (!@include_once('MDB2.php')) {
-	trigger_error('MDB2 Library not found on the server.  See the readme file for how to work around this');
-	exit();
-}
+require_once JETHRO_ROOT .'/include/jethrodb.php';
 $GLOBALS['db'] =& MDB2::factory(DSN);
 if (MDB2::isError($GLOBALS['db']) || MDB2::isError($GLOBALS['db']->getConnection())) {
 	trigger_error('Could not connect to database - please check for mistakes in your DSN in conf.php, and check in MySQL that the database exists and the specified user has been granted access.', E_USER_ERROR);
