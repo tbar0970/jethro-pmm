@@ -42,7 +42,7 @@ class JethroDB extends PDO {
     $stmnt = self::prepare($sql);
     $stmnt->execute();
     self::check_db_statement_and_exit($stmnt);
-    $result = $stmnt->fetchColumn($colnum);
+    $result = $stmnt->fetchAll(PDO::FETCH_COLUMN, $colnum);
     $stmnt->closeCursor();
     return $result;
   }
