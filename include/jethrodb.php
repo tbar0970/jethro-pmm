@@ -35,6 +35,17 @@ class JethroDB extends PDO {
     $stmnt->closeCursor();
     return $result;
   }
+  /*
+   * $colnum can be a column number or name
+   */
+  public function queryCol($sql, $colnum=0) {
+    $stmnt = self::prepare($sql);
+    $stmnt->execute();
+    self::check_db_statement_and_exit($stmnt);
+    $result = $stmnt->fetchColumn($colnum);
+    $stmnt->closeCursor();
+    return $result;
+  }
 
   public function queryAll($sql, $types=null, $fetchmode=null, $rekey=false, $force_array=false, $group=false) {
     $all = array();
