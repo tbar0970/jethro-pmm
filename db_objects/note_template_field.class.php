@@ -81,7 +81,7 @@ class Note_Template_Field extends db_object
 		$GLOBALS['system']->doTransaction('COMMIT');
 	}
 
-	function printFieldInterface($fieldname, $prefix)
+	function printFieldInterface($fieldname, $prefix='')
 	{
 		switch ($fieldname) {
 			case 'params':
