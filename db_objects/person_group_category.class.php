@@ -44,7 +44,7 @@ class Person_Group_Category extends db_object
 		$GLOBALS['system']->doTransaction('COMMIT');
 	}
 
-	function printFieldInterface($fieldname, $prefix)
+	function printFieldInterface($fieldname, $prefix='')
 	{
 		if ($fieldname == 'parent_category') {
 			self::printChooser($prefix.$fieldname, $this->getValue('parent_category'), $this->id);
