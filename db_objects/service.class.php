@@ -220,7 +220,7 @@ class service extends db_object
 		check_db_result($res);
 	}
 
-	function getFormattedValue($fieldname)
+	function getFormattedValue($fieldname, $value=null)
 	{
 		switch ($fieldname) {
 
