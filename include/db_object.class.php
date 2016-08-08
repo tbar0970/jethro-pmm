@@ -574,7 +574,7 @@ class db_object
 	*
 	* Subclasses should add links and other HTML markup by overriding this
 	*/
-	public function printFieldValue($name, $value=null)
+	public function printFieldValue($name, $value=NULL)
 	{
 		if (!isset($this->fields[$name])) {
 			trigger_error('Cannot get value for field '.ents($name).' - field does not exist', E_USER_WARNING);

@@ -124,7 +124,7 @@ class Staff_Member extends Person
 	*
 	* Subclasses should add links and other HTML markup by overriding this
 	*/
-	function printFieldValue($name, $value=null)
+	function printFieldValue($name, $value=NULL)
 	{
 		if (is_null($value)) $value = $this->getValue($name);
 		if ($name == 'restrictions') {
