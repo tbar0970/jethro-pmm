@@ -233,7 +233,7 @@ class roster_view extends db_object
 		unset($this->fields['members']);
 	}
 
-	function processFieldInterface($name, $prefix)
+	function processFieldInterface($name, $prefix='')
 	{
 		switch ($name) {
 			case 'members':
