@@ -276,7 +276,7 @@ class service extends db_object
 				}
 		}	}
 
-	function printFieldValue($fieldname)
+	function printFieldValue($fieldname, $value=NULL)
 	{
 		// a few special cases
 		switch ($fieldname) {

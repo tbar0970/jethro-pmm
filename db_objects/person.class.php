@@ -218,7 +218,7 @@ class Person extends DB_Object
 	}
 
 
-	function printFieldValue($name, $value=null)
+	function printFieldValue($name, $value=NULL)
 	{
 		if (is_null($value)) $value = $this->getValue($name);
 		switch ($name) {
