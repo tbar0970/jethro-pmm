@@ -223,7 +223,7 @@ class service extends db_object
 		$res->closeCursor();
 	}
 
-	function getFormattedValue($fieldname)
+	function getFormattedValue($fieldname, $value=null)
 	{
 		switch ($fieldname) {
 
