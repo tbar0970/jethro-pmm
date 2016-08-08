@@ -741,7 +741,7 @@ class Attendance_Record_Set
 		$totals = Array();
 		$res = $GLOBALS['db']->query($SQL);
 		check_db_result($res);
-		while ($row = $res->fetchRow()) {
+		while ($row = $res->fetch()) {
 			if (!empty($row['date'])) $dates[$row['date']] = 1;
 			foreach (Array('last_name', 'first_name', 'membership_status', 'status') as $f) {
 				if (array_key_exists($f, $row)) $attendances[$row['id']][$f] = $row[$f];
