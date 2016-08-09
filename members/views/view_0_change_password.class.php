@@ -9,11 +9,11 @@ class View__Change_Password extends View
 	function processView()
 	{
 			// This is handled by member_user_system
-		
+
 	}
 	
 	function printView()
-	{		
+	{
 		?>
 		<form method="post" action="?isreset=1">
 			<label>New password:</label>		

@@ -1,7 +1,7 @@
 <?php
 class Call_Documents extends Call
 {
-	function run() 
+	function run()
 	{
 		$GLOBALS['system']->initErrorHandler();
 		require_once 'views/view_9_documents.class.php';

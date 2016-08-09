@@ -69,7 +69,7 @@ class View_Admin__Import extends View
 		} else if (!empty($_POST['confirm_import'])) {
 			ini_set('memory_limit', '256M');
 			ini_set('max_execution_time', 60*10);
-			ini_set('zlib.output_compression', 'Off'); 
+			ini_set('zlib.output_compression', 'Off');
 
 			// read from session and create
 			$GLOBALS['system']->doTransaction('BEGIN');

@@ -52,7 +52,7 @@ if ($reassigning) {
 						echo '<p class="alert alert-error">'._('This note is locked by another user and cannot be edited at this time.').'</p>';
 					}
 				} else {
-					echo ents($note['assignee_fn'].' '.$note['assignee_ln']); 
+					echo ents($note['assignee_fn'].' '.$note['assignee_ln']);
 				}
 				?>
 			</td>

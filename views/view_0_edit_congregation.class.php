@@ -51,7 +51,7 @@ class View__Edit_Congregation extends View
 		if (empty($this->_congregation)) return;
 		$show_form = true;
 		if (!empty($_POST['edit_congregation_submitted'])) {
-			if (!$this->_congregation->haveLock()) { 
+			if (!$this->_congregation->haveLock()) {
 				// lock expired
 				if ($this->_congregation->acquireLock()) {
 					// managed to reacquire lock - ask them to try again
