@@ -47,7 +47,7 @@ class Congregation extends db_object
 									'cols'		=> 2,
 									'note'		=> 'Jethro will only allow you to record attendance for this congregation on the selected days.  Select nothing if you do not plan to record attendance for this congregation.',
 									'show_unselected' => FALSE,
-						   ),			
+						   ),
 			'print_quantity' => Array(
 									'type'		=> 'int',
 									'hidden'	=> true,

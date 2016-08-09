@@ -361,7 +361,7 @@ class View_Documents extends View
 		if (is_null($dir)) $dir = $this->_rootpath;
 		$di = new DirectoryIterator($dir);
 		if (!$di->valid()) return; // nothing to list
-		
+
 		?>
 		<ul>
 		<?php
@@ -448,8 +448,8 @@ class View_Documents extends View
 			?>
 			<h2>
 				<?php 
-				$title = $this->getPrintedDir(); 
-				if (empty($title)) $title = '(Top Level)'; 
+				$title = $this->getPrintedDir();
+				if (empty($title)) $title = '(Top Level)';
 				echo 'Documents: '.$title;
 				?>
 			</h2>

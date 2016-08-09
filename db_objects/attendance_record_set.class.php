@@ -32,7 +32,7 @@ class Attendance_Record_Set
 				$this->_cohort_object = $GLOBALS['system']->getDBObject('person_group', $this->groupid);
 			} else if ($this->congregationid) {
 				$this->_cohort_object = $GLOBALS['system']->getDBObject('congregation', $this->congregationid);
-			}			
+			}
 		}
 		return $this->_cohort_object;
 	}
@@ -54,7 +54,7 @@ class Attendance_Record_Set
 			trigger_error("Could not get cohort object for lock");
 			return FALSE;
 		}
-		return $obj->haveLock('attendance-'.$this->date);	
+		return $obj->haveLock('attendance-'.$this->date);
 	}
 	
 	public function releaseLock()
@@ -64,8 +64,8 @@ class Attendance_Record_Set
 			trigger_error("Could not get cohort object for lock");
 			return FALSE;
 		}
-		return $obj->releaseLock('attendance-'.$this->date);	
-	}	
+		return $obj->releaseLock('attendance-'.$this->date);
+	}
 	
 
 	function create()
@@ -310,7 +310,7 @@ class Attendance_Record_Set
 					if ($this->groupid) {
 						echo ents($details['membership_status']);
 					} else {
-						$dummy->printFieldValue('status'); 
+						$dummy->printFieldValue('status');
 					}
 					?>
 				</td>

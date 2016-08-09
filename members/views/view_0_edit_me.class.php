@@ -13,7 +13,7 @@ class View__Edit_Me extends View
 	function canEdit()
 	{
 		// Non-adults can only edit if there are no adults in the family
-		return 
+		return
 			($GLOBALS['user_system']->getCurrentMember('age_bracket') == '0')
 			|| !$this->hasAdult
 		;
@@ -51,7 +51,7 @@ class View__Edit_Me extends View
 		if (!$this->canEdit()) {
 			print_message("Sorry, only adults are able to edit this family.", 'error');
 			return;
-		}		
+		}
 		
 		$ok = $this->family->acquireLock();
 		foreach ($this->persons as $p) {
@@ -67,7 +67,7 @@ class View__Edit_Me extends View
 				?>
 				<p><i>If you need to change names or other details which are not listed in this form, please contact  <a href="mailto:<?php echo ents(MEMBER_REGO_HELP_EMAIL); ?>"><?php echo ents(MEMBER_REGO_HELP_EMAIL); ?></a>.</i></p>
 				<?php
-			}			
+			}
 
 			
 			?>

@@ -22,7 +22,7 @@ X-WR-CALNAME:<?php echo SYSTEM_NAME; ?> Roster
             }
             else {
                 // Guess end time as start time + 1 day (86400 seconds)
-                $endtime += 86400;                
+                $endtime += 86400;
             }
             ?>
 BEGIN:VEVENT

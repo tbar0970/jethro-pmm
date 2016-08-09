@@ -72,7 +72,7 @@ class Member_User_System extends Abstract_User_System
 				$this->_setAuthMember($user_details);
 				redirect('home');
 				exit;
-			}		
+			}
 	}
 	
 	private function handleAccountRequest()
@@ -84,7 +84,7 @@ class Member_User_System extends Abstract_User_System
 			
 			if (is_array($person)) {
 				// Send them an email
-				
+
 				$hash = generate_random_string(32);
 				$SQL = 'UPDATE _person
 						SET resethash='.$GLOBALS['db']->quote($hash).',
@@ -106,7 +106,7 @@ If you didn't request an account, you can just ignore this email";
 
 				$message = Emailer::newMessage()
 				  ->setSubject(MEMBER_REGO_EMAIL_SUBJECT)
-				  ->setFrom(array(MEMBER_REGO_EMAIL_FROM_ADDRESS => MEMBER_REGO_EMAIL_FROM_NAME)) 
+				  ->setFrom(array(MEMBER_REGO_EMAIL_FROM_ADDRESS => MEMBER_REGO_EMAIL_FROM_NAME))
 				  ->setTo(array($person['email'] => $person['first_name'].' '.$person['last_name']))
 				  ->setBody($body)
 				  ->addPart($html, 'text/html');
@@ -127,10 +127,10 @@ If you didn't request an account, you can just ignore this email";
 			} else if (($person == -1) && !empty($failureEmail)) {
 				// This email address is in use by two or more persons from *different families*.
 				// Therefore this address cannot be used for member access.
-				
+
 				$message = Emailer::newMessage()
 				  ->setSubject("Member Account request from multi-family email")
-				  ->setFrom(array(MEMBER_REGO_EMAIL_FROM_ADDRESS => SYSTEM_NAME.' Jethro System')) 
+				  ->setFrom(array(MEMBER_REGO_EMAIL_FROM_ADDRESS => SYSTEM_NAME.' Jethro System'))
 				  ->setTo(MEMBER_REGO_FAILURE_EMAIL)
 				  ->setBody("Hi, \n\nThis is an automated message from the Jethro system at ".BASE_URL.".\n\n"
 						  ."Somebody has used the form at ".BASE_URL."/members to request member-access to this Jethro system. \n\n"
@@ -147,10 +147,10 @@ If you didn't request an account, you can just ignore this email";
 			} else if (!empty($failureEmail)) {
 				// This email address doesn't match any person record.
 				// Send the administrator an email
-				
+
 				$message = Emailer::newMessage()
 				  ->setSubject("Member Account request from unknown email")
-				  ->setFrom(array(MEMBER_REGO_EMAIL_FROM_ADDRESS => SYSTEM_NAME.' Jethro System')) 
+				  ->setFrom(array(MEMBER_REGO_EMAIL_FROM_ADDRESS => SYSTEM_NAME.' Jethro System'))
 				  ->setTo(MEMBER_REGO_FAILURE_EMAIL)
 				  ->setBody("Hi, \n\nThis is an automated message from the Jethro system at ".BASE_URL.".\n\n"
 						  ."Somebody has used the form at ".BASE_URL."/members to request member-access to this Jethro system. \n\n"
@@ -163,7 +163,7 @@ If you didn't request an account, you can just ignore this email";
 				// to tell strangers whether an email is or isn't known.
 				require_once 'templates/account_request_received.template.php';
 				exit;
-			}		
+			}
 	}
 	
 	private function processEmailVerification() {
@@ -182,15 +182,15 @@ If you didn't request an account, you can just ignore this email";
 		if ($val != $_REQUEST['password2']) {
 			$this->_error = 'Password and password confirmation do not match.  Try again.';
 			require_once('templates/set_password.template.php');
-			exit;			
+			exit;
 		} else if (strlen($val) < MEMBER_PASSWORD_MIN_LENGTH) {
 			$this->_error = 'Password is too short - must be at least '.MEMBER_PASSWORD_MIN_LENGTH.' characters; Password not saved.';
 			require_once('templates/set_password.template.php');
-			exit;			
+			exit;
 		} else if (!preg_match('/[0-9]+/', $val) || !preg_match('/[^0-9]+/', $val)) {
 			$this->_error = 'Password is too simple - it must contain letters and numbers; Password not saved.';
 			require_once('templates/set_password.template.php');
-			exit;						
+			exit;
 		} else {
 			$sql = 'UPDATE _person '
 					. 'SET `member_password` = '.$db->quote(jethro_password_hash($val)).', '
@@ -203,9 +203,9 @@ If you didn't request an account, you can just ignore this email";
 			if (!empty($_REQUEST['isreset'])) {
 				add_message('Your password has been successfully changed.');
 			} else {
-				add_message('Welcome!  Your account is complete and you are now logged in.');		
+				add_message('Welcome!  Your account is complete and you are now logged in.');
 			}
-		}	
+		}
 		
 	}
 
@@ -269,7 +269,7 @@ If you didn't request an account, you can just ignore this email";
 		$_SESSION['member'] = NULL;
 		$_SESSION['login_time'] = NULL;
 		$_SESSION['last_activity_time'] = NULL;
-	}	
+	}
 	
 	/**
 	 * Find a person record to which we could attach a member account
@@ -302,9 +302,9 @@ If you didn't request an account, you can just ignore this email";
 		$res = $db->queryRow($sql);
 		check_db_result($res);
 		
-		return $res;		
+		return $res;
 		
-	}	
+	}
 	
 	/**
 	 * Find a person record that has the specified email and account-creation hash
@@ -347,6 +347,6 @@ If you didn't request an account, you can just ignore this email";
 			}
 		}
 		return NULL;
-	}	
+	}
 
 }

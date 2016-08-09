@@ -37,8 +37,8 @@ class Action_Plan_Note extends Abstract_Note {
 									'default' => 0,
 									);
 		$res['action_date_operator'] = Array(
-										'type' => 'select', 
-										'options' => Array('+' => 'after', '-' => 'before'), 
+										'type' => 'select',
+										'options' => Array('+' => 'after', '-' => 'before'),
 										'default' => '+',
 										'editable' => false
 									  );

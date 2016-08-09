@@ -7,7 +7,7 @@ class Call_Services_Ical extends Call
 		$services = Service::findAllAfterDate(date('Y-m-d'), $congregationid);
 		
 		header('Content-type: text/calendar');
-		header('Content-Disposition: inline; filename=services.ics'); 
+		header('Content-Disposition: inline; filename=services.ics');
 		//header('content-type: text/plain');
 
 		require_once 'templates/service_ical.template.php';

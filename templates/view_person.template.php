@@ -160,7 +160,7 @@ printf($panel_header, 'basic', _('Basic Details'), 'active');
 
 			<?php 
 			
-			$person->printSummary(); 
+			$person->printSummary();
 
 			if ($family->getValue('address_street')) {
 				?>

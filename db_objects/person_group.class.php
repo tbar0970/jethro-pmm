@@ -182,7 +182,7 @@ class Person_Group extends db_object
 		return FALSE;
 	}
 
-	function removeMembers($personids) 
+	function removeMembers($personids)
 	{
 		if (!$GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
 			trigger_error("You do not have permission to remove group members");
@@ -219,7 +219,7 @@ class Person_Group extends db_object
 		return $res;
 	}
 
-	function printSummary() 
+	function printSummary()
 	{
 		?>
 		<table class="standard">
@@ -424,7 +424,7 @@ class Person_Group extends db_object
 			?>
 		</select>
 		<?php
-		
+
 		return TRUE;
 	}
 

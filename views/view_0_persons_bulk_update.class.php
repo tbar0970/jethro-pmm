@@ -79,7 +79,7 @@ class View__Persons_Bulk_Update extends View
 	{
 		if (empty($this->_person)) {
 			return;
-		}	
+		}
 		return 'Update status for person';
 	}
 
