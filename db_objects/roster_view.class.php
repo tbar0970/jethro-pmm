@@ -580,8 +580,8 @@ class roster_view extends db_object
 
 	function printView($start_date=NULL, $end_date=NULL, $editing=FALSE, $public=FALSE)
 	{
-    require_once 'include/sms_sender.class.php';                                                                                                                 
-    SMS_Sender::printModal(); 
+    require_once 'include/sms_sender.class.php';
+    SMS_Sender::printModal();
 
 		if (empty($this->_members)) return;
 		if (!$editing && !$public) {

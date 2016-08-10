@@ -1,7 +1,7 @@
 <?php
 class Call_sms extends Call
 {
-  function run() 
+  function run()
   {
     require_once('include/sms_sender.class.php');
     $SMS = new SMS_Sender();

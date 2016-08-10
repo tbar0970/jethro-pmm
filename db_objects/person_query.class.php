@@ -1167,7 +1167,7 @@ class Person_Query extends DB_Object
 				}
 			}
 			$select_fields = $grouping_field.'p.id as ID, '.implode(', ', $query['select']);
-		}    
+		}
 		// ORDER BY
 		$customOrder = NULL;
 		if (substr($params['sort_by'], 0, 7) == 'date---') {
