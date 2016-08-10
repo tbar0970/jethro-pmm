@@ -40,6 +40,7 @@ class Person_Group_Category extends db_object
 		$sql = 'UPDATE person_group SET categoryid = 0 WHERE categoryid = '.(int)$this->id;
 		$res = $GLOBALS['db']->query($sql);
 		check_db_result($res);
+		$res->closeCursor();
 		$GLOBALS['system']->doTransaction('COMMIT');
 	}
 

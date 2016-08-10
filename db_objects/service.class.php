@@ -70,7 +70,7 @@ class service extends db_object
 				'datecong' => Array('date', 'congregationid'),
 			   );
 	}
-	
+
 	function _createFinal()
 	{
 		if (parent::_createFinal()) {
@@ -125,13 +125,14 @@ class service extends db_object
 		$this->_old_readings = $this->_readings;
 		check_db_result($this->_readings);
 	}
-	
+
 	function __deleteBibleReadings()
 	{
 		$sql = 'DELETE FROM service_bible_reading
 				WHERE service_id = '.(int)$this->id;
 		$res = $GLOBALS['db']->query($sql);
 		check_db_result($res);
+		$res->closeCursor();
 	}
 
 	function __insertBibleReadings()
@@ -147,6 +148,7 @@ class service extends db_object
 				VALUES '.implode(', ', $values);
 			$res = $GLOBALS['db']->query($sql);
 			check_db_result($res);
+			$res->closeCursor();
 		}
 		$this->_old_readings = $this->_readings;
 	}
@@ -155,7 +157,7 @@ class service extends db_object
 	{
 		$this->_readings[] = Array('bible_ref' => $ref, 'to_read' => $to_read, 'to_preach' => $to_preach);
 	}
-	
+
 	function clearReadings()
 	{
 		$this->_readings = Array();
@@ -165,7 +167,7 @@ class service extends db_object
 	{
 		$type = str_replace('to_', '', $type);
 		if (!in_array($type, Array('all', 'preach', 'read'))) return Array();
-		
+
 		$candidate_readings = Array();
 		foreach ($this->_readings as $reading) {
 			if (($type == 'all') || ($reading['to_'.$type])) {
@@ -218,6 +220,7 @@ class service extends db_object
 				ORDER BY date '.(($shift_by > 0) ? 'DESC' : 'ASC');
 		$res = $GLOBALS['db']->query($sql);
 		check_db_result($res);
+		$res->closeCursor();
 	}
 
 	function getFormattedValue($fieldname, $value=null)
@@ -262,7 +265,7 @@ class service extends db_object
 				if ($this->values['notes']) $res[] = $this->values['notes'];
 				return implode("\n", $res);
 				break;
-				
+
 			default:
 				if (strpos($fieldname, 'comps_') === 0) {
 					$compCatID = (int)substr($fieldname, 6);
@@ -304,12 +307,12 @@ class service extends db_object
 				}
 				echo implode(', ', $res);
 				break;
-				
+
 			case 'format_title':
 			case 'topic_title':
 				echo ents($this->values[$fieldname]);
 				break;
-				
+
 			case 'summary':
 			case 'summary_inline':
 				$separator = $fieldname == 'summary' ? '<br />' : '&nbsp; &bull; &nbsp;';
@@ -447,7 +450,7 @@ class service extends db_object
 
 		} else if (substr($keyword, -10) == '_FIRSTNAME') {
 			return $this->getPersonnelByRoleTitle(substr($keyword, 0, -10), TRUE);
-			
+
 		} else if (0 === strpos($keyword, 'SERVICE_')) {
 			$service_field = strtolower(substr($keyword, strlen('SERVICE_')));
 			if (in_array($service_field, Array('topic', 'format'))) {
@@ -461,7 +464,7 @@ class service extends db_object
 				}
 				return $res;
 			}
-		
+
 		}
 
 		// look for a role that matches
@@ -597,7 +600,7 @@ class service extends db_object
 
 	public function getItems($withContent=FALSE, $ofCategoryID=NULL)
 	{
-		$SQL = 'SELECT si.*, 
+		$SQL = 'SELECT si.*,
 					IF (si.componentid IS NULL, si.title, sc.title) AS title,
 					sc.alt_title,
 					'.($withContent ? 'sc.content_html, sc.credits, ' : '').'
@@ -706,7 +709,7 @@ class service extends db_object
 				echo ents($title);
 				?>
 			</h4>
-			<?php 
+			<?php
 			if ($i['show_in_handout'] == 'full') {
 				echo $i['content_html'];
 				?>
@@ -749,7 +752,7 @@ class service extends db_object
 			echo '<br />';
 		}
 	}
-        
+
 	/**
 	 * Calculate the meeting date/time.
 	 *

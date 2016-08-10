@@ -6,7 +6,7 @@ class System_Controller
 	private $_friendly_errors = false;
 	private $_base_dir = '';
 	private $_object_cache = Array();
-	
+
 	static private $instance = NULL;
 
 	/**
@@ -216,6 +216,7 @@ class System_Controller
 			case 'ROLLBACK':
 				$r = $GLOBALS['db']->query(strtoupper($operation));
 				check_db_result($r);
+				$r->closeCursor();
 		}
 	}
 
@@ -319,13 +320,13 @@ class System_Controller
 		$enabled_features = explode(',', strtoupper(ENABLED_FEATURES));
 		return in_array(strtoupper($feature), $enabled_features);
 	}
-	
+
 	public static function checkConfigHealth()
 	{
 		if (REQUIRE_HTTPS && (FALSE === strpos(BASE_URL, 'https://'))) {
 			trigger_error("Configuration file error: If you set REQUIRE_HTTPS to true, your BASE_URL must start with https", E_USER_ERROR);
 		}
-		
+
 		if (substr(BASE_URL, -1) != '/') {
 			trigger_error("Configuration file error: Your BASE_URL must end with a slash", E_USER_ERROR);
 		}
