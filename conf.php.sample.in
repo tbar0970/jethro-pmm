@@ -159,7 +159,7 @@ define('MEMBERS_SHARE_ADDRESS', FALSE);
 define('SMTP_SERVER', '');
 
 // Encryption to use when authenticating with the SMTP server - 'ssl', 'tls', or empty.
-define('SMTP_ENCRYPTION', ''); 
+define('SMTP_ENCRYPTION', '');
 
 // Username to use when authenticating with the SMTP server. Can be left blank for no auth.
 define('SMTP_USERNAME', '');

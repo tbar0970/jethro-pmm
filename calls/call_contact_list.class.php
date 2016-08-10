@@ -1,7 +1,7 @@
 <?php
 class Call_Contact_List extends Call
 {
-	function run() 
+	function run()
 	{
 		$GLOBALS['system']->initErrorHandler();
 		require_once 'views/view_2_families__4_contact_list.class.php';

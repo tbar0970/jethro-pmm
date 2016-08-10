@@ -149,13 +149,20 @@ if (!empty($to_add) && !$DRYRUN) {
 		$api->listBatchSubscribe($list_id, $to_add, false, true);
 		if (!empty($api->errorMessage)) {
 			trigger_error("Mailchimp API Error calling listBatchSubscribe(): ".$api->errorMessage, E_USER_ERROR);
-		}		
+		}
 	} else {
 		// listBatchSubscribe doesn't always update all the merge vars correctly (perhaps if there's a case variation 
 		// in the email address) so when there's not too many we call listSubscribe individually
 		foreach ($to_add as $add) {
 			if (!$api->listSubscribe($list_id, $add['EMAIL'],$add, 'html', FALSE, TRUE, FALSE,false)) {
-				trigger_error("listSubscribe returned false: ".$api->errorMessage);
+				if (FALSE !== strpos($api->errorMessage, 'has bounced, and cannot be resubscribed')) {
+					// Email address has a known bounce
+					// Future extension: Clear their email address in jethro and add a note
+
+				} else {
+					// Unexpected error
+					trigger_error("listSubscribe returned false: ".$api->errorMessage);
+				}
 			}
 		}
 	}
@@ -178,7 +185,7 @@ if ($DEBUG > 1) {
 	bam("LIST MEMBERS:");
 	bam($list_members);
 	bam("==================");
-} 
+}
 if ($DEBUG && !empty($to_remove)) {
 	bam("TO REMOVE:");
 	bam($to_remove);
@@ -229,7 +236,7 @@ class MCAPI {
     /**
      * Default to a 300 second timeout on server calls
      */
-    var $timeout = 300; 
+    var $timeout = 300;
     
     /**
      * Default to a 8K chunk size

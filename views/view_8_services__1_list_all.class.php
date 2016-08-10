@@ -343,7 +343,7 @@ class View_Services__List_All extends View
 				<td rowspan="3" class="nowrap" style="padding-right: 2ex; padding-left: 1ex;">
 					<b>For congregations</b><br />
 					<?php
-					
+
 					foreach ($congs as $id => $details) {
 						?>
 						<label class="checkbox">

@@ -351,7 +351,7 @@ class db_object
 			$new_val = $this->values[$i];
 			if ($this->fields[$i]['type'] == 'serialise') {
 				$new_val = serialize($new_val);
-			} 
+			}
 			if (($this->fields[$i]['type'] == 'datetime') && ($new_val == 'CURRENT_TIMESTAMP')) {
 				// CURRENT_TIMESTAMP should not be quoted
 				$sets[] = ''.$i.' = '.$new_val;
@@ -612,7 +612,7 @@ class db_object
 				</label>
 				<?php
 			}
-		} else if (($this->fields[$name]['type'] == 'text') 
+		} else if (($this->fields[$name]['type'] == 'text')
 					&& (array_get($this->fields[$name], 'height', 1) > 1)) {
 			echo nl2br(ents($this->getFormattedValue($name, $value)));
 		} else if ($this->fields[$name]['type'] == 'phone') {
@@ -709,7 +709,7 @@ class db_object
 
 
 //--        PERMISSIONS AND LOCKING        --//
-	
+
 	protected function checkPerm($perm)
 	{
 		if ($perm == 0) return TRUE;

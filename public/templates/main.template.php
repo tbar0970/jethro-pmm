@@ -48,8 +48,8 @@ if (empty($_REQUEST['raw'])) {
 
 		</div>
 		<div id="body">
-			<?php 		
-			dump_messages(); 
+			<?php 
+			dump_messages();
 
 			if ($title = $GLOBALS['system']->getTitle()) {
 				echo '<h1>'.ents($title).'</h1>';

@@ -758,7 +758,7 @@ class Person extends DB_Object
 				<i class="icon-random"></i>Move to different family</a>
 				</div>
 				<?php
-				
+
 				break;
 			default:
 				parent::printFieldInterface($name, $prefix);

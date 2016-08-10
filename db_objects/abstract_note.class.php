@@ -32,14 +32,14 @@ class Abstract_Note extends DB_Object
 								'default'	=> 'no_action',
 								'class'		=> 'note-status',
 								'allow_empty'	=> false,
-								'label'		=> 'Status', 
+								'label'		=> 'Status',
 							   ),
 			'status_last_changed' => Array(
 									'type'				=> 'datetime',
 									'show_in_summary'	=> false,
 									'allow_empty'		=> TRUE,
 									'editable'			=> false,
-									'default'			=> NULL,	
+									'default'			=> NULL,
 								   ),
 			'assignee'		=> Array(
 								'type'			=> 'reference',
@@ -54,7 +54,7 @@ class Abstract_Note extends DB_Object
 									'show_in_summary'	=> false,
 									'allow_empty'		=> TRUE,
 									'editable'			=> false,
-									'default'			=> NULL,	
+									'default'			=> NULL,
 								   ),
 			'action_date'	=> Array(
 								'type'			=> 'date',

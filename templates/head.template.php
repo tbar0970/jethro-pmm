@@ -5,7 +5,7 @@
 		if (isset($GLOBALS['system']) && ($title = $GLOBALS['system']->getTitle())) echo ' - '.$title;
 		?>
 	</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<!--[if IE]>
 	<link type="text/css" rel="stylesheet" href="<?php echo BASE_URL; ?>resources/css/jethro_msie.css" />

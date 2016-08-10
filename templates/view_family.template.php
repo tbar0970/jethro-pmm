@@ -53,9 +53,9 @@ if (!$accordion) {
 	<?php
 }
 
-/**************** BASIC DETAILS TAB *************/ 
+/**************** BASIC DETAILS TAB *************/
 
-printf($panel_header, 'basic', 'Basic Details & Members', 'active'); 
+printf($panel_header, 'basic', 'Basic Details & Members', 'active');
 	?>
 	<div class="family-details">
 

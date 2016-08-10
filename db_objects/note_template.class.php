@@ -404,6 +404,6 @@ class Note_Template extends db_object
 			</div>
 			<hr />
 			<?php
-		}		
+		}
 	}
 }

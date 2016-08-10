@@ -11,7 +11,7 @@ class Congregation_Service_Component extends db_object
 									'references'		=> 'congregation',
 									'label'				=> 'Congregation',
 									'show_id'			=> FALSE,
-								   ),	
+								   ),
 			'componentid'	=> Array(
 									'type'				=> 'reference',
 									'references'		=> 'service_component',

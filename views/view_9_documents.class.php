@@ -73,8 +73,11 @@ class View_Documents extends View
 								$this->_addMessage('File "'.$name.'" saved');
 							}
 						}
+					} else if (in_array($error, Array(UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE))) {
+						add_message("Your file could not be saved because the file is too big.", 'error');
+						return NULL;
 					} else {
-						trigger_error("There was an error ($error) uploading a file");
+						trigger_error("Technical error uploading photo file: Error #".$err, E_USER_ERROR);
 					}
 				}
 			}
@@ -358,7 +361,7 @@ class View_Documents extends View
 		if (is_null($dir)) $dir = $this->_rootpath;
 		$di = new DirectoryIterator($dir);
 		if (!$di->valid()) return; // nothing to list
-		
+
 		?>
 		<ul>
 		<?php
@@ -445,8 +448,8 @@ class View_Documents extends View
 			?>
 			<h2>
 				<?php 
-				$title = $this->getPrintedDir(); 
-				if (empty($title)) $title = '(Top Level)'; 
+				$title = $this->getPrintedDir();
+				if (empty($title)) $title = '(Top Level)';
 				echo 'Documents: '.$title;
 				?>
 			</h2>

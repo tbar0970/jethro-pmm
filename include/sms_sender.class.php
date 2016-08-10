@@ -1,8 +1,12 @@
 <?php
 Class SMS_Sender
 {
-
-  private static function uniqueRecipients($recipients) {
+  /**
+	 * Make sure that there are only unique recipients in the recipients list
+	 * @param array $recipients		Array of recipients
+	 * @return array Array of unique recipients
+	 */
+	private static function uniqueRecipients($recipients) {
     $recipientIDs = Array();
     $uniqueRecipients = Array();
     if (!empty($recipients)) {

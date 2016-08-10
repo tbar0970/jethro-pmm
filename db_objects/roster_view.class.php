@@ -611,14 +611,14 @@ class roster_view extends db_object
 				}
 			}
 		}
-		ksort($to_print);	
+		ksort($to_print);
 		$role_objects = Array();
 		$this_sunday = date('Y-m-d', strtotime('Sunday'));
 		if (empty($to_print)) {
 			if ($public) {
 				?>
 				<div class="alert alert-error">This roster is empty for the current date range.</div>
-				<?php				
+				<?php	
 			} else {
 				?>
 				<div class="alert alert-error">There are no services during the date range specified.  Please try a different date range, or create some services using the 'Edit service program' page.</div>
@@ -671,7 +671,7 @@ class roster_view extends db_object
 			</div>
 			<div class="modal-footer">
 				<button class="btn" data-dismiss="modal" id="choose-assignee-save">Save</button>
-				<button class="btn" data-dismiss="modal">Cancel</button>
+				<button class="btn" data-dismiss="modal"id="choose-assignee-cancel">Cancel</button>
 			</div>
 		</div>
 		<table class="table roster" border="1" cellspacing="0" cellpadding="1">
@@ -688,7 +688,7 @@ class roster_view extends db_object
 				<tr <?php echo $class_clause; ?>>
 					<td class="nowrap">
 						<?php 
-						echo '<strong>'.str_replace(' ', '&nbsp;', date('j M y', strtotime($date))).'</strong>'; 
+						echo '<strong>'.str_replace(' ', '&nbsp;', date('j M y', strtotime($date))).'</strong>';
 						if (!$editing && !$public) {
 							$emails = Array();
 							foreach ($ddetail['assignments'] as $roleid => $assignees) {
@@ -777,7 +777,7 @@ class roster_view extends db_object
 						if (!empty($ddetail['service'][$mdetail['congregationid']])) {
 							if ($public && (!defined('SHOW_SERVICE_NOTES_PUBLICLY') || !SHOW_SERVICE_NOTES_PUBLICLY)) {
 								// no notes in public view
-								unset($ddetail['service'][$mdetail['congregationid']]['notes']); 
+								unset($ddetail['service'][$mdetail['congregationid']]['notes']);
 							}
 							$dummy_service->populate($ddetail['service'][$mdetail['congregationid']]['id'], $ddetail['service'][$mdetail['congregationid']]);
 							$dummy_service->printFieldvalue($mdetail['service_field']);
@@ -802,7 +802,7 @@ class roster_view extends db_object
 		</tbody>
 
 		<?php
-		if (!$public && (count($to_print) > 6)) $this->_printTableFooter($editing, $public); 
+		if (!$public && (count($to_print) > 6)) $this->_printTableFooter($editing, $public);
 		?>
 
 		</table>
@@ -949,6 +949,7 @@ class roster_view extends db_object
 				foreach ($_POST['assignees'][$roleid] as $date => $assignee) {
 					if (!is_array($assignee)) $assignee = Array($assignee);
 					foreach ($assignee as $new_personid) {
+						$new_personid = (int)$new_personid;
 						if (empty($new_personid)) continue;
 						if (isset($to_delete[$date][$roleid][$new_personid])) {
 							// unchanged allocation - leave it as is

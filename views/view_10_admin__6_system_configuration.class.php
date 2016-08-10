@@ -10,7 +10,7 @@ class View_Admin__System_Configuration extends View {
 		return PERM_SYSADMIN;
 	}
 
-	public function processView() 
+	public function processView()
 	{
 		$db = $GLOBALS['db'];
 		if (!empty($_POST['group_membership_statuses_submitted'])) {
@@ -59,7 +59,7 @@ class View_Admin__System_Configuration extends View {
 		}
 	}
 
-	public function printView() 
+	public function printView()
 	{
 		?>
 		<p>Some of the following settings can be edited on this page.  Other settings are read only on this page, but can be adjusted by getting your 
@@ -197,7 +197,7 @@ class View_Admin__System_Configuration extends View {
 							<td>
 								<?php
 								if ($id) {
-									echo $id; 
+									echo $id;
 									echo '<input type="hidden" name="membership_status_'.$i.'_id" value="'.$id.'" />';
 								}
 								echo '<input type="hidden" name="membership_status_ranking[]" value="'.$i.'" />';
@@ -250,7 +250,7 @@ class View_Admin__System_Configuration extends View {
 				<th>Service Documents: Folders to populate</th>
 				<td>
 					<?php
-					
+
 					
 					if (SERVICE_DOCS_TO_POPULATE_DIRS) {
 						echo implode('<br />', explode('|', SERVICE_DOCS_TO_POPULATE_DIRS));
@@ -298,7 +298,7 @@ class View_Admin__System_Configuration extends View {
 				<td>
 					<?php echo SMS_HTTP_URL; ?><br />
 					<?php echo (SMS_HTTP_POST_TEMPLATE && SMS_HTTP_RESPONSE_OK_REGEX) ? 'See details in config file' : '<b>Not fully configured.<b>'; ?>
-                    <?php echo (SMS_HTTP_HEADER_TEMPLATE) ? '' : ' No additional headers configured.'; ?>
+                    <?php echo ifdef('SMS_HTTP_HEADER_TEMPLATE') ? '' : ' No additional headers configured.'; ?>
 			</tr>
 			<tr>
 				<th>Max length for SMS messages</th>
@@ -351,7 +351,7 @@ class View_Admin__System_Configuration extends View {
 					} else {
 						echo '(State field disabled)';
 					}
-					echo '<br /><small>The state field can be hidden altogether by setting this to blank</small>'; 
+					echo '<br /><small>The state field can be hidden altogether by setting this to blank</small>';
 					?>
 				</td>
 			</tr>

@@ -1,7 +1,7 @@
 <?php
 class Call_ODF_Merge extends Call
 {
-	function run() 
+	function run()
 	{
 		$source_file = array_get($_FILES, 'source_document');
 		$content = null;

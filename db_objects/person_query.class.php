@@ -388,7 +388,7 @@ class Person_Query extends DB_Object
 			at 
 			<?php
 			$groupid_params = Array(
-				'type' => 'select', 
+				'type' => 'select',
 				'options' => Array(null => '(Nothing)', '__cong__' => 'their congregation'),
 				'attrs' => Array('data-toggle' => 'enable', 'data-target' => '.attendance-input'),
 			);
@@ -1043,7 +1043,7 @@ class Person_Query extends DB_Object
 							} else if ($field == 'membershipstatus') {
 								$query['from'] .= ' LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status';
 								$query['select'][] = 'pgms.label as `Membership Status`';
-							}							
+							}
 						} else {
 							if (!$joined_groups) {
 								$query['from'] .= ' LEFT JOIN person_group_membership pgm ON p.id = pgm.personid
@@ -1254,7 +1254,7 @@ class Person_Query extends DB_Object
 		$res = $db->queryCol($sql);
 		check_db_result($res);
 		return $res;
-	}	
+	}
 
 
 	function printResults($format='html')

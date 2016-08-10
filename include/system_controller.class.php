@@ -240,7 +240,7 @@ class System_Controller
 				$bg = 'warning';
 				$title = 'SYSTEM ERROR (WARNING)';
 				break;
-			case E_USER_NOTICE: 
+			case E_USER_NOTICE:
 				$send_email = false;
 				if ($this->_friendly_errors) {
 					add_message('Error: '.$errstr, 'failure');
@@ -276,7 +276,7 @@ class System_Controller
 			<u class="clickable" onclick="var parentDiv=this.parentNode; while (parentDiv.tagName != 'DIV') { parentDiv = parentDiv.parentNode; }; with (parentDiv.getElementsByTagName('PRE')[0].style) { display = (display == 'block') ? 'none' : 'block' }">Show Details</u>
 			<pre style="display: none; background: white; font-weight: normal; color: black"><b>Line <?php echo $errline; ?> of File <?php echo $errfile; ?></b>
 			<?php
-			print_r($bt); 
+			print_r($bt);
 			?>
 			</pre>
 			<?php
@@ -314,7 +314,7 @@ class System_Controller
 		}
 	}
 
-	public function featureEnabled($feature) 
+	public function featureEnabled($feature)
 	{
 		$enabled_features = explode(',', strtoupper(ENABLED_FEATURES));
 		return in_array(strtoupper($feature), $enabled_features);

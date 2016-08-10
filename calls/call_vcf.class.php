@@ -1,7 +1,7 @@
 <?php
 class Call_vcf extends Call
 {
-	function run() 
+	function run()
 	{
 		// Ref: http://en.wikipedia.org/wiki/VCard
 		header('Content-type: text/vcf');

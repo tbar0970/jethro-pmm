@@ -21,16 +21,16 @@ class Call_DTMF extends Call
 	function run()
 	{
 		//samples per second
-		$sample_rate = isset($sample_rate) ? intval($sample_rate) : 8000; 
+		$sample_rate = isset($sample_rate) ? intval($sample_rate) : 8000;
 
 		//signal length in milliseconds
-		$signal_length = isset($signal_length) ? intval($signal_length) : 100; 
+		$signal_length = isset($signal_length) ? intval($signal_length) : 100;
 
 		//break between signals in milliseconds
 		$break_length = isset($break_length) ? intval($break_length) : 100;
 
 		//pause length in milliseconds - pause character is ','
-		$pause_length = isset($pause_length) ? intval($pause_length) : 500; 
+		$pause_length = isset($pause_length) ? intval($pause_length) : 500;
 
 		//amplitude of wave file in the range 0-64
 		$amplitude = isset($amplitude) ? intval($amplitude) : 64;
@@ -46,16 +46,16 @@ class Call_DTMF extends Call
 		//'spell' means that letters spell numbers like in 1-800-CALL-NOW.
 		//
 		//false means that letters of the specified case cannot not be used.
-		$upper_case = isset($upper_case) ? $upper_case : 'abcd'; 
-		$lower_case = isset($lower_case) ? $lower_case : 'spell'; 
+		$upper_case = isset($upper_case) ? $upper_case : 'abcd';
+		$lower_case = isset($lower_case) ? $lower_case : 'spell';
 
 		//build frequency tables
 		$lowfreqs = array(697, 770, 852, 941);
 		$highfreqs = array(1209, 1336, 1477, 1633);
 		$signals = array(
-			'1', '2', '3', 'A', 
-			'4', '5', '6', 'B', 
-			'7', '8', '9', 'C', 
+			'1', '2', '3', 'A',
+			'4', '5', '6', 'B',
+			'7', '8', '9', 'C',
 			'*', '0', '#', 'D');
 		$i = 0; foreach ($signals as $signal) {
 			$low[$signal] = $lowfreqs[$i / 4] / $sample_rate * 2 * M_PI;
@@ -80,7 +80,7 @@ class Call_DTMF extends Call
 
 		//remove frequently used formatting characters 
 		//that are not part of the actual number
-		$n = strtr($n, '+-()', 
+		$n = strtr($n, '+-()',
 					   '    ');
 		$n = str_replace(' ', '', $n);
 
@@ -93,7 +93,7 @@ class Call_DTMF extends Call
 				$output .= str_repeat("\0", $pause_length * $sample_rate);
 			} else if ($low[$signal]) {
 				for ($j = 0; $j < $signal_length / 1000 * $sample_rate; $j++) {
-					$output .= chr(floor($amplitude * (sin($j * $low[$signal]) + 
+					$output .= chr(floor($amplitude * (sin($j * $low[$signal]) +
 													   sin($j * $high[$signal]))));
 				}
 				$output .= str_repeat("\0", $break_length / 1000 * $sample_rate);
@@ -120,7 +120,7 @@ class Call_DTMF extends Call
 		header('Content-Length: ' . strlen($output));
 		header('Content-Type: audio/basic');
 		header('Content-Disposition: filename="' . $_REQUEST['n'] . '"');
-		header('Expires: '.gmdate('D, d M Y H:i:s', strtotime('+1 year')).' GMT'); 
+		header('Expires: '.gmdate('D, d M Y H:i:s', strtotime('+1 year')).' GMT');
 		header('Cache-Control: public, max-age='+365*24*60*60);
 		header('Pragma: cache');
 

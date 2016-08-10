@@ -38,11 +38,11 @@ class View_Attendance__Record extends View
 			}
 			$_SESSION['attendance']['cohortids'] = $this->_cohortids;
 		}
-		$this->_attendance_date = process_widget('attendance_date', Array('type' => 'date'));			
+		$this->_attendance_date = process_widget('attendance_date', Array('type' => 'date'));
 		if (empty($this->_attendance_date)) {
 			// Default to last Sunday, unless today is Sunday
 			$default_day = defined('ATTENDANCE_DEFAULT_DAY') ? ATTENDANCE_DEFAULT_DAY : 'Sunday';
-			$this->_attendance_date = date('Y-m-d', ((date('l') == $default_day) ? time() : strtotime('last '.$default_day)));			
+			$this->_attendance_date = date('Y-m-d', ((date('l') == $default_day) ? time() : strtotime('last '.$default_day)));
 		}
 		
 		if (empty($_REQUEST['params_submitted']) && empty($_REQUEST['attendances_submitted'])) {
@@ -131,9 +131,9 @@ class View_Attendance__Record extends View
 	function printView()
 	{
 		if (!empty($_POST['attendances_submitted'])) {
-			$this->printConfirmation();			
+			$this->printConfirmation();
 		} else if ($this->_cohortids && !empty($_REQUEST['params_submitted'])) {
-			$this->printForm();			
+			$this->printForm();
 		} else {
 			$this->printParams();
 		}
@@ -225,8 +225,8 @@ class View_Attendance__Record extends View
 			<?php
 			print_hidden_fields(Array(
 				'cohortids' => $this->_cohortids,
-				'age_brackets', $this->_age_brackets,
-				'statuses', $this->_statuses,
+				'age_brackets' => $this->_age_brackets,
+				'statuses' => $this->_statuses,
 			));
 			?>
 

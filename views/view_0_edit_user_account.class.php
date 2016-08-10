@@ -32,7 +32,7 @@ class View__Edit_User_Account extends View
 	{
 		$show_form = true;
 		if (!empty($_POST['edit_staff_submitted'])) {
-			if (!$this->_staff_member->haveLock()) { 
+			if (!$this->_staff_member->haveLock()) {
 				// lock expired
 				if ($this->_staff_member->acquireLock()) {
 					// managed to reacquire lock - ask them to try again
