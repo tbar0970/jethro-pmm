@@ -35,5 +35,5 @@ $PERM_LEVELS = Array(
 7340032 =>	Array('SERVICEDOC',			'Service Documents - generate',			'SERVICEDOCUMENTS'),
 
 /* room for some more here... */
-2147483647 => Array('SYSADMIN',			'SysAdmin - manage users and congregations', ''), 
+2147483647 => Array('SYSADMIN',			'SysAdmin - manage users and congregations', ''),
 );

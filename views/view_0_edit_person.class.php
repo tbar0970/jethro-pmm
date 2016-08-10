@@ -12,5 +12,5 @@ class View__Edit_Person extends Abstract_View_Edit_Object
 	{
 		return PERM_EDITPERSON;
 	}
-}	
+}
 ?>

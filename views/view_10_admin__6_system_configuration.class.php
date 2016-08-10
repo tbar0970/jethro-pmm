@@ -258,8 +258,6 @@ class View_Admin__System_Configuration extends View {
 				<th>Service Documents: Folders to populate</th>
 				<td>
 					<?php
-
-
 					if (SERVICE_DOCS_TO_POPULATE_DIRS) {
 						echo implode('<br />', explode('|', SERVICE_DOCS_TO_POPULATE_DIRS));
 					}

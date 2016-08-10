@@ -110,7 +110,7 @@ class Action_Plan extends DB_Object
 								<td>
 									<div class="well">
 									<?php
-									$this->_printNoteForm($note, $i); 
+									$this->_printNoteForm($note, $i);
 									?>
 									</div>
 								</td>

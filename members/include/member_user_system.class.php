@@ -207,7 +207,6 @@ If you didn't request an account, you can just ignore this email";
 				add_message('Welcome!  Your account is complete and you are now logged in.');
 			}
 		}
-
 	}
 
 
@@ -304,7 +303,6 @@ If you didn't request an account, you can just ignore this email";
 		check_db_result($res);
 
 		return $res;
-
 	}
 
 	/**

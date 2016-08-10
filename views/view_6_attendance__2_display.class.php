@@ -37,7 +37,7 @@ class View_Attendance__Display extends View
 
 		} else {
 			if (!empty($_REQUEST['age_brackets_all'])) unset($_REQUEST['age_brackets']);
-			if (!empty($_REQUEST['statuses_all'])) unset($_REQUEST['statuses']);	
+			if (!empty($_REQUEST['statuses_all'])) unset($_REQUEST['statuses']);
 			$this->age_brackets = $_SESSION['attendance']['age_brackets'] = array_get($_REQUEST, 'age_brackets', Array());
 			$this->statuses = $_SESSION['attendance']['statuses'] = array_get($_REQUEST, 'statuses', Array());
 
@@ -537,7 +537,7 @@ class View_Attendance__Display extends View
 					<th <?php echo $colspan; ?>><?php echo empty($params) ? _('Total Absent') : _('Absent'); ?></th>
 				<?php
 				foreach ($all_dates as $date) {
-					$tots = array_get($all_totals, $date, Array());					
+					$tots = array_get($all_totals, $date, Array());
 					foreach ($this->cohortids as $cohortid) {
 						?>
 						<td>
@@ -556,10 +556,10 @@ class View_Attendance__Display extends View
 					<th <?php echo $colspan; ?>><?php echo _('Extras');?></th>
 				<?php
 				foreach ($all_dates as $date) {
-					$tots = array_get($all_totals, $date, Array());					
+					$tots = array_get($all_totals, $date, Array());
 					$hc = array_get($all_headcounts, $date, Array());
 					foreach ($this->cohortids as $cohortid) {
-						$present = array_get(array_get($tots, $cohortid, Array()), 1, 0);						
+						$present = array_get(array_get($tots, $cohortid, Array()), 1, 0);
 						$headcount = array_get($hc, $cohortid, NULL);
 						?>
 						<td>

@@ -81,7 +81,7 @@
 		<div id="body">
 			<?php 
 			
-			dump_messages(); 
+			dump_messages();
 
 			if ($title = $GLOBALS['system']->getTitle()) {
 				echo '<h1>'.ents($title).'</h1>';

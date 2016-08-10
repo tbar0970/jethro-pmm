@@ -380,7 +380,7 @@ class bible_ref
 				// within a single chapter
 				if (($this->start_v == 1) && ($this->end_v == 999)) {
 					// whole chapter
-					
+
 					return $book.' '.$this->start_ch;
 				} else {
 					// designated portion

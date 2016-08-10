@@ -29,7 +29,7 @@ class Call_Family_Mailout_CSV extends Call
 					echo '"'.str_replace('"', '\\"', $d).'",';
 				}
 				echo "\r\n";
-			}	
+			}
 		}
         }
 }

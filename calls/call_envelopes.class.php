@@ -1,7 +1,7 @@
 <?php
 class Call_Envelopes extends Call
 {
-	function run() 
+	function run()
 	{
 
 		//Handle special IE contype request

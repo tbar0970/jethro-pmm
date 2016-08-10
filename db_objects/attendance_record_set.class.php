@@ -67,7 +67,6 @@ class Attendance_Record_Set
 		return $obj->releaseLock('attendance-'.$this->date);
 	}
 
-
 	function create()
 	{
 	}
