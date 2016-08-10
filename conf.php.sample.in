@@ -57,7 +57,6 @@ define('SERVICE_DOCS_TO_POPULATE_DIRS', 'Templates/To_Populate');
 define('SERVICE_DOCS_TO_EXPAND_DIRS', 'Templates/To_Expand');
 
 
-
 ////////////////////////////////////////////////////////////
 // JETHRO BEHAVIOUR OPTIONS
 ////////////////////////////////////////////////////////////
@@ -72,7 +71,7 @@ define('ENABLED_FEATURES', 'NOTES,PHOTOS,DATES,ATTENDANCE,ROSTERS&SERVICES,SERVI
 define('DEFAULT_PERMISSIONS', 7995391);
 
 // Whether a note is compulsory when adding a new family
-define('REQUIRE_INITIAL_NOTE', true); 
+define('REQUIRE_INITIAL_NOTE', true);
 
 // Whether users restricted by congregation or group can add persons and families
 define('RESTRICTED_USERS_CAN_ADD', true);
@@ -118,6 +117,9 @@ define('ERRORS_EMAIL_ADDRESS', '');
 // Warning - do not enable this if you have lots of people in lots of groups.
 define('PERSON_LIST_SHOW_GROUPS', FALSE);
 
+// Whether the list of notes on the homepage should link to edit the note instead of viewing it
+define('NOTES_LINK_TO_EDIT', TRUE);
+
 // If this is set to eg. "moo", then you must add "?secret=moo" to the end
 // of public roster URLs to view them, and public rosters will not be listed on the public site.
 define('PUBLIC_ROSTER_SECRET', '');
@@ -157,7 +159,7 @@ define('MEMBERS_SHARE_ADDRESS', FALSE);
 define('SMTP_SERVER', '');
 
 // Encryption to use when authenticating with the SMTP server - 'ssl', 'tls', or empty.
-define('SMTP_ENCRYPTION', ''); 
+define('SMTP_ENCRYPTION', '');
 
 // Username to use when authenticating with the SMTP server. Can be left blank for no auth.
 define('SMTP_USERNAME', '');
@@ -185,21 +187,75 @@ define('CCLI_SEARCH_URL', 'http://us.search.ccli.com/search/results?SearchTerm=_
 // Otherwise you can use songsearch:  http://us.search.ccli.com/songs/__NUMBER__
 define('CCLI_DETAIL_URL', 'https://au.songselect.com/songs/__NUMBER__');
 
+////////////////////////////////////////////////////////////////
 // SMS GATEWAY:
-// ------------
+////////////////////////////////////////////////////////////////
 
-// URL of the server to send SMSes through
-define('SMS_HTTP_URL', ''); // eg http://www.5centsms.com.au/api/send.php
+// The maximum SMS length users are allowed to send.  160 chars is usually a one-part SMS.
+define('SMS_MAX_LENGTH', 160);
 
-// The format for the send-sms POST request
-// Can contain keywords _USER_MOBILE_ _USER_EMAIL_ _MESSAGE_ _RECIPIENTS_COMMAS_ _RECIPIENTS_NEWLINES_
-// eg 'username=abc&password=xyz&to=_RECIPIENTS_COMMAS_&sender=_USER_MOBILE_&message=_MESSAGE_');
-define('SMS_HTTP_POST_TEMPLATE', ''); 
+// URL of the SMS gateway to send SMSes through
+//define('SMS_HTTP_URL', 'https://www.5centsms.com.au:/api/v4/sms');
+//define('SMS_HTTP_URL', 'https://api.smsbroadcast.com.au/api-adv.php');
+define('SMS_HTTP_URL', "");
 
-// Regex to use to detect success message from the SMS server for each recipient
-// _RECIPIENT_ keyword is available.  Leave blank to ignore response.
-// eg ^1\|_RECIPIENT_\|[0-9]+\|OK<br>
+// Template for the headers of the HTTP POST request Jethro will send to the SMS gateway.
+// Some SMS gateways use headers for authentication.
+// Examples:
+// * For 5centsms:
+//   define('SMS_HTTP_HEADER_TEMPLATE', "User: me@example.com\r\nApi-Key: MyAPIKey\r\n");
+define('SMS_HTTP_HEADER_TEMPLATE', "");
+
+// Template for the body of the HTTP POST request Jethro will send to the SMS gateway.
+//
+// Can include the following keywords:
+// _MESSAGE_ - text message to send
+// _RECIPIENTS_COMMAS_ - recipient mobile numbers separated by commas
+// _RECIPIENTS_NEWLINES_ - recipient mobile numbers separated by newlines
+// _RECIPIENTS_ARRAY_ - recipient mobile numbers as an array.  See the SMS_RECIPIENT_ARRAY_PARAMETER setting.
+// _RECIPIENTS_INTERNATIONAL_COMMAS_ - internationalised recipient mobile numbers separated by commas
+//                                     (see SMS_LOCAL_PREFIX and SMS_INTERNATIONAL_PREFIX below)
+// _RECIPIENTS_INTERNATIONAL_NEWLINES_ - recipient mobile numbers separated by newlines
+// _RECIPIENTS_INTERNATIONAL_ARRAY_ - recipient mobile numbers as an array.  See the SMS_RECIPIENT_ARRAY_PARAMETER setting.
+// _USER_MOBILE_ - mobile number of the current Jethro user (eg to use as sender)
+// _USER_EMAIL_ - email address of the current Jethro user.
+//
+// Examples:
+// * For smsbroadcast:
+//   define('SMS_HTTP_POST_TEMPLATE', 'username=MYUSERNAME&password=MYPASSWORD&to=_RECIPIENTS_COMMAS_&from=_USER_MOBILE_&maxsplit=' . floor(SMS_MAX_LENGTH/160) . '&message=_MESSAGE_');
+// * For 5centsms:
+//   define('SMS_HTTP_POST_TEMPLATE', 'sender=_USER_MOBILE_&to=_RECIPIENTS_COMMAS_&message=_MESSAGE_');
+define('SMS_HTTP_POST_TEMPLATE' , '');
+
+// Base name for the _RECIPIENTS_ARRAY_ keyword available above.
+// Eg set this to "number" to get number[]=0412333444&number[]=0413555666 etc
+define('SMS_RECIPIENT_ARRAY_PARAMETER', 'number');
+
+// Regex to use to detect success message from the SMS server for each recipient.
+// Leave blank to ignore response.
+// Keywords available:
+// _RECIPIENT_ - recipient number in raw format
+// _RECIPIENT_INTERNATIONAL_ - recipient number in international format (see SMS_LOCAL_PREFIX and SMS_INTERNATIONAL_PREFIX below)
+// Examples:
+// * For smsbroadcast.com.au
+//   define('SMS_HTTP_RESPONSE_OK_REGEX', '[\s\S]*_RECIPIENT_INTERNATIONAL_\",\"id\"\:\d*,\"status\"\:\d*,\"status_text\"\:\"Sen');
+// * For 5centsms
+//   define('SMS_HTTP_RESPONSE_OK_REGEX', '[{]\s*"destination":\s*"_RECIPIENT_",[^}]*"status":\s*(1000|1001|1002|1004|1006|1011|1527),');
 define('SMS_HTTP_RESPONSE_OK_REGEX', '');
+
+// Local prefix used in the mobile numbers stored in Jethro.
+// Needed for some SMS gateways which use international-format numbers
+define('SMS_LOCAL_PREFIX', '0');
+
+// International prefix, which replaces the local prefix to form an international-format number
+// Needed for some SMS gateways which use international-format numbers
+define('SMS_INTERNATIONAL_PREFIX', '61');
+
+// Whether to save sent SMSes as person notes by default
+define('SMS_SAVE_TO_NOTE_BY_DEFAULT', false);
+
+// Default subject for notes recording sent SMSes
+define('SMS_SAVE_TO_NOTE_SUBJECT', 'SMS Sent');
 
 // A file to log who has sent SMSes (optional)
 define('SMS_SEND_LOGFILE', '');
@@ -209,8 +265,6 @@ define('SMS_SEND_LOGFILE', '');
 ////////////////////////////////////////////////////////////////////////
 
 // Enable the following option (by removing the two slashes)
-// if you have trouble with character sets such as chinese
-//ini_set('default_charset', 'UTF-8' );
 
 define('ENVELOPE_WIDTH_MM', 220);
 define('ENVELOPE_HEIGHT_MM', 110);
@@ -239,9 +293,6 @@ define('MAP_LOOKUP_URL', 'http://maps.google.co.in?q=__ADDRESS_STREET__,%20__ADD
 ///////////////////////////////////////////////////////
 define('LOCK_LENGTH', '10 minutes');
 define('LOCK_CLEANUP_PROBABLILITY', 10);
-
-// The maximum SMS length users are allowed to send.  160 chars is usually a one-part SMS.
-define('SMS_MAX_LENGTH', 160);
 
 // the chunk size to aim for when dividing lists (of persons or families) into pages
 define('CHUNK_SIZE', 100);

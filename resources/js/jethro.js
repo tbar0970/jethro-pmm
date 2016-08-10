@@ -1,8 +1,23 @@
-// TODO: more sniffing of the relevant bits (like attendance does) to speed up page load
-
 $(document).ready(function() {
-
+	
 	if ($('.stop-js').length) return; /* Classname flag for big pages that don't want JS to run */
+
+	// Make standalone safari stay standalone
+	if (("standalone" in window.navigator) && window.navigator.standalone) {
+		$('a.brand').parent().prepend('<i class="icon-white icon-chevron-left" onclick="history.back()"></i>')
+		$("a").click(function (event) {
+			if ((!$(this).attr('target'))
+					&& this.href != ''
+					&& this.href != '#'
+					&& this.href.indexOf('javascript:') != 0
+					&& !((this.innerHTML == 'Search') && $(this).parents('.nav').length)
+			) {
+				event.preventDefault();
+				window.location = $(this).attr("href");
+				return false;
+			}
+		});
+	}
 
 	// This needs to be first!
 	// https://github.com/twitter/bootstrap/issues/3217
@@ -92,24 +107,15 @@ $(document).ready(function() {
 		}
 	});
 
+	/*********************** LOCK EXPIRY WARNING ****************/
+	initLockExpiry();
+
 
 	/*************************** REPORTS *********************/
 	$('input.select-rule-toggle').click(function() {
 		$($(this).parents('tr')[0]).find('div.select-rule-options').css('display', (this.checked ? '' : 'none'));
 	});
 		
-	if ($('#datefield-rules')) {
-		$('.datefield-rule-period').hide();
-		$('.datefield-rule-criteria').change(function() {
-			if ((this.value == 'exact') || (this.value == 'anniversary')) {
-				$(this).siblings('.datefield-rule-period').show();
-			} else {
-				$(this).siblings('.datefield-rule-period').hide();
-			}
-		}).change();
-	}
-
-	
 	/************************ SEARCH CHOOSERS ************************/
 
 	$('input.person-search-multiple').each(function() {
@@ -274,7 +280,6 @@ $(document).ready(function() {
 	}
 
 
-
 	/***************** LAYOUT FIXES *******************/
 
 	layOutMatchBoxes();
@@ -385,9 +390,10 @@ $(document).ready(function() {
 
 	setTimeout( "applyNarrowColumns('body'); ", 30);
 
-	if (document.getElementById('service-planner')) {
-		JethroServicePlanner.init();
-	}
+	JethroServicePlanner.init();
+
+	JethroRoster.init();
+
 
 	$('table.reorderable tbody').sortable(	{
 			cursor: "move",
@@ -443,6 +449,17 @@ $(document).ready(function() {
 	if (document.getElementById('service-program-editor')) {
 		JethroServiceProgram.init();
 	}
+
+	// SMS Character counting
+	$('#smscharactercount').parent().find('textarea').on('keyup propertychange paste', function() {
+		var maxlength = $(this).attr("maxlength");
+		var chars = maxlength - $(this).val().length;
+		if (chars <= 0) {
+			$(this).val($(this).val().substring(0, maxlength));
+			chars = 0;
+		}
+		$('#smscharactercount').html(chars + ' characters remaining.');
+	});	
 
 
 });
@@ -520,6 +537,8 @@ JethroServicePlanner._getTRDragHelper = function(event, tr) {
 }
 
 JethroServicePlanner.init = function() {
+
+	if (!document.getElementById('service-planner')) return;
 
 	// COMPONENTS TABLES:
 	// We have to start off with these hidden so we can set their width explicitly
@@ -840,7 +859,104 @@ JethroServicePlanner._addTime = function(clockTime, addMins) {
 }
 
 
+var JethroRoster = {}
 
+JethroRoster.CUSTOM_ASSIGNEE_TARGET = null;
+
+JethroRoster.init = function() {
+	if (!$('form#roster').length) return;
+
+	$('table.roster select').keypress(function() { JethroRoster.onAssignmentChange(this); }).change(function() { JethroRoster.onAssignmentChange(this); });
+	$('table.roster input.person-search-single, table.roster input.person-search-multiple').each(function() {
+		this.onchange = function() { JethroRoster.onAssignmentChange(this); };
+	});
+	$('table.roster > tbody > tr').each(function() { JethroRoster.updateClashesForRow($(this)); });
+
+	$('.roster select').change(function() {
+			$opt = $(this.options[this.selectedIndex]);
+			if ($opt.hasClass('other')) {
+				JethroRoster.CUSTOM_ASSIGNEE_TARGET = this;
+				$('#choose-assignee-modal').modal({});
+			}
+	});
+	
+	$('#choose-assignee-save').click(function() {
+		$target = $(JethroRoster.CUSTOM_ASSIGNEE_TARGET)
+		$target.find('.unlisted-allocee').remove();
+		var newID = $('#choose-assignee-modal input[name=personid]').val();
+		var newName = $('#personid-input').val();
+		if (!newID || !newName) {
+			alert("Please choose an assignee");
+			return false;
+		}
+		$newOption = $('<option selected="selected" class="unlisted-allocee" value="'+newID+'">'+newName+'</option>')
+		$target.find('.other').before($newOption);
+		$('#choose-assignee-modal input').val('');
+		$target.change(); //bubbles the props up so it looks orange
+		setTimeout(function() { $target.effect("pulsate", {times: 2}, 700) }, 600);
+	});
+	$('#choose-assignee-cancel').click(function() {
+		$(JethroRoster.CUSTOM_ASSIGNEE_TARGET).val('');
+	});
+}
+
+JethroRoster.onAssignmentChange = function(inputField) {
+	var row = null;
+	if ($(inputField).hasClass('person-search-single') || $(inputField).hasClass('person-search-multiple')) {
+		row = $(inputField).parents('tr:first');
+	} else if (inputField.tagName == 'SELECT' || inputField.type == 'hidden') {
+		var expandableParent = $(inputField).parents('table.expandable');
+		if (expandableParent.length) {
+			var row = $(inputField).parents('table:first').parents('tr:first');
+		} else {
+			var row = $(inputField).parents('tr:first');
+		}
+	}
+	if (row) {
+		JethroRoster.updateClashesForRow(row);
+	}
+}
+
+JethroRoster.updateClashesForRow = function(row) {
+	var uses = new Object();
+	// Deal with the single person choosers and select boxes first
+	var sameRowInputs = row.find('input.person-search-single, select');
+	sameRowInputs.removeClass('clash');
+	sameRowInputs.each(function() {
+		var thisElt = this;
+		var thisVal = 0;
+		if (this.className == 'person-search-single') {
+			var hiddenInput = document.getElementsByName(this.id.substr(0, this.id.length-6))[0];
+			thisVal = hiddenInput.value;
+		} else if (this.tagName == 'SELECT') {
+			thisVal = this.value;
+		}
+		if (thisVal != 0) {
+			if (!uses[thisVal]) {
+				uses[thisVal] = new Array();
+			}
+			uses[thisVal].push(thisElt);
+		}
+	});
+	// Now add the multi person choosers
+	row.find('ul.multi-person-finder li').removeClass('clash').each(function() {
+		var thisVal = $(this).find('input')[0].value;
+		if (thisVal != 0) {
+			if (!uses[thisVal]) {
+				uses[thisVal] = new Array();
+			}
+			uses[thisVal].push(this);
+		}
+	});
+	for (i in uses) {
+		if (uses[i].length > 1) {
+			for (j in uses[i]) {
+				if (typeof uses[i][j] == 'function') continue;
+				$(uses[i][j]).addClass('clash');
+			}
+		}
+	}
+}
 
 function handleFamilyPhotosLayout() {
 	var photoContainer = $('#family-photos-container');
@@ -863,7 +979,7 @@ var applyNarrowColumns = function(root) {
 	// (even if its parent is less than 100% width).
 	// We want the whole table to be as wide as it needs to be but no wider.
 	var expr = 'td.narrow, th.narrow, table.object-summary th'
-	var cells = $(root).find(expr);
+	var cells = $(root).find(expr).not('table.table-full-width *');
 	var parents = cells.parents('table:visible');
 	parents.each(function() {
 		var table = $(this);
@@ -885,27 +1001,19 @@ var applyNarrowColumns = function(root) {
 /**
 * Lay out a pair of matching boxes.
 * If they can fit next to each other, make them the same height
-* Otherwise, give them 100% of the width (unless they need even more than that).
 */
-function layOutMatchBoxes() {
-
-	// Only run it once, because applyNarrowColumns will have messed with the table widths after the initial one
-	if (window.haveLaidOutMatchBoxes) return;
-	var matchBoxes = $('.person-details-box:visible');
-	// Remove prior formatting
-	matchBoxes.css('width', 'auto').css('height', 'auto').css('clear', 'none'); //.css('margin-right', 0);
-	if (matchBoxes.length) {
-		window.haveLaidOutMatchBoxes =  1;
-		var first = matchBoxes.first();
-		var second = matchBoxes.last();
-		if (first.position().top == second.position().top) {
-			// make the heights the same and remove margin bottom
-			matchBoxes.height(Math.max(first.height(), second.height())+20).css('margin-bottom', 0);
-		} else {
-			// make the widths equal
-			matchBoxes.css('min-width', '97%');
-		}
-	}
+function layOutMatchBoxes()
+{
+	var maxHeight = 0;
+	var lastTop = -1;
+	var sameTop = true;
+	$('.match-height').each(function() {
+		$(this).css('height', '');
+		if ($(this).height() > maxHeight) maxHeight = $(this).height();
+		if (lastTop == -1) lastTop = $(this).position().top;
+		sameTop = (lastTop == $(this).position().top);
+	});
+	if (sameTop) $('.match-height').height(maxHeight);
 }
 
 /* handle clicks on 'search' links in the top nav by building a modal */
@@ -943,6 +1051,28 @@ function handleSearchLinkClick()
 
 
 /************************** LOCKING ********************************/
+
+function initLockExpiry()
+{
+	$('form[data-lock-length]').each(function() {
+		var length = $(this).attr('data-lock-length');
+		var bits = length.split(' ');
+		var units = parseInt(bits[0],10) * 1000;
+		var warningTime = 60000; // 1 minute
+		switch (bits[1].toLowerCase()) {
+			case 'minute':
+			case 'minutes':
+				units = units * 60;
+				break;
+			case 'hour':
+			case 'hours':
+				units = units * 60 * 60;
+				break;
+		}
+		setTimeout('showLockExpiryWarning()', units - warningTime);
+		setTimeout('showLockExpiredWarning()', units);
+	})
+}
 
 function showLockExpiryWarning()
 {
@@ -1162,3 +1292,4 @@ function handleFamilyFormSubmit()
 	}
 	return true;
 }
+

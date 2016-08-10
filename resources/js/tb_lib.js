@@ -95,10 +95,10 @@ $(document).ready(function() {
 		var myLinks = t.find('a, input');
 		if (!myLinks.length) {
 			childLinks = $(this).parent('tr').find('a');
-			if (childLinks.length) {
+			if (childLinks.length == 1) {
 				self.location = childLinks[0].href;
 			}
-		} else if (myLinks.filter('a').length) {
+		} else if (myLinks.filter('a').length == 1) {
 			self.location = myLinks[0].href;
 		}
 	});
@@ -157,8 +157,13 @@ $(document).ready(function() {
 		}
 		target = base.find(targetExp);
 		target.hide();
-		var myFilter = '['+$(this).attr('data-match-attr')+'='+this.value+']';
-		target.filter(myFilter).show();
+		var attrName = $(this).attr('data-match-attr');
+		var targetValue = this.value;
+		target.each(function() {
+			if (-1 != $.inArray(targetValue, $(this).attr(attrName).split(' '))) {
+				$(this).show();
+			}
+		})
 	}).change();
 
 	$('[data-toggle=visible]').not('input[type!=checkbox], select').click(function(event) {
@@ -185,6 +190,21 @@ $(document).ready(function() {
 	$('input[data-set-form-action], button[data-set-form-action]').click(function() {
 		this.form.action = $(this).attr('data-set-form-action');
 	});
+
+	// Ability to have input fields that become compulsory only when certain submit buttons are clicked
+	$('input[data-require-fields]').click(function() {
+		var ok = true;
+
+		$($(this).attr('data-require-fields')).each(function() {
+			if (!this.value) {
+				alert('A mandatory field has been left blank');
+				TBLib.markErroredInput(this);
+				ok = false;
+				return;
+			}
+		})
+		return ok;
+	})
 
 	var selectChooserRadios = $('input.select-chooser-radio');
 	if (selectChooserRadios.length) {

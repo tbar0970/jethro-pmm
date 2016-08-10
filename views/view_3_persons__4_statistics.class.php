@@ -9,7 +9,7 @@ class View_Persons__Statistics extends View
 
 	function getTitle()
 	{
-		return 'System-wide Person Statistics';
+		return _('System-wide Person Statistics');
 	}
 	
 	function printView()

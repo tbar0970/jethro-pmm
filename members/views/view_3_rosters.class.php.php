@@ -4,7 +4,7 @@ class View_Rosters extends View
 	public static function getMenuRequiredFeature()
 	{
 		return 'ROSTERS&SERVICES';
-	}	
+	}
 	
 	var $_roster_view = null;
 

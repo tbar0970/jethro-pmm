@@ -44,7 +44,7 @@ class Paginator
 			echo '</a></li>';
 			$x = chr(ord($y) + 1);
 			$i++;
-		} 
+		}
 		echo '</ul></div>';
 	}
 

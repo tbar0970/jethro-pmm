@@ -215,9 +215,9 @@ class Person_Query extends DB_Object
 						<td id="custom-value-<?php echo $fieldid; ?>">
 							<div class="select-rule-options" <?php if (!isset($params['custom_fields'][$fieldid])) echo 'style="display: none" '; ?>>
 							<?php
+							$value = array_get($params['custom_fields'], $fieldid, Array());
 							switch ($fieldDetails['type']) {
 								case 'date':
-									$value = array_get($params['custom_fields'], $fieldid, Array());
 									$cparams = Array(
 												'type' => 'select',
 												'options' => Array(
@@ -226,13 +226,17 @@ class Person_Query extends DB_Object
 													'exact' => 'with exact value within...',
 													'anniversary' => 'with exact value or anniversary within...',
 												),
-												'class' => 'datefield-rule-criteria',
+												'attrs' => Array(
+													'data-toggle' => 'visible',
+													'data-target' => 'row .datefield-rule-period',
+													'data-match-attr' => 'data-select-rule-type'
+												),
 											);
 									print_widget('params_custom_field_'.$fieldid.'_criteria', $cparams, array_get($value, 'criteria'));
 									$pts = Array('fixed' => '', 'relative' => '');
 									$pts[array_get($value, 'periodtype', 'fixed')] = 'checked="checked"';
 									?>
-									<div class="datefield-rule-period">
+									<div class="datefield-rule-period" data-select-rule-type="exact anniversary">
 										<label class="checkbox nowrap">
 											<input type="radio" name="params_custom_field_<?php echo $fieldid; ?>_periodtype" value="fixed" <?php echo $pts['fixed']; ?> />
 											the period from
@@ -264,18 +268,58 @@ class Person_Query extends DB_Object
 									<?php
 									break;
 								case 'select':
-									echo 'containing';
+									$cparams = Array(
+												'type' => 'select',
+												'options' => Array(
+													'any' => 'filled in with any value',
+													'empty' => 'not filled in',
+													'contains' => 'with value that contains',
+												),
+												'attrs' => Array(
+													'data-toggle' => 'visible',
+													'data-target' => 'row .multi-select',
+													'data-match-attr' => 'data-select-rule-type'
+												),
+											);
+									print_widget('params_custom_field_'.$fieldid.'_criteria', $cparams, array_get($value, 'criteria'));
+									$vparams = Array(
+										'type' => 'select',
+										'options' => $fieldDetails['options'],
+										'allow_multiple' => true,
+										'attrs' => Array(
+											'data-select-rule-type' => 'contains'
+										)
+									);
 									print_widget(
 										'params_custom_field_'.$fieldid.'_val',
-										Array('type' => 'select', 'options' => $fieldDetails['options'], 'allow_multiple' => true),
-										array_get(array_get($params['custom_fields'], $fieldid, Array()), 'val')
+										$vparams,
+										array_get($value, 'val')
 									);
 									break;
 								case 'text':
-									echo 'equal to ';
+									$cparams = Array(
+												'type' => 'select',
+												'options' => Array(
+													'any' => 'filled in with any value',
+													'empty' => 'not filled in',
+													'equal' => 'with value equal to',
+												),
+												'attrs' => Array(
+													'data-toggle' => 'visible',
+													'data-target' => 'row input[data-select-rule-type]',
+													'data-match-attr' => 'data-select-rule-type'
+												),
+											);
+									print_widget('params_custom_field_'.$fieldid.'_criteria', $cparams, array_get($value, 'criteria'));
+									$vparams = Array(
+										'type' => 'text',
+										'attrs' => Array(
+											'data-select-rule-type' => 'equal'
+										)
+									);
 									print_widget(
 										'params_custom_field_'.$fieldid.'_val',
-										Array('type' => 'text'),
+										$vparams,
 										array_get(array_get($params['custom_fields'], $fieldid, Array()), 'val')
 									);
 									break;
@@ -344,7 +388,7 @@ class Person_Query extends DB_Object
 			at 
 			<?php
 			$groupid_params = Array(
-				'type' => 'select', 
+				'type' => 'select',
 				'options' => Array(null => '(Nothing)', '__cong__' => 'their congregation'),
 				'attrs' => Array('data-toggle' => 'enable', 'data-target' => '.attendance-input'),
 			);
@@ -616,6 +660,7 @@ class Person_Query extends DB_Object
 					case 'select':
 					case 'text':
 						$params['custom_fields'][$fieldid] = Array(
+							'criteria' => $_REQUEST['params_custom_field_'.$fieldid.'_criteria'],
 							'val' => $_REQUEST['params_custom_field_'.$fieldid.'_val']
 						);
 						break;
@@ -856,12 +901,33 @@ class Person_Query extends DB_Object
 					break;
 
 				case 'select':
-					$ids = implode(',', array_map(Array($db, 'quote'), $values['val']));
-					$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IN ('.$ids.'))';
+					switch (array_get($values, 'criteria', 'contains')) {
+						case 'contains':
+							$ids = implode(',', array_map(Array($db, 'quote'), $values['val']));
+							$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IN ('.$ids.'))';
+							break;
+						case 'any':
+							$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NOT NULL)';
+							break;
+						case 'empty':
+							$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NULL)';
+							break;
+					}
 					break;
 
 				case 'text':
-					$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid = '.$db->quote($values['val']).')';
+					switch (array_get($values, 'criteria', 'equals')) {
+						case 'equal':
+							$customFieldWheres[] = '(pd'.$fieldid.'.value_text = '.$db->quote($values['val']).')';
+							break;
+						case 'any':
+							$customFieldWheres[] = '(pd'.$fieldid.'.value_text IS NOT NULL)';
+							break;
+						case 'empty':
+							$customFieldWheres[] = '(pd'.$fieldid.'.value_text IS NULL)';
+							break;
+					}
+					break;
 					break;
 			}
 		}
@@ -977,7 +1043,7 @@ class Person_Query extends DB_Object
 							} else if ($field == 'membershipstatus') {
 								$query['from'] .= ' LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status';
 								$query['select'][] = 'pgms.label as `Membership Status`';
-							}							
+							}
 						} else {
 							if (!$joined_groups) {
 								$query['from'] .= ' LEFT JOIN person_group_membership pgm ON p.id = pgm.personid
@@ -1187,7 +1253,7 @@ class Person_Query extends DB_Object
 		$res = $db->queryCol($sql);
 		check_db_result($res);
 		return $res;
-	}	
+	}
 
 
 	function printResults($format='html')
@@ -1375,7 +1441,7 @@ class Person_Query extends DB_Object
 							case 'photo':
 								?>
 								<a class="med-popup" href="?view=persons&personid=<?php echo $row[$label]; ?>">
-								<img height="60" src="?call=person_photo&personid=<?php echo $row[$label]; ?>" />
+								<img height="60" src="?call=photo&personid=<?php echo $row[$label]; ?>" />
 								</a>
 								<?php
 								break;
@@ -1402,7 +1468,7 @@ class Person_Query extends DB_Object
 			?>
 			</tbody>
 		</table>
-		<p><strong><?php echo count($x); ?> persons listed</strong></p>
+		<p class="report-summary"><?php echo count($x); ?> persons listed</p>
 		<?php
 	}
 

@@ -148,7 +148,7 @@ class View_services extends View
 				</div>
 
 				<?php
-				
+
 			}
 
 		}
@@ -163,7 +163,7 @@ class View_services extends View
 		?>
 		<div class="span6">
 			<h3>Run Sheet</h3>
-			<form method="post" id="service-plan-container">
+			<form method="post" id="service-plan-container" data-lock-length="<?php echo LOCK_LENGTH; ?>">
 			<input type="hidden" name="save_service" value="1" />
 			<table class="table table-bordered table-condensed no-autofocus" id="service-plan" data-starttime="<?php echo $startTime; ?>">
 				<thead>
@@ -291,11 +291,6 @@ class View_services extends View
 				</tfoot>
 			</table>
 			</form>
-
-			<script type="text/javascript">
-				setTimeout('showLockExpiryWarning()', <?php echo max(1000,(strtotime('+'.LOCK_LENGTH, 0)-60)*1000); ?>);
-				setTimeout('showLockExpiredWarning()', <?php echo (strtotime('+'.LOCK_LENGTH, 0))*1000; ?>);
-			</script>
 
 			<div class="modal hide fade-in" id="ad-hoc-modal" role="dialog">
 				<div class="modal-header">

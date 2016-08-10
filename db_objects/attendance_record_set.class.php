@@ -32,7 +32,7 @@ class Attendance_Record_Set
 				$this->_cohort_object = $GLOBALS['system']->getDBObject('person_group', $this->groupid);
 			} else if ($this->congregationid) {
 				$this->_cohort_object = $GLOBALS['system']->getDBObject('congregation', $this->congregationid);
-			}			
+			}
 		}
 		return $this->_cohort_object;
 	}
@@ -54,7 +54,7 @@ class Attendance_Record_Set
 			trigger_error("Could not get cohort object for lock");
 			return FALSE;
 		}
-		return $obj->haveLock('attendance-'.$this->date);	
+		return $obj->haveLock('attendance-'.$this->date);
 	}
 	
 	public function releaseLock()
@@ -64,8 +64,8 @@ class Attendance_Record_Set
 			trigger_error("Could not get cohort object for lock");
 			return FALSE;
 		}
-		return $obj->releaseLock('attendance-'.$this->date);	
-	}	
+		return $obj->releaseLock('attendance-'.$this->date);
+	}
 	
 
 	function create()
@@ -293,7 +293,7 @@ class Attendance_Record_Set
 				?>
 				<td>
 					<a class="med-popup" tabindex="-1" href="?view=persons&personid=<?php echo $personid; ?>">
-						<img style="width: 50px; max-width: 50px" src="?call=person_photo&personid=<?php echo (int)$personid; ?>" />
+						<img style="width: 50px; max-width: 50px" src="?call=photo&personid=<?php echo (int)$personid; ?>" />
 					</a>
 				</td>
 				<?php
@@ -310,7 +310,7 @@ class Attendance_Record_Set
 					if ($this->groupid) {
 						echo ents($details['membership_status']);
 					} else {
-						$dummy->printFieldValue('status'); 
+						$dummy->printFieldValue('status');
 					}
 					?>
 				</td>
@@ -417,7 +417,7 @@ class Attendance_Record_Set
 		if ($headcount) {
 			?>
 			<tr class="headcount">
-				<th>Total Headcount</th>
+				<th><?php echo _('Total Headcount'); ?></th>
 				<td colspan="3">
 					<b>
 					<?php
@@ -638,6 +638,28 @@ class Attendance_Record_Set
 		return $res;
 
 
+	}
+
+	public static function getMostRecentDate($cohort)
+	{
+		list($type, $cohortID) = explode('-', $cohort);
+		switch ($type) {
+			case 'c':
+				$SQL = 'SELECT MAX(date)
+						FROM attendance_record a
+						JOIN _person p ON p.id = a.personid
+						WHERE p.congregationid = '.(int)$cohortID.'
+						AND a.groupid = 0';
+				break;
+			case 'g':
+				$SQL = 'SELECT MAX(date)
+						FROM attendance_record a
+						WHERE groupid = '.(int)$cohortID;
+				break;
+		}
+		$res = $GLOBALS['db']->queryOne($SQL);
+		check_db_result($res);
+		return $res;
 	}
 
 	/**

@@ -1,7 +1,7 @@
 <?php
 class Call_Report_CSV extends Call
 {
-	function run() 
+	function run()
 	{
 		if (!empty($_REQUEST['queryid'])) {
 			$queryid = $_REQUEST['queryid'];

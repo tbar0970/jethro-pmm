@@ -33,7 +33,7 @@ class View__Mixed_Search extends View
 			
 			if (empty($this->_group_data)) {
 				$this->_group_data = $GLOBALS['system']->getDBObjectData('person_group', Array('name' => '%'.$search.'%'), 'OR', 'name');
-			}			
+			}
 		}
 		
 		$numResults = count($this->_family_data) + count($this->_group_data) + count($this->_person_data);
@@ -42,13 +42,13 @@ class View__Mixed_Search extends View
 			// For a single result, just redirect to its detail view, don't show a list
 			if (!empty($this->_person_data)) {
 				add_message("One matching person found");
-				redirect('persons', Array('search' => NULL, 'personid' => key($this->_person_data)));				
+				redirect('persons', Array('search' => NULL, 'personid' => key($this->_person_data)));
 			} else if (!empty($this->_family_data)) {
 				add_message("One matching family found");
 				redirect('families', Array('search' => NULL, 'familyid' => key($this->_family_data)));
 			} else if (!empty($this->_group_data)) {
 				add_message("One matching group found");
-				redirect('groups', Array('search' => NULL, 'groupid' => key($this->_group_data)));		
+				redirect('groups', Array('search' => NULL, 'groupid' => key($this->_group_data)));
 			}
 		}
 		
@@ -99,7 +99,7 @@ class View__Mixed_Search extends View
 					</td>
 				</tr>
 				<?php
-			}		
+			}
 			
 		}
 		if (!empty($this->_person_data)) {

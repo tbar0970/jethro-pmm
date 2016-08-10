@@ -351,7 +351,7 @@ class db_object
 			$new_val = $this->values[$i];
 			if ($this->fields[$i]['type'] == 'serialise') {
 				$new_val = serialize($new_val);
-			} 
+			}
 			if (($this->fields[$i]['type'] == 'datetime') && ($new_val == 'CURRENT_TIMESTAMP')) {
 				// CURRENT_TIMESTAMP should not be quoted
 				$sets[] = ''.$i.' = '.$new_val;
@@ -540,7 +540,7 @@ class db_object
 			?>
 			<tr<?php echo $c; ?>>
 				<th>
-					<?php echo array_get($details, 'label', ucwords(str_replace('_', ' ', $name))); ?>
+					<?php echo array_get($details, 'label', _(ucwords(str_replace('_', ' ', $name)))); ?>
 				</th>
 				<td>
 					<?php $this->printFieldValue($name); ?>
@@ -612,7 +612,7 @@ class db_object
 				</label>
 				<?php
 			}
-		} else if (($this->fields[$name]['type'] == 'text') 
+		} else if (($this->fields[$name]['type'] == 'text')
 					&& (array_get($this->fields[$name], 'height', 1) > 1)) {
 			echo nl2br(ents($this->getFormattedValue($name, $value)));
 		} else if ($this->fields[$name]['type'] == 'phone') {
@@ -645,7 +645,7 @@ class db_object
 			if (!array_get($details, 'editable', true)) continue;
 			?>
 <div class="control-group">
-	<label class="control-label" for="<?php echo $name; ?>"><?php echo $this->getFieldLabel($name); ?></label>
+	<label class="control-label" for="<?php echo $name; ?>"><?php echo _($this->getFieldLabel($name)); ?></label>
 	<div class="controls">
 		<?php 
 			$this->printFieldInterface($name, $prefix);
@@ -672,7 +672,7 @@ class db_object
 			//trigger_error('No such field '.$id);
 			//return;
 		}
-		return array_get($this->fields[$id], 'label', ucwords(str_replace('_', ' ', $id)));
+		return array_get($this->fields[$id], 'label', _(ucwords(str_replace('_', ' ', $id))));
 
 	}
 
@@ -709,7 +709,7 @@ class db_object
 
 
 //--        PERMISSIONS AND LOCKING        --//
-	
+
 	protected function checkPerm($perm)
 	{
 		if ($perm == 0) return TRUE;

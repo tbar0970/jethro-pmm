@@ -252,7 +252,7 @@ Class ODF_Tools
 		}
 		$insertPoint->parentNode->removeChild($insertPoint);
 
-		return ODF_Tools::setXML($filename, $dom->saveXML());		
+		return ODF_Tools::setXML($filename, $dom->saveXML());
 	}
 	
 }

@@ -343,7 +343,7 @@ class View_Services__List_All extends View
 				<td rowspan="3" class="nowrap" style="padding-right: 2ex; padding-left: 1ex;">
 					<b>For congregations</b><br />
 					<?php
-					
+
 					foreach ($congs as $id => $details) {
 						?>
 						<label class="checkbox">
@@ -408,12 +408,7 @@ class View_Services__List_All extends View
 		if (empty($_REQUEST['congregations'])) return;
 
 		?>
-		<script>
-			setTimeout('showLockExpiryWarning()', <?php echo (strtotime('+'.LOCK_LENGTH, 0)-60)*1000; ?>);
-			setTimeout('showLockExpiredWarning()', <?php echo (strtotime('+'.LOCK_LENGTH, 0))*1000; ?>);
-		</script>
-
-		<form method="post" class="warn-unsaved">
+		<form method="post" class="warn-unsaved" data-lock-length="<?php echo LOCK_LENGTH; ?>">
 		<input type="hidden" name="program_submitted" value="1" />
 		<!-- the following hidden fields preserve the value of an image input whose click
 		     is intercepted by a confirm-shift popup -->

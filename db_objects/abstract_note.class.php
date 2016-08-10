@@ -32,14 +32,14 @@ class Abstract_Note extends DB_Object
 								'default'	=> 'no_action',
 								'class'		=> 'note-status',
 								'allow_empty'	=> false,
-								'label'		=> 'Status', 
+								'label'		=> 'Status',
 							   ),
 			'status_last_changed' => Array(
 									'type'				=> 'datetime',
 									'show_in_summary'	=> false,
 									'allow_empty'		=> TRUE,
 									'editable'			=> false,
-									'default'			=> NULL,	
+									'default'			=> NULL,
 								   ),
 			'assignee'		=> Array(
 								'type'			=> 'reference',
@@ -54,7 +54,7 @@ class Abstract_Note extends DB_Object
 									'show_in_summary'	=> false,
 									'allow_empty'		=> TRUE,
 									'editable'			=> false,
-									'default'			=> NULL,	
+									'default'			=> NULL,
 								   ),
 			'action_date'	=> Array(
 								'type'			=> 'date',
@@ -235,7 +235,7 @@ class Abstract_Note extends DB_Object
 	function printUpdateForm()
 	{
 		?>
-		<form method="post" id="update-note" class="form-horizontal">
+		<form method="post" id="update-note" class="form-horizontal"  data-lock-length="<?php echo LOCK_LENGTH; ?>">
 			<input type="hidden" name="update_note_submitted" value="1" />
 			<div class="control-group">
 				<label class="control-label">Comment</label>
@@ -280,11 +280,6 @@ class Abstract_Note extends DB_Object
 				</div>
 			</div>
 		</form>
-		<script type="text/javascript">
-			setTimeout('showLockExpiryWarning()', <?php echo (strtotime('+'.LOCK_LENGTH, 0)-60)*1000; ?>);
-			setTimeout('showLockExpiredWarning()', <?php echo (strtotime('+'.LOCK_LENGTH, 0))*1000; ?>);
-			/*$(window).load(function() { setTimeout("$('[name=contents]').focus()", 100); });*/
-		</script>
 		<?php
 	}
 
@@ -292,4 +287,4 @@ class Abstract_Note extends DB_Object
 
 
 }
-?>
+

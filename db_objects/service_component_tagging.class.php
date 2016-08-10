@@ -11,7 +11,7 @@ class Service_Component_Tagging extends db_object
 									'references'		=> 'service_component_tag',
 									'label'				=> 'Tag',
 									'show_id'			=> TRUE,
-								   ),	
+								   ),
 			'componentid'	=> Array(
 									'type'				=> 'reference',
 									'references'		=> 'service_component',

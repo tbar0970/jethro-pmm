@@ -45,7 +45,7 @@ class View_Families__Search extends View
 	
 	function getTitle()
 	{
-		return 'Family Search Results';
+		return _('Family Search Results');
 	}
 
 	function printView()
@@ -53,7 +53,7 @@ class View_Families__Search extends View
 		$families =& $this->_family_data;
 		if (empty($families)) {
 			?>
-			<p>No matching families were found</p>
+			<p><?php echo _('No matching families were found');?></p>
 			<?php
 		} else {
 			include dirname(dirname(__FILE__)).'/templates/family_list.template.php';

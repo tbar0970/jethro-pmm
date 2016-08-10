@@ -19,11 +19,11 @@ class Abstract_View_Add_Object extends View
 			$this->_new_object->processForm();
 			if ($this->_new_object->create()) {
 				$this->_afterCreate();
-				add_message($this->_success_message);
+				add_message(_($this->_success_message));
 				$this->_doSuccessRedirect();
 			} else {
 				$this->_new_object->id = 0;
-				add_message($this->_failure_message, 'failure');
+				add_message(_($this->_failure_message), 'failure');
 			}
 		}
 	}
@@ -40,7 +40,7 @@ class Abstract_View_Add_Object extends View
 	
 	function getTitle()
 	{
-		return $this->_title;
+		return _($this->_title);
 	}
 
 
@@ -53,8 +53,8 @@ class Abstract_View_Add_Object extends View
 			$this->_new_object->printForm();
 			?>
 			<div class="form-horizontal"><div class="controls">
-				<button type="submit" class="btn"><?php echo $this->_submit_label; ?></button>
-				<button type="button" class="btn back">Cancel</button>
+				<button type="submit" class="btn"><?php echo _($this->_submit_label); ?></button>
+				<button type="button" class="btn back"><?php echo _('Cancel');?></button>
 			</div>
 		</form>
 		<?php

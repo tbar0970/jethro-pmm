@@ -106,7 +106,7 @@ class Custom_Field extends db_object
 				break;
 			case 'allow_multiple':
 			case 'divider_before':
-				print_widget($prefix.$fieldname, 
+				print_widget($prefix.$fieldname,
 						Array('type' => 'checkbox', 'attrs' => Array('title' => $this->fields[$fieldname]['title'])),
 						$this->values[$fieldname]);
 				break;
@@ -335,7 +335,7 @@ class Custom_Field extends db_object
 		$GLOBALS['system']->doTransaction('BEGIN');
 		parent::create();
 		$this->_saveOptions();
-		$GLOBALS['system']->doTransaction('COMMIT');		
+		$GLOBALS['system']->doTransaction('COMMIT');
 	}
 
 	/**
@@ -424,7 +424,7 @@ class Custom_Field extends db_object
 				if (!empty($res[$k]) && strlen($v)) $res[$k] .= ' '.$v;
 			}
 		}
-		$res = array_remove_empties($res);
+		if (is_array($res)) $res = array_remove_empties($res);
 		return $res;
 	}
 

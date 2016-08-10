@@ -69,7 +69,7 @@ class View_Admin__Import extends View
 		} else if (!empty($_POST['confirm_import'])) {
 			ini_set('memory_limit', '256M');
 			ini_set('max_execution_time', 60*10);
-			ini_set('zlib.output_compression', 'Off'); 
+			ini_set('zlib.output_compression', 'Off');
 
 			// read from session and create
 			$GLOBALS['system']->doTransaction('BEGIN');
@@ -144,6 +144,7 @@ class View_Admin__Import extends View
 			$this->_dummy_person = new Person();
 
 			// read the csv and save to session
+			ini_set("auto_detect_line_endings", "1");
 			$fp = fopen($_FILES['import']['tmp_name'], 'r');
 			if (!$fp) {
 				add_message("There was a problem reading your CSV file.  Please try again.", 'error');
@@ -289,7 +290,7 @@ class View_Admin__Import extends View
 					<h3><?php echo ents($family['family_name']); ?> family</h3>
 					<?php
 					$this->_dummy_family->populate(0, $family);
-					$this->_dummy_family->printSummary(FALSE, $family['members']);
+					$this->_dummy_family->printSummaryWithMembers(FALSE, $family['members']);
 				}
 				?>
 				<form class="stop-js" method="post"><input type="submit" name="confirm_import" value="Proceed with import" class="confirm-title btn" title="Proceed with import" />

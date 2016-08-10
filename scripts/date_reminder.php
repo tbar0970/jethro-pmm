@@ -31,9 +31,23 @@ $GLOBALS['user_system'] = new User_System();
 $GLOBALS['user_system']->setPublic();
 $GLOBALS['system'] = System_Controller::get();
 
-$SQL = 'SELECT p.*, cfv.value_date AS expirydate
+$SQL = 'SELECT p.*, cfv.value_date AS expirydate ';
+if ($ini['CC_STATUS']) {
+	$SQL .= ', GROUP_CONCAT(cc.email SEPARATOR ";") as cc, GROUP_CONCAT(CONCAT(cc.first_name, " ", cc.last_name) SEPARATOR ";") as cc_name ';
+}
+$SQL .= '
 		FROM _person p
-		JOIN custom_field_value cfv ON cfv.personid = p.id AND cfv.fieldid = '.(int)$ini['CUSTOM_FIELD_ID'].'
+		JOIN custom_field_value cfv ON cfv.personid = p.id AND cfv.fieldid = '.(int)$ini['CUSTOM_FIELD_ID'];
+if ($ini['CC_STATUS']) {
+	$map = array_flip(Person::getStatusOptions());
+	$SQL .= '
+			LEFT JOIN _person cc ON (
+				LENGTH(cc.email) > 0
+				AND cc.congregationid = p.congregationid
+				AND cc.status = '.$GLOBALS['db']->quote($map[$ini['CC_STATUS']]).'
+			)';
+}
+$SQL .= '
 		WHERE cfv.value_date  = CURDATE() + INTERVAL '.(int)$ini['REMINDER_OFFSET'].' DAY';
 $res = $GLOBALS['db']->queryAll($SQL);
 check_db_result($res);
@@ -62,11 +76,24 @@ function send_reminder($person)
 	  ->setBody($content)
 	  ->addPart($html, 'text/html');
 
+	if (!empty($person['cc'])) {
+		$cc_names = explode(';', $person['cc_name']);
+		foreach (explode(';', $person['cc']) as $i => $cc) {
+			if (!empty($ini['OVERRIDE_RECIPIENT'])) {
+				$message->addCC($ini['OVERRIDE_RECIPIENT'], $cc_names[$i]);
+			} else {
+				$message->addCC($cc, $cc_names[$i]);
+			}
+		}
+	}
+
 	$res = Emailer::send($message);
 	if (!$res) {
 		echo "Failed to send to $toEmail \n";
 	} else if (!empty($ini['VERBOSE'])) {
-		echo "Sent reminder to ".$person['first_name'].' '.$person['last_name']."\n";
+		echo "Sent reminder to ".$person['first_name'].' '.$person['last_name'];
+		if (!empty($person['cc'])) echo " CC to ".$person['cc'];
+		echo "\n";
 	}
 }
 

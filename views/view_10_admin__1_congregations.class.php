@@ -8,7 +8,7 @@ class View_Admin__Congregations extends View
 
 	function getTitle()
 	{
-		return 'Congregations';
+		return _('Congregations');
 	}
 
 	function processView()
@@ -18,10 +18,10 @@ class View_Admin__Congregations extends View
 			if ($cong) {
 				$members = $GLOBALS['system']->getDBObjectData('person', Array('congregationid' => $cong->id));
 				if (count($members)) {
-					add_message("Cannot delete congregation because it is not empty", "error");
+					add_message(_("Cannot delete congregation because it is not empty", "error"));
 				} else {
 					$cong->delete();
-					add_message("Congregation deleted");
+					add_message(_("Congregation deleted"));
 				}
 			}
 		}
@@ -37,10 +37,10 @@ class View_Admin__Congregations extends View
 			<thead>
 				<tr>
 					<th>ID</th>
-					<th>Long Name</th>
-					<th>Short Name</th>
-					<th>Code Name</th>
-					<th>Members</th>
+					<th><?php echo _('Long Name');?></th>
+					<th><?php echo _('Short Name');?></th>
+					<th><?php echo _('Code Name');?></th>
+					<th><?php echo _('Members');?></th>
 					<th>&nbsp;</th>
 				</tr>
 			</thead>
@@ -57,11 +57,11 @@ class View_Admin__Congregations extends View
 					<td><?php echo ents($cong['meeting_time']); ?></td>
 					<td><?php echo $cong['member_count']; ?></td>
 					<td class="action-cell">
-						<a href="?view=_edit_congregation&congregationid=<?php echo $id; ?>"><i class="icon-wrench"></i>Edit</a> &nbsp;
+						<a href="?view=_edit_congregation&congregationid=<?php echo $id; ?>"><i class="icon-wrench"></i><?php echo _('Edit');?></a> &nbsp;
 					<?php
 					if ($cong['member_count'] == 0) {
 						?>
-						<a href="<?php echo build_url(Array('action' => 'delete', 'congregationid' => $id)); ?>" data-method="post"><i class="icon-trash"></i>Delete</a>
+						<a href="<?php echo build_url(Array('action' => 'delete', 'congregationid' => $id)); ?>" data-method="post"><i class="icon-trash"></i><?php echo _('Delete');?></a>
 						<?php
 						$deletePrinted = TRUE;
 					}
@@ -76,7 +76,7 @@ class View_Admin__Congregations extends View
 		<?php
 		if (!$deletePrinted) {
 			?>
-			<p>To delete a congregation, first ensure it contains no members, then it can be deleted via this page</p>
+			<p><?php echo _('To delete a congregation, first ensure it contains no members, then it can be deleted via this page');?></p>
 			<?php
 		}
 

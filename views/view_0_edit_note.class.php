@@ -16,10 +16,10 @@ class View__Edit_Note extends View
 		
 		if (!empty($_POST['delete_note']) && $this->_note->canBeDeleted()) {
 			if ($this->_note->delete()) {
-				add_message('Note deleted', 'success');
+				add_message(_('Note deleted'), 'success');
 				$this->redirectAfterEdit();
 			} else {
-				add_message('Failed to delete note', 'failure');
+				add_message(_('Failed to delete note'), 'failure');
 			}
 			return;
 		}
@@ -39,7 +39,7 @@ class View__Edit_Note extends View
 				if (!$this->_note->canEditOriginal()) {
 					$fieldsToSave = array_diff($fieldsToSave, Array('subject', 'details'));
 				}
-				$this->_note->processForm('', $fieldsToSave); 
+				$this->_note->processForm('', $fieldsToSave);
 				if (!$this->_note->save()) {
 					$success = FALSE;
 				}
@@ -92,15 +92,15 @@ class View__Edit_Note extends View
 				$hash = '';
 		}
 		redirect($next_view, $params + Array('*' => NULL), $hash); // exits
-		
+
 	}
 	
 	function getTitle()
 	{
 		if ($this->_person) {
-			return 'Editing Person Note for '.$this->_person->toString();
+			return _('Editing Person Note for ').$this->_person->toString();
 		} else {
-			return 'Editing Note for '.$this->_family->toString();
+			return _('Editing Note for ').$this->_family->toString();
 		}
 	}
 
@@ -109,14 +109,14 @@ class View__Edit_Note extends View
 	{
 		$show_form = true;
 		if (!empty($_POST['update_note_submitted'])) {
-			if (!$this->_note->haveLock()) { 
+			if (!$this->_note->haveLock()) {
 				// lock expired
 				if ($this->_note->acquireLock()) {
 					// managed to reacquire lock - ask them to try again
-					print_message('Your changes could not be saved because your lock had expired.  Try making your changes again using the form below', 'failure');
+					print_message(_('Your changes could not be saved because your lock had expired. ')._('Try making your changes again using the form below'), 'failure');
 					$show_form = true;
 				} else {
-					print_message('Your changes could not be saved because your lock has expired.  The lock has now been acquired by another user.  Wait some time for them to finish and then <a href="?view=_edit_note&noteid='.$this->_note->id.'">try again</a>', 'failure', true);
+					print_message(_('Your changes could not be saved because your lock had expired. ')._('The lock has now been acquired by another user. ')._('Wait some time for them to finish and then ').'<a href="?view=_edit_note&noteid='.$this->_note->id.'">'._('try again').'</a>', 'failure', true);
 					// could not re-acquire lock
 					$show_form = false;
 				}
@@ -148,7 +148,7 @@ class View__Edit_Note extends View
 				</div>
 			</form>
 			<?php
-			
+
 		} else {
 
 			$show_edit_link = FALSE;

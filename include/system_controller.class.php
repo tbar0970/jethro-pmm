@@ -156,11 +156,11 @@ class System_Controller
 				// pardon the formatting - IE is having a white-space tantrum
 				?>
 				<li class="<?php echo $class; ?> dropdown">
-					<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown"><?php echo ucwords(str_replace('_', ' ', $name)); ?><i class="caret"></i></a>
+					<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown"><?php echo gettext(ucwords(str_replace('_', ' ', $name))); ?><i class="caret"></i></a>
 						<ul class="dropdown-menu"><?php
 							foreach ($data['children'] as $subname => $sub_details) {
 								$class = ($current_view == $name.'__'.$subname) ? 'active' : '';
-								?><li class="<?php echo $class; ?>"><a href="?view=<?php echo $name.'__'.$subname; ?>"><?php echo ucwords(str_replace('_', ' ', $subname)); ?></a></li><?php
+								?><li class="<?php echo $class; ?>"><a href="?view=<?php echo $name.'__'.$subname; ?>"><?php echo gettext(ucwords(str_replace('_', ' ', $subname))); ?></a></li><?php
 							}
 							?></ul>
 				</li>
@@ -240,7 +240,7 @@ class System_Controller
 				$bg = 'warning';
 				$title = 'SYSTEM ERROR (WARNING)';
 				break;
-			case E_USER_NOTICE: 
+			case E_USER_NOTICE:
 				$send_email = false;
 				if ($this->_friendly_errors) {
 					add_message('Error: '.$errstr, 'failure');
@@ -276,7 +276,7 @@ class System_Controller
 			<u class="clickable" onclick="var parentDiv=this.parentNode; while (parentDiv.tagName != 'DIV') { parentDiv = parentDiv.parentNode; }; with (parentDiv.getElementsByTagName('PRE')[0].style) { display = (display == 'block') ? 'none' : 'block' }">Show Details</u>
 			<pre style="display: none; background: white; font-weight: normal; color: black"><b>Line <?php echo $errline; ?> of File <?php echo $errfile; ?></b>
 			<?php
-			print_r($bt); 
+			print_r($bt);
 			?>
 			</pre>
 			<?php
@@ -286,11 +286,15 @@ class System_Controller
 		<?php
 		if ($send_email && defined('ERRORS_EMAIL_ADDRESS') && constant('ERRORS_EMAIL_ADDRESS')) {
 			$content = "$errstr \nLine $errline of $errfile\n\n";
-			if (!empty($GLOBALS['user_system'])) $content .= "Current user: ".$GLOBALS['user_system']->getCurrentUser('username');
-			$content .= "\n\nRequest: ".print_r($_REQUEST,1)."\n\n";
-			$content .= 'Referer: '.array_get($_SERVER, 'HTTP_REFERER', '')."\n\n";
+			if (!empty($GLOBALS['user_system'])) $content .= "USER:       ".$GLOBALS['user_system']->getCurrentUser('username')."\n";
+			$content .= 'REFERER:    '.array_get($_SERVER, 'HTTP_REFERER', '')."\n";
+			$content .= 'USER_AGENT: '.array_get($_SERVER, 'HTTP_USER_AGENT', '')."\n\n";
+			$safe_request = $_REQUEST;
+			unset($safe_request['password']);
+			$content .= "REQUEST: \n".print_r($safe_request,1)."\n\n";
+			$content .= "BACKTRACE:\n";
 			$content .= print_r($bt, 1);
-			@mail(constant('ERRORS_EMAIL_ADDRESS'), 'Jethro Error from '.build_url(array()), $content);
+			@mail(constant('ERRORS_EMAIL_ADDRESS'), 'Jethro Error from '.BASE_URL, $content);
 		}
 		if ($send_email) error_log("$errstr - Line $errline of $errfile");
 		if ($exit) exit();
@@ -310,7 +314,7 @@ class System_Controller
 		}
 	}
 
-	public function featureEnabled($feature) 
+	public function featureEnabled($feature)
 	{
 		$enabled_features = explode(',', strtoupper(ENABLED_FEATURES));
 		return in_array(strtoupper($feature), $enabled_features);

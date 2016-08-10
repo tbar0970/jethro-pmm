@@ -29,7 +29,7 @@ class Call_Person_Photo extends Call
 				echo $res['photodata'];
 				return;
 			}
-		} 
+		}
 		header('Content-type: image/gif');
 		readfile(dirname(dirname(dirname(__FILE__))).'/resources/img/unknown.gif');
 	}

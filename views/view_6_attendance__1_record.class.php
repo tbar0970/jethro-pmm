@@ -22,11 +22,11 @@ class View_Attendance__Record extends View
 	function getTitle()
 	{
 		if (!empty($_POST['attendances_submitted'])) {
-			return 'Attendance recorded for '.format_date($this->_attendance_date);
+			return _('Attendance recorded for ').format_date($this->_attendance_date);
 		} else if (!empty($_REQUEST['attendance_date_d'])) {
-			return 'Record Attendance for '.format_date($this->_attendance_date);
+			return _('Record Attendance for ').format_date($this->_attendance_date);
 		} else {
-			return 'Record Attendance';
+			return _('Record Attendance');
 		}
 	}
 
@@ -38,11 +38,11 @@ class View_Attendance__Record extends View
 			}
 			$_SESSION['attendance']['cohortids'] = $this->_cohortids;
 		}
-		$this->_attendance_date = process_widget('attendance_date', Array('type' => 'date'));			
+		$this->_attendance_date = process_widget('attendance_date', Array('type' => 'date'));
 		if (empty($this->_attendance_date)) {
 			// Default to last Sunday, unless today is Sunday
 			$default_day = defined('ATTENDANCE_DEFAULT_DAY') ? ATTENDANCE_DEFAULT_DAY : 'Sunday';
-			$this->_attendance_date = date('Y-m-d', ((date('l') == $default_day) ? time() : strtotime('last '.$default_day)));			
+			$this->_attendance_date = date('Y-m-d', ((date('l') == $default_day) ? time() : strtotime('last '.$default_day)));
 		}
 		
 		if (empty($_REQUEST['params_submitted']) && empty($_REQUEST['attendances_submitted'])) {
@@ -77,14 +77,14 @@ class View_Attendance__Record extends View
 		} else if (!empty($_REQUEST['params_submitted'])) {
 			foreach ($this->_record_sets as $cohortid => $set) {
 				if (!$set->checkAllowedDate()) {
-					add_message("Attendance for '".$set->getCohortName()."' cannot be recorded on a ".date('l', strtotime($this->_attendance_date)), 'error');
+					add_message(_('"Attendance for "').$set->getCohortName()._('" cannot be recorded on a "').date('l', strtotime($this->_attendance_date)), 'error');
 					unset($this->_record_sets[$cohortid]);
 					$this->_cohortids = array_diff($this->_cohortids, Array($cohortid));
 					continue;
 				}
 
 				if (!$set->acquireLock()) {
-					add_message("Another user is currently recording attendance for '".$set->getCohortName()."'.  Please wait until they finish then try again.", 'error');
+					add_message(_('"Another user is currently recording attendance for "').$set->getCohortName()._('".  Please wait until they finish then try again."'), 'error');
 					unset($this->_record_sets[$cohortid]);
 					$this->_cohortids = array_diff($this->_cohortids, Array($cohortid));
 				}
@@ -131,9 +131,9 @@ class View_Attendance__Record extends View
 	function printView()
 	{
 		if (!empty($_POST['attendances_submitted'])) {
-			$this->printConfirmation();			
+			$this->printConfirmation();
 		} else if ($this->_cohortids && !empty($_REQUEST['params_submitted'])) {
-			$this->printForm();			
+			$this->printForm();
 		} else {
 			$this->printParams();
 		}
@@ -147,7 +147,7 @@ class View_Attendance__Record extends View
 			<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
 			<table class="attendance-config-table">
 				<tr>
-					<th>For</th>
+					<th><?php echo _('For');?></th>
 					<td colspan="2" style="min-width: 240px">
 						<?php
 						Attendance_Record_Set::printPersonFilters($this->_age_brackets, $this->_statuses);
@@ -155,7 +155,7 @@ class View_Attendance__Record extends View
 					</td>
 				</tr>
 				<tr>
-					<th>In</th>
+					<th><?php echo _('In');?></th>
 
 					<td class="valign-top fill-me">
 						<table class="expandable">
@@ -171,7 +171,7 @@ class View_Attendance__Record extends View
 						</table>
 					</td>
 				<tr>
-					<th>On</th>
+					<th><?php echo _('On');?></th>
 					<td colspan="2">
 						<?php
 						print_widget('attendance_date', Array('type' => 'date'), $this->_attendance_date); ?>
@@ -185,7 +185,7 @@ class View_Attendance__Record extends View
 					<td>
 						<label class="checkbox">
 							<input type="checkbox" name="show_photos" value="1" <?php if ($this->_show_photos) echo 'checked="checked"'; ?> />
-							Show photos
+							<?php echo _('Show photos');?>
 						</label>
 					<?php
 					if (!SizeDetector::isNarrow()) {
@@ -193,7 +193,7 @@ class View_Attendance__Record extends View
 						<br />
 						<label class="checkbox" title="Tabular format means that multiple groups/congregations will be shown as columns in a combined table">
 							<input type="checkbox" name="parallel_mode" value="1" <?php if ($this->_parallel_mode) echo 'checked="checked"'; ?> />
-							Use tabular format
+							<?php echo _('Use tabular format');?>
 						</label>
 						<?php
 					}
@@ -204,7 +204,7 @@ class View_Attendance__Record extends View
 			}
 			?>
 			</table>
-			<button type="submit" class="btn attendance-config-submit">Continue <i class="icon-chevron-right"></i></button>
+			<button type="submit" class="btn attendance-config-submit"><?php echo _('Continue');?> <i class="icon-chevron-right"></i></button>
 			<input type="hidden" name="params_submitted" value="1" />
 		</form>
 		<?php
@@ -243,10 +243,10 @@ class View_Attendance__Record extends View
 		<?php
 		if (ini_get('max_input_vars') && ($totalPrinted > ini_get('max_input_vars'))) {
 			ob_end_clean();
-			print_message("The parameters you have selected will list more persons "
-						. "than your server can process.  Please narrow down your parameters, "
-						. "or ask your server administrator to increase the PHP max_input_vars setting"
-						. " (currently ".ini_get('max_input_vars').')', 'error');
+			print_message(_("The parameters you have selected will list more persons ")
+						. _("than your server can process.  Please narrow down your parameters, ")
+						. _("or ask your server administrator to increase the PHP max_input_vars setting")
+						. _(" (currently ").ini_get('max_input_vars').')', 'error');
 		} else {
 			ob_flush();
 		}
@@ -279,11 +279,11 @@ class View_Attendance__Record extends View
 				<?php
 			}
 			?>
-					<th>Name</th>
+					<th><?php echo _('Name');?></th>
 			<?php
 			if (SizeDetector::isWide()) {
 				?>
-				<th>Status</th>
+				<th><?php echo _('Status');?></th>
 				<?php
 			}
 			foreach ($this->_record_sets as $prefix => $set) {
@@ -293,7 +293,7 @@ class View_Attendance__Record extends View
 			}
 			if (SizeDetector::isWide()) {
 				?>
-				<th>Actions</th>
+				<th><?php echo _('Actions');?></th>
 				<?php
 			}
 			?>
@@ -316,7 +316,7 @@ class View_Attendance__Record extends View
 					?>
 					<td>
 						<a class="med-popup" tabindex="-1" href="?view=persons&personid=<?php echo $personid; ?>">
-							<img style="width: 50px; max-width: 50px" src="?call=person_photo&personid=<?php echo (int)$personid; ?>" />
+							<img style="width: 50px; max-width: 50px" src="?call=photo&personid=<?php echo (int)$personid; ?>" />
 						</a>
 					</td>
 					<?php
@@ -341,9 +341,9 @@ class View_Attendance__Record extends View
 				if (SizeDetector::isWide()) {
 					?>
 					<td class="action-cell narrow">
-						<a class="med-popup" tabindex="-1" href="?view=persons&personid=<?php echo $personid; ?>"><i class="icon-user"></i>View</a> &nbsp;
-						<a class="med-popup" tabindex="-1" href="?view=_edit_person&personid=<?php echo $personid; ?>"><i class="icon-wrench"></i>Edit</a> &nbsp;
-						<a class="med-popup" tabindex="-1" href="?view=_add_note_to_person&personid=<?php echo $personid; ?>"><i class="icon-pencil"></i>Add Note</a>
+						<a class="med-popup" tabindex="-1" href="?view=persons&personid=<?php echo $personid; ?>"><i class="icon-user"></i><?php echo _('View');?></a> &nbsp;
+						<a class="med-popup" tabindex="-1" href="?view=_edit_person&personid=<?php echo $personid; ?>"><i class="icon-wrench"></i><?php echo _('Edit');?></a> &nbsp;
+						<a class="med-popup" tabindex="-1" href="?view=_add_note_to_person&personid=<?php echo $personid; ?>"><i class="icon-pencil"></i><?php echo _('Add Note');?></a>
 					</td>
 					<?php
 				}
@@ -353,7 +353,7 @@ class View_Attendance__Record extends View
 			}
 			?>
 				<tr class="headcount">
-					<th class="right" colspan="<?php echo 1+(2*(int)SizeDetector::isWide())+(int)$this->_show_photos; ?>">Total Headcount: &nbsp;</th>
+					<th class="right" colspan="<?php echo 1+(2*(int)SizeDetector::isWide())+(int)$this->_show_photos; ?>"><?php echo _('Total Headcount:');?> &nbsp;</th>
 				<?php
 				foreach ($this->_record_sets as $prefix => $set) {
 					?>
@@ -413,7 +413,7 @@ class View_Attendance__Record extends View
 					?>
 					<div class="container row-fluid control-group">
 						<p class="span6">
-							Total headcount:
+							<?php echo _('Total headcount:');?>
 							<?php $set->printHeadcountField(); ?>
 						</p>
 						<p class="span6 align-right nowrap">
@@ -424,7 +424,7 @@ class View_Attendance__Record extends View
 					<?php
 				} else {
 					?>
-					<i>(No persons in this listing)</i>
+					<i><?php echo _('(No persons in this listing)');?></i>
 					<?php
 				}
 				?>
@@ -450,8 +450,8 @@ class View_Attendance__Record extends View
 			$set->printStats();
 		}
 		?>
-		<p><a href="?view=<?php echo $_REQUEST['view']; ?>"><i class="icon-pencil"></i>Record more attendances</a></p>
-		<p><a href="?view=persons__reports"><i class="icon-list"></i>Analyse attendance using a person report</a></p>
+		<p><a href="?view=<?php echo $_REQUEST['view']; ?>"><i class="icon-pencil"></i><?php echo _('Record more attendances');?></a></p>
+		<p><a href="?view=persons__reports"><i class="icon-list"></i><?php echo _('Analyse attendance using a person report');?></a></p>
 		<?php
 	}
 

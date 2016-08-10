@@ -606,14 +606,14 @@ class roster_view extends db_object
 				}
 			}
 		}
-		ksort($to_print);	
+		ksort($to_print);
 		$role_objects = Array();
 		$this_sunday = date('Y-m-d', strtotime('Sunday'));
 		if (empty($to_print)) {
 			if ($public) {
 				?>
 				<div class="alert alert-error">This roster is empty for the current date range.</div>
-				<?php				
+				<?php	
 			} else {
 				?>
 				<div class="alert alert-error">There are no services during the date range specified.  Please try a different date range, or create some services using the 'Edit service program' page.</div>
@@ -653,82 +653,22 @@ class roster_view extends db_object
 				print_message("There are some roles in this roster which you are not able to edit because they refer to a volunteer group you do not have access to.");
 			}
 			?>
-			<form method="post" class="warn-unsaved bubble-option-props">
-			<script>
-				$(document).ready(function() {
-
-					setTimeout('showLockExpiryWarning()', <?php echo (strtotime('+'.LOCK_LENGTH, 0)-60)*1000; ?>);
-					setTimeout('showLockExpiredWarning()', <?php echo (strtotime('+'.LOCK_LENGTH, 0))*1000; ?>);
-
-					$('table.roster select').keypress(function() { handleRosterChange(this); }).change(function() { handleRosterChange(this); });
-					$('table.roster input.person-search-single, table.roster input.person-search-multiple').each(function() {
-						this.onchange = function() { handleRosterChange(this); };
-					});
-					$('table.roster > tbody > tr').each(function() { updateClashesForRow($(this)); });
-				});
-				function handleRosterChange(inputField)
-				{
-					var row = null;
-					if ($(inputField).hasClass('person-search-single') || $(inputField).hasClass('person-search-multiple')) {
-						row = $(inputField).parents('tr:first');
-					} else if (inputField.tagName == 'SELECT' || inputField.type == 'hidden') {
-						var expandableParent = $(inputField).parents('table.expandable');
-						if (expandableParent.length) {
-							var row = $(inputField).parents('table:first').parents('tr:first');
-						} else {
-							var row = $(inputField).parents('tr:first');
-						}
-					}
-					if (row) {
-						updateClashesForRow(row);
-					}
-				}
-
-				function updateClashesForRow(row)
-				{
-					var uses = new Object();
-					// Deal with the single person choosers and select boxes first
-					var sameRowInputs = row.find('input.person-search-single, select');
-					sameRowInputs.removeClass('clash');
-					sameRowInputs.each(function() {
-						var thisElt = this;
-						var thisVal = 0;
-						if (this.className == 'person-search-single') {
-							var hiddenInput = document.getElementsByName(this.id.substr(0, this.id.length-6))[0];
-							thisVal = hiddenInput.value;
-						} else if (this.tagName == 'SELECT') {
-							thisVal = this.value;
-						}
-						if (thisVal != 0) {
-							if (!uses[thisVal]) {
-								uses[thisVal] = new Array();
-							}
-							uses[thisVal].push(thisElt);
-						}
-					});
-					// Now add the multi person choosers
-					row.find('ul.multi-person-finder li').removeClass('clash').each(function() {
-						var thisVal = $(this).find('input')[0].value;
-						if (thisVal != 0) {
-							if (!uses[thisVal]) {
-								uses[thisVal] = new Array();
-							}
-							uses[thisVal].push(this);
-						}
-					});
-					for (i in uses) {
-						if (uses[i].length > 1) {
-							for (j in uses[i]) {
-								if (typeof uses[i][j] == 'function') continue;
-								$(uses[i][j]).addClass('clash');
-							}
-						}
-					}
-				}
-			</script>
+			<form id="roster" method="post" class="warn-unsaved bubble-option-props" data-lock-length="<?php echo LOCK_LENGTH; ?>">
 			<?php
 		}
 		?>
+		<div id="choose-assignee-modal" class="modal hide fade" role="dialog" aria-hidden="true">
+			<div class="modal-header">
+				<h4>Choose assignee</h4>
+			</div>
+			<div class="modal-body">
+				<?php Person::printSingleFinder('personid', NULL); ?>
+			</div>
+			<div class="modal-footer">
+				<button class="btn" data-dismiss="modal" id="choose-assignee-save">Save</button>
+				<button class="btn" data-dismiss="modal"id="choose-assignee-cancel">Cancel</button>
+			</div>
+		</div>
 		<table class="table roster" border="1" cellspacing="0" cellpadding="1">
 
 			<?php $this->_printTableHeader($editing, $public); ?>
@@ -742,7 +682,7 @@ class roster_view extends db_object
 				<tr <?php echo $class_clause; ?>>
 					<td class="nowrap">
 						<?php 
-						echo '<strong>'.str_replace(' ', '&nbsp;', date('j M y', strtotime($date))).'</strong>'; 
+						echo '<strong>'.str_replace(' ', '&nbsp;', date('j M y', strtotime($date))).'</strong>';
 						if (!$editing && !$public) {
 							$emails = Array();
 							foreach ($ddetail['assignments'] as $roleid => $assignees) {
@@ -775,12 +715,12 @@ class roster_view extends db_object
 									));
 									?>
 									<form method="post" action="<?php echo $url; ?>" style="position: absolute; display: none">
-										<div class="standard" style="border-width: 2px; border-radius: 8px">
+										<div class="well well-small">
 										<h3>Send SMS</h3>
 										<textarea name="message" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
 										<br />
-										<input type="submit" value="Send" />
-										<input type="button" onclick="$(this).parents('form').toggle(); $(this).parents('tr:first').removeClass('tblib-hover')" value="Cancel" />
+										<input class="btn" type="submit" value="Send" />
+										<input class="btn" type="button" onclick="$(this).parents('form').toggle(); $(this).parents('tr:first').removeClass('tblib-hover')" value="Cancel" />
 										</div>
 									</form>
 									<?php
@@ -835,7 +775,7 @@ class roster_view extends db_object
 						if (!empty($ddetail['service'][$mdetail['congregationid']])) {
 							if ($public && (!defined('SHOW_SERVICE_NOTES_PUBLICLY') || !SHOW_SERVICE_NOTES_PUBLICLY)) {
 								// no notes in public view
-								unset($ddetail['service'][$mdetail['congregationid']]['notes']); 
+								unset($ddetail['service'][$mdetail['congregationid']]['notes']);
 							}
 							$dummy_service->populate($ddetail['service'][$mdetail['congregationid']]['id'], $ddetail['service'][$mdetail['congregationid']]);
 							$dummy_service->printFieldvalue($mdetail['service_field']);
@@ -860,7 +800,7 @@ class roster_view extends db_object
 		</tbody>
 
 		<?php
-		if (!$public && (count($to_print) > 6)) $this->_printTableFooter($editing, $public); 
+		if (!$public && (count($to_print) > 6)) $this->_printTableFooter($editing, $public);
 		?>
 
 		</table>
@@ -990,6 +930,9 @@ class roster_view extends db_object
 			if (!$role->haveLock('assignments')) {
 				unset($roles[$i]);
 			}
+			if (!$role->canEditAssignments()) {
+				unset($roles[$i]);
+			}
 		}
 
 		if (empty($roles)) {
@@ -1004,6 +947,7 @@ class roster_view extends db_object
 				foreach ($_POST['assignees'][$roleid] as $date => $assignee) {
 					if (!is_array($assignee)) $assignee = Array($assignee);
 					foreach ($assignee as $new_personid) {
+						$new_personid = (int)$new_personid;
 						if (empty($new_personid)) continue;
 						if (isset($to_delete[$date][$roleid][$new_personid])) {
 							// unchanged allocation - leave it as is

@@ -8,6 +8,11 @@ function array_get($array, $index, $alt=NULL)
 	}
 }
 
+function ifdef($constantName, $fallback=NULL)
+{
+	return defined($constantName) ? constant($constantName) : $fallback;
+}
+
 function array_remove_empties($ar)
 {
 	$res = Array();
@@ -74,12 +79,12 @@ function format_datetime($d)
 	}
 	if ($d == -1) return '';
 	if (empty($d)) return ''; // 1 Jan 1970 is not treated as a valid date
-	return date('j M Y g:ia', $d); 
+	return date('j M Y g:ia', $d);
 }
 
 function format_date($d, $includeYear=NULL)
 {
-	if ($d == '0000-00-00') return '';	
+	if ($d == '0000-00-00') return '';
 	$yearless = is_string($d) && ($d[0] == '-');
 	if (!is_int($d)) {
 		$d = strtotime($yearless ? "2012{$d}" : $d);

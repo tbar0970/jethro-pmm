@@ -28,7 +28,7 @@ class View_Families__List_All extends View
 	
 	function getTitle()
 	{
-		$res = 'All Families';
+		$res = _('All Families');
 		return $res;
 
 	}
@@ -43,9 +43,9 @@ class View_Families__List_All extends View
 		}
 
 		if (empty($_REQUEST['show_archived'])) {
-			echo '<p class="pull-right hidden-phone"><a href="'.build_url(Array('show_archived' => 1)).'">Include Archived</a></p>';
+			echo '<p class="pull-right hidden-phone"><a href="'.build_url(Array('show_archived' => 1)).'">'._('Include Archived').'</a></p>';
 		} else {
-			echo '<p class="pull-right hidden-phone"><a href="'.build_url(Array('show_archived' => NULL)).'">Exclude Archived</a></p>';
+			echo '<p class="pull-right hidden-phone"><a href="'.build_url(Array('show_archived' => NULL)).'">'._('Exclude Archived').'</a></p>';
 		}
 
 
@@ -54,19 +54,19 @@ class View_Families__List_All extends View
 		if (empty($families)) {
 			if ($this->_paginator) {
 				?>
-				<p><strong>No families in this range</strong></p>
+				<p><strong><?php echo _('No families in this range')?></strong></p>
 				<?php
 			} else {
 				?>
-				<p><strong>No families were found</strong></p>
-				<a href="<?php echo build_url(Array('show_archived' => 1)); ?>">Include Archived families</a>
+				<p><strong><?php echo _('No families were found')?></strong></p>
+				<a href="<?php echo build_url(Array('show_archived' => 1)); ?>"><?php echo _('Include Archived families')?></a>
 				<?php
 			}
 		} else {
 			if ($this->_paginator) {
-				echo '<p class="nowrap"><strong>'.count($families).' families in this range</strong></p>';
+				echo '<p class="nowrap"><strong>'.count($families).' '._('families in this range').'</strong></p>';
 			} else  {
-				echo '<p class="strong"><strong>'.count($families).' families in total</strong></p>';
+				echo '<p class="strong"><strong>'.count($families).' '._('families in total').'</strong></p>';
 			}
 			include dirname(dirname(__FILE__)).'/templates/family_list.template.php';
 		}

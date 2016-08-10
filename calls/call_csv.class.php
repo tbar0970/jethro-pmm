@@ -2,7 +2,7 @@
 require_once 'include/odf_tools.class.php';
 class Call_csv extends Call
 {
-	function run() 
+	function run()
 	{
 		$fp = fopen('php://output', 'w');
 		header('Content-type: application/force-download');

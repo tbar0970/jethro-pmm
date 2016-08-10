@@ -57,7 +57,7 @@ if ($show_actions) {
 				if (isset($callbacks[$field])) {
 					call_user_func($callbacks[$field], $id, array_get($details, $field, ''));
 				} else {
-					echo array_get($details, $field, ''); 
+					echo array_get($details, $field, '');
 				}
 				?>
 				</td>
@@ -93,16 +93,16 @@ if ($show_actions) {
 
 			?>
 			<td class="narrow action-cell">
-				<a <?php echo $link_class; ?> href="?view=persons&personid=<?php echo $id; echo $view_tab ?>"><i class="icon-user"></i>View</a> &nbsp;
+				<a <?php echo $link_class; ?> href="?view=persons&personid=<?php echo $id; echo $view_tab ?>"><i class="icon-user"></i><?php echo _('View')?></a> &nbsp;
 			<?php
 			if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
 				?>
-				<a <?php echo $link_class; ?> href="?view=_edit_person&personid=<?php echo $id; ?>"><i class="icon-wrench"></i>Edit</a> &nbsp;
+				<a <?php echo $link_class; ?> href="?view=_edit_person&personid=<?php echo $id; ?>"><i class="icon-wrench"></i><?php echo _('Edit')?></a> &nbsp;
 				<?php
 			}
 			if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
 				?>
-				<a <?php echo $link_class; ?> href="?view=_add_note_to_person&personid=<?php echo $id; ?>"><i class="icon-pencil"></i>Add Note</a>
+				<a <?php echo $link_class; ?> href="?view=_add_note_to_person&personid=<?php echo $id; ?>"><i class="icon-pencil"></i><?php echo _('Add Note')?></a>
 				<?php
 			}
 			?>

@@ -22,7 +22,7 @@ class Abstract_View_Notes_List extends View
 				$dummy_note->save();
 				$dummy_note->releaseLock();
 			}
-			add_message("Assignments Saved");
+			add_message(_("Assignments Saved"));
 			$this->_reassigning = FALSE;
 
 			// these will have changed
@@ -42,10 +42,10 @@ class Abstract_View_Notes_List extends View
 		?>
 		<form class="well well-small form-inline">
 		<input type="hidden" name="view" value="<?php echo $_REQUEST['view']; ?>" />
-		Show notes assigned to 
-		<?php 
+		<?php
+		echo _('Show notes assigned to ');
 		print_widget(
-			'assignee', 
+			'assignee',
 			Array(
 				'type' => 'reference',
 				'references' => 'staff_member',
@@ -56,25 +56,28 @@ class Abstract_View_Notes_List extends View
 			array_get($_REQUEST, 'assignee')
 		);
 		?>
-		<button type="submit" class="btn">Go</button>
+		<button type="submit" class="btn"><?php echo _('Go'); ?></button>
 		</form>
 		<?php
 
 		$reassigning = $this->_reassigning;
 		if (empty($this->_notes)) {
 			?>
-			<p><i>There are no notes to show</i></p>
+			<p><i><?php echo _('There are no notes to show'); ?></i></p>
 			<?php
 		} else {
 			if (!$reassigning && $GLOBALS['user_system']->havePerm(PERM_BULKNOTE)) {
 				?>
 				<p class="pull-right">
-					<a href="<?php echo build_url(Array('reassigning' => 1)); ?>"><i class="icon-wrench""></i>Edit the assignees for all these notes</a>
+					<a href="<?php echo build_url(Array('reassigning' => 1)); ?>">
+						<i class="icon-wrench""></i>
+						<?php echo _('Edit the assignees for all these notes'); ?>
+					</a>
 				</p>
 				<?php
 			}
 			?>
-			<p><b><?php echo count($this->_notes); ?> notes in total</b></p>
+			<p><b><?php echo sprintf(_('%s notes in total'), count($this->_notes)); ?></b></p>
 			<?php
 			$notes =& $this->_notes;
 			include 'templates/list_notes_assorted.template.php';
