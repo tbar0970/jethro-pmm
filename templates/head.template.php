@@ -5,11 +5,17 @@
 		if (isset($GLOBALS['system']) && ($title = $GLOBALS['system']->getTitle())) echo ' - '.$title;
 		?>
 	</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	<!-- Required meta tags always come first -->
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<meta http-equiv="x-ua-compatible" content="ie=edge">
 	<meta name="apple-mobile-web-app-capable" content="yes">
-	<!--[if IE]>
-	<link type="text/css" rel="stylesheet" href="<?php echo BASE_URL; ?>resources/css/jethro_msie.css" />
-	<![endif]-->
+	<!-- Material Design fonts -->
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+	<!-- Bootstrap Material Design -->
+	<link rel="stylesheet" href="https://cdn.rawgit.com/FezVrasta/bootstrap-material-design/dist/dist/bootstrap-material-design.min.css">
 <?php
 
 // ---- CSS ------ //
@@ -46,25 +52,6 @@ if (file_exists(JETHRO_ROOT.'/'.$customCSSFile)) {
 	<?php
 }
 
-// ---- JAVASCRIPT ------ //
-
-if (JETHRO_VERSION == 'DEV') {
-	?>
-	<script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/jquery.js?t=<?php echo time(); ?>"></script>
-	<script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/bootstrap.js?t=<?php echo time(); ?>"></script>
-	<script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/tb_lib.js?t=<?php echo time(); ?>"></script>
-	<script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/jethro.js?t=<?php echo time(); ?>"></script>
-	<script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/bsn_autosuggest.js?t=<?php echo time(); ?>"></script>
-	<script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/jquery-ui.js?t=<?php echo time(); ?>"></script>
-	<script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/stupidtable.min.js?t=<?php echo time(); ?>"></script>
-	<?php
-} else {
-	?>
-	<script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/jethro-<?php echo JETHRO_VERSION; ?>.js"></script>
-	<?php
-}
-
 if (defined('EXTRA_HEAD_HTML')) {
 	echo EXTRA_HEAD_HTML;
 }
-

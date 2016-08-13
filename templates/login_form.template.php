@@ -1,62 +1,49 @@
+<?php include 'layout.php' ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 	<?php include 'head.template.php' ?>
 </head>
 <body id="login">
-	<form method="post" id="login-box" class="well">
-		<?php 
-		require_once 'include/size_detector.class.php';
-		SizeDetector::printFormFields();
-		?>
-		<div id="login-header">
-			<h1><span>Jethro PMM </span> <?php echo ents(SYSTEM_NAME); ?></h1>
-		</div>
-		<div id="login-body" class="form-horizontal">
-			<noscript>
-				<div class="alert"><strong><?php echo _('Error: Javascript is Disabled')?></strong><br /><?php echo _('For Jethro to function correctly you must enable javascript, which is done most simply by lowering the security level your browser uses for this website')?></div>
-			</noscript>
+	<?php startLayout(false); ?>
+		<form method="post" id="login-box" class="form-signin m-x-auto">
+			<h1>Jethro PMM </span></h1>
+			<h2>Please sign in</h2>
 			<?php
 			if (!empty($this->_error)) {
-				echo '<div class="alert alert-error">'.$this->_error.'</div>';
-			} else {
-				echo ' <h3>Login</h3>';
+				echo '<div class="form-group bmd-form-group">'.$this->_error.'</div>';
 			}
 			?>
-			<div class="control-group">
-				<label class="control-label" for="username"><?php echo _('Username')?></label>
-				<div class="controls">
-					<input type="text" name="username" id="username" placeholder="Username"
-					<?php if (defined('PREFILL_USERNAME')) echo 'value="'.PREFILL_USERNAME.'"'; ?>						   
-					/>
-				</div>
+			<div class="form-group bmd-form-group">
+				<label class="bmd-label-floating" for="username"><?php echo _('Username')?></label>
+				<input class="form-control" autofocus="true" required="true" type="text" name="username" id="username"
+				<?php if (defined('PREFILL_USERNAME')) echo 'value="'.PREFILL_USERNAME.'"'; ?>
+				/>
 			</div>
-			<div class="control-group">
-				<label class="control-label" for="password"><?php echo _('Password')?></label>
-				<div class="controls">
-					<input type="password" name="password" id="password" 
+			<div class="form-group bmd-form-group">
+				<label class="bmd-label-floating" for="password"><?php echo _('Password')?></label>
+				<input class="form-control" required="true" type="password" name="password" id="password"
 		   			<?php if (defined('PREFILL_PASSWORD')) echo 'value="'.PREFILL_PASSWORD.'"'; ?>
-					placeholder="Password" />
+				/>
 				</div>
 			</div>
-			<div class="control-group">
-				<div class="controls">
-					<input type="submit" value="Log In" class="btn" />
-					<input type="hidden" name="login_key" value="<?php echo $login_key; ?>" /><br />
-				</div>
-			</div>
+			<span class="bmd-form-group">
+				<noscript>
+					<div class="alert"><strong><?php echo _('Error: Javascript is Disabled')?></strong><br /><?php echo _('For Jethro to function correctly you must enable javascript, which is done most simply by lowering the security level your browser uses for this website')?></div>
+				</noscript>
+			</span>
+			<button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+		</form>
 		<?php
 		if (defined('LOGIN_NOTE') && LOGIN_NOTE) {
 			?>
-			<div class="control-group">
-				<div class="controls">
-					<?php echo '<p>'.LOGIN_NOTE.'</p>'; ?>
-				</div>
+			<div class="m-x-auto">
+				<?php echo '<p>'.LOGIN_NOTE.'</p>'; ?>
 			</div>
 			<?php
 		}
 		?>
-		</div>
-	</form>
+	<?php finishLayout(); ?>
 </body>
+<?php include 'footer.template.php' ?>
 </html>

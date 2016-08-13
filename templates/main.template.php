@@ -26,11 +26,11 @@
 				<div class="user-detail pull-right">
 					<div>
 						<input type="hidden" name="logout" value="1" />
-						<?php echo _('Logged in as')?> 
+						<?php echo _('Logged in as')?>
 						<span class="dropdown">
 							<a class="dropdown-toggle" id="user-menu" data-toggle="dropdown" href="#">
 								<?php echo $GLOBALS['user_system']->getCurrentUser('first_name').' '.$GLOBALS['user_system']->getCurrentUser('last_name'); ?>
-								<i class="caret"></i> 
+								<i class="caret"></i>
 							</a>
 							<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="user-menu">
 								<li><a href="?view=_edit_me"><?php echo _('Edit me')?></a></li>
@@ -79,8 +79,8 @@
 
 		</div>
 		<div id="body">
-			<?php 
-			
+			<?php
+
 			dump_messages();
 
 			if ($title = $GLOBALS['system']->getTitle()) {
@@ -93,4 +93,5 @@
 	</div>
 	</div>
 </body>
+<?php include 'footer.template.php' ?>
 </html>
