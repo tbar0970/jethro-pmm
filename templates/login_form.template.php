@@ -33,6 +33,7 @@
 				</noscript>
 			</span>
 			<button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+			<input type="hidden" name="login_key" value="<?php echo $login_key; ?>" />
 		</form>
 		<?php
 		if (defined('LOGIN_NOTE') && LOGIN_NOTE) {

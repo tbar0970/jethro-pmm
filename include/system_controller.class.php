@@ -144,25 +144,25 @@ class System_Controller
 		foreach ($_SESSION['views'][$this->_base_dir] as $name => $data) {
 			if ($name[0] == '_') continue;
 			$class = '';
-			if (($current_view == $name) || (strpos($current_view, $name.'__') === 0)) $class = 'active';
 			if (empty($data['children'])) {
+				if (($current_view == $name) || (strpos($current_view, $name.'__') === 0)) $class = 'active';
 				// deliberately - only leaf nodes can be navigated to directly
 				?>
-				<li class="<?php echo $class; ?>">
-					<a href="?view=<?php echo $name; ?>" ><?php echo ucwords(str_replace('_', ' ', $name)); ?></a>
-				</li>
+				<a class="list-group-item <?php echo $class; ?>" href="?view=<?php echo $name; ?>" ><?php echo ucwords(str_replace('_', ' ', $name)); ?></a>
 				<?php
 			} else {
 				// pardon the formatting - IE is having a white-space tantrum
 				?>
-				<li class="<?php echo $class; ?> dropdown">
-					<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown"><?php echo gettext(ucwords(str_replace('_', ' ', $name))); ?><i class="caret"></i></a>
-						<ul class="dropdown-menu"><?php
+				<li class="list-group-item">
+					<span class="list-group-item-heading"><?php echo gettext(ucwords(str_replace('_', ' ', $name))); ?></span>
+					<div class="list-group-dropdown">
+					<?php
 							foreach ($data['children'] as $subname => $sub_details) {
 								$class = ($current_view == $name.'__'.$subname) ? 'active' : '';
-								?><li class="<?php echo $class; ?>"><a href="?view=<?php echo $name.'__'.$subname; ?>"><?php echo gettext(ucwords(str_replace('_', ' ', $subname))); ?></a></li><?php
+								?><a class="list-group-item <?php echo $class; ?>" href="?view=<?php echo $name.'__'.$subname; ?>"><?php echo gettext(ucwords(str_replace('_', ' ', $subname))); ?></a><?php
 							}
-							?></ul>
+							?>
+					</div>
 				</li>
 				<?php
 			}

@@ -1,5 +1,14 @@
 $(document).ready(function() {
-	
+
+	// Use BMD Switches
+	$("input#switch_includeArchived").change(function(){
+		url = $("#switch_includeArchived").data('url');
+		if ($("input#switch_includeArchived").is(":checked")) {
+			url = url + '&show_archived=1';
+		}
+		window.location.href = url;
+	});
+
 	if ($('.stop-js').length) return; /* Classname flag for big pages that don't want JS to run */
 
 	// Make standalone safari stay standalone
@@ -22,7 +31,7 @@ $(document).ready(function() {
 	// This needs to be first!
 	// https://github.com/twitter/bootstrap/issues/3217
 	$('#jethro-overall-width').append($('.modal').not('form .modal').remove());
-	$('.modal').on('shown', function() { 
+	$('.modal').on('shown', function() {
 		$(this).find('input:first, select:first').select();
 	});
 
@@ -34,7 +43,7 @@ $(document).ready(function() {
 			}
 		});
 	});
-	
+
 	// Attach the quick-search handlers
 	$('.nav a').each(function() {
 		if (this.innerHTML && (this.innerHTML.toLowerCase() == 'search')) {
@@ -42,10 +51,10 @@ $(document).ready(function() {
 			this.accessKey = $(this).parents('ul').parents('li').find('a.dropdown-toggle').html().toLowerCase()[0];
 		}
 	});
-	
+
 
 	// Popups etc
-	var envelopeWindow = null;	
+	var envelopeWindow = null;
 	$('a.envelope-popup').click(function() {
 		envelopeWindow = window.open(this.href, 'envelopes', 'height=320,width=500,location=no,menubar=no,titlebar=no,toolbar=no,resizable=yes,statusbar=no');
 		if (envelopeWindow) {
@@ -55,7 +64,7 @@ $(document).ready(function() {
 		}
 		return false;
 	});
-	
+
 	$('a.postcode-lookup').click(function() {
 		var suburb = this.parentNode.getElementsByTagName('INPUT')[0].value;
 		var state = $('select[name=address_state]');
@@ -83,15 +92,15 @@ $(document).ready(function() {
 		}
 		return false;
 	});
-	
+
 	$('a.map').click(function() {
 		var mapWindow = window.open(this.href, 'map', 'height='+parseInt($(window).height()*0.9, 10)+',width='+parseInt($(window).width()*0.9, 10)+',location=no,menubar=no,titlebar=no,toolbar=no,resizable=yes,statusbar=no');
 		if (!mapWindow) {
 			alert('Jethro tried but could not open a popup window - you probably have a popup blocker enabled.  Please disable your popup blocker for this site, reload the page and try again.');
 		}
 		return false;
-	});	
-	
+	});
+
 	$('input.cancel, a.cancel').click(function() {
 		if (window.opener) {
 			try {
@@ -115,7 +124,7 @@ $(document).ready(function() {
 	$('input.select-rule-toggle').click(function() {
 		$($(this).parents('tr')[0]).find('div.select-rule-options').css('display', (this.checked ? '' : 'none'));
 	});
-		
+
 	/************************ SEARCH CHOOSERS ************************/
 
 	$('input.person-search-multiple').each(function() {
@@ -138,7 +147,7 @@ $(document).ready(function() {
 					  )
 		};
 		var as = new bsn.AutoSuggest(this.id, options);
-	});		
+	});
 
 	$('input.person-search-single, input.family-search-single').each(function() {
 		var stem = this.id.substr(0, this.id.length-6);
@@ -171,11 +180,11 @@ $(document).ready(function() {
 		}
 	});
 
-	
+
 	/******************* DOCUMENT REPOSITORY ************************/
 
 	if ($('.document-icons').length) {
-		$('.document-message').hide().fadeIn('medium'); 
+		$('.document-message').hide().fadeIn('medium');
 		$('.rename-file').click(function() {
 			var filename = $(this).parents('tr:first').find('td.filename').text();
 			$('#rename-file-modal')
@@ -209,7 +218,7 @@ $(document).ready(function() {
 						}
 						return true;
 					});
-		});		
+		});
 		$('.move-file').click(function() {
 			var filename = $(this).parents('tr:first').find('td.filename').text();
 			$('#move-file-modal')
@@ -217,7 +226,7 @@ $(document).ready(function() {
 					.html(filename)
 					.end()
 				.modal('show')
-				.on('shown', function() { 
+				.on('shown', function() {
 							$(this).find('select#move-file')
 								.attr('name', 'movefile['+filename+']')
 								.focus();
@@ -233,7 +242,7 @@ $(document).ready(function() {
 				.find('input[type=button]').attr('disabled', true);
 		});
 	}
-	
+
 
 	/*************************** BULK ACTIONS ********************/
 	$('#bulk-action-chooser').change(function() {
@@ -285,7 +294,7 @@ $(document).ready(function() {
 	layOutMatchBoxes();
 	$('a[data-toggle="tab"]').on('shown', layOutMatchBoxes);
 	$(window).resize(layOutMatchBoxes);
-	
+
 	// Make sure the width doesn't bounce around when we change tabs
 	var tabPanes = $('.tab-pane');
 	if (tabPanes.length) {
@@ -307,7 +316,7 @@ $(document).ready(function() {
 			$(".nav-tabs li a[href='#" + window.location.hash.substr(1) + "']").click()
 		}
 	}
-		
+
 	/****** Radio buttons *****/
 
 	var attendanceUseKeyboard = ($(window).width() > 640);
@@ -324,7 +333,7 @@ $(document).ready(function() {
 		.on('click', function() {
 			onRadioButtonActivated.apply($(this));
 		});
-	
+
 	function onRadioButtonActivated(event) {
 		this.addClass('active');
 		this.siblings('div').removeClass('active');
@@ -341,9 +350,9 @@ $(document).ready(function() {
 					wentToNextRow = true;
 					nextCell = thisCell.parents('tr').next('tr').find('td').first();
 				}
-				
+
 			} while (nextCell.length && !nextCell.find('.radio-button-group').length);
-			
+
 			nextCell.find('.radio-button-group').focus();
 		}
 	}
@@ -371,9 +380,9 @@ $(document).ready(function() {
 			$(this).parents('tr:first').addClass('hovered');
 		});
 	}
-	
+
 	// MULTI-SELECT
-		
+
 	$('div.multi-select label input').change(function() {
 		if (this.checked) {
 			$(this.parentNode).addClass('active');
@@ -381,11 +390,11 @@ $(document).ready(function() {
 			$(this.parentNode).removeClass('active');
 		}
 	}).change();
-	
+
 	// FAMILY PHOTOS
 
 	handleFamilyPhotosLayout();
-	
+
 	// NARROW COLUMNS
 
 	setTimeout( "applyNarrowColumns('body'); ", 30);
@@ -459,7 +468,7 @@ $(document).ready(function() {
 			chars = 0;
 		}
 		$('#smscharactercount').html(chars + ' characters remaining.');
-	});	
+	});
 
 
 });
@@ -546,7 +555,7 @@ JethroServicePlanner.init = function() {
 	$('#service-comps table').width(
 		$('#service-comps .tab-pane.active').first().width() + 'px'
 	).show();
-	
+
     $("#service-comps tbody tr").draggable({
 		containment: "#service-planner",
 		helper: "clone",
@@ -717,7 +726,7 @@ JethroServicePlanner.Item.addAdHoc = function ($tr) {
 	JethroServicePlanner.newComponentInsertPoint = $tr.next('tr');
 	$modal = $('#ad-hoc-modal');
 	$modal.find('input[name=title]').val('');
-	
+
 	$modal.find('select[name=show_in_handout] option[value=full]')
 			.css('display', 'none')
 			.attr('disabled');
@@ -729,7 +738,7 @@ JethroServicePlanner.Item.addAdHoc = function ($tr) {
 }
 
 JethroServicePlanner.Item.saveItemDetails = function () {
-	
+
 	var attrs = {};
 	$('#ad-hoc-modal input[name], #ad-hoc-modal select').each(function() {
 		attrs[this.name] = this.value;
@@ -772,11 +781,11 @@ JethroServicePlanner.Item.editDetails = function ($tr) {
 	// Show the 'title' box only for non-ad-hoc items
 	var titleRow = $modal.find('input[name=title]').parents('.control-group');
 	titleRow[componentID ? 'hide' : 'show']();
-	
+
 	$modal.find('.modal-header h4').html('Edit service item');
 	$modal.modal('show');
 
-	
+
 }
 
 JethroServicePlanner.onItemDrop = function(event, ui) {
@@ -879,7 +888,7 @@ JethroRoster.init = function() {
 				$('#choose-assignee-modal').modal({});
 			}
 	});
-	
+
 	$('#choose-assignee-save').click(function() {
 		$target = $(JethroRoster.CUSTOM_ASSIGNEE_TARGET)
 		$target.find('.unlisted-allocee').remove();
@@ -973,7 +982,7 @@ function handleFamilyPhotosLayout() {
 
 var applyNarrowColumns = function(root) {
 	//return;
-	
+
 	// All of this is because in Chrome, if you set a width on a TD,
 	// there is no way to stop the overall table from being width 100% OF THE WINDOW
 	// (even if its parent is less than 100% width).
@@ -1292,4 +1301,3 @@ function handleFamilyFormSubmit()
 	}
 	return true;
 }
-

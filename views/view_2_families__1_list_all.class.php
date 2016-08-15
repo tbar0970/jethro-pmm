@@ -25,7 +25,7 @@ class View_Families__List_All extends View
 		$this->_family_data = ($GLOBALS['system']->getDBObjectData('family', $params, 'AND', 'family_name'));
 	}
 
-	
+
 	function getTitle()
 	{
 		$res = _('All Families');
@@ -33,7 +33,7 @@ class View_Families__List_All extends View
 
 	}
 
-	
+
 	function printView()
 	{
 		if ($this->_paginator) {
@@ -42,32 +42,61 @@ class View_Families__List_All extends View
 			echo '</p>';
 		}
 
-		if (empty($_REQUEST['show_archived'])) {
-			echo '<p class="pull-right hidden-phone"><a href="'.build_url(Array('show_archived' => 1)).'">'._('Include Archived').'</a></p>';
-		} else {
-			echo '<p class="pull-right hidden-phone"><a href="'.build_url(Array('show_archived' => NULL)).'">'._('Exclude Archived').'</a></p>';
-		}
-
-
 		$GLOBALS['system']->includeDBClass('family');
 		$families =& $this->_family_data;
 		if (empty($families)) {
 			if ($this->_paginator) {
 				?>
-				<p><strong><?php echo _('No families in this range')?></strong></p>
+				<div class="row">
+					<div class="col-xs-12">
+						<span class="result count"><?php echo _('No families in this range')?></span>
+					</div>
+				</div>
 				<?php
 			} else {
 				?>
-				<p><strong><?php echo _('No families were found')?></strong></p>
-				<a href="<?php echo build_url(Array('show_archived' => 1)); ?>"><?php echo _('Include Archived families')?></a>
+				<div class="row">
+					<div class="col-xs-8">
+						<span class="result count"><?php echo _('No families were found')?></span>
+					</div>
+					<div class="col-xs-4">
+						<form class="switchForm">
+							<div class="switch">
+								<label>
+									<input data-url="<?php echo build_url(Array('show_archived' => NULL)); ?>" name="show_archived" id="switch_includeArchived" type="checkbox" <?php echo $checked; ?>>
+									<?php echo _('Include Archived'); ?>
+								</label>
+							</div>
+						</form>
+					</div>
+				</div>
 				<?php
 			}
 		} else {
+			?>
+			<div class="row">
+				<div class="col-xs-8">
+			<?php
 			if ($this->_paginator) {
-				echo '<p class="nowrap"><strong>'.count($families).' '._('families in this range').'</strong></p>';
+				echo '<span class="result count">'.count($families).' '._('families in this range').'</span>';
 			} else  {
-				echo '<p class="strong"><strong>'.count($families).' '._('families in total').'</strong></p>';
+				echo '<span class="result count">'.count($families).' '._('families in total').'</span>';
 			}
+			$checked = empty($_REQUEST['show_archived']) ? '': 'checked';
+			?>
+				</div>
+				<div class="col-xs-4">
+					<form class="switchForm">
+						<div class="switch">
+							<label>
+								<input data-url="<?php echo build_url(Array('show_archived' => NULL)); ?>" name="show_archived" id="switch_includeArchived" type="checkbox" <?php echo $checked; ?>>
+								<?php echo _('Include Archived'); ?>
+							</label>
+						</div>
+					</form>
+				</div>
+			</div>
+				<?php
 			include dirname(dirname(__FILE__)).'/templates/family_list.template.php';
 		}
 	}

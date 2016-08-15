@@ -1,3 +1,4 @@
+<?php include 'layout.php' ?>
 <?php
 if (empty($_REQUEST['raw'])) {
 	?>
@@ -8,6 +9,7 @@ if (empty($_REQUEST['raw'])) {
 </head>
 
 <body id="jethro-public">
+	<?php startLayout(true); ?>
 	<div id="jethro-nav-background">
 	</div>
 	<div id="jethro-overall-width">
@@ -48,7 +50,7 @@ if (empty($_REQUEST['raw'])) {
 
 		</div>
 		<div id="body">
-			<?php 
+			<?php
 			dump_messages();
 
 			if ($title = $GLOBALS['system']->getTitle()) {
@@ -63,6 +65,7 @@ if (empty($_REQUEST['raw'])) {
 		</div>
 	</div>
 	</div>
+	<?php finishLayout(); ?>
 </body>
 </html>
 <?php
