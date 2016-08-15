@@ -130,9 +130,6 @@ function add_message($msg, $class='success', $html=FALSE)
 
 function dump_messages()
 {
-	if (defined('PRIVATE_DSN') || defined('PUBLIC_DSN') || defined('MEMBERS_DSN') ) {
-			add_message('Using old style database connection. Please update your config.', 'warning');
-	}
 	if (!empty($_SESSION['messages'])) {
 		foreach ($_SESSION['messages'] as $msg) print_message($msg['message'], $msg['class'], $msg['html']);
 		unset($_SESSION['messages']);

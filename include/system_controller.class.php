@@ -216,7 +216,7 @@ class System_Controller
 			case 'ROLLBACK':
 				$r = $GLOBALS['db']->query(strtoupper($operation));
 				check_db_result($r);
-				$r->closeCursor();
+				if ($r !== FALSE) $r->closeCursor();
 		}
 	}
 

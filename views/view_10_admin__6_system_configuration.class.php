@@ -71,6 +71,10 @@ class View_Admin__System_Configuration extends View {
 		system administrator
 		<?php if (defined('SYSADMIN_HREF')) echo '</a>'; ?>
 		to edit the Jethro configuration file.</p>
+
+		<?php if (defined('PRIVATE_DSN') || defined('PUBLIC_DSN') || defined('MEMBERS_DSN') ) {
+		add_message('Using old style database connection. Please update your config.', 'warning');
+		} ?>
 		<table class="table no-autofocus system-config">
 			<tr>
 				<td colspan="2"><h3>Overall system settings</h3></td>

@@ -208,7 +208,7 @@ class Staff_Member extends Person
 								?>
 							</td>
 							<td>
-								<?php 
+								<?php
 								Person_Group::printMultiChooser('restrictions[group]', array_get($this->_restrictions, 'group', Array()), Array(), FALSE);
 								?>
 							</td>
