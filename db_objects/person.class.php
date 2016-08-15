@@ -536,8 +536,9 @@ class Person extends DB_Object
 	function _saveCustomValues() {
 		$db =& $GLOBALS['db'];
 		$SQL = 'DELETE FROM custom_field_value WHERE personid = '.(int)$this->id;
-		check_db_result($db->query($SQL));
-		$res->closeCursor();
+		$res = $db->query($SQL);
+		check_db_result($res);
+		if ($res !== FALSE) $res->closeCursor();
 		$SQL = 'INSERT INTO custom_field_value
 				(personid, fieldid, value_text, value_date, value_optionid)
 				VALUES ';
@@ -568,7 +569,7 @@ class Person extends DB_Object
 			$SQL .= implode(",\n", $sets);
 			$res = $GLOBALS['db']->query($SQL);
 			check_db_result($res);
-			$res->closeCursor();
+			if ($res !== FALSE) $res->closeCursor();
 		}
 	}
 
