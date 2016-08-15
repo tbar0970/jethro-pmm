@@ -105,7 +105,7 @@ class Installer
 					foreach ($sql as $s) {
 						$r = $GLOBALS['db']->query($s);
 						check_db_result($r);
-						$r->closeCursor();
+						if ($r !== FALSE) $r->closeCursor();
 					}
 				}
 
@@ -296,7 +296,7 @@ class Installer
 		foreach ($sql as $s) {
 			$r = $GLOBALS['db']->query($s);
 			check_db_result($r);
-			$r->closeCursor();
+			if ($r !== FALSE) $r->closeCursor();
 		}
 
 		foreach ($fks as $table => $keys) {
@@ -310,7 +310,7 @@ class Installer
 						FOREIGN KEY ('.$from.') REFERENCES '.$to;
 				$r = $GLOBALS['db']->query($SQL);
 				check_db_result($r);
-				$r->closeCursor();
+				if ($r !== FALSE) $r->closeCursor();
 			}
 		}
 
