@@ -96,7 +96,7 @@ class Call_email extends Call
 			<?php
 			foreach ($chunks as $i => $chunk) {
 				?>
-				<a href="<?php echo $this->getHref($chunk, FALSE); ?>" class="btn" onclick="this.style.textDecoration='line-through'" <?php echo email_link_extras(); ?>>Email Batch #<?php echo $i; ?></a>
+				<a href="<?php echo $this->getHref($chunk, FALSE); ?>" class="btn" onclick="this.style.textDecoration='line-through'" <?php echo email_link_extras(); ?>>Email Batch #<?php echo ($i+1); ?></a>
 				<?php
 			}
 			?>
