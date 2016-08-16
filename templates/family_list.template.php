@@ -1,17 +1,9 @@
-<table class="table table-hover table-condensed table-striped clickable-rows">
+<table class="table table-hover table-striped clickable-rows table-responsive-vertical">
 <thead>
 	<tr>
-		<th>ID</th>
 		<th><?php echo _('Family Name')?></th>
 		<th><?php echo _('Family Members')?></th>
-	<?php
-	include_once 'include/size_detector.class.php';
-	if (!SizeDetector::isNarrow()) {
-		?>
 		<th><?php echo _('Home Phone')?></th>
-		<?php
-	}
-	?>
 		<th><?php echo _('Actions')?></th>
 	</tr>
 </thead>
@@ -21,27 +13,20 @@ foreach ($families as $id => $details) {
 	$tr_class = ($details['status'] == 'archived') ? ' class="archived"' : '';
 	?>
 	<tr<?php echo $tr_class; ?>>
-		<td><?php echo (int)$id; ?></td>
-		<td><?php echo ents($details['family_name']); ?></td>
-		<td><?php echo ents($details['members']); ?></td>
-	<?php
-	if (!SizeDetector::isNarrow()) {
-		?>
-		<td><?php echo ents($details['home_tel']); ?></td>
-		<?php
-	}
-	?>
-		<td class="action-cell narrow">
-			<a href="?view=families&familyid=<?php echo $id; ?>"><i class="icon-user"></i><?php echo _('View');?></a> &nbsp;
+		<td data-title="<?php echo _("Family Name"); ?>"><?php echo ents($details['family_name']); ?></td>
+		<td data-title="<?php echo _('Family Members');?>"><?php echo ents($details['members']); ?></td>
+		<td data-title="<?php echo _('Home Phone');?>"><?php echo ents($details['home_tel']); ?></td>
+		<td class="action-cell">
+			<a class="btn btn-raised btn-primary" href="?view=families&familyid=<?php echo $id; ?>"><i class="material-icons">person_pin</i><?php echo _('View');?></a>
 		<?php
 		if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
 			?>
-			<a href="?view=_edit_family&familyid=<?php echo $id; ?>"><i class="icon-wrench"></i><?php echo _('Edit');?></a> &nbsp;
+			<a class="btn btn-raised btn-primary" href="?view=_edit_family&familyid=<?php echo $id; ?>"><i class="material-icons">edit</i><?php echo _('Edit');?></a>
 			<?php
 		}
 		if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
 			?>
-			<a href="?view=_add_note_to_family&familyid=<?php echo $id; ?>"><i class="icon-pencil"></i><?php echo _('Add Note');?></a></td>
+			<a class="btn btn-raised btn-primary" href="?view=_add_note_to_family&familyid=<?php echo $id; ?>"><i class="material-icons">note_add</i><?php echo _('Add Note');?></a></td>
 			<?php
 		}
 		?>

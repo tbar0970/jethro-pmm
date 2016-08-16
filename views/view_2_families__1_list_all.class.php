@@ -56,15 +56,15 @@ class View_Families__List_All extends View
 			} else {
 				?>
 				<div class="row">
-					<div class="col-xs-8">
+					<div class="col-xs-7">
 						<span class="result count"><?php echo _('No families were found')?></span>
 					</div>
-					<div class="col-xs-4">
+					<div class="col-xs-5">
 						<form class="switchForm">
 							<div class="switch">
 								<label>
 									<input data-url="<?php echo build_url(Array('show_archived' => NULL)); ?>" name="show_archived" id="switch_includeArchived" type="checkbox" <?php echo $checked; ?>>
-									<?php echo _('Include Archived'); ?>
+									<?php echo _('Archived'); ?>
 								</label>
 							</div>
 						</form>
@@ -75,7 +75,7 @@ class View_Families__List_All extends View
 		} else {
 			?>
 			<div class="row">
-				<div class="col-xs-8">
+				<div class="col-xs-7">
 			<?php
 			if ($this->_paginator) {
 				echo '<span class="result count">'.count($families).' '._('families in this range').'</span>';
@@ -85,19 +85,25 @@ class View_Families__List_All extends View
 			$checked = empty($_REQUEST['show_archived']) ? '': 'checked';
 			?>
 				</div>
-				<div class="col-xs-4">
+				<div class="col-xs-5">
 					<form class="switchForm">
 						<div class="switch">
 							<label>
 								<input data-url="<?php echo build_url(Array('show_archived' => NULL)); ?>" name="show_archived" id="switch_includeArchived" type="checkbox" <?php echo $checked; ?>>
-								<?php echo _('Include Archived'); ?>
+								<?php echo _('Archived'); ?>
 							</label>
 						</div>
 					</form>
 				</div>
 			</div>
+			<div class="row">
+				<div class="col-xs-12">
 				<?php
 			include dirname(dirname(__FILE__)).'/templates/family_list.template.php';
+			?>
+				</div>
+			</div>
+			<?php
 		}
 	}
 }
