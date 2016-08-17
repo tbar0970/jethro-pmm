@@ -1,57 +1,33 @@
 <?php
 include_once 'include/size_detector.class.php';
-$accordion = SizeDetector::getWidth() && SizeDetector::isNarrow();
 if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
 	$notes = $GLOBALS['system']->getDBObjectData('family_note', Array('familyid' => $family->id), 'OR', 'created');
 }
-
-if (!$accordion) {
-	$panel_header = '<div class="tab-pane %3$s" id="%1$s">';
-	$panel_footer = '</div>';
-	?>
+?>
 	<!---------- TAB HEADERS --------------->
-	<ul class="nav nav-tabs">
-		<li class="active"><a data-toggle="tab" href="#basic"><?php echo _('Basic Details')?></a></li>
-	<?php
-	if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
-		$notes = $GLOBALS['system']->getDBObjectData('family_note', Array('familyid' => $family->id), 'OR', 'created');
-		?>
-		<li><a data-toggle="tab" href="#notes"><?php echo _('Notes')?> (<?php echo count($notes); ?>)</a></li>
-		<?php
-	}
-	if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE) || !$GLOBALS['system']->featureEnabled('NOTES')) {
-		?>
-		<li><a data-toggle="tab" href="#history"><?php echo _('History')?></a></li>
-		<?php
-	}
-	?>
-	</ul>
-
-	<div class="tab-content view-family">
-	<?php
-} else {
-	$panel_header = '
-		<div class="accordion-group">
-			<div class="accordion-heading">
-				<a class="accordion-toggle" data-toggle="collapse" href="#%1$s">
-					<i class="icon-chevron-down icon-white pull-right"></i>
-					%2$s
-				</a>
-			</div>
-			<div class="accordion-body collapse" id="%1$s">
-				<div class="accordion-inner">
-	';
-	$panel_footer = '
-				</div>
-			</div>
+	<div class="row">
+		<div class="col-xs-12">
+			<ul class="nav nav-tabs">
+				<li class="nav-item"><a data-toggle="tab" class="nav-link active" href="#basic"><?php echo _('Basic Details')?></a></li>
+			<?php
+			if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
+				$notes = $GLOBALS['system']->getDBObjectData('family_note', Array('familyid' => $family->id), 'OR', 'created');
+				?>
+				<li class="nav-item"><a data-toggle="tab" class="nav-link" href="#notes"><?php echo _('Notes')?> (<?php echo count($notes); ?>)</a></li>
+				<?php
+			}
+			if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE) || !$GLOBALS['system']->featureEnabled('NOTES')) {
+				?>
+				<li class="nav-item"><a data-toggle="tab" class="nav-link"href="#history"><?php echo _('History')?></a></li>
+				<?php
+			}
+			?>
+			</ul>
 		</div>
-	';
-	?>
-
-	<!-- main container -->
-	<div class="accordion view-person" id="view-person">
+	</div>
+	<div class="row">
+		<div class="col-xs-12 tab-content view-family">
 	<?php
-}
 
 /**************** BASIC DETAILS TAB *************/
 
