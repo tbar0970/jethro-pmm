@@ -30,13 +30,16 @@ class View__Manage_Service_Component_Tags extends View
 						WHERE id = '.(int)$id;
 				$res = $GLOBALS['db']->query($SQL);
 				check_db_result($res);
+				$res->closeCursor();
 			}
 			$res = $GLOBALS['db']->query('DELETE FROM service_component_tag WHERE id NOT IN ('.implode(',', array_merge(array_keys($to_update))).')');
+			$res->closeCursor();
 			foreach ($to_add as $name) {
 				$SQL = 'INSERT INTO service_component_tag (tag)
 						VALUES ('.$GLOBALS['db']->quote($name).')';
 				$res = $GLOBALS['db']->query($SQL);
 				check_db_result($res);
+				$res->closeCursor();
 			}
 			add_message("Tags updated");
 		}

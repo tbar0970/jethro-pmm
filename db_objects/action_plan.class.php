@@ -3,7 +3,7 @@ include_once 'include/db_object.class.php';
 include_once 'db_objects/action_plan_note.class.php';
 class Action_Plan extends DB_Object
 {
-	function getInitSQL()
+	function getInitSQL($table_name=NULL)
 	{
 		return "
 			CREATE TABLE action_plan (
@@ -83,7 +83,7 @@ class Action_Plan extends DB_Object
 		return null;
 	}
 
-	function printForm()
+	function printForm($prefix = '', $fields = NULL)
 	{
 		$GLOBALS['system']->includeDBClass('person_group');
 		$actions = $this->getValue('actions');
@@ -218,7 +218,7 @@ class Action_Plan extends DB_Object
 				<tr>
 					<th>Options</th>
 					<td>
-						
+
 						<input type="hidden" name="default_on_create_family" value="0" />
 						<label class="checkbox">
 							<input type="checkbox" id="default_on_create_family" name="default_on_create_family" value="1" <?php if ($this->getValue('default_on_create_family')) echo 'checked="checked"'; ?>>
@@ -257,7 +257,7 @@ class Action_Plan extends DB_Object
 		<?php
 	}
 
-	function processForm()
+	function processForm($prefix = '', $fields = NULL)
 	{
 		parent::processForm();
 		$actions = Array(
@@ -297,7 +297,7 @@ class Action_Plan extends DB_Object
 					$val = '-1==='.$_POST['custom_'.$fieldID.'_note'];
 				} else {
 					$val = $field->processWidget();
-					$val = reset($val); // it comes wrapped in an array 
+					$val = reset($val); // it comes wrapped in an array
 				}
 			} else {
 				$val = $_POST[$k];

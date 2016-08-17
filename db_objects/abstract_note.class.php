@@ -96,7 +96,7 @@ class Abstract_Note extends DB_Object
 
 	function toString()
 	{
-		$creator =& $GLOBALS['system']->getDBObject('person', $this->values['creator']);
+		$creator = $GLOBALS['system']->getDBObject('person', $this->values['creator']);
 		return $this->values['subject'].' ('.$creator->toString().', '.format_date( strtotime($this->values['created'])).')';
 	}
 
@@ -152,13 +152,13 @@ class Abstract_Note extends DB_Object
 
 
 
-	function getInstancesData($params, $logic='OR', $order)
+	function getInstancesData($params, $logic='OR', $order='')
 	{
 		$res = parent::getInstancesData($params, $logic, $order);
 
 		// Get the comments to go with them
 		if (!empty($res)) {
-			$sql = 'SELECT c.noteid, c.*, p.first_name as creator_fn, p.last_name as creator_ln 
+			$sql = 'SELECT c.noteid, c.*, p.first_name as creator_fn, p.last_name as creator_ln
 					FROM note_comment c JOIN person p on c.creator = p.id
 					WHERE noteid IN ('.implode(', ', array_keys($res)).')
 					ORDER BY noteid, created';
@@ -188,7 +188,7 @@ class Abstract_Note extends DB_Object
 			$this->printFieldValue('status');
 		}
 	}
-	
+
 	/**
 	 * @return boolean	True if the current user is allowed to delete this note
 	 */
@@ -196,7 +196,7 @@ class Abstract_Note extends DB_Object
 		return ($this->getValue('status') !== 'pending')
 			&& ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN));
 	}
-	
+
 	/**
 	 * @return boolean	True if the current user is allowed to edit the original content of this note
 	 */
@@ -216,9 +216,10 @@ class Abstract_Note extends DB_Object
 		$sql = 'DELETE FROM note_comment WHERE noteid = '.$db->quote($this->id);
 		$res = $db->query($sql);
 		check_db_result($res);
+		$res->closeCursor();
 		return TRUE;
 	}
-	
+
 	function save()
 	{
 		// If the subject or details is updated, set the 'editor' and 'edited' fields
@@ -287,4 +288,3 @@ class Abstract_Note extends DB_Object
 
 
 }
-

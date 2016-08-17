@@ -381,7 +381,7 @@ class View_Attendance__Record extends View
 			if ((int)$set->congregationid) {
 				$congregation = $GLOBALS['system']->getDBObject('congregation', (int)$set->congregationid);
 			} else if ($set->groupid) {
-				$group =& $GLOBALS['system']->getDBObject('person_group', $set->groupid);
+				$group = $GLOBALS['system']->getDBObject('person_group', $set->groupid);
 			} else {
 				return;
 			}
@@ -443,7 +443,7 @@ class View_Attendance__Record extends View
 				$congregation = $GLOBALS['system']->getDBObject('congregation', (int)$set->congregationid);
 				$title = $congregation->getValue('name').' congregation';
 			} else {
-				$group =& $GLOBALS['system']->getDBObject('person_group', $set->groupid);
+				$group = $GLOBALS['system']->getDBObject('person_group', $set->groupid);
 				$title = $group->getValue('name').' group';
 			}
 			echo '<h3>'.$title.'</h3>';

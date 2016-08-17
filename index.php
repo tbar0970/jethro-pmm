@@ -16,7 +16,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with Jethro PMM.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * index.php - first stop for every request
  *
  * @author Tom Barrett <tom@tombarrett.id.au>
@@ -35,7 +35,23 @@ if (!is_readable(JETHRO_ROOT.'/conf.php')) {
 require_once JETHRO_ROOT.'/conf.php';
 
 // Initialise system
-if (!defined('DSN')) define('DSN', constant('PRIVATE_DSN'));
+// Check for old style DSN - and try to work - but this is messy and horrible to use
+if (defined('PRIVATE_DSN')) {
+	  // This solution found on stackoverflow!
+		preg_match('|([a-z]+)://([^:]*)(:(.*))?@([A-Za-z0-9\.-]*)(/([0-9a-zA-Z_/\.]*))|',
+     PRIVATE_DSN,$matches);
+		 if (!defined('DB_TYPE')) define('DB_TYPE', $matches[1]);
+		 if (!defined('DB_HOST')) define('DB_HOST', $matches[5]);
+		 if (!defined('DB_DATABASE')) define('DB_DATABASE', $matches[7]);
+		 if (!defined('DB_PRIVATE_USERNAME')) define('DB_PRIVATE_USERNAME', $matches[2]);
+		 if (!defined('DB_PRIVATE_PASSWORD')) define('DB_PRIVATE_PASSWORD', $matches[4]);
+}
+if (!defined('DSN')) {
+		define('DSN', DB_TYPE . ':host=' . DB_HOST . (!empty(DB_PORT)? (';port=' . DB_PORT):'') . ';dbname=' . DB_DATABASE . ';charset=utf8');
+}
+if (!defined('DB_USERNAME')) define('DB_USERNAME', DB_PRIVATE_USERNAME);
+if (!defined('DB_PASSWORD')) define('DB_PASSWORD', DB_PRIVATE_PASSWORD);
+
 require_once JETHRO_ROOT.'/include/init.php';
 
 // Set up the user system

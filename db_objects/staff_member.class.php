@@ -21,14 +21,14 @@ class Staff_Member extends Person
 	function load($id)
 	{
 		$res = parent::load($id);
-		
+
 		// Load restrictions
-		$sql = 'SELECT congregationid, NULL as groupid 
+		$sql = 'SELECT congregationid, NULL as groupid
 				FROM account_congregation_restriction
 				WHERE personid = '.(int)$id.'
 				UNION
 				SELECT NULL as congregationid, groupid
-				FROM account_group_restriction 
+				FROM account_group_restriction
 				WHERE personid = '.(int)$id;
 		$res = $GLOBALS['db']->queryAll($sql);
 		check_db_result($res);
@@ -80,7 +80,7 @@ class Staff_Member extends Person
 
 
 	// We need this to override person::getInitSQL
-	function getInitSQL()
+	function getInitSQL($table_name=NULL)
 	{
 		return $this->_getInitSQL();
 	}
@@ -97,12 +97,12 @@ class Staff_Member extends Person
 				$date_exp = 'AND action_date > DATE(NOW())';
 		}
 		$db =& $GLOBALS['db'];
-		$sql = 'SELECT 
-					an.id, an.subject, pn.personid, fn.familyid, an.action_date, 
+		$sql = 'SELECT
+					an.id, an.subject, pn.personid, fn.familyid, an.action_date,
 					IF(p.id IS NOT NULL,
 						CONCAT(p.first_name, '.$db->quote(' ').', p.last_name),
 						CONCAT(f.family_name, '.$db->quote(' Family').')
-					) as name, 
+					) as name,
 					IF(p.id IS NOT NULL, '.$db->quote('person').', '.$db->quote('family').') as type
 				FROM abstract_note an
 						LEFT JOIN person_note pn ON an.id = pn.id
@@ -124,7 +124,7 @@ class Staff_Member extends Person
 	*
 	* Subclasses should add links and other HTML markup by overriding this
 	*/
-	function printFieldValue($name, $value=null)
+	function printFieldValue($name, $value=NULL)
 	{
 		if (is_null($value)) $value = $this->getValue($name);
 		if ($name == 'restrictions') {
@@ -277,7 +277,7 @@ class Staff_Member extends Person
 				parent::processFieldInterface($name, $prefix);
 		}
 	}
-	
+
 	private function getMinPasswordLength() {
 		$minLen = defined('PASSWORD_MIN_LENGTH') ? (int)PASSWORD_MIN_LENGTH : 0;
 		$minLen = max($minLen, 8);
@@ -319,7 +319,7 @@ class Staff_Member extends Person
 		return $res;
 	}
 
-	function save()
+	function save($update_family = true)
 	{
 		// Only admins can edit staff other than themselves
 		if (!empty($GLOBALS['JETHRO_INSTALLING']) || ($GLOBALS['user_system']->getCurrentUser('id') == $this->id) || $GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
@@ -333,6 +333,7 @@ class Staff_Member extends Person
 					if (array_get($this->_restrictions, $type, Array()) != array_get($this->_old_restrictions, $type, Array())) {
 						$res = $GLOBALS['db']->query('DELETE FROM account_'.$type.'_restriction WHERE personid = '.(int)$this->id);
 						check_db_result($res);
+						$res->closeCursor();
 					}
 				}
 				$this->_insertRestrictions();
@@ -360,10 +361,11 @@ class Staff_Member extends Person
 				}
 				$res = $GLOBALS['db']->query('INSERT IGNORE INTO account_'.$type.'_restriction (personid, '.$type.'id) VALUES '.implode(',', $rows));
 				check_db_result($res);
+				$res->closeCursor();
 			}
 		}
 	}
-	
+
 	public function checkUniqueUsername()
 	{
 		$others = $GLOBALS['system']->getDBObjectData('staff_member', Array('username' => $this->getValue('username'), '!id' => $this->id), 'AND');

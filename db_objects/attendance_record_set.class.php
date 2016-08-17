@@ -13,7 +13,7 @@ class Attendance_Record_Set
 	private $_persons = NULL;
 	private $_attendance_records = Array();
 	private $_cohort_object = NULL;
-	
+
 	const LIST_ORDER_DEFAULT = 'status ASC, family_name ASC, familyid, age_bracket ASC, gender DESC';
 
 //--        CREATING, LOADING AND SAVING        --//
@@ -24,7 +24,7 @@ class Attendance_Record_Set
 			$this->load($date, $cohort, $age_brackets, $statuses);
 		}
 	}
-	
+
 	private function _getCohortObject()
 	{
 		if (!$this->_cohort_object) {
@@ -36,7 +36,7 @@ class Attendance_Record_Set
 		}
 		return $this->_cohort_object;
 	}
-	
+
 	public function acquireLock()
 	{
 		$obj = $this->_getCohortObject();
@@ -46,7 +46,7 @@ class Attendance_Record_Set
 		}
 		return $obj->acquireLock('attendance-'.$this->date);
 	}
-	
+
 	public function haveLock()
 	{
 		$obj = $this->_getCohortObject();
@@ -56,7 +56,7 @@ class Attendance_Record_Set
 		}
 		return $obj->haveLock('attendance-'.$this->date);
 	}
-	
+
 	public function releaseLock()
 	{
 		$obj = $this->_getCohortObject();
@@ -66,14 +66,13 @@ class Attendance_Record_Set
 		}
 		return $obj->releaseLock('attendance-'.$this->date);
 	}
-	
 
 	function create()
 	{
 	}
 
 
-	function getInitSQL()
+	function getInitSQL($table_name=NULL)
 	{
 		return "
 			CREATE TABLE `attendance_record` (
@@ -85,7 +84,7 @@ class Attendance_Record_Set
 			) ENGINE=InnoDB ;
 		";
 	}
-	
+
 	public function getForeignKeys()
 	{
 		return Array();
@@ -117,7 +116,7 @@ class Attendance_Record_Set
 		$sql = 'SELECT ar.personid, ar.present
 					FROM attendance_record ar
 					JOIN person p ON ar.personid = p.id
-					LEFT JOIN person_group_membership pgm 
+					LEFT JOIN person_group_membership pgm
 						ON pgm.groupid = ar.groupid AND pgm.personid = p.id
 				WHERE ar.date = '.$db->quote($date).'
 					AND ar.groupid = '.(int)$this->groupid;
@@ -170,7 +169,7 @@ class Attendance_Record_Set
 			$conds['congregationid'] = $this->congregationid;
 			$this->_persons = $GLOBALS['system']->getDBObjectData('person', $conds, 'AND', $order);
 		} else {
-			$group =& $GLOBALS['system']->getDBObject('person_group', $this->groupid);
+			$group = $GLOBALS['system']->getDBObject('person_group', $this->groupid);
 			$this->_persons = $group->getMembers($conds, $order);
 		}
 	}
@@ -202,20 +201,21 @@ class Attendance_Record_Set
 	function delete()
 	{
 		$db =& $GLOBALS['db'];
-		$sql = 'DELETE ar 
+		$sql = 'DELETE ar
 				FROM attendance_record ar
 				JOIN person p ON ar.personid = p.id
 				WHERE date = '.$db->quote($this->date).'
 					AND (ar.groupid = '.$db->quote((int)$this->groupid).')';
 		if ($this->congregationid) {
 			$sql .= '
-					AND (congregationid = '.$db->quote($this->congregationid).') 
+					AND (congregationid = '.$db->quote($this->congregationid).')
 					';
 		}
 		$sql .= '  AND personid IN ('.implode(',', array_map(Array($db, 'quote'), array_keys($this->_persons))).')';
 
 		$res = $db->query($sql);
 		check_db_result($res);
+		$res->closeCursor();
 	}
 
 
@@ -255,24 +255,24 @@ class Attendance_Record_Set
 	{
 		return $this->_persons;
 	}
-	
+
 	public function getCohortName()
 	{
 		$obj = $this->_getCohortObject();
 		if ($obj) return $obj->getValue('name');
 	}
-	
+
 	public function checkAllowedDate()
 	{
 		$obj = $this->_getCohortObject();
 		if (!$obj) return FALSE;
 		return $obj->canRecordAttendanceOn($this->date);
 	}
-	
+
 	public function printForm($prefix=0)
 	{
 		if (empty($this->_persons)) return 0;
-		
+
 		$GLOBALS['system']->includeDBClass('person');
 		$dummy = new Person();
 		?>
@@ -283,7 +283,7 @@ class Attendance_Record_Set
 			$dummy->populate($personid, $details);
 			?>
 			<tr>
-			<?php 
+			<?php
 			if (!SizeDetector::isNarrow()) {
 				?>
 				<td><?php echo $personid; ?></td>
@@ -302,7 +302,7 @@ class Attendance_Record_Set
 				<td>
 					<?php echo ents($details['first_name'].' '.$details['last_name']); ?>
 				</td>
-			<?php 
+			<?php
 			if (!SizeDetector::isNarrow()) {
 				?>
 				<td>
@@ -476,7 +476,7 @@ class Attendance_Record_Set
 	function getStatsForPeriod($start_date, $end_date, $cohortid)
 	{
 		$db =& $GLOBALS['db'];
-		
+
 		list($type, $id) = explode('-', $cohortid);
 		$groupid = ($type == 'g') ? $id : 0;
 		$status_col = ($type == 'g') ? 'pgms.id' : 'p.status';
@@ -740,7 +740,7 @@ class Attendance_Record_Set
 		$totals = Array();
 		$res = $GLOBALS['db']->query($SQL);
 		check_db_result($res);
-		while ($row = $res->fetchRow()) {
+		while ($row = $res->fetch()) {
 			if (!empty($row['date'])) $dates[$row['date']] = 1;
 			foreach (Array('last_name', 'first_name', 'membership_status', 'status') as $f) {
 				if (array_key_exists($f, $row)) $attendances[$row['id']][$f] = $row[$f];
@@ -753,6 +753,7 @@ class Attendance_Record_Set
 		}
 		$dates = array_keys($dates);
 		sort($dates);
+		$res->closeCursor();
 		return Array($dates, $attendances, $totals);
 	}
 
@@ -804,7 +805,7 @@ class Attendance_Record_Set
 		</tr>
 		<?php
 	}
-	
+
 	public static function printPersonFilters($age_brackets, $statuses)
 	{
 		?>
@@ -894,7 +895,7 @@ class Attendance_Record_Set
 
 
 
-		
+
 
 
 }//end class

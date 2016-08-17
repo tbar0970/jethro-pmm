@@ -1,7 +1,7 @@
 <?php
 /**
  * JETHRO PMM
- * 
+ *
  * conf.php - edit this file to configure jethro
  *
  * @author Tom Barrett <tom@tombarrett.id.au>
@@ -17,13 +17,19 @@
 define('SYSTEM_NAME', "St Demo's Smithsville");
 
 // Database details - you need to replace at least USERNAME, PASSWORD and DB_NAME for both of these.
-// The Private DSN is used for the main system that users log in to.
-// For enhanced security you can use a different database user for the Public DSN
+// The Private details are used for the main system that users log in to.
+// For enhanced security you can use a different database user for the Public and for members,
 // and only grant reduced access privileges to that user (eg only SELECT priveleges, only certain tables)
-// Ref: http://en.wikipedia.org/wiki/Database_Source_Name
-define('PUBLIC_DSN', "mysql://USERNAME:PASSWORD@localhost/DB_NAME");
-define('PRIVATE_DSN', "mysql://USERNAME:PASSWORD@localhost/DB_NAME");
-define('MEMBERS_DSN', "mysql://USERNAME:PASSWORD@localhost/DB_NAME");
++define('DB_TYPE', 'mysql');
++define('DB_HOST', 'localhost');
++define('DB_PORT', '3306');
++define('DB_DATABASE', 'DB_NAME');
++define('DB_PUBLIC_USERNAME', 'USERNAME');
++define('DB_PUBLIC_PASSWORD', 'PASSWORD');
++define('DB_PRIVATE_USERNAME', 'USERNAME');
++define('DB_PRIVATE_PASSWORD', 'PASSWORD');
++define('DB_MEMBERS_USERNAME', 'USERNAME');
++define('DB_MEMBERS_PASSWORD', 'PASSWORD');
 
 // The URL jethro will be running at.  NB The final slash is important!!
 define('BASE_URL', 'http://example.com/jethro/');
@@ -52,7 +58,7 @@ define('DOCUMENTS_ROOT_PATH', '');
 
 // To use the "generate service documents" feature, add folder paths here.
 // They can be absolute paths, or relative within the documents root above.
-// Separate multiple entries with pipe (|).  
+// Separate multiple entries with pipe (|).
 define('SERVICE_DOCS_TO_POPULATE_DIRS', 'Templates/To_Populate');
 define('SERVICE_DOCS_TO_EXPAND_DIRS', 'Templates/To_Expand');
 

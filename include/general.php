@@ -65,10 +65,7 @@ function bam($x)
 
 function check_db_result(&$res)
 {
-	if (PEAR::isError($res)) {
-		trigger_error("Database Error: ".print_r($res->userinfo, 1), E_USER_ERROR);
-		exit();
-	}
+	$GLOBALS['db']->check_db_error();
 }
 
 function format_datetime($d)
@@ -133,6 +130,9 @@ function add_message($msg, $class='success', $html=FALSE)
 
 function dump_messages()
 {
+	if (defined('PRIVATE_DSN') || defined('PUBLIC_DSN') || defined('MEMBERS_DSN') ) {
+			add_message('Using old style database connection. Please update your config.', 'warning');
+	}
 	if (!empty($_SESSION['messages'])) {
 		foreach ($_SESSION['messages'] as $msg) print_message($msg['message'], $msg['class'], $msg['html']);
 		unset($_SESSION['messages']);
@@ -251,7 +251,7 @@ function print_widget($name, $params, $value)
 			foreach ($our_val as $k => $v) $our_val[$k] = "$v";
 			if (array_get($params, 'style', 'dropbox') == 'colour-buttons') {
 				?>
-				<div class="radio-button-group <?php echo array_get($params, 'class', ''); ?>" 
+				<div class="radio-button-group <?php echo array_get($params, 'class', ''); ?>"
 					 <?php
 					 if (!SizeDetector::isNarrow()) echo ' tabindex="1"';
 					 ?>
@@ -262,8 +262,8 @@ function print_widget($name, $params, $value)
 					$classes = 'btn value-'.$k;
 					if (in_array("$k", $our_val, true)) $classes .= ' active';
 					?>
-					<div 
-						class="<?php echo $classes; ?>" 
+					<div
+						class="<?php echo $classes; ?>"
 						title="<?php echo $v; ?>"
 						data-val="<?php echo $k; ?>"
 					>
@@ -352,7 +352,8 @@ function print_widget($name, $params, $value)
 				if (empty($value)) $value = date('Y-m-d'); // blank dates not allowed
 			}
 			for ($i = 1; $i < 13; $i++) $months[$i] = date(array_get($params, 'month_format', 'F'), strtotime("2007-$i-01"));
-			$value = reset(explode(' ', $value));
+			$value = explode(' ', $value);
+			$value = reset($value);
 			list($year_val, $month_val, $day_val) = explode('-', substr($value, 0, 10));
 			?>
 			<span class="nowrap" <?php echo $attrs; ?> >
@@ -445,7 +446,7 @@ function print_widget($name, $params, $value)
 		case 'checkbox':
 			?>
 			<input type="checkbox" name="<?php echo ents($name); ?>" value="1"
-				   <?php 
+				   <?php
 				   if ($value) echo 'checked="checked" ';
 				   echo $attrs;
 				   ?>
@@ -561,7 +562,7 @@ function process_widget($name, $params, $index=NULL, $preserveEmpties=FALSE)
 function format_value($value, $params)
 {
 	if (!empty($params['references'])) {
-		$obj =& $GLOBALS['system']->getDBObject($params['references'], $value);
+		$obj = $GLOBALS['system']->getDBObject($params['references'], $value);
 		if (!is_null($obj)) {
 			if (!array_get($params, 'show_id', true)) {
 				return $obj->toString();
@@ -674,7 +675,7 @@ function get_phone_format_lengths($formats)
 	}
 	return array_unique($lengths);
 }
-	
+
 
 function is_valid_phone_number($x, $formats)
 {
@@ -730,7 +731,7 @@ function get_email_href($to, $name=NULL, $bcc=NULL, $subject=NULL)
 	$sep = defined('MULTI_EMAIL_SEPARATOR') ? MULTI_EMAIL_SEPARATOR : ',';
 	if (!empty($to)) $to = implode($sep, (array)$to);
 	if (!empty($bcc)) $bcc = implode($sep, (array)$bcc);
-	
+
 	if (function_exists('custom_email_href')) return custom_email_href($to, $name, $bcc, $subject);
 
 	// Chrome on mac with mac:mail as the mailto handler cannot cope with fullname in the address
@@ -771,9 +772,9 @@ function generate_random_string($chars=16)
 		}
 		return $res;
 	}
-	
+
 	$pr_bits = '';
-	
+
 	if (function_exists('openssl_random_pseudo_bytes')) {
 		$pr_bits = openssl_random_pseudo_bytes($chars);
 	} else {
@@ -801,7 +802,7 @@ function generate_random_string($chars=16)
 			}
 		}
 	}
-	
+
 	if (empty($pr_bits)) {
 		trigger_error("Could not generate random string", E_USER_ERROR);
 	}
@@ -809,14 +810,14 @@ function generate_random_string($chars=16)
 	if (strlen($pr_bits) < $chars) {
 		trigger_error("Generated random string not long enough (only ".strlen($pr_bits));
 	}
-	
+
 	$validChars = array_merge(range(0,9), range('A', 'Z'), range('a', 'z'));
 	for ($i=0; $i < strlen($pr_bits); $i++) {
 		if (!preg_match('/[A-Za-z0-9]/', $pr_bits[$i])) {
 			$pr_bits[$i] = $validChars[ord($pr_bits[$i]) % count($validChars)];
 		}
 	}
-	
+
 	return $pr_bits;
 }
 

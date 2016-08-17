@@ -147,7 +147,7 @@ class Person extends DB_Object
 									'editable'		=> false,
 									'show_in_summary'	=> false,
 									)
-	
+
 		);
 		if (defined('PERSON_STATUS_DEFAULT')) {
 			if (FALSE !== ($i = array_search(constant('PERSON_STATUS_DEFAULT'), $res['status']['options']))) {
@@ -157,7 +157,7 @@ class Person extends DB_Object
 		return $res;
 	}
 
-	function getInitSQL()
+	function getInitSQL($table_name=NULL)
 	{
 		return Array(
 			"CREATE TABLE `_person` (
@@ -218,7 +218,7 @@ class Person extends DB_Object
 	}
 
 
-	function printFieldValue($name, $value=null)
+	function printFieldValue($name, $value=NULL)
 	{
 		if (is_null($value)) $value = $this->getValue($name);
 		switch ($name) {
@@ -226,7 +226,7 @@ class Person extends DB_Object
 				echo ents($this->getValue('first_name')).'&nbsp;'.ents($this->getValue('last_name'));
 				return;
 			case 'mobile_tel':
-				
+
 				if (!strlen($value)) return;
 				echo ents($this->getFormattedValue($name, $value));
 
@@ -392,7 +392,7 @@ class Person extends DB_Object
 						AND ar.groupid = recorded.groupid
 						AND ar.personid = '.$db->quote($this->id).'
 					LEFT JOIN person_group g ON recorded.groupid = g.id
-				WHERE 
+				WHERE
 				';
 		if ($groupid != -1) {
 			$sql .= ' recorded.groupid = '.(int)$groupid;
@@ -427,7 +427,7 @@ class Person extends DB_Object
 		$SQL .= implode(",\n", $sets);
 		$res = $db->exec($SQL);
 		check_db_result($res);
-		
+
 	}
 
 	function getPersonsByName($name, $include_archived=true)
@@ -443,7 +443,7 @@ class Person extends DB_Object
 		}
 		return $results;
 	}
-	
+
 	function save($update_family=TRUE)
 	{
 		$GLOBALS['system']->doTransaction('BEGIN');
@@ -454,9 +454,9 @@ class Person extends DB_Object
 			// be updating themselves but saving the family will fail
 
 			if (!empty($this->_old_values['status']) || !empty($this->_old_values['last_name'])) {
-				$family =& $GLOBALS['system']->getDBObject('family', $this->getValue('familyid'));
+				$family = $GLOBALS['system']->getDBObject('family', $this->getValue('familyid'));
 				$members = $family->getMemberData();
-				
+
 				if (!empty($this->_old_values['status']) && ($this->getValue('status') == 'archived')) {
 					// status has just been changed to 'archived' so archive family if no live members
 
@@ -529,6 +529,7 @@ class Person extends DB_Object
 					VALUES ('.(int)$this->id.', '.$db->quote($this->_photo_data).')';
 			$res = $db->query($SQL);
 			check_db_result($res);
+			$res->closeCursor();
 		}
 	}
 
@@ -536,6 +537,7 @@ class Person extends DB_Object
 		$db =& $GLOBALS['db'];
 		$SQL = 'DELETE FROM custom_field_value WHERE personid = '.(int)$this->id;
 		check_db_result($db->query($SQL));
+		$res->closeCursor();
 		$SQL = 'INSERT INTO custom_field_value
 				(personid, fieldid, value_text, value_date, value_optionid)
 				VALUES ';
@@ -564,7 +566,9 @@ class Person extends DB_Object
 		}
 		if ($sets) {
 			$SQL .= implode(",\n", $sets);
-			check_db_result($GLOBALS['db']->query($SQL));
+			$res = $GLOBALS['db']->query($SQL);
+			check_db_result($res);
+			$res->closeCursor();
 		}
 	}
 
@@ -652,12 +656,12 @@ class Person extends DB_Object
 		}
 		return $out;
 	}
-		
+
 	function getInstancesQueryComps($params, $logic, $order)
 	{
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
 		$res['select'][] = 'f.family_name, f.address_street, f.address_suburb, f.address_state, f.address_postcode, f.home_tel, c.name as congregation';
-		$res['from'] = '(('.$res['from'].') 
+		$res['from'] = '(('.$res['from'].')
 						JOIN family f ON person.familyid = f.id)
 						LEFT OUTER JOIN congregation c ON person.congregationid = c.id';
 		return $res;

@@ -34,14 +34,14 @@ class roster_view extends db_object
 	function load($id)
 	{
 		$res = parent::load($id);
-		
+
 		if (!$this->getValue('is_public') && !$GLOBALS['user_system']->getCurrentUser('id')) {
 			// We don't use trigger_error here because sysadmins don't really care.
 			header($_SERVER["SERVER_PROTOCOL"]." 401 Not Authorised");
 			print_message("Roster view #{$this->id} is only available to logged in users", 'error');
 			exit;
 		}
-		
+
 		$sql = '(
 					SELECT rvrm.order_num as order_num, rr.id as role_id, rr.title as role_title, NULL as service_field, rr.congregationid as congregationid, rrc.name as congregation_name, rr.volunteer_group as volunteer_group
 					FROM
@@ -82,7 +82,7 @@ class roster_view extends db_object
 
 	protected static function _getFields()
 	{
-		
+
 		$fields = Array(
 			'name'			=> Array(
 									'type'		=> 'text',
@@ -121,7 +121,7 @@ class roster_view extends db_object
 		unset($this->fields['members']);
 	}
 
-	function printFieldInterface($name, $prefix)
+	function printFieldInterface($name, $prefix='')
 	{
 		switch ($name) {
 			case 'members':
@@ -233,7 +233,7 @@ class roster_view extends db_object
 		unset($this->fields['members']);
 	}
 
-	function processFieldInterface($name, $prefix)
+	function processFieldInterface($name, $prefix='')
 	{
 		switch ($name) {
 			case 'members':
@@ -265,13 +265,15 @@ class roster_view extends db_object
 			$sql = 'DELETE FROM roster_view_role_membership WHERE roster_view_id = '.(int)$this->id;
 			$q = $GLOBALS['db']->query($sql);
 			check_db_result($q);
+			$q->closeCursor();
 			$sql = 'DELETE FROM roster_view_service_field WHERE roster_view_id = '.(int)$this->id;
 			$q = $GLOBALS['db']->query($sql);
 			check_db_result($q);
+			$q->closeCursor();
 
 			$role_inserts = Array();
 			$field_inserts = Array();
-	
+
 			foreach ($this->_members_to_set as $order => $detail) {
 				if (empty($detail)) continue;
 				$bits = explode('-', $detail);
@@ -287,6 +289,7 @@ class roster_view extends db_object
 				$sql .= implode(', ', $role_inserts);
 				$q = $GLOBALS['db']->query($sql);
 				check_db_result($q);
+				$q>closeCursor();
 			}
 
 			if (!empty($field_inserts)) {
@@ -294,6 +297,7 @@ class roster_view extends db_object
 				$sql .= implode(', ', $field_inserts);
 				$q = $GLOBALS['db']->query($sql);
 				check_db_result($q);
+				$q->closeCursor();
 			}
 
 			$this->_members_to_set = Array();
@@ -357,7 +361,7 @@ class roster_view extends db_object
 				IFNULL(CONCAT(publicassignee.first_name, " ", publicassignee.last_name), "'.self::hiddenPersonLabel.'") as assignee,
 				IF(privateassignee.id IS NULL, 1, 0) as assigneehidden,
 				privateassignee.email as email,
-				CONCAT(assigner.first_name, " ", assigner.last_name) as assigner, 
+				CONCAT(assigner.first_name, " ", assigner.last_name) as assigner,
 				rra.assignedon
 				FROM roster_role_assignment rra
 				LEFT JOIN person privateassignee ON rra.personid = privateassignee.id
@@ -394,7 +398,7 @@ class roster_view extends db_object
 		check_db_result($rows);
 		return $rows;
 	}
-	
+
 	public function printCSV($start_date=NULL, $end_date=NULL)
 	{
 		$GLOBALS['system']->includeDBClass('service');
@@ -418,7 +422,7 @@ class roster_view extends db_object
 		$role_objects = Array();
 
 		$csvData = Array();
-		
+
 		// Headers
 		$row = Array('');
 		$lastCong = '';
@@ -431,7 +435,7 @@ class roster_view extends db_object
 			}
 		}
 		$csvData[] = $row;
-		
+
 		$row = Array('Date');
 		$dummy_service = new Service();
 		foreach ($this->_members as $id => $details) {
@@ -527,7 +531,7 @@ class roster_view extends db_object
 				$i = 0;
 				foreach ($this->_members as $member) {
 					if (!$includeServiceFields && (empty($member['role_id']))) continue;
-					
+
 					if (($i % $totalRows) == $rowNum) {
 						?>
 						<th><?php $this->_printOutputLabel($member, $service); ?></th>
@@ -613,7 +617,7 @@ class roster_view extends db_object
 			if ($public) {
 				?>
 				<div class="alert alert-error">This roster is empty for the current date range.</div>
-				<?php	
+				<?php
 			} else {
 				?>
 				<div class="alert alert-error">There are no services during the date range specified.  Please try a different date range, or create some services using the 'Edit service program' page.</div>
@@ -635,7 +639,7 @@ class roster_view extends db_object
 			foreach ($this->_members as $id => &$details) {
 				if (!empty($details['role_id'])) {
 					$role = $GLOBALS['system']->getDBObject('roster_role', $details['role_id']);
-					
+
 					if (!($role->canAcquireLock('assignments') && $role->acquireLock('assignments'))) {
 						$details['readonly'] = true;
 						$show_lock_fail_msg = true;
@@ -681,7 +685,7 @@ class roster_view extends db_object
 				?>
 				<tr <?php echo $class_clause; ?>>
 					<td class="nowrap">
-						<?php 
+						<?php
 						echo '<strong>'.str_replace(' ', '&nbsp;', date('j M y', strtotime($date))).'</strong>';
 						if (!$editing && !$public) {
 							$emails = Array();
@@ -751,7 +755,7 @@ class roster_view extends db_object
 								$currentval[$pid] = $pdetails['name'];
 							}
 							if (empty($role_objects[$mdetail['role_id']])) {
-								$role_objects[$mdetail['role_id']] =& $GLOBALS['system']->getDBObject('roster_role', $mdetail['role_id']);
+								$role_objects[$mdetail['role_id']] = $GLOBALS['system']->getDBObject('roster_role', $mdetail['role_id']);
 							}
 							if (empty($role_objects[$mdetail['role_id']])) {
 								// must've been a problem
@@ -820,7 +824,7 @@ class roster_view extends db_object
 		<thead>
 			<tr>
 				<th rowspan="2">Date</th>
-				<?php 
+				<?php
 				$this->_printCongHeaders();
 				if (!$public && (count($this->_members) > REPEAT_DATE_THRESHOLD)) {
 					?>
@@ -970,19 +974,21 @@ class roster_view extends db_object
 					}
 				}
 			}
-	
+
 		}
 		$GLOBALS['system']->doTransaction('BEGIN');
 		if (!empty($del_clauses)) {
 			$sql = 'DELETE FROM roster_role_assignment WHERE ('.implode(' OR ', $del_clauses).')';
 			$res = $GLOBALS['db']->query($sql);
 			check_db_result($res);
+			$res->closeCursor();
 		}
 		if (!empty($to_add)) {
 			$to_add = array_unique($to_add);
 			$sql = 'REPLACE INTO roster_role_assignment (roster_role_id, assignment_date, personid, assigner) VALUES '.implode(",\n", $to_add);
 			$res = $GLOBALS['db']->query($sql);
 			check_db_result($res);
+			$res->closeCursor();
 		}
 		foreach ($roles as $i => $roleid) {
 			$role = $GLOBALS['system']->getDBObject('roster_role', $roleid);

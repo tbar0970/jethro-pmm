@@ -222,6 +222,7 @@ class db_object
 		check_db_result($res);
 		if (empty($this->id)) $this->id = $db->lastInsertId();
 		$this->_old_values = Array();
+		$res->closeCursor();
 		return TRUE;
 	}
 
@@ -266,7 +267,8 @@ class db_object
 		$db =& $GLOBALS['db'];
 		$sql = 'SELECT *
 				FROM '.strtolower($this->_getTableNames()).'
-				WHERE '.strtolower(get_class($this)).'.id = '.$db->quote($id);
+				WHERE '.strtolower(get_class($this)).'.id = '.$db->quote($id) .'
+				LIMIT 1';
 		$res = $db->queryRow($sql);
 		check_db_result($res);
 		if (!empty($res)) {
@@ -340,7 +342,7 @@ class db_object
 				return FALSE;
 			}
 		}
-		
+
 		// Update the DB
 		$db =& $GLOBALS['db'];
 		$sets = Array();
@@ -366,10 +368,11 @@ class db_object
 					WHERE id = '.$db->quote($this->id);
 			$res = $db->query($sql);
 			check_db_result($res);
+			$res->closeCursor();
 		}
 
 		$this->_old_values = Array();
-		
+
 		if ($acquiredLock) $this->releaseLock();
 
 		return TRUE;
@@ -411,6 +414,7 @@ class db_object
 			$sql = 'DELETE FROM '.$table_name.' WHERE id='.$db->quote($this->id);
 			$res = $db->query($sql);
 			check_db_result($res);
+			$res->closeCursor();
 			$table_name = strtolower(get_parent_class($table_name));
 		}
 		$GLOBALS['system']->doTransaction('commit');
@@ -528,7 +532,7 @@ class db_object
 		<?php
 	}
 
-	
+
 	protected function _printSummaryRows()
 	{
 		foreach ($this->fields as $name => $details) {
@@ -574,7 +578,7 @@ class db_object
 	*
 	* Subclasses should add links and other HTML markup by overriding this
 	*/
-	public function printFieldValue($name, $value=null)
+	public function printFieldValue($name, $value=NULL)
 	{
 		if (!isset($this->fields[$name])) {
 			trigger_error('Cannot get value for field '.ents($name).' - field does not exist', E_USER_WARNING);
@@ -647,7 +651,7 @@ class db_object
 <div class="control-group">
 	<label class="control-label" for="<?php echo $name; ?>"><?php echo _($this->getFieldLabel($name)); ?></label>
 	<div class="controls">
-		<?php 
+		<?php
 			$this->printFieldInterface($name, $prefix);
 			if (!empty($this->fields[$name]['note'])) {
 				echo '<p class="help-inline">'.$this->fields[$name]['note'].'</p>';
@@ -776,6 +780,7 @@ class db_object
 					'.$db->quote(MDB2_Date::unix2Mdbstamp(strtotime('+'.LOCK_LENGTH))).')';
 		$res = $db->query($sql);
 		check_db_result($res);
+		$res->closeCursor();
 		$this->_held_locks[$type] = TRUE;
 		$this->_acquirable_locks[$type] = TRUE;
 
@@ -784,6 +789,7 @@ class db_object
 					WHERE expires < '.$db->quote(MDB2_Date::unix2Mdbstamp(time()));
 			$res = $db->query($sql);
 			check_db_result($res);
+			$res->closeCursor();
 		}
 
 		return TRUE;
@@ -800,6 +806,7 @@ class db_object
 		$SQL = 'DELETE FROM db_object_lock
 				WHERE userid = '.$db->quote($userid);
 		$res = $db->query($SQL);
+		$res->closeCursor();
 		// We actually don't care if this fails - it shouldn't hold up the logout.
 		//check_db_result($res);
 	}
@@ -815,6 +822,7 @@ class db_object
 					AND object_type = '.$db->quote(strtolower(get_class($this)));
 		$res = $db->query($sql);
 		check_db_result($res);
+		$res->closeCursor();
 		$this->_held_locks[$type] = FALSE;
 		$this->_acquirable_locks[$type] = NULL;
 	}
@@ -941,6 +949,7 @@ class db_object
 			$sql .= '
 					ORDER BY '.$query_bits['order_by'];
 		}
+
 		$res = $db->queryAll($sql, null, null, true, true); // 5th param forces array even if one col
 		check_db_result($res);
 		return $res;

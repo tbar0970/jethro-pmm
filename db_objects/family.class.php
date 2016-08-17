@@ -103,7 +103,7 @@ class family extends db_object
 	}
 
 
-	function getInitSQL()
+	function getInitSQL($table_name=NULL)
 	{
 		return Array(
 			 "
@@ -240,7 +240,7 @@ class family extends db_object
 		}
 	}
 
-	function printFieldInterface($name)
+	function printFieldInterface($name, $prefix='')
 	{
 		if ($name == 'photo') {
 			?>
@@ -248,9 +248,9 @@ class family extends db_object
 			<?php
 			return;
 		}
-		
+
 		parent::printFieldInterface($name);
-		
+
 		$postcode_url = POSTCODE_LOOKUP_URL;
 		if (($name == 'address_suburb') && !empty($postcode_url)) {
 			?>
@@ -331,7 +331,7 @@ class family extends db_object
 		parent::printSummary();
 		unset($this->fields['members']);
 	}
-	
+
 	function printCustomSummary($showMembersCallback)
 	{
 		// TODO: test this in the mmebers interface
@@ -411,7 +411,7 @@ class family extends db_object
 					// Status has just been changed from archived to something else
 					$msg = 'NB Members of the family will need to be de-archived separately';
 				}
-					
+
 			}
 			if (!empty($this->_old_values['family_name'])) {
 				// Family name has changed
@@ -477,6 +477,7 @@ class family extends db_object
 					VALUES ('.(int)$this->id.', '.$db->quote($this->_photo_data).')';
 			$res = $db->query($SQL);
 			check_db_result($res);
+			$res->closeCursor();
 		}
 	}
 
@@ -515,7 +516,7 @@ class family extends db_object
 			GROUP_CONCAT(p.last_name ORDER BY p.age_bracket ASC, p.gender, p.id DESC SEPARATOR ",") as selected_lastnames
 			FROM family f
 			JOIN person p ON f.id= p.familyid
-			JOIN 
+			JOIN
 			   (select f.id as familyid, GROUP_CONCAT(p.first_name ORDER BY p.age_bracket ASC, p.gender DESC SEPARATOR ", ") as names
 			   FROM person p JOIN family f on p.familyid = f.id
 			   WHERE p.status <> "archived"
@@ -533,7 +534,7 @@ class family extends db_object
 		check_db_result($res);
 		return $res;
 	}
-		
+
 
 
 	static function printSingleFinder($name, $currentval=NULL)
