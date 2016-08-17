@@ -7,28 +7,28 @@ if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
 	<!---------- TAB HEADERS --------------->
 	<div class="row">
 		<div class="col-xs-12">
-			<ul class="nav nav-tabs">
-				<li class="nav-item"><a data-toggle="tab" class="nav-link active" href="#basic"><?php echo _('Basic Details')?></a></li>
-			<?php
-			if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
-				$notes = $GLOBALS['system']->getDBObjectData('family_note', Array('familyid' => $family->id), 'OR', 'created');
-				?>
-				<li class="nav-item"><a data-toggle="tab" class="nav-link" href="#notes"><?php echo _('Notes')?> (<?php echo count($notes); ?>)</a></li>
-				<?php
-			}
-			if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE) || !$GLOBALS['system']->featureEnabled('NOTES')) {
-				?>
-				<li class="nav-item"><a data-toggle="tab" class="nav-link"href="#history"><?php echo _('History')?></a></li>
-				<?php
-			}
-			?>
-			</ul>
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-xs-12 tab-content view-family">
+			<div class="card">
+				<div class="card-header">
+					<ul class="nav nav-pills card-header-pills pull-xs-left">
+						<li class="nav-item"><a data-toggle="tab" class="nav-link active" href="#basic"><?php echo _('Basic Details')?></a></li>
+					<?php
+					if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
+						$notes = $GLOBALS['system']->getDBObjectData('family_note', Array('familyid' => $family->id), 'OR', 'created');
+						?>
+						<li class="nav-item"><a data-toggle="tab" class="nav-link" href="#notes"><?php echo _('Notes')?> (<?php echo count($notes); ?>)</a></li>
+						<?php
+					}
+					if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE) || !$GLOBALS['system']->featureEnabled('NOTES')) {
+						?>
+						<li class="nav-item"><a data-toggle="tab" class="nav-link"href="#history"><?php echo _('History')?></a></li>
+						<?php
+					}
+					?>
+					</ul>
+				</div> <!-- card-header -->
 	<?php
-
+	$panel_header = '<div class="card-block tab-pane %3$s" id="%1$s">';
+	$panel_footer = '</div>';
 /**************** BASIC DETAILS TAB *************/
 
 printf($panel_header, 'basic', 'Basic Details & Members', 'active');
@@ -48,7 +48,7 @@ printf($panel_header, 'basic', 'Basic Details & Members', 'active');
 			}
 			?>
 
-			<h3><?php echo _('Family Details'); ?></h3>
+			<h4 class="card-title"><?php echo _('Family Details'); ?></h4>
 
 			<?php
 			$family->printSummary();
