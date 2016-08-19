@@ -1116,7 +1116,7 @@ class Person_Query extends DB_Object
 					case 'attendance_percent':
 							$groupid = $params['attendance_groupid'] == '__cong__' ? 0 : $params['attendance_groupid'];
 							$min_date = date('Y-m-d', strtotime('-'.(int)$params['attendance_weeks'].' weeks'));
-							$query['select'][] = '(SELECT CONCAT(ROUND(SUM(present)/COUNT(*)*100), "%") 
+							$query['select'][] = '(SELECT ROUND(SUM(present)/COUNT(*)*100) 
 													FROM attendance_record 
 													WHERE date >= '.$GLOBALS['db']->quote($min_date).' 
 													AND groupid = '.(int)$groupid.'
@@ -1444,6 +1444,9 @@ class Person_Query extends DB_Object
 								<img height="60" src="?call=photo&personid=<?php echo $row[$label]; ?>" />
 								</a>
 								<?php
+								break;
+							case 'Attendance':
+								echo $val.'%';
 								break;
 							default:
 								if (isset($this->_field_details[$label])) {
