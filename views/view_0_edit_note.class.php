@@ -39,7 +39,7 @@ class View__Edit_Note extends View
 				if (!$this->_note->canEditOriginal()) {
 					$fieldsToSave = array_diff($fieldsToSave, Array('subject', 'details'));
 				}
-				$this->_note->processForm('', $fieldsToSave); 
+				$this->_note->processForm('', $fieldsToSave);
 				if (!$this->_note->save()) {
 					$success = FALSE;
 				}
@@ -92,7 +92,7 @@ class View__Edit_Note extends View
 				$hash = '';
 		}
 		redirect($next_view, $params + Array('*' => NULL), $hash); // exits
-		
+
 	}
 	
 	function getTitle()
@@ -109,7 +109,7 @@ class View__Edit_Note extends View
 	{
 		$show_form = true;
 		if (!empty($_POST['update_note_submitted'])) {
-			if (!$this->_note->haveLock()) { 
+			if (!$this->_note->haveLock()) {
 				// lock expired
 				if ($this->_note->acquireLock()) {
 					// managed to reacquire lock - ask them to try again
@@ -148,7 +148,7 @@ class View__Edit_Note extends View
 				</div>
 			</form>
 			<?php
-			
+
 		} else {
 
 			$show_edit_link = FALSE;

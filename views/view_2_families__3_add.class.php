@@ -6,7 +6,7 @@ class View_Families__Add extends View
 
 	static function getMenuPermissionLevel()
 	{
-		return Person::allowedToAdd() ? PERM_EDITPERSON : -1;	
+		return Person::allowedToAdd() ? PERM_EDITPERSON : -1;
 	}
 
 	function processView()
@@ -124,10 +124,10 @@ class View_Families__Add extends View
 		}
 	}
 
-	function printSimilarFamilies() 
+	function printSimilarFamilies()
 	{
-		$msg = count($this->_similar_families) > 1 
-			? _('Several families already exist that are similar to the one you are creating') 
+		$msg = count($this->_similar_families) > 1
+			? _('Several families already exist that are similar to the one you are creating')
 			: _('A family similar to the one you are creating already exists');
 		?>
 		<p class="alert alert-error"><b>Warning: <?php echo $msg; ?>.</b></p>
@@ -151,7 +151,7 @@ class View_Families__Add extends View
 		<?php
 	}
 
-	function printForm() 
+	function printForm()
 	{
 		$GLOBALS['system']->includeDBClass('person');
 		$person = new Person();

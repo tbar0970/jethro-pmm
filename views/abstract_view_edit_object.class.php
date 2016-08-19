@@ -67,7 +67,7 @@ class Abstract_View_Edit_Object extends View
 		if (empty($this->_edited_object)) return;
 		$show_form = true;
 		if (!empty($_POST['edit_object_submitted'])) {
-			if (!$this->_edited_object->haveLock()) { 
+			if (!$this->_edited_object->haveLock()) {
 				// lock expired
 				if ($this->_edited_object->acquireLock()) {
 					// managed to reacquire lock - ask them to try again

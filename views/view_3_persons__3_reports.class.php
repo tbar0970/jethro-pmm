@@ -88,7 +88,7 @@ class View_Persons__Reports extends View
 
 			</form>
 			<?php
-			
+
 		} else if (!empty($this->_query)) {
 			$this->_query->printResults();
 			?>
@@ -105,7 +105,7 @@ class View_Persons__Reports extends View
 				</div>
 			</div>
 			<?php
-			
+
 		} else {
 			?>
 			<p>

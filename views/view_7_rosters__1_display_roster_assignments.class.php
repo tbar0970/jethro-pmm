@@ -99,7 +99,7 @@ class View_Rosters__Display_Roster_Assignments extends View
 				?>
 				</p>
 				<?php
-			}	
+			}
 
 		}
 

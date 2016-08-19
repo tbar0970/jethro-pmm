@@ -70,7 +70,7 @@ class View__Add_Note_To_Person extends View
 	{
 		if (empty($this->_person)) {
 			return;
-		}	
+		}
 		return _('Add note to ').$this->_person->toString();
 	}
 
@@ -79,7 +79,7 @@ class View__Add_Note_To_Person extends View
 	{
 		if (empty($this->_person)) {
 			return;
-		}	
+		}
 		?>
 		<form method="post" class="form-horizontal">
 			<input type="hidden" name="personid" value="<?php echo $this->_person->id; ?>" />

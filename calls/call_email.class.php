@@ -1,7 +1,7 @@
 <?php
 class Call_email extends Call
 {
-	function run() 
+	function run()
 	{
 		if (!empty($_REQUEST['print_popup'])) {
 			$GLOBALS['system']->initErrorHandler();
@@ -102,7 +102,7 @@ class Call_email extends Call
 			?>
 			</p>
 			<?php
-		}	
+		}
 		$this->printBlanks($blanks);
 
 	}

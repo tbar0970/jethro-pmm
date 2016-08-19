@@ -149,7 +149,7 @@ class View__Generate_Service_Documents extends View
 		$selfCongregations = self::getCongregations();
 		if (empty($selfCongregations) || empty($this->_action) || empty($this->_service_date) || empty($this->_filename)) return;
 		$selfCongregations = null;//Finished with temporary variable.
-		
+
 		if (!empty($this->_generated_files)) {
 			echo "The following files were generated: <ul>";
 			foreach ($this->_generated_files as $path => $label) {
@@ -168,7 +168,7 @@ class View__Generate_Service_Documents extends View
 				document.location.href = '<?php echo $allHref; ?>';
 			</script>
 			<?php
-			
+
 		} else {
 			$this->_printReplacementsForm();
 		}
@@ -293,7 +293,7 @@ class View__Generate_Service_Documents extends View
 							}
 						}
 					//}
-					
+
 					ODF_Tools::replaceKeywords($newFile, $this->_replacements[$congid]);
 					$this->_generated_files[$newFile] = self::_cleanDirName($newDir).' / '.basename($newFile);
 				}

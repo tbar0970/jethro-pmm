@@ -201,7 +201,7 @@ class Staff_Member extends Person
 							<td>
 								<?php
 								print_widget(
-									'restrictions[congregation]', 
+									'restrictions[congregation]',
 									Array('type' => 'reference', 'references' => 'congregation', 'allow_multiple' => true),
 									array_get($this->_restrictions, 'congregation', Array())
 								);
@@ -209,7 +209,7 @@ class Staff_Member extends Person
 							</td>
 							<td>
 								<?php 
-								Person_Group::printMultiChooser('restrictions[group]', array_get($this->_restrictions, 'group', Array()), Array(), FALSE); 
+								Person_Group::printMultiChooser('restrictions[group]', array_get($this->_restrictions, 'group', Array()), Array(), FALSE);
 								?>
 							</td>
 						</tr>

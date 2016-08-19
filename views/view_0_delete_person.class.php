@@ -39,7 +39,7 @@ class View__Delete_Person extends View
 			$this->_person->archiveAndClean();
 			add_message($this->_person->toString().' has been archived and cleaned', 'success');
 			redirect('persons', Array('personid' => $this->_person->id)); // exits
-			
+
 		}
 	}
 

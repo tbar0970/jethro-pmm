@@ -46,7 +46,7 @@ class View_Attendance__Statistics extends View
 		<p class="smallprint"><?php echo _('Note: Any weeks where a person attendance is left blank (neither present nor absent) are ignored when calculating attendance percentages.');?></p>
 		</form>
 		<?php
-		
+
 	}
 
 	function _printResults()

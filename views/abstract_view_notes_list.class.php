@@ -45,7 +45,7 @@ class Abstract_View_Notes_List extends View
 		<?php
 		echo _('Show notes assigned to ');
 		print_widget(
-			'assignee', 
+			'assignee',
 			Array(
 				'type' => 'reference',
 				'references' => 'staff_member',
