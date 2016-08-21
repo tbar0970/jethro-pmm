@@ -41,7 +41,13 @@ class View_Groups extends View
 					<th class="narrow hidden-phone"><?php echo _('Record Attendance?');?></th>
 					<td class="hidden-phone"><?php $this->_group->printFieldValue('attendance_recording_days'); ?></td>
 					<td class="align-right">
+					<?php
+					if ($GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
+						?>
 						<a class="link-collapse" href="?view=_edit_group&groupid=<?php echo $this->_group->id; ?>"><i class="icon-wrench"></i><?php echo _('Edit group details');?></a>
+						<?php
+					}
+					?>
 					</td>
 				</tr>
 				<tr>
@@ -50,12 +56,16 @@ class View_Groups extends View
 					<th class="narrow hidden-phone"><?php echo _('Share Member Details?');?></th>
 					<td class="hidden-phone"><?php $this->_group->printFieldValue('share_member_details'); ?></td>
 					<td class="align-right">
-						<form class="min" method="post" action="?view=_edit_group&groupid=<?php echo $this->_group->id; ?>">
-							<input type="hidden" name="action" value="delete" />
-							<button class="btn-link double-confirm-title link-collapse" type="submit" title="Delete this group">
+						<?php
+						if ($GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
+							?>
+							<a data-method="post" class="double-confirm-title link-collapse" title="<?php echo _('Delete group');?>"
+							   href="?view=_edit_group&action=delete&groupid=<?php echo $this->_group->id; ?>">
 								<i class="icon-trash"></i><?php echo _('Delete group');?>
-							</button>
-						</form>
+							</a>
+							<?php
+						}
+						?>
 					</td>
 				</tr>
 			</table>
@@ -151,10 +161,14 @@ class View_Groups extends View
 						<?php
 					}
 				}
-				?>
+				if ($GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
+					?>
 					<div class="add-link">
 						<a href="#action-plan-modal" data-toggle="modal"><i class="icon-plus-sign"></i><?php echo _('Add members');?></a>
 					</div>
+					<?php
+				}
+				?>
 				</div>
 				<?php
 			}
