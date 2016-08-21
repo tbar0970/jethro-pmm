@@ -400,7 +400,7 @@ class Person extends DB_Object
 			$sql .= '((recorded.groupid = 0) OR (g.name <> ""))';
 		}
 		$sql .= '
-				GROUP BY recorded.groupid, recorded.date
+				GROUP BY g.id, recorded.groupid, recorded.date, ar.present
 				ORDER BY recorded.groupid, recorded.date';
 		$attendances = $db->queryAll($sql, null, null, true, true, true);
 		if ($groupid != -1) $attendances = reset($attendances);
