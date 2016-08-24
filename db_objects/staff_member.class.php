@@ -80,7 +80,7 @@ class Staff_Member extends Person
 
 
 	// We need this to override person::getInitSQL
-	function getInitSQL()
+	function getInitSQL($table_name=NULL)
 	{
 		return $this->_getInitSQL();
 	}
@@ -124,7 +124,7 @@ class Staff_Member extends Person
 	*
 	* Subclasses should add links and other HTML markup by overriding this
 	*/
-	function printFieldValue($name, $value=null)
+	function printFieldValue($name, $value=NULL)
 	{
 		if (is_null($value)) $value = $this->getValue($name);
 		if ($name == 'restrictions') {
@@ -319,7 +319,7 @@ class Staff_Member extends Person
 		return $res;
 	}
 
-	function save()
+	function save($update_family = true)
 	{
 		// Only admins can edit staff other than themselves
 		if (!empty($GLOBALS['JETHRO_INSTALLING']) || ($GLOBALS['user_system']->getCurrentUser('id') == $this->id) || $GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {

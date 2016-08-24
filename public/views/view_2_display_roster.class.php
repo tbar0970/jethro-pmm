@@ -12,7 +12,7 @@ class View_Display_Roster extends View
 			) {
 				add_message("Sorry, this roster URL is not valid because it does not contain the secret key.  Please contact your church administrator for assistance.", 'error');
 			} else {
-				$this->_roster_view =& $GLOBALS['system']->getDBObject('roster_view', (int)$_REQUEST['roster_view']);
+				$this->_roster_view = $GLOBALS['system']->getDBObject('roster_view', (int)$_REQUEST['roster_view']);
 			}
 		}
 	}

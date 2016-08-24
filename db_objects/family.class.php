@@ -103,7 +103,7 @@ class family extends db_object
 	}
 
 
-	function getInitSQL()
+	function getInitSQL($table_name=NULL)
 	{
 		return Array(
 			 "
@@ -240,7 +240,7 @@ class family extends db_object
 		}
 	}
 
-	function printFieldInterface($name)
+	function printFieldInterface($name, $prefix='')
 	{
 		if ($name == 'photo') {
 			?>

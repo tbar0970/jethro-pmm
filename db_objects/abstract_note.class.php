@@ -96,7 +96,7 @@ class Abstract_Note extends DB_Object
 
 	function toString()
 	{
-		$creator =& $GLOBALS['system']->getDBObject('person', $this->values['creator']);
+		$creator = $GLOBALS['system']->getDBObject('person', $this->values['creator']);
 		return $this->values['subject'].' ('.$creator->toString().', '.format_date( strtotime($this->values['created'])).')';
 	}
 
@@ -152,7 +152,7 @@ class Abstract_Note extends DB_Object
 
 
 
-	function getInstancesData($params, $logic='OR', $order)
+	function getInstancesData($params, $logic='OR', $order='')
 	{
 		$res = parent::getInstancesData($params, $logic, $order);
 

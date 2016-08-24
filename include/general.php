@@ -352,7 +352,8 @@ function print_widget($name, $params, $value)
 				if (empty($value)) $value = date('Y-m-d'); // blank dates not allowed
 			}
 			for ($i = 1; $i < 13; $i++) $months[$i] = date(array_get($params, 'month_format', 'F'), strtotime("2007-$i-01"));
-			$value = reset(explode(' ', $value));
+			$value = explode(' ', $value);
+			$value = reset($value);
 			list($year_val, $month_val, $day_val) = explode('-', substr($value, 0, 10));
 			?>
 			<span class="nowrap" <?php echo $attrs; ?> >
@@ -561,7 +562,7 @@ function process_widget($name, $params, $index=NULL, $preserveEmpties=FALSE)
 function format_value($value, $params)
 {
 	if (!empty($params['references'])) {
-		$obj =& $GLOBALS['system']->getDBObject($params['references'], $value);
+		$obj = $GLOBALS['system']->getDBObject($params['references'], $value);
 		if (!is_null($obj)) {
 			if (!array_get($params, 'show_id', true)) {
 				return $obj->toString();

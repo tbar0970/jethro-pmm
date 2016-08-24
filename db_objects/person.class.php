@@ -157,7 +157,7 @@ class Person extends DB_Object
 		return $res;
 	}
 
-	function getInitSQL()
+	function getInitSQL($table_name=NULL)
 	{
 		return Array(
 			"CREATE TABLE `_person` (
@@ -218,7 +218,7 @@ class Person extends DB_Object
 	}
 
 
-	function printFieldValue($name, $value=null)
+	function printFieldValue($name, $value=NULL)
 	{
 		if (is_null($value)) $value = $this->getValue($name);
 		$person_name = ents($this->getValue('first_name')).'&nbsp;'.ents($this->getValue('last_name'));
@@ -444,7 +444,7 @@ class Person extends DB_Object
 			// be updating themselves but saving the family will fail
 
 			if (!empty($this->_old_values['status']) || !empty($this->_old_values['last_name'])) {
-				$family =& $GLOBALS['system']->getDBObject('family', $this->getValue('familyid'));
+				$family = $GLOBALS['system']->getDBObject('family', $this->getValue('familyid'));
 				$members = $family->getMemberData();
 				
 				if (!empty($this->_old_values['status']) && ($this->getValue('status') == 'archived')) {

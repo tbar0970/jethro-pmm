@@ -73,7 +73,7 @@ class Attendance_Record_Set
 	}
 
 
-	function getInitSQL()
+	function getInitSQL($table_name=NULL)
 	{
 		return "
 			CREATE TABLE `attendance_record` (
@@ -170,7 +170,7 @@ class Attendance_Record_Set
 			$conds['congregationid'] = $this->congregationid;
 			$this->_persons = $GLOBALS['system']->getDBObjectData('person', $conds, 'AND', $order);
 		} else {
-			$group =& $GLOBALS['system']->getDBObject('person_group', $this->groupid);
+			$group = $GLOBALS['system']->getDBObject('person_group', $this->groupid);
 			$this->_persons = $group->getMembers($conds, $order);
 		}
 	}

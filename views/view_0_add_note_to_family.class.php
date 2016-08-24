@@ -15,7 +15,7 @@ class View__Add_Note_To_Family extends View
                         trigger_error("Cannot add note, no family ID specified", E_USER_WARNING);
                         return;
                 }
-		$this->_family =& $GLOBALS['system']->getDBObject('family', $_REQUEST['familyid']);
+		$this->_family = $GLOBALS['system']->getDBObject('family', $_REQUEST['familyid']);
 		$GLOBALS['system']->includeDBClass('family_note');
 		$this->_note = new Family_Note();
 		if (array_get($_REQUEST, 'new_note_submitted')) {

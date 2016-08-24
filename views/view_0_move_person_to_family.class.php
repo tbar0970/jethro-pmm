@@ -11,10 +11,10 @@ class View__Move_Person_To_Family extends View
 	function processView()
 	{
 		$GLOBALS['system']->setFriendlyErrors(TRUE);
-		$this->_person =& $GLOBALS['system']->getDBObject('person', (int)$_REQUEST['personid']);
+		$this->_person = $GLOBALS['system']->getDBObject('person', (int)$_REQUEST['personid']);
 		if (!empty($_REQUEST['move_to'])) {
 			if ($_REQUEST['move_to'] == 'new') {
-				$family =& $GLOBALS['system']->getDBObject('family', (int)$this->_person->getValue('familyid'));
+				$family = $GLOBALS['system']->getDBObject('family', (int)$this->_person->getValue('familyid'));
 				$family->id = 0;
 				$family->create();
 				$this->_person->setValue('familyid', $family->id);
@@ -26,7 +26,7 @@ class View__Move_Person_To_Family extends View
 					trigger_error("You must select a new family to move to, or choose to create a new family");
 					return false;
 				}
-				$family =& $GLOBALS['system']->getDBObject('family', (int)$_REQUEST['familyid']);
+				$family = $GLOBALS['system']->getDBObject('family', (int)$_REQUEST['familyid']);
 				if ($family) {
 					$old_familyid = $this->_person->getValue('familyid');
 					$this->_person->setValue('familyid', (int)$_REQUEST['familyid']);
@@ -35,7 +35,7 @@ class View__Move_Person_To_Family extends View
 
 						$remaining_members = $GLOBALS['system']->getDBObjectData('person', Array('familyid' => $old_familyid));
 						if (empty($remaining_members)) {
-							$old_family =& $GLOBALS['system']->getDBObject('family', $old_familyid);
+							$old_family = $GLOBALS['system']->getDBObject('family', $old_familyid);
 							
 							if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
 								// add a note

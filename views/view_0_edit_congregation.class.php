@@ -10,7 +10,7 @@ class View__Edit_Congregation extends View
 
 	function processView()
 	{
-		$this->_congregation =& $GLOBALS['system']->getDBObject('congregation', (int)$_REQUEST['congregationid']);
+		$this->_congregation = $GLOBALS['system']->getDBObject('congregation', (int)$_REQUEST['congregationid']);
 		if (is_null($this->_congregation)) {
 			trigger_error('Congregation #'.(int)$_REQUEST['congregationid'].' does not exist', E_USER_WARNING);
 			return;

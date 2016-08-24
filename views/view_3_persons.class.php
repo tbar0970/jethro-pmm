@@ -8,9 +8,9 @@ class View_Persons extends View
 	function processView()
 	{
 		if (!empty($_REQUEST['personid'])) {
-			$this->_person =& $GLOBALS['system']->getDBObject('person', (int)$_REQUEST['personid']);
+			$this->_person = $GLOBALS['system']->getDBObject('person', (int)$_REQUEST['personid']);
 			if ($this->_person) {
-				$this->_family =& $GLOBALS['system']->getDBObject('family', $this->_person->getValue('familyid'));
+				$this->_family = $GLOBALS['system']->getDBObject('family', $this->_person->getValue('familyid'));
 			}
 		}
 	}

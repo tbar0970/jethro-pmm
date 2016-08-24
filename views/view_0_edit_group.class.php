@@ -46,7 +46,7 @@ class View__Edit_Group extends Abstract_View_Edit_Object
 						$personids = Array($personids);
 					}
 					foreach ($personids as $personid) {
-						$new_member =& $GLOBALS['system']->getDBObject('person', (int)$personid);
+						$new_member = $GLOBALS['system']->getDBObject('person', (int)$personid);
 						$newstatus = ($mstatus == '_PRESERVE_') ? $old_memberships[$personid]['membership_status_id'] : $mstatus;
 						if ($new_member->id) {
 							if ($this->_edited_object->addMember((int)$personid, $newstatus, $overwrite)) {

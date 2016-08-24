@@ -4,7 +4,7 @@ class roster_role_assignment extends db_object
 {
 	// NB This class only exists for the following SQL
 	// It has no ID
-	function getInitSql()
+	function getInitSql($table_name = NULL)
 	{
 		return 'create table roster_role_assignment (
 					assignment_date	date not null,

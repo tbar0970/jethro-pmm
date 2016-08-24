@@ -22,7 +22,7 @@ class View_Persons__Reports extends View
 			if (($this->_query->getValue('creator') == $GLOBALS['user_system']->getCurrentUser('id')) || $GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 				$can_delete = true;
 			} else {
-				$query_creator =& $GLOBALS['system']->getDBObject('staff_member', $this->_query->getValue('creator'));
+				$query_creator = $GLOBALS['system']->getDBObject('staff_member', $this->_query->getValue('creator'));
 				if (!$query_creator->getValue('active')) {
 					$can_delete = true;
 				}

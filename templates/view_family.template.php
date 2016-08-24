@@ -177,7 +177,7 @@ if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
 				<?php
 			} else {
 				?>
-				<a href="?view=_add_note_to_person&personid=<?php echo reset(array_keys($members)); ?>"><?php echo _('Add Person Note')?></a>
+				<a href="?view=_add_note_to_person&personid=<?php $memberarray = array_keys($members); echo reset($memberarray); ?>"><?php echo _('Add Person Note')?></a>
 				<?php
 			}
 			?>
@@ -195,7 +195,7 @@ if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE) || !$GLOBALS['system']->fea
 	printf($panel_header, 'history', 'History', '');
 	?>
 	<p><?php echo _('Family Record Created on ')?><?php $family->printFieldValue('created'); ?> by <?php $family->printFieldValue('creator'); ?></p>
-	<?php 
+	<?php
 	$family->printFieldValue('history');
 	echo $panel_footer;
 }
