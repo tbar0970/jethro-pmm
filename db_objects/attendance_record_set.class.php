@@ -44,7 +44,7 @@ class Attendance_Record_Set
 			trigger_error("Could not get cohort object for lock");
 			return FALSE;
 		}
-		return $obj->acquireLock('attendance-'.$this->date);
+		return $obj->acquireLock('att-'.$this->date);
 	}
 	
 	public function haveLock()
