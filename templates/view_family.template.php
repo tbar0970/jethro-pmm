@@ -1,8 +1,27 @@
 <?php
 include_once 'include/size_detector.class.php';
+  function _compareCreatedDates($a, $b)
+  {
+      $aDate = strtotime($a['created']);
+      $bDate = strtotime($b['created']);
+      // comments are always in chronological order, so grab the last comment
+      if (count($a['comments']) > 0) {
+        $cDate = strtotime(end($a['comments'])['created']);
+        reset($a['comments']);
+        if ($cDate > $aDate) { $aDate = $cDate;}
+      }
+      if (count($b['comments']) > 0) {
+        $cDate = strtotime(end($b['comments'])['created']);
+        reset($b['comments']);
+        if ($cDate > $bDate) { $bDate = $cDate;}
+      }
+      return $aDate < $bDate;
+    }
+
 $accordion = SizeDetector::getWidth() && SizeDetector::isNarrow();
 if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
 	$notes = $GLOBALS['system']->getDBObjectData('family_note', Array('familyid' => $family->id), 'OR', 'created');
+  	uasort($notes, '_compareCreatedDates');
 }
 
 if (!$accordion) {
@@ -14,7 +33,6 @@ if (!$accordion) {
 		<li class="active"><a data-toggle="tab" href="#basic"><?php echo _('Basic Details')?></a></li>
 	<?php
 	if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
-		$notes = $GLOBALS['system']->getDBObjectData('family_note', Array('familyid' => $family->id), 'OR', 'created');
 		?>
 		<li><a data-toggle="tab" href="#notes"><?php echo _('Notes')?> (<?php echo count($notes); ?>)</a></li>
 		<?php

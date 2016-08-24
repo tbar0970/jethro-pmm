@@ -334,8 +334,21 @@ class Person extends DB_Object
 
 	function _compareCreatedDates($a, $b)
 	{
-		return $a['created'] > $b['created'];
+      $aDate = strtotime($a['created']);
+      $bDate = strtotime($b['created']);
+      // comments are always in chronological order, so grab the last comment
+      if (count($a['comments']) > 0) {
+        $cDate = strtotime(end($a['comments'])['created']);
+        reset($a['comments']);
+        if ($cDate > $aDate) { $aDate = $cDate;}
+      }
+      if (count($b['comments']) > 0) {
+        $cDate = strtotime(end($b['comments'])['created']);
+        reset($b['comments']);
+        if ($cDate > $bDate) { $bDate = $cDate;}
+      }
 
+      return $aDate < $bDate;
 	}
 
 	function validateFields()
