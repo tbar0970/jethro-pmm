@@ -90,6 +90,11 @@ class View_Persons__Reports extends View
 			<?php
 
 		} else if (!empty($this->_query)) {
+			?>
+			<div id="alert" class="alert" style="display:none;"></div>
+			<?php
+			require_once('include/sms_sender.class.php');
+			SMS_Sender::printModal();
 			$this->_query->printResults();
 			?>
 			<hr />

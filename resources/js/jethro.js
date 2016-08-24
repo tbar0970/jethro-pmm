@@ -35,6 +35,54 @@ $(document).ready(function() {
 		});
 	});
 	
+  $(document).on('click','[data-toggle="sms-modal"]', function(e) {
+    var $this = $(this)
+    , href = $this.attr('href')
+    , $target = $($this.attr('data-target') || (href && href.replace(/.*(?=#[^\s]+$)/, ''))) //strip for ie7
+    , option = $target.data('modal') ? 'toggle' : $.extend({ remote:!/#/.test(href) && href }, $target.data(), $this.data());
+    
+    var $recipients = $this.attr('data-name');
+    var $personid = $this.attr('data-personid');
+    var $rosterview = $this.attr('data-roster_view');
+    var $rosterstart = $this.attr('data-start_date');
+    var $rosterend = $this.attr('data-end_date');
+
+    $("#send-sms-modal .sms_recipients").html($recipients);
+    $("#sms_message").text(""); // Empty the textarea in case of reuse
+    $("#send-sms-modal .results").html(""); // Empty in case of reuse 
+    $('#smscharactercount').html($("#sms_message").attr("data-maxlength") + ' characters remaining.'); // reset character count    
+    
+    if (!!$personid) {
+      $("#send-sms-modal").attr("data-sms_type", "person");
+      $("#send-sms-modal").attr("data-personid", $personid);
+      $("#send-sms-modal").attr("data-roster_view", "");
+      $("#send-sms-modal").attr("data-start_date", "");
+      $("#send-sms-modal").attr("data-end_date", "");
+      $("#send-sms-modal .sms-modal-option").show();
+      e.preventDefault();
+      $target.modal(option).one('hide', function () {
+        $this.focus()
+      })      
+    } else if (!!$rosterview && !!$rosterstart && !!$rosterend) {
+      $("#send-sms-modal").attr("data-sms_type", "roster");
+      $("#send-sms-modal").attr("data-personid", "");      
+      $("#send-sms-modal").attr("data-roster_view", $rosterview);
+      $("#send-sms-modal").attr("data-start_date", $rosterstart);
+      $("#send-sms-modal").attr("data-end_date", $rosterend);
+      $("#send-sms-modal .sms-modal-option").hide();
+      e.preventDefault();
+      $target.modal(option).one('hide', function () {
+        $this.focus()
+      })      
+    } else {
+      alert('No SMS recipients found');
+    }
+  });
+  
+  $('input[data-ajax-call], button[data-ajax-call]').click(function(e) { 
+    
+  });
+  
 	// Attach the quick-search handlers
 	$('.nav a').each(function() {
 		if (this.innerHTML && (this.innerHTML.toLowerCase() == 'search')) {
@@ -247,20 +295,73 @@ $(document).ready(function() {
 		selectedInputs.filter('[data-toggle=enable]').attr('disabled', false).change();
 	});
 
-	$('form.bulk-person-action').submit(function() {
+	$('form.bulk-person-action').submit(function(event) {
 		var checkboxes = document.getElementsByName('personid[]');
-		for (var i=0; i < checkboxes.length; i++) {
-			if (checkboxes[i].checked) return true;
-		}
-		if (confirm('You have not selected any persons. Would you like to perform this action on every person listed?')) {
-			for (var i=0; i < checkboxes.length; i++) {
-				checkboxes[i].checked = true;
-			}
-			return true;
-		} else {
-			TBLib.cancelValidation();
-			return false;
-		}
+    if ($("input[name='personid[]']:checked").length === 0) {
+      if (confirm('You have not selected any persons. Would you like to perform this action on every person listed?')) {
+        for (var i = 0; i < checkboxes.length; i++) {
+          checkboxes[i].checked = true;
+        }
+      } else {
+        TBLib.cancelValidation();
+        return false;
+      }
+    }
+    if ($(this).prop('action').match('call=sms$')) {
+      event.preventDefault();
+      var submitBtn = $("#smshttp .bulk-sms-submit");
+      submitBtn.prop('disabled', true);
+      submitBtn.prop('value', 'Sending...');
+      
+      var smsData = $(this).serialize();
+      
+      $.ajax({
+        type: 'POST',
+        dataType: 'JSON',
+        url: $(this).attr('action'),
+        data: smsData,
+        context: $(this),
+        error: function (jqXHR, status, error) {
+          console.log('Error sending SMS: ', status, error);
+          var failDiv = $('#bulk-sms-failed');
+          failDiv.append("<h4>SMS Sending error<h4>");
+          failDiv.append('<span class="clickable" onclick="$(\'.bulk-sms-failed #response\').toggle()\'">Show SMS server response</span></b></p><div class="hidden standard" id="response">' + error + '</div>');
+        },
+        success: function (data) {
+          var sentCount = 0;
+          if (data.sent !== undefined) { sentCount = data.sent.count; }
+          var smsRequestCount = $("input[name='personid[]']:checked").length;          
+          var resultsDiv = $('#bulk-sms-failed');
+          
+          smsSuccessCallback(data,resultsDiv,true);
+          if (sentCount !== smsRequestCount) {
+            $('#alert').removeClass('alert-info').removeClass('alert-error').removeClass('alert-success');
+            $('#alert').addClass('alert-error');
+            $("#alert").html("<strong>SMS Failure:</strong> Sending failed for some (or all) recipients.");
+            $("#alert").fadeIn();
+            
+            setTimeout(function() {$("#alert").fadeOut();}, 10000);
+          } else {
+            $('#smshttp').toggle();
+            $("#bulk-action-chooser").val(0);
+            $('#alert').removeClass('alert-info').removeClass('alert-error').removeClass('alert-success');
+            $('#alert').addClass('alert-success');
+            $("#alert").html("<strong>SMS Success!</strong> All messages successfully sent.");
+            $("#alert").fadeIn();
+            $('.bulk-action').hide();
+            $("#bulk_sms_message").val("");            
+            setTimeout(function() {$("#alert").fadeOut();}, 10000);
+          }
+                
+          var submitBtn = $("#smshttp .bulk-sms-submit");
+          submitBtn.prop('disabled', false);
+          submitBtn.prop('value', 'Send');
+        }
+      });
+      return false;
+    } else {
+      return true;
+    }
 	});
 
 	/********************** TAGGING ******************/
@@ -451,18 +552,169 @@ $(document).ready(function() {
 	}
 
 	// SMS Character counting
-	$('#smscharactercount').parent().find('textarea').on('keyup propertychange paste', function() {
-		var maxlength = $(this).attr("maxlength");
-		var chars = maxlength - $(this).val().length;
+	$('#sms_message').on('keyup propertychange paste', function() {
+		var maxlength = $(this).attr("data-maxlength");
+		var chars = maxlength - $(this).text().length;
 		if (chars <= 0) {
-			$(this).val($(this).val().substring(0, maxlength));
+			$(this).val($(this).text().substring(0, maxlength));
 			chars = 0;
 		}
 		$('#smscharactercount').html(chars + ' characters remaining.');
-	});	
-
+	});
+  
+  $('#bulk_sms_message').on('keyup propertychange paste', function() {
+    var maxlength = $(this).attr("maxlength");
+    var chars = maxlength - $(this).val().length;
+    if (chars <= 0) {
+      $(this).val( $(this).val().substring(0,maxlength) );
+      chars = 0;
+    }
+    $('#bulksmscharactercount').html(chars +' characters remaining.');
+  });
+  
+  /*************************** SMS AJAX ********************/
+  $('#send-sms-modal .sms-submit').on('click', function(event) {
+    event.preventDefault();
+    var modalDiv = $("#send-sms-modal");
+    var sms_message = $("#sms_message").text();
+    if (!sms_message) {
+      alert("Please enter a message first.");
+      return false;
+    } else {
+      var smsData,personid;
+      $(this).prop('disabled', true);
+      $(this).html("Sending...");
+      $("#send-sms-modal .results").hide();
+      smsData = {
+        personid: modalDiv.attr("data-personid"),
+        sms_type: modalDiv.attr("data-sms_type"),
+        roster_view: modalDiv.attr("data-roster_view"),
+        start_date: modalDiv.attr("data-start_date"),
+        end_date: modalDiv.attr("data-end_date"),
+        saveasnote: ($("#send-sms-modal .saveasnote").attr("checked") === "checked")?'1':'0',
+        ajax: 1,
+        message: sms_message
+      }
+      $.ajax({
+        type: 'POST',
+        dataType: 'JSON',
+        url: '?call=sms',
+        data: smsData,
+        context: $(this),
+        error: function (jqXHR, status, error) {
+          console.log('Error sending SMS', status, error);
+          var statusBtn = modalDiv.find("#send-sms-modal .sms-status");
+          statusBtn.unbind('click');
+          statusBtn.on('click', function (event) { event.preventDefault(); alert("ERROR:\n" + error); });
+          statusBtn.toggleClass('fade');
+        },
+        success: function (data) {
+          var modalDiv = $("#send-sms-modal");
+          var resultsDiv = $("#send-sms-modal .results");
+          var update_table = (modalDiv.attr("data-sms_type") !== "roster");
+          
+          var showResults = smsSuccessCallback(data,resultsDiv,update_table);
+          
+          if (showResults) {
+            statusBtn = $("#send-sms-modal .sms-status");
+            statusBtn.unbind('click');
+            statusBtn.on('click', function (event) {
+              event.preventDefault();
+              $("#send-sms-modal .results").show();
+              $("#send-sms-modal .sms-status").hide();
+            }); // show the error_log on click?
+            statusBtn.toggleClass('fade');
+          } else { // Success!
+            modalDiv.modal('hide');
+          }
+          $('#send-sms-modal .sms-submit').prop('disabled', false);
+          $('#send-sms-modal .sms-submit').html("Send");
+        }
+      });
+      return false;
+    }
+  });
 
 });
+
+// Add Action_Status column to bulk action tables
+function setActionStatusColumn(title) {
+  if ($('#action_status').length) { // action status already exists
+    if ($('#action_status').html() != title) {
+      $('#action_status').html(title);
+      $('.bulk-person-action tbody tr td.action_status').each(function () { $(this).html(""); });
+    }
+  } else {
+    $('.bulk-person-action thead tr').append("<th id='action_status'>" + title + "</th>");
+    $('.bulk-person-action tbody tr').each(function () { $(this).append('<td class="action_status"></td>'); });
+  }
+}
+
+function fillSMSNotice(resultsDiv, notice, recipients,update_table=true,uncheck=false) {
+  var fail_list = '<p class="namelist">';
+  // Silly long version to support IE < 9
+  var personID, count = 0;
+  for(personID in recipients) {
+    if(recipients.hasOwnProperty(personID)) {
+      if (count > 0) { fail_list = fail_list + ", "; } else { count = count + 1; }
+      fail_list = fail_list + recipients[personID]['first_name'] + " " + recipients[personID]['last_name'];
+      if (update_table) {
+        $("[data-personid=" + personID + "]").find("td.action_status").html(notice);
+        $("[data-personid=" + personID + "]").find("[type=checkbox]").prop("checked", !uncheck);        
+      }
+    }
+  }
+  fail_list = fail_list + '</p>';
+  resultsDiv.append(fail_list);
+}
+
+function smsSuccessCallback(data,resultsDiv,update_table=true) {
+  var sentCount = 0,
+  failedCount = 0,
+  archivedCount = 0,
+  blankCount = 0,
+  rawresponse = '',
+  statusBtn;
+  
+  if (data.sent !== undefined) { sentCount = data.sent.count; }
+  if (data.failed !== undefined) { failedCount = data.failed.count; }
+  if (data.failed_archived !== undefined) { archivedCount = data.failed_archived.count; }
+  if (data.failed_blank !== undefined) { blankCount = data.failed_blank.count; }
+  if (data.rawresponse !== undefined) { rawresponse = data.rawresponse; }
+  
+  if (update_table) {
+    setActionStatusColumn("SMS");
+  }
+
+  resultsDiv.html(""); // Reset results in case there's something there
+  
+  if (data.error!==undefined) {
+    resultsDiv.append("<h4>Error sending SMS<h4>");
+    resultsDiv.append('<p>' + data.error + '</p>');
+  }
+  
+  if (sentCount > 0) {
+    resultsDiv.append("<h4>Successfuly sent</h4><p>SMS sending succeeded for " + sentCount + ' recipients.</p>');
+    fillSMSNotice(resultsDiv, 'Sent', data.sent.recipients, update_table, true);
+    if (!data.sent.confirmed) {
+      resultsDiv.append("'<span class='notice'>Unable to confirm whether SMS sending was successful. Please check your SMS settings.</p>");
+    }
+  }
+  if (failedCount > 0) {
+    resultsDiv.append("<h4>General Failures</h4><p>SMS sending failed for " + failedCount + ' recipients.</p>');
+    fillSMSNotice(resultsDiv, 'Failed', data.failed_blank.recipients, update_table, false);
+  }
+  if (blankCount > 0) {
+    resultsDiv.append("<h4>No Mobile</h4><p>SMS sending failed for " + blankCount + ' recipients due to the lack of a mobile number.</p>');
+    fillSMSNotice(resultsDiv, 'Failed (No Mobile)', data.failed_blank.recipients, update_table, false); 
+  }
+  if (archivedCount > 0) {
+    resultsDiv.append("<h4>Archived Recipients</h4><p>" + archivedCount + ' of the intended recipients were not sent the message because they are archived.</p>');
+    fillSMSNotice(resultsDiv, 'Failed (Archived)', data.failed_archived.recipients, update_table, false);
+  }
+
+  return ((failedCount > 0) || (archivedCount > 0) || ( blankCount > 0) || ( sentCount = 0) || (data.error!==undefined));
+}
 
 var JethroServiceProgram = {};
 

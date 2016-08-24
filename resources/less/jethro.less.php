@@ -667,7 +667,7 @@ table.table-full-width td.narrow, table.table-full-width th.narrow {
 .right {
 	text-align: right !important;
 }
-select, input, textarea {
+select, input, textarea,div.editor {
 	width: auto;
 	max-width: 97%;
 }
@@ -1960,10 +1960,37 @@ td.run-sheet-comments * {
 @media (max-width: 480px) {
 	#service-personnel div.column {
 		width: 100%;
-		margin: 0;
+		margin: .5em 0 0 0;
 	}
 }
 
+
+/*************** SMS MESSAGING ************************/
+div.sms_editor {
+  border: 1px solid @grayMid;
+  height: 8em;
+  width: 100%;
+  margin: .5em 0 .5em 0;
+  padding: .25em;
+  overflow-y: auto;
+  border-radius: @baseBorderRadius;
+}
+
+div#sms_message:focus, div#bulk_sms_message:focus {
+  outline: none;
+}
+div#send-sms-modal div.results {
+  display: none;
+}
+
+div#send-sms-modal div.results p.namelist, #smshttp #bulk-sms-failed p.namelist  {
+  margin-left: 1em;
+}
+
+#smshttp #bulk-sms-failed h4 {
+  width: auto;
+  text-align: left;
+}
 
 
 /*************** CUSTOM FIELDS EDITOR *****************/

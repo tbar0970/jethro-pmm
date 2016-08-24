@@ -218,15 +218,19 @@ class Person extends DB_Object
 	}
 
 
-	function printFieldValue($name, $value=null)
+	function printFieldValue($name, $value=null, $personid=null)
 	{
+    if (isset($this->id)) {
+      $personid = $this->id;
+    }
+    
 		if (is_null($value)) $value = $this->getValue($name);
+		$person_name = ents($this->getValue('first_name')).'&nbsp;'.ents($this->getValue('last_name'));
 		switch ($name) {
 			case 'name':
-				echo ents($this->getValue('first_name')).'&nbsp;'.ents($this->getValue('last_name'));
+				echo $person_name;
 				return;
 			case 'mobile_tel':
-				
 				if (!strlen($value)) return;
 				echo ents($this->getFormattedValue($name, $value));
 
@@ -238,29 +242,10 @@ class Person extends DB_Object
 						defined('SMS_HTTP_URL')
 						&& constant('SMS_HTTP_URL')
 						&& $GLOBALS['user_system']->havePerm(PERM_SENDSMS)
-						&& $_REQUEST['view'] == 'persons'  // TODO: make this modal work in reports too - issue #139
+						&& isset($personid)
 					) {
 					// Provide a link to send SMS through the SMS gateway
-					?>
-					<div id="send-sms-modal" class="modal hide fade" role="dialog" aria-hidden="true">
-						<form method="post" action="?view=_send_sms_http">
-							<input type="hidden" name="personid" value="<?php echo $this->id; ?>" />
-
-							<div class="modal-header">
-								<h4>Send SMS to <?php $this->printFieldValue('name'); ?></h4>
-							</div>
-							<div class="modal-body">
-								Message:<br />
-								<textarea autofocus="autofocus" name="message" class="span4" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
-							</div>
-							<div class="modal-footer">
-								<input type="submit" class="btn" value="Send" accesskey="s" onclick="if (!$('[name=message]').val()) { alert('Enter a message first'); return false; }" />
-								<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-							</div>
-						</form>
-					</div>
-					<?php
-					$smsLink = 'href="#send-sms-modal" data-toggle="modal"';
+					$smsLink = 'href="#send-sms-modal" data-toggle="sms-modal" data-personid="' . $personid . '" data-name="' . $person_name . '"';
 				}
 				?>
 				<span class="nowrap">
