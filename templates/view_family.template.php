@@ -14,7 +14,8 @@ if (!$accordion) {
 		<li class="active"><a data-toggle="tab" href="#basic"><?php echo _('Basic Details')?></a></li>
 	<?php
 	if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
-		$notes = $GLOBALS['system']->getDBObjectData('family_note', Array('familyid' => $family->id), 'OR', 'created');
+		$order =(ifdef('NOTES_ORDER', 'ASC') == 'ASC') ? 'ASC' : 'DESC';
+		$notes = $GLOBALS['system']->getDBObjectData('family_note', Array('familyid' => $family->id), 'OR', 'created '.$order);
 		?>
 		<li><a data-toggle="tab" href="#notes"><?php echo _('Notes')?> (<?php echo count($notes); ?>)</a></li>
 		<?php

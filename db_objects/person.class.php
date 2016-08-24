@@ -334,8 +334,11 @@ class Person extends DB_Object
 
 	function _compareCreatedDates($a, $b)
 	{
-		return $a['created'] > $b['created'];
-
+		if (ifdef('NOTES_ORDER', 'ASC') == 'ASC') {
+			return $a['created'] > $b['created'];
+		} else {
+			return $a['created'] < $b['created'];
+		}
 	}
 
 	function validateFields()
