@@ -357,6 +357,7 @@ class roster_view extends db_object
 				IFNULL(CONCAT(publicassignee.first_name, " ", publicassignee.last_name), "'.self::hiddenPersonLabel.'") as assignee,
 				IF(privateassignee.id IS NULL, 1, 0) as assigneehidden,
 				privateassignee.email as email,
+				privateassignee.mobile_tel as mobile,
 				CONCAT(assigner.first_name, " ", assigner.last_name) as assigner, 
 				rra.assignedon
 				FROM roster_role_assignment rra
@@ -372,6 +373,7 @@ class roster_view extends db_object
 			$res[$row['assignment_date']][$row['roster_role_id']][$row['personid']] = Array(
 				'name' => $row['assignee'],
 				'email' => $row['email'],
+				'mobile' => $row['mobile'],
 				'assigner' => $row['assigner'],
 				'assignedon' => $row['assignedon'],
 				'assigneehidden' => $row['assigneehidden'],
@@ -578,6 +580,9 @@ class roster_view extends db_object
 
 	function printView($start_date=NULL, $end_date=NULL, $editing=FALSE, $public=FALSE)
 	{
+    require_once 'include/sms_sender.class.php';
+    SMS_Sender::printModal();
+
 		if (empty($this->_members)) return;
 		if (!$editing && !$public) {
 			$my_email = $GLOBALS['user_system']->getCurrentUser('email');
@@ -675,6 +680,7 @@ class roster_view extends db_object
 
 			<tbody>
 			<?php
+
 			foreach ($to_print as $date => $ddetail) {
 				if ($public && empty($ddetail['assignments'])) continue;
 				$class_clause = ($date == $this_sunday) ? 'class="tblib-hover"' : '';
@@ -685,46 +691,32 @@ class roster_view extends db_object
 						echo '<strong>'.str_replace(' ', '&nbsp;', date('j M y', strtotime($date))).'</strong>';
 						if (!$editing && !$public) {
 							$emails = Array();
+							$mobiles = Array();
+							$personids = Array();
 							foreach ($ddetail['assignments'] as $roleid => $assignees) {
 								foreach ($assignees as $pid => $pdetails) {
+									$personids[] = $pid;
 									if (!empty($pdetails['email']) && $pdetails['email'] != $my_email) {
 										$emails[] = $pdetails['email'];
 									}
+									if (!empty($pdetails['mobile'])) {
+										$mobiles[] = $pdetails['mobile'];
+									}
 								}
 							}
-							$emails = array_unique($emails);
 							if (!empty($emails)) {
 								?>
-								<p class="smallprint no-print">
+								<span class="smallprint no-print">
 									<a href="<?php echo get_email_href($my_email, NULL, $emails, date('jS F', strtotime($date))); ?>" <?php echo email_link_extras(); ?>>Email All</a>
-									<?php
-									if (defined('SMS_HTTP_URL') && constant('SMS_HTTP_URL') && $GLOBALS['user_system']->havePerm(PERM_SENDSMS)) {
-										?>
-										| <span class="clickable" onclick="$(this).parent().next('form').toggle(); $(this).parents('tr:first').addClass('tblib-hover')">SMS All</span>
-										<?php
-									}
-									?>
-								</p>
+				                </span>
 								<?php
-								if (defined('SMS_HTTP_URL') && constant('SMS_HTTP_URL') && $GLOBALS['user_system']->havePerm(PERM_SENDSMS)) {
-									$url = build_url(Array(
-										'view' => '_send_sms_http',
-										'roster_view' => $this->id,
-										'start_date' => $date,
-										'end_date' => $date
-									));
-									?>
-									<form method="post" action="<?php echo $url; ?>" style="position: absolute; display: none">
-										<div class="well well-small">
-										<h3>Send SMS</h3>
-										<textarea name="message" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
-										<br />
-										<input class="btn" type="submit" value="Send" />
-										<input class="btn" type="button" onclick="$(this).parents('form').toggle(); $(this).parents('tr:first').removeClass('tblib-hover')" value="Cancel" />
-										</div>
-									</form>
-									<?php
-								}
+							}
+							if (!empty($mobiles) && defined('SMS_HTTP_URL') && constant('SMS_HTTP_URL') && $GLOBALS['user_system']->havePerm(PERM_SENDSMS)) {
+								?>
+								<span class="smallprint no-print">
+								  <a href="#send-sms-modal" data-personid="<?php echo implode(',', array_unique($personids)); ?>" data-toggle="sms-modal" data-name="People Rostered on <?php echo $date;?>" onclick="$(this).parents('tr:first').addClass('tblib-hover')">SMS All</a>
+								</span>
+								<?php
 							}
 						}
 						?>
@@ -762,8 +754,11 @@ class roster_view extends db_object
 							$names = Array();
 							foreach (array_get($ddetail['assignments'], $mdetail['role_id'], Array()) as $personid => $vs) {
 								if (!$public && !$vs['assigneehidden']) {
-									$n = '<a href="'.BASE_URL.'?view=persons&personid='.$personid.'" title="Assigned by '.ents($vs['assigner']).' on '.format_datetime($vs['assignedon']).'">'.nbsp(ents($vs['name'])).'</a>';
+									$n = '<a data-personid="'.$personid . '" href="'.BASE_URL.'?view=persons&personid='.$personid.'" title="Assigned by '.ents($vs['assigner']).' on '.format_datetime($vs['assignedon']).'">'.nbsp(ents($vs['name'])).'</a>';
 									if (('' === $vs['email'])) $n .= '&nbsp;<img src="'.BASE_URL.'resources/img/no_email.png" style="display:inline" title="No Email Address" />';
+									if (('' === $vs['mobile'])) {
+										$n .= '&nbsp;<img src="'.BASE_URL.'resources/img/no_phone.png" style="display:inline" title="No Mobile" />';
+					                }
 									$names[] = $n;
 								} else {
 									$names[] = nbsp($vs['name']);

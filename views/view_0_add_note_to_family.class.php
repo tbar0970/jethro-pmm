@@ -51,8 +51,8 @@ class View__Add_Note_To_Family extends View
 			$this->_note->printForm();
 			?>
 			<div class="controls">
-				<button type="submit" class="btn"><?php _('Add Note to Family')?></button>
-				<a class="btn" href="<?php echo build_url(Array('view' => 'families', 'familyid' => $this->_family->id)); ?>">Cancel</a>
+				<button type="submit" class="btn"><?php echo _('Add Note to Family')?></button>
+				<a class="btn" href="<?php echo build_url(Array('view' => 'families', 'familyid' => $this->_family->id)); ?>"><?php echo _('Cancel')?></a>
 		</form>
 		<?php
 

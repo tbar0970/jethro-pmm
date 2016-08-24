@@ -1168,7 +1168,6 @@ class Person_Query extends DB_Object
 			}
 			$select_fields = $grouping_field.'p.id as ID, '.implode(', ', $query['select']);
 		}
-
 		// ORDER BY
 		$customOrder = NULL;
 		if (substr($params['sort_by'], 0, 7) == 'date---') {
@@ -1230,6 +1229,8 @@ class Person_Query extends DB_Object
 		$sql .= 'GROUP BY p.id ';
 		if (array_get($params, 'group_by') == 'groupid') $sql .= ', pg.id ';
 		$sql .= 'ORDER BY '.$query['order_by'].', p.last_name, p.first_name';
+		
+		
 		return $sql;
 	}
 
@@ -1414,13 +1415,14 @@ class Person_Query extends DB_Object
 			</thead>
 			<tbody>
 			<?php
-			foreach ($x as $row) {
+
+			foreach ($x as $personid => $row) {
 				?>
-				<tr>
+				<tr data-personid="<?php echo $personid; ?>">
 				<?php
 				foreach ($row as $label => $val) {
 					?>
-					<td<?php echo $this->_getColClasses($label); ?>>
+					<td <?php echo $this->_getColClasses($label); ?>>
 						<?php
 						switch ($label) {
 							case 'edit_link':
@@ -1447,6 +1449,7 @@ class Person_Query extends DB_Object
 								break;
 							default:
 								if (isset($this->_field_details[$label])) {
+									$this->_dummy_person->id = $personid;
 									$var = $label[0] == 'p' ? '_dummy_person' : '_dummy_family';
 									$fieldname = substr($label, 2);
 									$this->$var->setValue($fieldname, $val);

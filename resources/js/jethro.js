@@ -35,7 +35,7 @@ $(document).ready(function() {
 		});
 	});
 	
-	// Attach the quick-search handlers
+  	// Attach the quick-search handlers
 	$('.nav a').each(function() {
 		if (this.innerHTML && (this.innerHTML.toLowerCase() == 'search')) {
 			$(this).click(handleSearchLinkClick);
@@ -247,21 +247,20 @@ $(document).ready(function() {
 		selectedInputs.filter('[data-toggle=enable]').attr('disabled', false).change();
 	});
 
-	$('form.bulk-person-action').submit(function() {
+	$('form.bulk-person-action').submit(function(event) {
 		var checkboxes = document.getElementsByName('personid[]');
-		for (var i=0; i < checkboxes.length; i++) {
-			if (checkboxes[i].checked) return true;
-		}
-		if (confirm('You have not selected any persons. Would you like to perform this action on every person listed?')) {
-			for (var i=0; i < checkboxes.length; i++) {
+		if ($("input[name='personid[]']:checked").length === 0) {
+			if (confirm('You have not selected any persons. Would you like to perform this action on every person listed?')) {
+			  for (var i = 0; i < checkboxes.length; i++) {
 				checkboxes[i].checked = true;
+			  }
+			} else {
+			  TBLib.cancelValidation();
+			  return false;
 			}
-			return true;
-		} else {
-			TBLib.cancelValidation();
-			return false;
 		}
-	});
+		return true;
+    });
 
 	/********************** TAGGING ******************/
 
@@ -450,19 +449,255 @@ $(document).ready(function() {
 		JethroServiceProgram.init();
 	}
 
+	JethroSMS.init();
+});
+
+var JethroSMS = {};
+
+JethroSMS.init = function() {
+
 	// SMS Character counting
-	$('#smscharactercount').parent().find('textarea').on('keyup propertychange paste', function() {
-		var maxlength = $(this).attr("maxlength");
-		var chars = maxlength - $(this).val().length;
-		if (chars <= 0) {
-			$(this).val($(this).val().substring(0, maxlength));
+	$('.smscharactercount').parent().find('textarea, div.sms_editor').on('keyup propertychange paste', function() {
+		var maxlength = (this.tagName == 'DIV') ? $(this).attr("data-maxlength") : $(this).attr('maxlength');
+		var currentLength = (this.tagName == 'DIV') ? $(this).text().length : this.value.length;
+		var chars = maxlength - currentLength;
+		if (chars <= 0 && this.tagName == 'DIV') {
+			$(this).val($(this).text().substring(0, maxlength));
 			chars = 0;
 		}
-		$('#smscharactercount').html(chars + ' characters remaining.');
-	});	
+		$(this).parent().find('.smscharactercount').html(chars + ' characters remaining.');
+	});
 
+	$(document).on('click', '[data-toggle="sms-modal"]', function(e) {
+		var $this = $(this)
+				, href = $this.attr('href')
+				, $target = $($this.attr('data-target') || (href && href.replace(/.*(?=#[^\s]+$)/, ''))) //strip for ie7
+				, option = $target.data('modal') ? 'toggle' : $.extend({remote: !/#/.test(href) && href}, $target.data(), $this.data());
 
-});
+		var $recipients = $this.attr('data-name');
+		var $personid = $this.attr('data-personid');
+
+		$("#send-sms-modal .sms_recipients").html($recipients);
+		$("#sms_message").text(""); // Empty the textarea in case of reuse
+		$("#send-sms-modal .results").html(""); // Empty in case of reuse
+		$('#send-sms-modal .smscharactercount').html($("#sms_message").attr("data-maxlength") + ' characters remaining.'); // reset character count
+
+		if (!!$personid) {
+			$("#send-sms-modal").attr("data-sms_type", "person");
+			$("#send-sms-modal").attr("data-personid", $personid);
+			$("#send-sms-modal .sms-modal-option").show();
+			e.preventDefault();
+			$target.modal(option).one('hide', function() {
+				$this.focus()
+			})
+		} else {
+			alert('No SMS recipients found');
+		}
+	});
+
+	$('.bulk-sms-submit').click(function() {
+		event.preventDefault();
+		var submitBtn = $("#smshttp .bulk-sms-submit");
+		submitBtn.prop('disabled', true);
+		submitBtn.prop('value', 'Sending...');
+		submitBtn.css('cursor', 'wait');
+
+		var smsData = $(this.form).serialize();
+
+		$.ajax({
+			type: 'POST',
+			dataType: 'JSON',
+			url: '?call=sms',
+			data: smsData,
+			context: $(this),
+			error: function(jqXHR, status, error) {
+				alert('Server error sending SMS: ' + error);
+			},
+			success: function(data) {
+				var smsRequestCount = $("input[name='personid[]']:checked").length;
+				var resultsDiv = $('#bulk-sms-results');
+
+				JethroSMS.onAJAXSuccess(data, resultsDiv);
+
+			},
+			complete: function() {
+				var submitBtn = $("#smshttp .bulk-sms-submit");
+				submitBtn.prop('disabled', false);
+				submitBtn.prop('value', 'Send');
+				submitBtn.css('cursor', '');
+			}
+		});
+	});
+
+	$('#send-sms-modal .sms-submit').on('click', function(event) {
+		event.preventDefault();
+		var resultsDiv = $("#send-sms-modal .results");
+		resultsDiv.hide();
+
+		var modalDiv = $("#send-sms-modal");
+		var sms_message = $("#sms_message").text();
+		if (!sms_message) {
+			alert("Please enter a message first.");
+			return false;
+		} else {
+			var smsData, personid;
+			$(this).prop('disabled', true);
+			$(this).html("Sending...");
+			$("#send-sms-modal .results").hide();
+			var sendButton = $(this);
+			smsData = {
+				personid: modalDiv.attr("data-personid"),
+				saveasnote: ($("#send-sms-modal .saveasnote").attr("checked") === "checked") ? '1' : '0',
+				ajax: 1,
+				message: sms_message
+			}
+			$.ajax({
+				type: 'POST',
+				dataType: 'JSON',
+				url: '?call=sms',
+				data: smsData,
+				context: $(this),
+				error: function(jqXHR, status, error) {
+					alert('Server error while sending SMS');
+					sendButton.html("Send");
+				},
+				success: function(data) {
+					console.log(data);
+					var modalDiv = $("#send-sms-modal");
+
+					var showResults = JethroSMS.onAJAXSuccess(data, resultsDiv);
+					if (showResults) {
+						resultsDiv.show();
+						sendButton.html("Send");
+						sendButton.removeClass('sms-success');
+					} else { // Success!
+						sendButton.html('<i class="icon-ok"></i> Sent').addClass('sms-success');
+						setTimeout(function() {
+							modalDiv.modal('hide');
+							sendButton.html("Send");
+							sendButton.removeClass('sms-success');
+						}, 1000);
+					}
+					sendButton.prop('disabled', false);
+				}
+			});
+			return false;
+		}
+	});
+}
+
+/**
+ *
+ * @param object data
+ * @param object resultsDiv
+ * @returns {Boolean} TRUE if the modal window should be kept open to display errors.
+ */
+JethroSMS.onAJAXSuccess = function (data, resultsDiv) {
+	var sentCount = 0,
+	failedCount = 0,
+	archivedCount = 0,
+	blankCount = 0,
+	rawresponse = '',
+	statusBtn;
+
+	if (data.sent !== undefined) { sentCount = data.sent.count; }
+	if (data.failed !== undefined) { failedCount = data.failed.count; }
+	if (data.failed_archived !== undefined) { archivedCount = data.failed_archived.count; }
+	if (data.failed_blank !== undefined) { blankCount = data.failed_blank.count; }
+	if (data.rawresponse !== undefined) { rawresponse = data.rawresponse; }
+
+	resultsDiv.html(""); // Reset results in case there's something there
+	var message = '';
+	if (data.error!==undefined) {
+		alert('Server error sending SMS: '+data.error);
+		return true;
+	}
+	if (sentCount > 0) {
+		if (sentCount == 1) {
+			var recip = data.sent.recipients[Object.keys(data.sent.recipients)[0]];
+			message = 'Message successfully sent to '+recip.first_name+' '+recip.last_name;
+		} else {
+			message = 'Message successfully sent to '+sentCount+' recipients';
+		}
+		JethroSMS.appendAlert(resultsDiv, 'alert-success', message, sentCount == 1 ? null : data.sent.recipients);
+		JethroSMS.markRecipientStatuses('Sent', data.sent.recipients, 'sms-success', 'SMS sent', true);
+
+		if (!data.sent.confirmed) {
+			JethroSMS.appendAlert(resultsDiv, '', 'Unable to confirm whether SMS sending was successful. Please check your system SMS configuration.');
+		}
+	}
+
+	if (blankCount > 0) {
+		if (blankCount == 1) {
+			var recip = data.failed_blank.recipients[Object.keys(data.failed_blank.recipients)[0]];
+			message = recip.first_name+' '+recip.last_name+' was not sent the message because they have no mobile number';
+		} else {
+			message = blankCount+' recipients were not sent the message because they have no mobile number';
+		}
+		JethroSMS.appendAlert(resultsDiv, '', message, blankCount == 1 ? null : data.failed_blank.recipients);
+		JethroSMS.markRecipientStatuses('Failed (No Mobile)', data.failed_blank.recipients, 'sms-failure', null, false);
+	}
+
+	if (archivedCount > 0) {
+		if (archivedCount == 1) {
+			var recip = data.failed_archived.recipients[Object.keys(data.failed_archived.recipients)[0]];
+			message = recip.first_name+' '+recip.last_name+' was not sent the message because they are archived';
+		} else {
+			message = archivedCount+' archived persons were not sent the message';
+		}
+		JethroSMS.appendAlert(resultsDiv, '', message, archivedCount == 1 ? null : data.failed_archived.recipients);
+		JethroSMS.markRecipientStatuses('Failed (Archived)', data.failed_archived.recipients, 'sms-failure', 'SMS not sent - person is archived', false);
+	}
+
+	if (failedCount > 0) {
+		if (failedCount == 1) {
+			var recip = data.failed.recipients[Object.keys(data.failed.recipients)[0]];
+			message = 'SMS sending failed for '+recip.first_name+' '+recip.last_name;
+		} else {
+			message = 'SMS sending failed for '+failedCount+' recipients';
+		}
+		JethroSMS.appendAlert(resultsDiv, 'alert-error', message, failedCount == 1 ? null : data.failed.recipients);
+		JethroSMS.markRecipientStatuses('Failed', data.failed.recipients, 'sms-failure', 'SMS failed', false);
+	}
+	
+	return ((failedCount > 0) || (archivedCount > 0) || ( blankCount > 0) || ( sentCount == 0) || (data.error !== undefined));
+}
+
+JethroSMS.appendAlert = function(parent, className, content, recipients)
+{
+	if (recipients) {
+		content += '<p>';
+		var count = 0, personid = 0;
+		for (personID in recipients) {
+			if (recipients.hasOwnProperty(personID)) {
+				if (count > 0) {
+					content += ", ";
+				} else {
+					count = count + 1;
+				}
+				content += recipients[personID]['first_name'] + " " + recipients[personID]['last_name'];
+			}
+		}
+		content += '</p>';
+	}
+	parent.append('<div class="alert ' + className + '">' + content + '</div>');
+
+}
+
+JethroSMS.markRecipientStatuses = function(notice, recipients, rowClass, buttonMessage, untick)
+{
+	var fail_list = '<p class="namelist">';
+	// Silly long version to support IE < 9
+	var personID;
+	for (personID in recipients) {
+		if (recipients.hasOwnProperty(personID)) {
+			if (rowClass) $('tr[data-personid=' + personID + ']').addClass(rowClass);
+			if (untick)
+				$('tr[data-personid=' + personID + '] input[type=checkbox]').attr('checked', false);
+			if (buttonMessage) $('tr[data-personid=' + personID + '] .btn-sms').attr('title', buttonMessage);
+		}
+	}
+}
 
 var JethroServiceProgram = {};
 
