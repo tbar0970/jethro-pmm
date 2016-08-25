@@ -54,7 +54,7 @@ class Attendance_Record_Set
 			trigger_error("Could not get cohort object for lock");
 			return FALSE;
 		}
-		return $obj->haveLock('attendance-'.$this->date);
+		return $obj->haveLock('att-'.$this->date);
 	}
 	
 	public function releaseLock()
@@ -64,7 +64,7 @@ class Attendance_Record_Set
 			trigger_error("Could not get cohort object for lock");
 			return FALSE;
 		}
-		return $obj->releaseLock('attendance-'.$this->date);
+		return $obj->releaseLock('att-'.$this->date);
 	}
 	
 
