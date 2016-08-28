@@ -31,7 +31,7 @@ class Call_Photo extends Call
 					LEFT JOIN person p ON p.familyid = f.id
 					LEFT JOIN person_photo pp ON pp.personid = p.id
 					WHERE f.id = '.(int)$obj->id.'
-					GROUP BY f.id';
+					GROUP BY f.id,p.id';
 
 		}
 		if ($obj) {
