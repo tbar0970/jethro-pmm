@@ -281,7 +281,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 				<label class="control-label">After sending:</label>
 				<div class="controls">
 				  <label class="checkbox">
-					<input type="checkbox" name="saveasnote" accesskey="n" <?php if (SMS_SAVE_TO_NOTE_BY_DEFAULT) { echo 'checked="checked"'; } ?>  />
+					<input type="checkbox" name="saveasnote" accesskey="n" <?php if (ifdef('SMS_SAVE_TO_NOTE_BY_DEFAULT')) { echo 'checked="checked"'; } ?>  />
 					save as note
 				  </label>
 				</div>
@@ -335,9 +335,13 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 	<div class="bulk-action well" id="vcf">
 		<input type="submit" value="Go" class="btn" data-set-form-action="<?php echo BASE_URL; ?>?call=vcf" />
 	</div>
+	
+	<?php
+	if (function_exists('custom_bulk_action_bodies')) {
+		custom_bulk_action_bodies();
+	}
+	?>
+	
 </div>
 
-<?php
-if (function_exists('custom_bulk_action_bodies')) {
-	custom_bulk_action_bodies();
-}
+
