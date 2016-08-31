@@ -114,7 +114,7 @@ printf($panel_header, 'basic', 'Basic Details & Members', 'active');
 					}
 					?>
 					<label>
-						<input type="checkbox" checked="checked" value="<?php echo (int)$personid; ?>" />
+						<input name="personid[]" type="checkbox" checked="checked" value="<?php echo (int)$personid; ?>" />
 					</label>
 					<div>
 						<strong><?php echo ents($dummy->toString()); ?></strong>
