@@ -60,4 +60,7 @@ if (defined('TIMEZONE') && constant('TIMEZONE')) {
 	$GLOBALS['db']->query('SET time_zone = "'.date('P').'"');
 }
 
+//SET MySQL session variables to account for strict mode
+$GLOBALS['db']->query('SET SESSION sql_mode="NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"');
+
 @ini_set('default_charset', 'UTF-8');
