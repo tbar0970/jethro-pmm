@@ -77,7 +77,7 @@ Class SMS_Sender
 		) {
 			$intls = Array();
 			foreach ($mobile_tels as $t) {
-				$intls[] = self::internationalizeNumber($t);
+				$intls[] = self::internationaliseNumber($t);
 			}
 			$content = str_replace('_RECIPIENTS_INTERNATIONAL_COMMAS_', urlencode(implode(',', $intls)), $content);
 			$content = str_replace('_RECIPIENTS_INTERNATIONAL_NEWLINES_', urlencode(implode("\n", $intls)), $content);
@@ -130,7 +130,7 @@ Class SMS_Sender
 			$response = str_replace("\r", '', $response);
 			if (ifdef('SMS_HTTP_RESPONSE_OK_REGEX')) {
 				foreach ($recips as $id => $recip) {
-					$reps['_RECIPIENT_INTERNATIONAL_'] = self::internationalizeNumber($recip['mobile_tel']);
+					$reps['_RECIPIENT_INTERNATIONAL_'] = self::internationaliseNumber($recip['mobile_tel']);
 					$reps['_RECIPIENT_'] = $recip['mobile_tel'];
 					$pattern = '/' . str_replace(array_keys($reps), array_values($reps), SMS_HTTP_RESPONSE_OK_REGEX) . '/m';
 					if (preg_match($pattern, $response)) {
@@ -161,7 +161,7 @@ Class SMS_Sender
 	 * @param string $number  Number in local format
 	 * @return string  Nummber in international format, if prefixes configured, else unchanged number
 	 */
-	private static function internationalizeNumber($number)
+	private static function internationaliseNumber($number)
 	{
 		if (strlen(ifdef('SMS_LOCAL_PREFIX'))
 				&& strlen(ifdef('SMS_INTERNATIONAL_PREFIX'))
