@@ -277,6 +277,9 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
                     <span class="smscharactercount"><?php echo SMS_MAX_LENGTH; ?> characters remaining.</span>
 				</div>
 			</div>
+		<?php
+		if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
+			?>			
 			<div class="control-group">
 				<label class="control-label">After sending:</label>
 				<div class="controls">
@@ -286,6 +289,9 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 				  </label>
 				</div>
 			</div>
+			<?php
+		}
+		?>
 			<div class="control-group">
 				<div class="controls">
 					<input type="button" class="btn bulk-sms-submit" value="Send" />

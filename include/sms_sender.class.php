@@ -191,6 +191,9 @@ Class SMS_Sender
 				Message:<br />
 				<div contenteditable="true" autofocus="autofocus" id="sms_message" class="sms_editor" data-maxlength="<?php echo SMS_MAX_LENGTH; ?>"></div>
 				<span class="pull-right smscharactercount"><?php echo SMS_MAX_LENGTH; ?> characters remaining.</span>
+			<?php
+			if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
+				?>
 				<label class="checkbox">
 					<?php
 					$savebydefault = "";
@@ -203,6 +206,9 @@ Class SMS_Sender
 					<input type="checkbox" name="saveasnote" class="saveasnote" <?php echo $savebydefault; ?> />
 					Save as Note
 				</label>
+				<?php
+			}
+			?>
 			</div>
 			<div class="modal-footer">
 				<div class="results"></div>
