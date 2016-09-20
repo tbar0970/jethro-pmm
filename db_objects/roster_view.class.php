@@ -580,9 +580,6 @@ class roster_view extends db_object
 
 	function printView($start_date=NULL, $end_date=NULL, $editing=FALSE, $public=FALSE)
 	{
-    require_once 'include/sms_sender.class.php';
-    SMS_Sender::printModal();
-
 		if (empty($this->_members)) return;
 		if (!$editing && !$public) {
 			$my_email = $GLOBALS['user_system']->getCurrentUser('email');
@@ -661,19 +658,26 @@ class roster_view extends db_object
 			<form id="roster" method="post" class="warn-unsaved bubble-option-props" data-lock-length="<?php echo LOCK_LENGTH; ?>">
 			<?php
 		}
+		if (!$public) {
+			require_once 'include/sms_sender.class.php';
+			SMS_Sender::printModal();
+			?>
+			<div id="choose-assignee-modal" class="modal hide fade" role="dialog" aria-hidden="true">
+				<div class="modal-header">
+					<h4>Choose assignee</h4>
+				</div>
+				<div class="modal-body">
+					<?php Person::printSingleFinder('personid', NULL); ?>
+				</div>
+				<div class="modal-footer">
+					<button class="btn" data-dismiss="modal" id="choose-assignee-save">Save</button>
+					<button class="btn" data-dismiss="modal"id="choose-assignee-cancel">Cancel</button>
+				</div>
+			</div>
+			<?php
+		}
+		
 		?>
-		<div id="choose-assignee-modal" class="modal hide fade" role="dialog" aria-hidden="true">
-			<div class="modal-header">
-				<h4>Choose assignee</h4>
-			</div>
-			<div class="modal-body">
-				<?php Person::printSingleFinder('personid', NULL); ?>
-			</div>
-			<div class="modal-footer">
-				<button class="btn" data-dismiss="modal" id="choose-assignee-save">Save</button>
-				<button class="btn" data-dismiss="modal"id="choose-assignee-cancel">Cancel</button>
-			</div>
-		</div>
 		<table class="table roster" border="1" cellspacing="0" cellpadding="1">
 
 			<?php $this->_printTableHeader($editing, $public); ?>
