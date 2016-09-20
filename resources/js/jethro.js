@@ -425,9 +425,21 @@ $(document).ready(function() {
 			if (optionsMsg || fieldsMsg) return confirm("WARNING: "+fieldsMsg+optionsMsg+"\nAre you sure you want to continue?");
 		})
 
-		$('#custom-fields-editor td.toggle-divider input').click(function() {
+		$('#custom-fields-editor .toggle-divider input').click(function() {
 			$(this).parents('tr')[this.checked ? 'addClass' : 'removeClass']('divider-before');
 		});
+		var handleTooltipClick = function() {
+			var tt = $(this).parents('tr').find('.tooltip-text');
+			tt[this.checked ? 'show' : 'hide']();
+			if (this.checked) {
+				tt.focus();
+			} else {
+				tt.val('');
+			}
+		}
+		$('#custom-fields-editor .toggle-tooltip input')
+				.each(handleTooltipClick)
+				.click(handleTooltipClick);
 
 		var handleToggleHeading = function() {
 			var tr = $(this).parents('tr')
@@ -440,7 +452,7 @@ $(document).ready(function() {
 				headingBox.val('');
 			}
 		}
-		$('#custom-fields-editor td.toggle-heading input')
+		$('#custom-fields-editor .toggle-heading input')
 			.click(handleToggleHeading)
 			.each(handleToggleHeading);
 	}

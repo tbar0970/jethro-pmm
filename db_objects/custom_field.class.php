@@ -58,6 +58,16 @@ class Custom_Field extends db_object
 							'type'		=> 'serialise',
 							'default'	=> Array(),
 						),
+			'tooltip'	=> Array(
+							'type'		=> 'text',
+							'width'		=> 25,
+							'height'	=> 3,
+							'allow_empty'	=> TRUE,
+							'initial_cap'	=> TRUE,
+							'placeholder'  => 'Explanatory text...',
+							'class' => 'tooltip-text'
+						),
+
 		);
 	}
 
@@ -103,6 +113,12 @@ class Custom_Field extends db_object
 				print_widget($prefix.$fieldname,
 						Array('type' => 'checkbox', 'attrs' => Array('title' => $title)),
 						!empty($this->values['heading_before']));
+				break;
+			case 'tooltip_toggle':
+				$title = 'Whether to include a tooltip for this field';
+				print_widget($prefix.$fieldname,
+						Array('type' => 'checkbox', 'attrs' => Array('title' => $title)),
+						!empty($this->values['tooltip']));
 				break;
 			case 'allow_multiple':
 			case 'divider_before':
@@ -408,6 +424,12 @@ class Custom_Field extends db_object
 		if (($this->getValue('type') == 'date') && !empty($this->values['params']['allow_note'])) {
 			$note = substr($value, 11);
 			print_widget('custom_'.$this->id.'_note[]', Array('type' => 'text', 'placeholder' => '(Note)'), $note);
+		}
+		if (strlen($this->values['tooltip'])) {
+			?>
+			<i class="clickable icon-question-sign" data-toggle="visible" data-target="#tooltip<?php echo $this->id; ?>"></i>
+			<div class="help-block custom-field-tooltip" id="tooltip<?php echo $this->id; ?>"><?php echo nl2br(ents($this->values['tooltip'])); ?></div>
+			<?php
 		}
 	}
 

@@ -179,8 +179,13 @@ function print_widget($name, $params, $value)
 			$maxlength_exp = empty($params['maxlength']) ? '' : 'maxlength="'.$params['maxlength'].'"';
 			if (array_get($params, 'height', 1) > 1) {
 				$cols_exp = empty($params['width']) ? '' : 'cols="'.$params['width'].'"';
+				$placeholder_exp = empty($params['placeholder']) ? '' : 'placeholder="'.ents($params['placeholder']).'"';
 				?>
-				<textarea name="<?php echo $name; ?>" rows="<?php echo $params['height']; ?>" <?php echo $cols_exp; ?> class="<?php echo trim($classes); ?>" <?php echo $maxlength_exp; ?>><?php echo ents($value); ?></textarea>
+				<textarea name="<?php echo $name; ?>" 
+						  rows="<?php echo $params['height']; ?>" 
+						  class="<?php echo trim($classes); ?>" 
+						  <?php echo $maxlength_exp.' '.$cols_exp .' '.$placeholder_exp; ?> 
+				><?php echo ents($value); ?></textarea>
 				<?php
 			} else {
 				$width_exp = empty($params['width']) ? '' : 'size="'.$params['width'].'"';

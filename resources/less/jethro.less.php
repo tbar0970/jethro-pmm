@@ -620,12 +620,21 @@ table.table-full-width td.narrow, table.table-full-width th.narrow {
 .cursor-move {
 	cursor: move;
 }
-.smallprint, .help-inline {
+.smallprint, .help-inline, .help-block {
 	font-size: 85%;
 	line-height: 130%;
 	margin-left: 0;
 	margin-top: 1px;
 	padding: 0;
+}
+.custom-field-tooltip {
+	background: @jethroGrayish !important;
+	border-radius: 4px;
+	padding: 3px 6px;
+	display: none;
+	margin-top: 2px;
+	width: 300px;
+	font-style: italic;
 }
 .compact-2col label, .compact-2col div  {
 	float: left;

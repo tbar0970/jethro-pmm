@@ -84,9 +84,7 @@ class View_Admin__Custom_Fields extends View
 					<th>ID</th>
 					<th>Name</th>
 					<th>Type</th>
-					<th>Multi?</th>
-					<th>Divider?</th>
-					<th>Heading?</th>
+					<th>Settings</th>
 					<th>Parameters</th>
 					<th><i class="icon-trash"></i></th>
 				</tr>
@@ -119,17 +117,31 @@ class View_Admin__Custom_Fields extends View
 						}
 						?>
 					</td>
-					<td class="center">
-						<?php $field->printFieldInterface('allow_multiple', $prefix); ?>
-					</td>
-					<td class="center toggle-divider">
-						<?php $field->printFieldInterface('divider_before', $prefix); ?>
-					</td>
-					<td class="center toggle-heading">
-						<?php $field->printFieldInterface('heading_before_toggle', $prefix); ?>
+					<td>
+						<label class="radio">
+							<?php $field->printFieldInterface('allow_multiple', $prefix); ?>
+							Allow Multiple
+						</label>
+						<label class="radio toggle-divider">
+							<?php $field->printFieldInterface('divider_before', $prefix); ?>
+							Divider Before
+						</label>
+						<label class="radio toggle-heading">
+							<?php $field->printFieldInterface('heading_before_toggle', $prefix); ?>
+							Heading Before
+						</label>
+						<label class="radio toggle-tooltip">
+							<?php $field->printFieldInterface('tooltip_toggle', $prefix); ?>
+							Tooltip
+							<br />
+							<?php $field->printFieldInterface('tooltip', $prefix); ?>
+						</label>
+						
 					</td>
 					<td>
-						<?php $field->printFieldInterface('params', $prefix); ?>
+						<?php 
+						$field->printFieldInterface('params', $prefix); 
+						?>
 					</td>
 					<td class="center">
 						<?php
