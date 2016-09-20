@@ -951,6 +951,8 @@ JethroServicePlanner.Item.addNote = function($tr) {
 
 JethroServicePlanner.Item.remove = function($tr) {
 	$tr.remove();
+	JethroServicePlanner.refreshNumbersAndTimes();
+	JethroServicePlanner.isChanged = true;
 }
 
 JethroServicePlanner.Item.viewCompDetail = function($tr) {
