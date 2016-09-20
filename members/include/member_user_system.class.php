@@ -77,7 +77,6 @@ class Member_User_System extends Abstract_User_System
 	
 	private function handleAccountRequest()
 	{
-
 			$person = $this->_findCandidateMember($_REQUEST['email']);
 			require_once 'include/emailer.class.php';
 			$failureEmail = MEMBER_REGO_FAILURE_EMAIL;
@@ -108,7 +107,7 @@ If you didn't request an account, you can just ignore this email";
 				  ->setSubject(MEMBER_REGO_EMAIL_SUBJECT)
 				  ->setFrom(array(MEMBER_REGO_EMAIL_FROM_ADDRESS => MEMBER_REGO_EMAIL_FROM_NAME))
 				  ->setTo(array($person['email'] => $person['first_name'].' '.$person['last_name']))
-				  ->setBody($body)
+				  ->setBody($text)
 				  ->addPart($html, 'text/html');
 				
 				$res = Emailer::send($message);
