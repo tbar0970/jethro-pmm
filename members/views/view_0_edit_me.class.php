@@ -74,7 +74,7 @@ class View__Edit_Me extends View
 			<form method="post" enctype="multipart/form-data">
 			<h3>Family Details</h3>
 			<?php
-			$this->family->printForm('family', Array('address_street', 'address_suburb', 'address_postcode', 'home_tel'));
+			$this->family->printForm('family', Array('address_street', 'address_suburb', 'address_postcode', 'home_tel', 'photo'));
 
 			foreach ($this->persons as $person) {
 				echo '<h3>'.$person->getValue('first_name').' '.$person->getValue('last_name').'</h3>';

@@ -738,7 +738,7 @@ class Person extends DB_Object
 			$this->setCustomValue($fieldid, $field->processWidget());
 		}
 
-		$this->_photo_data = Photo_Handler::getUploadedPhotoData('photo');
+		$this->_photo_data = Photo_Handler::getUploadedPhotoData($prefix.'photo');
 		return $res;
 	}
 
@@ -747,7 +747,7 @@ class Person extends DB_Object
 		switch ($name) {
 			case 'photo':
 				?>
-				<input type="file" name="photo" />
+				<input type="file" name="<?php echo $prefix; ?>photo" />
 				<?php
 				break;
 			case 'familyid':
