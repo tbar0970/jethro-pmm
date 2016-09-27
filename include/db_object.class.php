@@ -391,7 +391,7 @@ class db_object
 		$this->_old_values = Array();
 		$this->id = $id;
 		foreach ($this->fields as $fieldname => $details) {
-			if (empty($details['readonly']) && isset($values[$fieldname])) {
+			if (empty($details['readonly']) && array_key_exists($fieldname, $values)) {
 				if (($details['type'] == 'serialise') && is_string($values[$fieldname])) {
 					$values[$fieldname] = unserialize($values[$fieldname]);
 				}
