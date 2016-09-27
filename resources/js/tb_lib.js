@@ -148,7 +148,8 @@ $(document).ready(function() {
 	 * <div class="option" data-mytype="x"></div>
 	 * <div class="option" data-mytype="y"></div>
 	 */
-	$('input[data-toggle=visible], select[data-toggle=visible]').not('[type=checkbox]').change(function() {
+	// needs to attach to document so that dynamically-generated buttons can work
+	$( document ).on('change', 'input[data-toggle=visible][type!=checkbox], select[data-toggle=visible]', function(event) {
 		var base = $(document);
 		var targetExp = $(this).attr('data-target');
 		if (/^row /.test(targetExp)) {
@@ -164,9 +165,13 @@ $(document).ready(function() {
 				$(this).show();
 			}
 		})
-	}).change();
+	})
+	$('input[data-toggle=visible][type!=checkbox], select[data-toggle=visible]').change();
 
-	$('[data-toggle=visible]').not('input[type!=checkbox], select').click(function(event) {
+	// needs to attach to document so that dynamically-generated buttons can work
+	$( document ).on('click', '[data-toggle=visible]', function(event) {
+		if ($(this).is('input[type!=checkbox], select')) return;
+
 		var targetExp = $(this).attr('data-target');
 		var target = null;
 		if (targetExp == 'next') {
