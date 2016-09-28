@@ -62,11 +62,11 @@ class View_Admin__System_Configuration extends View {
 	public function printView()
 	{
 		?>
-		<p>Some of the following settings can be edited on this page.  Other settings are read only on this page, but can be adjusted by getting your 
+		<p class="text alert alert-info">This page shows the system-wide Jethro configuration settings.  Some settings can be edited on this page; others need to be changed by your
 		<?php if (defined('SYSADMIN_HREF')) echo '<a href="'.SYSADMIN_HREF.'">'; ?>
 		system administrator
 		<?php if (defined('SYSADMIN_HREF')) echo '</a>'; ?>
-		to edit the Jethro configuration file.</p>
+		in the Jethro configuration file.</p>
 		<table class="table no-autofocus system-config">
 			<tr>
 				<td colspan="2"><h3>Overall system settings</h3></td>

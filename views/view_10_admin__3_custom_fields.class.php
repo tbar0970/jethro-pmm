@@ -10,7 +10,7 @@ class View_Admin__Custom_Fields extends View
 
 	function getTitle()
 	{
-		return 'Configure Custom Fields';
+		return 'Custom Fields';
 	}
 
 	function processView()
@@ -68,7 +68,10 @@ class View_Admin__Custom_Fields extends View
 	function printView()
 	{
 		if (is_null($this->fields)) return;
-		
+		?>
+		<p class="text alert alert-info">When you define a custom field here, you'll then be able to enter a value for that field when editing a person record.<br />Custom fields are useful for recording dates of birth, accreditations and medical details.</p>
+		<?php
+
 		if (empty($this->fields)) {
 			?>
 			<p><i>No custom fields have been set up in the system yet.</i></p>

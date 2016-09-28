@@ -30,6 +30,7 @@ class View_Admin__Congregations extends View
 	function printView()
 	{
 		?>
+		<p class="text alert alert-info">Each person can be in one congregation.  A person with status 'contact' can be congregationless.  You may want to create extra congregations to represent kids church, housebound persons, etc.</p>
 		<p>
 			<a href="?view=_add_congregation"><i class="icon-plus-sign"></i>Add New Congregation</a>
 		</p>

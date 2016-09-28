@@ -18,6 +18,7 @@ class View_Admin__User_Accounts extends View
 	function printView()
 	{
 		?>
+		<p class="text alert alert-info">User accounts are usually created to give <i>staff and ministry leaders</i> access to Jethro.  You need to create their <i>person</i> record first, then add a user account to go with it.  Usually it's best to let church <i>members</i> create their own accounts in the <a href="<?php echo BASE_URL; ?>/members" target="_blank">member area</a></p>
 		<p><a href="?view=_add_user_account"><i class="icon-plus-sign"></i><?php echo _('Add User Account');?></a></p>
 
 		<table class="table table-striped table-hover table-min-width">
@@ -38,4 +39,3 @@ class View_Admin__User_Accounts extends View
 		<?php
 	}
 }
-?>

@@ -64,6 +64,7 @@ class View_Admin__Note_Templates extends View
 	private function printTemplateList()
 	{
 		?>
+		<p class="text alert alert-info">When you create a note template here, it then becomes available for use when adding a note to a person. Templates are useful if you often need to add notes containing a fixed set of details, for example an incident report or training record. </p>
 		<p>
 			<a href="<?php echo build_url(Array('*' => NULL, 'view' => $_REQUEST['view'], 'templateid' => 0)); ?>"><i class="icon-plus-sign"></i>Create a new note template</a>
 		</p>
