@@ -301,6 +301,7 @@ define('MAP_LOOKUP_URL', 'http://maps.google.co.in?q=__ADDRESS_STREET__,%20__ADD
 ///////////////////////////////////////////////////////
 define('LOCK_LENGTH', '10 minutes');
 define('LOCK_CLEANUP_PROBABLILITY', 10);
+//define('STRICT_MODE_FIX', TRUE); //Set TRUE if you experience database errors because of MySQL's STRICT Mode.
 
 // the chunk size to aim for when dividing lists (of persons or families) into pages
 define('CHUNK_SIZE', 100);
