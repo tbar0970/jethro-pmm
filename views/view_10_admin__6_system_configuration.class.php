@@ -62,11 +62,19 @@ class View_Admin__System_Configuration extends View {
 	public function printView()
 	{
 		?>
-		<p class="text alert alert-info">This page shows the system-wide Jethro configuration settings.  Some settings can be edited on this page; others need to be changed by your
-		<?php if (defined('SYSADMIN_HREF')) echo '<a href="'.SYSADMIN_HREF.'">'; ?>
-		system administrator
-		<?php if (defined('SYSADMIN_HREF')) echo '</a>'; ?>
-		in the Jethro configuration file.</p>
+		<p class="text alert alert-info">
+			<?php 
+			$text = _("This page shows the system-wide Jethro configuration settings.  Some settings can be edited on this page; others need to be changed by your system administrator in the Jethro configuration file.");
+			if (ifdef('SYSADMIN_HREF')) {
+				$text = str_replace(
+							_('system administrator'), 
+							'<a href="'.SYSADMIN_HREF.'">'._('system administrator').'</a>',
+							$text
+						);
+			}
+			echo $text;
+			?>
+		</p>
 		<table class="table no-autofocus system-config">
 			<tr>
 				<td colspan="2"><h3>Overall system settings</h3></td>
