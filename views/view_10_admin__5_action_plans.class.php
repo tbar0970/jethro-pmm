@@ -74,7 +74,9 @@ class View_Admin__Action_Plans extends View
 			}
 		} else {
 			?>
-			<p class="text alert alert-info">An action plan is a set of pre-defined actions to be performed on a person or family, for example adding a note or adding them to a group. You can trigger an action plan when creating a family, when viewing a person, or using the bulk-actions tool.  Action plans can be useful for automating a workflow such as your newcomer integration process.</p>
+			<p class="text alert alert-info">
+				<?php echo _("An action plan is a set of pre-defined actions to be performed on a person or family, for example adding a note or adding them to a group. You can trigger an action plan when creating a family, when viewing a person, or using the bulk-actions tool.  Action plans can be useful for automating a workflow such as your newcomer integration process."); ?>
+			</p>
 			<p><a href="<?php echo build_url(Array('planid' => 0, 'delete' => NULL)); ?>"><i class="icon-plus-sign"></i>Add new plan</a></p>
 			<?php
 			$saved_plans = $GLOBALS['system']->getDBObjectData('action_plan', Array(), '', 'name');
