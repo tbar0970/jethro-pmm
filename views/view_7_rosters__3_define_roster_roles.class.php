@@ -21,7 +21,14 @@ class View_Rosters__Define_Roster_Roles extends View
 	function printView()
 	{
 		?>
-		<p><a href="?view=_add_roster_role"><i class="icon-plus-sign"></i>Add Role</a></p>
+		<p class="text alert alert-info">
+			<?php 
+			echo _('A roster role represents an activity somebody does which is organised by a roster.
+				Roster roles are often congregation-specific; for example each congregation probably has its own separate "bible reader" role.
+				Other roles may be congregation-independent, such as cleaning or gardening.');
+			?>
+		</p>
+		<p><a href="?view=_add_roster_role"><i class="icon-plus-sign"></i><?php echo _('Add Role'); ?></a></p>
 		<?php
 
 		$congs = $GLOBALS['system']->getDBObjectData('congregation', Array('!meeting_time' => ''), 'AND', 'meeting_time');
@@ -33,7 +40,7 @@ class View_Rosters__Define_Roster_Roles extends View
 		}
 		if (empty($allroles)) {
 			?>
-			<i>No roles have been created yet.</i>
+			<i><?php echo _("No roles have been created yet"); ?>.</i>
 			<?php
 			return;
 		}

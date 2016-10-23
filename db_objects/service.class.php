@@ -206,7 +206,10 @@ class service extends db_object
 
 	function toString()
 	{
-		return $this->getFormattedValue('congregationid').' Service on '.$this->getFormattedValue('date');
+		$cong = $GLOBALS['system']->getDBObject('congregation', $this->getValue('congregationid'));
+		$congName = $cong->getValue('long_name');
+		if (!strlen($congName)) $congName = $cong->toString();
+		return $congName.' Service on '.$this->getFormattedValue('date');
 	}
 
 	static function shiftServices($congids, $after_date, $shift_by)
@@ -625,7 +628,6 @@ class service extends db_object
 	{
 		?>
 		<table cellspacing="0" cellpadding="5"
-			<?php if (empty($_REQUEST['view'])) echo 'border="1" style="width: 10cm; border-collapse: collapse" '; ?>
 			class="table table-bordered table-condensed table-full-width run-sheet"
 		>
 			<thead>
@@ -652,8 +654,8 @@ class service extends db_object
 				}
 				?>
 				<tr>
-					<td class="narrow"><?php echo date('Hi', $time); ?></td>
-					<td class="narrow"><?php if ($item['show_in_handout'] != '0') echo $num++; ?></td>
+					<td class="narrow"><?php echo date('H:i', $time); ?></td>
+					<td class="narrow center"><?php if ($item['show_in_handout'] != '0') echo $num++; ?></td>
 					<td>
 						<?php
 						$title = $item['runsheet_title_format'];
