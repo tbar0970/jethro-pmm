@@ -4,11 +4,12 @@ $(document).ready(function() {
 
 	// Make standalone safari stay standalone
 	if (("standalone" in window.navigator) && window.navigator.standalone) {
-		$('a.brand').parent().prepend('<i class="icon-white icon-chevron-left" onclick="history.back()"></i>')
+		$('a.brand').parent().prepend('<i class="icon-white icon-chevron-left" onclick="history.go(-1); "></i>')
 		$("a").click(function (event) {
 			if ((!$(this).attr('target'))
+					&& (!$(this).attr('data-toggle'))
 					&& this.href != ''
-					&& this.href != '#'
+					&& this.href.indexOf('#') != 0
 					&& this.href.indexOf('javascript:') != 0
 					&& !((this.innerHTML == 'Search') && $(this).parents('.nav').length)
 			) {
