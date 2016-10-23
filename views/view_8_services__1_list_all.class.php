@@ -212,7 +212,7 @@ class View_Services__List_All extends View
 
 	function getTitle()
 	{
-		return ($this->_editing ? 'Edit Service Program' : 'All Services');
+		return ($this->_editing ? 'Edit Service Schedule' : 'Service Schedule');
 	}
 
 
@@ -247,7 +247,18 @@ class View_Services__List_All extends View
 	{
 		require_once dirname(__FILE__).'/view_0_generate_service_documents.class.php';
 		if (empty($this->_congregations)) return;
+		if (empty($this->_grouped_services)) {
+			?>
+			<p class="text alert alert-info">
+				<?php echo _('No services have been saved in the specified time period.  Click the "edit" button above to create some services.'); ?>
+			</p>
+			<?php
+			return;
+		}
 		?>
+		<p class="text alert alert-info">
+			<?php echo _('Click a service below to edit its run sheet, or click the "edit" button above to edit the service schedule including bible readings and titles.'); ?>
+		</p>
 		<table class="table roster service-program table-auto-width">
 			<thead>
 				<tr>
@@ -408,6 +419,9 @@ class View_Services__List_All extends View
 		if (empty($_REQUEST['congregations'])) return;
 
 		?>
+		<p class="text alert alert-info">
+			<?php echo _("Use the fields below to enter a topic, format and/or Bible readings for each service. For each Bible reading, use the checkboxes to indicate if it is to be read, to be preached on, or both."); ?>
+		</p>
 		<form method="post" class="warn-unsaved" data-lock-length="<?php echo LOCK_LENGTH; ?>">
 		<input type="hidden" name="program_submitted" value="1" />
 		<!-- the following hidden fields preserve the value of an image input whose click
