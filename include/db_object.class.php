@@ -389,6 +389,7 @@ class db_object
 	public function populate($id, $values)
 	{
 		$this->_old_values = Array();
+		$this->values = Array();
 		$this->id = $id;
 		foreach ($this->fields as $fieldname => $details) {
 			if (empty($details['readonly']) && array_key_exists($fieldname, $values)) {
@@ -580,7 +581,7 @@ class db_object
 			trigger_error('Cannot get value for field '.ents($name).' - field does not exist', E_USER_WARNING);
 			return NULL;
 		}
-		if (is_null($value)) $value = $this->values[$name];
+		if (is_null($value)) $value = $this->getValue($name);
 		if (($name == 'history') && !empty($value)) {
 			?>
 			<table class="history table table-full-width table-striped">

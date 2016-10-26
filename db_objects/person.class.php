@@ -802,5 +802,46 @@ class Person extends DB_Object
 		}
 	}
 
+	public function getCustomValues()
+	{
+		return $this->_custom_values;
+	}
+
+	public function fromCsvRow($row) {
+		$this->_custom_values = Array();
+		$this->_old_custom_values = Array();
+		
+		static $customFields = NULL;
+		if ($customFields === NULL) {
+			$fields = $GLOBALS['system']->getDBObjectdata('custom_field');
+			foreach ($fields as $fieldID => $field) {
+				$field['id'] = $fieldID;
+				$customFields[strtolower($field['name'])] = $GLOBALS['system']->getDBObject('custom_field', $fieldID);
+			}
+		}
+		foreach ($row as $k => $v) {
+			$k = strtolower($k);
+			if (isset($customFields[$k]) && strlen($v)) {
+				$this->setCustomValue($customFields[$k]->id, $customFields[$k]->parseValue($v));
+				unset($row[$k]); // so it doesn't upset db_object::fromCsvRow
+			}
+		}
+
+		parent::fromCsvRow($row);
+	}
+
+	public function populate($id, $values)
+	{
+		parent::populate($id, $values);
+		$this->_custom_values = Array();
+		$this->_old_custom_values = Array();
+		
+		foreach ($values as $k => $v) {
+			if (0 === strpos($k, 'CUSTOM_')) {
+				$this->setCustomValue(substr($k, 7), $v);
+			}
+		}
+	}
+
 
 }

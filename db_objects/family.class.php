@@ -167,7 +167,7 @@ class family extends db_object
 			$this->printMemberList(array_get($this->_tmp, 'abbreviate_member_list', FALSE));
 			return;
 		}
-		if (is_null($value)) $value = $this->values[$name];
+		if (is_null($value)) $value = $this->getValue($name); 
 		if (($name == 'address_street') && MAP_LOOKUP_URL) {
 			parent::printFieldValue($name, $value);
 			if (!empty($value) && ($value == $this->values['address_street'])) {

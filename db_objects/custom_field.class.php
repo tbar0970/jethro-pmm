@@ -459,6 +459,8 @@ class Custom_Field extends db_object
 	public function formatValue($val)
 	{
 		if (is_array($val)) return implode(', ', array_map(Array($this, 'formatValue'), $val));
+		if (!strlen($val)) return '';
+		
 		switch ($this->getValue('type')) {
 			case 'date':
 				if (!preg_match('/(([-0-9]{4})?-([0-9]{2}-[0-9]{2}))( (.*))?/', $val, $matches)) {
@@ -476,6 +478,33 @@ class Custom_Field extends db_object
 				return $val;
 				break;
 		}
+	}
+
+	/**
+	 * Given a string with a value, convert it to appropriate format for storage
+	 * In particular, this looks up the option ID for option fields
+	 * @see Person::fromCsvRow()
+	 */
+	public function parseValue($val)
+	{
+		switch ($this->getValue('type')) {
+			case 'date':
+				if (!preg_match('/(([-0-9]{4})?-([0-9]{2}-[0-9]{2}))( (.*))?/', $val, $matches)) {
+					trigger_error("Badly formed date value '$val'. Dates must be YYYY-MM-DD");
+					return NULL;
+				}
+				break;
+			case 'select':
+				$lowerVal = strtolower($val);
+				foreach ($this->getOptions() as $id => $label) {
+					if (strtolower($label) == $lowerVal) {
+						return $id;
+					}
+				}
+				trigger_error("Invalid option '$val'. ".$this->getValue('name')." must be {".implode(',', $this->getOptions())."})");
+				return NULL;
+		}
+		return $val;
 	}
 
 	/**
