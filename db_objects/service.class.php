@@ -204,12 +204,13 @@ class service extends db_object
 		}
 	}
 
-	function toString()
+	function toString($long=FALSE)
 	{
 		$cong = $GLOBALS['system']->getDBObject('congregation', $this->getValue('congregationid'));
-		$congName = $cong->getValue('long_name');
+		$congName = $cong->getValue($long ? 'name' : 'long_name');
 		if (!strlen($congName)) $congName = $cong->toString();
-		return $congName.' Service on '.$this->getFormattedValue('date');
+		$date = $long ? date('jS F Y', strtotime($this->getValue('date'))) : $this->getFormattedValue('date');
+		return $congName.' Service on '.$date;
 	}
 
 	static function shiftServices($congids, $after_date, $shift_by)
