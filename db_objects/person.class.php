@@ -276,7 +276,7 @@ class Person extends DB_Object
 		$showDivider = TRUE; // always show before first field
 		$showHeading = '';
 		$dummyField = new Custom_Field();
-		foreach ($this->getCustomFields() as $fieldid => $fieldDetails) {
+		foreach (self::getCustomFields() as $fieldid => $fieldDetails) {
 			$dummyField->populate($fieldid, $fieldDetails);
 			if ($fieldDetails['divider_before']) {
 				$showDivider = TRUE;
@@ -529,7 +529,7 @@ class Person extends DB_Object
 		$SQL = 'INSERT INTO custom_field_value
 				(personid, fieldid, value_text, value_date, value_optionid)
 				VALUES ';
-		$customFields = $this->getCustomFields();
+		$customFields = self::getCustomFields();
 		$sets = Array();
 		foreach ($this->_custom_values as $fieldid => $values) {
 			if (!is_array($values)) $values = empty($values) ? Array() : Array($values);
@@ -562,7 +562,7 @@ class Person extends DB_Object
 	{
 		$res = parent::_getChanges();
 		if (!empty($this->_old_custom_values)) {
-			$customFields = $this->getCustomFields();
+			$customFields = self::getCustomFields();
 			$dummyField = new Custom_Field();
 			foreach ($this->_old_custom_values as $fieldid => $oldVal) {
 				$dummyField->populate($fieldid, $customFields[$fieldid]);
@@ -642,6 +642,38 @@ class Person extends DB_Object
 		}
 		return $out;
 	}
+
+	/**
+	 * Get formatted custom field data indexed by personid and fieldname
+	 * @param type $personids
+	 * @return array
+	 */
+	static function getCustomMergeData($personids)
+	{
+		$db = $GLOBALS['db'];
+		$SQL = 'SELECT '.Custom_Field::getRawValueSQLExpr('v').' AS value, f.name, v.personid, v.fieldid
+				FROM custom_field_value v
+				JOIN custom_field f ON v.fieldid = f.id
+				WHERE v.personid IN ('.implode(',', array_map(Array($db, 'quote'), $personids)).')';
+		$qres = $db->queryAll($SQL);
+		$res = Array();
+
+		$customFields = self::getCustomFields();
+		foreach ($customFields as $fieldid => $fieldDetails) {
+			$customFields[$fieldid] = new Custom_Field();
+			$customFields[$fieldid]->populate($fieldid, $fieldDetails);
+		}
+		foreach ($qres as $row) {
+			$fname = strtoupper(str_replace(' ', '_', $row['name']));
+			$fVal = $customFields[$row['fieldid']]->formatValue($row['value']);
+			if (isset($res[$row['personid']][$fname])) {
+				$res[$row['personid']][$fname] .= ', '.$fVal;
+			} else {
+				$res[$row['personid']][$fname] = $fVal;
+			}
+		}
+		return $res;
+	}
 		
 	function getInstancesQueryComps($params, $logic, $order)
 	{
@@ -679,7 +711,7 @@ class Person extends DB_Object
 
 		if (empty($fields) || in_array('custom', $fields)) {
 
-			$customFields = $this->getCustomFields();
+			$customFields = self::getCustomFields();
 			$dummyField = new Custom_Field();
 			if ($customFields) {
 				?>
@@ -780,17 +812,18 @@ class Person extends DB_Object
 		return $uuid;
 	}
 
-	private function &getCustomFields()
+	public static function &getCustomFields()
 	{
-		if (!isset($this->_tmp['custom_fields'])) {
-			$this->_tmp['custom_fields'] = $GLOBALS['system']->getDBObjectData('custom_field', Array(), 'OR', 'rank');
+		static $customFields = NULL;
+		if ($customFields === NULL) {
+			$customFields = $GLOBALS['system']->getDBObjectData('custom_field', Array(), 'OR', 'rank');
 		}
-		return $this->_tmp['custom_fields'];
+		return $customFields;
 	}
 
 	public function setCustomValue($fieldid, $newVal, $addToExisting=FALSE)
 	{
-		$fields = $this->getCustomFields();
+		$fields = self::getCustomFields();
 		$oldVal = array_get($this->_custom_values, $fieldid, '');
 		if ((!empty($oldVal) || !empty($newVal)) && ($addToExisting || ($oldVal != $newVal))) {
 			$this->_old_custom_values[$fieldid] = $oldVal;

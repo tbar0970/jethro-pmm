@@ -125,6 +125,10 @@ class Call_ODF_Merge extends Call
 			case 'person':
 			default:
 				$temp_merge_data = $GLOBALS['system']->getDBObjectData('person', Array('id' => $_POST['personid']));
+				foreach (Person::getCustomMergeData($_POST['personid']) as $personid => $data) {
+					$temp_merge_data[$personid] += $data;
+				}
+
 				$merge_data = Array();
 				foreach ($_REQUEST['personid'] as $id) {
 					$merge_data[$id] = $temp_merge_data[$id];
