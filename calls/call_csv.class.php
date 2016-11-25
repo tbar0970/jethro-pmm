@@ -20,6 +20,9 @@ class Call_csv extends Call
 			case 'person':
 			default:
 				$merge_data = $GLOBALS['system']->getDBObjectData('person', Array('id' => (array)$_POST['personid']));
+				foreach (Person::getCustomMergeData($_POST['personid']) as $personid => $data) {
+					$merge_data[$personid] += $data;
+				}
 				$dummy = new Person();
 				$dummy_family = new Family();
 				break;
@@ -31,7 +34,8 @@ class Call_csv extends Call
 		}
 		fputcsv($fp, $headerrow);
 		
-		foreach ($merge_data as $id => $row) {
+		foreach ($_REQUEST['personid'] as $id) {
+			$row = array_get($merge_data, $id, Array());
 			@$dummy->populate($id, $row);
 			$outputrow = Array($id);
 			foreach ($row as $k => $v) {
