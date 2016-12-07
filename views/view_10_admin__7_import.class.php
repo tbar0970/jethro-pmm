@@ -273,7 +273,7 @@ class View_Admin__Import extends View
 					</tr>
 				</table>
 				</form>
-				<p>(<?php echo _('You will be asked to confirm at the next step'); ?></p>
+				<p>(<?php echo _('You will be asked to confirm at the next step'); ?>)</p>
 				<?php
 				break;
 				
@@ -306,7 +306,7 @@ class View_Admin__Import extends View
 						unset($v['note']); // don't show notes in the preview
 
 						// format custom field names and values
-						foreach ($_SESSION['import']['custom_field_ids'] as $fieldID => $x) {
+						foreach (array_get($_SESSION['import'], 'custom_field_ids', Array()) as $fieldID => $x) {
 							$field = $GLOBALS['system']->getDBObject('custom_field', $fieldID);
 							$v[$field->getValue('name')] = $field->formatValue(array_get($v, 'CUSTOM_'.$fieldID));
 							unset($v['CUSTOM_'.$fieldID]);
@@ -315,6 +315,7 @@ class View_Admin__Import extends View
 					?>
 					<h3><?php echo ents($family['family_name']); ?> family</h3>
 					<?php
+					$this->_dummy_family->reset();
 					$this->_dummy_family->populate(0, $family);
 					$this->_dummy_family->printSummaryWithMembers(FALSE, $family['members']);
 				}
