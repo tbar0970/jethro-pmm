@@ -49,8 +49,10 @@ if ($ini['CC_STATUS']) {
 }
 $SQL .= '
 		WHERE cfv.value_date  = CURDATE() + INTERVAL '.(int)$ini['REMINDER_OFFSET'].' DAY
-		AND p.status <> "archived"';
+		AND p.status <> "archived"
+		GROUP BY p.id';
 $res = $GLOBALS['db']->queryAll($SQL);
+bam($res);
 check_db_result($res);
 foreach ($res as $row) {
 	if (empty($row['first_name'])) continue; // no matches = empty row
