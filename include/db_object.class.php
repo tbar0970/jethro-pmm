@@ -340,7 +340,6 @@ class db_object
 				return FALSE;
 			}
 		}
-		
 		// Update the DB
 		$db =& $GLOBALS['db'];
 		$sets = Array();
@@ -385,11 +384,16 @@ class db_object
 		}
 		return $changes;
 	}
+	
+	public function reset()
+	{
+		$this->values = $this->_old_values = Array();
+		$this->id = 0;
+	}
 
 	public function populate($id, $values)
 	{
 		$this->_old_values = Array();
-		$this->values = Array();
 		$this->id = $id;
 		foreach ($this->fields as $fieldname => $details) {
 			if (empty($details['readonly']) && array_key_exists($fieldname, $values)) {

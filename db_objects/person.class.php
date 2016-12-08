@@ -154,6 +154,11 @@ class Person extends DB_Object
 				$res['status']['default'] = "$i";
 			}
 		}
+		foreach ($res as $k => $v) {
+			if ($label = ifdef('PERSON_'.strtoupper($k).'_LABEL')) {
+				$res[$k]['label'] = $label;
+			}
+		}
 		return $res;
 	}
 
