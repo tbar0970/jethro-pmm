@@ -155,8 +155,8 @@ if (!empty($to_add) && !$DRYRUN) {
 		// in the email address) so when there's not too many we call listSubscribe individually
 		foreach ($to_add as $add) {
 			if (!$api->listSubscribe($list_id, $add['EMAIL'],$add, 'html', FALSE, TRUE, FALSE,false)) {
-				if (FALSE !== strpos($api->errorMessage, 'has bounced, and cannot be resubscribed')) {
-					// Email address has a known bounce
+				if (FALSE !== strpos($api->errorMessage, 'cannot be resubscribed')) {
+					// Email address has a known bounce or a deliberate unsubscribe.
 					// Future extension: Clear their email address in jethro and add a note
 
 				} else {
