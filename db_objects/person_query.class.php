@@ -1570,6 +1570,7 @@ class Person_Query extends DB_Object
 		) {
 			$params['group_by'] = '';
 		}
+		if (!isset($params['rules'])) $params['rules'] = Array();
 
 		return $params;
 	}
