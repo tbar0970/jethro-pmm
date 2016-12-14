@@ -101,7 +101,7 @@ class Action_Plan extends DB_Object
 				<tr>
 					<th>Notes</th>
 					<td>
-						When this plan is executed, add these notes to the person/family:
+						<strong>When this plan is executed, add these notes to the person/family:</strong>
 						<table class="expandable">
 						<?php
 						foreach ($notes as $i => $note) {
@@ -119,30 +119,48 @@ class Action_Plan extends DB_Object
 						}
 						?>
 						</table>
+						<br />
 					</td>
 				</tr>
 				<tr>
 					<th>Groups</th>
 					<td>
-						When this plan is executed, <b>add</b> the persons / famiy members to these groups:
+						<strong>When this plan is executed, <b>add</b> the persons to these groups:</strong>
+						<table class="expandable">
 						<?php
-						Person_Group::printMultiChooser('groups', array_get($actions, 'groups', Array()), Array(), FALSE);
+						$groups = array_get($actions, 'groups', Array());
+						if (empty($groups)) $groups = Array(0);
+						$mstatuses = array_get($actions, 'group_membership_statuses', Array());
+						foreach ($groups as $i => $groupid) {
+							$statusid = array_get($mstatuses, $i, NULL);
+							?>
+							<tr>
+								<td><?php Person_Group::printChooser('groups[]', $groupid); ?></td>
+								<td>as &nbsp;<?php Person_Group::printMembershipStatusChooser('group_membership_statuses[]', $statusid); ?></td>
+							</tr>
+							<?php
+						}
 						?>
+						</table>
+						<?php
+						?>
+						<br />
 					</td>
 				</tr>
 				<tr>
 					<th></th>
 					<td>
-						When this plan is executed, <b>remove</b> the persons / famiy members from these groups:
+						<strong>When this plan is executed, <b>remove</b> the persons from these groups:</strong>
 						<?php
 						Person_Group::printMultiChooser('groups_remove', array_get($actions, 'groups_remove', Array()), Array(), FALSE);
 						?>
+						<br />
 					</td>
 				</tr>
 				<tr>
 					<th>Fields</th>
 					<td>
-						When this plan is executed, for each person / family member:
+						<strong>When this plan is executed, for each person:</strong>
 						<table class="fields">
 						<?php
 						$fields = array_get($actions, 'fields', Array());
@@ -202,6 +220,7 @@ class Action_Plan extends DB_Object
 						}
 						?>
 						</table>
+						<br />
 					</td>
 				</tr>
 				<tr>
@@ -210,9 +229,10 @@ class Action_Plan extends DB_Object
 						<input type="hidden" name="mark_present" value="0" />
 						<label class="checkbox">
 							<input type="checkbox" id="mark_present" name="mark_present" value="1" <?php if (array_get($actions, 'attendance')) echo 'checked="checked"'; ?>>
-							When this plan is executed, mark the persons / family members as present at their congregation for the most recent attendance date
+							<strong>When this plan is executed, mark the persons as present at their congregation</strong>
 						</label>
 						<p><small>This will only have effect if they are in a congregation. They will be marked present for the most recent date on which attendance has been recorded for that congregation.</small></p>
+						<br />
 					</td>
 				</tr>
 				<tr>
@@ -230,6 +250,7 @@ class Action_Plan extends DB_Object
 							<input type="checkbox" id="default_on_add_person" name="default_on_add_person" value="1" <?php if ($this->getValue('default_on_add_person')) echo 'checked="checked"'; ?>>
 							By default, execute this plan when adding a new person to an existing family
 						</label>
+						<br />
 					</td>
 				</tr>
 			</tbody>
@@ -263,6 +284,7 @@ class Action_Plan extends DB_Object
 		$actions = Array(
 					'notes' => Array(),
 					'groups' => Array(),
+					'group_membership_statuses' => Array(),
 					'groups_remove' => Array(),
 					'dates' => Array(),
 					'attendance' => NULL,
@@ -276,6 +298,7 @@ class Action_Plan extends DB_Object
 		while (isset($_POST['groups'][$i])) {
 			if ($groupid = (int)$_POST['groups'][$i]) {
 				$actions['groups'][] = $groupid;
+				$actions['group_membership_statuses'][] = array_get($_POST['group_membership_statuses'], $i);
 			}
 			$i++;
 		}
@@ -374,10 +397,12 @@ class Action_Plan extends DB_Object
 		}
 
 		$actions = $this->getValue('actions');
-		foreach (array_get($actions, 'groups', Array()) as $groupid) {
+		$membershipStatuses = array_get($actions, 'group_membership_statuses', Array());
+		foreach (array_get($actions, 'groups', Array()) as $i => $groupid) {
 			$group = $GLOBALS['system']->getDBObject('person_group', $groupid);
+			$status = array_get($membershipStatuses, $i);
 			foreach ($personids as $personid) {
-				$group->addMember($personid);
+				$group->addMember($personid, $status);
 			}
 		}
 		foreach (array_get($actions, 'groups_remove', Array()) as $groupid) {
