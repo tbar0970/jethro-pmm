@@ -110,6 +110,10 @@ class System_Controller
 					$view_classname = 'View_'.$bits[0].'__'.$bits[1];
 				}
 			} else if (isset($_SESSION['views'][$this->_base_dir][$bits[0]])) {
+				if (!isset($_SESSION['views'][$this->_base_dir][$bits[0]]['filename'])) {
+					error_log("SESSION HAS A VIEW ".$bits[0]." BUT NO FILENAME:");
+					error_log(print_r($_SESSION['views'], 1));
+				}
 				$view_filename = $_SESSION['views'][$this->_base_dir][$bits[0]]['filename'];
 				$view_classname = 'View_'.$bits[0];
 			}
