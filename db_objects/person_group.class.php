@@ -400,7 +400,7 @@ class Person_Group extends db_object
 		if ($cats === NULL) $cats = $GLOBALS['system']->getDBObjectData('person_group_category', Array(), 'OR', 'name');
 		if ($groups === NULL) $groups = $GLOBALS['system']->getDBObjectData('person_group', Array('is_archived' => 0), 'OR', 'name');
 		if (empty($groups)) {
-			?><i>There are no groups in the system yet</i><?php
+			?><i>There are no groups in the system yet</i> &nbsp;<?php
 			return FALSE;
 		}
 		?>
