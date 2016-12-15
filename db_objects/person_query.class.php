@@ -663,7 +663,7 @@ class Person_Query extends DB_Object
 					case 'link':
 						$params['custom_fields'][$fieldid] = Array(
 							'criteria' => $_REQUEST['params_custom_field_'.$fieldid.'_criteria'],
-							'val' => $_REQUEST['params_custom_field_'.$fieldid.'_val']
+							'val' => array_get($_REQUEST, 'params_custom_field_'.$fieldid.'_val')
 						);
 						break;
 				}
