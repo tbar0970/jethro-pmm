@@ -340,7 +340,7 @@ class roster_view extends db_object
 	}
 
 
-	function getAssignments($start_date, $end_date)
+	private function getAssignments($start_date, $end_date)
 	{
 		$roleids = $this->getRoleIds();
 		if (empty($roleids)) return Array();
@@ -353,7 +353,7 @@ class roster_view extends db_object
 		// which assignments involve 'hidden' persons so we treat them as read-only.
 		$visiblePersonTable = $this->getValue('is_public') ? '_person' : 'person';
 
-		$sql = 'SELECT roster_role_id, assignment_date, rra.personid,
+		$sql = 'SELECT roster_role_id, assignment_date, rank, rra.personid,
 				IFNULL(CONCAT(publicassignee.first_name, " ", publicassignee.last_name), "'.self::hiddenPersonLabel.'") as assignee,
 				IF(privateassignee.id IS NULL, 1, 0) as assigneehidden,
 				privateassignee.email as email,
@@ -365,12 +365,14 @@ class roster_view extends db_object
 				LEFT JOIN '.$visiblePersonTable.' publicassignee ON rra.personid = publicassignee.id
 				LEFT JOIN person assigner ON rra.assigner = assigner.id
 				WHERE roster_role_id IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $roleids)).')
-				AND assignment_date BETWEEN '.$GLOBALS['db']->quote($start_date).' AND '.$GLOBALS['db']->quote($end_date);
+				AND assignment_date BETWEEN '.$GLOBALS['db']->quote($start_date).' AND '.$GLOBALS['db']->quote($end_date).'
+				ORDER BY assignment_date, roster_role_id, rank, privateassignee.last_name, privateassignee.first_name';
 		$rows = $GLOBALS['db']->queryAll($sql);
 		check_db_result($rows);
 		$res = Array();
 		foreach ($rows as $row) {
-			$res[$row['assignment_date']][$row['roster_role_id']][$row['personid']] = Array(
+			$res[$row['assignment_date']][$row['roster_role_id']][] = Array(
+				'personid' => $row['personid'],
 				'name' => $row['assignee'],
 				'email' => $row['email'],
 				'mobile' => $row['mobile'],
@@ -452,7 +454,7 @@ class roster_view extends db_object
 
 				if (!empty($mdetail['role_id'])) {
 					$names = Array();
-					foreach (array_get($ddetail['assignments'], $mdetail['role_id'], Array()) as $personid => $vs) {
+					foreach (array_get($ddetail['assignments'], $mdetail['role_id'], Array()) as $rank => $vs) {
 						$names[] = $vs['name'];
 					}
 					$row[] = implode("\n", $names);;
@@ -562,8 +564,8 @@ class roster_view extends db_object
 	{
 		if ($member['role_id']) {
 			if (empty($asn)) echo '--';
-			foreach ($asn as $personid => $asn) {
-				if ($withLinks) echo '<a href="?view=persons&personid='.$personid.'" class="med-popup">';
+			foreach ($asn as $rank => $asn) {
+				if ($withLinks) echo '<a href="?view=persons&personid='.$asn['personid'].'" class="med-popup">';
 				echo ents($asn['name']);
 				if ($withLinks) {
 					echo '</a>';
@@ -602,7 +604,7 @@ class roster_view extends db_object
 		foreach ($this->getAssignments($start_date, $end_date) as $date => $date_assignments) {
 			$to_print[$date]['assignments'] = $date_assignments;
 			foreach ($date_assignments as $rid => $asns) {
-				foreach ($asns as $pid => $dets) {
+				foreach ($asns as $rank => $dets) {
 					if ($dets['assigneehidden']) $haveHidden = TRUE;
 					break(2);
 				}
@@ -698,8 +700,8 @@ class roster_view extends db_object
 							$mobiles = Array();
 							$personids = Array();
 							foreach ($ddetail['assignments'] as $roleid => $assignees) {
-								foreach ($assignees as $pid => $pdetails) {
-									$personids[] = $pid;
+								foreach ($assignees as $rank => $pdetails) {
+									$personids[] = $pdetails['personid'];
 									if (!empty($pdetails['email']) && $pdetails['email'] != $my_email) {
 										$emails[] = $pdetails['email'];
 									}
@@ -738,13 +740,13 @@ class roster_view extends db_object
 					<?php
 					if ($mdetail['role_id']) {
 						$haveHidden = FALSE;
-						foreach (array_get($ddetail['assignments'], $mdetail['role_id'], Array()) as $pid => $pdetails) {
+						foreach (array_get($ddetail['assignments'], $mdetail['role_id'], Array()) as $pdetails) {
 							if ($pdetails['assigneehidden']) $haveHidden = TRUE;
 						}
 						if ($editing && empty($mdetail['readonly']) && !$haveHidden) {
 							$currentval = Array();
-							foreach (array_get($ddetail['assignments'], $mdetail['role_id'], Array()) as $pid => $pdetails) {
-								$currentval[$pid] = $pdetails['name'];
+							foreach (array_get($ddetail['assignments'], $mdetail['role_id'], Array()) as $rank => $pdetails) {
+								$currentval[] = $pdetails['personid'];
 							}
 							if (empty($role_objects[$mdetail['role_id']])) {
 								$role_objects[$mdetail['role_id']] = $GLOBALS['system']->getDBObject('roster_role', $mdetail['role_id']);
@@ -756,7 +758,8 @@ class roster_view extends db_object
 							$role_objects[$mdetail['role_id']]->printChooser($date, $currentval);
 						} else {
 							$names = Array();
-							foreach (array_get($ddetail['assignments'], $mdetail['role_id'], Array()) as $personid => $vs) {
+							foreach (array_get($ddetail['assignments'], $mdetail['role_id'], Array()) as $rank => $vs) {
+								$personid = $vs['personid'];
 								if (!$public && !$vs['assigneehidden']) {
 									$n = '<a data-personid="'.$personid . '" href="'.BASE_URL.'?view=persons&personid='.$personid.'" title="Assigned by '.ents($vs['assigner']).' on '.format_datetime($vs['assignedon']).'">'.nbsp(ents($vs['name'])).'</a>';
 									if (('' === $vs['email'])) $n .= '&nbsp;<img src="'.BASE_URL.'resources/img/no_email.png" style="display:inline" title="No Email Address" />';
@@ -945,15 +948,15 @@ class roster_view extends db_object
 			if (!empty($_POST['assignees'][$roleid])) {
 				foreach ($_POST['assignees'][$roleid] as $date => $assignee) {
 					if (!is_array($assignee)) $assignee = Array($assignee);
-					foreach ($assignee as $new_personid) {
+					foreach ($assignee as $rank => $new_personid) {
 						$new_personid = (int)$new_personid;
 						if (empty($new_personid)) continue;
-						if (isset($to_delete[$date][$roleid][$new_personid])) {
+						if (isset($to_delete[$date][$roleid][$rank]) && $to_delete[$date][$roleid][$rank] == $new_personid) {
 							// unchanged allocation - leave it as is
-							unset($to_delete[$date][$roleid][$new_personid]);
+							unset($to_delete[$date][$roleid][$rank]);
 						} else {
 							// new allocation
-							$to_add[] = '('.(int)$roleid.', '.$GLOBALS['db']->quote($date).', '.(int)$new_personid.', '.(int)$GLOBALS['user_system']->getCurrentUser('id').')';
+							$to_add[] = '('.(int)$roleid.', '.$GLOBALS['db']->quote($date).', '.(int)$new_personid.', '.(int)$rank.', '.(int)$GLOBALS['user_system']->getCurrentUser('id').')';
 						}
 					}
 				}
@@ -963,9 +966,9 @@ class roster_view extends db_object
 		foreach ($to_delete as $date => $date_allocs) {
 			foreach ($date_allocs as $roleid => $role_allocs) {
 				if (in_array($roleid, $roles)) { // don't delete any allocations for read-only roles!!
-					foreach ($role_allocs as $personid => $person_details) {
+					foreach ($role_allocs as $rank => $person_details) {
 						if ($person_details['assigneehidden']) continue;
-						$del_clauses[] = '(roster_role_id = '.(int)$roleid.' AND assignment_date = '.$GLOBALS['db']->quote($date).' AND personid = '.(int)$personid.')';
+						$del_clauses[] = '(roster_role_id = '.(int)$roleid.' AND assignment_date = '.$GLOBALS['db']->quote($date).' AND rank = '.(int)$rank.')';
 					}
 				}
 			}
@@ -979,7 +982,8 @@ class roster_view extends db_object
 		}
 		if (!empty($to_add)) {
 			$to_add = array_unique($to_add);
-			$sql = 'REPLACE INTO roster_role_assignment (roster_role_id, assignment_date, personid, assigner) VALUES '.implode(",\n", $to_add);
+			$sql = 'REPLACE INTO roster_role_assignment (roster_role_id, assignment_date, personid, rank, assigner)
+					VALUES '.implode(",\n", $to_add);
 			$res = $GLOBALS['db']->query($sql);
 			check_db_result($res);
 		}

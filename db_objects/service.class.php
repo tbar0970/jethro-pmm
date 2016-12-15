@@ -478,10 +478,11 @@ class service extends db_object
 			FROM person
 				JOIN roster_role_assignment rra ON rra.personid = person.id
 				JOIN roster_role rr ON rra.roster_role_id = rr.id
-			WHERE LOWER(REPLACE(rr.title, \' \', \'_\')) = '.$GLOBALS['db']->quote($role_title).'
+			WHERE UPPER(REPLACE(rr.title, \' \', \'_\')) = '.$GLOBALS['db']->quote($role_title).'
 				AND (rr.congregationid = '.$GLOBALS['db']->quote($this->getValue('congregationid')).'
 					OR (IFNULL(rr.congregationid, 0) = 0))
-				AND rra.assignment_date = '.$GLOBALS['db']->quote($this->getValue('date'));
+				AND rra.assignment_date = '.$GLOBALS['db']->quote($this->getValue('date')).'
+				ORDER BY roster_role_id, rank';
 		$assignments =  $GLOBALS['db']->queryAll($sql, null, null, false);
 		$role_ids = Array();
 		$names = Array();
