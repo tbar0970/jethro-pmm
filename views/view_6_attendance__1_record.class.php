@@ -256,7 +256,11 @@ class View_Attendance__Record extends View
 	{
 		$params = Array();
 		if ($this->_age_brackets) $params['(age_bracket'] = $this->_age_brackets;
-		if ($this->_statuses) $params['(status'] = $this->_statuses;
+		if ($this->_statuses) {
+			$params['(status'] = $this->_statuses;
+		} else {
+			$params['!status'] = 'archived';
+		}
 		$totalPersons = Attendance_Record_Set::getPersonDataForCohorts($this->_cohortids, $params);
 		$totalPrinted = 0;
 		$cancelURL = build_url(Array('*' => NULL, 'view' => 'attendance__record', 'cohortids' => $this->_cohortids, 'attendance_date' => $this->_attendance_date, 'release' => 1));

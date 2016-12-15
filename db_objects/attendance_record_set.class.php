@@ -624,8 +624,6 @@ class Attendance_Record_Set
 		}
 		if ($statusClauses) {
 			$SQL .= 'AND (('.implode(') OR (', $statusClauses).'))';
-		} else {
-			$SQL .= 'AND (person.status <> "archived")';
 		}
 
 		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
