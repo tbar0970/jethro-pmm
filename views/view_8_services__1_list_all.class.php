@@ -301,8 +301,10 @@ class View_Services__List_All extends View
 							<ul class="dropdown-menu" role="menu">
 								<li>
 								<?php
+								$printed = FALSE;
 								foreach (Array('populate', 'expand') as $op) {
-									foreach (View__Generate_Service_Documents::getTemplates($op) as $filename => $fullpath) {
+									$templates = View__Generate_Service_Documents::getTemplates($op);
+									foreach ($templates as $filename => $fullpath) {
 										$url = build_url(Array(
 											'view'  => '_generate_service_documents',
 											'date'  => $date,
@@ -312,7 +314,13 @@ class View_Services__List_All extends View
 										?>
 										<a href="<?php echo $url; ?>"><?php echo ucfirst($op).' '.$filename; ?></a>
 										<?php
+										$printed = TRUE;
 									}
+								}
+								if (!$printed) {
+									?>
+									<a href="?view=documents"><?php echo _("Add some templates to expand or populate"); ?></a>
+									<?php
 								}
 								?>
 								</li>

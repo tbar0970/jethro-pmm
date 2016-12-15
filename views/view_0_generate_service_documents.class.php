@@ -35,7 +35,7 @@ class View__Generate_Service_Documents extends View
 				}
 			}
 			if (!is_dir($opDirs[$i])) {
-				trigger_error("Bad config: ".self::_cleanDirName($dir)." does not exist");
+				//trigger_error("Bad config: ".self::_cleanDirName($dir)." does not exist");
 				unset($opDirs[$i]);
 				continue;
 			}
