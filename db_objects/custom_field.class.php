@@ -26,7 +26,12 @@ class Custom_Field extends db_object
 						),
 			'type'	=> Array(
 							'type'		=> 'select',
-							'options'  => Array('text' => 'Text', 'select' => 'Selection', 'date' => 'Date'),
+							'options'  => Array(
+											'text' => 'Text',
+											'select' => 'Selection',
+											'date' => 'Date',
+											'link' => 'Link'
+										  ),
 							'default'	=> 'text',
 							'attrs'		=> Array(
 											'data-toggle' => 'visible',
@@ -60,7 +65,7 @@ class Custom_Field extends db_object
 						),
 			'tooltip'	=> Array(
 							'type'		=> 'text',
-							'width'		=> 25,
+							'width'		=> 20,
 							'height'	=> 3,
 							'allow_empty'	=> TRUE,
 							'initial_cap'	=> TRUE,
@@ -233,6 +238,24 @@ class Custom_Field extends db_object
 		<?php
 	}
 
+		/**
+	 * Print an interface to configure parameters for this field if its type is 'link'
+	 * @param string $prefix
+	 * @param array $params  Existing params of this field
+	 */
+	public static function printParamsLink($prefix, $params)
+	{
+		?>
+		<label>
+		Template:
+		<?php
+		print_widget($prefix.'template', Array('type' => 'text', 'attrs' => Array('placeholder' => '(Optional)')), array_get($params, 'template'));
+		?>
+		</label>
+		<div class="smallprint help-inline"><i>The template can be used to convert <br /> the user-entered text into a valid URL. <br />Eg <code>https://www.facebook.com/<strong>%s</strong></code></i></div>
+		<?php
+	}
+
 	/**
 	 * Print an interface to configure parameters for this field if its type is 'select'
 	 * @param string $prefix
@@ -304,6 +327,7 @@ class Custom_Field extends db_object
 				$val['allow_note'] = !empty($_REQUEST[$prefix.'allow_note']);
 				$val['allow_blank_year'] = !empty($_REQUEST[$prefix.'allow_blank_year']);
 				$val['regex'] = array_get($_REQUEST, $prefix.'regex', '');
+				$val['template'] = array_get($_REQUEST, $prefix.'template', '');
 				$this->setValue($fieldname, $val);
 
 				// Also process the options for select fields:
@@ -402,6 +426,13 @@ class Custom_Field extends db_object
 					'type' => $this->getValue('type'),
 					'allow_empty' => TRUE,
 				);
+		if ($this->getValue('type') == 'link') {
+			$params['type'] = 'text';
+			if (empty($this->values['params']['template'])) {
+				// thanks to the interweb
+				$params['regex'] = "^([a-z][a-z0-9\\*\\-\\.]*):\\/\\/(?:(?:(?:[\\w\\.\\-\\+!$&'\\(\\)*\\+,;=]|%[0-9a-f]{2})+:)*(?:[\\w\\.\\-\\+%!$&'\\(\\)*\\+,;=]|%[0-9a-f]{2})+@)?(?:(?:[a-z0-9\\-\\.]|%[0-9a-f]{2})+|(?:\\[(?:[0-9a-f]{0,4}:)*(?:[0-9a-f]{0,4})\\]))(?::[0-9]+)?(?:[\\/|\\?](?:[\\w#!:\\.\\?\\+=&@!$'~*,;\\/\\(\\)\\[\\]\\-]|%[0-9a-f]{2})*)?$";
+			}
+		}
 		if ($this->getValue('type') == 'select') {
 			$options = $GLOBALS['system']->getDBObjectData('custom_field_option', Array('fieldid' => $this->id), 'OR', 'rank');
 			foreach ($options as $id => $detail) {
@@ -474,9 +505,34 @@ class Custom_Field extends db_object
 				if (empty($val)) return '';
 				return array_get($this->getOptions(), $val, '(Invalid option)');
 				break;
+			case 'link':
+				$template = array_get($this->values['params'], 'template', '');
+				if (strlen($template)) {
+					return sprintf($template, $val);
+				}
+				// fallthrough..
 			default:
 				return $val;
 				break;
+		}
+	}
+
+	/**
+	 * Print the HTML for this field's value, eg with <a> tags for links
+	 * @param type $val
+	 */
+	public function printFormattedValue($val)
+	{
+		if ($this->getValue('type') == 'link') {
+			$template = array_get($this->values['params'], 'template', '');
+			if (strlen($template)) {
+					$url = sprintf($template, $val);
+			} else {
+				$url = $val;
+			}
+			echo '<a target="_blank" href="'.ents($url).'">'.ents($val).'</a>';
+		} else {
+			echo ents($this->formatValue($val));
 		}
 	}
 

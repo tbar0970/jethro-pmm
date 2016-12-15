@@ -315,7 +315,7 @@ class Person extends DB_Object
 						<?php
 						foreach ($this->_custom_values[$fieldid] as $j => $val) {
 							if ($j > 0) echo '<br />';
-							echo ents($dummyField->formatValue($val));
+							$dummyField->printFormattedValue($val);
 						}
 						?>
 					</td>

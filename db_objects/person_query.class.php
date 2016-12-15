@@ -297,6 +297,7 @@ class Person_Query extends DB_Object
 									);
 									break;
 								case 'text':
+								case 'link':
 									$cparams = Array(
 												'type' => 'select',
 												'options' => Array(
@@ -659,6 +660,7 @@ class Person_Query extends DB_Object
 						break;
 					case 'select':
 					case 'text':
+					case 'link':
 						$params['custom_fields'][$fieldid] = Array(
 							'criteria' => $_REQUEST['params_custom_field_'.$fieldid.'_criteria'],
 							'val' => $_REQUEST['params_custom_field_'.$fieldid.'_val']
@@ -731,16 +733,39 @@ class Person_Query extends DB_Object
 		return $res;
 	}
 
+	/**
+	 * Return a formatted version of custom field values
+	 * @param string	$str		Raw value(s) of custom field from DB query
+	 * @param int		$fieldid	Custom field ID
+	 * @return string
+	 */
 	private function _formatCustomFieldValue($str, $fieldid)
 	{
 		$out = Array();
-		if (empty($str)) return '';
+		if (!strlen($str)) return ;
 		$this->_dummy_custom_field->populate($fieldid, $this->_custom_fields[$fieldid]);
 		$rows = explode(self::CUSTOMFIELDVAL_SEP, $str);
 		foreach ($rows as $row) {
 			$out[] = $this->_dummy_custom_field->formatValue($row);
 		}
 		return implode("\n", $out);
+	}
+
+	/**
+	 * Print HTML version of a custom field value
+	 * @param string	$str		Raw value(s) of custom field from DB query
+	 * @param int		$fieldid	Custom field ID
+	 * @return void
+	 */
+	private function _printCustomFieldValue($str, $fieldid)
+	{
+		if (!strlen($str)) return ;
+		$this->_dummy_custom_field->populate($fieldid, $this->_custom_fields[$fieldid]);
+		$rows = explode(self::CUSTOMFIELDVAL_SEP, $str);
+		foreach ($rows as $i => $row) {
+			if ($i > 0) echo "<br />";
+			$this->_dummy_custom_field->printFormattedValue($row);
+		}
 	}
 
 	function _getGroupAndCategoryRestrictionSQL($submitted_groupids, $from_date=NULL, $to_date=NULL, $membership_status=NULL)
@@ -916,6 +941,7 @@ class Person_Query extends DB_Object
 					break;
 
 				case 'text':
+				case 'link':
 					switch (array_get($values, 'criteria', 'equals')) {
 						case 'equal':
 							$customFieldWheres[] = '(pd'.$fieldid.'.value_text = '.$db->quote($values['val']).')';
@@ -1458,7 +1484,7 @@ class Person_Query extends DB_Object
 									$this->$var->setValue($fieldname, $val);
 									$this->$var->printFieldValue($fieldname);
 								} else if (0 === strpos($label, self::CUSTOMFIELD_PREFIX)) {
-									echo nl2br(ents($this->_formatCustomFieldValue($val, substr($label, strlen(self::CUSTOMFIELD_PREFIX)))));
+									$this->_printCustomFieldValue($val, substr($label, strlen(self::CUSTOMFIELD_PREFIX)));
 								} else {
 									echo nl2br(ents($val));
 								}

@@ -620,8 +620,8 @@ table.table-full-width td.narrow, table.table-full-width th.narrow {
 .cursor-move {
 	cursor: move;
 }
-.smallprint, .help-inline, .help-block {
-	font-size: 85%;
+.smallprint, .help-inline, .help-block, .smallprint code {
+	font-size: 10pt;
 	line-height: 130%;
 	margin-left: 0;
 	margin-top: 1px;
