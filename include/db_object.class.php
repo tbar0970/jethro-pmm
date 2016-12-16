@@ -400,7 +400,7 @@ class db_object
 				if (($details['type'] == 'serialise') && is_string($values[$fieldname])) {
 					$values[$fieldname] = unserialize($values[$fieldname]);
 				}
-				$this->setValue($fieldname, $values[$fieldname], TRUE);
+				$this->setValue($fieldname, $values[$fieldname]);
 			}
 		}
 		$this->_held_locks = Array();
@@ -433,20 +433,20 @@ class db_object
 //--        GETTING AND SETTING FIELD VALUES        --//
 
 
-	public function setValue($name, $value, $populating=FALSE)
+	public function setValue($name, $value)
 	{
 		if (!isset($this->fields[$name])) {
 			trigger_error('Cannot set value for field '.ents($name).' - field does not exist', E_USER_WARNING);
 			return FALSE;
 		}
-		if (!$populating && array_get($this->fields[$name], 'readonly')) {
+		if (array_get($this->fields[$name], 'readonly')) {
 			trigger_error('Cannot set value for readonly field "'.$name.'"', E_USER_WARNING);
 			return;
 		}
-		if (!$populating && array_get($this->fields[$name], 'initial_cap')) {
+		if (array_get($this->fields[$name], 'initial_cap')) {
 			$value = ucfirst($value);
 		}
-		if (!$populating && array_get($this->fields[$name], 'trim')) {
+		if (array_get($this->fields[$name], 'trim')) {
 			$value = trim($value, ",;. \t\n\r\0\x0B");
 		}
 		if ($this->fields[$name]['type'] == 'select') {
@@ -477,7 +477,7 @@ class db_object
 				}
 			}
 		}
-		if (!$populating && array_key_exists($name, $this->values) && ($this->values[$name] != $value) && !isset($this->_old_values[$name])) {
+		if (array_key_exists($name, $this->values) && ($this->values[$name] != $value) && !isset($this->_old_values[$name])) {
 			$this->_old_values[$name] = $this->values[$name];
 		}
 		$this->values[$name] = $value;
