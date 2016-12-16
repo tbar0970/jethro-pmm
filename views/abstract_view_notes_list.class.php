@@ -12,11 +12,11 @@ class Abstract_View_Notes_List extends View
 	function processView()
 	{
 		$this->_notes = $this->_getNotesToShow(array_get($_REQUEST, 'assignee'));
-
 		$this->_reassigning = $GLOBALS['user_system']->havePerm(PERM_BULKNOTE) && !empty($_REQUEST['reassigning']);
 		if ($this->_reassigning && !empty($_POST['reassignments_submitted'])) {
 			$dummy_note = new Abstract_Note();
 			foreach ($this->_notes as $id => $note) {
+				//$dummy_note->reset();
 				$dummy_note->populate($id, $note);
 				$dummy_note->setValue('assignee', $_POST['note_'.$id.'_assignee']);
 				$dummy_note->save();
@@ -25,9 +25,9 @@ class Abstract_View_Notes_List extends View
 			add_message(_("Assignments Saved"));
 			$this->_reassigning = FALSE;
 
-			// these will have changed
-			$this->_notes = $this->_getNotesToShow();
 		}
+		// these will have changed
+		$this->_notes = $this->_getNotesToShow(array_get($_REQUEST, 'assignee'));
 	}
 
 
