@@ -610,19 +610,22 @@ class Person extends DB_Object
 		<?php
 	}
 
+	/**
+	 * Print a widget for choosing multiple persons by name search
+	 * @param string $name
+	 * @param array $val	Array of IDs
+	 */
 	static function printMultipleFinder($name, $val=Array())
 	{
-		if (!empty($val) && reset($val) == '') {
-			// contains only IDs - need to get names
-			$persons = $GLOBALS['system']->getDBObjectData('person', Array('id' => array_keys($val)));
-			foreach ($persons as $id => $details) {
-				$val[$id] = $details['first_name'].' '.$details['last_name'];
-			}
+		$persons = $GLOBALS['system']->getDBObjectData('person', Array('id' => $val));
+		$selected = Array();
+		foreach ($persons as $id => $details) {
+			$selected[$id] = $details['first_name'].' '.$details['last_name'];
 		}
 		?>
 		<ul class="multi-person-finder" id="<?php echo $name; ?>-list">
 		<?php
-		foreach ($val as $id => $pname) {
+		foreach ($selected as $id => $pname) {
 			if (!$id) continue;
 			echo '<li><div class="delete-chosen-person" onclick="deletePersonChooserListItem(this)"></div>'.$pname.'<input type="hidden" name="'.$name.'[]" value="'.$id.'" /></li>';
 		}

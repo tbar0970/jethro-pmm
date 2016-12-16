@@ -149,7 +149,7 @@ class Roster_Role extends db_object
 				</table>
 				<?php
 			} else {
-				$currentID = $currentval;
+				$currentID = reset($currentval);
 				?>
 				<select name="assignees[<?php echo $this->id; ?>][<?php echo $date; ?>]">
 					<option value=""></option>
