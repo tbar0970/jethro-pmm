@@ -564,7 +564,6 @@ class Person_Query extends DB_Object
 				<p>
 				<label type="radio">
 					<input type="radio" name="save_option" value="new" id="save_option_new"
-						<?php if (empty($this->id)) echo 'checked="checked"'; ?>
 						 data-toggle="enable"
 					/>
 					as a new report 
