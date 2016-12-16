@@ -16,7 +16,7 @@ class Abstract_View_Notes_List extends View
 		if ($this->_reassigning && !empty($_POST['reassignments_submitted'])) {
 			$dummy_note = new Abstract_Note();
 			foreach ($this->_notes as $id => $note) {
-				//$dummy_note->reset();
+				$dummy_note->reset();
 				$dummy_note->populate($id, $note);
 				$dummy_note->setValue('assignee', $_POST['note_'.$id.'_assignee']);
 				$dummy_note->save();
