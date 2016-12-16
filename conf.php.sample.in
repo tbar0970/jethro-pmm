@@ -145,7 +145,7 @@ define('TASK_NOTIFICATION_FROM_NAME', 'Jethro');
 define('TASK_NOTIFICATION_FROM_ADDRESS', '');
 
 // Subject for task-notification emails
-define('TASK_NOTIFICATION_SUBJECT', 'New notes assigned to you'
+define('TASK_NOTIFICATION_SUBJECT', 'New notes assigned to you');
 
 //////////////////////////////////////////////////////////////////
 // MEMBER LOGIN SETTINGS - Regarding the /members/ sub-site
