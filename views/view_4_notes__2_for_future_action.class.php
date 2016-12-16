@@ -11,7 +11,7 @@ class View_Notes__For_Future_Action extends Abstract_View_Notes_List
 	{
 		$conds = Array('status' => 'pending', '>action_date' => date('Y-m-d'));
 		if ($assigneeID) $conds['assignee'] = $assigneeID;
-		return $GLOBALS['system']->getDBObjectData('person_note', $conds, 'AND') + $GLOBALS['system']->getDBObjectData('family_note', $conds, 'AND');
+		return $GLOBALS['system']->getDBObjectData('person_note', $conds, 'AND', '', TRUE) + $GLOBALS['system']->getDBObjectData('family_note', $conds, 'AND', '', TRUE);
 		uasort($notes, Array($this, '_compareNoteDates'));
 	}
 

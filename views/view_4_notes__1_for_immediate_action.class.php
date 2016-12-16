@@ -16,7 +16,7 @@ class View_Notes__For_Immediate_Action extends Abstract_View_Notes_List
 		if ($assigneeID) {
 			$conds['assignee'] = $assigneeID;
 		}
-		$res = $GLOBALS['system']->getDBObjectData('person_note', $conds, 'AND') + $GLOBALS['system']->getDBObjectData('family_note', $conds, 'AND');
+		$res = $GLOBALS['system']->getDBObjectData('person_note', $conds, 'AND', '', TRUE) + $GLOBALS['system']->getDBObjectData('family_note', $conds, 'AND', '', TRUE);
 		uasort($res, Array($this, '_compareNoteDates'));
 		return $res;
 	}

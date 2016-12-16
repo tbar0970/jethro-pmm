@@ -200,11 +200,11 @@ class System_Controller
 		return $this->_object_cache[$classname][$id];
 	}
 
-	public function getDBObjectData($classname, $params=Array(), $logic='OR', $order='')
+	public function getDBObjectData($classname, $params=Array(), $logic='OR', $order='', $refreshCache=FALSE)
 	{
 		static $cache = Array();
 		$cacheKey = "$classname-$logic-$order-".serialize($params);
-		if (!isset($cache[$cacheKey])) {
+		if ($refreshCache || !isset($cache[$cacheKey])) {
 			$this->includeDBClass($classname);
 			$sample = new $classname();
 			$cache[$cacheKey] = $sample->getInstancesData($params, $logic, $order);
