@@ -91,7 +91,7 @@ class Person_Group extends db_object
 				"CREATE TABLE `person_group_membership` (
 				  `personid` int(11) NOT NULL default '0',
 				  `groupid` int(11) NOT NULL default '0',
-				  `membership_status` int DEFAULT NULL,
+				  `membership_status` int NOT NULL,
 				  `created` timestamp NOT NULL default CURRENT_TIMESTAMP,
 				  PRIMARY KEY  (`personid`,`groupid`),
 				  INDEX personid (personid),
