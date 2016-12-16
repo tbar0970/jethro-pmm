@@ -128,6 +128,26 @@ define('NOTES_LINK_TO_EDIT', TRUE);
 define('PUBLIC_ROSTER_SECRET', '');
 
 ////////////////////////////////////////////////////////////////
+// TASK NOTIFICATION SETTINGS - Emails to users to tell them
+// when notes have been assigned for action by them.
+// This requires a CRON entry to run the scripts/task_reminder.php script
+// every 5 minutes, for example
+//  */5 * * * * /usr/bin/php-cli /home/mychurch/jethro/scripts/task_reminder.php
+////////////////////////////////////////////////////////////////
+
+// Whether to enable task notification emails
+define('TASK_NOTIFICATION_ENABLED', FALSE);
+
+// Email address from which task-noficication emails come
+define('TASK_NOTIFICATION_FROM_NAME', 'Jethro');
+
+// Name from which task-notification emails should come
+define('TASK_NOTIFICATION_FROM_ADDRESS', '');
+
+// Subject for task-notification emails
+define('TASK_NOTIFICATION_SUBJECT', 'New notes assigned to you'
+
+////////////////////////////////////////////////////////////////
 // MEMBER LOGIN SETTINGS - Regarding the /members/ sub-site
 ////////////////////////////////////////////////////////////////
 

@@ -283,8 +283,43 @@ class Abstract_Note extends DB_Object
 		<?php
 	}
 
-
-
-
+	/**
+	 * Get notifications that should be sent by email advising people about recently-assigned notes
+	 * @param int	 $minutes	Number of minutes in the past to look.
+	 * @return array
+	 */
+	public static function getNotifications($minutes)
+	{
+		// get notes recently marked for action, notes recently assigned to a new person
+		// and notes which have just reached their action date in the last $minutes minutes
+		// We operate 10 seconds in the past to allow time for things to setting down
+		// We ignore notes that a user has assigned to themselves
+		$between = 'BETWEEN (NOW() - INTERVAL '.(int)(($minutes*60)+10).' SECOND) AND (NOW() - INTERVAL 10 SECOND)';
+		$SQL = 'SELECT p.first_name, p.last_name, p.email,
+					(SELECT count(*)
+						FROM abstract_note an
+						WHERE status = "pending"
+						AND action_date <= DATE(NOW())
+						AND assignee = p.id) AS total_notes,
+					COUNT(DISTINCT nn.id) as new_notes,
+					GROUP_CONCAT(nn.id) as new_note_ids
+				FROM person p
+				JOIN abstract_note nn ON nn.assignee = p.id 
+										AND nn.status = "pending"
+										AND nn.action_date <= DATE(NOW())
+										AND ((
+											/* recently assigned by others */
+											COALESCE(nn.editor, nn.creator) <> nn.assignee
+											AND ((nn.status_last_changed '.$between.')
+												OR (nn.assignee_last_changed '.$between.')
+												OR (nn.created '.$between.'))
+										) OR (
+											/* recently reached their action date, regardless of assigner */
+											DATE(NOW()) = nn.action_date AND DATE(NOW() - INTERVAL '.(int)$minutes.' MINUTE) <> nn.action_date
+										))
+				WHERE email <> ""
+				GROUP BY p.id';
+		return $GLOBALS['db']->queryAll($SQL);
+	}
 }
 
