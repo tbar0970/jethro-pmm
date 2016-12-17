@@ -58,8 +58,8 @@ class Person extends DB_Object
 								   ),
 			'gender'		=> Array(
 									'type'			=> 'select',
-									'options'		=> Array('male' => 'Male', 'female' => 'Female', '' => 'Unknown'),
-									'default'		=> '',
+									'options'		=> Array('female' => 'Female', 'male' => 'Male', '' => 'Unknown'),
+									'default'		=> 'female',
 									'divider_before'	=> true,
 							   ),
 			'age_bracket'	=> Array(
