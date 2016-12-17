@@ -170,7 +170,8 @@ class Roster_Role extends db_object
 			if ($this->getValue('assign_multiple')) {
 				Person::printMultipleFinder('assignees['.$this->id.']['.$date.']', $currentval);
 			} else {
-				Person::printSingleFinder('assignees['.$this->id.']['.$date.']', $currentval);
+				$currentID = (int)reset($currentval);
+				Person::printSingleFinder('assignees['.$this->id.']['.$date.']', $currentID);
 			}
 		}
 	}
