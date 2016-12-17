@@ -250,7 +250,7 @@ function print_widget($name, $params, $value)
 			break;
 		case 'select':
 			$our_val = Array();
-			if ($value !== NULL && $value !== '') {
+			if ($value !== NULL && (isset($params['options']['']) || $value !== '')) {
 				$our_val = is_array($value) ? $value : Array("$value");
 			}
 			foreach ($our_val as $k => $v) $our_val[$k] = "$v";
