@@ -191,7 +191,7 @@ class Action_Plan extends DB_Object
 									);
 						foreach ($customFields as $fieldid => $fieldDetails) {
 							$value = '';
-							$addToExisting = FALSE;
+							$addToExisting = TRUE;
 							$v = array_get($fields, 'custom_'.$fieldid);
 							if ($v) {
 								$value = $v['value'];
