@@ -1134,7 +1134,7 @@ class Person_Query extends DB_Object
 											WHERE pp.status <> "archived" AND pp.age_bracket = 0
 											GROUP BY familyid');
 						check_db_result($r2);
-						$query['from'] .= 'LEFT JOIN _family_adults'.$this->id.' ON _family_adults'.$this->id.'.familyid = p.familyid
+						$query['from'] .= ' LEFT JOIN _family_adults'.$this->id.' ON _family_adults'.$this->id.'.familyid = p.familyid
 											';
 						$query['select'][] = '_family_adults'.$this->id.'.names as `Adult Family Members`';
 						break;
@@ -1183,7 +1183,7 @@ class Person_Query extends DB_Object
 							if (isset($this->_custom_fields[$customFieldID])) {
 								$field = new Custom_Field();
 								$field->populate($customFieldID, $this->_custom_fields[$customFieldID]);
-								$query['from'] .= 'LEFT JOIN custom_field_value cfv'.$customFieldID.' ON cfv'.$customFieldID.'.personid = p.id AND cfv'.$customFieldID.'.fieldid = '.$db->quote($customFieldID)."\n";
+								$query['from'] .= ' LEFT JOIN custom_field_value cfv'.$customFieldID.' ON cfv'.$customFieldID.'.personid = p.id AND cfv'.$customFieldID.'.fieldid = '.$db->quote($customFieldID)."\n";
 								$query['select'][] = 'GROUP_CONCAT(DISTINCT '.Custom_Field::getRawValueSQLExpr('cfv'.$customFieldID).' ORDER BY '.Custom_Field::getRawValueSQLExpr('cfv'.$customFieldID).' SEPARATOR "'.self::CUSTOMFIELDVAL_SEP.'") as '.$db->quote(self::CUSTOMFIELD_PREFIX.$customFieldID)."\n";
 							}
 						} else {
@@ -1202,8 +1202,8 @@ class Person_Query extends DB_Object
 			$customOrder = substr($params['sort_by'], 14);
 		}
 		if ($customOrder) {
-			$query['from'] .= 'LEFT JOIN custom_field_value cfvorder ON cfvorder.personid = p.id AND cfvorder.fieldid = '.$db->quote($customOrder)."\n";
-			$query['from'] .= "LEFT JOIN custom_field_option cfoorder ON cfoorder.id = cfvorder.value_optionid \n";
+			$query['from'] .= ' LEFT JOIN custom_field_value cfvorder ON cfvorder.personid = p.id AND cfvorder.fieldid = '.$db->quote($customOrder)."\n";
+			$query['from'] .= " LEFT JOIN custom_field_option cfoorder ON cfoorder.id = cfvorder.value_optionid \n";
 			$order = Array();
 			$order[] = 'IF(cfvorder.personid IS NULL, 1, 0)'; // put those without a value last
 			if ($this->_custom_fields[$customOrder]['type'] == 'date') {
