@@ -255,10 +255,23 @@ class View_Services__List_All extends View
 			<?php
 			return;
 		}
+
+		$message = '';
+		if ($GLOBALS['user_system']->havePerm(PERM_EDITSERVICE)) {
+			$message .= _('Click a service below to edit its run sheet');
+		}
+		if ($GLOBALS['user_system']->havePerm(PERM_BULKSERVICE)) {
+			$message .= ', '._('or click the "edit" button above to edit the service schedule including bible readings and titles.');
+		}
+		if ($message) {
+			?>
+			<p class="text alert alert-info">
+				<?php echo ents($message); ?>
+			</p>
+			<?php
+		}
+		
 		?>
-		<p class="text alert alert-info">
-			<?php echo _('Click a service below to edit its run sheet, or click the "edit" button above to edit the service schedule including bible readings and titles.'); ?>
-		</p>
 		<table class="table roster service-program table-auto-width">
 			<thead>
 				<tr>
@@ -406,14 +419,16 @@ class View_Services__List_All extends View
 	function _printServiceViewCell($congid, $date, $data)
 	{
 		if (empty($data)) return;
-		if ($data['has_items']) {
-			?>
-			<a class="take-parent-click pull-right" title="View service run sheet" href="?view=services&date=<?php echo $date; ?>&congregationid=<?php echo $congid; ?>"><i class="icon-list"></i></a>
-			<?php
-		} else {
-			?>
-			<a class="take-parent-click pull-right" title="Create service run sheet" href="?view=services&editing=1&date=<?php echo $date; ?>&congregationid=<?php echo $congid; ?>"><i class="icon-plus-sign"></i></a>
-			<?php
+		if ($GLOBALS['user_system']->havePerm(PERM_EDITSERVICE)) {
+			if ($data['has_items']) {
+				?>
+				<a class="take-parent-click pull-right" title="View service run sheet" href="?view=services&date=<?php echo $date; ?>&congregationid=<?php echo $congid; ?>"><i class="icon-list"></i></a>
+				<?php
+			} else {
+				?>
+				<a class="take-parent-click pull-right" title="Create service run sheet" href="?view=services&editing=1&date=<?php echo $date; ?>&congregationid=<?php echo $congid; ?>"><i class="icon-plus-sign"></i></a>
+				<?php
+			}
 		}
 		$this->_dummy_service->populate($data['id'], $data);
 		$this->_dummy_service->printFieldValue('summary');
@@ -430,7 +445,7 @@ class View_Services__List_All extends View
 		<p class="text alert alert-info">
 			<?php echo _("Use the fields below to enter a topic, format and/or Bible readings for each service. For each Bible reading, use the checkboxes to indicate if it is to be read, to be preached on, or both."); ?>
 		</p>
-		<form method="post" class="warn-unsaved" data-lock-length="<?php echo LOCK_LENGTH; ?>">
+		<form method="post" class="warn-unsaved" data-lock-length="<?php echo db_object::getLockLength() ?>">
 		<input type="hidden" name="program_submitted" value="1" />
 		<!-- the following hidden fields preserve the value of an image input whose click
 		     is intercepted by a confirm-shift popup -->
