@@ -176,7 +176,7 @@ class View_Families__Contact_List extends View
 			<tr>
 			<?php
 			if (!empty($_REQUEST['include_photos'])) {
-				if ($first_member['have_photo']) {
+				if (($first_member['have_photo']) || count($family_members) == 1) {
 					if ($dataURLs) {
 						$src = Photo_Handler::getDataURL('family', $familyid);
 					} else {
