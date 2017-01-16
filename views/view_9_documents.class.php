@@ -1,7 +1,7 @@
 <?php
 class View_Documents extends View
 {
-	var $_rootpath = DOCUMENTS_ROOT_PATH;
+	var $_rootpath = NULL;
 	var $_realdir = NULL;
 	var $_editfile = NULL;
 	var $_messages = Array();
@@ -25,9 +25,18 @@ class View_Documents extends View
 		}
 	}
 
+	public static function getRootPath()
+	{
+		if (ifdef('DOCUMENTS_ROOT_PATH') && is_dir(DOCUMENTS_ROOT_PATH)) {
+			return DOCUMENTS_ROOT_PATH;
+		} else {
+			return JETHRO_ROOT.'/files';
+		}
+	}
+
 	function processView()
 	{
-		if (empty($this->_rootpath)) $this->_rootpath = JETHRO_ROOT.'/files';
+		$this->_rootpath = self::getRootPath();
 		if (!is_dir($this->_rootpath)) {
 			trigger_error("Documents root path ".$this->_rootpath.' does not exist, please check your config file', E_USER_ERROR); // exits
 		}
