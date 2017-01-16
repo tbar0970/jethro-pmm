@@ -65,6 +65,10 @@ class View_Families__Contact_List extends View
 				<th><?php echo _('Other family members');?></th>
 				<td><?php echo _('For other members of the families of persons who opted in, show');?><br />
 				<label class="radio">
+					<input type="radio" name="all_member_details" value="-1" checked="checked" id="all_member_details_0" />
+					<?php echo _('nothing - do not mention them at all');?>
+				</label>
+				<label class="radio">
 					<input type="radio" name="all_member_details" value="0" checked="checked" id="all_member_details_0" />
 					<?php echo _('only their names');?>
 				</label>
@@ -231,8 +235,11 @@ class View_Families__Contact_List extends View
 			$children_use_full = FALSE;
 			foreach ($family_members as $member) {
 				$member['name'] = $member['first_name'];
-				if (!$all_member_details && !$member['signed_up']) {
-					$member['email'] = $member['mobile_tel'] = '';
+				if (!$member['signed_up']) {
+					if ($all_member_details == -1) continue;
+					if ($all_member_details == 0) {
+						$member['email'] = $member['mobile_tel'] = '';
+					}
 				}
 				$member['mobile_tel'] = $dummy_person->getFormattedValue('mobile_tel', $member['mobile_tel']);
 				if (empty($_REQUEST['age_bracket']) || in_array($member['age_bracket'], $_REQUEST['age_bracket'])) {
@@ -281,36 +288,26 @@ class View_Families__Contact_List extends View
 		// NB THIS FILE HAS BEEN CHANGED!
 		require_once 'include/phpword/src/PhpWord/Autoloader.php';
 		\PhpOffice\PhpWord\Autoloader::register();
+		\PhpOffice\PhpWord\Settings::setTempDir(sys_get_temp_dir());
 		require_once 'view_9_documents.class.php';
-		$filename = View_Documents::getRootPath().'/Templates/contact_list_template.docx';
-		if (is_readable($filename)) {
-			$phpWord = \PhpOffice\PhpWord\IOFactory::load($filename);
-			$sections = $phpWord->getSections();
-			if (count($sections) != 3) {
-				header('Content-Type: text/plain');
-				trigger_error("Bad template. Templates must contain three sections");
-				exit;
-			}
-			$section = $sections[1];
-		} else {
-			$phpWord =  new \PhpOffice\PhpWord\PhpWord();
-			$phpWord->addParagraphStyle('FAMILY HEADER', array());
-			$phpWord->addFontStyle('FAMILY NAME', array('bold' => true));
-			$phpWord->addFontStyle('HOME PHONE', array());
-			$phpWord->addFontStyle('ADDRESS', array());
-			$phpWord->addFontStyle('PERSON NAME', array('bold' => true));
-			$phpWord->addTableStyle('FAMILY LIST', array('width' => '100%', 'borderSize' => 0, 'cellMargin' => 80));
+		$phpWord =  new \PhpOffice\PhpWord\PhpWord();
+		$phpWord->addParagraphStyle('FAMILY HEADER', array());
+		$phpWord->addFontStyle('FAMILY NAME', array('bold' => true, 'size' => 15));
+		$phpWord->addFontStyle('HOME PHONE', array());
+		$phpWord->addFontStyle('ADDRESS', array());
+		$phpWord->addFontStyle('PERSON NAME', array('bold' => true));
+		$phpWord->addTableStyle('FAMILY LIST', array('width' => '100%', 'borderSize' => 0, 'cellMargin' => 80,'borderColor' => 'CCCCCC'));
 
-			$intro = $phpWord->addSection();
-			$intro->addTitle(SYSTEM_NAME.' Contact List', 1);
-			$intro->addText('Intro text goes here');
+		/*$intro = $phpWord->addSection();
+		$intro->addTitle(SYSTEM_NAME.' Contact List', 1);
+		$intro->addText('Intro text goes here');*/
 
-			$section = $phpWord->addSection(array('breakType' => 'continuous'));
+		$section = $phpWord->addSection(array('breakType' => 'continuous'));
 
-			$outro = $phpWord->addSection(array('breakType' => 'continuous'));
-			$outro->addText('Concluding text goes here');
+		/*$outro = $phpWord->addSection(array('breakType' => 'continuous'));
+		$outro->addText('Concluding text goes here');*/
 
-		}
+		
 
 		$table = $section->addTable('FAMILY LIST');
 
@@ -345,6 +342,25 @@ class View_Families__Contact_List extends View
 		}
 
 		$objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'Word2007');
-		$objWriter->save('php://output');
+		$tempname = tempnam(sys_get_temp_dir(), 'contactlist');
+		$objWriter->save($tempname);
+		
+		readfile($tempname);
+		unlink($tempname);
+		
+		/*$templateFilename = View_Documents::getRootPath().'/Templates/contact_list_template.docx';
+		if (file_exists($templateFilename)) {
+			require_once 'include/odf_tools.class.php';
+			$guts = ODF_Tools::getDOCXBodyContent($tempname);	
+			$outname = tempnam(sys_get_temp_dir(), 'contactlist');
+			copy($templateFilename, $outname);
+			ODF_Tools::appendToDOCXBody($outname, $guts);
+			readfile($outname);
+			unlink($outname);
+		} else {
+			readfile($tempname);
+		}
+		 */
+		 
 	}
 }
