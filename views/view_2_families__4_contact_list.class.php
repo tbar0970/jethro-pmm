@@ -25,7 +25,8 @@ class View_Families__Contact_List extends View
 		if (!empty($_REQUEST['go'])) {
 			if (!empty($_REQUEST['groupid'])) {
 				?>
-				<a class="pull-right" href="<?php echo build_url(Array('call' => 'contact_list', 'view' => NULL)); ?>">Download HTML file</a>
+				<a class="pull-right" href="<?php echo build_url(Array('call' => 'contact_list', 'format' => 'html', 'view' => NULL)); ?>">Download HTML file</a><br />
+				<a class="pull-right" href="<?php echo build_url(Array('call' => 'contact_list', 'format' => 'docx', 'view' => NULL)); ?>">Download DOCX file</a>
 				<?php
 				$this->printResults();
 				return;
@@ -101,24 +102,102 @@ class View_Families__Contact_List extends View
 
 	function printResults($dataURLs=FALSE)
 	{
+		?>
+		<table class="contact-list">
+		<?php
+		foreach ($this->getData() as $family) {
+			//bam($family);
+			?>
+			<tr>
+			<?php
+			if (!empty($_REQUEST['include_photos'])) {
+				if (($family['have_photo']) || count($family_members) == 1) {
+					if ($dataURLs) {
+						$src = Photo_Handler::getDataURL('family', $family['famliyid']);
+					} else {
+						$src = '?call=photo&familyid='.$family['famliyid'];
+					}
+				} else {
+					$src = BASE_URL.'resources/img/unknown_family.gif';
+				}
+				?>
+				<td rowspan="<?php echo 2 + count($adults) + (empty($children) ? 0 : 1); ?>" style="padding: 5px">
+					<img src="<?php echo $src; ?>" />
+				</td>
+				<?php
+			}
+			?>
+				<td colspan="4" style="height: 1px">
+					<h2 style="margin: 5px 0px 0px 0px"><?php echo $family['family_name']; ?></h2></td></tr>
+			<?php
+			if ($family['home_tel']) {
+				echo '<tr><td colspan="4"><h3 style="border: 0px; margin: 0px; padding: 0px">';
+				echo ents($family['home_tel']);
+				echo '</h3></td></tr>';
+			}
+			if (!empty($_REQUEST['include_address']) && $family['address_street']) {
+				echo '<tr><td colspan="4">'.nl2br(ents($family['address_street'])).'<br />';
+				echo ents($family['address_suburb'].' '.$family['address_state'].' '.$family['address_postcode']);
+				echo '</td></tr>';
+			}
+			foreach ($family['adults'] as $adult) {
+				?>
+				<tr style="height: 1px">
+					<td><?php echo ents($adult['name']); ?></td>
+					<td><?php echo ents($adult['congname']); ?></td>
+					<td><?php echo ents($adult['mobile_tel']); ?></td>
+					<td><?php echo ents($adult['email']); ?></td>
+				</tr>
+				<?php
+			}
+			if ($family['child_names']) {
+				?>
+				<tr style="height: 1px">
+					<td colspan="4"><?php echo ents(implode(', ', $family['child_names'])); ?></td
+				</tr>
+				<?php
+			}
+			?>
+			<?php
+			if (!empty($_REQUEST['include_photos'])) {
+				?>
+				<tr>
+					<td colspan="4">&nbsp;</td>
+				</tr>
+				<?php
+			}
+		}
+		?>
+		</table>
+		<?php
+	}
+
+	private function getData()
+	{
+		$dummy_person = new Person();
+		$dummy_family = new Family();
+
 		$db = $GLOBALS['db'];
 		$groupid = (int)$_REQUEST['groupid'];
 		$all_member_details = array_get($_REQUEST, 'all_member_details', 0);
 
 		if (empty($groupid)) return;
-		
+
 		$sql = '
-		select family.id as familyid, family.family_name, family.home_tel, 
-			person.*, congregation.long_name as congname,
+		select family.id as familyid, family.family_name, family.home_tel,
+			person.id, person.first_name, person.last_name, person.mobile_tel, person.email, person.age_bracket,
+			congregation.long_name as congname,
 			address_street, address_suburb, address_state, address_postcode,
-			IF (fp.familyid IS NULL, 0, 1) as have_photo
-		from family 
+			IF (fp.familyid IS NULL, 0, 1) as have_photo,
+			IF (signup.groupid IS NULL, 0, 1) as signed_up
+		from family
 		join person on family.id = person.familyid
 		left join congregation on person.congregationid = congregation.id
 		left join family_photo fp ON fp.familyid = family.id
+		left join person_group_membership signup ON signup.personid = person.id AND signup.groupid = '.(int)$groupid.'
 		where person.status <> "archived"
-		and family.id in 
-		(select familyid 
+		and family.id in
+		(select familyid
 		from person join person_group_membership pgm on person.id = pgm.personid
 		where pgm.groupid = '.(int)$groupid;
 
@@ -137,111 +216,135 @@ class View_Families__Contact_List extends View
 			return;
 		}
 
-		$sql = '
-		select personid
-		from person_group_membership pgm
-		where pgm.groupid = '.(int)$groupid;
-		$signups = $db->queryCol($sql);
-		check_db_result($signups);
-
 		$GLOBALS['system']->includeDBClass('family');
 		$GLOBALS['system']->includeDBClass('person');
 
-		$dummy_family = new Family();
-		$dummy_person = new Person();
-		?>
+		$families = Array();
 
-		<table class="contact-list">
-		<?php
 		foreach ($res as $familyid => $family_members) {
-			$adults = Array();
-			$children = Array();
-			$adults_use_full = false;
-			$children_use_full = false;
+			$family = Array(
+						'familyid' => $familyid,
+						'adults' => Array(),
+						'children' => Array(),
+				);
+			$adults_use_full = FALSE;
+			$children_use_full = FALSE;
 			foreach ($family_members as $member) {
+				$member['name'] = $member['first_name'];
+				if (!$all_member_details && !$member['signed_up']) {
+					$member['email'] = $member['mobile_tel'] = '';
+				}
+				$member['mobile_tel'] = $dummy_person->getFormattedValue('mobile_tel', $member['mobile_tel']);
 				if (empty($_REQUEST['age_bracket']) || in_array($member['age_bracket'], $_REQUEST['age_bracket'])) {
-					$adults[] = $member;
+					$family['adults'][] = $member;
 					if ($member['last_name'] != $member['family_name']) {
 						$adults_use_full = true;
 					}
 				} else {
-					$children[] = $member;
+					$family['children'][] = $member;
 					if ($member['last_name'] != $member['family_name']) {
 						$children_use_full = true;
 					}
 				}
 			}
-			$first_member = reset($family_members);
-			?>
-			<tr>
-			<?php
-			if (!empty($_REQUEST['include_photos'])) {
-				if (($first_member['have_photo']) || count($family_members) == 1) {
-					if ($dataURLs) {
-						$src = Photo_Handler::getDataURL('family', $familyid);
-					} else {
-						$src = '?call=photo&familyid='.$familyid;
-					}
-				} else {
-					$src = BASE_URL.'resources/img/unknown_family.gif';
+
+			if ($adults_use_full) {
+				foreach ($family['adults'] as &$adult) {
+					$adult['name'] .= ' '.$adult['last_name'];
 				}
-				?>
-				<td rowspan="<?php echo 2 + count($adults) + (empty($children) ? 0 : 1); ?>" style="padding: 5px">
-					<img src="<?php echo $src; ?>" />
-				</td>
-				<?php
 			}
-			?>
-				<td colspan="4" style="height: 1px">
-					<h2 style="margin: 5px 0px 0px 0px"><?php echo $first_member['family_name']; ?></h2></td></tr>
-			<?php
-			if ($first_member['home_tel']) {
-				$dummy_family->setValue('home_tel', $first_member['home_tel']);
-				echo '<tr><td colspan="4"><h3 style="border: 0px; margin: 0px; padding: 0px">';
-				echo ents($dummy_family->getFormattedValue('home_tel'));
-				echo '</h3></td></tr>';
+			if ($children_use_full) {
+				foreach ($family['children'] as &$child) {
+					$child['name'] .= ' '.$child['last_name'];
+				}
 			}
-			if (!empty($_REQUEST['include_address']) && $first_member['address_street']) {
-				echo '<tr><td colspan="4">'.nl2br(ents($first_member['address_street'])).'<br />';
-				echo ents($first_member['address_suburb'].' '.$first_member['address_state'].' '.$first_member['address_postcode']);
-				echo '</td></tr>';
+
+			$family['child_names'] = Array();
+			foreach ($family['children'] as $child) {
+				$family['child_names'][] = $child['name'];
 			}
-			$fn = 'getFormattedValue';
-			foreach ($adults as $adult) {
-				$dummy_person->populate($adult['id'], $adult);
-				?>
-				<tr style="height: 1px">
-					<td><?php echo ents($adults_use_full ? $adult['first_name'].' '.$adult['last_name'] : $adult['first_name']); ?></td>
-					<td><?php echo ents($adult['congname']); ?></td>
-					<td><?php if ($all_member_details || in_array($adult['id'], $signups)) echo ents($dummy_person->getFormattedValue('mobile_tel')); ?></td>
-					<td><?php if ($all_member_details || in_array($adult['id'], $signups)) echo ents($dummy_person->$fn('email')); ?></td>
-				</tr>
-				<?php
+
+			$first_member = reset($family_members);
+			foreach (Array('have_photo', 'family_name', 'home_tel', 'address_street', 'address_suburb', 'address_state', 'address_postcode') as $ffield) {
+				$family[$ffield] = $first_member[$ffield];
 			}
-			$child_names = Array();
-			foreach ($children as $child) {
-				$child_names[] = $children_use_full ? $child['first_name'].' '.$child['last_name'] : $child['first_name'];
+			$family['home_tel'] = $dummy_family->getFormattedValue('home_tel', $family['home_tel']);
+
+			$families[] = $family;
+		}
+		return $families;
+	}
+
+
+	public function printDOCX()
+	{
+		// NB THIS FILE HAS BEEN CHANGED!
+		require_once 'include/phpword/src/PhpWord/Autoloader.php';
+		\PhpOffice\PhpWord\Autoloader::register();
+		require_once 'view_9_documents.class.php';
+		$filename = View_Documents::getRootPath().'/Templates/contact_list_template.docx';
+		if (is_readable($filename)) {
+			$phpWord = \PhpOffice\PhpWord\IOFactory::load($filename);
+			$sections = $phpWord->getSections();
+			if (count($sections) != 3) {
+				header('Content-Type: text/plain');
+				trigger_error("Bad template. Templates must contain three sections");
+				exit;
 			}
-			if ($child_names) {
-				?>
-				<tr style="height: 1px">
-					<td colspan="4"><?php echo ents(implode(', ', $child_names)); ?></td
-				</tr>
-				<?php
+			$section = $sections[1];
+		} else {
+			$phpWord =  new \PhpOffice\PhpWord\PhpWord();
+			$phpWord->addParagraphStyle('FAMILY HEADER', array());
+			$phpWord->addFontStyle('FAMILY NAME', array('bold' => true));
+			$phpWord->addFontStyle('HOME PHONE', array());
+			$phpWord->addFontStyle('ADDRESS', array());
+			$phpWord->addFontStyle('PERSON NAME', array('bold' => true));
+			$phpWord->addTableStyle('FAMILY LIST', array('width' => '100%', 'borderSize' => 0, 'cellMargin' => 80));
+
+			$intro = $phpWord->addSection();
+			$intro->addTitle(SYSTEM_NAME.' Contact List', 1);
+			$intro->addText('Intro text goes here');
+
+			$section = $phpWord->addSection(array('breakType' => 'continuous'));
+
+			$outro = $phpWord->addSection(array('breakType' => 'continuous'));
+			$outro->addText('Concluding text goes here');
+
+		}
+
+		$table = $section->addTable('FAMILY LIST');
+
+		$wideCellProps = array('gridSpan' => 4, 'valign' => 'top');
+		$narrowCellProps = array('valign' => 'top');
+
+		foreach ($this->getData() as $family) {
+			$table->addRow();
+			$table->addCell(NULL, $wideCellProps)
+						->addText($family['family_name'], 'FAMILY NAME', 'FAMILY HEADER');
+
+			if ($family['address_street']) {
+				$table->addRow();
+				$cell = $table->addCell(NULL, $wideCellProps);
+				$cell->addText($family['address_street'], 'ADDRESS');
+				$cell->addText($family['address_suburb'].' '.$family['address_state'].' '.$family['address_postcode'], 'ADDRESS');
 			}
-			?>
-			<?php
-			if (!empty($_REQUEST['include_photos'])) {
-				?>
-				<tr>
-					<td colspan="4">&nbsp;</td>
-				</tr>
-				<?php
+
+			if ($family['home_tel']) {
+				$table->addRow();
+				$table->addCell(NULL, $wideCellProps)
+							->addText($family['home_tel'], 'HOME PHONE');
+			}
+
+			foreach ($family['adults'] as $member) {
+				$table->addRow();
+				$table->addCell('30%', $narrowCellProps)->addText($member['name'], 'PERSON NAME');
+				$table->addCell('25%', $narrowCellProps)->addText($member['congname']);
+				$table->addCell('20%', $narrowCellProps)->addText($member['mobile_tel']);
+				$table->addCell('20%', $narrowCellProps)->addText($member['email']);
 			}
 		}
-		?>
-		</table>
-		<?php
+
+		$objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'Word2007');
+		$objWriter->save('php://output');
 	}
 }
-?>
