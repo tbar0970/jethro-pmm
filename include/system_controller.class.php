@@ -230,6 +230,7 @@ class System_Controller
 
 	public function _handleError($errno, $errstr, $errfile, $errline)
 	{
+		if (error_reporting() == 0) return; // the "@" shutup-operator was used
 		$send_email = true;
 		$exit = false;
 		switch ($errno) {
