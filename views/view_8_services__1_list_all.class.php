@@ -445,7 +445,7 @@ class View_Services__List_All extends View
 		<p class="text alert alert-info">
 			<?php echo _("Use the fields below to enter a topic, format and/or Bible readings for each service. For each Bible reading, use the checkboxes to indicate if it is to be read, to be preached on, or both."); ?>
 		</p>
-		<form method="post" class="warn-unsaved" data-lock-length="<?php echo db_object::getLockLength() ?>">
+		<form method="post" class="warn-unsaved" data-lock-length="<?php echo LOCK_LENGTH; ?>">
 		<input type="hidden" name="program_submitted" value="1" />
 		<!-- the following hidden fields preserve the value of an image input whose click
 		     is intercepted by a confirm-shift popup -->
