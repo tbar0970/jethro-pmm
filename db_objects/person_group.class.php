@@ -96,7 +96,7 @@ class Person_Group extends db_object
 				  PRIMARY KEY  (`personid`,`groupid`),
 				  INDEX personid (personid),
 				  INDEX groupid (groupid),
-				  CONSTRAINT `membership_status_fk` FOREIGN KEY (membership_status) REFERENCES person_group_membership_status (id) ON DELETE SET NULL
+				  CONSTRAINT `membership_status_fk` FOREIGN KEY (membership_status) REFERENCES person_group_membership_status (id) ON DELETE RESTRICT
 				) ENGINE=InnoDB",
 		);
 	}
