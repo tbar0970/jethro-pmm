@@ -321,7 +321,7 @@ define('ADDRESS_STATE_DEFAULT', '');
 define('ADDRESS_POSTCODE_LABEL', 'Post Code');
 define('ADDRESS_POSTCODE_WIDTH', 9);
 define('ADDRESS_POSTCODE_REGEX', '/^[A-Z]{1,2}[0-9R][0-9A-Z]? [0-9][ABD-HJLNP-UW-Z]{2}$/');
-define('POSTCODE_LOOKUP_URL','http://postcode.royalmail.com/portal/rm/postcodefinder');
+define('POSTCODE_LOOKUP_URL','http://www.royalmail.com/find-a-postcode');
 define('MAP_LOOKUP_URL', 'http://maps.google.co.uk?q=__ADDRESS_STREET__,%20__ADDRESS_SUBURB__,%20__ADDRESS_POSTCODE__');
 
 ///////////////////////////////////////////////////////
