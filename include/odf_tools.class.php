@@ -255,4 +255,32 @@ Class ODF_Tools
 		return ODF_Tools::setXML($filename, $dom->saveXML());
 	}
 	
+	/*
+	static function getDOCXBodyContent($filename) {
+		$xml = self::getXML($filename, 'word/document.xml');
+		$p = strpos($xml, '<w:body');
+		//if ($p===false) exit("Tag <w:body> not found in document 1.");
+		$p = strpos($xml, '>', $p);
+		$xml = substr($xml, $p+1);
+
+		$p = strpos($xml, '</w:body>');
+//if ($p===false) exit("Tag </w:body> not found in document 1.");
+		$xml = substr($xml, 0, $p);
+		return $xml;
+	}
+	
+	static function appendToDOCXBody($filename, $extraXML) {
+		$xml = self::getXML($filename, 'word/document.xml');
+		//bam("Original XML"); bam(ents($xml));
+		
+		bam("Extra XML"); bam(ents($extraXML));
+		
+		$p = strpos($xml, '</w:body>');
+		$new = substr($xml, 0, $p).$extraXML.substr($xml, $p);
+		//bam("Result"); bam(ents($new));
+		self::setXML($filename, $new, 'word/document.xml');
+	}
+	 * */
+	 
+	
 }
