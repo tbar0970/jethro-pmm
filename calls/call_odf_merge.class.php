@@ -50,10 +50,9 @@ class Call_ODF_Merge extends Call
 		// and causes errors.
 		$data = array_values($this->getMergeData());
 
-		// NB THIS FILE HAS BEEN CHANGED!
-		require_once 'include/phpword/src/PhpWord/Autoloader.php';
-		\PhpOffice\PhpWord\Autoloader::register();
-		\PhpOffice\PhpWord\Settings::setTempDir(dirname($source_file));
+		require_once 'vendor/autoload.php';
+		\PhpOffice\PhpWord\Settings::setTempDir(sys_get_temp_dir());
+		\PhpOffice\PhpWord\Settings::setOutputEscapingEnabled(TRUE);
 		$templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor($source_file);
 
 		if (!$templateProcessor->cloneBlock('MERGEBLOCK', count($data))) {
