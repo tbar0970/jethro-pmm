@@ -104,12 +104,18 @@ class View_Families__Contact_List extends View
 							echo _('Congregation');
 							?>
 						</label>
+					<?php
+					if ($GLOBALS['system']->featureEnabled('PHOTOS')) {
+						?>
 						<label class="checkbox">
 							<?php
 							print_widget('include_photos', Array('type' => 'checkbox'), array_get($_REQUEST, 'include_photos', TRUE));
 							echo _('Family photos');
 							?>
 						</label>
+						<?php
+					}
+					?>
 					</td>
 			</tr>
 			<tr>
