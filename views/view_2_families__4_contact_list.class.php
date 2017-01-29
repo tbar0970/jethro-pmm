@@ -285,7 +285,7 @@ class View_Families__Contact_List extends View
 			}
 			if ($all_use_full) {
 				foreach ($family['all'] as &$member) {
-					$member['name'] .= ' '.$child['last_name'];
+					$member['name'] .= ' '.$member['last_name'];
 				}
 			}
 
@@ -388,11 +388,16 @@ class View_Families__Contact_List extends View
 		//readfile($tempname);
 		
 		$templateFilename = View_Documents::getRootPath().'/Templates/contact_list_template.docx';
+		if (!file_exists($templateFilename)) {
+			$templateFilename = JETHRO_ROOT.'/resources/contact_list_template.docx';
+		}
 		if (file_exists($templateFilename)) {
 			require_once 'include/odf_tools.class.php';
-			$outname = tempnam(sys_get_temp_dir(), 'contactlist');
+			$outname = tempnam(sys_get_temp_dir(), 'contactlist').'.docx';
 			copy($templateFilename, $outname);
 			ODF_Tools::insertFileIntoFile($tempname, $outname, '%CONTACT_LIST%');
+			$replacements = Array('SYSTEM_NAME' => SYSTEM_NAME);
+			ODF_Tools::replaceKeywords($outname, $replacements);
 			readfile($outname);
 			unlink($outname);
 		} else {

@@ -64,7 +64,11 @@ Class ODF_Tools
 	static function replaceKeywords($filename, $replacements, $xml_filenames=NULL)
 	{
 		if (is_null($xml_filenames)) {
-			$xml_filenames = Array('content.xml', 'styles.xml');
+			if (substr(strtolower($filename), -4) == 'docx') {
+				$xml_filenames = Array('word/document.xml');
+			} else {
+				$xml_filenames = Array('content.xml', 'styles.xml');
+			}
 		}
 		foreach ($xml_filenames as $xml_filename) {
 			$xml = ODF_Tools::getXML($filename, $xml_filename);
