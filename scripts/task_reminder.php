@@ -24,7 +24,6 @@ if (ifdef('TASK_NOTIFICATION_ENABLED', FALSE) == FALSE) {
 }
 
 require_once JETHRO_ROOT.'/include/user_system.class.php';
-require_once JETHRO_ROOT.'/include/emailer.class.php';
 require_once JETHRO_ROOT.'/include/system_controller.class.php';
 $GLOBALS['user_system'] = new User_System();
 $GLOBALS['user_system']->setPublic();
@@ -50,6 +49,8 @@ $reminders = Abstract_Note::getNotifications($minutes);
 check_db_result($reminders);
 $fromText = ifdef('TASK_NOTIFICATION_FROM_NAME', SYSTEM_NAME.' Jethro');
 $subject = ifdef('TASK_NOTIFICATION_SUBJECT', 'New notes assigned to you');
+
+require_once JETHRO_ROOT.'/include/emailer.class.php';
 
 foreach ($reminders as $reminder) {
 	$content = sprintf($introText, $reminder['first_name']);
