@@ -21,7 +21,7 @@ class View_Admin__System_Configuration extends View {
 				if ($v == '') $rankMap[$k] = max($rankMap)+1;
 			}
 			$ranks = array_flip($rankMap);
-			
+
 			while (isset($_POST['membership_status_'.$i.'_label'])) {
 				$sql = null;
 				$is_default = (int)($_POST['membership_status_default_rank'] == $i);
@@ -44,17 +44,24 @@ class View_Admin__System_Configuration extends View {
 				}
 				$i++;
 			}
-			if (!empty($_POST['membership_status_delete'])) {
-				$sql = 'DELETE FROM person_group_membership_status WHERE id IN ('.implode(',', array_map(Array($db, 'quote'), $_POST['membership_status_delete'])).')';
-				$res = $db->query($sql);
-				check_db_result($res);
-			}
 			if (!$saved_default) {
 				$db->query('UPDATE person_group_membership_status SET is_default = 1 ORDER BY label LIMIT 1');
 				check_db_result($res);
 			}
+			if (!empty($_POST['membership_status_delete'])) {
+				$idSet = implode(',', array_map(Array($db, 'quote'), $_POST['membership_status_delete']));
+				// Reset any records using this status to the default status
+				$sql = 'UPDATE person_group_membership
+						SET membership_status = (SELECT id FROM person_group_membership_status WHERE is_default = 1 AND id NOT IN ('.$idSet.'))
+						WHERE membership_status IN ('.$idSet.')';
+				$res = $db->query($sql);
+				check_db_result($res);
+				$sql = 'DELETE FROM person_group_membership_status
+						WHERE id IN ('.$idSet.')';
+				$res = $db->query($sql);
+				check_db_result($res);
+			}
 
-			$db->query('UPDATE person_group_membership SET membership_status = (SELECT id FROM person_group_membership_status WHERE is_default) WHERE membership_status IS NULL');
 			check_db_result($res);
 		}
 	}
@@ -219,7 +226,7 @@ class View_Admin__System_Configuration extends View {
 							</td>
 							<td>
 								<?php
-								if ($id) {
+								if ($id && (count($options) > 2)) {
 									?>
 									<input type="checkbox" name="membership_status_delete[]" data-toggle="strikethrough" data-target="row" value="<?php echo $id; ?>" />
 									<?php

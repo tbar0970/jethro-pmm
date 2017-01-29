@@ -109,11 +109,10 @@ class System_Controller
 					$view_filename = $_SESSION['views'][$this->_base_dir][$bits[0]]['children'][$bits[1]]['filename'];
 					$view_classname = 'View_'.$bits[0].'__'.$bits[1];
 				}
-			} else if (isset($_SESSION['views'][$this->_base_dir][$bits[0]])) {
-				if (!isset($_SESSION['views'][$this->_base_dir][$bits[0]]['filename'])) {
-					error_log("SESSION HAS A VIEW ".$bits[0]." BUT NO FILENAME:");
-					error_log(print_r($_SESSION['views'], 1));
-				}
+			} else if (isset($_SESSION['views'][$this->_base_dir][$bits[0]])
+				&& isset($_SESSION['views'][$this->_base_dir][$bits[0]]['filename'])) {
+				// NB if they have permission to a sub-view (eg services > view) but not to the top level
+				// view (eg services) then the view will be in the array but without a filename
 				$view_filename = $_SESSION['views'][$this->_base_dir][$bits[0]]['filename'];
 				$view_classname = 'View_'.$bits[0];
 			}
