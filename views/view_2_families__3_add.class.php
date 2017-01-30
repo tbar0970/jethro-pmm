@@ -158,6 +158,8 @@ class View_Families__Add extends View
 		$person->fields['first_name']['width'] = 11;
 		$person->fields['last_name']['width'] = 11;
 		$person->fields['email']['width'] = 25;
+
+		$customFields = $GLOBALS['system']->getDBObjectData('custom_field', Array('show_add_family' => 1), 'AND', 'rank');
 		?>
 		<form method="post" id="add-family" class="form-horizontal">
 			<input type="hidden" name="new_family_submitted" value="1" />
@@ -173,7 +175,8 @@ class View_Families__Add extends View
 			<table class="expandable">
 			<?php
 			include_once 'include/size_detector.class.php';
-			if (SizeDetector::isNarrow()) {
+			if (SizeDetector::isNarrow() || count($customFields) > 0) {
+				// horizontal view would get too wide if we added custom fields to it
 				?>
 				<tr>
 					<td>
@@ -198,10 +201,18 @@ class View_Families__Add extends View
 							<div><?php $person->printFieldInterface('mobile_tel', 'members_0_'); ?></div>
 							<div><?php $person->printFieldInterface('email', 'members_0_'); ?></div>
 
+						<?php
+						$field = new Custom_Field();
+						foreach ($customFields as $fieldID => $fDetails) {
+							$field->populate($fieldID, $fDetails);
+							?>
+							<label class="fullwidth"><?php $field->printFieldValue('name'); ?></label>
+							<div class="fullwidth"><?php $field->printWidget('', Array(), 'members_0_'); ?></div>
+							<?php
+						}
+						?>
+							
 						</div>
-
-
-
 					</td>
 				</tr>
 				<?php

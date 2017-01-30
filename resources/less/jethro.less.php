@@ -644,15 +644,18 @@ table.table-full-width td.narrow, table.table-full-width th.narrow {
 	-moz-box-sizing: border-box;
 	box-sizing: border-box;
 }
-.compact-2col div input {
+.compact-2col>div>input:first-child {
 	width: 92%;
 }
-.compact-2col div select {
+.compact-2col>div>select {
 	width: 100%;
 }
 .compact-2col label {
-	margin-top: 5px;
+	margin-top: 8px;
 	margin-bottom: 0px;
+}
+.compact-2col label.fullwidth, .compact-2col div.fullwidth {
+	width: 100% !important;
 }
 /* in the add-family page */
 .family-member-box {
