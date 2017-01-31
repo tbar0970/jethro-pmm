@@ -429,7 +429,7 @@ class Person_Query extends DB_Object
 			?>
 			<tr>
 				<td>
-					<img src="<?php echo BASE_URL; ?>/resources/img/expand_up_down_green_small.png" class="icon insert-row-below" style="position: relative; top: 2ex" title="Create a blank entry here" />
+					<div class="insert-row-below" title="Click to insert a field here"></div>
 				</td>
 				<td>
 					<?php
@@ -492,25 +492,28 @@ class Person_Query extends DB_Object
 		?>
 		</table>
 
-
-		<h3>Group the results...</h3>
-		<?php
-		$gb = array_get($params, 'group_by', '');
-		?>
+		<h3>Group the results by...</h3>
 		<div class="indent-left">
-			<select name="group_by">
-				<option value=""<?php if ($gb == '') echo ' selected="selected"'; ?>>all together</option>
-				<option value="groupid"<?php if ($gb == 'groupid') echo ' selected="selected"'; ?>>by group membership</option>
 			<?php
+			$options = Array(
+						'' => _('Nothing - one big group'),
+						'groupid' => _('Which person groups they are in'),
+			);
 			foreach ($this->_query_fields as $i) {
 				$v = $this->_field_details[$i];
-				if (!in_array($v['type'], Array('select', 'reference'))) continue;
-				?>
-				<option value="<?php echo $i; ?>"<?php if ($gb == $i) echo ' selected="selected"'; ?>>by <?php echo $v['label']; ?></option>
-				<?php
+				if (in_array($v['type'], Array('select', 'reference'))) {
+					$options[$i] = _($v['label']);
+				}
 			}
+			foreach ($this->_custom_fields as $id => $f) {
+				$options['custom-'.$id] = $f['name'];
+			}
+			print_widget(
+					'group_by',
+					Array('type' => 'select', 'options' => $options),
+					array_get($params, 'group_by', '')
+			);
 			?>
-			</select>
 			<p class="smallprint">Note: Result groups that do not contain any persons will not be shown</p>
 		</div>
 
@@ -568,13 +571,18 @@ class Person_Query extends DB_Object
 					/>
 					as a new report 
 				</label>
-		
+			<?php
+			if ($this->id != 0) {
+				?>
 				<label type="radio">
 					<input type="radio" name="save_option" value="replace" id="save_option_replace" <?php if ($this->id && ($this->id != 'TEMP')) echo 'checked="checked"'; ?>
 						 data-toggle="enable"
 						 />
 					in place of its previous version
 				</label>
+				<?php
+			}
+			?>
 
 				<label type="radio">
 					<input type="radio" name="save_option"
@@ -830,6 +838,7 @@ class Person_Query extends DB_Object
 						JOIN family f ON p.familyid = f.id
 						';
 		$query['where'] = Array();
+		$query['group_by'] = Array('p.id');
 
 		// BASIC FILTERS
 		foreach ($params['rules'] as $field => $values) {
@@ -1029,10 +1038,24 @@ class Person_Query extends DB_Object
 											array_get($params, 'group_membership_status')
 									);
 				$grouping_order = 'pg.name, ';
+				$query['group_by'][] = 'pg.id';
 			} else {
 				$grouping_field = '';
 			}
+		} else if (0 === strpos($params['group_by'], 'custom-')) {
+			list($null, $fieldid) = explode('-', $params['group_by']);
+			$query['from'] .= ' LEFT JOIN custom_field_value cfvgroup
+									ON cfvgroup.personid = p.id
+										AND cfvgroup.fieldid = '.(int)$fieldid.'
+							';
+			$query['from'] .= ' LEFT JOIN custom_field_option cfogroup
+									ON cfogroup.id = cfvgroup.value_optionid
+								';
+			$grouping_order = 'IF(cfvgroup.personid IS NULL, 1, 0), '.Custom_Field::getSortValueSQLExpr('cfvgroup', 'cfogroup').', ';
+			$grouping_field = Custom_Field::getRawValueSQLExpr('cfvgroup', 'cfogroup').', ';
+			$query['group_by'][] = Custom_Field::getRawValueSQLExpr('cfvgroup', 'cfogroup');
 		} else {
+			// by some core field
 			$grouping_order = $grouping_field = $params['group_by'].', ';
 		}
 
@@ -1251,10 +1274,9 @@ class Person_Query extends DB_Object
 					('.implode(")\n\tAND (", $query['where']).')
 				';
 		}
-		$sql .= 'GROUP BY p.id ';
-		if (array_get($params, 'group_by') == 'groupid') $sql .= ', pg.id ';
+		$sql .= 'GROUP BY '.implode(', ', $query['group_by']);
 		$sql .= 'ORDER BY '.$query['order_by'].', p.last_name, p.first_name';
-		
+	//	bam($sql); exit;
 		
 		return $sql;
 	}
@@ -1316,13 +1338,17 @@ class Person_Query extends DB_Object
 	function _printResultGroups($res, $params, $format)
 	{
 		foreach ($res as $i => $v) {
-			if ($params['group_by'] != 'groupid') {
-					$var = $params['group_by'][0] == 'p' ? '_dummy_person' : '_dummy_family';
-					$fieldname = substr($params['group_by'], 2);
-					$this->$var->setValue($fieldname, $i);
-					$heading = $this->$var->getFormattedValue($fieldname);
+			if (0 === strpos($params['group_by'], 'custom-')) {
+				$field = $GLOBALS['system']->getDBObject('custom_field', end(explode('-', $params['group_by'])));
+				$heading = $field->formatValue($i);
+				if (!strlen($heading)) $heading = '(Blank)';
+			} else if ($params['group_by'] == 'groupid') {
+				$heading = $i;
 			} else {
-					$heading = $i;
+				$var = $params['group_by'][0] == 'p' ? '_dummy_person' : '_dummy_family';
+				$fieldname = substr($params['group_by'], 2);
+				$this->$var->setValue($fieldname, $i);
+				$heading = $this->$var->getFormattedValue($fieldname);
 			}
 			$this->_printResultSet($v, $format, $heading);
 		}
