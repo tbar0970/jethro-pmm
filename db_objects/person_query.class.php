@@ -506,6 +506,7 @@ class Person_Query extends DB_Object
 				}
 			}
 			foreach ($this->_custom_fields as $id => $f) {
+				if ($f['type'] != 'select') continue; // restrict it to option fields for now.
 				$options['custom-'.$id] = $f['name'];
 			}
 			print_widget(
