@@ -593,7 +593,7 @@ input[type="radio"] {
 .table td table tr:first-child td {
 	border-top: 0px;
 }
-#body table.no-borders td, #body table.no-borders th {
+#body table.no-borders, #body table.no-borders td, #body table.no-borders th {
 	border-width: 0px !important;
 }
 #body .no-padding td, #body .no-padding th {
@@ -633,11 +633,13 @@ tr:last-child .insert-row-below {
 	display: none;
 }
 .smallprint, .help-inline, .help-block, .smallprint code {
-	font-size: 10pt;
+	font-size: 12px;
 	line-height: 130%;
 	margin-left: 0;
 	margin-top: 1px;
 	padding: 0;
+	font-style: italic;
+	color: @gray;
 }
 .custom-field-tooltip {
 	background: @jethroGrayish !important;
@@ -724,7 +726,8 @@ table.object-summary td, table.object-summary th {
 	border-width: 0px !important;
 }
 
-/* make the table of person dates and family members line up with its label */
+/* make the table of person dates and family members line up with its label
+TODO: borderless is no more */
 table.object-summary td table.borderless tr:first-child td {
 	padding-top: 0px !important;
 }

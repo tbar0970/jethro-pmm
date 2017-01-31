@@ -27,6 +27,13 @@ class Person_Group extends db_object
 									'label' => 'Status',
 									'default'	=> 0,
 								),
+			'owner'			=> Array(
+									'type'			=> 'reference',
+									'references'	=> 'staff_member',
+									'label'			=> 'Visibility',
+									'allow_empty'   => TRUE,
+									'default'      => NULL,
+								   ),
 			'show_add_family'	=> Array(
 									'type' => 'select',
 									'options' => Array(
@@ -36,13 +43,13 @@ class Person_Group extends db_object
 												),
 									'default' => 'no',
 									'label' => 'Show on add-family page?',
-									'note' => 'Should it be possible to add persons to this group when adding a new family?',
+									'note' => 'Should this group be shown as an option when <a href="?view=families__add">adding a new family</a>?',
 									'divider_before' => true,
 									),
 			'share_member_details' => Array(
 									'type' => 'select',
 									'options' => Array('No', 'Yes'),
-									'note' => 'Whether to allow group members to see other members\' details in the <a href="'.BASE_URL.'members">member portal</a>',
+									'note' => 'Should members of this group be able to see each others\'s details in <a href="'.BASE_URL.'members">member portal</a>?',
 									'label' => 'Share member details?',
 								),
 		);
@@ -297,14 +304,18 @@ class Person_Group extends db_object
 		switch ($fieldname) {
 			case 'attendance_recording_days':
 				if ($value == 0) {
-					echo 'No';
+					echo _('No');
 					return;
 				}
 				if ($value == 127) {
-					echo 'Yes, any day';
+					echo _('Yes, any day');
 					return;
 				}
 				return parent::printFieldValue($fieldname, $value);
+				break;
+
+			case 'owner':
+				echo _(($value === NULL) ? 'Everyone' : 'Only me');
 				break;
 				
 			case 'categoryid':
@@ -320,12 +331,32 @@ class Person_Group extends db_object
 
 	function printFieldInterface($fieldname, $prefix='')
 	{
-		if ($fieldname == 'categoryid') {
-			$GLOBALS['system']->includeDBClass('person_group_category');
-			Person_Group_Category::printChooser($prefix.$fieldname, $this->getValue('categoryid'));
-			echo ' &nbsp; &nbsp;<small><a href="'.build_url(Array('view' => 'groups__manage_categories')).'">Manage categories</a></small>';
-		} else {
-			return parent::printFieldInterface($fieldname, $prefix);
+		switch ($fieldname) {
+			case 'categoryid':
+				$GLOBALS['system']->includeDBClass('person_group_category');
+				Person_Group_Category::printChooser($prefix.$fieldname, $this->getValue('categoryid'));
+				echo ' &nbsp; &nbsp;<small><a href="'.build_url(Array('view' => 'groups__manage_categories')).'">Manage categories</a></small>';
+				break;
+			case 'owner':
+				$visibilityParams = Array(
+					'type' => 'select',
+					'options' => Array('Visible to everyone', 'Visible only to me')
+				);
+				print_widget('is_private', $visibilityParams, $this->getValue('owner') !== NULL);
+				break;
+			default:
+				return parent::printFieldInterface($fieldname, $prefix);
+		}
+	}
+
+	public function processFieldInterface($name, $prefix='')
+	{
+		switch ($name) {
+			case 'owner':
+				$this->setValue('owner', empty($_REQUEST['is_private']) ? NULL : $GLOBALS['user_system']->getCurrentUser('id'));
+				break;
+			default:
+				return parent::processFieldInterface($name, $prefix);
 		}
 	}
 
