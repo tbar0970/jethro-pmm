@@ -27,10 +27,23 @@ class Person_Group extends db_object
 									'label' => 'Status',
 									'default'	=> 0,
 								),
+			'show_add_family'	=> Array(
+									'type' => 'select',
+									'options' => Array(
+													'selected' => 'Yes - selected',
+													'unselected' => 'Yes - not selected',
+													'no' => 'No',
+												),
+									'default' => 'no',
+									'label' => 'Show on add-family page?',
+									'note' => 'Whether to offer this group when adding a new family',
+									'divider_before' => true,
+									),
 			'share_member_details' => Array(
 									'type' => 'select',
 									'options' => Array('No', 'Yes'),
-									'note' => 'If set to yes, members of this group will be able to see other members\' details when they log in to the <a href="'.BASE_URL.'members">member portal</a>'
+									'note' => 'Whether to allow group members to see other members\' details in the <a href="'.BASE_URL.'members">member portal</a>',
+									'label' => 'Share member details?',
 								),
 		);
 		// Check if attendance is enabled
@@ -49,8 +62,8 @@ class Person_Group extends db_object
 									),
 									'default'	=> 0,
 									'label'		=> 'Attendance Recording Days',
-									'cols'		=> 2,
-									'note'		=> 'Select nothing if you do not plan to record attendance for this group',
+									'cols'		=> 4,
+									'note'		=> 'If you want to record attendance at this group, select the applicable weekdays. ',
 									'show_unselected' => FALSE,
 						   );
 		}
@@ -316,19 +329,30 @@ class Person_Group extends db_object
 		}
 	}
 
-	public static function getMembershipStatusOptionsAndDefault()
+	public static function getMembershipStatusOptionsAndDefault($with_usages = FALSE)
 	{
-		$sql = 'SELECT * FROM person_group_membership_status ORDER BY rank';
+		if ($with_usages) {
+			$sql = 'SELECT s.*, COUNT(pgm.personid) as usages
+					FROM person_group_membership_status s
+					LEFT JOIN person_group_membership pgm ON pgm.membership_status = s.id
+					ORDER BY s.rank';
+		} else {
+			$sql = 'SELECT s.*
+					FROM person_group_membership_status s
+					ORDER BY s.rank';
+		}
 		$res = $GLOBALS['db']->queryAll($sql, null, null, true);
 		check_db_result($res);
 		$options = Array();
 		$default = null;
+		$usages = Array();
 		foreach ($res as $id => $detail) {
 			$options[$id] = $detail['label'];
+			if ($with_usages) $usages[$id] = $detail['usages'];
 			if ($detail['is_default']) $default = $id;
 		}
 		if (empty($default)) $default = key($options);
-		return Array($options, $default);
+		return Array($options, $default, $usages);
 	}
 		
 

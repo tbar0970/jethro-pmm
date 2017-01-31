@@ -88,6 +88,15 @@ class View_Families__Add extends View
 				}
 			}
 
+			if ($success) {
+				foreach (array_get($_REQUEST, 'groups', Array()) as $groupid) {
+					$group = $GLOBALS['system']->getDBObject('person_group', $groupid);
+					foreach ($members as $member) {
+						$group->addMember($member->id, $_REQUEST['membership_status'][$groupid]);
+					}
+				}
+			}
+
 			// Before committing, check for duplicates
 			if (empty($_REQUEST['override_dup_check'])) {
 				$this->_similar_families = $this->_family->findSimilarFamilies();
@@ -172,7 +181,7 @@ class View_Families__Add extends View
 
 			<div>
 			<h3><?php echo _('Family Members');?></h3>
-			<table class="expandable">
+			<table class="expandable table-full-width">
 			<?php
 			include_once 'include/size_detector.class.php';
 			if (SizeDetector::isNarrow() || count($customFields) > 0) {
@@ -265,6 +274,34 @@ class View_Families__Add extends View
 				$note = new Family_Note();
 				$note->printForm('initial_note_');
 			?>
+			</div>
+			<?php
+		}
+
+		$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('!show_add_family' => 'no'));
+		if ($groups) {
+			?>
+			<h3><?php echo _('Groups'); ?></h3>
+			<p><?php echo _('Add the members of this family:'); ?></p>
+			<div class="indent-left">
+				<?php
+				foreach ($groups as $groupid => $group) {
+					?>
+					<label class="checkbox">
+						<input name="groups[]" value="<?php echo $groupid; ?>"
+							   type="checkbox"
+							   <?php if ($group['show_add_family'] == 'selected') echo 'checked="checked"'; ?>
+						/>
+						<?php
+						echo _('as');
+						Person_Group::printMembershipStatusChooser('membership_status['.$groupid.']');
+						echo _('of');
+						echo ' '.ents($group['name']);
+						?>
+					</label>
+					<?php
+				}
+				?>
 			</div>
 			<?php
 		}

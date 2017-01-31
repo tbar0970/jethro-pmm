@@ -248,7 +248,7 @@ if (isset($tabs['groups'])) {
 		<?php
 	} else {
 		?>
-		<p><i><?php $person->printFieldValue('name'); ?><?php echo _(' is a member of:')?></i></p>
+		<p><i><?php $person->printFieldValue('name'); ?><?php echo _(' is in the following groups:')?></i></p>
 		<table class="table table-condensed table-auto-width table-striped table-hover clickable-rows">
 			<thead>
 				<tr>
