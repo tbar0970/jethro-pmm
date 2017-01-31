@@ -159,7 +159,7 @@ class roster_view extends db_object
 					?>
 					<tr>
 						<td>
-							<img src="<?php echo BASE_URL; ?>/resources/img/expand_up_down_green_small.png" class="icon insert-row-below" style="position: relative; top: 2ex" title="Create a blank entry here" />
+							<div class="insert-row-below" title="Create a blank entry here" />
 						</td>
 						<td class="nowrap">
 							<select class="roster-view-member-type-chooser">

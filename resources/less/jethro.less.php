@@ -446,6 +446,7 @@ h3 {
   line-height: 1.4;
   font-weight: normal;
   border-bottom: 1px solid;
+  margin-top: 20px;
 }
 h4 {
   font-size: 14px;
@@ -613,9 +614,23 @@ td.narrow, th.narrow, .object-summary th {
 .clickable, table.clickable-rows td, table.clickable-rows th, img.icon {
 	cursor: pointer;
 }
-
+.insert-row-below {
+	color: #8bef26;
+	font-size: 18px;
+	text-decoration: none;
+	font-weight: bold;
+	position: relative;
+	top: 3ex;
+	cursor: pointer;
+}
+.insert-row-below:before {
+	content: "+";
+}
 .cursor-move {
 	cursor: move;
+}
+tr:last-child .insert-row-below {
+	display: none;
 }
 .smallprint, .help-inline, .help-block, .smallprint code {
 	font-size: 10pt;
@@ -764,7 +779,7 @@ input.btn-link, button.btn-link {
 	margin-left: 1px; /* work around a bug where the left margin gets cut off on homepage */
 }
 
-#body h1 small, #body h2 small {
+#body h1 small, #body h2 sminsll {
 	font-size: 14px;
 }
 
