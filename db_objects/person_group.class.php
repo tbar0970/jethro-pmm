@@ -36,7 +36,7 @@ class Person_Group extends db_object
 												),
 									'default' => 'no',
 									'label' => 'Show on add-family page?',
-									'note' => 'Whether to offer this group when adding a new family',
+									'note' => 'Should it be possible to add persons to this group when adding a new family?',
 									'divider_before' => true,
 									),
 			'share_member_details' => Array(
