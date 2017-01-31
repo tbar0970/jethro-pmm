@@ -208,10 +208,9 @@ function print_widget($name, $params, $value)
 			if (array_get($params, 'toolbar') == 'basic') {
 				$ckParams = "
 					toolbar: [
-						{ name: 'styles', items: [ 'Format' ] },
+						{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList' ] },
 						{ name: 'basicstyles', items : ['Bold', 'Italic', 'Underscore', 'RemoveFormat'] },
-						{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList' ] }
-
+						{ name: 'styles', items: [ 'Format' ] },
 					],
 					removePlugins: 'elementspath',
 					resize_enabled: false,
@@ -225,6 +224,11 @@ function print_widget($name, $params, $value)
 			if ($height = array_get($params, 'height')) {
 				$ckParams .= "
 					height: '{$height}',
+				";
+			}
+			if ($toolbarLocation = array_get($params, 'toolbarLocation')) {
+				$ckParams .= "
+					toolbarLocation: '{$toolbarLocation}',
 				";
 			}
 			?>
@@ -250,7 +254,10 @@ function print_widget($name, $params, $value)
 			break;
 		case 'select':
 			$our_val = Array();
-			if ($value !== NULL && (isset($params['options']['']) || $value !== '')) {
+			if (!empty($params['allow_multiple']) && $value === '*') {
+				// magic value to select all
+				$our_val = array_keys($params['options']);
+			} else if ($value !== NULL && (isset($params['options']['']) || $value !== '')) {
 				$our_val = is_array($value) ? $value : Array("$value");
 			}
 			foreach ($our_val as $k => $v) $our_val[$k] = "$v";

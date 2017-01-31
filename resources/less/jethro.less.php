@@ -471,6 +471,9 @@ h3:first-child, h4:first-child, h5:first-child {
 
 /*********** GENERAL ********************/
 
+#body .cke_bottom .cke_toolbar {
+	float: right !important;
+}
 hr, table.object-summary tr.divider-before > td, table.object-summary tr.divider-before > th {
 	border-top-width: 1px;
 	border-top-color: @grayLighter !important;
@@ -726,9 +729,8 @@ table.object-summary td, table.object-summary th {
 	border-width: 0px !important;
 }
 
-/* make the table of person dates and family members line up with its label
-TODO: borderless is no more */
-table.object-summary td table.borderless tr:first-child td {
+/* when an object summary table has a table in its data cell, make it line up */
+table.object-summary>tbody>tr>td>table>tbody>tr:first-child td {
 	padding-top: 0px !important;
 }
 #body tr.archived td, #body tr.archived a, #body tr.archived .btn-link {

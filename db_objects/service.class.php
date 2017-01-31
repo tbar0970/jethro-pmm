@@ -57,6 +57,7 @@ class service extends db_object
 									'type'		=> 'html',
 									'height'	=> '7em',
 									'toolbar'  => 'basic',
+									'toolbarLocation'  => 'bottom',
 									'enterMode' => 'BR',
 								   ),
 
@@ -608,7 +609,8 @@ class service extends db_object
 					'.($withContent ? 'sc.content_html, sc.credits, ' : '').'
 					IFNULL(IF(LENGTH(sc.runsheet_title_format) = 0, scc.runsheet_title_format, sc.runsheet_title_format), "%title%") AS runsheet_title_format,
 					IFNULL(IF(LENGTH(sc.handout_title_format) = 0, scc.handout_title_format, sc.handout_title_format), "%title%") AS handout_title_format,
-					IF(LENGTH(si.personnel) = 0, sc.personnel, si.personnel) AS personnel
+					IF(LENGTH(si.personnel) = 0, sc.personnel, si.personnel) AS personnel,
+					sc.categoryid
 				FROM service_item si
 				LEFT JOIN service_component sc ON si.componentid = sc.id
 				LEFT JOIN service_component_category scc ON sc.categoryid = scc.id
