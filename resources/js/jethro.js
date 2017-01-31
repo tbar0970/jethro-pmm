@@ -1221,15 +1221,13 @@ function handleFamilyPhotosLayout() {
 }
 
 var applyNarrowColumns = function(root) {
-	//return;
-
 	// All of this is because in Chrome, if you set a width on a TD,
 	// there is no way to stop the overall table from being width 100% OF THE WINDOW
 	// (even if its parent is less than 100% width).
 	// We want the whole table to be as wide as it needs to be but no wider.
 	var expr = 'td.narrow, th.narrow, table.object-summary th'
-	var cells = $(root).find(expr).not('table.table-full-width *');
-	var parents = cells.parents('table:visible');
+	var cells = $(root).find(expr); 
+	var parents = cells.parents('table:visible').not('.no-narrow-magic');
 	parents.each(function() {
 		var table = $(this);
 		table.css('width', table.width()+'px');

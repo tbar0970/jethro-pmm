@@ -181,7 +181,7 @@ class View_Families__Add extends View
 
 			<div>
 			<h3><?php echo _('Family Members');?></h3>
-			<table class="expandable table-full-width">
+			<table class="expandable">
 			<?php
 			include_once 'include/size_detector.class.php';
 			if (SizeDetector::isNarrow() || count($customFields) > 0) {

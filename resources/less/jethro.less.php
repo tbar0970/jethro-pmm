@@ -188,7 +188,7 @@ body {
 }
 @media (min-width: 1025px) {
 	#jethro-overall-width {
-		/*min-width: 1020px;*/
+		min-width: 800px;
 	}
 }
 @media (max-width: 1025px) {
@@ -598,12 +598,9 @@ input[type="radio"] {
 #body .no-padding td, #body .no-padding th {
 	padding: 0px !important;
 }
-/* THIS IS MOSTLY IMPLEMENTED BY JETHRO.JS IN A SPECIAL WAY*/
+/* WIDTH OF NARROW COLS IS IMPLEMENTED BY JETHRO.JS IN A SPECIAL WAY*/
 td.narrow, th.narrow, .object-summary th {
 	white-space: nowrap;
-}
-table.table-full-width td.narrow, table.table-full-width th.narrow {
-	width: 1%;
 }
 .fill-me * {
 	width: 100%;
@@ -635,6 +632,9 @@ table.table-full-width td.narrow, table.table-full-width th.narrow {
 	margin-top: 2px;
 	width: 300px;
 	font-style: italic;
+}
+.compact-2col {
+	max-width: 800px;
 }
 .compact-2col label, .compact-2col div  {
 	float: left;
@@ -683,7 +683,6 @@ select, input, textarea,div.editor {
 	width: auto;
 	max-width: 97%;
 }
-/* disused ? */
 .full-width-input {
 	width: 99.5%;
 	-webkit-box-sizing: border-box;

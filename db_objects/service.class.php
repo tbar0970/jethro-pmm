@@ -630,7 +630,7 @@ class service extends db_object
 	{
 		?>
 		<table cellspacing="0" cellpadding="5"
-			class="table table-bordered table-condensed table-full-width run-sheet"
+			class="table table-bordered table-condensed table-full-width run-sheet no-narrow-magic"
 		>
 			<thead>
 				<tr>
