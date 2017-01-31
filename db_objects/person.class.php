@@ -775,7 +775,7 @@ class Person extends DB_Object
 		$res = parent::processForm($prefix, $fields);
 		foreach ($this->getCustomFields() as $fieldid => $fieldDetails) {
 			$field = $GLOBALS['system']->getDBObject('custom_field', $fieldid);
-			$this->setCustomValue($fieldid, $field->processWidget());
+			$this->setCustomValue($fieldid, $field->processWidget($prefix));
 		}
 
 		$this->_photo_data = Photo_Handler::getUploadedPhotoData($prefix.'photo');
