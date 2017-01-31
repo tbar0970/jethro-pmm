@@ -163,7 +163,7 @@ class View_services extends View
 		?>
 		<div class="span6">
 			<h3>Run Sheet</h3>
-			<form method="post" id="service-plan-container" data-lock-length="<?php echo LOCK_LENGTH; ?>">
+			<form method="post" id="service-plan-container" data-lock-length="<?php echo db_object::getLockLength() ?>">
 			<input type="hidden" name="save_service" value="1" />
 			<table class="table table-bordered table-condensed no-autofocus" id="service-plan" data-starttime="<?php echo $startTime; ?>">
 				<thead>

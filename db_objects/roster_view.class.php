@@ -657,7 +657,7 @@ class roster_view extends db_object
 				print_message("There are some roles in this roster which you are not able to edit because they refer to a volunteer group you do not have access to.");
 			}
 			?>
-			<form id="roster" method="post" class="warn-unsaved bubble-option-props" data-lock-length="<?php echo LOCK_LENGTH; ?>">
+			<form id="roster" method="post" class="warn-unsaved bubble-option-props" data-lock-length="<?php echo db_object::getLockLength() ?>">
 			<?php
 		}
 		if (!$public) {
