@@ -76,6 +76,7 @@ class Call_Service_Plan extends Call
 			</head>
 			<body>
 				<h1><?php echo ents($service->toString(TRUE)); ?></h1>
+				<p><?php $service->PrintFieldValue('summary_inline'); ?></p>
 				<?php
 				$service->printRunSheetPersonnelTable();
 				$service->printRunSheet();
