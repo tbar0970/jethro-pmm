@@ -9,7 +9,7 @@ class View_Persons__Search extends View
 		$params = Array();
 		if (!empty($_REQUEST['name'])) {
 			$GLOBALS['system']->includeDBClass('person');
-			$this->_person_data = Person::getPersonsByName($_REQUEST['name']);
+			$this->_person_data = Person::getPersonsBySearch($_REQUEST['name']);
 		} else {
 			foreach ($this->_search_terms as $term) {
 				if (!empty($_REQUEST[$term])) {
@@ -52,6 +52,13 @@ class View_Persons__Search extends View
 			<p>No matching persons were found</p>
 			<?php
 		} else {
+			$custom_fields = $GLOBALS['system']->getDBObjectData('custom_field', Array('searchable' => 1));
+			if ($custom_fields) {
+				$msg = _("These results include matches on the searchable custom fields %s");
+				foreach ($custom_fields as $f) $names[] = '"'.$f['name'].'"';
+				echo '<p class="smallprint">'.sprintf($msg, implode(', ', $names)).'</p>';
+			}
+
 			$special_fields = Array('congregation');
 			include dirname(dirname(__FILE__)).'/templates/person_list.template.php';
 		}

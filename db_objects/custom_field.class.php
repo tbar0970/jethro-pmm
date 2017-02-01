@@ -51,6 +51,12 @@ class Custom_Field extends db_object
 							'default'	=> 0,
 							'title'		=> 'Whether to show this field on the add-family page',
 						   ),
+			'searchable'=> Array(
+							'type'		=> 'select',
+							'options'  => Array('No', 'Yes'),
+							'default'	=> 0,
+							'title'		=> 'Whether to include this field in system-wide search',
+						   ),
 			'heading_before'=> Array(
 							'type'		=> 'text',
 							'default'	=> '',
@@ -134,6 +140,7 @@ class Custom_Field extends db_object
 			case 'allow_multiple':
 			case 'divider_before':
 			case 'show_add_family':
+			case 'searchable':
 				print_widget($prefix.$fieldname,
 						Array('type' => 'checkbox', 'attrs' => Array('title' => $this->fields[$fieldname]['title'])),
 						$this->values[$fieldname]);
@@ -392,6 +399,9 @@ class Custom_Field extends db_object
 	public function save()
 	{
 		$GLOBALS['system']->doTransaction('BEGIN');
+		if ($this->getValue('type') !== 'text') {
+			$this->setValue('searchable', 0);
+		}
 		parent::save();
 		$this->_saveOptions();
 		$GLOBALS['system']->doTransaction('COMMIT');

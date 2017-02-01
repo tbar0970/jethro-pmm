@@ -425,20 +425,51 @@ class Person extends DB_Object
 		
 	}
 
-	function getPersonsByName($name, $include_archived=true)
+	public static function getPersonsBySearch($searchTerm, $includeArchived=true)
 	{
-		$params = Array('CONCAT(first_name, " ", last_name)' => $name);
-		if (!$include_archived) {
-			$params['!status'] = 'archived';
+		$db = $GLOBALS['db'];
+		$SQL = '
+			SELECT pp.id, pp.*
+			FROM (
+				SELECT p.*
+				FROM person p
+				WHERE (
+					/* stem matches for first and last name */
+					(first_name LIKE '.$db->quote($searchTerm.'%').')
+					OR (last_name LIKE '.$db->quote($searchTerm.'%').')
+					OR (CONCAT(first_name, " ", last_name) LIKE '.$db->quote($searchTerm.'%').')
+				)
+
+				UNION
+
+				SELECT p.*
+				FROM person p
+				JOIN custom_field_value cfv ON cfv.personid = p.id
+				JOIN custom_field cf ON cfv.fieldid = cf.id
+				WHERE cf.searchable
+				AND (
+					/* whole word matches for custom fields */
+					(cfv.value_text = '.$db->quote($searchTerm).')
+					OR (cfv.value_text LIKE '.$db->quote($searchTerm.' %').')
+					OR (cfv.value_text LIKE '.$db->quote('% '.$searchTerm).')
+					OR (cfv.value_text LIKE '.$db->quote('% '.$searchTerm.' %').' )
+				)
+			) pp
+		';
+		if (!$includeArchived) {
+			$SQL .= '
+			WHERE status <> "archived"
+			';
 		}
-		$results = $GLOBALS['system']->getDBObjectData('person', $params, 'AND', 'last_name');
-		if (empty($results)) {
-			$params['CONCAT(first_name, " ", last_name)'] = '%'.$name.'%';
-			$results = $GLOBALS['system']->getDBObjectData('person', $params, 'AND', 'last_name');
-		}
-		return $results;
+		$SQL .= '
+			GROUP BY pp.id
+			';
+		$res = $db->queryAll($SQL, null, null, true, true); // 5th param forces array even if one col
+		check_db_result($res);
+		return $res;
+
 	}
-	
+
 	function save($update_family=TRUE)
 	{
 		$GLOBALS['system']->doTransaction('BEGIN');
