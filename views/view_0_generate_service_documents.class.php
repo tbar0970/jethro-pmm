@@ -21,8 +21,8 @@ class View__Generate_Service_Documents extends View
 
 	static function getTemplates($op)
 	{
-		$dirs['populate'] = SERVICE_DOCS_TO_POPULATE_DIRS ? explode('|', SERVICE_DOCS_TO_POPULATE_DIRS) : '';
-		$dirs['expand'] = SERVICE_DOCS_TO_EXPAND_DIRS ? explode('|', SERVICE_DOCS_TO_EXPAND_DIRS) : '';
+		$dirs['populate'] = explode('|', ifdef('SERVICE_DOCS_TO_POPULATE_DIRS', 'Templates/To_Populate'));
+		$dirs['expand'] = explode('|', ifdef('SERVICE_DOCS_TO_EXPAND_DIRS', 'Templates/To_Expand'));
 		$opDirs = $dirs[$op];
 		$found_files = Array();
 
