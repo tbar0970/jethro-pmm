@@ -183,6 +183,4 @@ INSERT INTO setting (rank, heading, symbol, note, type, value)
 (@rank:=@rank+5, '',                         'SMS_INTERNATIONAL_PREFIX','Used for converting local to international numbers. eg +61','text',''),
 (@rank:=@rank+5, '',                         'SMS_SAVE_TO_NOTE_BY_DEFAULT','Whether to save each sent SMS as a person note by default','bool',''),
 (@rank:=@rank+5, '',                         'SMS_SAVE_TO_NOTE_SUBJECT','','text',''),
-(@rank:=@rank+5, '',                         'SMS_SEND_LOGFILE','File on the server to save a log of sent SMS messages','text',''),
-
-(@rank:=@rank+5, 'Advanced',                  'CUSTOM_LESS_VARS','Custom LESS vars for custom colours','text_ml','');
+(@rank:=@rank+5, '',                         'SMS_SEND_LOGFILE','File on the server to save a log of sent SMS messages','text','');
