@@ -165,7 +165,7 @@ class Action_Plan extends DB_Object
 						<?php
 						$fields = array_get($actions, 'fields', Array());
 						$dummy = new Person();
-						foreach (Array('congregationid', 'status', 'age_bracket') as $field) {
+						foreach (Array('congregationid', 'status', 'age_bracketid') as $field) {
 							$value = '';
 							$addToExisting = FALSE;
 							$v = array_get($fields, $field);

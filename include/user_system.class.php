@@ -15,7 +15,7 @@ class User_System extends Abstract_User_System
 	public function __construct()
 	{
 		include 'permission_levels.php';
-		$enabled_features = explode(',', strtoupper(ENABLED_FEATURES));
+		$enabled_features = explode(',', strtoupper(ifdef('ENABLED_FEATURES', '')));
 		foreach ($PERM_LEVELS as $i => $detail) {
 			list($define_symbol, $desc, $feature_code) = $detail;
 			define('PERM_'.$define_symbol, $i);

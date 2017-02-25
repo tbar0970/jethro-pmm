@@ -198,7 +198,7 @@ class View_Families__Add extends View
 							<label><?php echo _('Gender');?></label>
 							<label><?php echo _('Age');?></label>
 							<div><?php $person->printFieldInterface('gender', 'members_0_'); ?></div>
-							<div><?php $person->printFieldInterface('age_bracket', 'members_0_'); ?></div>
+							<div><?php $person->printFieldInterface('age_bracketid', 'members_0_'); ?></div>
 
 							<label><?php echo _('Status');?></label>
 							<label><?php echo _('Congregation');?></label>
@@ -244,7 +244,7 @@ class View_Families__Add extends View
 						<td><?php $person->printFieldInterface('first_name', 'members_0_'); ?></td>
 						<td class="last_name preserve-value"><?php $person->printFieldInterface('last_name', 'members_0_'); ?></td>
 						<td><?php $person->printFieldInterface('gender', 'members_0_'); ?></td>
-						<td><?php $person->printFieldInterface('age_bracket', 'members_0_'); ?></td>
+						<td><?php $person->printFieldInterface('age_bracketid', 'members_0_'); ?></td>
 						<td class="person-status preserve-value"><?php $person->printFieldInterface('status', 'members_0_'); ?></td>
 						<td class="congregation preserve-value"><?php $person->printFieldInterface('congregationid', 'members_0_'); ?></td>
 						<td><?php $person->printFieldInterface('mobile_tel', 'members_0_'); ?></td>

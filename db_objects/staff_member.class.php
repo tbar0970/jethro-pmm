@@ -69,9 +69,10 @@ class Staff_Member extends Person
 			'permissions'  => Array(
 									'type'		=> 'bitmask',
 									'options'	=> $GLOBALS['user_system']->getPermissionLevels(),
-									'default'	=> DEFAULT_PERMISSIONS,
+									'default'	=> ifdef('DEFAULT_PERMISSIONS', 2147483647),
 									'label'		=> 'Permissions Granted',
 									'cols'		=> 3,
+									'note'      => 'NOTE: Changes to permissions only take effect the next time a user logs in',
 						   ),
 
 		);
@@ -80,13 +81,18 @@ class Staff_Member extends Person
 
 
 	// We need this to override person::getInitSQL
-	function getInitSQL($table_name=NULL)
+	public function getInitSQL($table_name=NULL)
 	{
 		return $this->_getInitSQL();
 	}
 
+	public function getForeignKeys()
+	{
+		return Array();
+	}
 
-	function getTasks($type='all')
+
+	public function getTasks($type='all')
 	{
 		$date_exp = '';
 		switch ($type) {
@@ -232,9 +238,6 @@ class Staff_Member extends Person
 				}
 				if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 					parent::printFieldInterface($name, $prefix);
-					?>
-					<p class="help-inline"><b>Note:</b> Changes to permissions only take effect the next time a user logs in</p>
-					<?php
 				} else {
 					$this->printFieldValue($name);
 					?>

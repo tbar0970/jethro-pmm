@@ -3,9 +3,9 @@ include_once 'include/db_object.class.php';
 class Person_Query extends DB_Object
 {
 	private $_field_details = Array();
-	private $_query_fields = Array('p.status', 'p.congregationid', 'p.age_bracket', 'p.gender', 'f.address_suburb', 'f.address_state', 'f.address_postcode', 'p.creator', 'p.created', 'p.status_last_changed');
+	private $_query_fields = Array('p.status', 'p.congregationid', 'p.age_bracketid', 'p.gender', 'f.address_suburb', 'f.address_state', 'f.address_postcode', 'p.creator', 'p.created', 'p.status_last_changed');
 	private $_show_fields = Array(
-		'p.first_name', 'p.last_name', 'f.family_name', 'p.age_bracket', 'p.gender', 'p.status', 'p.congregationid', NULL,
+		'p.first_name', 'p.last_name', 'f.family_name', 'p.age_bracketid', 'p.gender', 'p.status', 'p.congregationid', NULL,
 		'p.email', 'p.mobile_tel', 'p.work_tel', 'f.home_tel', 'p.remarks',
 		'f.address_street', 'f.address_suburb', 'f.address_state', 'f.address_postcode', NULL,
 		'p.creator', 'p.created', 'f.created', 'p.status_last_changed', );
@@ -1125,10 +1125,11 @@ class Person_Query extends DB_Object
 										JOIN (
 											SELECT familyid, IF (
 												GROUP_CONCAT(DISTINCT last_name) = ff.family_name, 
-												GROUP_CONCAT(first_name ORDER BY age_bracket, gender DESC SEPARATOR ", "),
-												GROUP_CONCAT(CONCAT(first_name, " ", last_name) ORDER BY age_bracket, gender DESC SEPARATOR ", ")
+												GROUP_CONCAT(first_name ORDER BY ab.rank, gender DESC SEPARATOR ", "),
+												GROUP_CONCAT(CONCAT(first_name, " ", last_name) ORDER BY ab.rank, gender DESC SEPARATOR ", ")
 											  ) AS `names`
 											FROM person pp
+											JOIN age_bracket ab ON ab.id = pp.age_bracketid
 											JOIN family ff ON pp.familyid = ff.id
 											WHERE pp.status <> "archived"
 											GROUP BY familyid
@@ -1150,12 +1151,13 @@ class Person_Query extends DB_Object
 						$r2 = $GLOBALS['db']->query('INSERT INTO _family_adults'.$this->id.' (familyid, names)
 											SELECT familyid, IF (
 												GROUP_CONCAT(DISTINCT last_name) = ff.family_name, 
-												GROUP_CONCAT(first_name ORDER BY age_bracket, gender DESC SEPARATOR ", "),
+												GROUP_CONCAT(first_name ORDER BY ab.rank, gender DESC SEPARATOR ", "),
 												GROUP_CONCAT(CONCAT(first_name, " ", last_name) ORDER BY age_bracket, gender DESC SEPARATOR ", ")
 											  )
 											FROM person pp
+											JOIN age_bracket ab ON pp.age_bracketid = ab.id
 											JOIN family ff ON pp.familyid = ff.id
-											WHERE pp.status <> "archived" AND pp.age_bracket = 0
+											WHERE pp.status <> "archived" AND ab.is_adult
 											GROUP BY familyid');
 						check_db_result($r2);
 						$query['from'] .= ' LEFT JOIN _family_adults'.$this->id.' ON _family_adults'.$this->id.'.familyid = p.familyid

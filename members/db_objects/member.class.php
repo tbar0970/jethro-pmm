@@ -8,7 +8,7 @@ class Member extends DB_Object
 
 	protected static function _getFields()
 	{
-		$memberFields = Array('first_name', 'last_name', 'gender', 'age_bracket', 'congregationid', 'email', 'mobile_tel', 'work_tel', 'familyid', 'family_name', 'address_street', 'address_suburb', 'address_state', 'address_postcode', 'home_tel');
+		$memberFields = Array('first_name', 'last_name', 'gender', 'age_bracketid', 'congregationid', 'email', 'mobile_tel', 'work_tel', 'familyid', 'family_name', 'address_street', 'address_suburb', 'address_state', 'address_postcode', 'home_tel');
 		
 		$p = new Person();
 		foreach ($p->_getFields() as $k => $v) {
@@ -36,7 +36,7 @@ class Member extends DB_Object
 	static function getList($search=NULL, $congregationid=NULL)
 	{
 		$t = new Member();
-		$order = 'family_name, familyid, age_bracket ASC, gender DESC';
+		$order = 'family_name, familyid, ab.rank ASC, gender DESC';
 		$conds = Array();
 		if (!empty($search)) {
 			$conds['first_name'] = $search.'%';

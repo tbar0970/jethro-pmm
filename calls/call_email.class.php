@@ -29,9 +29,9 @@ class Call_email extends Call
 				case 'family':
 					$GLOBALS['system']->includeDBClass('family');
 					$families = Family::getFamilyDataByMemberIDs($_POST['personid']);
-					$recips = $GLOBALS['system']->getDBObjectData('person', Array('age_bracket' => '0', '(familyid' => array_keys($families), '!email' => '', '!status' => 'archived'), 'AND');
-					$blanks =$GLOBALS['system']->getDBObjectData('person', Array('age_bracket' => '0', '(familyid' => array_keys($families), 'email' => '', '!status' => 'archived'), 'AND');
-					$archived = $GLOBALS['system']->getDBObjectData('person', Array('age_bracket' => '0', '(familyid' => array_keys($families), 'status' => 'archived'), 'AND');
+					$recips = $GLOBALS['system']->getDBObjectData('person', Array('(age_bracketid' => Age_Bracket::getAdults(), '(familyid' => array_keys($families), '!email' => '', '!status' => 'archived'), 'AND');
+					$blanks =$GLOBALS['system']->getDBObjectData('person', Array('(age_bracketid' => Age_Bracket::getAdults(), '(familyid' => array_keys($families), 'email' => '', '!status' => 'archived'), 'AND');
+					$archived = $GLOBALS['system']->getDBObjectData('person', Array('(age_bracketid' => Age_Bracket::getAdults(), '(familyid' => array_keys($families), 'status' => 'archived'), 'AND');
 					break;
 				case 'person':
 				default:

@@ -117,6 +117,10 @@ class db_object
 					$type = 'text';
 					$default = FALSE; // text columns cannot have a default
 					break;
+				case 'boolean':
+				case 'bool':
+					$type = 'TINYINT(1) UNSIGNED NOT NULL';
+					$default = array_get($details, 'default', 0);
 			}
 
 			switch ($default) {
@@ -135,7 +139,7 @@ class db_object
 				";
 		}
 		$res .= "PRIMARY KEY (`id`)".$indexes."
-			) ENGINE=InnoDB";
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8";
 		return $res;
 	}
 
@@ -151,7 +155,7 @@ class db_object
 
 	/**
 	 *
-	 * @return Array (columnName => referenceExpression) eg 'tagid' => 'tagoption.id ON DELETE CASCADE'
+	 * @return Array ([tablename.]columnName => referenceExpression) eg '`tagid`' => '`tagoption`(`id`) ON DELETE CASCADE'
 	 */
 	public function getForeignKeys()
 	{

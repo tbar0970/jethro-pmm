@@ -12,6 +12,277 @@ class View_Admin__System_Configuration extends View {
 
 	public function processView()
 	{
+		$saved = FALSE;
+		foreach (Config_Manager::getSettings() as $symbol => $details) {
+			switch ($symbol) {
+				case 'DEFAULT_PERMISSIONS':
+					if (isset($_REQUEST['permissions'])) {
+						$sm = new Staff_Member();
+						$sm->processFieldInterface('permissions');
+						Config_Manager::saveSetting('DEFAULT_PERMISSIONS', $sm->getValue('permissions'));
+						$saved = TRUE;
+					}
+					break;
+				case 'GROUP_MEMBERSHIP_STATUS_OPTIONS':
+					$this->processGroupMembershipStatusOptions();
+					break;
+				case 'AGE_BRACKET_OPTIONS':
+					$this->processAgeBracketOptions();
+					break;
+				default:
+					if (isset($_REQUEST[$symbol])) {
+						//bam("processing $symbol");
+						list($params, $value, $multi) = self::getParamsAndValue($symbol, $details);
+						$val = process_widget($symbol, $params); //process_widget will handle multis
+						$val = $this->prepareValueForSave($val, $details);
+						Config_Manager::saveSetting($symbol, $val);
+						$saved = TRUE;
+					}
+			}
+		}
+		if ($saved) {
+			add_message("Configuration saved");
+			redirect($_REQUEST['view']);
+		}
+	}
+
+	public function printView()
+	{
+		?>
+		<form method="post">
+			<div class="form-horizontal">
+			<?php
+			foreach (Config_Manager::getSettings() as $symbol => $details) {
+				$details['note'] = str_replace('<system_url>', BASE_URL, $details['note']);
+				if ($details['heading']) {
+					echo '<hr /><h4>'.ents($details['heading']).'</h4>';
+				}
+				?>
+				<div class="control-group">
+					<label class="control-label" for="<?php echo $symbol; ?>">
+						<?php
+						echo ucwords(str_replace('_', ' ', strtolower($symbol)));
+						?>
+					</label>
+					<div class="controls">
+						<?php
+						if (defined($symbol.'_IN_CONFIG_FILE')) {
+							if (Config_Manager::allowSettingInFile($symbol) && constant($symbol)) {
+								// Don't show the value here - sensitive
+								echo '<i>'._("This setting has been set in the conf.php file").'</i>';
+							} else {
+								$this->printValue($symbol, $details);
+								if ($details['note']) echo '<p class="smallprint">'.ents($details['note']).'</p>';
+								echo '<p class="smallprint">'._('To edit this setting here, first remove it from your conf.php file').'</p>';;
+							}
+						} else {
+							$this->printWidget($symbol, $details);
+							if ($details['note']) echo '<p class="smallprint">'.ents($details['note']).'</p>';
+						}
+						?>
+					</div>
+				</div>
+				<?php
+			}
+			?>
+				<div class="control-group">
+					<div class="controls">
+						<input type="submit" value="Save" class="btn" />
+					</div>
+				</div>
+			</div>
+		</form>
+		<?php
+	}
+
+	private static function getParamsAndValue($symbol, $details)
+	{
+		$params = Array();
+		$type = $details['type'];
+		$multi = FALSE;
+		if ((($x = strpos($type, '[')) !== FALSE)
+			|| (($x = strpos($type, '{')) !== FALSE)
+		) {
+			$params['options'] = json_decode(substr($type, $x), 1);
+			$type = substr($type, 0, $x);
+		}
+		$params['type'] = $type;
+		$value = constant($symbol);
+		switch ($type) {
+			case 'text_ml':
+				$params['type'] = 'text';
+				$params['height'] = 4;
+				break;
+			case 'multiselect':
+				$params['allow_multiple'] = TRUE;
+				$params['type'] = 'select';
+				$params['height'] = 0; // expand to fit options
+				$value = explode(',', $value);
+				break;
+			case 'multitext_cm':
+				$value = explode(',', $value);
+				$multi = TRUE;
+				$params['type'] = 'text';
+				break;
+			case 'multitext_nl':
+				$value = explode("\n", $value);
+				$multi = TRUE;
+				$params['type'] = 'text';
+				break;
+			case 'bool':
+				$params['type'] = 'select';
+				$params['options'] = Array('No', 'Yes');
+				$value = (int)$value;
+				break;
+			case 'text':
+				$params['width'] = 60;
+				break;
+			case 'int':
+			case 'select':
+			case 'email':
+				break;
+			default:
+				trigger_error("Unknown setting type '$type'");
+				return;
+		}
+		return Array($params, $value, $multi);
+	}
+
+	private function prepareValueForSave($value, $details)
+	{
+		$type = $details['type'];
+		$multi = FALSE;
+		if ((($x = strpos($type, '[')) !== FALSE)
+			|| (($x = strpos($type, '{')) !== FALSE)
+		) {
+			$type = substr($type, 0, $x);
+		}
+		switch ($type) {
+			case 'multiselect':
+				$value = implode(',', $value);
+				break;
+			case 'multitext_cm':
+				$value = implode(',', array_remove_empties($value));
+				break;
+			case 'multitext_nl':
+				$value = implode("\n", array_remove_empties($value));
+				break;
+			case 'bool':
+				$value = (int)$value;
+				break;
+		}
+		return $value;
+	}
+
+	private function printValue($symbol, $details)
+	{
+		list($params, $value, $multi) = self::getParamsAndValue($symbol, $details);
+		if ($multi || is_array($value)) {
+			echo '<ul>';
+			foreach ($value as $v) {
+				echo '<li>'.format_value($v, $params).'</li>';
+			}
+			echo '</ul>';
+		} else {
+			echo format_value($value, $params);
+		}
+	}
+
+	private function printWidget($symbol, $details)
+	{
+		switch ($symbol) {
+			case 'DEFAULT_PERMISSIONS':
+				$sm = new Staff_Member();
+				$sm->setValue('permissions', DEFAULT_PERMISSIONS);
+				$sm->printFieldInterface('permissions');
+				break;
+			case 'AGE_BRACKET_OPTIONS':
+				$this->printAgeBracketOptions();
+				break;
+			case 'GROUP_MEMBERSHIP_STATUS_OPTIONS':
+				$this->printGroupMembershipStatusOptions();
+				break;
+			default:
+				list($params, $value, $multi) = self::getParamsAndValue($symbol, $details);
+				if ($multi) {
+					if (count($value) == 0) $value = Array('');
+					?>
+					<table class="expandable">
+					<?php
+					foreach ($value as $v) {
+						?>
+						<tr><td><?php print_widget($symbol.'[]', $params, $v); ?></td></tr>
+						<?php
+					}
+					?>
+					</table>
+					<?php
+				} else {
+					print_widget($symbol, $params, $value);
+				}
+				break;
+		}
+	}
+
+	private function printGroupMembershipStatusOptions()
+	{
+		?>
+		<input type="hidden" name="group_membership_statuses_submitted" value="1" />
+		<table class="table table-condensed expandable table-bordered table-auto-width">
+			<thead>
+				<tr>
+					<th>ID</th>
+					<th>Label</th>
+					<th>Default?</th>
+					<th>Re-order</th>
+					<th>Delete?</th>
+				</tr>
+			</thead>
+			<tbody>
+		<?php
+		$GLOBALS['system']->includeDBClass('person_group');
+		list($options, $default) = Person_Group::getMembershipStatusOptionsAndDefault();
+		$options[null] = '';
+		$i = 0;
+		foreach ($options as $id => $label) {
+			?>
+			<tr>
+				<td>
+					<?php
+					if ($id) {
+						echo $id;
+						echo '<input type="hidden" name="membership_status_'.$i.'_id" value="'.$id.'" />';
+					}
+					echo '<input type="hidden" name="membership_status_ranking[]" value="'.$i.'" />';
+					?>
+				</td>
+				<td><input type="text" name="membership_status_<?php echo $i; ?>_label" value="<?php echo ents($label); ?>" /></td>
+				<td><input type="radio" name="membership_status_default_rank" value="<?php echo $i; ?>" <?php if ($id == $default) echo 'checked="checked"'; ?> /></td>
+				<td>
+					<img src="<?php echo BASE_URL; ?>/resources/img/arrow_up_thin_black.png" class="icon move-row-up" title="Move this role up" />
+					<img src="<?php echo BASE_URL; ?>/resources/img/arrow_down_thin_black.png" class="icon move-row-down" title="Move this role down" />
+				</td>
+				<td>
+					<?php
+					if ($id && (count($options) > 2)) {
+						?>
+						<input type="checkbox" name="membership_status_delete[]" data-toggle="strikethrough" data-target="row" value="<?php echo $id; ?>" />
+						<?php
+					}
+					?>
+				</td>
+
+			</tr>
+			<?php
+			$i++;
+		}
+		?>
+		</table>
+		<?php
+	}
+
+	private function processGroupMembershipStatusOptions()
+	{
 		$db = $GLOBALS['db'];
 		if (!empty($_POST['group_membership_statuses_submitted'])) {
 			$i = 0;
@@ -65,387 +336,131 @@ class View_Admin__System_Configuration extends View {
 			check_db_result($res);
 		}
 	}
-
-	public function printView()
+	
+	private function printAgeBracketOptions()
 	{
 		?>
-		<p class="text alert alert-info">
-			<?php 
-			$text = _("This page shows the system-wide Jethro configuration settings.  Some settings can be edited on this page; others need to be changed by your system administrator in the Jethro configuration file.");
-			if (ifdef('SYSADMIN_HREF')) {
-				$text = str_replace(
-							_('system administrator'), 
-							'<a href="'.SYSADMIN_HREF.'">'._('system administrator').'</a>',
-							$text
-						);
-			}
-			echo $text;
+		<input type="hidden" name="age_brackets_submitted" value="1" />
+		<table class="table table-condensed expandable table-bordered table-auto-width">
+			<thead>
+				<tr>
+					<th>ID</th>
+					<th>Label</th>
+					<th>Is Adult?</th>
+					<th>Is Default?</th>
+					<th>Re-order</th>
+					<th>Delete?</th>
+				</tr>
+			</thead>
+			<tbody>
+		<?php
+		$options = $GLOBALS['system']->getDBObjectData('age_bracket', Array(), 'OR', 'rank');
+		$options[''] = Array('label' => '', 'is_default' => FALSE, 'is_adult' => FALSE);
+		$i = 0;
+		$ab = new Age_Bracket();
+		foreach ($options as $id => $details) {
+			$ab->populate($id, $details);
+			$ab->acquireLock();
 			?>
-		</p>
-		<table class="table no-autofocus system-config">
 			<tr>
-				<td colspan="2"><h3>Overall system settings</h3></td>
-			</tr>
-			<tr>
-				<th>System Name</th>
-				<td><?php echo SYSTEM_NAME; ?></td>
-			</tr>
-			<tr>
-				<th>Base URL</th>
-				<td><?php echo BASE_URL; ?></td>
-			</tr>
-			<tr>
-				<th>Require HTTPS</th>
-				<td><?php echo REQUIRE_HTTPS ? 'Yes' : 'No'; ?></td>
-			</tr>
-			<tr>
-				<td colspan="2"><h3>Jethro behaviour settings</h3></td>
-			</tr>
-			<tr>
-				<th>Enabled Features</th>
 				<td>
 					<?php
-					$enabled = explode(',', ENABLED_FEATURES);
-					foreach (explode(',', 'NOTES,PHOTOS,DATES,ATTENDANCE,ROSTERS&SERVICES,SERVICEDETAILS,DOCUMENTS,SERVICEDOCUMENTS') as $feature) {
-						echo '<i class="icon-'.(in_array($feature, $enabled) ? 'ok-sign' : 'ban-circle').'"></i>'.$feature.'<br />';
+					if ($id) {
+						echo $id;
+						echo '<input type="hidden" name="age_bracket_'.$i.'_id" value="'.$id.'" />';
 					}
+					echo '<input type="hidden" name="age_bracket_ranking[]" value="'.$i.'" />';
 					?>
 				</td>
-			</tr>
-			<tr>
-				<th>Require note when adding new family?</th>
-				<td><?php echo REQUIRE_INITIAL_NOTE ? 'Yes' : 'No'; ?></td>
-			</tr>
-			<tr>
-				<th>Attendance list order</th>
-				<td><?php echo ATTENDANCE_LIST_ORDER; ?>
-					<br /><small>When recording attendance, persons will be listed in this order</small>
-				</td>
-			</tr>
-			<tr>
-				<th>Chunk size for listings</th>
+				<td><?php $ab->printFieldInterface('label', 'age_bracket_'.$i.'_'); ?></td>
+				<td><?php $ab->printFieldInterface('is_adult', 'age_bracket_'.$i.'_'); ?></td>
+				<td><input type="radio" name="age_bracket_default_rank" value="<?php echo $i; ?>" <?php if ($details['is_default']) echo 'checked="checked"'; ?> /></td>
 				<td>
-					<?php echo CHUNK_SIZE; ?>
-					<br /><small>When listing all persons or families, Jethro will paginate the results and aim for this number per page (up to a maximum of 26 pages).</small>
-				
+					<img src="<?php echo BASE_URL; ?>/resources/img/arrow_up_thin_black.png" class="icon move-row-up" title="Move this role up" />
+					<img src="<?php echo BASE_URL; ?>/resources/img/arrow_down_thin_black.png" class="icon move-row-down" title="Move this role down" />
 				</td>
-			</tr>			
-			<tr>
-				<th>Lock length for editing objects</th>
-				<td><?php echo LOCK_LENGTH; ?>
-					<br /><small>When you open an object for editing, Jethro will prevent other users from editing the object for this long.  You will need to save your changes within this timeframe.</small>
-				</td>
-			</tr>
-
-			<tr>
-				<td colspan="2"><h3>Security settings</h3></td>
-			</tr>
-			<tr>
-				<th>Default Permissions</th>
 				<td>
-				<?php
-				$GLOBALS['system']->includeDBClass('staff_member');
-				$sm = new Staff_Member();
-				$sm->printFieldValue('permissions', DEFAULT_PERMISSIONS);
-				?>
-				</td>
-			</tr>
-			<tr>
-				<th>Session Inactivity Timeout</th>
-				<td>
-					<?php echo (defined('SESSION_TIMEOUT_MINS') && (SESSION_TIMEOUT_MINS > 0)) ? SESSION_TIMEOUT_MINS : 90; ?>mins
-					<br /><small>Users will be asked to log in again if they haven't done anything for this length of time.  This is important for security, especially on mobile devices.</small>
-				</td>
-			</tr>
-			<tr>
-				<th>Maximum Session Length</th>
-				<td>
-					<?php 
-					$val= (defined('SESSION_MAXLENGTH_MINS') && (SESSION_MAXLENGTH_MINS > 0)) ? SESSION_MAXLENGTH_MINS : 8*60;
-					if (($val % 60 == 0) && ($val > 60)) {
-						echo ($val/60).' hours';
-					} else {
-						echo $val.' mins';
-					}
-					?>
-					<br /><small>Active users will be asked to log in again after this length of time.  This is important for security, especially on mobile devices.</small>
-				</td>
-			</tr>			
-			<tr>
-				<td colspan="2"><h3>Jethro data structure settings</h3></td>
-			</tr>
-			<tr>
-				<th>Person Status Options</th>
-				<td><?php echo PERSON_STATUS_OPTIONS; ?> (Default <?php echo PERSON_STATUS_DEFAULT; ?>)</td>
-			</tr>
-			<tr>
-				<th>Age Bracket Options</th>
-				<td>
-					<?php echo AGE_BRACKET_OPTIONS; ?>
-					<br /><small>This list must always begin with 'adult'</small>
-				</td>
-			</tr>
-			<tr>
-				<th>Group Membership Status Options</th>
-				<td>
-					<form method="post">
-					<input type="hidden" name="group_membership_statuses_submitted" value="1" />
-					<table class="table-condensed expandable table-bordered table-auto-width">
-						<thead>
-							<tr>
-								<th>ID</th>
-								<th>Label</th>
-								<th>Default?</th>
-								<th>Re-order</th>
-								<th>Delete?</th>
-							</tr>
-						</thead>
-						<tbody>
 					<?php
-					$GLOBALS['system']->includeDBClass('person_group');
-					list($options, $default) = Person_Group::getMembershipStatusOptionsAndDefault();
-					$options[null] = '';
-					$i = 0;
-					foreach ($options as $id => $label) {
+					if ($id && (count($options) > 2)) {
 						?>
-						<tr>
-							<td>
-								<?php
-								if ($id) {
-									echo $id;
-									echo '<input type="hidden" name="membership_status_'.$i.'_id" value="'.$id.'" />';
-								}
-								echo '<input type="hidden" name="membership_status_ranking[]" value="'.$i.'" />';
-								?>
-							</td>
-							<td><input type="text" name="membership_status_<?php echo $i; ?>_label" value="<?php echo ents($label); ?>" /></td>
-							<td><input type="radio" name="membership_status_default_rank" value="<?php echo $i; ?>" <?php if ($id == $default) echo 'checked="checked"'; ?> /></td>
-							<td>
-								<img src="<?php echo BASE_URL; ?>/resources/img/arrow_up_thin_black.png" class="icon move-row-up" title="Move this role up" />
-								<img src="<?php echo BASE_URL; ?>/resources/img/arrow_down_thin_black.png" class="icon move-row-down" title="Move this role down" />
-							</td>
-							<td>
-								<?php
-								if ($id && (count($options) > 2)) {
-									?>
-									<input type="checkbox" name="membership_status_delete[]" data-toggle="strikethrough" data-target="row" value="<?php echo $id; ?>" />
-									<?php
-								}
-								?>
-							</td>
-
-						</tr>
-						<?php
-						$i++;
-					}
-					?>
-					</table>
-					<input type="submit" value="Save" class="btn" />
-					</form>
-				</td>
-			</tr>
-			<tr>
-				<td colspan="2"><h3>Rosters and Services</h3></td>
-			</tr>
-			<tr>
-				<th>Roster Weeks Default</th>
-				<td>
-					<?php echo ROSTER_WEEKS_DEFAULT; ?>
-					<br /><small>By default, rosters will display this number of weeks in the future.</small>
-				</td>
-			</tr>
-			<tr>
-				<th>Roster repeat date threshold</th>
-				<td>
-					<?php echo REPEAT_DATE_THRESHOLD; ?>
-					<br /><small>If a roster has more than this number of columns, the date column will be repeated on the right hand side</small>
-				</td>
-			</tr>
-			<tr>
-				<th>Service Documents: Folders to populate</th>
-				<td>
-					<?php
-
-					
-					if (SERVICE_DOCS_TO_POPULATE_DIRS) {
-						echo implode('<br />', explode('|', SERVICE_DOCS_TO_POPULATE_DIRS));
-					}
-					?>
-				</td>
-			</tr>
-			<tr>
-				<th>Service Documents: Folders to expand</th>
-				<td>
-					<?php
-					if (SERVICE_DOCS_TO_EXPAND_DIRS) {
-						echo implode('<br />', explode('|', SERVICE_DOCS_TO_POPULATE_DIRS));
-					}
-					?>
-				</td>
-			</tr>
-
-			<tr>
-				<td colspan="2"><h3>External tools</h3></td>
-			</tr>
-			<tr>
-				<th>Bible reference URL</th>
-				<td>
-					<?php echo BIBLE_URL; ?>
-					<br /><small>Bible references in rosters will be linked using this URL template</small>
-				</td>
-			</tr>
-			<tr>
-				<th>Maps URL</th>
-				<td>
-					<?php echo MAP_LOOKUP_URL; ?>
-					<br /><small>The "map" link displayed next to a family's address uses this URL template</small>
-				</td>
-			</tr>
-			<tr>
-				<th>Email chunk size</th>
-				<td>
-					<?php echo EMAIL_CHUNK_SIZE; ?>
-					<br /><small>Email servers can only handle a limited number of recipients per email.  When constructing email links to multiple persons, Jethro will divide the list into several links if there are more than this number of recipients.</small>
-				</td>
-			</tr>
-			<tr>
-				<th>SMS Gateway</th>
-				<td>
-					<?php echo SMS_HTTP_URL; ?><br />
-					<?php echo (SMS_HTTP_POST_TEMPLATE && SMS_HTTP_RESPONSE_OK_REGEX) ? 'See details in config file' : '<b>Not fully configured.<b>'; ?>
-                    <?php echo ifdef('SMS_HTTP_HEADER_TEMPLATE') ? '' : ' No additional headers configured.'; ?>
-			</tr>
-			<tr>
-				<th>Max length for SMS messages</th>
-				<td>
-					<?php echo SMS_MAX_LENGTH; ?>
-					<br /><small>160 characters is generally a one-part SMS. Longer messages will be sent in several parts and will cost more.</small>
-				</td>
-			</tr>
-            <tr>
-              <th>Default to saving sent SMS as note</th>
-              <td>
-                <?php echo ifdef('SMS_SAVE_TO_NOTE_BY_DEFAULT', 0); ?>
-                <br />
-              </td>
-            </tr>
-            <tr>
-              <th>Default Subject for SMS saved as a note</th>
-              <td>
-                <?php echo ifdef('SMS_SAVE_TO_NOTE_SUBJECT', ''); ?>
-                <br />
-              </td>
-            </tr>
-			<tr>
-				<th>Logging of SMS sending</th>
-				<td>
-					<?php echo SMS_SEND_LOGFILE ? 'Configured' : 'Not configured'; ?>
-					<br /><small>This allows you to track how many SMSes each user is sending via Jethro.</small>
-				</td>
-			</tr>
-			<tr>
-				<td colspan="2"><h3>Locale settings</h3></td>
-			</tr>
-
-			<tr>
-				<th>Timezone</th>
-				<td><?php echo defined('TIMEZONE') ? TIMEZONE : '(Server default)'; ?></td>
-			</tr>
-			<tr>
-				<th>Label for the Address 'suburb' field</th>
-				<td><?php echo defined('ADDRESS_SUBURB_LABEL') ? ADDRESS_SUBURB_LABEL : 'Suburb'; ?></td>
-			</tr>
-			<tr>
-				<th>Label for the address 'state' field</th>
-				<td>
-					<?php 
-					if (!defined('ADDRESS_STATE_LABEL')) {
-						echo 'State';
-					} else if (ADDRESS_STATE_LABEL) {
-						echo ADDRESS_STATE_LABEL;
-					} else {
-						echo '(State field disabled)';
-					}
-					echo '<br /><small>The state field can be hidden altogether by setting this to blank</small>';
-					?>
-				</td>
-			</tr>
-			<tr>
-				<th>Options for the Address 'state' field</th>
-				<td><?php echo ADDRESS_STATE_OPTIONS; ?>  (Default: <?php echo ADDRESS_STATE_DEFAULT; ?>)</td>
-			</tr>
-			<tr>
-				<th>Label for the address 'postcode' field</th>
-				<td><?php echo defined('ADDRESS_POSTCODE_LABEL') ? ADDRESS_POSTCODE_LABEL : 'Postcode'; ?></td>
-			</tr>
-			<tr>
-				<th>Valid formats for the address 'postcode' field</th>
-				<td><?php echo ADDRESS_POSTCODE_WIDTH.' characters matching the expression '.ADDRESS_POSTCODE_REGEX; ?></td>
-			</tr>
-			<tr>
-				<th>Postcode lookup URL</th>
-				<td>
-					<?php echo POSTCODE_LOOKUP_URL; ?>
-					<br /><small>When editing an address, the "look up <?php echo defined('ADDRESS_POSTCODE_LABEL') ? ADDRESS_POSTCODE_LABEL : 'postcode'; ?>" link uses this URL</small>
-				</td>
-			</tr>
-			<tr>
-				<th>Envelope Size</th>
-				<td><?php echo ENVELOPE_WIDTH_MM.'mm x '.ENVELOPE_HEIGHT_MM.'mm'; ?></td>
-			</tr>
-
-
-			<tr>
-				<th>Formats for the home phone field</th>
-				<td>
-					<?php echo nl2br(HOME_TEL_FORMATS); ?>
-					<br /><small>When a phone number is displayed, it is laid out using these formats. When a phone number is entered, Jethro makes sure it has the right number of digits to match one of these formats.</small>
-				</td>
-			</tr>
-			<tr>
-				<th>Formats for the work phone field</th>
-				<td><?php echo nl2br(HOME_TEL_FORMATS); ?></td>
-			</tr>
-			<tr>
-				<th>Formats for the mobile phone field</th>
-				<td><?php echo nl2br(MOBILE_TEL_FORMATS); ?></td>
-			</tr>
-
-			<tr>
-				<td colspan="2"><h3>Appearance Settings</h3></td>
-			</tr>
-			<tr>
-				<th>Custom Colours</th>
-				<td><?php
-					$customLessVars = defined('CUSTOM_LESS_VARS') ? constant('CUSTOM_LESS_VARS') : NULL;
-					$customCSSFile = 'jethro-'.JETHRO_VERSION.'-custom.css';
-					if (file_exists(JETHRO_ROOT.'/'.$customCSSFile)) {
-						?>
-						Jethro is using the custom CSS file <?php echo $customCSSFile; ?><br />
-						<?php
-						if ($customLessVars) {
-							?>
-							The following <a href="http://lesscss.org/">LESS</a> variables are set in the conf file:
-							<?php bam($customLessVars); ?>
-							To adjust these colours, first delete <?php echo $customCSSFile; ?> from your jethro directory.  Then edit your conf.php file, and when happy with the changes, come back to this page to re-save the custom CSS file.
-							<?php
-						}
-					} else if ($customLessVars) {
-						?>
-						The following <a href="http://lesscss.org/">LESS</a> variables are set in the conf file:
-						<?php bam($customLessVars); ?>
-						<b>These changes have not been saved to a custom CSS file,
-							so Jethro is building the CSS on every page load.</b>
-						For production environments you should
-						<span class="clickable" onclick="TBLib.downloadText($(document.head).find('style[id^=less]').get(0).innerHTML, '<?php echo $customCSSFile; ?>')">download the compiled CSS</span>
-						and save it in your main Jethro folder.
+						<input type="checkbox" name="age_bracket_delete[]" data-toggle="strikethrough" data-target="row" value="<?php echo $id; ?>" />
 						<?php
 					}
 					?>
 				</td>
-			</tr>
 
+			</tr>
+			<?php
+			$i++;
+		}
+		?>
 		</table>
+		<p class="help-inline">
+			<?php
+			echo _('Age brackets with the "is adult" box ticked are treated as adults when, for example, sending an email to the adults in a family.');
+			echo '<br />';
+			echo _('If you delete an age bracket, persons using that age bracket will be set to the default age bracket.');
+			?>
+		<p>
 		<?php
 	}
+
+	private function processAgeBracketOptions()
+	{
+		$db = $GLOBALS['db'];
+		if (!empty($_POST['age_brackets_submitted'])) {
+			$i = 0;
+			$saved_default = false;
+			$rankMap = $_REQUEST['age_bracket_ranking'];
+			foreach ($rankMap as $k => $v) {
+				if ($v == '') $rankMap[$k] = max($rankMap)+1;
+			}
+			$ranks = array_flip($rankMap);
+			while (isset($_POST['age_bracket_'.$i.'_label'])) {
+				$sql = null;
+				$ab = new Age_Bracket();
+				if (!empty($_POST['age_bracket_'.$i.'_id'])) {
+					$ab->load((int)$_POST['age_bracket_'.$i.'_id']);
+				}
+				$ab->acquireLock();
+				$ab->processForm('age_bracket_'.$i.'_');
+				$ab->setValue('rank', $ranks[$i]);
+				$is_default = (int)($_POST['age_bracket_default_rank'] == $i);
+				if ($is_default) $saved_default = true;
+				$ab->setValue('is_default', $is_default);
+				if ($ab->id) {
+					$ab->save();
+				} else if ($ab->getValue('label')) {
+					bam("New:");
+					bam($ab);
+					$ab->create();
+				}
+				$ab->releaseLock();
+				$i++;
+			}
+			if (!$saved_default) {
+				bam("Saving default age bracket");
+				$db->query('UPDATE age_bracket SET is_default = 1 ORDER BY rank LIMIT 1');
+				check_db_result($res);
+			}
+			if (!empty($_POST['age_bracket_delete'])) {
+				$idSet = implode(',', array_map(Array($db, 'quote'), $_POST['age_bracket_delete']));
+				// Reset any persons using this age bracket to the default status
+				$sql = 'UPDATE person
+						SET age_bracketid = (SELECT id FROM age_bracket WHERE is_default = 1 AND id NOT IN ('.$idSet.'))
+						WHERE age_bracketid IN ('.$idSet.')';
+				$res = $db->query($sql);
+				check_db_result($res);
+				$sql = 'DELETE FROM age_bracket
+						WHERE id IN ('.$idSet.')';
+				$res = $db->query($sql);
+				check_db_result($res);
+			}
+
+			check_db_result($res);
+		}
+
+	}
+
 }
+

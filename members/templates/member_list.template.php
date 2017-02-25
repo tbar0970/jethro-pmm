@@ -17,7 +17,7 @@ foreach ($persons as $id => $member) {
 				<?php $dummy->printFieldValue('congregationid'); ?>
 			</td>
 			<td class="hidden-phone">
-				<?php $dummy->printFieldValue('age_bracket'); ?>
+				<?php $dummy->printFieldValue('age_bracketid'); ?>
 			</td>
 			<td>
 				<?php $dummy->printFieldValue('mobile_tel'); ?>

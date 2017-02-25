@@ -252,6 +252,13 @@ function print_widget($name, $params, $value)
 			<input type="text" name="<?php echo $name; ?>" value="<?php echo $value; ?>" class="<?php echo trim($classes); ?>" <?php echo $width_exp; ?> <?php echo $attrs; ?> />
 			<?php
 			break;
+		case 'boolean':
+		case 'bool':
+			if (empty($params['options'])) {
+				$params['type'] = 'checkbox';
+				return print_widget($name, $params, $value);
+			}
+			// deliberate fallthrough...
 		case 'select':
 			$our_val = Array();
 			if (!empty($params['allow_multiple']) && $value === '*') {
@@ -289,7 +296,8 @@ function print_widget($name, $params, $value)
 			} else if (array_get($params, 'allow_multiple')) {
 				$height = array_get($params, 'height', min(count($params['options']), 4));
 				if (substr($name, -2) != '[]') $name .= '[]';
-				$style = 'height: '.($height*1.7).'em';
+				$style = '';
+				if ($height > 0) $style = 'height: '.($height*1.7).'em';
 				$classes .= ' multi-select';
 				// the empty onclick below is to make labels work on iOS
 				// see http://stackoverflow.com/questions/5421659/html-label-command-doesnt-work-in-iphone-browser
@@ -390,6 +398,7 @@ function print_widget($name, $params, $value)
 				$options = $GLOBALS['system']->getDBObjectData($params['references'], $where, $where_logic, array_get($params, 'order_by'));
 				$dummy = new $params['references']();
 				$our_val = is_array($value) ? $value : (empty($value) ? Array() : Array($value));
+				$default = NULL;
 				if (!empty($params['filter']) && is_callable($params['filter'])) {
 					foreach ($options as $i => $o) {
 						$dummy->populate($i, $o);
@@ -402,8 +411,10 @@ function print_widget($name, $params, $value)
 				foreach ($options as $k => $details) {
 					$dummy->populate($k, $details);
 					$params['options'][$k] = $dummy->toString();
+					if (!empty($details['is_default'])) $default = $i;
 				}
 				$params['type'] = 'select';
+				if (empty($params['allow_empty']) && ($value === '')) $value = $default;
 				print_widget($name, $params, $value);
 			}
 			break;

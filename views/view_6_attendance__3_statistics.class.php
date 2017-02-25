@@ -128,18 +128,18 @@ class View_Attendance__Statistics extends View
 			</thead>
 			<tbody>
 		<?php
-		$map['age_bracket'] = explode(',', AGE_BRACKET_OPTIONS);
+		$map['age_bracketid'] = Age_Bracket::getMap();
 		if ($cohortid[0] == 'g') {
 			list($map['status'], $default) = Person_Group::getMembershipStatusOptionsAndDefault();
 		} else {
 			$map['status'] = $this->status_map;
 		}
-		foreach (Array('status', 'age_bracket') as $grouping) {
-
+		foreach (Array('status', 'age_bracketid') as $grouping) {
+			$isFirst = TRUE;
 			foreach ($map[$grouping] as $k => $v) {
 				if (!isset($stats[$grouping][$k])) continue;
 				?>
-				<tr <?php if ($k == 0 && $grouping == 'age_bracket') echo 'class="thick-top-border"'; ?>>
+				<tr <?php if ($isFirst && $grouping == 'age_bracketid') echo 'class="thick-top-border"'; ?>>
 					<th><?php echo ents($v); ?></th>
 				<?php
 				if (isset($stats[$grouping][$k])) {
@@ -159,6 +159,7 @@ class View_Attendance__Statistics extends View
 				?>
 				</tr>
 				<?php
+				$isFirst = FALSE;
 			}
 		}
 		?>

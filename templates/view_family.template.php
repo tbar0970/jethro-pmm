@@ -120,7 +120,7 @@ printf($panel_header, 'basic', 'Basic Details & Members', 'active');
 						<strong><?php echo ents($dummy->toString()); ?></strong>
 						<br />
 						<?php
-						echo ents($dummy->getFormattedValue('age_bracket'));
+						echo ents($dummy->getFormattedValue('age_bracketid'));
 						echo ' &bull; ';
 						echo ents($dummy->getFormattedValue('gender'));
 						echo '<br />';

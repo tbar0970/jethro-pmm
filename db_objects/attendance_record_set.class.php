@@ -14,7 +14,7 @@ class Attendance_Record_Set
 	private $_attendance_records = Array();
 	private $_cohort_object = NULL;
 	
-	const LIST_ORDER_DEFAULT = 'status ASC, family_name ASC, familyid, age_bracket ASC, gender DESC';
+	const LIST_ORDER_DEFAULT = 'status ASC, family_name ASC, familyid, ab.rank ASC, gender DESC';
 
 //--        CREATING, LOADING AND SAVING        --//
 
@@ -146,17 +146,18 @@ class Attendance_Record_Set
 		}
 		if ($this->age_brackets) {
 			$sql .= '
-				AND p.age_bracket IN ('.implode(',', array_map(Array($db, 'quote'), $this->age_brackets)).')';
+				AND p.age_bracketid IN ('.implode(',', array_map(Array($db, 'quote'), $this->age_brackets)).')';
 		}
 		$this->_attendance_records = $db->queryAll($sql, null, null, true);
 		check_db_result($this->_attendance_records);
 
 		// NOW FETCH THE APPLICABLE PERSON RECORDS
 		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
+		$order = str_replace('age_bracket', 'ab.rank', $order);
 
 		$conds = Array();
 		if ($this->age_brackets) {
-			$conds['(age_bracket'] = $this->age_brackets;
+			$conds['(age_bracketid'] = $this->age_brackets;
 		}
 		if ($this->statuses) {
 			foreach ($this->statuses as $status) {
@@ -495,7 +496,7 @@ class Attendance_Record_Set
 		$stats = Array();
 		$stats[NULL]['rate'] = $stats[NULL]['avg_present'] = $stats[NULL]['avg_absent'] = 0;
 
-		foreach (Array('status', 'age_bracket') as $groupingField) {
+		foreach (Array('status', 'age_bracketid') as $groupingField) {
 			$rank = ($groupingField == 'status' && $type == 'g') ? 'rank, ' : '';
 			$selectCol = ($groupingField == 'status') ? $status_col : $groupingField;
 
@@ -579,6 +580,7 @@ class Attendance_Record_Set
 		$SQL = 'SELECT person.id, person.first_name, person.last_name, person.status, c.id as congregationid, c.name as congregation, '
 				.($groupids ? 'group_concat(pgm.groupid) as groupids' : '"" AS groupids').'
 				FROM person person
+				JOIN age_bracket ab ON ab.id = person.age_bracketid
 				JOIN family f on person.familyid = f.id
 				LEFT JOIN congregation c ON person.congregationid = c.id
 				';
@@ -600,9 +602,9 @@ class Attendance_Record_Set
 		$SQL .= implode(" OR ", $wheres);
 
 
-		if (!empty($params['(age_bracket'])) {
+		if (!empty($params['(age_bracketid'])) {
 			$SQL .= '
-				AND person.age_bracket IN ('.implode(',', array_map(Array($GLOBALS['db'], 'quote'), $params['(age_bracket'])).')';
+				AND person.age_bracketid IN ('.implode(',', array_map(Array($GLOBALS['db'], 'quote'), $params['(age_bracketid'])).')';
 		}
 		$statusClauses = Array();
 		foreach (array_get($params, '(status', Array()) as $status) {
@@ -627,6 +629,7 @@ class Attendance_Record_Set
 		}
 
 		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
+		$order = str_replace('age_bracket', 'ab.rank', $order);
 		// Since we are getting persons for multiple cohorts, "status" has to mean person status here.
 		$order = preg_replace("/(^|[^.])status($| |,)/", '\\1person.status\\2', $order);
 		$SQL .=  "GROUP BY person.id \n";
@@ -673,6 +676,7 @@ class Attendance_Record_Set
 	{
 		$SQL = 'SELECT person.id, person.last_name, person.first_name, '.($groupid ? 'pgms.label AS membership_status, ' : '').' person.status, ar.date, ar.present
 				FROM person person
+				JOIN age_bracket ab ON ab.id = person.age_bracketid
 				JOIN family f ON person.familyid = f.id
 				';
 		if ($groupid) {
@@ -697,9 +701,9 @@ class Attendance_Record_Set
 			 $SQL .= '
 				 AND person.congregationid IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congregationids)).') ';
 		}
-		if (!empty($params['(age_bracket'])) {
+		if (!empty($params['(age_bracketid'])) {
 			$SQL .= '
-				AND person.age_bracket IN ('.implode(',', array_map(Array($GLOBALS['db'], 'quote'), $params['(age_bracket'])).')';
+				AND person.age_bracketid IN ('.implode(',', array_map(Array($GLOBALS['db'], 'quote'), $params['(age_bracketid'])).')';
 		}
 		$statuses = array_get($params, '(status', Array());
 		if (isset($params['status'])) {
@@ -726,6 +730,7 @@ class Attendance_Record_Set
 		if ($statusClauses) $SQL .= 'AND (('.implode(') OR (', $statusClauses).'))';
 
 		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
+		$order = str_replace('age_bracket', 'ab.rank', $order);
 		if ($congregationids) {
 			$order = preg_replace("/(^|[^.])status($| |,)/", '\\1person.status\\2', $order);
 		} else {
@@ -827,12 +832,12 @@ class Attendance_Record_Set
 				<div id="agebrackets" style="<?php echo empty($age_brackets) ? 'display: none' : ''; ?>">
 					<?php
 					print_widget('age_brackets', Array(
-							'type'			=> 'select',
-							'options'		=> explode(',', AGE_BRACKET_OPTIONS),
+							'type'			=> 'reference',
+							'references'    => 'age_bracket',
 							'default'		=> '',
 							'allow_empty'	=> true,
 							'allow_multiple' => true,
-							'height' => count(explode(',', AGE_BRACKET_OPTIONS)),
+							'height' => count(Age_Bracket::getMap()),
 
 					), $age_brackets);
 					?>

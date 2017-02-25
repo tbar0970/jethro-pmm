@@ -54,7 +54,7 @@ class Person_Group extends db_object
 								),
 		);
 		// Check if attendance is enabled
-		$enabled = explode(',', ENABLED_FEATURES);
+		$enabled = explode(',', ifdef('ENABLED_FEATURES'));
 		if(in_array('ATTENDANCE', $enabled)){
 			 $fields['attendance_recording_days']	= Array(
 									'type'		=> 'bitmask',

@@ -90,7 +90,7 @@ if (empty($report)) {
 // BUSINESS TIME
 
 $db =& $GLOBALS['db'];
-$sql = $report->getSQL('LOWER(p.email) as loweremail, p.email, p.first_name, p.last_name, p.gender, p.age_bracket, p.status, p.congregationid');
+$sql = $report->getSQL('LOWER(p.email) as loweremail, p.email, p.first_name, p.last_name, p.gender, p.age_bracketid, p.status, p.congregationid');
 $report_members = $db->queryAll($sql, null, null, true);
 check_db_result($report_members);
 unset($report_members['']); // with no email.
@@ -217,7 +217,7 @@ function getMergeVars($person_data, $email) {
 		'GENDER' => $dummy_person->getFormattedValue('gender'),
 		'CONG' => $dummy_person->getFormattedValue('congregationid'),
 		'STATUS' => $dummy_person->getFormattedValue('status'),
-		'AGEBRACKET' => $dummy_person->getFormattedValue('age_bracket'),
+		'AGEBRACKET' => $dummy_person->getFormattedValue('age_bracketid'),
 	);
 }
 
