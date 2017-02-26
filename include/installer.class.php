@@ -28,10 +28,12 @@ class Installer
 		$GLOBALS['system'] = $GLOBALS['system'] = System_Controller::get();
 		set_error_handler(Array($GLOBALS['system'], '_handleError'));
 
+		// the first time we call initInitialEntities is just to check for errors
 		if ($this->readyToInstall() && $this->initInitialEntities()) {
 			$GLOBALS['JETHRO_INSTALLING'] = 1;
 			$this->initDB();
 			Config_Manager::init();
+			$this->initInitialEntities(); // do this afresh now that settings have been loaded
 			$this->createInitialEntities();
 			unset($GLOBALS['JETHRO_INSTALLING']);
 
