@@ -8,9 +8,9 @@ if (file_exists(dirname(__FILE__).'/version.txt')) {
 $path_sep = defined('PATH_SEPARATOR') ? PATH_SEPARATOR : ((FALSE === strpos($_ENV['OS'], 'Win')) ? ';' : ':');
 set_include_path(ini_get('include_path').$path_sep.JETHRO_ROOT.$path_sep.JETHRO_ROOT.'/include/'.$path_sep.JETHRO_ROOT.'/db_objects/');
 
-function __autoload($class_name) {
-	 include_once strtolower($class_name) . '.class.php';
-}
+spl_autoload_register(function ($class_name) {
+	 @include_once strtolower($class_name) . '.class.php';
+});
 
 // set error level such that we cope with PHP versions before and after 5.3 when E_DEPRECATED was introduced.
 $error_level = defined('E_DEPRECATED') ? (E_ALL & ~constant('E_DEPRECATED') & ~constant('E_STRICT')) : E_ALL;
