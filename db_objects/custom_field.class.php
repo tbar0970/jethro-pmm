@@ -45,6 +45,18 @@ class Custom_Field extends db_object
 							'default'	=> 0,
 							'title'		=> 'Whether to allow multiple values to be entered for this field',
 						   ),
+			'show_add_family'=> Array(
+							'type'		=> 'select',
+							'options'  => Array('No', 'Yes'),
+							'default'	=> 0,
+							'title'		=> 'Whether to show this field on the add-family page',
+						   ),
+			'searchable'=> Array(
+							'type'		=> 'select',
+							'options'  => Array('No', 'Yes'),
+							'default'	=> 0,
+							'title'		=> 'Whether to include this field in system-wide search',
+						   ),
 			'heading_before'=> Array(
 							'type'		=> 'text',
 							'default'	=> '',
@@ -127,6 +139,8 @@ class Custom_Field extends db_object
 				break;
 			case 'allow_multiple':
 			case 'divider_before':
+			case 'show_add_family':
+			case 'searchable':
 				print_widget($prefix.$fieldname,
 						Array('type' => 'checkbox', 'attrs' => Array('title' => $this->fields[$fieldname]['title'])),
 						$this->values[$fieldname]);
@@ -385,6 +399,9 @@ class Custom_Field extends db_object
 	public function save()
 	{
 		$GLOBALS['system']->doTransaction('BEGIN');
+		if ($this->getValue('type') !== 'text') {
+			$this->setValue('searchable', 0);
+		}
 		parent::save();
 		$this->_saveOptions();
 		$GLOBALS['system']->doTransaction('COMMIT');
@@ -449,12 +466,12 @@ class Custom_Field extends db_object
 	 * @param mixed $value	Existing value
 	 * @param array $extraPrams	Any extra params to pass to print_widget.
 	 */
-	public function printWidget($value, $extraParams=Array())
+	public function printWidget($value, $extraParams=Array(), $prefix='')
 	{
-		print_widget('custom_'.$this->id.'[]', $extraParams+$this->getWidgetParams(), $value);
+		print_widget($prefix.'custom_'.$this->id.'[]', $extraParams+$this->getWidgetParams(), $value);
 		if (($this->getValue('type') == 'date') && !empty($this->values['params']['allow_note'])) {
 			$note = substr($value, 11);
-			print_widget('custom_'.$this->id.'_note[]', Array('type' => 'text', 'placeholder' => '(Note)'), $note);
+			print_widget($prefix.'custom_'.$this->id.'_note[]', Array('type' => 'text', 'placeholder' => '(Note)'), $note);
 		}
 		if (strlen($this->values['tooltip'])) {
 			?>
@@ -468,11 +485,11 @@ class Custom_Field extends db_object
 	 * Process an interface where an end user supplies a value for this custom field for a person record
 	 * @return mixed
 	 */
-	public function processWidget()
+	public function processWidget($prefix='')
 	{
-		$res = process_widget('custom_'.$this->id, $this->getWidgetParams(), NULL, TRUE);
+		$res = process_widget($prefix.'custom_'.$this->id, $this->getWidgetParams(), NULL, TRUE);
 		if (($this->getValue('type') == 'date') && !empty($this->values['params']['allow_note'])) {
-			$notes = process_widget('custom_'.$this->id.'_note', Array('type' => 'text'), NULL, TRUE);
+			$notes = process_widget($prefix.'custom_'.$this->id.'_note', Array('type' => 'text'), NULL, TRUE);
 			foreach ((array)$notes as $k => $v) {
 				if (!empty($res[$k]) && strlen($v)) $res[$k] .= ' '.$v;
 			}

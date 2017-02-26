@@ -69,3 +69,5 @@ if (defined('STRICT_MODE_FIX') && STRICT_MODE_FIX) {
 }
 
 @ini_set('default_charset', 'UTF-8');
+
+Config_Manager::init();

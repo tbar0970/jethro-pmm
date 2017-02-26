@@ -28,9 +28,12 @@ class Installer
 		$GLOBALS['system'] = $GLOBALS['system'] = System_Controller::get();
 		set_error_handler(Array($GLOBALS['system'], '_handleError'));
 
+		// the first time we call initInitialEntities is just to check for errors
 		if ($this->readyToInstall() && $this->initInitialEntities()) {
 			$GLOBALS['JETHRO_INSTALLING'] = 1;
 			$this->initDB();
+			Config_Manager::init();
+			$this->initInitialEntities(); // do this afresh now that settings have been loaded
 			$this->createInitialEntities();
 			unset($GLOBALS['JETHRO_INSTALLING']);
 
@@ -68,6 +71,10 @@ class Installer
 		if (!$cong_found) {
 			print_message('You must enter at least one congregation name to proceed', 'error');
 			return FALSE;
+		}
+
+		if (empty($_REQUEST['system_name'])) {
+			print_message("You must enter a system name", 'error');
 		}
 
 		return TRUE;
@@ -165,7 +172,7 @@ class Installer
 				   OR g.id IN (SELECT groupid FROM account_group_restriction gr WHERE gr.personid = getCurrentUserID()))",
 
 			'CREATE VIEW member AS
-			SELECT mp.id, mp.first_name, mp.last_name, mp.gender, mp.age_bracket, mp.congregationid,
+			SELECT mp.id, mp.first_name, mp.last_name, mp.gender, mp.age_bracketid, mp.congregationid,
 			mp.email, mp.mobile_tel, mp.work_tel, mp.familyid,
 			mf.family_name, mf.address_street, mf.address_suburb, mf.address_state, mf.address_postcode, mf.home_tel
 			FROM _person mp
@@ -181,7 +188,7 @@ class Installer
 
 			UNION
 
-			SELECT mp.id, mp.first_name, mp.last_name, mp.gender, mp.age_bracket, mp.congregationid,
+			SELECT mp.id, mp.first_name, mp.last_name, mp.gender, mp.age_bracketid, mp.congregationid,
 			mp.email, mp.mobile_tel, mp.work_tel, mp.familyid,
 			mf.family_name, mf.address_street, mf.address_suburb, mf.address_state, mf.address_postcode, mf.home_tel
 			FROM _person mp
@@ -193,7 +200,97 @@ class Installer
 				AND mf.status <> "archived"
 				AND ((self.status <> "archived") OR (mp.id = self.id))
 				/* archived persons can only see themselves, not any family members */
-			;'
+			;',
+
+			"CREATE TABLE setting (
+				rank  int(11) unsigned,
+				heading VARCHAR(255) DEFAULT NULL,
+				symbol VARCHAR(255) NOT NULL,
+				note VARCHAR(255) NOT NULL,
+				type VARCHAR(255) NOT NULL,
+				value VARCHAR(255) NOT NULL,
+				CONSTRAINT UNIQUE KEY `setting_symbol` (`symbol`)
+			  );",
+
+			"SET @rank = 1;	",
+			
+			"INSERT INTO setting (rank, heading, symbol, note, type, value)
+			 VALUES
+			(@rank:=@rank+5, '','SYSTEM_NAME','Label displayed at the top of every page','text',''),
+
+			(@rank:=@rank+5, 'Permissions and Security','ENABLED_FEATURES','Which Jethro features are visible to users?','multiselect{\"NOTES\":\"Notes\",\"PHOTOS\":\"Photos\",\"ATTENDANCE\":\"Attendance\",\"ROSTERS&SERVICES\":\"Rosters & Services\",\"SERVICEDETAILS\":\"Service Details\",\"DOCUMENTS\":\"Documents\",\"SERVICEDOCUMENTS\":\"Service documents\"}','NOTES,PHOTOS,ATTENDANCE,ROSTERS&SERVICES,SERVICEDETAILS,DOCUMENTS,SERVICEDOCUMENTS'),
+			(@rank:=@rank+5, '',                         'DEFAULT_PERMISSIONS','Permissions to grant to new user accounts by default','int','7995391'),
+			(@rank:=@rank+5, '',                         'RESTRICTED_USERS_CAN_ADD','Can users with group or congregation restrictions add new persons and families?','bool','FALSE'),
+			(@rank:=@rank+5, '',                         'PASSWORD_MIN_LENGTH','Minimum password length','int','8'),
+			(@rank:=@rank+5, '',                         'SESSION_TIMEOUT_MINS','Inactive sessions will be logged out after this number of minutes','int','90'),
+			(@rank:=@rank+5, '',                         'SESSION_MAXLENGTH_MINS','Every session will be logged out this many minutes after login','int','480'),
+
+			(@rank:=@rank+5, 'Jethro Behaviour Options','REQUIRE_INITIAL_NOTE','Whether an initial note is required when adding new family','bool','TRUE'),
+			(@rank:=@rank+5, '',                         'NOTES_ORDER','Order to display person and family notes','select{\"ASC\":\"Oldest first\",\"DESC\":\"Newest first\"}','ASC'),
+			(@rank:=@rank+5, '',                         'LOCK_LENGTH','Number of minutes users have to edit an object before their lock expires','int','10'),
+			(@rank:=@rank+5, '',                         'PERSON_LIST_SHOW_GROUPS','Show all groups when listing persons?','bool','FALSE'),
+			(@rank:=@rank+5, '',                         'NOTES_LINK_TO_EDIT','Should the homepage notes list link to the edit-note page?','bool','FALSE'),
+			(@rank:=@rank+5, '',                         'CHUNK_SIZE','Batch size to aim for when dividing lists of items','int','100'),
+			(@rank:=@rank+5, '',                         'REPEAT_DATE_THRESHOLD','When a roster has this many columns, show the date on the right as well as the left','int','10'),
+			(@rank:=@rank+5, '',                         'ROSTER_WEEKS_DEFAULT','Number of weeks to show in rosters by default','int','8'),
+			(@rank:=@rank+5, '',                         'ATTENDANCE_LIST_ORDER','Order to list persons when recording/displaying attendance','text','status ASC, family_name ASC, familyid, age_bracket ASC, gender DESC'),
+			(@rank:=@rank+5, '',                         'ATTENDANCE_DEFAULT_DAY','Default day to record attendance','select[\"Sunday\",\"Monday\",\"Tuesday\",\"Wednesday\",\"Thursday\",\"Friday\",\"Saturday\"]','Sunday'),
+			(@rank:=@rank+5, '',                         'ENVELOPE_WIDTH_MM','Envelope width (mm)','int','220'),
+			(@rank:=@rank+5, '',                         'ENVELOPE_HEIGHT_MM','Envelope height (mm)','int','110'),
+
+			(@rank:=@rank+5, 'Data Structure options',   'PERSON_STATUS_OPTIONS','(The system-defined statuses \'Contact\' and \'Archived\' will be added to this list)','multitext_cm','Core,Crowd'),
+			(@rank:=@rank+5, '',                         'PERSON_STATUS_DEFAULT','','text','Contact'),
+			(@rank:=@rank+5, '',                         'AGE_BRACKET_OPTIONS','','',''),
+			(@rank:=@rank+5, '',                         'GROUP_MEMBERSHIP_STATUS_OPTIONS','','',''),
+			(@rank:=@rank+5, '',                         'TIMEZONE','','text','Australia/Sydney'),
+			(@rank:=@rank+5, '',                         'ADDRESS_STATE_OPTIONS','(Leave blank to hide the state field)','multitext_cm', 'ACT,NSW,NT,QLD,SA,TAS,VIC,WA'),
+			(@rank:=@rank+5, '',                         'ADDRESS_STATE_LABEL','Label for the \'state\' field. (Leave blank to hide the state field)','text','State'),
+			(@rank:=@rank+5, '',                         'ADDRESS_STATE_DEFAULT','Default state', 'text', 'NSW'),
+			(@rank:=@rank+5, '',                         'ADDRESS_SUBURB_LABEL','Label for the \'suburb\' field','text','Suburb'),
+			(@rank:=@rank+5, '',                         'ADDRESS_POSTCODE_LABEL','Label for the \'postcode\' field','text','Postcode'),
+			(@rank:=@rank+5, '',                         'ADDRESS_POSTCODE_WIDTH','Width of the postcode box','int','4'),
+			(@rank:=@rank+5, '',                         'ADDRESS_POSTCODE_REGEX','Regex to validate postcodes; eg /^[0-9][0-9][0-9][0-9]$/ for 4 digits','text','/^[0-9][0-9][0-9][0-9]$/'),
+			(@rank:=@rank+5, '',                         'HOME_TEL_FORMATS','Valid formats for home phone; use X for a digit','multitext_nl','XXXX-XXXX\n(XX) XXXX-XXXX'),
+			(@rank:=@rank+5, '',                         'WORK_TEL_FORMATS','Valid formats for work phone; use X for a digit','multitext_nl','XXXX-XXXX\n(XX) XXXX-XXXX'),
+			(@rank:=@rank+5, '',                         'MOBILE_TEL_FORMATS','Valid formats for mobile phone; use X for a digit','multitext_nl','XXXX-XXX-XXX'),
+
+			(@rank:=@rank+5, 'Member area',              'MEMBER_LOGIN_ENABLED','Should church members be able to log in at <system_url>members ?','bool','FALSE'),
+			(@rank:=@rank+5, '',                         'MEMBER_REGO_EMAIL_FROM_NAME','Sender name for member rego emails','text',''),
+			(@rank:=@rank+5, '',                         'MEMBER_REGO_EMAIL_FROM_ADDRESS','Sender address for member rego emails','text',''),
+			(@rank:=@rank+5, '',                         'MEMBER_REGO_EMAIL_SUBJECT','Subject for member rego emails','text',''),
+			(@rank:=@rank+5, '',                         'MEMBER_REGO_EMAIL_CC','CC all member rego emails to...','text',''),
+			(@rank:=@rank+5, '',                         'MEMBER_REGO_FAILURE_EMAIL','Address to notifiy when member rego fails','text',''),
+			(@rank:=@rank+5, '',                         'MEMBER_PASSWORD_MIN_LENGTH','Minimum length for member passwords','int','7'),
+			(@rank:=@rank+5, '',                         'MEMBERS_SHARE_ADDRESS','Should addresses be visible in the members area?','bool','FALSE'),
+
+			(@rank:=@rank+5, 'Public area',              'SHOW_SERVICE_NOTES_PUBLICLY','Should service notes be visible in the public area at <system_url>public?','bool',''),
+			(@rank:=@rank+5, '',                         'PUBLIC_ROSTER_SECRET','Advanced: Only allow access to public rosters if the URL contains \"&secret=<this-secret>\"','text',''),
+
+			(@rank:=@rank+5, 'External Links',           'BIBLE_URL','URL Template for bible passage links, with the keyword __REFERENCE__','text','https://www.biblegateway.com/passage/?search=__REFERENCE__&version=NIVUK'),
+			(@rank:=@rank+5, '',                         'CCLI_SEARCH_URL','URL Template for searching CCLI, with the keyword __TITLE__','text','http://us.search.ccli.com/search/results?SearchTerm=__TITLE__'),
+			(@rank:=@rank+5, '',                         'CCLI_DETAIL_URL','URL Template for CCLI song details by song number, with the keyword __NUMBER__','text','https://au.songselect.com/songs/__NUMBER__'),
+			(@rank:=@rank+5, '',                         'POSTCODE_LOOKUP_URL','URL template for looking up postcodes, with the keyword __SUBURB__','text','https://m.auspost.com.au/view/findpostcode/__SUBURB__'),
+			(@rank:=@rank+5, '',                         'MAP_LOOKUP_URL','URL template for map links, with the keywords __ADDRESS_STREET__, __ADDRESS_SUBURB__, __ADDRESS_POSTCODE__, __ADDRESS_STATE__','text','http://maps.google.com.au?q=__ADDRESS_STREET__,%20__ADDRESS_SUBURB__,%20__ADDRESS_STATE__,%20__ADDRESS_POSTCODE__'),
+			(@rank:=@rank+5, '',                         'EMAIL_CHUNK_SIZE','When displaying mailto links for emails, divide into batches of this size','int','25'),
+			(@rank:=@rank+5, '',                         'MULTI_EMAIL_SEPARATOR','When displaying mailto links for emails, separate addresses using this character','text',','),
+
+			(@rank:=@rank+5, 'SMTP Email Server',        'SMTP_SERVER','SMTP server for sending emails','text',''),
+			(@rank:=@rank+5, '',                         'SMTP_ENCRYPTION','Encryption method for SMTP server','select{\"ssl\":\"SSL\",\"tls\":\"TLS\",\"\":\"(None)\"}',''),
+			(@rank:=@rank+5, '',                         'SMTP_USERNAME','Username for SMTP server','text',''),
+			(@rank:=@rank+5, '',                         'SMTP_PASSWORD','Password for SMTP server','text',''),
+
+			(@rank:=@rank+5, 'SMS Gateway',              'SMS_MAX_LENGTH','','int','140'),
+			(@rank:=@rank+5, '',                         'SMS_HTTP_URL','URL of the SMS messaging service','text',''),
+			(@rank:=@rank+5, '',                         'SMS_HTTP_HEADER_TEMPLATE','Template for the headers of a request to the SMS messaging service','text_ml',''),
+			(@rank:=@rank+5, '',                         'SMS_HTTP_POST_TEMPLATE','Template for the body of a request to the SMS messaging service','text_ml',''),
+			(@rank:=@rank+5, '',                         'SMS_RECIPIENT_ARRAY_PARAMETER','','text',''),
+			(@rank:=@rank+5, '',                         'SMS_HTTP_RESPONSE_OK_REGEX','Regex for recognising a successful send','text_ml',''),
+			(@rank:=@rank+5, '',                         'SMS_HTTP_RESPONSE_ERROR_REGEX','Regex for recognising an API error','text_ml',''),
+			(@rank:=@rank+5, '',                         'SMS_LOCAL_PREFIX','Used for converting local to international numbers.  eg 0','text',''),
+			(@rank:=@rank+5, '',                         'SMS_INTERNATIONAL_PREFIX','Used for converting local to international numbers. eg +61','text',''),
+			(@rank:=@rank+5, '',                         'SMS_SAVE_TO_NOTE_BY_DEFAULT','Whether to save each sent SMS as a person note by default','bool',''),
+			(@rank:=@rank+5, '',                         'SMS_SAVE_TO_NOTE_SUBJECT','','text',''),
+			(@rank:=@rank+5, '',                         'SMS_SEND_LOGFILE','File on the server to save a log of sent SMS messages','text','');"
 		);
 		foreach ($sql as $s) {
 			$r = $GLOBALS['db']->query($s);
@@ -212,6 +309,25 @@ class Installer
 				$r = $GLOBALS['db']->query($SQL);
 				check_db_result($r);
 
+			}
+		}
+
+		Config_Manager::saveSetting('SYSTEM_NAME', substr($_REQUEST['system_name'], 0, 30));
+
+		if (!empty($_REQUEST['locale'])) {
+			if (preg_match('/^[-0-9A-Za-z_]+$/', $_REQUEST['locale'])) {
+				$fn = JETHRO_ROOT.'/locale/settings/'.$_REQUEST['locale'].'.csv';
+				if (file_exists($fn)) {
+					$fp = fopen($fn, 'r');
+					while ($row = fgetcsv($fp)) {
+						Config_Manager::saveSetting($row[0], $row[1]);
+					}
+					fclose($fp);
+				} else {
+					trigger_error("Unknown locale ".$_REQUEST['locale']);
+				}
+			} else {
+				trigger_error("Bad locale ".$_REQUEST['locale']);
 			}
 		}
 	}
@@ -233,6 +349,7 @@ class Installer
 			$this->user->processFieldInterface($field, 'install_');
 		}
 		$this->user->setValue('status', 0);
+		$this->user->setValue('age_bracketid', 1);
 		$this->user->setValue('permissions', PERM_SYSADMIN);
 		if (!$this->user->validateFields()) return FALSE;
 
@@ -295,8 +412,44 @@ class Installer
 		<p>Welcome to the Jethro installer.  The installation process will set up your MySQL database so that <br />it's ready to run Jethro.  First we need to collect some details to get things started.</p>
 		
 		<form method="post">
+			<h3>Overall Settings</h3>
+			<p>Please enter a name for your system and choose a set of default settings appropriate for your location.
+			<br />Settings can be adjusted later under Admin &gt; System Configuration.</p>
+			<table>
+				<tr>
+					<th>System Name</th>
+					<td>
+						<?php print_widget('system_name', Array(
+							'type' => 'text',
+							'maxlength' => 30,
+							'placeholder' => 'eg. St Demo\'s Davidsville',
+						), '');
+						?>
+					</td>
+				</tr>
+				<tr>
+					<th>Default Settings</th>
+					<td>
+						<?php
+						$options = Array();
+						chdir(JETHRO_ROOT.'/locale/settings/');
+						foreach (glob('*.csv') as $f) {
+							$f = str_replace('.csv', '', $f);
+							$options[$f] = ucfirst($f);
+						}
+						print_widget('locale', Array(
+							'type' => 'select',
+							'options' => $options,
+						), 'Australia');
+						?>
+					</td>
+				</tr>
+			</table>
+
 			<h3>Initial User Account</h3>
-			<p>Please enter the details of the first user you want to add to the system.  <br />This is the user as which you will initially log in.  <br />After you have logged in you can edit the rest of your details.</p>
+			<p>Please enter the details of the first user you want to add to the system.
+			<br />This is the user account you will use to log in initially.
+			<br />After you have logged in you can edit the rest of your details and add additional user accounts.</p>
 
 			<table>
 			<?php
@@ -313,7 +466,7 @@ class Installer
 			</table>
 
 			<h3>Congregations</h3>
-			<p>Please enter the names of the congregations your church has.  These can be edited later under admin &gt; congregations.</p>
+			<p>Please enter the names of the congregations in your church.  These can be edited later under Admin &gt; Congregations.</p>
 			<table class="expandable">
 				<tr>
 					<td>

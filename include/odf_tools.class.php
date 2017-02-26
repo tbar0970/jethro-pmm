@@ -86,7 +86,7 @@ Class ODF_Tools
 		if (is_null($xml_filenames)) {
 			$xml_filenames = Array('content.xml', 'styles.xml');
 		}
-		foreach ($xml_filenames as $xml_filename) {
+		foreach ((array)$xml_filenames as $xml_filename) {
 			$txt = ODF_Tools::getXml($filename, $xml_filename);
 			$matches = Array();
 			preg_match_all('/%([a-zA-Z0-9_]*)%/', $txt, $matches);

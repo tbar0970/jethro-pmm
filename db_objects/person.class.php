@@ -29,7 +29,7 @@ class Person extends DB_Object
 
 	public static function getStatusOptions()
 	{
-		return explode(',', PERSON_STATUS_OPTIONS)
+		return explode(',', ifdef('PERSON_STATUS_OPTIONS', ''))
 				+ Array('contact' => 'Contact', 'archived' => 'Archived');
 	}
 
@@ -62,11 +62,12 @@ class Person extends DB_Object
 									'default'		=> 'female',
 									'divider_before'	=> true,
 							   ),
-			'age_bracket'	=> Array(
-									'type'			=> 'select',
-									'options'		=> explode(',', AGE_BRACKET_OPTIONS),
-									'default'		=> '0',
+			'age_bracketid'	=> Array(
+									'type'			=> 'reference',
+									'references'    => 'age_bracket',
 									'allow_empty'	=> false,
+									'label'         => 'Age bracket',
+									'show_id'		=> false,
 							   ),
 			'familyid'	=> Array(
 								'divider_before' => true,
@@ -100,12 +101,12 @@ class Person extends DB_Object
 								   ),
 			'mobile_tel'	=> Array(
 									'type'			=> 'phone',
-									'formats'		=> MOBILE_TEL_FORMATS,
+									'formats'		=> ifdef('MOBILE_TEL_FORMATS', ''),
 									'allow_empty'	=> TRUE,
 								   ),
 			'work_tel'	=> Array(
 									'type'			=> 'phone',
-									'formats'		=> WORK_TEL_FORMATS,
+									'formats'		=> ifdef('WORK_TEL_FORMATS', ''),
 									'allow_empty'	=> TRUE,
 								),
 			'remarks'	=> Array(
@@ -170,7 +171,7 @@ class Person extends DB_Object
 			  `first_name` varchar(255) NOT NULL default '',
 			  `last_name` varchar(255) NOT NULL default '',
 			  `gender` varchar(64) NOT NULL default '',
-			  `age_bracket` varchar(64) NOT NULL default '',
+			  `age_bracketid` INT(11) DEFAULT NULL,
 			  `email` varchar(255) NOT NULL default '',
 			  `mobile_tel` varchar(12) NOT NULL default '',
 			  `work_tel` varchar(12) NOT NULL default '',
@@ -186,14 +187,9 @@ class Person extends DB_Object
 			  `resethash` VARCHAR(255) DEFAULT NULL,
 			  `resetexpires` DATETIME DEFAULT NULL,
 			  `feed_uuid` VARCHAR(255) DEFAULT NULL,
-			  PRIMARY KEY  (`id`),
-			  KEY `first_name` (`first_name`),
-			  KEY `last_name` (`last_name`),
-			  KEY `email` (`email`),
-			  KEY `mobile_tel` (`mobile_tel`),
-			  KEY `work_tel` (`work_tel`),
-			  KEY `status` (`status`),
-			  KEY `familyid` (`familyid`)
+			  INDEX `person_fn` (`first_name`),
+			  INDEX `person_ln` (`last_name`),
+			  PRIMARY KEY  (`id`)
 			) ENGINE=InnoDB ;",
 
 			"CREATE TABLE person_photo (
@@ -202,6 +198,19 @@ class Person extends DB_Object
 			   PRIMARY KEY (personid),
 			   CONSTRAINT photo_personid FOREIGN KEY (`personid`) REFERENCES `_person` (`id`) ON DELETE CASCADE
 			) ENGINE=InnoDB",
+		);
+	}
+
+	/**
+	 *
+	 * @return Array (columnName => referenceExpression) eg 'tagid' => 'tagoption(id) ON DELETE CASCADE'
+	 */
+	public function getForeignKeys()
+	{
+		return Array(
+				'_person.age_bracketid' => '`age_bracket`(`id`) ON DELETE RESTRICT',
+				'_person.familyid' => '`family`(`id`) ON DELETE RESTRICT',
+				'_person.congregationid' => '`congregation`(`id`) ON DELETE RESTRICT',
 		);
 	}
 
@@ -425,20 +434,51 @@ class Person extends DB_Object
 		
 	}
 
-	function getPersonsByName($name, $include_archived=true)
+	public static function getPersonsBySearch($searchTerm, $includeArchived=true)
 	{
-		$params = Array('CONCAT(first_name, " ", last_name)' => $name);
-		if (!$include_archived) {
-			$params['!status'] = 'archived';
+		$db = $GLOBALS['db'];
+		$SQL = '
+			SELECT pp.id, pp.*
+			FROM (
+				SELECT p.*
+				FROM person p
+				WHERE (
+					/* stem matches for first and last name */
+					(first_name LIKE '.$db->quote($searchTerm.'%').')
+					OR (last_name LIKE '.$db->quote($searchTerm.'%').')
+					OR (CONCAT(first_name, " ", last_name) LIKE '.$db->quote($searchTerm.'%').')
+				)
+
+				UNION
+
+				SELECT p.*
+				FROM person p
+				JOIN custom_field_value cfv ON cfv.personid = p.id
+				JOIN custom_field cf ON cfv.fieldid = cf.id
+				WHERE cf.searchable
+				AND (
+					/* whole word matches for custom fields */
+					(cfv.value_text = '.$db->quote($searchTerm).')
+					OR (cfv.value_text LIKE '.$db->quote($searchTerm.' %').')
+					OR (cfv.value_text LIKE '.$db->quote('% '.$searchTerm).')
+					OR (cfv.value_text LIKE '.$db->quote('% '.$searchTerm.' %').' )
+				)
+			) pp
+		';
+		if (!$includeArchived) {
+			$SQL .= '
+			WHERE status <> "archived"
+			';
 		}
-		$results = $GLOBALS['system']->getDBObjectData('person', $params, 'AND', 'last_name');
-		if (empty($results)) {
-			$params['CONCAT(first_name, " ", last_name)'] = '%'.$name.'%';
-			$results = $GLOBALS['system']->getDBObjectData('person', $params, 'AND', 'last_name');
-		}
-		return $results;
+		$SQL .= '
+			GROUP BY pp.id
+			';
+		$res = $db->queryAll($SQL, null, null, true, true); // 5th param forces array even if one col
+		check_db_result($res);
+		return $res;
+
 	}
-	
+
 	function save($update_family=TRUE)
 	{
 		$GLOBALS['system']->doTransaction('BEGIN');
@@ -689,7 +729,8 @@ class Person extends DB_Object
 		$res['select'][] = 'f.family_name, f.address_street, f.address_suburb, f.address_state, f.address_postcode, f.home_tel, c.name as congregation';
 		$res['from'] = '(('.$res['from'].') 
 						JOIN family f ON person.familyid = f.id)
-						LEFT OUTER JOIN congregation c ON person.congregationid = c.id';
+						LEFT JOIN congregation c ON person.congregationid = c.id
+						JOIN age_bracket ab on ab.id = person.age_bracketid ';
 		return $res;
 	}
 
@@ -775,7 +816,7 @@ class Person extends DB_Object
 		$res = parent::processForm($prefix, $fields);
 		foreach ($this->getCustomFields() as $fieldid => $fieldDetails) {
 			$field = $GLOBALS['system']->getDBObject('custom_field', $fieldid);
-			$this->setCustomValue($fieldid, $field->processWidget());
+			$this->setCustomValue($fieldid, $field->processWidget($prefix));
 		}
 
 		$this->_photo_data = Photo_Handler::getUploadedPhotoData($prefix.'photo');
@@ -866,6 +907,20 @@ class Person extends DB_Object
 				$this->setCustomValue($customFields[$k]->id, $customFields[$k]->parseValue($v));
 				unset($row[$k]); // so it doesn't upset db_object::fromCsvRow
 			}
+		}
+
+		if (isset($row['age_bracket'])) {
+			foreach (Age_Bracket::getMap() as $id => $label) {
+				if (strtolower($label) == $row['age_bracket']) {
+					$row['age_bracket_id'] = $id;
+					break;
+				}
+			}
+			if (!isset($row['age_bracket_id'])) {
+				// no match was found - copy the raw value across to trigger an error later
+				$row['age_bracket_id'] = $row['age_bracket'];
+			}
+			unset($row['age_bracket']);
 		}
 
 		parent::fromCsvRow($row);

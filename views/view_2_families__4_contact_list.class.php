@@ -45,7 +45,7 @@ class View_Families__Contact_List extends View
 	{
 		$dummy_person = new Person();
 		$dummy_person->fields['congregationid']['allow_multiple'] = true;
-		$dummy_person->fields['age_bracket']['allow_multiple'] = true;
+		$dummy_person->fields['age_bracketid']['allow_multiple'] = true;
 		?>
 		<form method="get">
 		<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
@@ -64,7 +64,7 @@ class View_Families__Contact_List extends View
 			<tr>
 				<th><?php echo _('Age brackets');?></th>
 				<td><?php echo _('Only show contact details for persons who are');?><br />
-				<?php $dummy_person->printFieldInterface('age_bracket'); ?>
+				<?php $dummy_person->printFieldInterface('age_bracketid'); ?>
 				</td>
 			</tr>
 			<tr>
@@ -217,13 +217,14 @@ class View_Families__Contact_List extends View
 
 		$sql = '
 		select family.id as familyid, family.family_name, family.home_tel,
-			person.id, person.first_name, person.last_name, person.mobile_tel, person.email, person.age_bracket,
+			person.id, person.first_name, person.last_name, person.mobile_tel, person.email, person.age_bracketid,
 			congregation.long_name as congname,
 			address_street, address_suburb, address_state, address_postcode,
 			IF (fp.familyid IS NULL, 0, 1) as have_photo,
 			IF (signup.groupid IS NULL, 0, 1) as signed_up
 		from family
 		join person on family.id = person.familyid
+		join age_bracket ab ON ab.id = person.age_bracketid
 		left join congregation on person.congregationid = congregation.id
 		left join family_photo fp ON fp.familyid = family.id
 		left join person_group_membership signup ON signup.personid = person.id AND signup.groupid = '.(int)$groupid.'
@@ -238,7 +239,7 @@ class View_Families__Contact_List extends View
 				AND person.congregationid in ('.implode(',', array_map(Array($db, 'quote'), $_REQUEST['congregationid'])).')';
 		}
 		$sql .= ')
-		order by family_name asc, age_bracket asc, gender desc
+		order by family_name asc, familyid, ab.rank asc, gender desc
 		';
 		$res = $db->queryAll($sql, null, null, true, true, true);
 		check_db_result($res);
@@ -267,7 +268,7 @@ class View_Families__Contact_List extends View
 				// - AND (their age bracket is correct) OR all age brackets are in
 				if (
 					($member['signed_up'] || $all_member_details == 1)
-					&& (empty($_REQUEST['age_bracket']) || in_array($member['age_bracket'], $_REQUEST['age_bracket']))
+					&& (empty($_REQUEST['age_bracketid']) || in_array($member['age_bracketid'], $_REQUEST['age_bracketid']))
 				) {
 					$member['mobile_tel'] = $dummy_person->getFormattedValue('mobile_tel', $member['mobile_tel']);
 					$family['optins'][] = $member;
@@ -288,11 +289,13 @@ class View_Families__Contact_List extends View
 				foreach ($family['optins'] as &$adult) {
 					$adult['name'] .= ' '.$adult['last_name'];
 				}
+				unset($adult);
 			}
 			if ($all_use_full) {
 				foreach ($family['all'] as &$member) {
 					$member['name'] .= ' '.$member['last_name'];
 				}
+				unset($member);
 			}
 
 			$family['all_names'] = Array();

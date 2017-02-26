@@ -320,7 +320,7 @@ class System_Controller
 
 	public function featureEnabled($feature)
 	{
-		$enabled_features = explode(',', strtoupper(ENABLED_FEATURES));
+		$enabled_features = explode(',', strtoupper(ifdef('ENABLED_FEATURES', '')));
 		return in_array(strtoupper($feature), $enabled_features);
 	}
 	

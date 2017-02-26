@@ -88,6 +88,15 @@ class View_Families__Add extends View
 				}
 			}
 
+			if ($success) {
+				foreach (array_get($_REQUEST, 'groups', Array()) as $groupid) {
+					$group = $GLOBALS['system']->getDBObject('person_group', $groupid);
+					foreach ($members as $member) {
+						$group->addMember($member->id, $_REQUEST['membership_status'][$groupid]);
+					}
+				}
+			}
+
 			// Before committing, check for duplicates
 			if (empty($_REQUEST['override_dup_check'])) {
 				$this->_similar_families = $this->_family->findSimilarFamilies();
@@ -158,6 +167,8 @@ class View_Families__Add extends View
 		$person->fields['first_name']['width'] = 11;
 		$person->fields['last_name']['width'] = 11;
 		$person->fields['email']['width'] = 25;
+
+		$customFields = $GLOBALS['system']->getDBObjectData('custom_field', Array('show_add_family' => 1), 'AND', 'rank');
 		?>
 		<form method="post" id="add-family" class="form-horizontal">
 			<input type="hidden" name="new_family_submitted" value="1" />
@@ -173,7 +184,8 @@ class View_Families__Add extends View
 			<table class="expandable">
 			<?php
 			include_once 'include/size_detector.class.php';
-			if (SizeDetector::isNarrow()) {
+			if (SizeDetector::isNarrow() || count($customFields) > 0) {
+				// horizontal view would get too wide if we added custom fields to it
 				?>
 				<tr>
 					<td>
@@ -186,7 +198,7 @@ class View_Families__Add extends View
 							<label><?php echo _('Gender');?></label>
 							<label><?php echo _('Age');?></label>
 							<div><?php $person->printFieldInterface('gender', 'members_0_'); ?></div>
-							<div><?php $person->printFieldInterface('age_bracket', 'members_0_'); ?></div>
+							<div><?php $person->printFieldInterface('age_bracketid', 'members_0_'); ?></div>
 
 							<label><?php echo _('Status');?></label>
 							<label><?php echo _('Congregation');?></label>
@@ -198,10 +210,18 @@ class View_Families__Add extends View
 							<div><?php $person->printFieldInterface('mobile_tel', 'members_0_'); ?></div>
 							<div><?php $person->printFieldInterface('email', 'members_0_'); ?></div>
 
+						<?php
+						$field = new Custom_Field();
+						foreach ($customFields as $fieldID => $fDetails) {
+							$field->populate($fieldID, $fDetails);
+							?>
+							<label class="fullwidth"><?php $field->printFieldValue('name'); ?></label>
+							<div class="fullwidth"><?php $field->printWidget('', Array(), 'members_0_'); ?></div>
+							<?php
+						}
+						?>
+							
 						</div>
-
-
-
 					</td>
 				</tr>
 				<?php
@@ -224,7 +244,7 @@ class View_Families__Add extends View
 						<td><?php $person->printFieldInterface('first_name', 'members_0_'); ?></td>
 						<td class="last_name preserve-value"><?php $person->printFieldInterface('last_name', 'members_0_'); ?></td>
 						<td><?php $person->printFieldInterface('gender', 'members_0_'); ?></td>
-						<td><?php $person->printFieldInterface('age_bracket', 'members_0_'); ?></td>
+						<td><?php $person->printFieldInterface('age_bracketid', 'members_0_'); ?></td>
 						<td class="person-status preserve-value"><?php $person->printFieldInterface('status', 'members_0_'); ?></td>
 						<td class="congregation preserve-value"><?php $person->printFieldInterface('congregationid', 'members_0_'); ?></td>
 						<td><?php $person->printFieldInterface('mobile_tel', 'members_0_'); ?></td>
@@ -254,6 +274,34 @@ class View_Families__Add extends View
 				$note = new Family_Note();
 				$note->printForm('initial_note_');
 			?>
+			</div>
+			<?php
+		}
+
+		$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('!show_add_family' => 'no'));
+		if ($groups) {
+			?>
+			<h3><?php echo _('Groups'); ?></h3>
+			<p><?php echo _('Add the members of this family:'); ?></p>
+			<div class="indent-left">
+				<?php
+				foreach ($groups as $groupid => $group) {
+					?>
+					<label class="checkbox">
+						<input name="groups[]" value="<?php echo $groupid; ?>"
+							   type="checkbox"
+							   <?php if ($group['show_add_family'] == 'selected') echo 'checked="checked"'; ?>
+						/>
+						<?php
+						echo _('as');
+						Person_Group::printMembershipStatusChooser('membership_status['.$groupid.']');
+						echo _('of');
+						echo ' '.ents($group['name']);
+						?>
+					</label>
+					<?php
+				}
+				?>
 			</div>
 			<?php
 		}

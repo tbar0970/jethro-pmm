@@ -24,8 +24,8 @@ $PERM_LEVELS = Array(
 
 16384 =>	Array('VIEWSERVICE',		'Services - view',						'ROSTERS&SERVICES'),
 49152 =>	Array('EDITSERVICE',		'Services - edit individual',			'SERVICEDETAILS'),
-114688 =>	Array('BULKSERVICE',		'Services - edit service program',		'ROSTERS&SERVICES'),
-180224 =>	Array('SERVICECOMPS',		'Services - manage service components','SERVICEDETAILS'),
+114688 =>	Array('BULKSERVICE',		'Services - edit service schedule',		'ROSTERS&SERVICES'),
+180224 =>	Array('SERVICECOMPS',		'Services - manage component library',  'SERVICEDETAILS'),
 /*311296 =>	Array('MANAGESONGS',		'Services - manage song repertoire',	'SERVICEDETAILS'),*/
 
 524288 =>	Array('EDITREC',			'Sermon recordings - manage',			'SERMONRECORDINGS'),
@@ -35,5 +35,5 @@ $PERM_LEVELS = Array(
 7340032 =>	Array('SERVICEDOC',			'Service Documents - generate',			'SERVICEDOCUMENTS'),
 
 /* room for some more here... */
-2147483647 => Array('SYSADMIN',			'SysAdmin - manage users and congregations', ''),
+2147483647 => Array('SYSADMIN',			'SysAdmin - manage user accounts, congregations etc', ''),
 );

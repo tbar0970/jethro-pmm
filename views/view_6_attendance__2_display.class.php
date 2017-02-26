@@ -175,7 +175,7 @@ class View_Attendance__Display extends View
 		}
 		echo '</h3>';
 		$params = Array();
-		if ($this->age_brackets) $params['(age_bracket'] = $this->age_brackets;
+		if ($this->age_brackets) $params['(age_bracketid'] = $this->age_brackets;
 		if ($this->statuses) $params['(status'] = $this->statuses;
 		
 		foreach ($this->statuses as $status) {
@@ -347,7 +347,7 @@ class View_Attendance__Display extends View
 		$dummy = new Person();
 
 		$params = Array();
-		if ($this->age_brackets) $params['(age_bracket'] = $this->age_brackets;
+		if ($this->age_brackets) $params['(age_bracketid'] = $this->age_brackets;
 		if ($this->statuses) $params['(status'] = $this->statuses;
 		
 		$all_persons = Attendance_Record_Set::getPersonDataForCohorts($this->cohortids, $params);

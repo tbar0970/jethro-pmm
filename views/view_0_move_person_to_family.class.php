@@ -101,7 +101,7 @@ class View__Move_Person_To_Family extends View
 		}
 		if ($show_form) {
 			?>
-			<form method="post" class="form-horizontal" data-lock-length="<?php echo LOCK_LENGTH; ?>">
+			<form method="post" class="form-horizontal" data-lock-length="<?php echo db_object::getLockLength() ?>">
 				<div class="control-group">
 					<label class="control-label">Current Family</label>
 					<div class="controls controls-text">

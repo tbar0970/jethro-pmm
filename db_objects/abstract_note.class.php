@@ -235,7 +235,7 @@ class Abstract_Note extends DB_Object
 	function printUpdateForm()
 	{
 		?>
-		<form method="post" id="update-note" class="form-horizontal"  data-lock-length="<?php echo LOCK_LENGTH; ?>">
+		<form method="post" id="update-note" class="form-horizontal"  data-lock-length="<?php echo db_object::getLockLength() ?>">
 			<input type="hidden" name="update_note_submitted" value="1" />
 			<div class="control-group">
 				<label class="control-label">Comment</label>

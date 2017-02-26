@@ -131,6 +131,20 @@ class View_Admin__Custom_Fields extends View
 							<?php $field->printFieldInterface('allow_multiple', $prefix); ?>
 							Allow Multiple
 						</label>
+						<label class="radio">
+							<?php $field->printFieldInterface('show_add_family', $prefix); ?>
+							Show on add-family page
+						</label>
+					<?php
+					if (empty($field->id) || $field->getValue('type') == 'text') {
+						?>
+						<label class="radio">
+							<?php $field->printFieldInterface('searchable', $prefix); ?>
+							Include in system-wide search
+						</label>
+						<?php
+					}
+					?>
 						<label class="radio toggle-divider">
 							<?php $field->printFieldInterface('divider_before', $prefix); ?>
 							Divider Before

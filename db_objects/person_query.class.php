@@ -3,9 +3,9 @@ include_once 'include/db_object.class.php';
 class Person_Query extends DB_Object
 {
 	private $_field_details = Array();
-	private $_query_fields = Array('p.status', 'p.congregationid', 'p.age_bracket', 'p.gender', 'f.address_suburb', 'f.address_state', 'f.address_postcode', 'p.creator', 'p.created', 'p.status_last_changed');
+	private $_query_fields = Array('p.status', 'p.congregationid', 'p.age_bracketid', 'p.gender', 'f.address_suburb', 'f.address_state', 'f.address_postcode', 'p.creator', 'p.created', 'p.status_last_changed');
 	private $_show_fields = Array(
-		'p.first_name', 'p.last_name', 'f.family_name', 'p.age_bracket', 'p.gender', 'p.status', 'p.congregationid', NULL,
+		'p.first_name', 'p.last_name', 'f.family_name', 'p.age_bracketid', 'p.gender', 'p.status', 'p.congregationid', NULL,
 		'p.email', 'p.mobile_tel', 'p.work_tel', 'f.home_tel', 'p.remarks',
 		'f.address_street', 'f.address_suburb', 'f.address_state', 'f.address_postcode', NULL,
 		'p.creator', 'p.created', 'f.created', 'p.status_last_changed', );
@@ -429,7 +429,7 @@ class Person_Query extends DB_Object
 			?>
 			<tr>
 				<td>
-					<img src="<?php echo BASE_URL; ?>/resources/img/expand_up_down_green_small.png" class="icon insert-row-below" style="position: relative; top: 2ex" title="Create a blank entry here" />
+					<div class="insert-row-below" title="Click to insert a field here"></div>
 				</td>
 				<td>
 					<?php
@@ -492,25 +492,29 @@ class Person_Query extends DB_Object
 		?>
 		</table>
 
-
-		<h3>Group the results...</h3>
-		<?php
-		$gb = array_get($params, 'group_by', '');
-		?>
+		<h3>Group the results by...</h3>
 		<div class="indent-left">
-			<select name="group_by">
-				<option value=""<?php if ($gb == '') echo ' selected="selected"'; ?>>all together</option>
-				<option value="groupid"<?php if ($gb == 'groupid') echo ' selected="selected"'; ?>>by group membership</option>
 			<?php
+			$options = Array(
+						'' => _('Nothing - one big group'),
+						'groupid' => _('Which person groups they are in'),
+			);
 			foreach ($this->_query_fields as $i) {
 				$v = $this->_field_details[$i];
-				if (!in_array($v['type'], Array('select', 'reference'))) continue;
-				?>
-				<option value="<?php echo $i; ?>"<?php if ($gb == $i) echo ' selected="selected"'; ?>>by <?php echo $v['label']; ?></option>
-				<?php
+				if (in_array($v['type'], Array('select', 'reference'))) {
+					$options[$i] = _($v['label']);
+				}
 			}
+			foreach ($this->_custom_fields as $id => $f) {
+				if ($f['type'] != 'select') continue; // restrict it to option fields for now.
+				$options['custom-'.$id] = $f['name'];
+			}
+			print_widget(
+					'group_by',
+					Array('type' => 'select', 'options' => $options),
+					array_get($params, 'group_by', '')
+			);
 			?>
-			</select>
 			<p class="smallprint">Note: Result groups that do not contain any persons will not be shown</p>
 		</div>
 
@@ -568,13 +572,18 @@ class Person_Query extends DB_Object
 					/>
 					as a new report 
 				</label>
-		
+			<?php
+			if ($this->id != 0) {
+				?>
 				<label type="radio">
 					<input type="radio" name="save_option" value="replace" id="save_option_replace" <?php if ($this->id && ($this->id != 'TEMP')) echo 'checked="checked"'; ?>
 						 data-toggle="enable"
 						 />
 					in place of its previous version
 				</label>
+				<?php
+			}
+			?>
 
 				<label type="radio">
 					<input type="radio" name="save_option"
@@ -830,6 +839,7 @@ class Person_Query extends DB_Object
 						JOIN family f ON p.familyid = f.id
 						';
 		$query['where'] = Array();
+		$query['group_by'] = Array('p.id');
 
 		// BASIC FILTERS
 		foreach ($params['rules'] as $field => $values) {
@@ -1029,10 +1039,24 @@ class Person_Query extends DB_Object
 											array_get($params, 'group_membership_status')
 									);
 				$grouping_order = 'pg.name, ';
+				$query['group_by'][] = 'pg.id';
 			} else {
 				$grouping_field = '';
 			}
+		} else if (0 === strpos($params['group_by'], 'custom-')) {
+			list($null, $fieldid) = explode('-', $params['group_by']);
+			$query['from'] .= ' LEFT JOIN custom_field_value cfvgroup
+									ON cfvgroup.personid = p.id
+										AND cfvgroup.fieldid = '.(int)$fieldid.'
+							';
+			$query['from'] .= ' LEFT JOIN custom_field_option cfogroup
+									ON cfogroup.id = cfvgroup.value_optionid
+								';
+			$grouping_order = 'IF(cfvgroup.personid IS NULL, 1, 0), '.Custom_Field::getSortValueSQLExpr('cfvgroup', 'cfogroup').', ';
+			$grouping_field = Custom_Field::getRawValueSQLExpr('cfvgroup', 'cfogroup').', ';
+			$query['group_by'][] = Custom_Field::getRawValueSQLExpr('cfvgroup', 'cfogroup');
 		} else {
+			// by some core field
 			$grouping_order = $grouping_field = $params['group_by'].', ';
 		}
 
@@ -1101,10 +1125,11 @@ class Person_Query extends DB_Object
 										JOIN (
 											SELECT familyid, IF (
 												GROUP_CONCAT(DISTINCT last_name) = ff.family_name, 
-												GROUP_CONCAT(first_name ORDER BY age_bracket, gender DESC SEPARATOR ", "),
-												GROUP_CONCAT(CONCAT(first_name, " ", last_name) ORDER BY age_bracket, gender DESC SEPARATOR ", ")
+												GROUP_CONCAT(first_name ORDER BY ab.rank, gender DESC SEPARATOR ", "),
+												GROUP_CONCAT(CONCAT(first_name, " ", last_name) ORDER BY ab.rank, gender DESC SEPARATOR ", ")
 											  ) AS `names`
 											FROM person pp
+											JOIN age_bracket ab ON ab.id = pp.age_bracketid
 											JOIN family ff ON pp.familyid = ff.id
 											WHERE pp.status <> "archived"
 											GROUP BY familyid
@@ -1126,12 +1151,13 @@ class Person_Query extends DB_Object
 						$r2 = $GLOBALS['db']->query('INSERT INTO _family_adults'.$this->id.' (familyid, names)
 											SELECT familyid, IF (
 												GROUP_CONCAT(DISTINCT last_name) = ff.family_name, 
-												GROUP_CONCAT(first_name ORDER BY age_bracket, gender DESC SEPARATOR ", "),
+												GROUP_CONCAT(first_name ORDER BY ab.rank, gender DESC SEPARATOR ", "),
 												GROUP_CONCAT(CONCAT(first_name, " ", last_name) ORDER BY age_bracket, gender DESC SEPARATOR ", ")
 											  )
 											FROM person pp
+											JOIN age_bracket ab ON pp.age_bracketid = ab.id
 											JOIN family ff ON pp.familyid = ff.id
-											WHERE pp.status <> "archived" AND pp.age_bracket = 0
+											WHERE pp.status <> "archived" AND ab.is_adult
 											GROUP BY familyid');
 						check_db_result($r2);
 						$query['from'] .= ' LEFT JOIN _family_adults'.$this->id.' ON _family_adults'.$this->id.'.familyid = p.familyid
@@ -1251,10 +1277,9 @@ class Person_Query extends DB_Object
 					('.implode(")\n\tAND (", $query['where']).')
 				';
 		}
-		$sql .= 'GROUP BY p.id ';
-		if (array_get($params, 'group_by') == 'groupid') $sql .= ', pg.id ';
+		$sql .= 'GROUP BY '.implode(', ', $query['group_by']);
 		$sql .= 'ORDER BY '.$query['order_by'].', p.last_name, p.first_name';
-		
+	//	bam($sql); exit;
 		
 		return $sql;
 	}
@@ -1316,13 +1341,17 @@ class Person_Query extends DB_Object
 	function _printResultGroups($res, $params, $format)
 	{
 		foreach ($res as $i => $v) {
-			if ($params['group_by'] != 'groupid') {
-					$var = $params['group_by'][0] == 'p' ? '_dummy_person' : '_dummy_family';
-					$fieldname = substr($params['group_by'], 2);
-					$this->$var->setValue($fieldname, $i);
-					$heading = $this->$var->getFormattedValue($fieldname);
+			if (0 === strpos($params['group_by'], 'custom-')) {
+				$field = $GLOBALS['system']->getDBObject('custom_field', end(explode('-', $params['group_by'])));
+				$heading = $field->formatValue($i);
+				if (!strlen($heading)) $heading = '(Blank)';
+			} else if ($params['group_by'] == 'groupid') {
+				$heading = $i;
 			} else {
-					$heading = $i;
+				$var = $params['group_by'][0] == 'p' ? '_dummy_person' : '_dummy_family';
+				$fieldname = substr($params['group_by'], 2);
+				$this->$var->setValue($fieldname, $i);
+				$heading = $this->$var->getFormattedValue($fieldname);
 			}
 			$this->_printResultSet($v, $format, $heading);
 		}

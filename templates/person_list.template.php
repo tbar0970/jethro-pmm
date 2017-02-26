@@ -64,7 +64,7 @@ if ($show_actions) {
 			<?php
 		}?>
 			<td><?php $dummy_person->printFieldValue('status'); ?></td>
-			<td><?php $dummy_person->printFieldValue('age_bracket'); ?></td>
+			<td><?php $dummy_person->printFieldValue('age_bracketid'); ?></td>
 			<td><?php $dummy_person->printFieldValue('gender'); ?></td>
 			<?php 
 				if (defined('PERSON_LIST_SHOW_GROUPS') && PERSON_LIST_SHOW_GROUPS) {

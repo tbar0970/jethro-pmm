@@ -14,7 +14,7 @@ class View__Edit_Me extends View
 	{
 		// Non-adults can only edit if there are no adults in the family
 		return
-			($GLOBALS['user_system']->getCurrentMember('age_bracket') == '0')
+			in_array($GLOBALS['user_system']->getCurrentMember('age_bracketid'), Age_Bracket::getAdults())
 			|| !$this->hasAdult
 		;
 	}
@@ -25,7 +25,7 @@ class View__Edit_Me extends View
 		foreach ($this->family->getMemberData() as $id => $member) {
 			$p = $GLOBALS['system']->getDBObject('person', $id);
 			$this->persons[] = $p;
-			if ($p->getValue('age_bracket') == '0') $this->hasAdult = TRUE;
+			if (in_array($p->getValue('age_bracket'), Age_Bracket::getAdults())) $this->hasAdult = TRUE;
 		}
 		
 		if (!empty($_POST) && $this->canEdit()) {
@@ -78,7 +78,7 @@ class View__Edit_Me extends View
 
 			foreach ($this->persons as $person) {
 				echo '<h3>'.$person->getValue('first_name').' '.$person->getValue('last_name').'</h3>';
-				$person->printForm('person_'.$person->id, Array('gender', 'age_bracket', 'email', 'mobile_tel', 'work_tel', 'photo'));
+				$person->printForm('person_'.$person->id, Array('gender', 'age_bracketid', 'email', 'mobile_tel', 'work_tel', 'photo'));
 			}
 				
 			?>

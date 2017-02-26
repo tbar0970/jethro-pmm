@@ -255,7 +255,7 @@ class View_Attendance__Record extends View
 	private function printFormParallel()
 	{
 		$params = Array();
-		if ($this->_age_brackets) $params['(age_bracket'] = $this->_age_brackets;
+		if ($this->_age_brackets) $params['(age_bracketid'] = $this->_age_brackets;
 		if ($this->_statuses) {
 			$params['(status'] = $this->_statuses;
 		} else {
@@ -402,8 +402,8 @@ class View_Attendance__Record extends View
 				$GLOBALS['system']->includeDBClass('person');
 				$p = new Person();
 				foreach ($set->age_brackets as $ab) {
-					$p->setValue('age_bracket', $ab);
-					$abs[] = $p->getFormattedValue('age_bracket');
+					$p->setValue('age_bracketid', $ab);
+					$abs[] = $p->getFormattedValue('age_bracketid');
 				}
 			}
 			$title = implode(', ', $stats).' '.implode(',', $abs).' in '.$title;

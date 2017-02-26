@@ -34,35 +34,51 @@ class View_services extends View
 				'date' => $this->date
 			), 'AND');
 			if (!empty($serviceData)) {
-				// SAVE RUN SHEET
 				$this->service = $GLOBALS['system']->getDBObject('service', key($serviceData));
 
 				if ($this->editing) {
 					$this->service->acquireLock('items');
-				}
-
-				if (!empty($_REQUEST['save_service']) && $GLOBALS['user_system']->havePerm(PERM_EDITSERVICE)) {
 					if (!$this->service->haveLock('items')) {
 						trigger_error("Your lock expired and your changes could not be saved");
 						return;
 					}
-					$newItems = Array();
-					foreach (array_get($_POST, 'componentid', Array()) as $rank => $compid) {
-						$newItem = Array(
-							'componentid' => $compid,
-							'title' => $_POST['title'][$rank],
-							'personnel' => $_POST['personnel'][$rank],
-							'show_in_handout' => $_POST['show_in_handout'][$rank],
-							'length_mins' => $_POST['length_mins'][$rank],
-							'note'        => trim($_POST['note'][$rank]),
-							'heading_text'     => trim($_POST['heading_text'][$rank]),
-						);
-						$newItems[] = $newItem;
+
+					if (!empty($_REQUEST['copy_service_id'])) {
+						$fromService = new Service((int)$_REQUEST['copy_service_id']);
+						if (!$fromService) {
+							trigger_error("Service ".(int)$_REQUEST['copy_service_id']." not found - could not copy");
+							return;
+						}
+						$newItems = $fromService->getItems();
+						// WHAT TO DO WITH AD HOC ITEMS?
+						foreach ($newItems as $k => $v) {
+							if (!in_array($v['categoryid'], $_REQUEST['copy_category_ids'])) {
+								unset($newItems[$k]);
+							}
+						}
+						$this->service->saveItems($newItems);
+						// Retain lock and stay in editing mode
 					}
-					$this->service->saveItems($newItems);
-					$this->service->saveComments(process_widget('service_comments', Array('type' => 'html')));
-					$this->service->releaseLock('items');
-					$this->editing = FALSE;
+
+					if (!empty($_REQUEST['save_service'])) {
+						$newItems = Array();
+						foreach (array_get($_POST, 'componentid', Array()) as $rank => $compid) {
+							$newItem = Array(
+								'componentid' => $compid,
+								'title' => $_POST['title'][$rank],
+								'personnel' => $_POST['personnel'][$rank],
+								'show_in_handout' => $_POST['show_in_handout'][$rank],
+								'length_mins' => $_POST['length_mins'][$rank],
+								'note'        => trim($_POST['note'][$rank]),
+								'heading_text'     => trim($_POST['heading_text'][$rank]),
+							);
+							$newItems[] = $newItem;
+						}
+						$this->service->saveItems($newItems);
+						$this->service->saveComments(process_widget('service_comments', Array('type' => 'html')));
+						$this->service->releaseLock('items');
+						$this->editing = FALSE;
+					}
 				}
 			}
 		} else {
@@ -159,11 +175,27 @@ class View_services extends View
 	{
 		$cong = $GLOBALS['system']->getDBObject('congregation', $this->congregationid);
 		$startTime = preg_replace('/[^0-9]/', '', $cong->getValue('meeting_time'));
+		$items = $this->service->getItems();
 		$dummyItem = new Service_Item();
 		?>
 		<div class="span6">
-			<h3>Run Sheet</h3>
-			<form method="post" id="service-plan-container" data-lock-length="<?php echo LOCK_LENGTH; ?>">
+			<h3>
+				<?php
+				if (empty($items)) {
+					?>
+					<span class="pull-right">
+							<small>
+								<a href="#" data-toggle="modal" data-target="#copy-previous-modal">
+									<i class="icon-share"></i><?php echo _('Copy from previous'); ?>
+								</a>
+							</small>
+					</span>
+					<?php
+				}
+				?>
+				Run Sheet
+			</h3>
+			<form method="post" id="service-plan-container" data-lock-length="<?php echo db_object::getLockLength() ?>">
 			<input type="hidden" name="save_service" value="1" />
 			<table class="table table-bordered table-condensed no-autofocus" id="service-plan" data-starttime="<?php echo $startTime; ?>">
 				<thead>
@@ -178,15 +210,21 @@ class View_services extends View
 
 				<tbody>
 				<?php
-				$items = $this->service->getItems();
 				if (empty($items)) {
 					?>
 					<tr id="service-plan-placeholder">
-						<td colspan="5" style="padding: 50px; text-align: center">
+						<td colspan="5" style="padding: 40px;">
 							<?php
 							if ($this->editing) {
 								?>
-								<i>Drag or double-click components to add them to this service</i>
+								<div class="alert alert-info">
+								To start building this run sheet,
+								<ul>
+									<li>drag an item from the component library</li>
+									<li><a href="#" data-toggle="modal" data-target="#ad-hoc-modal">enter an ad hoc item</a>, or </li>
+									<li><a href="#" data-toggle="modal" data-target="#copy-previous-modal">Copy items from a previous service</a></li>
+								</ul>
+								</div>
 								<?php
 							} else {
 								?>
@@ -256,6 +294,9 @@ class View_services extends View
 					}
 				}
 				?>
+					<tr id="service-plan-spacer">
+						<td colspan="5"></td>
+					</tr>
 					<tr id="service-item-template">
 						<td class="start"></td>
 						<td class="number"></td>
@@ -291,50 +332,105 @@ class View_services extends View
 				</tfoot>
 			</table>
 			</form>
-
-			<div class="modal hide fade-in" id="ad-hoc-modal" role="dialog">
-				<div class="modal-header">
-					<h4>Add ad-hoc service item</h4>
-				</div>
-				<div class="modal-body form-horizontal">
-					<div class="control-group">
-						<label class="control-label">
-							Title
-						</label>
-						<div class="controls">
-							<?php $dummyItem->printFieldInterface('title'); ?>
-						</div>
-					</div>
-					<div class="control-group">
-						<label class="control-label">
-							Show in handout?
-						</label>
-						<div class="controls">
-							<?php 
-							$dummyItem->setValue('show_in_handout', 'title');
-							$dummyItem->printFieldInterface('show_in_handout'); ?>
-						</div>
-					</div>
-					<div class="control-group">
-						<label class="control-label">
-							Length
-						</label>
-						<div class="controls">
-							<?php
-							$dummyItem->setValue('length_mins', 2);
-							$dummyItem->printFieldInterface('length_mins');
-							?>
-							mins
-						</div>
-					</div>
-				</div>
-				<div class="modal-footer">
-					<input class="btn" type="button" value="Save item" data-action="saveItemDetails" />
-					<input class="btn" type="button" value="Cancel" data-dismiss="modal" />
-				</div>
-				
-			</div>
  		</div>
+
+		<!-- ad-hoc item modal -->
+		<div class="modal hide fade-in" id="ad-hoc-modal" role="dialog">
+			<div class="modal-header">
+				<h4>Add ad-hoc service item</h4>
+			</div>
+			<div class="modal-body form-horizontal">
+				<div class="control-group">
+					<label class="control-label">
+						Title
+					</label>
+					<div class="controls">
+						<?php $dummyItem->printFieldInterface('title'); ?>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">
+						Show in handout?
+					</label>
+					<div class="controls">
+						<?php
+						$dummyItem->setValue('show_in_handout', 'title');
+						$dummyItem->printFieldInterface('show_in_handout'); ?>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">
+						Length
+					</label>
+					<div class="controls">
+						<?php
+						$dummyItem->setValue('length_mins', 2);
+						$dummyItem->printFieldInterface('length_mins');
+						?>
+						mins
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<input class="btn" type="button" value="Save item" data-action="saveItemDetails" />
+				<input class="btn" type="button" value="Cancel" data-dismiss="modal" />
+			</div>
+		</div>
+
+		<!-- copy-from-previous modal -->
+		<div class="modal hide fade-in" id="copy-previous-modal" role="dialog">
+			<form method="post">
+			<div class="modal-header">
+				<h4>Copy items from another service</h4>
+			</div>
+			<div class="modal-body form-horizontal">
+				<div class="control-group">
+					<label class="control-label">
+						Service to copy from
+					</label>
+					<div class="controls">
+						<?php
+						$options = Array();
+						$selectedID = NULL;
+						$services = $GLOBALS['system']->getDBObjectData('service', Array('>date' => date('Y-m-d', strtotime('-1 year'))), 'AND', 'date DESC');
+						$dummyService = new Service();
+						foreach ($services as $id => $s) {
+							if (!$s['has_items']) continue;
+							if ($id == $this->service->id) continue;
+							$dummyService->populate($id, $s);
+							$options[$id] = $dummyService->toString();
+							if (empty($selectedID)
+								&& $s['congregationid'] == $this->service->getValue('congregationid')
+								&& $s['date'] < $this->service->getValue('date')) {
+								$selectedID = $id;
+							}
+						}
+						print_widget('copy_service_id', Array('type' => 'select', 'options' => $options), $selectedID);
+						?>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">
+						Items to copy
+					</label>
+					<div class="controls">
+						<?php
+						$params = Array(
+							'type' => 'reference',
+							'references' => 'service_component_category',
+							'allow_multiple' => TRUE
+						);
+						print_widget('copy_category_ids[]', $params, '*');
+						?>						
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<input class="btn" type="submit" value="Copy items" />
+				<input class="btn" type="button" value="Cancel" data-dismiss="modal" />
+			</div>
+			</form>
+		</div>
 		<?php
 	}
 
@@ -348,7 +444,7 @@ class View_services extends View
 			<li><a href="javascript:;" data-action="addNote">Add note</a></li>
 			<li class=""><a href="javascript:;" data-action="editDetails">Edit item detail</a>
 			<li class="hidden-ad-hoc"><a href="javascript:;" data-action="viewCompDetail">View component</a>
-			<li><a href="javascript:;" data-action="remove">Remove</a></li>
+			<li><a href="javascript:;" data-action="remove">Remove item</a></li>
 			<li class="divider"></li>
 			<li><a href="javascript:;" data-action="addAdHoc">Add ad-hoc item below</a></li>
 		</ul>
@@ -377,11 +473,13 @@ class View_services extends View
 		?>
 		<div class="span6">
 			<h3>
-				<small class="pull-right">
+				<span class="pull-right">
+					<small>
 					<a href="?view=services__component_library">
 						<i class="icon-wrench"></i>Manage
 					</a>
-				</small>
+					</small>
+				</span>
 				Component Library
 			</h3>
 			<?php $this->printComponentSearch(); ?>
@@ -450,13 +548,13 @@ class View_services extends View
 										if ($comp['lastused']) echo format_date($comp['lastused'], FALSE);
 										?>
 									</td>
-									<td>
+									<td class="hide-in-transit">
 										<?php echo $comp['usage_1m']; ?>
 									</td>
-									<td>
+									<td class="hide-in-transit">
 										<?php echo $comp['usage_12m']; ?>
 									</td>
-									<td class="tools">
+									<td class="tools hide-in-transit">
 										<a href="?call=service_comp_detail&id=<?php echo $compid; ?>&head=1" class="med-popup" title="View component detail"><i class="icon-eye-open"> </i></a>
 									</td>
 								</tr>

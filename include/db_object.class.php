@@ -117,6 +117,10 @@ class db_object
 					$type = 'text';
 					$default = FALSE; // text columns cannot have a default
 					break;
+				case 'boolean':
+				case 'bool':
+					$type = 'TINYINT(1) UNSIGNED NOT NULL';
+					$default = array_get($details, 'default', 0);
 			}
 
 			switch ($default) {
@@ -135,7 +139,7 @@ class db_object
 				";
 		}
 		$res .= "PRIMARY KEY (`id`)".$indexes."
-			) ENGINE=InnoDB";
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8";
 		return $res;
 	}
 
@@ -151,7 +155,7 @@ class db_object
 
 	/**
 	 *
-	 * @return Array (columnName => referenceExpression) eg 'tagid' => 'tagoption.id ON DELETE CASCADE'
+	 * @return Array ([tablename.]columnName => referenceExpression) eg '`tagid`' => '`tagoption`(`id`) ON DELETE CASCADE'
 	 */
 	public function getForeignKeys()
 	{
@@ -725,6 +729,14 @@ class db_object
 		}
 	}
 
+	public static function getLockLength()
+	{
+		// this is to work around older config that had the word "minutes" in the config.
+		$lockLength = LOCK_LENGTH;
+		if (FALSE === strpos($lockLength, ' ')) $lockLength .= ' minutes';
+		return $lockLength;
+	}
+
 	public function haveLock($type='')
 	{
 		if (!empty($GLOBALS['JETHRO_INSTALLING'])) return TRUE;
@@ -778,13 +790,13 @@ class db_object
 					'.$db->quote(strtolower(get_class($this))).',
 					'.$db->quote($type).',
 					'.$db->quote($GLOBALS['user_system']->getCurrentPerson('id')).',
-					'.$db->quote(MDB2_Date::unix2Mdbstamp(strtotime('+'.LOCK_LENGTH))).')';
+					'.$db->quote(MDB2_Date::unix2Mdbstamp(strtotime('+'.self::getLockLength()))).')';
 		$res = $db->query($sql);
 		check_db_result($res);
 		$this->_held_locks[$type] = TRUE;
 		$this->_acquirable_locks[$type] = TRUE;
 
-		if (rand(LOCK_CLEANUP_PROBABLILITY, 100) == 100) {
+		if (rand(10, 100) == 100) {
 			$sql = 'DELETE FROM db_object_lock
 					WHERE expires < '.$db->quote(MDB2_Date::unix2Mdbstamp(time()));
 			$res = $db->query($sql);

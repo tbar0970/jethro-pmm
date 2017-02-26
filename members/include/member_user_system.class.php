@@ -295,9 +295,10 @@ If you didn't request an account, you can just ignore this email";
 		
 		$sql = 'SELECT p.*
 				FROM _person p
+				JOIN age_bracket ab ON ab.id = p.age_bracketid
 				WHERE p.email  = '.$db->quote($email).'
 				AND status <> "archived"
-				ORDER BY (IF(p.member_password IS NOT NULL, 0, 1)), p.age_bracket ASC, p.gender DESC';
+				ORDER BY (IF(p.member_password IS NOT NULL, 0, 1)), ab.rank ASC, p.gender DESC';
 		$res = $db->queryRow($sql);
 		check_db_result($res);
 		

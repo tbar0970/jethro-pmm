@@ -74,7 +74,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 			<table class="valign-middle">
 			<?php
 			$dummy = new Person();
-			foreach (Array('congregationid', 'status', 'age_bracket') as $field) {
+			foreach (Array('congregationid', 'status', 'age_bracketid') as $field) {
 				$dummy->fields[$field]['allow_empty'] = TRUE;
 				$dummy->fields[$field]['empty_text'] = '(No change)';
 				$dummy->setValue($field, NULL);
