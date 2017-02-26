@@ -57,9 +57,14 @@ function strip_all_slashes() {
 
 function bam($x)
 {
-	echo '<pre style="text-align: left">';
-	print_r($x);
-	echo '</pre>';
+	if (php_sapi_name() == 'cli') {
+		print_r($x);
+		echo "\n";
+	} else {
+		echo '<pre style="text-align: left">';
+		print_r($x);
+		echo '</pre>';
+	}
 }
 
 
