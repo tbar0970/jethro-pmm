@@ -130,11 +130,21 @@ define('REQUIRE_HTTPS', FALSE);
 // (as in older versions of Jethro) rather than via the web interface.  (
 // define('ALLOW_SETTINGS_IN_FILE', TRUE);
 
+// The place where the "documents" view will store files.
+// Defaults to [yourJethroRoot]/files
+// define('DOCUMENTS_ROOT_PATH', '');
+
 // To use the "generate service documents" feature, add folder paths here.
 // They can be absolute paths, or relative within the documents root above.
 // Separate multiple entries with pipe (|).  
 //define('SERVICE_DOCS_TO_POPULATE_DIRS', 'Templates/To_Populate');
 //define('SERVICE_DOCS_TO_EXPAND_DIRS', 'Templates/To_Expand');
+
+// To make certain document folders visible within the members interface,
+// add their paths here.
+// Separate multiple entries with pipe (|).
+// define('MEMBER_FILES_DIRS', 'Member_Files');
+
 
 // How to contact the system administrator (probably the person editing this file)
 // either mailto:someone@domain.com or http://somedomain.com/info-page
@@ -142,10 +152,6 @@ define('REQUIRE_HTTPS', FALSE);
 
 // Where to email errors to
 // define('ERRORS_EMAIL_ADDRESS', '');
-
-// The place where the "documents" view will store files.
-// Defaults to [yourJethroRoot]/files
-// define('DOCUMENTS_ROOT_PATH', '');
 
 // Whether to explicity turn of MySQL's strict mode.
 // Enable this if you experience strict-mode-related database errors and can't adjust your central Mysql config.
