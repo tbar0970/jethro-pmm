@@ -184,3 +184,9 @@ INSERT INTO setting (rank, heading, symbol, note, type, value)
 (@rank:=@rank+5, '',                         'SMS_SAVE_TO_NOTE_BY_DEFAULT','Whether to save each sent SMS as a person note by default','bool',''),
 (@rank:=@rank+5, '',                         'SMS_SAVE_TO_NOTE_SUBJECT','','text',''),
 (@rank:=@rank+5, '',                         'SMS_SEND_LOGFILE','File on the server to save a log of sent SMS messages','text','');
+
+CREATE TABLE action_plan_age_bracket (
+   action_planid INT NOT NULL,
+   age_bracketid INT NOT NULL,
+   PRIMARY KEY (action_planid, age_bracketid)
+) ENGINE=InnoDB;
