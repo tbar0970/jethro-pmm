@@ -32,6 +32,11 @@ set_include_path(get_include_path().PATH_SEPARATOR.dirname(THIS_DIR));
 // Load configuration
 require_once dirname(THIS_DIR).'/conf.php';
 
+// Initialise system
+define('DSN', MEMBERS_DSN);
+define('IS_PUBLIC', true);
+require_once JETHRO_ROOT.'/include/init.php';
+
 // Check if member access is enabled
 if (!defined('MEMBER_LOGIN_ENABLED') || !MEMBER_LOGIN_ENABLED) {
 	?>
@@ -39,11 +44,6 @@ if (!defined('MEMBER_LOGIN_ENABLED') || !MEMBER_LOGIN_ENABLED) {
 	<?php
 	exit;
 }
-
-// Initialise system
-define('DSN', MEMBERS_DSN);
-define('IS_PUBLIC', true);
-require_once JETHRO_ROOT.'/include/init.php';
 
 // Set up the user system
 require_once THIS_DIR.'/include/member_user_system.class.php';
