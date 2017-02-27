@@ -416,7 +416,7 @@ function print_widget($name, $params, $value)
 				foreach ($options as $k => $details) {
 					$dummy->populate($k, $details);
 					$params['options'][$k] = $dummy->toString();
-					if (!empty($details['is_default'])) $default = $i;
+					if (!empty($details['is_default'])) $default = $k;
 				}
 				$params['type'] = 'select';
 				if (empty($params['allow_empty']) && ($value === '')) $value = $default;
