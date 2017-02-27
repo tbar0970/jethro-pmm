@@ -911,14 +911,14 @@ class Person extends DB_Object
 
 		if (isset($row['age_bracket'])) {
 			foreach (Age_Bracket::getMap() as $id => $label) {
-				if (strtolower($label) == $row['age_bracket']) {
-					$row['age_bracket_id'] = $id;
+				if (strtolower($label) == strtolower($row['age_bracket'])) {
+					$row['age_bracketid'] = $id;
 					break;
 				}
 			}
-			if (!isset($row['age_bracket_id'])) {
+			if (!isset($row['age_bracketid'])) {
 				// no match was found - copy the raw value across to trigger an error later
-				$row['age_bracket_id'] = $row['age_bracket'];
+				$row['age_bracketid'] = $row['age_bracket'];
 			}
 			unset($row['age_bracket']);
 		}
