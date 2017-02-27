@@ -68,7 +68,7 @@ class View_People extends View
 				?>
 				<div class="member-card">
 					<?php
-					echo '<img src="?call=person_photo&personid='.$id.'" />';
+					echo '<img src="?call=photo&personid='.$id.'" />';
 					echo ents($member['first_name'].' '.$member['last_name']);
 					echo '<br />';
 					if ($member['congregationid']) {
