@@ -5,18 +5,25 @@ class Action_Plan extends DB_Object
 {
 	function getInitSQL($table_name=NULL)
 	{
-		return "
-			CREATE TABLE action_plan (
-			  id int(11) NOT NULL auto_increment,
-			  name varchar(255) not null,
-			  actions text not null,
-			  default_on_create_family tinyint(1) unsigned,
-			  default_on_add_person tinyint(1) unsigned,
-			  modified datetime not null,
-			  modifier int(11) not null,
-			  PRIMARY KEY  (`id`)
-			) ENGINE=InnoDB;
-		";
+		return Array(
+			"CREATE TABLE action_plan (
+				  id int(11) NOT NULL auto_increment,
+				  name varchar(255) not null,
+				  actions text not null,
+				  default_on_create_family tinyint(1) unsigned,
+				  default_on_add_person tinyint(1) unsigned,
+				  modified datetime not null,
+				  modifier int(11) not null,
+				  PRIMARY KEY  (`id`)
+				) ENGINE=InnoDB;
+			",
+			"CREATE TABLE action_plan_age_bracket (
+				action_planid INT NOT NULL,
+				age_bracketid INT NOT NULL,
+				PRIMARY KEY (action_planid, age_bracketid)
+			 ) ENGINE=InnoDB;
+			 "
+		);
 	}
 
 
@@ -238,7 +245,6 @@ class Action_Plan extends DB_Object
 				<tr>
 					<th>Options</th>
 					<td>
-
 						<input type="hidden" name="default_on_create_family" value="0" />
 						<label class="checkbox">
 							<input type="checkbox" id="default_on_create_family" name="default_on_create_family" value="1" <?php if ($this->getValue('default_on_create_family')) echo 'checked="checked"'; ?>>
@@ -250,7 +256,29 @@ class Action_Plan extends DB_Object
 							<input type="checkbox" id="default_on_add_person" name="default_on_add_person" value="1" <?php if ($this->getValue('default_on_add_person')) echo 'checked="checked"'; ?>>
 							By default, execute this plan when adding a new person to an existing family
 						</label>
-						<br />
+
+						<?php
+						$abs = $this->getAgeBracketRestrictions();
+						?>
+						<label class="checkbox">
+							<input type="hidden" name="age_brackets_all" value="1" />
+							<input type="checkbox" name="age_brackets_all" value="0"
+								<?php if (!empty($abs)) echo 'checked="checked"'; ?>
+								data-toggle="visible" data-target="#agebrackets"
+							>
+							Only perform actions on persons in certain age brackets:
+						</label>
+						<div id="agebrackets" <?php if (empty($abs)) echo 'style="display: none"'; ?>>
+							<?php
+							if (empty($abs)) $abs = '*'; // select all
+							print_widget('age_bracketids', Array(
+								'type' => 'reference',
+								'references' => 'age_bracket',
+								'allow_multiple' => true,
+								'height' => -1,
+							), $abs);
+							?>
+						</div>
 					</td>
 				</tr>
 			</tbody>
@@ -276,6 +304,42 @@ class Action_Plan extends DB_Object
 		});
 		</script>
 		<?php
+	}
+
+	private function getAgeBracketRestrictions()
+	{
+		$SQL = 'SELECT age_bracketid FROM action_plan_age_bracket
+				WHERE action_planid = '.(int)$this->id;
+		$res = $GLOBALS['db']->queryCol($SQL);
+		check_db_result($res);
+		return $res;
+	}
+
+	private function saveAgeBracketRestrictions()
+	{
+		if (!isset($this->_tmp['abs'])) return;
+		
+		$age_bracket_ids = $this->_tmp['abs'];
+		$SQL = 'DELETE FROM action_plan_age_bracket WHERE action_planid = '.(int)$this->id;
+		$r = $GLOBALS['db']->exec($SQL);
+		check_db_result($r);
+
+		if (!empty($age_bracket_ids)) {
+			// if they've selected every age bracket, don't add any restrictions.
+			$all_age_brackets = array_keys($GLOBALS['system']->getDBObjectData('age_bracket'));
+			$diff = array_diff($all_age_brackets, $age_bracket_ids);
+			if (!empty($diff)) {
+				$sets = Array();
+				foreach ($age_bracket_ids as $ab) {
+					$sets[] = '('.(int)$this->id.', '.(int)$ab.')';
+				}
+				$SQL = 'INSERT INTO action_plan_age_bracket (action_planid, age_bracketid)
+						VALUES
+						'.implode(',', $sets);
+				$r = $GLOBALS['db']->exec($SQL);
+				check_db_result($r);
+			}
+		}	
 	}
 
 	function processForm($prefix = '', $fields = NULL)
@@ -332,12 +396,15 @@ class Action_Plan extends DB_Object
 		}
 		$actions['attendance'] = $_POST['mark_present'];
 		$this->setValue('actions', $actions);
+		$this->_tmp['abs'] = !empty($_REQUEST['age_brackets_all']) ? Array() : $_REQUEST['age_bracketids'];
 	}
 
 	function create() {
 		$this->setValue('modified', date('Y-m-d H:i:s'));
 		$this->setValue('modifier', $GLOBALS['user_system']->getCurrentUser('id'));
-		return parent::create();
+		$res = parent::create();
+		if ($res) $this->saveAgeBracketRestrictions();
+		return $res;
 	}
 
 
@@ -345,7 +412,10 @@ class Action_Plan extends DB_Object
 	{
 		$this->setValue('modified', date('Y-m-d H:i:s'));
 		$this->setValue('modifier', $GLOBALS['user_system']->getCurrentUser('id'));
-		return parent::save();
+		$res = parent::save();
+		if ($res) $this->saveAgeBracketRestrictions();
+		return $res;
+
 	}
 
 	static function getMultiChooser($name, $value_or_context)

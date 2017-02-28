@@ -38,15 +38,15 @@ class Age_Bracket extends db_object
 	public function getInitSQL($tableName=FALSE)
 	{
 		$res = Array(parent::getInitSQL());
-		$res[] = 'INSERT INTO age_bracket (rank, label, is_adult)
+		$res[] = 'INSERT INTO age_bracket (rank, label, is_adult, is_default)
 					VALUES
-					(0, "Adult", 1),
-					(1, "High school", 0),
-					(2, "Primary school", 0),
-					(3, "Infants school", 0),
-					(4, "Preschool", 0),
-					(5, "Toddler", 0),
-					(6, "Baby", 0)';
+					(0, "Adult", 1, 1),
+					(1, "High school", 0, 0),
+					(2, "Primary school", 0, 0),
+					(3, "Infants school", 0, 0),
+					(4, "Preschool", 0, 0),
+					(5, "Toddler", 0, 0),
+					(6, "Baby", 0, 0)';
 		return $res;
 	}
 

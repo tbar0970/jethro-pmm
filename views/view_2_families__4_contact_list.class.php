@@ -396,7 +396,7 @@ class View_Families__Contact_List extends View
 		
 		//readfile($tempname);
 		
-		$templateFilename = View_Documents::getRootPath().'/Templates/contact_list_template.docx';
+		$templateFilename = Documents_Manager::getRootPath().'/Templates/contact_list_template.docx';
 		if (!file_exists($templateFilename)) {
 			$templateFilename = JETHRO_ROOT.'/resources/contact_list_template.docx';
 		}

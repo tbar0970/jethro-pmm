@@ -31,7 +31,6 @@ class View_Admin__System_Configuration extends View {
 					break;
 				default:
 					if (isset($_REQUEST[$symbol])) {
-						//bam("processing $symbol");
 						list($params, $value, $multi) = self::getParamsAndValue($symbol, $details);
 						$val = process_widget($symbol, $params); //process_widget will handle multis
 						$val = $this->prepareValueForSave($val, $details);
@@ -425,21 +424,18 @@ class View_Admin__System_Configuration extends View {
 				$ab->acquireLock();
 				$ab->processForm('age_bracket_'.$i.'_');
 				$ab->setValue('rank', $ranks[$i]);
-				$is_default = (int)($_POST['age_bracket_default_rank'] == $i);
+				$is_default = (int)(array_get($_POST, 'age_bracket_default_rank', -1) == $i);
 				if ($is_default) $saved_default = true;
 				$ab->setValue('is_default', $is_default);
 				if ($ab->id) {
 					$ab->save();
 				} else if ($ab->getValue('label')) {
-					bam("New:");
-					bam($ab);
 					$ab->create();
 				}
 				$ab->releaseLock();
 				$i++;
 			}
 			if (!$saved_default) {
-				bam("Saving default age bracket");
 				$db->query('UPDATE age_bracket SET is_default = 1 ORDER BY rank LIMIT 1');
 				check_db_result($res);
 			}

@@ -44,6 +44,9 @@ class Member extends DB_Object
 			$conds['family_name'] = $search.'%';
 		}
 		$query_bits = $t->getInstancesQueryComps($conds, 'OR', $order);
+		$query_bits['from'] .= "
+								JOIN age_bracket ab ON ab.id = member.age_bracketid
+								";
 		if (!empty($congregationid)) {
 			if (strlen(trim($query_bits['where']))) {
 				$query_bits['where'] = "(\n".$query_bits['where'].")\n AND congregationid = ".(int)$congregationid;
