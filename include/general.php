@@ -576,6 +576,9 @@ function process_widget($name, $params, $index=NULL, $preserveEmpties=FALSE)
 				$value = htmLawed($rawVal, array('deny_attribute' => '* -href', 'safe'=>1));
 			}
 			break;
+		case 'reference':
+			$value = empty($rawVal) ? NULL : (int)$rawVal;
+			break;
 		default:
 			$value = $rawVal;
 			if (!empty($params['regex']) && !empty($value) && !preg_match('/'.trim($params['regex'], '/').'/i', $value)) {

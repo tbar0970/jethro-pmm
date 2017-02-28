@@ -290,6 +290,9 @@ class db_object
 	{
 		foreach ($this->fields as $id => $details) {
 			$this->values[$id] = array_get($details, 'default', '');
+			if (($details['type'] == 'reference') && empty($this->values[$id])) {
+				$this->values[$id] = NULL;
+			}
 		}
 	}
 
