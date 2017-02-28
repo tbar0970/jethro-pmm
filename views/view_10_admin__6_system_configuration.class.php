@@ -103,6 +103,9 @@ class View_Admin__System_Configuration extends View {
 			|| (($x = strpos($type, '{')) !== FALSE)
 		) {
 			$params['options'] = json_decode(substr($type, $x), 1);
+			if (strpos($type, '[') !== FALSE) {
+				$params['options'] = array_combine($params['options'], $params['options']);
+			}
 			$type = substr($type, 0, $x);
 		}
 		$params['type'] = $type;
