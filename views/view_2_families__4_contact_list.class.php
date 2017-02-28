@@ -46,6 +46,7 @@ class View_Families__Contact_List extends View
 		$dummy_person = new Person();
 		$dummy_person->fields['congregationid']['allow_multiple'] = true;
 		$dummy_person->fields['age_bracketid']['allow_multiple'] = true;
+		$dummy_person->fields['age_bracketid']['allow_empty'] = true;
 		?>
 		<form method="get">
 		<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
@@ -246,7 +247,7 @@ class View_Families__Contact_List extends View
 
 		if (empty($res)) {
 			?><p><i><?php echo _('No families to show');?></i></p><?php
-			return;
+			return Array();
 		}
 
 		$GLOBALS['system']->includeDBClass('family');
