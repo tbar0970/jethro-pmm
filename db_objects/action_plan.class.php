@@ -450,7 +450,8 @@ class Action_Plan extends DB_Object
 	function execute($subject_type, $subject_id, $reference_date)
 	{
 		//bam("Executing ".$this->getValue('name').' against '.$subject_type.' #'.$subject_id.' with ref date '.$reference_date);
-
+		$original_subject_type = $subject_type;
+		$original_subject_id = $subject_id;
 		if ($subject_type == 'family') {
 			$family = $GLOBALS['system']->getDBObject('family', (int)$subject_id);
 			$personids = array_keys($family->getMemberData());
@@ -463,8 +464,35 @@ class Action_Plan extends DB_Object
 			$personids = Array($subject_id);
 		} else {
 			trigger_error("Cannot execute plan against a $subject_type");
-			return;
+			return FALSE;
 		}
+		
+		if (empty($personids)) {
+			trigger_error("Could not find persons on which to execute action plan");
+			return FALSE;
+		}
+		
+		if ($abs = $this->getAgeBracketRestrictions()) {
+			$personids = array_keys($GLOBALS['system']->getDBObjectData(
+				'person', 
+				Array(
+					'(id' => $personids,
+					'(age_bracketid' => $abs,
+				),
+				'AND'
+			));
+			if (empty($personids)) {
+				if ($original_subject_type == 'family') {
+					$family = new Family($original_subject_id);
+					add_message('"'.$this->getValue('name').'" plan was not executed on '.$family->toString().' because no family member had the appropriate age bracket', 'warning');
+				} else {
+					$person = new Person($subject_id);
+					add_message('"'.$this->getValue('name').'" plan was not executed on '.$person->toString().' because they don\'t have the appropriate age bracket', 'warning');
+				}
+				return FALSE;				
+			}
+		}
+		
 
 		$actions = $this->getValue('actions');
 		$membershipStatuses = array_get($actions, 'group_membership_statuses', Array());
@@ -526,6 +554,8 @@ class Action_Plan extends DB_Object
 				}
 			}
 		}
+		
+		return TRUE;
 	}
 
 	public function getValue($name)
