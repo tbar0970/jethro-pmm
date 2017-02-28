@@ -1,3 +1,6 @@
+ALTER TABLE family CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;
+ALTER TABLE _person CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;
+
 ALTER TABLE custom_field
 ADD COLUMN show_add_family varchar(255) not null default 0;
 
@@ -136,7 +139,7 @@ INSERT INTO setting (rank, heading, symbol, note, type, value)
 (@rank:=@rank+5, '',                         'AGE_BRACKET_OPTIONS','','',''),
 (@rank:=@rank+5, '',                         'GROUP_MEMBERSHIP_STATUS_OPTIONS','','',''),
 (@rank:=@rank+5, '',                         'TIMEZONE','','text','Australia/Sydney'),
-(@rank:=@rank+5, '',                         'ADDRESS_STATE_OPTIONS','(Leave blank to hide the state field)','multitext_cm', 'ACT,NSW,NT,QLD,SA,TAS,VIC,WA','NSW'),
+(@rank:=@rank+5, '',                         'ADDRESS_STATE_OPTIONS','(Leave blank to hide the state field)','multitext_cm', 'ACT,NSW,NT,QLD,SA,TAS,VIC,WA,NSW'),
 (@rank:=@rank+5, '',                         'ADDRESS_STATE_LABEL','Label for the \"state\" field. (Leave blank to hide the state field)','text','State'),
 (@rank:=@rank+5, '',                         'ADDRESS_STATE_DEFAULT','Default state', 'text', 'NSW'),
 (@rank:=@rank+5, '',                         'ADDRESS_SUBURB_LABEL','Label for the \"suburb\" field','text','Suburb'),
