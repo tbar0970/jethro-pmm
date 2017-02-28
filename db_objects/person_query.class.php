@@ -1277,8 +1277,8 @@ class Person_Query extends DB_Object
 					('.implode(")\n\tAND (", $query['where']).')
 				';
 		}
-		$sql .= 'GROUP BY '.implode(', ', $query['group_by']);
-		$sql .= 'ORDER BY '.$query['order_by'].', p.last_name, p.first_name';
+		$sql .= "\nGROUP BY ".implode(', ', $query['group_by']);
+		$sql .= "\nORDER BY ".$query['order_by'].', p.last_name, p.first_name';
 	//	bam($sql); exit;
 		
 		return $sql;
