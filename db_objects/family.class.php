@@ -268,7 +268,7 @@ class family extends db_object
 
 	function getAdultMemberNames()
 	{
-		$adults = $GLOBALS['system']->getDBObjectData('person', Array('familyid' => $this->id, '(age_bracket' => Age_Bracket::getAdults(), '!status' => 'archived'), 'AND', 'age_bracket, gender DESC');
+		$adults = $GLOBALS['system']->getDBObjectData('person', Array('familyid' => $this->id, '(age_bracketid' => Age_Bracket::getAdults(), '!status' => 'archived'), 'AND', 'ab.rank, gender DESC');
 		if (count($adults) == 1) {
 			$adult = reset($adults);
 			return $adult['first_name'].' '.$adult['last_name'];
