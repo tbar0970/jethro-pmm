@@ -485,6 +485,7 @@ class service extends db_object
 				AND rra.assignment_date = '.$GLOBALS['db']->quote($this->getValue('date')).'
 				ORDER BY roster_role_id, rank';
 		$assignments =  $GLOBALS['db']->queryAll($sql, null, null, false);
+		check_db_result($assignments);
 		$role_ids = Array();
 		$names = Array();
 		foreach ($assignments as $assignment) {

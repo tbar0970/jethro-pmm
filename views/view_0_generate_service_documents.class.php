@@ -27,7 +27,7 @@ class View__Generate_Service_Documents extends View
 		$found_files = Array();
 
 
-		$rootpath = DOCUMENTS_ROOT_PATH ? DOCUMENTS_ROOT_PATH :  JETHRO_ROOT.'/files';
+		$rootpath = Documents_Manager::getRootPath();
 		foreach ($opDirs as $i => $dir) {
 			if (!is_dir($dir)) {
 				if (is_dir($rootpath.'/'.$dir)) {
@@ -370,7 +370,7 @@ class View__Generate_Service_Documents extends View
 
 	private static function _cleanDirName($dirname) {
 		$dirname = str_replace('\\', '/', $dirname);
-		$rootpath = DOCUMENTS_ROOT_PATH ? DOCUMENTS_ROOT_PATH :  JETHRO_ROOT.'/files';
+		$rootpath = Documents_Manager::getRootPath();
 		$rootpath = str_replace('\\', '/', $rootpath);
 		if (0 === strpos($dirname, $rootpath)) {
 			return substr($dirname, strlen($rootpath));
