@@ -181,11 +181,14 @@ class Staff_Member extends Person
 	function printFieldInterface($name, $prefix='')
 	{
 		switch ($name) {
+			case 'username':
+				print_widget($prefix.'user_un', $this->fields['username'], $this->getValue('username'));
+				break;
 			case 'password':
 				if (($GLOBALS['user_system']->getCurrentUser('id') == $this->id) || $GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 					?>
-					<input type="password" data-minlength="<?php echo (int)$this->getMinPasswordLength(); ?>" autocomplete="off" name="<?php echo $prefix.$name.'1'; ?>" /><br />
-					<input type="password" data-minlength="<?php echo (int)$this->getMinPasswordLength(); ?>" autocomplete="off" name="<?php echo $prefix.$name.'2'; ?>" /><br />
+					<input type="password" data-minlength="<?php echo (int)$this->getMinPasswordLength(); ?>" autocomplete="off" name="<?php echo $prefix.'user_pw1'; ?>" /><br />
+					<input type="password" data-minlength="<?php echo (int)$this->getMinPasswordLength(); ?>" autocomplete="off" name="<?php echo $prefix.'user_pw2'; ?>" /><br />
 					<p class="help-inline">Enter once, then again to confirm. Passwords must be at least <?php echo (int)$this->getMinPasswordLength(); ?> characters and contain 2 letters and 2 numbers</p>
 					<?php
 				} else {
@@ -255,10 +258,13 @@ class Staff_Member extends Person
 	{
 		switch ($name)
 		{
+			case 'username':
+				$this->setValue('username', array_get($_REQUEST, 'user_un'));
+				break;
 			case 'password':
-				if (!empty($_REQUEST[$prefix.$name.'1'])) {
-					$val = $_REQUEST[$prefix.$name.'1'];
-					if ($val != $_REQUEST[$prefix.$name.'2']) {
+				if (!empty($_REQUEST[$prefix.'user_pw1'])) {
+					$val = $_REQUEST[$prefix.'user_pw1'];
+					if ($val != $_REQUEST[$prefix.'user_pw2']) {
 						trigger_error('Password and password confirmation do not match; Password not saved.');
 					} else if (strlen($val) < $this->getMinPasswordLength()) {
 						trigger_error('Password is too short - must be at least '.$this->getMinPasswordLength().' characters; Password not saved.');
