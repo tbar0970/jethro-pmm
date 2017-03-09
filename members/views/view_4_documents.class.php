@@ -46,9 +46,8 @@ class View_Documents extends View
 				</div>
 				<?php
 			} else {
-				$t = Documents_Manager::isHTML($f) ? 'target="_htmldoc"' : '';
 				?>
-				<p><a <?php echo $t; ?> href="?call=documents&getfile=<?php echo ents($f); ?>"><i class="icon-picture"></i><?php echo ents(basename($f)); ?></a></p>
+				<p><a target="_new" href="?call=documents&getfile=<?php echo ents($f); ?>"><i class="icon-picture"></i><?php echo ents(basename($f)); ?></a></p>
 				<?php
 			}
 		}
