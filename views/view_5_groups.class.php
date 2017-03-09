@@ -85,40 +85,44 @@ class View_Groups extends View
 			<?php
 		}
 
+		if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
+			?>
+			<div class="modal hide fade" id="action-plan-modal" role="dialog" aria-hidden="true">
+				<form method="post" action="?view=_edit_group&action=add_member&groupid=<?php echo $this->_group->id; ?>">
+					<div class="modal-header">
+						<h4><?php echo _('Add Members by Name Search');?></h4>
+					</div>
+					<div class="modal-body">
+						<table>
+							<tr>
+								<td><?php echo _('Select persons:');?></td>
+								<td>
+									<?php
+									$GLOBALS['system']->includeDBClass('person');
+									Person::printMultipleFinder('personid');
+									?>
+								</td>
+							</tr>
+							<tr>
+								<td><?php echo _('Membership status:');?></td>
+								<td>
+									<?php
+									$GLOBALS['system']->includeDBClass('person_group');
+									Person_Group::printMembershipStatusChooser('membership_status');
+									?>
+								</td>
+							</tr>
+						</table>
+					</div>
+					<div class="modal-footer">
+						<input class="btn" type="submit" value="Add Members" id="add-member-button" />
+						<input class="btn" type="button" value="Cancel" data-dismiss="modal" aria-hidden="true" />
+					</div>
+				</form>
+			</div>
+			<?php
+		}
 		?>
-		<div class="modal hide fade" id="action-plan-modal" role="dialog" aria-hidden="true">
-			<form method="post" action="?view=_edit_group&action=add_member&groupid=<?php echo $this->_group->id; ?>">
-				<div class="modal-header">
-					<h4><?php echo _('Add Members by Name Search');?></h4>
-				</div>
-				<div class="modal-body">
-					<table>
-						<tr>
-							<td><?php echo _('Select persons:');?></td>
-							<td>
-								<?php
-								$GLOBALS['system']->includeDBClass('person');
-								Person::printMultipleFinder('personid');
-								?>
-							</td>
-						</tr>
-						<tr>
-							<td><?php echo _('Membership status:');?></td>
-							<td>
-								<?php
-								$GLOBALS['system']->includeDBClass('person_group');
-								Person_Group::printMembershipStatusChooser('membership_status');
-								?>
-							</td>
-						</tr>
-					</table>
-				</div>
-				<div class="modal-footer">
-					<input class="btn" type="submit" value="Add Members" id="add-member-button" />
-					<input class="btn" type="button" value="Cancel" data-dismiss="modal" aria-hidden="true" />
-				</div>
-			</form>
-		</div>
 
 		<div class="modal hide fade autosize" id="email-modal" role="dialog" aria-hidden="true">
 			<div class="modal-header">
@@ -182,7 +186,7 @@ class View_Groups extends View
 					<?php
 				}
 			}
-			if ($GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
+			if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
 				?>
 				<div class="add-link">
 					<a href="#action-plan-modal" data-toggle="modal"><i class="icon-plus-sign"></i><?php echo _('Add members');?></a>
