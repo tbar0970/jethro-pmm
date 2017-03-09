@@ -443,7 +443,6 @@ class Person extends DB_Object
 				SELECT p.*
 				FROM person p
 				WHERE (
-					/* stem matches for first and last name */
 					(first_name LIKE '.$db->quote($searchTerm.'%').')
 					OR (last_name LIKE '.$db->quote($searchTerm.'%').')
 					OR (CONCAT(first_name, " ", last_name) LIKE '.$db->quote($searchTerm.'%').')
@@ -457,9 +456,9 @@ class Person extends DB_Object
 				JOIN custom_field cf ON cfv.fieldid = cf.id
 				WHERE cf.searchable
 				AND (
-					/* whole word matches for custom fields */
+					/* match stems at beginning of field value, or whole words within the value */
 					(cfv.value_text = '.$db->quote($searchTerm).')
-					OR (cfv.value_text LIKE '.$db->quote($searchTerm.' %').')
+					OR (cfv.value_text LIKE '.$db->quote($searchTerm.'%').')
 					OR (cfv.value_text LIKE '.$db->quote('% '.$searchTerm).')
 					OR (cfv.value_text LIKE '.$db->quote('% '.$searchTerm.' %').' )
 				)
