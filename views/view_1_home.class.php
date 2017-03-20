@@ -25,7 +25,7 @@ class View_Home extends View
 				   href="javascript:if (sp = prompt('Search <?php echo SYSTEM_NAME; ?> for: ')) window.location='<?php echo BASE_URL; ?>?view=_mixed_search&search='+sp"
 				   onclick="prompt('To create a search-jethro button in your browser, save the following code as a bookmark/favourite: ', this.href); return false"
 				>
-					<small>Bookmark</small>
+					<i class="icon-bookmark"></i><small class="hidden-phone">Bookmark</small>
 				</a>
 				<?php echo _('System-Wide Search');?></h3>
 			<label class="msie-only">Enter a person, family or group name, or phone number or email:</label>
@@ -96,8 +96,8 @@ class View_Home extends View
 			?>
 			<div class="homepage-box my-roster">
 				<h3>
-					<a href="?view=_manage_ical" class="pull-right hidden-phone"><small>Subscribe</small></a>
-					Upcoming roster<span> allocations</span>
+					<a href="?view=_manage_ical" class="pull-right"><i class="icon-bookmark"></i><small class="hidden-phone">Subscribe</small></a>
+					Upcoming roster
 				</h3>
 				<?php
 				$GLOBALS['system']->includeDBClass('roster_role_assignment');
