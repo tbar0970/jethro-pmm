@@ -146,10 +146,14 @@ function dump_messages()
 
 function print_message($msg, $class='success', $html=FALSE)
 {
-	if ($class == 'failure') $class='error';
-	?>
-	<div class="alert alert-<?php echo $class; ?>"><?php echo $html ? $msg : ents($msg); ?></div>
-	<?php
+	if (php_sapi_name() == 'cli') {
+		echo strtoupper($class).': '.$msg."\n";
+	} else {
+		if ($class == 'failure') $class='error';
+		?>
+		<div class="alert alert-<?php echo $class; ?>"><?php echo $html ? $msg : ents($msg); ?></div>
+		<?php
+	}
 }
 
 
