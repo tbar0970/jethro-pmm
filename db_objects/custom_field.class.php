@@ -334,7 +334,10 @@ class Custom_Field extends db_object
 	public function processFieldInterface($fieldname, $prefix = '') {
 		switch ($fieldname) {
 			case 'allow_multiple':
-				$this->setValue('allow_multiple', !empty($_REQUEST[$prefix.$fieldname]));
+			case 'divider_before':
+			case 'show_add_family':
+			case 'searchable':
+				$this->setValue($fieldname, !empty($_REQUEST[$prefix.$fieldname]));
 				break;
 			case 'params':
 				$val = Array();
