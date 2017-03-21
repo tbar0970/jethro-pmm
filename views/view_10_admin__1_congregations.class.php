@@ -18,7 +18,7 @@ class View_Admin__Congregations extends View
 			if ($cong) {
 				$members = $GLOBALS['system']->getDBObjectData('person', Array('congregationid' => $cong->id));
 				if (count($members)) {
-					add_message(_("Cannot delete congregation because it is not empty", "error"));
+					add_message(_("Cannot delete congregation because it is not empty"), "error");
 				} else {
 					$cong->delete();
 					add_message(_("Congregation deleted"));
