@@ -52,7 +52,7 @@ if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
 				?>
 			</div>
 			<div class="modal-footer">
-				<input type="submit" class="btn" value="Go" accesskey="s" onclick="if (!$('[name=groupid]').val()) { alert(<?php echo _('"Choose a group first"');?>; return false; }" />
+				<input type="submit" class="btn" value="Go" accesskey="s" onclick="if (!$('[name=groupid]').val()) { alert('<?php echo _('Choose a group first'); ?>'); return false; }" />
 				<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
 			</div>
 		</form>
