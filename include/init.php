@@ -57,12 +57,6 @@ if (MDB2::isError($GLOBALS['db']) || MDB2::isError($GLOBALS['db']->getConnection
 $GLOBALS['db']->setOption('portability', $GLOBALS['db']->getOption('portability') & !MDB2_PORTABILITY_EMPTY_TO_NULL);
 $GLOBALS['db']->setFetchmode(MDB2_FETCHMODE_ASSOC);
 
-
-if (defined('TIMEZONE') && constant('TIMEZONE')) {
-	date_default_timezone_set(constant('TIMEZONE'));
-	$GLOBALS['db']->query('SET time_zone = "'.date('P').'"');
-}
-
 //SET MySQL session variables to account for strict mode
 if (defined('STRICT_MODE_FIX') && STRICT_MODE_FIX) {
 	$GLOBALS['db']->query('SET SESSION sql_mode="NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"');
@@ -71,3 +65,8 @@ if (defined('STRICT_MODE_FIX') && STRICT_MODE_FIX) {
 @ini_set('default_charset', 'UTF-8');
 
 Config_Manager::init();
+
+if (defined('TIMEZONE') && constant('TIMEZONE')) {
+	date_default_timezone_set(constant('TIMEZONE'));
+	$GLOBALS['db']->query('SET time_zone = "'.date('P').'"');
+}
