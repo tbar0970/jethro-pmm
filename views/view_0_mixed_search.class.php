@@ -21,18 +21,14 @@ class View__Mixed_Search extends View
 		}
 		if (empty($tel) || (empty($this->_family_data) && empty($this->_person_data))) {
 			// Look for family name, person name, group name or person email
-			$this->_family_data = $GLOBALS['system']->getDBObjectData('family', Array('family_name' => $search.'%'));
+			$this->_family_data = $GLOBALS['system']->getDBObjectData('family', Array('_family_name' => $search.'%'));
 			$this->_person_data = Person::getPersonsBySearch($search);
 
-			$this->_group_data = $GLOBALS['system']->getDBObjectData('person_group', Array('name' => $search.'%'), 'OR', 'name');
+			$this->_group_data = $GLOBALS['system']->getDBObjectData('person_group', Array('_name' => $search.'%'), 'OR', 'name');
 			
 			if (FALSE !== strpos($search, '@')) {
 				// Add email search
 				$this->_person_data += $GLOBALS['system']->getDBObjectData('person', Array('email' => $search));
-			}
-			
-			if (empty($this->_group_data)) {
-				$this->_group_data = $GLOBALS['system']->getDBObjectData('person_group', Array('name' => '%'.$search.'%'), 'OR', 'name');
 			}
 		}
 		

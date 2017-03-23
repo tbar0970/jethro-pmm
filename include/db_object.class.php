@@ -876,6 +876,10 @@ class db_object
 			} else if ($field[0] == '(') {
 				$operator = 'IN';
 				$field = substr($field, 1);
+			} else if ($field[0] == '_') {
+				// beginning-of-word match
+				$operator = 'WORDBEGIN';
+				$field = substr($field, 1);
 			}
 			$raw_field = $field;
 			if ($field == 'id') {
@@ -896,6 +900,8 @@ class db_object
 				}
 				$val = '('.$val.')'; // If val wasn't an array we dont quote it coz it's a subquery
 				$wheres[] = '('.$prefix.$field.' '.$operator.' '.$val.$suffix.')';
+			} else if ($operator == 'WORDBEGIN') {
+				$wheres[] = '(('.$field.' LIKE '.$GLOBALS['db']->quote($val.'%').') OR ('.$field.' LIKE '.$GLOBALS['db']->quote('% '.$val.'%').'))';
 			} else if ((is_array($val) && !empty($val))) {
 				if ($operator == 'BETWEEN') {
 					$field_details = array_get($this->fields, $field);

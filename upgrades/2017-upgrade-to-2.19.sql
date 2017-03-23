@@ -46,6 +46,7 @@ ALTER TABLE _person ADD CONSTRAINT `person_age_bracket` FOREIGN KEY (`age_bracke
 UPDATE _person SET congregationid = NULL WHERE (congregationid = '' OR congregationid = '0');
 
 CREATE TABLE _disused_action_plan_backup SELECT * from action_plan;
+CREATE TABLE _disused_person_query_backup SELECT * from person_query;
 
 DROP VIEW person;
 CREATE VIEW person AS
