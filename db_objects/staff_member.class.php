@@ -259,7 +259,7 @@ class Staff_Member extends Person
 		switch ($name)
 		{
 			case 'username':
-				$this->setValue('username', array_get($_REQUEST, 'user_un'));
+				$this->setValue('username', array_get($_REQUEST, $prefix.'user_un'));
 				break;
 			case 'password':
 				if (!empty($_REQUEST[$prefix.'user_pw1'])) {
