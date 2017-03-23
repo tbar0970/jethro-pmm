@@ -1152,7 +1152,7 @@ class Person_Query extends DB_Object
 											SELECT familyid, IF (
 												GROUP_CONCAT(DISTINCT last_name) = ff.family_name, 
 												GROUP_CONCAT(first_name ORDER BY ab.rank, gender DESC SEPARATOR ", "),
-												GROUP_CONCAT(CONCAT(first_name, " ", last_name) ORDER BY age_bracket, gender DESC SEPARATOR ", ")
+												GROUP_CONCAT(CONCAT(first_name, " ", last_name) ORDER BY ab.rank, gender DESC SEPARATOR ", ")
 											  )
 											FROM person pp
 											JOIN age_bracket ab ON pp.age_bracketid = ab.id
