@@ -116,6 +116,7 @@ class Config_Manager {
 		$res = $db->exec($SQL);
 		check_db_result($res);
 
+		// Update references to age brackets in action plans
 		$SQL = 'SELECT id, actions FROM _disused_action_plan_backup';
 		$plans = $db->queryAll($SQL);
 		check_db_result($plans);
@@ -130,13 +131,17 @@ class Config_Manager {
 			}
 		}
 
+		// Update references to age brackets in person-report rules
 		$SQL = 'SELECT id, params FROM _disused_person_query_backup';
 		$queries = $db->queryAll($SQL);
 		check_db_result($queries);
 		foreach ($queries as $row) {
 			$params = unserialize($row['params']);
 			if (!empty($params['rules']['p.age_bracket'])) {
-				$params['rules']['p.age_bracketid'] = (int)$params['rules']['p.age_bracket']+1;
+				$params['rules']['p.age_bracketid'] = Array();
+				foreach ($params['rules']['p.age_bracket'] as $k => $v) {
+					$params['rules']['p.age_bracketid'][$k] = (int)$v+1;
+				}
 				unset($params['rules']['p.age_bracket']);
 				$SQL = 'UPDATE person_query SET params = '.$db->quote(serialize($params)).' WHERE id = '.(int)$row['id'];
 				$res = $db->exec($SQL);
