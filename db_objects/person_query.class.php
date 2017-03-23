@@ -1279,7 +1279,6 @@ class Person_Query extends DB_Object
 		}
 		$sql .= "\nGROUP BY ".implode(', ', $query['group_by']);
 		$sql .= "\nORDER BY ".$query['order_by'].', p.last_name, p.first_name';
-	//	bam($sql); exit;
 		
 		return $sql;
 	}
@@ -1607,15 +1606,20 @@ class Person_Query extends DB_Object
 			$params['custom_field_logic'] = $params['date_logic'];
 			unset($params['date_logic']);
 		}
-
 		foreach (array_get($params, 'show_fields', Array()) as $i => $v) {
 			if (0 === strpos($v, 'date---')) {
 				$params['show_fields'][$i] = self::CUSTOMFIELD_PREFIX.substr($v, strlen('date---'));
+			}
+			if ($v == 'p.age_bracket') {
+				$params['show_fields'][$i] = 'p.age_bracketid';
 			}
 		}
 
 		if (0 === strpos($params['sort_by'], 'date---')) {
 			$params['sort_by'] = self::CUSTOMFIELD_PREFIX.substr($params['sort_by'], strlen('date---'));
+		}
+		if ($params['sort_by'] == 'p.age_bracket') {
+			$params['sort_by'] = 'p.age_bracketid';
 		}
 
 		if (
@@ -1623,6 +1627,9 @@ class Person_Query extends DB_Object
 			&& !count(array_remove_empties($params['include_groups']))
 		) {
 			$params['group_by'] = '';
+		}
+		if ($params['group_by'] == 'p.age_bracket') {
+			$params['group_by'] = 'p.age_bracketid';
 		}
 		if (!isset($params['rules'])) $params['rules'] = Array();
 
