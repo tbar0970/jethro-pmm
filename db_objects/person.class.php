@@ -724,7 +724,7 @@ class Person extends DB_Object
 	function getInstancesQueryComps($params, $logic, $order)
 	{
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
-		$res['select'][] = 'f.family_name, f.address_street, f.address_suburb, f.address_state, f.address_postcode, f.home_tel, c.name as congregation';
+		$res['select'][] = 'f.family_name, f.address_street, f.address_suburb, f.address_state, f.address_postcode, f.home_tel, c.name as congregation, ab.label as age_bracket';
 		$res['from'] = '(('.$res['from'].') 
 						JOIN family f ON person.familyid = f.id)
 						LEFT JOIN congregation c ON person.congregationid = c.id
