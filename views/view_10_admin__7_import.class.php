@@ -76,7 +76,7 @@ class View_Admin__Import extends View
 			// read from session and create
 			$GLOBALS['system']->doTransaction('BEGIN');
 			$group = $GLOBALS['system']->getDBObject('person_group', $_SESSION['import']['groupid']);
-			//$this->_captureErrors();
+			$this->_captureErrors();
 			$done = 0;
 			?>
 			<h1 style="position: absolute; text-align: center; top: 40%; color: #ccc; width: 100%">Importing...</h1>
