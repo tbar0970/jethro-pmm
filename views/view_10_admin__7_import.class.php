@@ -45,6 +45,8 @@ class View_Admin__Import extends View
 	{
 		if (in_array($errno, array(E_USER_NOTICE, E_USER_WARNING, E_NOTICE, E_WARNING))) {
 			$this->_captured_errors[] = $errstr;
+		} else {
+			$GLOBALS['system']->_handleError($errno, $errstr, $errfile, $errline);
 		}
 	}
 
@@ -74,7 +76,7 @@ class View_Admin__Import extends View
 			// read from session and create
 			$GLOBALS['system']->doTransaction('BEGIN');
 			$group = $GLOBALS['system']->getDBObject('person_group', $_SESSION['import']['groupid']);
-			$this->_captureErrors();
+			//$this->_captureErrors();
 			$done = 0;
 			?>
 			<h1 style="position: absolute; text-align: center; top: 40%; color: #ccc; width: 100%">Importing...</h1>
