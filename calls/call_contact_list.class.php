@@ -12,6 +12,7 @@ class Call_Contact_List extends Call
 		switch (array_get($_REQUEST, 'format')) {
 			case 'docx':
 				header('Content-disposition: attachment; filename="Contact-List.docx"');
+				header('Content-type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
 				$view->printDOCX();
 				break;
 			default:
