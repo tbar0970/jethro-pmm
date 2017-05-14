@@ -909,14 +909,15 @@ class Person extends DB_Object
 
 		if (isset($row['age_bracket'])) {
 			foreach (Age_Bracket::getMap() as $id => $label) {
-				if (strtolower($label) == strtolower($row['age_bracket'])) {
+				if (trim(strtolower($label)) == trim(strtolower($row['age_bracket']))) {
 					$row['age_bracketid'] = $id;
 					break;
 				}
 			}
 			if (!isset($row['age_bracketid'])) {
 				// no match was found - copy the raw value across to trigger an error later
-				$row['age_bracketid'] = $row['age_bracket'];
+				trigger_error("Invalid age bracket ".$row['age_bracket']);
+				$row['age_bracketid'] = NULL;
 			}
 			unset($row['age_bracket']);
 		}

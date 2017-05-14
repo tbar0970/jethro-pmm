@@ -38,6 +38,7 @@ class Service_Component extends db_object
 									'type'		=> 'text',
 									'width'		=> 80,
 									'initial_cap'	=> TRUE,
+									'placeholder' => '(Optional)',
 								   ),
 			'length_mins'		=> Array(
 									'type'		=> 'int',

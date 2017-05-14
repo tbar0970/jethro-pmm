@@ -45,6 +45,8 @@ class View_Admin__Import extends View
 	{
 		if (in_array($errno, array(E_USER_NOTICE, E_USER_WARNING, E_NOTICE, E_WARNING))) {
 			$this->_captured_errors[] = $errstr;
+		} else {
+			$GLOBALS['system']->_handleError($errno, $errstr, $errfile, $errline);
 		}
 	}
 

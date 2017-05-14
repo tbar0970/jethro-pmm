@@ -235,6 +235,7 @@ class System_Controller
 		switch ($errno) {
 			case E_ERROR:
 			case E_USER_ERROR:
+				if (FALSE !== strpos($errstr, 'variables should be assigned by reference')) return;
 				$bg = 'error';
 				$title = 'SYSTEM ERROR (ERROR)';
 				$exit = true;
