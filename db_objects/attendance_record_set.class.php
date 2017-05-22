@@ -13,9 +13,8 @@ class Attendance_Record_Set
 	private $_persons = NULL;
 	private $_attendance_records = Array();
 	private $_cohort_object = NULL;
-	
-	const LIST_ORDER_DEFAULT = 'status ASC, family_name ASC, familyid, ab.rank ASC, gender DESC';
 
+	const LIST_ORDER_DEFAULT = 'status ASC, family_name ASC, familyid, ab.rank ASC, gender DESC';
 //--        CREATING, LOADING AND SAVING        --//
 
 	function Attendance_Record_Set($date=NULL, $cohort=NULL, $age_brackets=NULL, $statuses=NULL)

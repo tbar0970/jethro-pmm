@@ -301,11 +301,10 @@ If you didn't request an account, you can just ignore this email";
 				ORDER BY (IF(p.member_password IS NOT NULL, 0, 1)), ab.rank ASC, p.gender DESC';
 		$res = $db->queryRow($sql);
 		check_db_result($res);
-		
+
 		return $res;
-		
 	}
-	
+
 	/**
 	 * Find a person record that has the specified email and account-creation hash
 	 * @param string $email

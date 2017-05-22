@@ -251,7 +251,7 @@ class MCAPI {
      * Default to a 300 second timeout on server calls
      */
     var $timeout = 300;
-    
+
     /**
      * Default to a 8K chunk size
      */

@@ -319,7 +319,6 @@ class Person_Group extends db_object
 				}
 				return parent::printFieldValue($fieldname, $value);
 				break;
-
 			case 'owner':
 				echo _(($value === NULL) ? 'Everyone' : 'Only me');
 				break;
