@@ -43,8 +43,7 @@ class Config_Manager {
 	public static function getSettings()
 	{
 		$SQL = 'SELECT symbol, s.* from setting s ORDER BY rank';
-		$res = $GLOBALS['db']->queryAll($SQL, NULL, NULL, TRUE);
-		if (PEAR::isError($res)) return Array(); // no fatal error because we might be in the installer
+		$res = $GLOBALS['db']->queryAll($SQL, NULL, NULL, TRUE,FALSE,FALSE,TRUE); // no fatal error because we might be in the installer
 		return $res;
 	}
 /*
@@ -85,7 +84,7 @@ class Config_Manager {
 		$db = $GLOBALS['db'];
 		$SQL = 'SELECT count(*) FROM _disused_person_age_brackets';
 		$res = $db->query($SQL);
-		if (PEAR::isError($res)) {
+		if (!$res) {
 			// No data to migrate
 			return;
 		}
@@ -153,6 +152,7 @@ class Config_Manager {
 
 	public static function saveSetting($symbol, $value)
 	{
+		var_dump($value);
 		$db = $GLOBALS['db'];
 		$SQL = 'UPDATE setting
 				SET value = '.$db->quote($value).'

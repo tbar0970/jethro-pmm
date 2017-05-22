@@ -47,11 +47,17 @@ class JethroDB extends PDO {
     return $result;
   }
 
-  public function queryAll($sql, $types=null, $fetchmode=null, $rekey=false, $force_array=false, $group=false) {
+  public function queryAll($sql, $types=null, $fetchmode=null, $rekey=false, $force_array=false, $group=false,$emptyonerror=false) {
     $all = array();
     $stmnt = self::prepare($sql);
     $stmnt->execute();
-    self::check_db_statement_and_exit($stmnt);
+	if (($stmnt->errorCode() !== NULL) && ($stmnt->errorCode() > 0)) {
+		if ($emptyonerror) {
+			return Array();
+		} else {
+            trigger_error("Database Error: " . $statement->errorCode(), E_USER_ERROR);
+		}
+	}
     if (!$rekey) {
       $all = $stmnt->fetchAll();
     } else {
@@ -100,13 +106,13 @@ class JethroDB extends PDO {
   public function check_db_statement($statement) {
     if (($statement->errorCode() !== NULL) && ($statement->errorCode() > 0)) {
 		    trigger_error("Database Error: " . $statement->errorCode(), E_USER_ERROR);
-        exit();
     }
   }
 
   public function check_db_statement_and_exit($statement) {
     if (($statement->errorCode() !== NULL) && ($statement->errorCode() > 0)) {
-		    trigger_error("Database Error: " . $statement->errorCode(), E_USER_ERROR);
+		var_dump(debug_backtrace());
+	    trigger_error("Database Error: " . $statement->errorCode(), E_USER_ERROR);
         exit();
     }
   }
