@@ -120,6 +120,6 @@ class JethroDB extends PDO {
    * Returns true if there is an error, false if there is no error
    */
   public function check_db_error() {
-    return ((self::errorCode() !== NULL) && (self::errorCode() > 0));
+    return ((self::errorCode() !== '00000') || (self::errorCode() !== NULL));
   }
 }
