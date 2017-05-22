@@ -14,7 +14,7 @@ class Installer
 	{
 		$sql = 'SELECT count(*) FROM _person';
 		$res = $GLOBALS['db']->queryOne($sql);
-		if (($res->errorCode() === NULL) || ($res->errorCode() === 0)) {
+		if ($res) {
 			trigger_error('System has already been installed, installer is aborting');
 			exit();
 		}

@@ -93,7 +93,7 @@ class JethroDB extends PDO {
     $result = false;
     $stmnt = self::prepare($query);
     $stmnt->execute();
-    self::check_db_statement_and_exit($stmnt);
+    self::check_db_statement($stmnt);
     $row = $stmnt->fetch(PDO::FETCH_NUM);
     if ($row) {
       $result = $row[$colnum];
@@ -105,7 +105,7 @@ class JethroDB extends PDO {
 
   public function check_db_statement($statement) {
     if (($statement->errorCode() !== NULL) && ($statement->errorCode() > 0)) {
-		    trigger_error("Database Error: " . $statement->errorCode(), E_USER_ERROR);
+			print "Database Error: " . $statement->errorCode();
     }
   }
 
