@@ -152,7 +152,6 @@ class Config_Manager {
 
 	public static function saveSetting($symbol, $value)
 	{
-		var_dump($value);
 		$db = $GLOBALS['db'];
 		$SQL = 'UPDATE setting
 				SET value = '.$db->quote($value).'
