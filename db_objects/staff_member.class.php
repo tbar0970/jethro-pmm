@@ -69,9 +69,10 @@ class Staff_Member extends Person
 			'permissions'  => Array(
 									'type'		=> 'bitmask',
 									'options'	=> $GLOBALS['user_system']->getPermissionLevels(),
-									'default'	=> DEFAULT_PERMISSIONS,
+									'default'	=> ifdef('DEFAULT_PERMISSIONS', 2147483647),
 									'label'		=> 'Permissions Granted',
 									'cols'		=> 3,
+									'note'      => 'NOTE: Changes to permissions only take effect the next time a user logs in',
 						   ),
 
 		);
@@ -80,13 +81,18 @@ class Staff_Member extends Person
 
 
 	// We need this to override person::getInitSQL
-	function getInitSQL()
+	public function getInitSQL($table_name=NULL)
 	{
 		return $this->_getInitSQL();
 	}
 
+	public function getForeignKeys()
+	{
+		return Array();
+	}
 
-	function getTasks($type='all')
+
+	public function getTasks($type='all')
 	{
 		$date_exp = '';
 		switch ($type) {
@@ -124,7 +130,7 @@ class Staff_Member extends Person
 	*
 	* Subclasses should add links and other HTML markup by overriding this
 	*/
-	function printFieldValue($name, $value=null)
+	function printFieldValue($name, $value=NULL)
 	{
 		if (is_null($value)) $value = $this->getValue($name);
 		if ($name == 'restrictions') {
@@ -175,11 +181,14 @@ class Staff_Member extends Person
 	function printFieldInterface($name, $prefix='')
 	{
 		switch ($name) {
+			case 'username':
+				print_widget($prefix.'user_un', $this->fields['username'], $this->getValue('username'));
+				break;
 			case 'password':
 				if (($GLOBALS['user_system']->getCurrentUser('id') == $this->id) || $GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 					?>
-					<input type="password" data-minlength="<?php echo (int)$this->getMinPasswordLength(); ?>" autocomplete="off" name="<?php echo $prefix.$name.'1'; ?>" /><br />
-					<input type="password" data-minlength="<?php echo (int)$this->getMinPasswordLength(); ?>" autocomplete="off" name="<?php echo $prefix.$name.'2'; ?>" /><br />
+					<input type="password" data-minlength="<?php echo (int)$this->getMinPasswordLength(); ?>" autocomplete="off" name="<?php echo $prefix.'user_pw1'; ?>" /><br />
+					<input type="password" data-minlength="<?php echo (int)$this->getMinPasswordLength(); ?>" autocomplete="off" name="<?php echo $prefix.'user_pw2'; ?>" /><br />
 					<p class="help-inline">Enter once, then again to confirm. Passwords must be at least <?php echo (int)$this->getMinPasswordLength(); ?> characters and contain 2 letters and 2 numbers</p>
 					<?php
 				} else {
@@ -232,9 +241,6 @@ class Staff_Member extends Person
 				}
 				if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 					parent::printFieldInterface($name, $prefix);
-					?>
-					<p class="help-inline"><b>Note:</b> Changes to permissions only take effect the next time a user logs in</p>
-					<?php
 				} else {
 					$this->printFieldValue($name);
 					?>
@@ -252,10 +258,13 @@ class Staff_Member extends Person
 	{
 		switch ($name)
 		{
+			case 'username':
+				$this->setValue('username', array_get($_REQUEST, $prefix.'user_un'));
+				break;
 			case 'password':
-				if (!empty($_REQUEST[$prefix.$name.'1'])) {
-					$val = $_REQUEST[$prefix.$name.'1'];
-					if ($val != $_REQUEST[$prefix.$name.'2']) {
+				if (!empty($_REQUEST[$prefix.'user_pw1'])) {
+					$val = $_REQUEST[$prefix.'user_pw1'];
+					if ($val != $_REQUEST[$prefix.'user_pw2']) {
 						trigger_error('Password and password confirmation do not match; Password not saved.');
 					} else if (strlen($val) < $this->getMinPasswordLength()) {
 						trigger_error('Password is too short - must be at least '.$this->getMinPasswordLength().' characters; Password not saved.');
@@ -319,7 +328,7 @@ class Staff_Member extends Person
 		return $res;
 	}
 
-	function save()
+	function save($update_family = true)
 	{
 		// Only admins can edit staff other than themselves
 		if (!empty($GLOBALS['JETHRO_INSTALLING']) || ($GLOBALS['user_system']->getCurrentUser('id') == $this->id) || $GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {

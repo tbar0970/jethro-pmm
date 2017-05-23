@@ -1,0 +1,190 @@
+<?php
+/**
+ * JETHRO PMM
+ * 
+ * conf.php - edit this file to configure jethro
+ *
+ * @author Tom Barrett <tom@tombarrett.id.au>
+ * @version $Id: conf.php.sample.au,v 1.23 2014/01/08 10:47:19 tbar0970 Exp $
+ * @package jethro-pmm
+ */
+
+///////////////////////////////////////////////////////////////////////////
+// ESSENTIAL SETTINGS - these must be filled in for the system to run at all:
+///////////////////////////////////////////////////////////////////////////
+
+// Database details - you need to replace at least USERNAME, PASSWORD and DB_NAME for both of these.
+// The Private DSN is used for the main system that users log in to.
+// For enhanced security you can use a different database user for the Public DSN
+// and only grant reduced access privileges to that user (eg only SELECT priveleges, only certain tables)
+// Ref: http://en.wikipedia.org/wiki/Database_Source_Name
+define('PUBLIC_DSN', "mysql://USERNAME:PASSWORD@localhost/DB_NAME");
+define('PRIVATE_DSN', "mysql://USERNAME:PASSWORD@localhost/DB_NAME");
+define('MEMBERS_DSN', "mysql://USERNAME:PASSWORD@localhost/DB_NAME");
+
+// The URL jethro will be running at.  NB The final slash is important!!
+define('BASE_URL', 'http://example.com/jethro/');
+
+// Whether the system must be accessed by HTTPS.
+// If this is true, the BASE_URL above must begin with https://
+define('REQUIRE_HTTPS', FALSE);
+
+
+///////////////////////////////////////////////////////////////////////////
+// SMS SETTINGS - These can also be configured in the web interface,
+// but you may want to define them here to avoid making credentials visible.
+///////////////////////////////////////////////////////////////////////////
+
+// The maximum SMS length users are allowed to send.  160 chars is usually a one-part SMS.
+// define('SMS_MAX_LENGTH', 160);
+
+// URL of the SMS gateway to send SMSes through
+//define('SMS_HTTP_URL', 'https://www.5centsms.com.au:/api/v4/sms');
+//define('SMS_HTTP_URL', 'https://api.smsbroadcast.com.au/api-adv.php');
+// define('SMS_HTTP_URL', "");
+
+// Template for the headers of the HTTP POST request Jethro will send to the SMS gateway.
+// Some SMS gateways use headers for authentication.
+// Examples:
+// * For 5centsms:
+//   define('SMS_HTTP_HEADER_TEMPLATE', "User: me@example.com\r\nApi-Key: MyAPIKey\r\n");
+// define('SMS_HTTP_HEADER_TEMPLATE', "");
+
+// Template for the body of the HTTP POST request Jethro will send to the SMS gateway.
+//
+// Can include the following keywords:
+// _MESSAGE_ - text message to send
+// _RECIPIENTS_COMMAS_ - recipient mobile numbers separated by commas
+// _RECIPIENTS_NEWLINES_ - recipient mobile numbers separated by newlines
+// _RECIPIENTS_ARRAY_ - recipient mobile numbers as an array.  See the SMS_RECIPIENT_ARRAY_PARAMETER setting.
+// _RECIPIENTS_INTERNATIONAL_COMMAS_ - internationalised recipient mobile numbers separated by commas
+//                                     (see SMS_LOCAL_PREFIX and SMS_INTERNATIONAL_PREFIX below)
+// _RECIPIENTS_INTERNATIONAL_NEWLINES_ - recipient mobile numbers separated by newlines
+// _RECIPIENTS_INTERNATIONAL_ARRAY_ - recipient mobile numbers as an array.  See the SMS_RECIPIENT_ARRAY_PARAMETER setting.
+// _USER_MOBILE_ - mobile number of the current Jethro user (eg to use as sender)
+// _USER_EMAIL_ - email address of the current Jethro user.
+//
+// Examples:
+// * For smsbroadcast:
+//   define('SMS_HTTP_POST_TEMPLATE', 'username=MYUSERNAME&password=MYPASSWORD&to=_RECIPIENTS_COMMAS_&from=_USER_MOBILE_&maxsplit=' . floor(SMS_MAX_LENGTH/160) . '&message=_MESSAGE_');
+// * For 5centsms:
+//   define('SMS_HTTP_POST_TEMPLATE', 'sender=_USER_MOBILE_&to=_RECIPIENTS_COMMAS_&message=_MESSAGE_');
+// define('SMS_HTTP_POST_TEMPLATE' , '');
+
+// Base name for the _RECIPIENTS_ARRAY_ keyword available above.
+// Eg set this to "number" to get number[]=0412333444&number[]=0413555666 etc
+// define('SMS_RECIPIENT_ARRAY_PARAMETER', 'number');
+
+// Regex to use to detect success message from the SMS server for each recipient.
+// Leave blank to ignore response.
+// Keywords available:
+// _RECIPIENT_ - recipient number in raw format
+// _RECIPIENT_INTERNATIONAL_ - recipient number in international format (see SMS_LOCAL_PREFIX and SMS_INTERNATIONAL_PREFIX below)
+// Examples:
+// * For smsbroadcast.com.au
+//   define('SMS_HTTP_RESPONSE_OK_REGEX', '[\s\S]*_RECIPIENT_INTERNATIONAL_\",\"id\"\:\d*,\"status\"\:\d*,\"status_text\"\:\"Sen');
+// * For 5centsms
+//   define('SMS_HTTP_RESPONSE_OK_REGEX', '[{]\s*"destination":\s*"_RECIPIENT_",[^}]*"status":\s*(1000|1001|1002|1004|1006|1011|1527),');
+// define('SMS_HTTP_RESPONSE_OK_REGEX', '');
+
+// Regex to detect an overall error response from the API server (eg bad credentials).
+// For example, '#^ERR#i'
+// Optional.
+// define('SMS_HTTP_RESPONSE_ERROR_REGEX', '');
+
+// Local prefix used in the mobile numbers stored in Jethro.
+// Needed for some SMS gateways which use international-format numbers
+// define('SMS_LOCAL_PREFIX', '0');
+
+// International prefix, which replaces the local prefix to form an international-format number
+// Needed for some SMS gateways which use international-format numbers
+// define('SMS_INTERNATIONAL_PREFIX', '61');
+
+// A file to log who has sent SMSes (optional)
+// define('SMS_SEND_LOGFILE', '');
+
+///////////////////////////////////////////////////////////////////////////
+// SMTP SETTINGS - These can also be configured in the web interface,
+// but you may want to define them here to avoid making credentials visible.
+///////////////////////////////////////////////////////////////////////////
+
+// SMTP server used to send registration emails (leave blank to use the local 'mail' command)
+// define('SMTP_SERVER', '');
+
+// Encryption to use when authenticating with the SMTP server - 'ssl', 'tls', or empty.
+// define('SMTP_ENCRYPTION', '');
+
+// Username to use when authenticating with the SMTP server. Can be left blank for no auth.
+// define('SMTP_USERNAME', '');
+
+// Password to use when authenticating with the SMTP server. Can be left blank for no auth.
+// define('SMTP_PASSWORD', '');
+
+
+
+///////////////////////////////////////////////////////////////////////////
+// ADVANCED SETTINGS - These are not available within the web interface
+///////////////////////////////////////////////////////////////////////////
+
+// Whether to allow all configuration settings to be set in this conf.php file
+// (as in older versions of Jethro) rather than via the web interface.  (
+// define('ALLOW_SETTINGS_IN_FILE', TRUE);
+
+// The place where the "documents" view will store files.
+// Defaults to [yourJethroRoot]/files
+// define('DOCUMENTS_ROOT_PATH', '');
+
+// To use the "generate service documents" feature, add folder paths here.
+// They can be absolute paths, or relative within the documents root above.
+// Separate multiple entries with pipe (|).  
+//define('SERVICE_DOCS_TO_POPULATE_DIRS', 'Templates/To_Populate');
+//define('SERVICE_DOCS_TO_EXPAND_DIRS', 'Templates/To_Expand');
+
+// To make certain document folders visible within the members interface,
+// add their paths here.
+// Separate multiple entries with pipe (|).
+// define('MEMBER_FILES_DIRS', 'Member_Files');
+
+
+// How to contact the system administrator (probably the person editing this file)
+// either mailto:someone@domain.com or http://somedomain.com/info-page
+// define('SYSADMIN_HREF', '');
+
+// Where to email errors to
+// define('ERRORS_EMAIL_ADDRESS', '');
+
+// Whether to explicity turn of MySQL's strict mode.
+// Enable this if you experience strict-mode-related database errors and can't adjust your central Mysql config.
+// define('STRICT_MODE_FIX', TRUE);
+
+// HTML to add to the <head> of every page such as additional CSS
+// For example <link rel="stylesheet" type="text/css" href="/extrastuff/jethro-extra.css" >
+// define('EXTRA_HEAD_HTML', '');
+
+// Override LESS variables for the CSS stylesheet (for custom colour scheme)
+// See resources/less/jethro.less.php
+// define('CUSTOM_LESS_VARS', "
+//	@jethroDarkest: #008791;
+//	@jethroDarkish: #008791;
+//	@jethroGrayish: #e8eeee;
+//	@jethroLight: #f7f7fa;
+//	@jethroLightest: #ffffff;
+//	@linkColor: #008791;
+//	@jethroLightText: #f0f0f0;
+//	@jethroDarkText: #008791;
+//");
+
+// Note to display beneath the log-in button, eg a link to T&Cs.  Can contain HTML.
+//define('LOGIN_NOTE', '');
+
+// Custom function for building email URLs.
+// Write your own, or use the sample below to go direct to gmail.
+// function custom_email_href($to, $name, $bcc, $subject) { return 'https://mail.google.com/mail/?view=cm&fs=1&tf=1&to='.$to.'&bcc='.$bcc.'&su='.$subject; }
+
+// Custom function for adding attributes to email URLs.
+// Write your own, or use the sample below to make sure all mailto links open in a new window.
+// function custom_email_extras() { return 'target="_mail"'; }
+
+// Pre-filled values for the login form.  Only use on demo systems etc.
+// define('PREFILL_USERNAME', 'tom');
+// define('PREFILL_PASSWORD', 'dotti80');

@@ -255,8 +255,12 @@ class View_Attendance__Record extends View
 	private function printFormParallel()
 	{
 		$params = Array();
-		if ($this->_age_brackets) $params['(age_bracket'] = $this->_age_brackets;
-		if ($this->_statuses) $params['(status'] = $this->_statuses;
+		if ($this->_age_brackets) $params['(age_bracketid'] = $this->_age_brackets;
+		if ($this->_statuses) {
+			$params['(status'] = $this->_statuses;
+		} else {
+			$params['!status'] = 'archived';
+		}
 		$totalPersons = Attendance_Record_Set::getPersonDataForCohorts($this->_cohortids, $params);
 		$totalPrinted = 0;
 		$cancelURL = build_url(Array('*' => NULL, 'view' => 'attendance__record', 'cohortids' => $this->_cohortids, 'attendance_date' => $this->_attendance_date, 'release' => 1));
@@ -381,7 +385,7 @@ class View_Attendance__Record extends View
 			if ((int)$set->congregationid) {
 				$congregation = $GLOBALS['system']->getDBObject('congregation', (int)$set->congregationid);
 			} else if ($set->groupid) {
-				$group =& $GLOBALS['system']->getDBObject('person_group', $set->groupid);
+				$group = $GLOBALS['system']->getDBObject('person_group', $set->groupid);
 			} else {
 				return;
 			}
@@ -398,8 +402,8 @@ class View_Attendance__Record extends View
 				$GLOBALS['system']->includeDBClass('person');
 				$p = new Person();
 				foreach ($set->age_brackets as $ab) {
-					$p->setValue('age_bracket', $ab);
-					$abs[] = $p->getFormattedValue('age_bracket');
+					$p->setValue('age_bracketid', $ab);
+					$abs[] = $p->getFormattedValue('age_bracketid');
 				}
 			}
 			$title = implode(', ', $stats).' '.implode(',', $abs).' in '.$title;
@@ -443,7 +447,7 @@ class View_Attendance__Record extends View
 				$congregation = $GLOBALS['system']->getDBObject('congregation', (int)$set->congregationid);
 				$title = $congregation->getValue('name').' congregation';
 			} else {
-				$group =& $GLOBALS['system']->getDBObject('person_group', $set->groupid);
+				$group = $GLOBALS['system']->getDBObject('person_group', $set->groupid);
 				$title = $group->getValue('name').' group';
 			}
 			echo '<h3>'.$title.'</h3>';

@@ -3,20 +3,27 @@ include_once 'include/db_object.class.php';
 include_once 'db_objects/action_plan_note.class.php';
 class Action_Plan extends DB_Object
 {
-	function getInitSQL()
+	function getInitSQL($table_name=NULL)
 	{
-		return "
-			CREATE TABLE action_plan (
-			  id int(11) NOT NULL auto_increment,
-			  name varchar(255) not null,
-			  actions text not null,
-			  default_on_create_family tinyint(1) unsigned,
-			  default_on_add_person tinyint(1) unsigned,
-			  modified datetime not null,
-			  modifier int(11) not null,
-			  PRIMARY KEY  (`id`)
-			) ENGINE=InnoDB;
-		";
+		return Array(
+			"CREATE TABLE action_plan (
+				  id int(11) NOT NULL auto_increment,
+				  name varchar(255) not null,
+				  actions text not null,
+				  default_on_create_family tinyint(1) unsigned,
+				  default_on_add_person tinyint(1) unsigned,
+				  modified datetime not null,
+				  modifier int(11) not null,
+				  PRIMARY KEY  (`id`)
+				) ENGINE=InnoDB;
+			",
+			"CREATE TABLE action_plan_age_bracket (
+				action_planid INT NOT NULL,
+				age_bracketid INT NOT NULL,
+				PRIMARY KEY (action_planid, age_bracketid)
+			 ) ENGINE=InnoDB;
+			 "
+		);
 	}
 
 
@@ -83,7 +90,7 @@ class Action_Plan extends DB_Object
 		return null;
 	}
 
-	function printForm()
+	function printForm($prefix = '', $fields = NULL)
 	{
 		$GLOBALS['system']->includeDBClass('person_group');
 		$actions = $this->getValue('actions');
@@ -101,7 +108,7 @@ class Action_Plan extends DB_Object
 				<tr>
 					<th>Notes</th>
 					<td>
-						When this plan is executed, add these notes to the person/family:
+						<strong>When this plan is executed, add these notes to the person/family:</strong>
 						<table class="expandable">
 						<?php
 						foreach ($notes as $i => $note) {
@@ -119,35 +126,53 @@ class Action_Plan extends DB_Object
 						}
 						?>
 						</table>
+						<br />
 					</td>
 				</tr>
 				<tr>
 					<th>Groups</th>
 					<td>
-						When this plan is executed, <b>add</b> the persons / famiy members to these groups:
+						<strong>When this plan is executed, <b>add</b> the persons to these groups:</strong>
+						<table class="expandable">
 						<?php
-						Person_Group::printMultiChooser('groups', array_get($actions, 'groups', Array()), Array(), FALSE);
+						$groups = array_get($actions, 'groups', Array());
+						if (empty($groups)) $groups = Array(0);
+						$mstatuses = array_get($actions, 'group_membership_statuses', Array());
+						foreach ($groups as $i => $groupid) {
+							$statusid = array_get($mstatuses, $i, NULL);
+							?>
+							<tr>
+								<td><?php Person_Group::printChooser('groups[]', $groupid); ?></td>
+								<td>as &nbsp;<?php Person_Group::printMembershipStatusChooser('group_membership_statuses[]', $statusid); ?></td>
+							</tr>
+							<?php
+						}
 						?>
+						</table>
+						<?php
+						?>
+						<br />
 					</td>
 				</tr>
 				<tr>
 					<th></th>
 					<td>
-						When this plan is executed, <b>remove</b> the persons / famiy members from these groups:
+						<strong>When this plan is executed, <b>remove</b> the persons from these groups:</strong>
 						<?php
 						Person_Group::printMultiChooser('groups_remove', array_get($actions, 'groups_remove', Array()), Array(), FALSE);
 						?>
+						<br />
 					</td>
 				</tr>
 				<tr>
 					<th>Fields</th>
 					<td>
-						When this plan is executed, for each person / family member:
+						<strong>When this plan is executed, for each person:</strong>
 						<table class="fields">
 						<?php
 						$fields = array_get($actions, 'fields', Array());
 						$dummy = new Person();
-						foreach (Array('congregationid', 'status', 'age_bracket') as $field) {
+						foreach (Array('congregationid', 'status', 'age_bracketid') as $field) {
 							$value = '';
 							$addToExisting = FALSE;
 							$v = array_get($fields, $field);
@@ -173,7 +198,7 @@ class Action_Plan extends DB_Object
 									);
 						foreach ($customFields as $fieldid => $fieldDetails) {
 							$value = '';
-							$addToExisting = FALSE;
+							$addToExisting = TRUE;
 							$v = array_get($fields, 'custom_'.$fieldid);
 							if ($v) {
 								$value = $v['value'];
@@ -202,6 +227,7 @@ class Action_Plan extends DB_Object
 						}
 						?>
 						</table>
+						<br />
 					</td>
 				</tr>
 				<tr>
@@ -210,15 +236,15 @@ class Action_Plan extends DB_Object
 						<input type="hidden" name="mark_present" value="0" />
 						<label class="checkbox">
 							<input type="checkbox" id="mark_present" name="mark_present" value="1" <?php if (array_get($actions, 'attendance')) echo 'checked="checked"'; ?>>
-							When this plan is executed, mark the persons / family members as present at their congregation for the most recent attendance date
+							<strong>When this plan is executed, mark the persons as present at their congregation</strong>
 						</label>
 						<p><small>This will only have effect if they are in a congregation. They will be marked present for the most recent date on which attendance has been recorded for that congregation.</small></p>
+						<br />
 					</td>
 				</tr>
 				<tr>
 					<th>Options</th>
 					<td>
-						
 						<input type="hidden" name="default_on_create_family" value="0" />
 						<label class="checkbox">
 							<input type="checkbox" id="default_on_create_family" name="default_on_create_family" value="1" <?php if ($this->getValue('default_on_create_family')) echo 'checked="checked"'; ?>>
@@ -230,6 +256,29 @@ class Action_Plan extends DB_Object
 							<input type="checkbox" id="default_on_add_person" name="default_on_add_person" value="1" <?php if ($this->getValue('default_on_add_person')) echo 'checked="checked"'; ?>>
 							By default, execute this plan when adding a new person to an existing family
 						</label>
+
+						<?php
+						$abs = $this->getAgeBracketRestrictions();
+						?>
+						<label class="checkbox">
+							<input type="hidden" name="age_brackets_all" value="1" />
+							<input type="checkbox" name="age_brackets_all" value="0"
+								<?php if (!empty($abs)) echo 'checked="checked"'; ?>
+								data-toggle="visible" data-target="#agebrackets"
+							>
+							Only perform actions on persons in certain age brackets:
+						</label>
+						<div id="agebrackets" <?php if (empty($abs)) echo 'style="display: none"'; ?>>
+							<?php
+							if (empty($abs)) $abs = '*'; // select all
+							print_widget('age_bracketids', Array(
+								'type' => 'reference',
+								'references' => 'age_bracket',
+								'allow_multiple' => true,
+								'height' => -1,
+							), $abs);
+							?>
+						</div>
 					</td>
 				</tr>
 			</tbody>
@@ -257,12 +306,49 @@ class Action_Plan extends DB_Object
 		<?php
 	}
 
-	function processForm()
+	private function getAgeBracketRestrictions()
+	{
+		$SQL = 'SELECT age_bracketid FROM action_plan_age_bracket
+				WHERE action_planid = '.(int)$this->id;
+		$res = $GLOBALS['db']->queryCol($SQL);
+		check_db_result($res);
+		return $res;
+	}
+
+	private function saveAgeBracketRestrictions()
+	{
+		if (!isset($this->_tmp['abs'])) return;
+		
+		$age_bracket_ids = $this->_tmp['abs'];
+		$SQL = 'DELETE FROM action_plan_age_bracket WHERE action_planid = '.(int)$this->id;
+		$r = $GLOBALS['db']->exec($SQL);
+		check_db_result($r);
+
+		if (!empty($age_bracket_ids)) {
+			// if they've selected every age bracket, don't add any restrictions.
+			$all_age_brackets = array_keys($GLOBALS['system']->getDBObjectData('age_bracket'));
+			$diff = array_diff($all_age_brackets, $age_bracket_ids);
+			if (!empty($diff)) {
+				$sets = Array();
+				foreach ($age_bracket_ids as $ab) {
+					$sets[] = '('.(int)$this->id.', '.(int)$ab.')';
+				}
+				$SQL = 'INSERT INTO action_plan_age_bracket (action_planid, age_bracketid)
+						VALUES
+						'.implode(',', $sets);
+				$r = $GLOBALS['db']->exec($SQL);
+				check_db_result($r);
+			}
+		}	
+	}
+
+	function processForm($prefix = '', $fields = NULL)
 	{
 		parent::processForm();
 		$actions = Array(
 					'notes' => Array(),
 					'groups' => Array(),
+					'group_membership_statuses' => Array(),
 					'groups_remove' => Array(),
 					'dates' => Array(),
 					'attendance' => NULL,
@@ -276,6 +362,7 @@ class Action_Plan extends DB_Object
 		while (isset($_POST['groups'][$i])) {
 			if ($groupid = (int)$_POST['groups'][$i]) {
 				$actions['groups'][] = $groupid;
+				$actions['group_membership_statuses'][] = array_get($_POST['group_membership_statuses'], $i);
 			}
 			$i++;
 		}
@@ -297,7 +384,7 @@ class Action_Plan extends DB_Object
 					$val = '-1==='.$_POST['custom_'.$fieldID.'_note'];
 				} else {
 					$val = $field->processWidget();
-					$val = reset($val); // it comes wrapped in an array 
+					$val = reset($val); // it comes wrapped in an array
 				}
 			} else {
 				$val = $_POST[$k];
@@ -309,12 +396,15 @@ class Action_Plan extends DB_Object
 		}
 		$actions['attendance'] = $_POST['mark_present'];
 		$this->setValue('actions', $actions);
+		$this->_tmp['abs'] = !empty($_REQUEST['age_brackets_all']) ? Array() : $_REQUEST['age_bracketids'];
 	}
 
 	function create() {
 		$this->setValue('modified', date('Y-m-d H:i:s'));
 		$this->setValue('modifier', $GLOBALS['user_system']->getCurrentUser('id'));
-		return parent::create();
+		$res = parent::create();
+		if ($res) $this->saveAgeBracketRestrictions();
+		return $res;
 	}
 
 
@@ -322,7 +412,10 @@ class Action_Plan extends DB_Object
 	{
 		$this->setValue('modified', date('Y-m-d H:i:s'));
 		$this->setValue('modifier', $GLOBALS['user_system']->getCurrentUser('id'));
-		return parent::save();
+		$res = parent::save();
+		if ($res) $this->saveAgeBracketRestrictions();
+		return $res;
+
 	}
 
 	static function getMultiChooser($name, $value_or_context)
@@ -357,7 +450,8 @@ class Action_Plan extends DB_Object
 	function execute($subject_type, $subject_id, $reference_date)
 	{
 		//bam("Executing ".$this->getValue('name').' against '.$subject_type.' #'.$subject_id.' with ref date '.$reference_date);
-
+		$original_subject_type = $subject_type;
+		$original_subject_id = $subject_id;
 		if ($subject_type == 'family') {
 			$family = $GLOBALS['system']->getDBObject('family', (int)$subject_id);
 			$personids = array_keys($family->getMemberData());
@@ -370,14 +464,43 @@ class Action_Plan extends DB_Object
 			$personids = Array($subject_id);
 		} else {
 			trigger_error("Cannot execute plan against a $subject_type");
-			return;
+			return FALSE;
 		}
+		
+		if (empty($personids)) {
+			trigger_error("Could not find persons on which to execute action plan");
+			return FALSE;
+		}
+		
+		if ($abs = $this->getAgeBracketRestrictions()) {
+			$personids = array_keys($GLOBALS['system']->getDBObjectData(
+				'person', 
+				Array(
+					'(id' => $personids,
+					'(age_bracketid' => $abs,
+				),
+				'AND'
+			));
+			if (empty($personids)) {
+				if ($original_subject_type == 'family') {
+					$family = new Family($original_subject_id);
+					add_message('"'.$this->getValue('name').'" plan was not executed on '.$family->toString().' because no family member had the appropriate age bracket', 'warning');
+				} else {
+					$person = new Person($subject_id);
+					add_message('"'.$this->getValue('name').'" plan was not executed on '.$person->toString().' because they don\'t have the appropriate age bracket', 'warning');
+				}
+				return FALSE;				
+			}
+		}
+		
 
 		$actions = $this->getValue('actions');
-		foreach (array_get($actions, 'groups', Array()) as $groupid) {
+		$membershipStatuses = array_get($actions, 'group_membership_statuses', Array());
+		foreach (array_get($actions, 'groups', Array()) as $i => $groupid) {
 			$group = $GLOBALS['system']->getDBObject('person_group', $groupid);
+			$status = array_get($membershipStatuses, $i);
 			foreach ($personids as $personid) {
-				$group->addMember($personid);
+				$group->addMember($personid, $status);
 			}
 		}
 		foreach (array_get($actions, 'groups_remove', Array()) as $groupid) {
@@ -431,6 +554,8 @@ class Action_Plan extends DB_Object
 				}
 			}
 		}
+		
+		return TRUE;
 	}
 
 	public function getValue($name)

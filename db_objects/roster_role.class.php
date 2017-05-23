@@ -107,10 +107,11 @@ class Roster_Role extends db_object
 		return $res;
 	}
 
-	function _printUnlistedAlloceeOption($personid, $name)
+	function _printUnlistedAlloceeOption($personid)
 	{
+		$person = $GLOBALS['system']->getDBObject('person', $personid);
 		?>
-		<option value="<?php echo (int)$personid; ?>" class="unlisted-allocee" selected="selected" title="This person is not in the volunteer group for this role"><?php echo ents($name); ?></option>
+		<option value="<?php echo (int)$personid; ?>" class="unlisted-allocee" selected="selected" title="This person is not in the volunteer group for this role"><?php echo ents($person->toString()); ?></option>
 		<?php
 	}
 
@@ -126,13 +127,13 @@ class Roster_Role extends db_object
 				?>
 				<table class="expandable no-borders no-padding">
 				<?php
-				foreach ($currentval as $id => $name) {
+				foreach ($currentval as $id) {
 					?>
 					<tr><td>
 					<select name="assignees[<?php echo $this->id; ?>][<?php echo $date; ?>][]">
 						<option value=""></option>
 					<?php
-					if (!empty($id) && !isset($volunteers[$id])) $this->_printUnlistedAlloceeOption($id, $name);
+					if (!empty($id) && !isset($volunteers[$id])) $this->_printUnlistedAlloceeOption($id);
 					foreach ($volunteers as $vid => $name) {
 						?>
 						<option value="<?php echo $vid; ?>"<?php if ($vid == $id) echo ' selected="selected"'; ?>><?php echo ents($name); ?></option>
@@ -148,13 +149,12 @@ class Roster_Role extends db_object
 				</table>
 				<?php
 			} else {
-				$currentName = reset($currentval);
-				$currentID = key($currentval);
+				$currentID = reset($currentval);
 				?>
 				<select name="assignees[<?php echo $this->id; ?>][<?php echo $date; ?>]">
 					<option value=""></option>
 				<?php
-				if (!empty($currentID) && !isset($volunteers[$currentID])) $this->_printUnlistedAlloceeOption($currentID, $currentName);
+				if (!empty($currentID) && !isset($volunteers[$currentID])) $this->_printUnlistedAlloceeOption($currentID);
 				foreach ($volunteers as $id => $name) {
 					?>
 					<option value="<?php echo $id; ?>"<?php if ($currentID == $id) echo ' selected="selected"'; ?>><?php echo ents($name); ?></option>
@@ -170,7 +170,8 @@ class Roster_Role extends db_object
 			if ($this->getValue('assign_multiple')) {
 				Person::printMultipleFinder('assignees['.$this->id.']['.$date.']', $currentval);
 			} else {
-				Person::printSingleFinder('assignees['.$this->id.']['.$date.']', $currentval);
+				$currentID = (int)reset($currentval);
+				Person::printSingleFinder('assignees['.$this->id.']['.$date.']', $currentID);
 			}
 		}
 	}

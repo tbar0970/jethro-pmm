@@ -2,7 +2,7 @@
 class View__Persons_Bulk_Update extends View
 {
 	var $_person;
-	var $_allowedFields = Array('status', 'age_bracket', 'congregationid');
+	var $_allowedFields = Array('status', 'age_bracketid', 'congregationid');
 
 	static function getMenuPermissionLevel()
 	{

@@ -109,7 +109,10 @@ class System_Controller
 					$view_filename = $_SESSION['views'][$this->_base_dir][$bits[0]]['children'][$bits[1]]['filename'];
 					$view_classname = 'View_'.$bits[0].'__'.$bits[1];
 				}
-			} else if (isset($_SESSION['views'][$this->_base_dir][$bits[0]])) {
+			} else if (isset($_SESSION['views'][$this->_base_dir][$bits[0]])
+				&& isset($_SESSION['views'][$this->_base_dir][$bits[0]]['filename'])) {
+				// NB if they have permission to a sub-view (eg services > view) but not to the top level
+				// view (eg services) then the view will be in the array but without a filename
 				$view_filename = $_SESSION['views'][$this->_base_dir][$bits[0]]['filename'];
 				$view_classname = 'View_'.$bits[0];
 			}
@@ -196,11 +199,11 @@ class System_Controller
 		return $this->_object_cache[$classname][$id];
 	}
 
-	public function getDBObjectData($classname, $params=Array(), $logic='OR', $order='')
+	public function getDBObjectData($classname, $params=Array(), $logic='OR', $order='', $refreshCache=FALSE)
 	{
 		static $cache = Array();
 		$cacheKey = "$classname-$logic-$order-".serialize($params);
-		if (!isset($cache[$cacheKey])) {
+		if ($refreshCache || !isset($cache[$cacheKey])) {
 			$this->includeDBClass($classname);
 			$sample = new $classname();
 			$cache[$cacheKey] = $sample->getInstancesData($params, $logic, $order);
@@ -226,11 +229,13 @@ class System_Controller
 
 	public function _handleError($errno, $errstr, $errfile, $errline)
 	{
+		if (error_reporting() == 0) return; // the "@" shutup-operator was used
 		$send_email = true;
 		$exit = false;
 		switch ($errno) {
 			case E_ERROR:
 			case E_USER_ERROR:
+				if (FALSE !== strpos($errstr, 'variables should be assigned by reference')) return;
 				$bg = 'error';
 				$title = 'SYSTEM ERROR (ERROR)';
 				$exit = true;
@@ -316,7 +321,7 @@ class System_Controller
 
 	public function featureEnabled($feature)
 	{
-		$enabled_features = explode(',', strtoupper(ENABLED_FEATURES));
+		$enabled_features = explode(',', strtoupper(ifdef('ENABLED_FEATURES', '')));
 		return in_array(strtoupper($feature), $enabled_features);
 	}
 	

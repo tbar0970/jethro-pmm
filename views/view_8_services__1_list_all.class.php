@@ -212,7 +212,7 @@ class View_Services__List_All extends View
 
 	function getTitle()
 	{
-		return ($this->_editing ? 'Edit Service Program' : 'All Services');
+		return ($this->_editing ? 'Edit Service Schedule' : 'Service Schedule');
 	}
 
 
@@ -247,6 +247,30 @@ class View_Services__List_All extends View
 	{
 		require_once dirname(__FILE__).'/view_0_generate_service_documents.class.php';
 		if (empty($this->_congregations)) return;
+		if (empty($this->_grouped_services)) {
+			?>
+			<p class="text alert alert-info">
+				<?php echo _('No services have been saved in the specified time period.  Click the "edit" button above to create some services.'); ?>
+			</p>
+			<?php
+			return;
+		}
+
+		$message = '';
+		if ($GLOBALS['user_system']->havePerm(PERM_EDITSERVICE)) {
+			$message .= _('Click a service below to edit its run sheet');
+		}
+		if ($GLOBALS['user_system']->havePerm(PERM_BULKSERVICE)) {
+			$message .= ', '._('or click the "edit" button above to edit the service schedule including bible readings and titles.');
+		}
+		if ($message) {
+			?>
+			<p class="text alert alert-info">
+				<?php echo ents($message); ?>
+			</p>
+			<?php
+		}
+		
 		?>
 		<table class="table roster service-program table-auto-width">
 			<thead>
@@ -290,8 +314,10 @@ class View_Services__List_All extends View
 							<ul class="dropdown-menu" role="menu">
 								<li>
 								<?php
+								$printed = FALSE;
 								foreach (Array('populate', 'expand') as $op) {
-									foreach (View__Generate_Service_Documents::getTemplates($op) as $filename => $fullpath) {
+									$templates = View__Generate_Service_Documents::getTemplates($op);
+									foreach ($templates as $filename => $fullpath) {
 										$url = build_url(Array(
 											'view'  => '_generate_service_documents',
 											'date'  => $date,
@@ -301,7 +327,13 @@ class View_Services__List_All extends View
 										?>
 										<a href="<?php echo $url; ?>"><?php echo ucfirst($op).' '.$filename; ?></a>
 										<?php
+										$printed = TRUE;
 									}
+								}
+								if (!$printed) {
+									?>
+									<a href="?view=documents"><?php echo _("Add some templates to expand or populate"); ?></a>
+									<?php
 								}
 								?>
 								</li>
@@ -387,14 +419,16 @@ class View_Services__List_All extends View
 	function _printServiceViewCell($congid, $date, $data)
 	{
 		if (empty($data)) return;
-		if ($data['has_items']) {
-			?>
-			<a class="take-parent-click pull-right" title="View service run sheet" href="?view=services&date=<?php echo $date; ?>&congregationid=<?php echo $congid; ?>"><i class="icon-list"></i></a>
-			<?php
-		} else {
-			?>
-			<a class="take-parent-click pull-right" title="Create service run sheet" href="?view=services&editing=1&date=<?php echo $date; ?>&congregationid=<?php echo $congid; ?>"><i class="icon-plus-sign"></i></a>
-			<?php
+		if ($GLOBALS['user_system']->havePerm(PERM_EDITSERVICE)) {
+			if ($data['has_items']) {
+				?>
+				<a class="take-parent-click pull-right" title="View service run sheet" href="?view=services&date=<?php echo $date; ?>&congregationid=<?php echo $congid; ?>"><i class="icon-list"></i></a>
+				<?php
+			} else {
+				?>
+				<a class="take-parent-click pull-right" title="Create service run sheet" href="?view=services&editing=1&date=<?php echo $date; ?>&congregationid=<?php echo $congid; ?>"><i class="icon-plus-sign"></i></a>
+				<?php
+			}
 		}
 		$this->_dummy_service->populate($data['id'], $data);
 		$this->_dummy_service->printFieldValue('summary');
@@ -408,7 +442,10 @@ class View_Services__List_All extends View
 		if (empty($_REQUEST['congregations'])) return;
 
 		?>
-		<form method="post" class="warn-unsaved" data-lock-length="<?php echo LOCK_LENGTH; ?>">
+		<p class="text alert alert-info">
+			<?php echo _("Use the fields below to enter a topic, format and/or Bible readings for each service. For each Bible reading, use the checkboxes to indicate if it is to be read, to be preached on, or both."); ?>
+		</p>
+		<form method="post" class="warn-unsaved" data-lock-length="<?php echo db_object::getLockLength(); ?>">
 		<input type="hidden" name="program_submitted" value="1" />
 		<!-- the following hidden fields preserve the value of an image input whose click
 		     is intercepted by a confirm-shift popup -->

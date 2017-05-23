@@ -21,13 +21,13 @@ class View__Generate_Service_Documents extends View
 
 	static function getTemplates($op)
 	{
-		$dirs['populate'] = SERVICE_DOCS_TO_POPULATE_DIRS ? explode('|', SERVICE_DOCS_TO_POPULATE_DIRS) : '';
-		$dirs['expand'] = SERVICE_DOCS_TO_EXPAND_DIRS ? explode('|', SERVICE_DOCS_TO_EXPAND_DIRS) : '';
+		$dirs['populate'] = explode('|', ifdef('SERVICE_DOCS_TO_POPULATE_DIRS', 'Templates/To_Populate'));
+		$dirs['expand'] = explode('|', ifdef('SERVICE_DOCS_TO_EXPAND_DIRS', 'Templates/To_Expand'));
 		$opDirs = $dirs[$op];
 		$found_files = Array();
 
 
-		$rootpath = DOCUMENTS_ROOT_PATH ? DOCUMENTS_ROOT_PATH :  JETHRO_ROOT.'/files';
+		$rootpath = Documents_Manager::getRootPath();
 		foreach ($opDirs as $i => $dir) {
 			if (!is_dir($dir)) {
 				if (is_dir($rootpath.'/'.$dir)) {
@@ -35,7 +35,7 @@ class View__Generate_Service_Documents extends View
 				}
 			}
 			if (!is_dir($opDirs[$i])) {
-				trigger_error("Bad config: ".self::_cleanDirName($dir)." does not exist");
+				//trigger_error("Bad config: ".self::_cleanDirName($dir)." does not exist");
 				unset($opDirs[$i]);
 				continue;
 			}
@@ -346,18 +346,7 @@ class View__Generate_Service_Documents extends View
 			$list = is_file($this->_filename) ? $this->_keywords : array_get($this->_cong_keywords, $congid, Array());
 			foreach ($list as $keyword) {
 				$keyword = strtoupper($keyword);
-				if (0 === strpos($keyword, 'NAME_OF_')) {
-					$role_title = substr($keyword, strlen('NAME_OF_'));
-					$this->_replacements[$congid][$keyword] = $service->getPersonnelByRoleTitle($role_title);
-				} else if (0 === strpos($keyword, 'SERVICE_')) {
-					$service_field = strtolower(substr($keyword, strlen('SERVICE_')));
-					$this->_replacements[$congid][$keyword] = $service->getValue($service_field);
-					if (null === $this->_replacements[$congid][$keyword]) $this->_replacements[$congid][$keyword] = '';
-					if ($service_field == 'date') {
-						// make a friendly date
-						$this->_replacements[$congid][$keyword] = date('j F Y', strtotime($this->_replacements[$congid][$keyword]));
-					}
-				} else if (0 === strpos($keyword, 'NEXT_SERVICE_')) {
+				if (0 === strpos($keyword, 'NEXT_SERVICE_')) {
 					if (!empty($next_service)) {
 						$service_field = strtolower(substr($keyword, strlen('NEXT_SERVICE_')));
 						$this->_replacements[$congid][$keyword] = $next_service->getValue($service_field);
@@ -373,7 +362,7 @@ class View__Generate_Service_Documents extends View
 					$cong_field = strtolower(substr($keyword, strlen('CONGREGATION_')));
 					$this->_replacements[$congid][$keyword] = $cong[$cong_field];
 				} else {
-					$this->_replacements[$congid][$keyword] = '';
+					$this->_replacements[$congid][$keyword] = $service->getKeywordReplacement($keyword);
 				}
 			}
 		}
@@ -381,7 +370,7 @@ class View__Generate_Service_Documents extends View
 
 	private static function _cleanDirName($dirname) {
 		$dirname = str_replace('\\', '/', $dirname);
-		$rootpath = DOCUMENTS_ROOT_PATH ? DOCUMENTS_ROOT_PATH :  JETHRO_ROOT.'/files';
+		$rootpath = Documents_Manager::getRootPath();
 		$rootpath = str_replace('\\', '/', $rootpath);
 		if (0 === strpos($dirname, $rootpath)) {
 			return substr($dirname, strlen($rootpath));

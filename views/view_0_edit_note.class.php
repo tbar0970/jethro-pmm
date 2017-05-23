@@ -12,7 +12,7 @@ class View__Edit_Note extends View
 
 	function processView()
 	{
-		$this->_note =& $GLOBALS['system']->getDBObject($_REQUEST['note_type'].'_note', (int)$_REQUEST['noteid']);
+		$this->_note = $GLOBALS['system']->getDBObject($_REQUEST['note_type'].'_note', (int)$_REQUEST['noteid']);
 		
 		if (!empty($_POST['delete_note']) && $this->_note->canBeDeleted()) {
 			if ($this->_note->delete()) {
@@ -24,11 +24,11 @@ class View__Edit_Note extends View
 			return;
 		}
 		$note_type = ($_REQUEST['note_type'] == 'family') ? 'family_note' : 'person_note';
-		$this->_note =& $GLOBALS['system']->getDBObject($note_type, $_REQUEST['noteid']);
+		$this->_note = $GLOBALS['system']->getDBObject($note_type, $_REQUEST['noteid']);
 		if ($_REQUEST['note_type'] == 'family') {
-			$this->_family =& $GLOBALS['system']->getDBObject('family', $this->_note->getValue('familyid'));
+			$this->_family = $GLOBALS['system']->getDBObject('family', $this->_note->getValue('familyid'));
 		} else {
-			$this->_person =& $GLOBALS['system']->getDBObject('person', $this->_note->getValue('personid'));
+			$this->_person = $GLOBALS['system']->getDBObject('person', $this->_note->getValue('personid'));
 		}
 
 		if (!empty($_POST['update_note_submitted'])) {

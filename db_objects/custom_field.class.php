@@ -26,7 +26,12 @@ class Custom_Field extends db_object
 						),
 			'type'	=> Array(
 							'type'		=> 'select',
-							'options'  => Array('text' => 'Text', 'select' => 'Selection', 'date' => 'Date'),
+							'options'  => Array(
+											'text' => 'Text',
+											'select' => 'Selection',
+											'date' => 'Date',
+											'link' => 'Link'
+										  ),
 							'default'	=> 'text',
 							'attrs'		=> Array(
 											'data-toggle' => 'visible',
@@ -39,6 +44,18 @@ class Custom_Field extends db_object
 							'options'  => Array('No', 'Yes'),
 							'default'	=> 0,
 							'title'		=> 'Whether to allow multiple values to be entered for this field',
+						   ),
+			'show_add_family'=> Array(
+							'type'		=> 'select',
+							'options'  => Array('No', 'Yes'),
+							'default'	=> 0,
+							'title'		=> 'Whether to show this field on the add-family page',
+						   ),
+			'searchable'=> Array(
+							'type'		=> 'select',
+							'options'  => Array('No', 'Yes'),
+							'default'	=> 0,
+							'title'		=> 'Whether to include this field in system-wide search',
 						   ),
 			'heading_before'=> Array(
 							'type'		=> 'text',
@@ -58,6 +75,16 @@ class Custom_Field extends db_object
 							'type'		=> 'serialise',
 							'default'	=> Array(),
 						),
+			'tooltip'	=> Array(
+							'type'		=> 'text',
+							'width'		=> 20,
+							'height'	=> 3,
+							'allow_empty'	=> TRUE,
+							'initial_cap'	=> TRUE,
+							'placeholder'  => 'Explanatory text...',
+							'class' => 'tooltip-text'
+						),
+
 		);
 	}
 
@@ -104,8 +131,16 @@ class Custom_Field extends db_object
 						Array('type' => 'checkbox', 'attrs' => Array('title' => $title)),
 						!empty($this->values['heading_before']));
 				break;
+			case 'tooltip_toggle':
+				$title = 'Whether to include a tooltip for this field';
+				print_widget($prefix.$fieldname,
+						Array('type' => 'checkbox', 'attrs' => Array('title' => $title)),
+						!empty($this->values['tooltip']));
+				break;
 			case 'allow_multiple':
 			case 'divider_before':
+			case 'show_add_family':
+			case 'searchable':
 				print_widget($prefix.$fieldname,
 						Array('type' => 'checkbox', 'attrs' => Array('title' => $this->fields[$fieldname]['title'])),
 						$this->values[$fieldname]);
@@ -217,6 +252,24 @@ class Custom_Field extends db_object
 		<?php
 	}
 
+		/**
+	 * Print an interface to configure parameters for this field if its type is 'link'
+	 * @param string $prefix
+	 * @param array $params  Existing params of this field
+	 */
+	public static function printParamsLink($prefix, $params)
+	{
+		?>
+		<label>
+		Template:
+		<?php
+		print_widget($prefix.'template', Array('type' => 'text', 'attrs' => Array('placeholder' => '(Optional)')), array_get($params, 'template'));
+		?>
+		</label>
+		<div class="smallprint help-inline"><i>The template can be used to convert <br /> the user-entered text into a valid URL. <br />Eg <code>https://www.facebook.com/<strong>%s</strong></code></i></div>
+		<?php
+	}
+
 	/**
 	 * Print an interface to configure parameters for this field if its type is 'select'
 	 * @param string $prefix
@@ -281,13 +334,17 @@ class Custom_Field extends db_object
 	public function processFieldInterface($fieldname, $prefix = '') {
 		switch ($fieldname) {
 			case 'allow_multiple':
-				$this->setValue('allow_multiple', !empty($_REQUEST[$prefix.$fieldname]));
+			case 'divider_before':
+			case 'show_add_family':
+			case 'searchable':
+				$this->setValue($fieldname, !empty($_REQUEST[$prefix.$fieldname]));
 				break;
 			case 'params':
 				$val = Array();
 				$val['allow_note'] = !empty($_REQUEST[$prefix.'allow_note']);
 				$val['allow_blank_year'] = !empty($_REQUEST[$prefix.'allow_blank_year']);
 				$val['regex'] = array_get($_REQUEST, $prefix.'regex', '');
+				$val['template'] = array_get($_REQUEST, $prefix.'template', '');
 				$this->setValue($fieldname, $val);
 
 				// Also process the options for select fields:
@@ -345,6 +402,9 @@ class Custom_Field extends db_object
 	public function save()
 	{
 		$GLOBALS['system']->doTransaction('BEGIN');
+		if ($this->getValue('type') !== 'text') {
+			$this->setValue('searchable', 0);
+		}
 		parent::save();
 		$this->_saveOptions();
 		$GLOBALS['system']->doTransaction('COMMIT');
@@ -386,6 +446,13 @@ class Custom_Field extends db_object
 					'type' => $this->getValue('type'),
 					'allow_empty' => TRUE,
 				);
+		if ($this->getValue('type') == 'link') {
+			$params['type'] = 'text';
+			if (empty($this->values['params']['template'])) {
+				// thanks to the interweb
+				$params['regex'] = "^([a-z][a-z0-9\\*\\-\\.]*):\\/\\/(?:(?:(?:[\\w\\.\\-\\+!$&'\\(\\)*\\+,;=]|%[0-9a-f]{2})+:)*(?:[\\w\\.\\-\\+%!$&'\\(\\)*\\+,;=]|%[0-9a-f]{2})+@)?(?:(?:[a-z0-9\\-\\.]|%[0-9a-f]{2})+|(?:\\[(?:[0-9a-f]{0,4}:)*(?:[0-9a-f]{0,4})\\]))(?::[0-9]+)?(?:[\\/|\\?](?:[\\w#!:\\.\\?\\+=&@!$'~*,;\\/\\(\\)\\[\\]\\-]|%[0-9a-f]{2})*)?$";
+			}
+		}
 		if ($this->getValue('type') == 'select') {
 			$options = $GLOBALS['system']->getDBObjectData('custom_field_option', Array('fieldid' => $this->id), 'OR', 'rank');
 			foreach ($options as $id => $detail) {
@@ -402,12 +469,18 @@ class Custom_Field extends db_object
 	 * @param mixed $value	Existing value
 	 * @param array $extraPrams	Any extra params to pass to print_widget.
 	 */
-	public function printWidget($value, $extraParams=Array())
+	public function printWidget($value, $extraParams=Array(), $prefix='')
 	{
-		print_widget('custom_'.$this->id.'[]', $extraParams+$this->getWidgetParams(), $value);
+		print_widget($prefix.'custom_'.$this->id.'[]', $extraParams+$this->getWidgetParams(), $value);
 		if (($this->getValue('type') == 'date') && !empty($this->values['params']['allow_note'])) {
 			$note = substr($value, 11);
-			print_widget('custom_'.$this->id.'_note[]', Array('type' => 'text', 'placeholder' => '(Note)'), $note);
+			print_widget($prefix.'custom_'.$this->id.'_note[]', Array('type' => 'text', 'placeholder' => '(Note)'), $note);
+		}
+		if (strlen($this->values['tooltip'])) {
+			?>
+			<i class="clickable icon-question-sign" data-toggle="visible" data-target="#tooltip<?php echo $this->id; ?>"></i>
+			<div class="help-block custom-field-tooltip" id="tooltip<?php echo $this->id; ?>"><?php echo nl2br(ents($this->values['tooltip'])); ?></div>
+			<?php
 		}
 	}
 
@@ -415,11 +488,11 @@ class Custom_Field extends db_object
 	 * Process an interface where an end user supplies a value for this custom field for a person record
 	 * @return mixed
 	 */
-	public function processWidget()
+	public function processWidget($prefix='')
 	{
-		$res = process_widget('custom_'.$this->id, $this->getWidgetParams(), NULL, TRUE);
+		$res = process_widget($prefix.'custom_'.$this->id, $this->getWidgetParams(), NULL, TRUE);
 		if (($this->getValue('type') == 'date') && !empty($this->values['params']['allow_note'])) {
-			$notes = process_widget('custom_'.$this->id.'_note', Array('type' => 'text'), NULL, TRUE);
+			$notes = process_widget($prefix.'custom_'.$this->id.'_note', Array('type' => 'text'), NULL, TRUE);
 			foreach ((array)$notes as $k => $v) {
 				if (!empty($res[$k]) && strlen($v)) $res[$k] .= ' '.$v;
 			}
@@ -437,6 +510,8 @@ class Custom_Field extends db_object
 	public function formatValue($val)
 	{
 		if (is_array($val)) return implode(', ', array_map(Array($this, 'formatValue'), $val));
+		if (!strlen($val)) return '';
+		
 		switch ($this->getValue('type')) {
 			case 'date':
 				if (!preg_match('/(([-0-9]{4})?-([0-9]{2}-[0-9]{2}))( (.*))?/', $val, $matches)) {
@@ -450,10 +525,62 @@ class Custom_Field extends db_object
 				if (empty($val)) return '';
 				return array_get($this->getOptions(), $val, '(Invalid option)');
 				break;
+			case 'link':
+				$template = array_get($this->values['params'], 'template', '');
+				if (strlen($template)) {
+					return sprintf($template, $val);
+				}
+				// fallthrough..
 			default:
 				return $val;
 				break;
 		}
+	}
+
+	/**
+	 * Print the HTML for this field's value, eg with <a> tags for links
+	 * @param type $val
+	 */
+	public function printFormattedValue($val)
+	{
+		if ($this->getValue('type') == 'link') {
+			$template = array_get($this->values['params'], 'template', '');
+			if (strlen($template)) {
+					$url = sprintf($template, $val);
+			} else {
+				$url = $val;
+			}
+			echo '<a target="_blank" href="'.ents($url).'">'.ents($val).'</a>';
+		} else {
+			echo ents($this->formatValue($val));
+		}
+	}
+
+	/**
+	 * Given a string with a value, convert it to appropriate format for storage
+	 * In particular, this looks up the option ID for option fields
+	 * @see Person::fromCsvRow()
+	 */
+	public function parseValue($val)
+	{
+		switch ($this->getValue('type')) {
+			case 'date':
+				if (!preg_match('/(([-0-9]{4})?-([0-9]{2}-[0-9]{2}))( (.*))?/', $val, $matches)) {
+					trigger_error("Badly formed date value '$val'. Dates must be YYYY-MM-DD");
+					return NULL;
+				}
+				break;
+			case 'select':
+				$lowerVal = strtolower($val);
+				foreach ($this->getOptions() as $id => $label) {
+					if (strtolower($label) == $lowerVal) {
+						return $id;
+					}
+				}
+				trigger_error("Invalid option '$val'. ".$this->getValue('name')." must be {".implode(',', $this->getOptions())."})");
+				return NULL;
+		}
+		return $val;
 	}
 
 	/**

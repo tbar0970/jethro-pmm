@@ -57,6 +57,7 @@ class service extends db_object
 									'type'		=> 'html',
 									'height'	=> '7em',
 									'toolbar'  => 'basic',
+									'toolbarLocation'  => 'bottom',
 									'enterMode' => 'BR',
 								   ),
 
@@ -204,9 +205,13 @@ class service extends db_object
 		}
 	}
 
-	function toString()
+	function toString($long=FALSE)
 	{
-		return $this->getFormattedValue('congregationid').' Service on '.$this->getFormattedValue('date');
+		$cong = $GLOBALS['system']->getDBObject('congregation', $this->getValue('congregationid'));
+		$congName = $cong->getValue($long ? 'name' : 'long_name');
+		if (!strlen($congName)) $congName = $cong->toString();
+		$date = $long ? date('jS F Y', strtotime($this->getValue('date'))) : $this->getFormattedValue('date');
+		return $congName.' Service on '.$date;
 	}
 
 	static function shiftServices($congids, $after_date, $shift_by)
@@ -220,7 +225,7 @@ class service extends db_object
 		check_db_result($res);
 	}
 
-	function getFormattedValue($fieldname)
+	function getFormattedValue($fieldname, $value=null)
 	{
 		switch ($fieldname) {
 
@@ -276,7 +281,7 @@ class service extends db_object
 				}
 		}	}
 
-	function printFieldValue($fieldname)
+	function printFieldValue($fieldname, $value=NULL)
 	{
 		// a few special cases
 		switch ($fieldname) {
@@ -474,11 +479,13 @@ class service extends db_object
 			FROM person
 				JOIN roster_role_assignment rra ON rra.personid = person.id
 				JOIN roster_role rr ON rra.roster_role_id = rr.id
-			WHERE LOWER(REPLACE(rr.title, \' \', \'_\')) = '.$GLOBALS['db']->quote($role_title).'
+			WHERE UPPER(REPLACE(rr.title, \' \', \'_\')) = '.$GLOBALS['db']->quote($role_title).'
 				AND (rr.congregationid = '.$GLOBALS['db']->quote($this->getValue('congregationid')).'
 					OR (IFNULL(rr.congregationid, 0) = 0))
-				AND rra.assignment_date = '.$GLOBALS['db']->quote($this->getValue('date'));
+				AND rra.assignment_date = '.$GLOBALS['db']->quote($this->getValue('date')).'
+				ORDER BY roster_role_id, rank';
 		$assignments =  $GLOBALS['db']->queryAll($sql, null, null, false);
+		check_db_result($assignments);
 		$role_ids = Array();
 		$names = Array();
 		foreach ($assignments as $assignment) {
@@ -603,7 +610,8 @@ class service extends db_object
 					'.($withContent ? 'sc.content_html, sc.credits, ' : '').'
 					IFNULL(IF(LENGTH(sc.runsheet_title_format) = 0, scc.runsheet_title_format, sc.runsheet_title_format), "%title%") AS runsheet_title_format,
 					IFNULL(IF(LENGTH(sc.handout_title_format) = 0, scc.handout_title_format, sc.handout_title_format), "%title%") AS handout_title_format,
-					IF(LENGTH(si.personnel) = 0, sc.personnel, si.personnel) AS personnel
+					IF(LENGTH(si.personnel) = 0, sc.personnel, si.personnel) AS personnel,
+					sc.categoryid
 				FROM service_item si
 				LEFT JOIN service_component sc ON si.componentid = sc.id
 				LEFT JOIN service_component_category scc ON sc.categoryid = scc.id
@@ -625,8 +633,7 @@ class service extends db_object
 	{
 		?>
 		<table cellspacing="0" cellpadding="5"
-			<?php if (empty($_REQUEST['view'])) echo 'border="1" style="width: 10cm; border-collapse: collapse" '; ?>
-			class="table table-bordered table-condensed table-full-width run-sheet"
+			class="table table-bordered table-condensed table-full-width run-sheet no-narrow-magic"
 		>
 			<thead>
 				<tr>
@@ -652,8 +659,8 @@ class service extends db_object
 				}
 				?>
 				<tr>
-					<td class="narrow"><?php echo date('Hi', $time); ?></td>
-					<td class="narrow"><?php if ($item['show_in_handout'] != '0') echo $num++; ?></td>
+					<td class="narrow"><?php echo date('H:i', $time); ?></td>
+					<td class="narrow center"><?php if ($item['show_in_handout'] != '0') echo $num++; ?></td>
 					<td>
 						<?php
 						$title = $item['runsheet_title_format'];

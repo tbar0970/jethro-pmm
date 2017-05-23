@@ -191,7 +191,7 @@ body {
 }
 @media (min-width: 1025px) {
 	#jethro-overall-width {
-		/*min-width: 1020px;*/
+		min-width: 800px;
 	}
 }
 @media (max-width: 1025px) {
@@ -449,6 +449,7 @@ h3 {
   line-height: 1.4;
   font-weight: normal;
   border-bottom: 1px solid;
+  margin-top: 20px;
 }
 h4 {
   font-size: 14px;
@@ -473,6 +474,9 @@ h3:first-child, h4:first-child, h5:first-child {
 
 /*********** GENERAL ********************/
 
+#body .cke_bottom .cke_toolbar {
+	float: right !important;
+}
 hr, table.object-summary tr.divider-before > td, table.object-summary tr.divider-before > th {
 	border-top-width: 1px;
 	border-top-color: @grayLighter !important;
@@ -595,18 +599,15 @@ input[type="radio"] {
 .table td table tr:first-child td {
 	border-top: 0px;
 }
-#body table.no-borders td, #body table.no-borders th {
+#body table.no-borders, #body table.no-borders td, #body table.no-borders th {
 	border-width: 0px !important;
 }
 #body .no-padding td, #body .no-padding th {
 	padding: 0px !important;
 }
-/* THIS IS MOSTLY IMPLEMENTED BY JETHRO.JS IN A SPECIAL WAY*/
+/* WIDTH OF NARROW COLS IS IMPLEMENTED BY JETHRO.JS IN A SPECIAL WAY*/
 td.narrow, th.narrow, .object-summary th {
 	white-space: nowrap;
-}
-table.table-full-width td.narrow, table.table-full-width th.narrow {
-	width: 1%;
 }
 .fill-me * {
 	width: 100%;
@@ -619,16 +620,44 @@ table.table-full-width td.narrow, table.table-full-width th.narrow {
 .clickable, table.clickable-rows td, table.clickable-rows th, img.icon {
 	cursor: pointer;
 }
-
+.insert-row-below {
+	color: #8bef26;
+	font-size: 18px;
+	text-decoration: none;
+	font-weight: bold;
+	position: relative;
+	top: 3ex;
+	cursor: pointer;
+}
+.insert-row-below:before {
+	content: "+";
+}
 .cursor-move {
 	cursor: move;
 }
-.smallprint, .help-inline {
-	font-size: 85%;
+tr:last-child .insert-row-below {
+	display: none;
+}
+.smallprint, .help-inline, .help-block, .smallprint code {
+	font-size: 12px;
 	line-height: 130%;
 	margin-left: 0;
 	margin-top: 1px;
 	padding: 0;
+	font-style: italic;
+	color: @gray;
+}
+.custom-field-tooltip {
+	background: @jethroGrayish !important;
+	border-radius: 4px;
+	padding: 3px 6px;
+	display: none;
+	margin-top: 2px;
+	width: 300px;
+	font-style: italic;
+}
+.compact-2col {
+	max-width: 800px;
 }
 .compact-2col label, .compact-2col div  {
 	float: left;
@@ -638,15 +667,18 @@ table.table-full-width td.narrow, table.table-full-width th.narrow {
 	-moz-box-sizing: border-box;
 	box-sizing: border-box;
 }
-.compact-2col div input {
+.compact-2col>div>input:first-child {
 	width: 92%;
 }
-.compact-2col div select {
+.compact-2col>div>select {
 	width: 100%;
 }
 .compact-2col label {
-	margin-top: 5px;
+	margin-top: 8px;
 	margin-bottom: 0px;
+}
+.compact-2col label.fullwidth, .compact-2col div.fullwidth {
+	width: 100% !important;
 }
 /* in the add-family page */
 .family-member-box {
@@ -670,11 +702,10 @@ table.table-full-width td.narrow, table.table-full-width th.narrow {
 .right {
 	text-align: right !important;
 }
-select, input, textarea {
+select, input, textarea,div.editor {
 	width: auto;
 	max-width: 97%;
 }
-/* disused ? */
 .full-width-input {
 	width: 99.5%;
 	-webkit-box-sizing: border-box;
@@ -701,8 +732,8 @@ table.object-summary td, table.object-summary th {
 	border-width: 0px !important;
 }
 
-/* make the table of person dates and family members line up with its label */
-table.object-summary td table.borderless tr:first-child td {
+/* when an object summary table has a table in its data cell, make it line up */
+table.object-summary>tbody>tr>td>table>tbody>tr:first-child td {
 	padding-top: 0px !important;
 }
 #body tr.archived td, #body tr.archived a, #body tr.archived .btn-link {
@@ -756,7 +787,7 @@ input.btn-link, button.btn-link {
 	margin-left: 1px; /* work around a bug where the left margin gets cut off on homepage */
 }
 
-#body h1 small, #body h2 small {
+#body h1 small, #body h2 sminsll {
 	font-size: 14px;
 }
 
@@ -1963,10 +1994,43 @@ td.run-sheet-comments * {
 @media (max-width: 480px) {
 	#service-personnel div.column {
 		width: 100%;
-		margin: 0;
+		margin: .5em 0 0 0;
 	}
 }
 
+
+/*************** SMS MESSAGING ************************/
+button.sms-success, #body tr.sms-success .btn-sms, #body tr.sms-success .btn-sms:hover {
+	background-image: linear-gradient(linear, 0 0, 0 100%, from(#beefae), to(#29b30e)) !important;
+	background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#beefae), to(#29b30e)) !important;
+	background-position: 0 0 !important;
+}
+#body tr.sms-failure .btn-sms, #body tr.sms-failure .btn-sms:hover {
+	background-image: linear-gradient(linear, 0 0, 0 100%, from(#ff9c9c), to(#d22c2c)) !important;
+	background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ff9c9c), to(#d22c2c)) !important;
+	background-position: 0 0 !important;
+}
+
+div.sms_editor {
+  border: 1px solid @grayMid;
+  height: 8em;
+  width: 100%;
+  margin: .5em 0 .5em 0;
+  padding: .25em;
+  overflow-y: auto;
+  border-radius: @baseBorderRadius;
+}
+
+div#sms_message:focus, div#bulk_sms_message:focus {
+  outline: none;
+}
+div#send-sms-modal div.results {
+  display: none;
+}
+
+div#send-sms-modal div.results {
+  text-align: left;
+}
 
 
 /*************** CUSTOM FIELDS EDITOR *****************/

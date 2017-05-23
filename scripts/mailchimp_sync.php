@@ -90,7 +90,7 @@ if (empty($report)) {
 // BUSINESS TIME
 
 $db =& $GLOBALS['db'];
-$sql = $report->getSQL('LOWER(p.email) as loweremail, p.email, p.first_name, p.last_name, p.gender, p.age_bracket, p.status, p.congregationid');
+$sql = $report->getSQL('LOWER(p.email) as loweremail, p.email, p.first_name, p.last_name, p.gender, p.age_bracketid, p.status, p.congregationid');
 $report_members = $db->queryAll($sql, null, null, true);
 check_db_result($report_members);
 unset($report_members['']); // with no email.
@@ -155,8 +155,8 @@ if (!empty($to_add) && !$DRYRUN) {
 		// in the email address) so when there's not too many we call listSubscribe individually
 		foreach ($to_add as $add) {
 			if (!$api->listSubscribe($list_id, $add['EMAIL'],$add, 'html', FALSE, TRUE, FALSE,false)) {
-				if (FALSE !== strpos($api->errorMessage, 'has bounced, and cannot be resubscribed')) {
-					// Email address has a known bounce
+				if (FALSE !== strpos($api->errorMessage, 'cannot be resubscribed')) {
+					// Email address has a known bounce or a deliberate unsubscribe.
 					// Future extension: Clear their email address in jethro and add a note
 
 				} else {
@@ -217,7 +217,7 @@ function getMergeVars($person_data, $email) {
 		'GENDER' => $dummy_person->getFormattedValue('gender'),
 		'CONG' => $dummy_person->getFormattedValue('congregationid'),
 		'STATUS' => $dummy_person->getFormattedValue('status'),
-		'AGEBRACKET' => $dummy_person->getFormattedValue('age_bracket'),
+		'AGEBRACKET' => $dummy_person->getFormattedValue('age_bracketid'),
 	);
 }
 

@@ -37,7 +37,7 @@ class Note_Template extends db_object
 	 * @see DB_Object::printForm()
 	 * @param string $prefix
 	 */
-	function printForm($prefix='')
+	function printForm($prefix='', $fields=NULL)
 	{
 		$this->fields['fields'] = Array();
 		parent::printForm();
@@ -94,13 +94,6 @@ class Note_Template extends db_object
 			)
 		);
 		?>
-		<small>When a note is added to a person using this template, the user will be prompted for the
-			following fields.  Values that the user supplies for "independent" fields will be saved
-			only within the note.  Values for "person" fields are will be saved within the note and will also
-			update the corresponding 
-			<a href="<?php build_url(Array('view' => 'admin__custom_fields')); ?>">custom field</a>
-			in the person record.</small>
-
 		<table class="table expandable reorderable">
 			<thead>
 				<tr>
@@ -116,10 +109,10 @@ class Note_Template extends db_object
 			<?php
 			$i = 0;
 			$dummyField = new Note_Template_Field();
-			
+
 			// Hack this field because we don't want 'empty' in the dropdown.
 			$dummyField->fields['customfieldid']['allow_empty'] = FALSE;
-			
+
 			$fields += Array(0 => Array());
 			foreach ($fields as $id => $field) {
 				$prefix = 'fields_'.$i.'_';
@@ -177,6 +170,11 @@ class Note_Template extends db_object
 			?>
 			</tbody>
 		</table>
+		<small>When someone uses this template to add a note to a person, they will be prompted to enter values for these fields.<br />
+			Values for "independent" fields are saved only within the note itself. <br />
+			Values for "person" fields are will be saved within the note and will also update the corresponding
+			<a href="<?php build_url(Array('view' => 'admin__custom_fields')); ?>">custom field</a>
+			in the person record.</small>
 		<?php
 	}
 

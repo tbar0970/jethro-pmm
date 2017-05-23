@@ -64,7 +64,11 @@ Class ODF_Tools
 	static function replaceKeywords($filename, $replacements, $xml_filenames=NULL)
 	{
 		if (is_null($xml_filenames)) {
-			$xml_filenames = Array('content.xml', 'styles.xml');
+			if (substr(strtolower($filename), -4) == 'docx') {
+				$xml_filenames = Array('word/document.xml');
+			} else {
+				$xml_filenames = Array('content.xml', 'styles.xml');
+			}
 		}
 		foreach ($xml_filenames as $xml_filename) {
 			$xml = ODF_Tools::getXML($filename, $xml_filename);
@@ -82,7 +86,7 @@ Class ODF_Tools
 		if (is_null($xml_filenames)) {
 			$xml_filenames = Array('content.xml', 'styles.xml');
 		}
-		foreach ($xml_filenames as $xml_filename) {
+		foreach ((array)$xml_filenames as $xml_filename) {
 			$txt = ODF_Tools::getXml($filename, $xml_filename);
 			$matches = Array();
 			preg_match_all('/%([a-zA-Z0-9_]*)%/', $txt, $matches);
@@ -134,6 +138,64 @@ Class ODF_Tools
 		foreach ($toRemove as $node) {
 			$node->parentNode->removeChild($node);
 		}
+	}
+	
+	static function insertFileIntoFile($sourceFile, $targetFile, $placeholder)
+	{
+		$xmlFilename = 'word/document.xml'; // todo: sniff filename to support ODT
+		//$namespace = 'urn:oasis:names:tc:opendocument:xmlns:text:1.0'; //  ODT
+		$namespace = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'; // DOCX
+		
+		$targetXML = self::getXML($targetFile, $xmlFilename);
+		if (!$targetXML) {
+			trigger_error("Cannot get target file XML");
+			return FALSE;
+		}
+		$targetDOM = new DOMDocument();
+		$targetDOM->loadXML($targetXML);
+		$targetDOM->preserveWhiteSpace = true;
+		$targetDOM->formatOutput = true;
+
+		// Find where to insert into the document
+		$insertPoint = NULL;
+		foreach ($targetDOM->getElementsByTagNameNS($namespace, 'p') as $elt) {
+			if (trim($elt->textContent) == $placeholder) {
+				$insertPoint = $elt;
+				break;
+			}
+		}
+		if (NULL === $insertPoint) {
+			trigger_error("Could not find $placeholder in a paragraph to insert the new content");
+			bam($targetDOM->saveXML());
+			return FALSE;
+		}
+		
+		$sourceXML = self::getXML($sourceFile, $xmlFilename);
+		if (!$sourceXML) {
+			trigger_error("Cannot get source file XML");
+			return FALSE;
+		}
+		$sourceDOM = new DomDocument();
+		$sourceDOM->loadXML($sourceXML);
+		$sourceDOM->preserveWhiteSpace = true;
+		$sourceDOM->formatOutput = true;
+		
+		$bodies = $sourceDOM->getElementsByTagNameNS($namespace, 'body');
+		if (empty($bodies)) {
+			trigger_error("Could not get body of source document");
+			return FALSE;
+		}
+		
+		foreach ($bodies as $body) {
+			foreach ($body->childNodes as $newNode) {
+				$newNew = $targetDOM->importNode($newNode, true);
+				$insertPoint->parentNode->insertBefore($newNew, $insertPoint);
+			}
+		}
+ 
+ 		$insertPoint->parentNode->removeChild($insertPoint);
+		
+		return ODF_Tools::setXML($targetFile, $targetDOM->saveXML(), $xmlFilename);
 	}
 	
 	static function insertHTML($filename, $html, $placeholder='%CONTENT%')

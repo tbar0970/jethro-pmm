@@ -175,7 +175,7 @@ class View_Attendance__Display extends View
 		}
 		echo '</h3>';
 		$params = Array();
-		if ($this->age_brackets) $params['(age_bracket'] = $this->age_brackets;
+		if ($this->age_brackets) $params['(age_bracketid'] = $this->age_brackets;
 		if ($this->statuses) $params['(status'] = $this->statuses;
 		
 		foreach ($this->statuses as $status) {
@@ -215,7 +215,7 @@ class View_Attendance__Display extends View
 			<?php
 			foreach ($attendances as $personid => $record) {
 				?>
-				<tr <?php if ($record['status'] == 'archived') echo 'class="archived"'; ?>>
+				<tr data-personid="<?php echo $personid; ?>" <?php if ($record['status'] == 'archived') echo 'class="archived"'; ?>>
 					<td><?php echo ents($record['first_name'].' '.$record['last_name']); ?></td>
 					<td>
 						<?php
@@ -347,7 +347,7 @@ class View_Attendance__Display extends View
 		$dummy = new Person();
 
 		$params = Array();
-		if ($this->age_brackets) $params['(age_bracket'] = $this->age_brackets;
+		if ($this->age_brackets) $params['(age_bracketid'] = $this->age_brackets;
 		if ($this->statuses) $params['(status'] = $this->statuses;
 		
 		$all_persons = Attendance_Record_Set::getPersonDataForCohorts($this->cohortids, $params);
@@ -419,7 +419,7 @@ class View_Attendance__Display extends View
 							$congregation = $GLOBALS['system']->getDBObject('congregation', $id);
 							$name = $congregation->getValue('name');
 						} else if ($type == 'g') {
-							$group =& $GLOBALS['system']->getDBObject('person_group', $id);
+							$group = $GLOBALS['system']->getDBObject('person_group', $id);
 							$name = $group->getValue('name');
 						}
 						$short = reset(explode(' ', $name));

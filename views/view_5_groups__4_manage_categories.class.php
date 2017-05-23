@@ -28,8 +28,8 @@ class View_Groups__Manage_Categories extends View
 	{
 		?>
 		<div class="container row-fluid">
-			<p class="span8">
-				<?php echo _('A person group in Jethro can be uncategorised, or it can belong to one group category.<br />Group categories may exist at the top level, or within another category.');?>
+			<p class="span8 text alert alert-info">
+				<?php echo _('A person group in Jethro can belong to up to 1 category.  Group categories can contain sub-categories.  Putting groups into categories makes it easier to browse through them, and also allows you to run person queries based on all the groups in a category.');?>
 			</p>
 			<div class="span4 align-right">
 				<a href="?view=_add_group_category"><i class="icon-plus-sign"></i><?php echo _('Add a new group category');?></a>

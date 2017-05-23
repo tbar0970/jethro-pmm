@@ -38,6 +38,7 @@ class Service_Component extends db_object
 									'type'		=> 'text',
 									'width'		=> 80,
 									'initial_cap'	=> TRUE,
+									'placeholder' => '(Optional)',
 								   ),
 			'length_mins'		=> Array(
 									'type'		=> 'int',
@@ -187,7 +188,7 @@ class Service_Component extends db_object
 		check_db_result($res);
 		return $res;
 	}
-	
+
 	protected function _printSummaryRows()
 	{
 		$oldFields = $this->fields;
@@ -206,7 +207,7 @@ class Service_Component extends db_object
 		unset($this->fields['tags']);
 	}
 
-	public function printFieldValue($name)
+	public function printFieldValue($name, $value=NULL)
 	{
 		switch ($name) {
 			case 'congregationids':
@@ -242,7 +243,7 @@ class Service_Component extends db_object
 				return parent::printFieldValue($name);
 		}
 	}
-	
+
 
 
 	function toString()

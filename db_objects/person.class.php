@@ -29,7 +29,7 @@ class Person extends DB_Object
 
 	public static function getStatusOptions()
 	{
-		return explode(',', PERSON_STATUS_OPTIONS)
+		return explode(',', ifdef('PERSON_STATUS_OPTIONS', ''))
 				+ Array('contact' => 'Contact', 'archived' => 'Archived');
 	}
 
@@ -58,15 +58,16 @@ class Person extends DB_Object
 								   ),
 			'gender'		=> Array(
 									'type'			=> 'select',
-									'options'		=> Array('male' => 'Male', 'female' => 'Female', '' => 'Unknown'),
-									'default'		=> '',
+									'options'		=> Array('female' => 'Female', 'male' => 'Male', '' => 'Unknown'),
+									'default'		=> 'female',
 									'divider_before'	=> true,
 							   ),
-			'age_bracket'	=> Array(
-									'type'			=> 'select',
-									'options'		=> explode(',', AGE_BRACKET_OPTIONS),
-									'default'		=> '0',
+			'age_bracketid'	=> Array(
+									'type'			=> 'reference',
+									'references'    => 'age_bracket',
 									'allow_empty'	=> false,
+									'label'         => 'Age bracket',
+									'show_id'		=> false,
 							   ),
 			'familyid'	=> Array(
 								'divider_before' => true,
@@ -100,12 +101,12 @@ class Person extends DB_Object
 								   ),
 			'mobile_tel'	=> Array(
 									'type'			=> 'phone',
-									'formats'		=> MOBILE_TEL_FORMATS,
+									'formats'		=> ifdef('MOBILE_TEL_FORMATS', ''),
 									'allow_empty'	=> TRUE,
 								   ),
 			'work_tel'	=> Array(
 									'type'			=> 'phone',
-									'formats'		=> WORK_TEL_FORMATS,
+									'formats'		=> ifdef('WORK_TEL_FORMATS', ''),
 									'allow_empty'	=> TRUE,
 								),
 			'remarks'	=> Array(
@@ -154,10 +155,15 @@ class Person extends DB_Object
 				$res['status']['default'] = "$i";
 			}
 		}
+		foreach ($res as $k => $v) {
+			if ($label = ifdef('PERSON_'.strtoupper($k).'_LABEL')) {
+				$res[$k]['label'] = $label;
+			}
+		}
 		return $res;
 	}
 
-	function getInitSQL()
+	function getInitSQL($table_name=NULL)
 	{
 		return Array(
 			"CREATE TABLE `_person` (
@@ -165,7 +171,7 @@ class Person extends DB_Object
 			  `first_name` varchar(255) NOT NULL default '',
 			  `last_name` varchar(255) NOT NULL default '',
 			  `gender` varchar(64) NOT NULL default '',
-			  `age_bracket` varchar(64) NOT NULL default '',
+			  `age_bracketid` INT(11) DEFAULT NULL,
 			  `email` varchar(255) NOT NULL default '',
 			  `mobile_tel` varchar(12) NOT NULL default '',
 			  `work_tel` varchar(12) NOT NULL default '',
@@ -181,14 +187,9 @@ class Person extends DB_Object
 			  `resethash` VARCHAR(255) DEFAULT NULL,
 			  `resetexpires` DATETIME DEFAULT NULL,
 			  `feed_uuid` VARCHAR(255) DEFAULT NULL,
-			  PRIMARY KEY  (`id`),
-			  KEY `first_name` (`first_name`),
-			  KEY `last_name` (`last_name`),
-			  KEY `email` (`email`),
-			  KEY `mobile_tel` (`mobile_tel`),
-			  KEY `work_tel` (`work_tel`),
-			  KEY `status` (`status`),
-			  KEY `familyid` (`familyid`)
+			  INDEX `person_fn` (`first_name`),
+			  INDEX `person_ln` (`last_name`),
+			  PRIMARY KEY  (`id`)
 			) ENGINE=InnoDB ;",
 
 			"CREATE TABLE person_photo (
@@ -197,6 +198,19 @@ class Person extends DB_Object
 			   PRIMARY KEY (personid),
 			   CONSTRAINT photo_personid FOREIGN KEY (`personid`) REFERENCES `_person` (`id`) ON DELETE CASCADE
 			) ENGINE=InnoDB",
+		);
+	}
+
+	/**
+	 *
+	 * @return Array (columnName => referenceExpression) eg 'tagid' => 'tagoption(id) ON DELETE CASCADE'
+	 */
+	public function getForeignKeys()
+	{
+		return Array(
+				'_person.age_bracketid' => '`age_bracket`(`id`) ON DELETE RESTRICT',
+				'_person.familyid' => '`family`(`id`) ON DELETE RESTRICT',
+				'_person.congregationid' => '`congregation`(`id`) ON DELETE RESTRICT',
 		);
 	}
 
@@ -218,15 +232,15 @@ class Person extends DB_Object
 	}
 
 
-	function printFieldValue($name, $value=null)
+	function printFieldValue($name, $value=NULL)
 	{
 		if (is_null($value)) $value = $this->getValue($name);
+		$person_name = ents($this->getValue('first_name')).'&nbsp;'.ents($this->getValue('last_name'));
 		switch ($name) {
 			case 'name':
-				echo ents($this->getValue('first_name')).'&nbsp;'.ents($this->getValue('last_name'));
+				echo $person_name;
 				return;
 			case 'mobile_tel':
-				
 				if (!strlen($value)) return;
 				echo ents($this->getFormattedValue($name, $value));
 
@@ -238,29 +252,16 @@ class Person extends DB_Object
 						defined('SMS_HTTP_URL')
 						&& constant('SMS_HTTP_URL')
 						&& $GLOBALS['user_system']->havePerm(PERM_SENDSMS)
-						&& $_REQUEST['view'] == 'persons'  // TODO: make this modal work in reports too - issue #139
+						&& !empty($this->id)
 					) {
 					// Provide a link to send SMS through the SMS gateway
-					?>
-					<div id="send-sms-modal" class="modal hide fade" role="dialog" aria-hidden="true">
-						<form method="post" action="?view=_send_sms_http">
-							<input type="hidden" name="personid" value="<?php echo $this->id; ?>" />
+					$smsLink = 'href="#send-sms-modal" data-toggle="sms-modal" data-personid="' . $this->id . '" data-name="' . $person_name . '"';
 
-							<div class="modal-header">
-								<h4>Send SMS to <?php $this->printFieldValue('name'); ?></h4>
-							</div>
-							<div class="modal-body">
-								Message:<br />
-								<textarea autofocus="autofocus" name="message" class="span4" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
-							</div>
-							<div class="modal-footer">
-								<input type="submit" class="btn" value="Send" accesskey="s" onclick="if (!$('[name=message]').val()) { alert('Enter a message first'); return false; }" />
-								<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-							</div>
-						</form>
-					</div>
-					<?php
-					$smsLink = 'href="#send-sms-modal" data-toggle="modal"';
+					static $printedModal = FALSE;
+					if (!$printedModal) {
+						SMS_Sender::printModal();
+						$printedModal = TRUE;
+					}
 				}
 				?>
 				<span class="nowrap">
@@ -268,7 +269,7 @@ class Person extends DB_Object
 				<?php
 				if ($smsLink) {
 					?>
-					<a <?php echo $smsLink; ?> class="btn btn-mini"><i class="icon-envelope"></i></a>
+					<a <?php echo $smsLink; ?> class="btn btn-mini btn-sms"><i class="icon-envelope"></i></a>
 					<?php
 				}
 				?>
@@ -289,7 +290,7 @@ class Person extends DB_Object
 		$showDivider = TRUE; // always show before first field
 		$showHeading = '';
 		$dummyField = new Custom_Field();
-		foreach ($this->getCustomFields() as $fieldid => $fieldDetails) {
+		foreach (self::getCustomFields() as $fieldid => $fieldDetails) {
 			$dummyField->populate($fieldid, $fieldDetails);
 			if ($fieldDetails['divider_before']) {
 				$showDivider = TRUE;
@@ -323,7 +324,7 @@ class Person extends DB_Object
 						<?php
 						foreach ($this->_custom_values[$fieldid] as $j => $val) {
 							if ($j > 0) echo '<br />';
-							echo ents($dummyField->formatValue($val));
+							$dummyField->printFormattedValue($val);
 						}
 						?>
 					</td>
@@ -347,8 +348,11 @@ class Person extends DB_Object
 
 	function _compareCreatedDates($a, $b)
 	{
-		return $a['created'] > $b['created'];
-
+		if (ifdef('NOTES_ORDER', 'ASC') == 'ASC') {
+			return $a['created'] > $b['created'];
+		} else {
+			return $a['created'] < $b['created'];
+		}
 	}
 
 	function validateFields()
@@ -400,7 +404,7 @@ class Person extends DB_Object
 			$sql .= '((recorded.groupid = 0) OR (g.name <> ""))';
 		}
 		$sql .= '
-				GROUP BY recorded.groupid, recorded.date
+				GROUP BY g.id, recorded.groupid, recorded.date, ar.present
 				ORDER BY recorded.groupid, recorded.date';
 		$attendances = $db->queryAll($sql, null, null, true, true, true);
 		if ($groupid != -1) $attendances = reset($attendances);
@@ -430,20 +434,49 @@ class Person extends DB_Object
 		
 	}
 
-	function getPersonsByName($name, $include_archived=true)
+	public static function getPersonsBySearch($searchTerm, $includeArchived=true)
 	{
-		$params = Array('CONCAT(first_name, " ", last_name)' => $name);
-		if (!$include_archived) {
-			$params['!status'] = 'archived';
+		$db = $GLOBALS['db'];
+		$SQL = '
+			SELECT pp.id, pp.*
+			FROM (
+				SELECT p.*
+				FROM person p
+				WHERE (
+					(first_name LIKE '.$db->quote($searchTerm.'%').')
+					OR (last_name LIKE '.$db->quote($searchTerm.'%').')
+					OR (first_name LIKE '.$db->quote('% '.$searchTerm.'%').')
+					OR (last_name LIKE '.$db->quote('% '.$searchTerm.'%').')
+					OR (CONCAT(first_name, " ", last_name) LIKE '.$db->quote($searchTerm.'%').')
+				)
+
+				UNION
+
+				SELECT p.*
+				FROM person p
+				JOIN custom_field_value cfv ON cfv.personid = p.id
+				JOIN custom_field cf ON cfv.fieldid = cf.id
+				WHERE cf.searchable
+				AND (
+					(cfv.value_text LIKE '.$db->quote($searchTerm.'%').')
+					OR (cfv.value_text LIKE '.$db->quote('% '.$searchTerm.'%').' )
+				)
+			) pp
+		';
+		if (!$includeArchived) {
+			$SQL .= '
+			WHERE status <> "archived"
+			';
 		}
-		$results = $GLOBALS['system']->getDBObjectData('person', $params, 'AND', 'last_name');
-		if (empty($results)) {
-			$params['CONCAT(first_name, " ", last_name)'] = '%'.$name.'%';
-			$results = $GLOBALS['system']->getDBObjectData('person', $params, 'AND', 'last_name');
-		}
-		return $results;
+		$SQL .= '
+			GROUP BY pp.id
+			';
+		$res = $db->queryAll($SQL, null, null, true, true); // 5th param forces array even if one col
+		check_db_result($res);
+		return $res;
+
 	}
-	
+
 	function save($update_family=TRUE)
 	{
 		$GLOBALS['system']->doTransaction('BEGIN');
@@ -454,7 +487,7 @@ class Person extends DB_Object
 			// be updating themselves but saving the family will fail
 
 			if (!empty($this->_old_values['status']) || !empty($this->_old_values['last_name'])) {
-				$family =& $GLOBALS['system']->getDBObject('family', $this->getValue('familyid'));
+				$family = $GLOBALS['system']->getDBObject('family', $this->getValue('familyid'));
 				$members = $family->getMemberData();
 				
 				if (!empty($this->_old_values['status']) && ($this->getValue('status') == 'archived')) {
@@ -539,7 +572,7 @@ class Person extends DB_Object
 		$SQL = 'INSERT INTO custom_field_value
 				(personid, fieldid, value_text, value_date, value_optionid)
 				VALUES ';
-		$customFields = $this->getCustomFields();
+		$customFields = self::getCustomFields();
 		$sets = Array();
 		foreach ($this->_custom_values as $fieldid => $values) {
 			if (!is_array($values)) $values = empty($values) ? Array() : Array($values);
@@ -572,7 +605,7 @@ class Person extends DB_Object
 	{
 		$res = parent::_getChanges();
 		if (!empty($this->_old_custom_values)) {
-			$customFields = $this->getCustomFields();
+			$customFields = self::getCustomFields();
 			$dummyField = new Custom_Field();
 			foreach ($this->_old_custom_values as $fieldid => $oldVal) {
 				$dummyField->populate($fieldid, $customFields[$fieldid]);
@@ -615,19 +648,22 @@ class Person extends DB_Object
 		<?php
 	}
 
+	/**
+	 * Print a widget for choosing multiple persons by name search
+	 * @param string $name
+	 * @param array $val	Array of IDs
+	 */
 	static function printMultipleFinder($name, $val=Array())
 	{
-		if (!empty($val) && reset($val) == '') {
-			// contains only IDs - need to get names
-			$persons = $GLOBALS['system']->getDBObjectData('person', Array('id' => array_keys($val)));
-			foreach ($persons as $id => $details) {
-				$val[$id] = $details['first_name'].' '.$details['last_name'];
-			}
+		$persons = $GLOBALS['system']->getDBObjectData('person', Array('id' => $val));
+		$selected = Array();
+		foreach ($persons as $id => $details) {
+			$selected[$id] = $details['first_name'].' '.$details['last_name'];
 		}
 		?>
 		<ul class="multi-person-finder" id="<?php echo $name; ?>-list">
 		<?php
-		foreach ($val as $id => $pname) {
+		foreach ($selected as $id => $pname) {
 			if (!$id) continue;
 			echo '<li><div class="delete-chosen-person" onclick="deletePersonChooserListItem(this)"></div>'.$pname.'<input type="hidden" name="'.$name.'[]" value="'.$id.'" /></li>';
 		}
@@ -652,14 +688,47 @@ class Person extends DB_Object
 		}
 		return $out;
 	}
+
+	/**
+	 * Get formatted custom field data indexed by personid and fieldname
+	 * @param type $personids
+	 * @return array
+	 */
+	static function getCustomMergeData($personids)
+	{
+		$db = $GLOBALS['db'];
+		$SQL = 'SELECT '.Custom_Field::getRawValueSQLExpr('v').' AS value, f.name, v.personid, v.fieldid
+				FROM custom_field_value v
+				JOIN custom_field f ON v.fieldid = f.id
+				WHERE v.personid IN ('.implode(',', array_map(Array($db, 'quote'), $personids)).')';
+		$qres = $db->queryAll($SQL);
+		$res = Array();
+
+		$customFields = self::getCustomFields();
+		foreach ($customFields as $fieldid => $fieldDetails) {
+			$customFields[$fieldid] = new Custom_Field();
+			$customFields[$fieldid]->populate($fieldid, $fieldDetails);
+		}
+		foreach ($qres as $row) {
+			$fname = strtoupper(str_replace(' ', '_', $row['name']));
+			$fVal = $customFields[$row['fieldid']]->formatValue($row['value']);
+			if (isset($res[$row['personid']][$fname])) {
+				$res[$row['personid']][$fname] .= ', '.$fVal;
+			} else {
+				$res[$row['personid']][$fname] = $fVal;
+			}
+		}
+		return $res;
+	}
 		
 	function getInstancesQueryComps($params, $logic, $order)
 	{
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
-		$res['select'][] = 'f.family_name, f.address_street, f.address_suburb, f.address_state, f.address_postcode, f.home_tel, c.name as congregation';
+		$res['select'][] = 'f.family_name, f.address_street, f.address_suburb, f.address_state, f.address_postcode, f.home_tel, c.name as congregation, ab.label as age_bracket';
 		$res['from'] = '(('.$res['from'].') 
 						JOIN family f ON person.familyid = f.id)
-						LEFT OUTER JOIN congregation c ON person.congregationid = c.id';
+						LEFT JOIN congregation c ON person.congregationid = c.id
+						JOIN age_bracket ab on ab.id = person.age_bracketid ';
 		return $res;
 	}
 
@@ -689,7 +758,7 @@ class Person extends DB_Object
 
 		if (empty($fields) || in_array('custom', $fields)) {
 
-			$customFields = $this->getCustomFields();
+			$customFields = self::getCustomFields();
 			$dummyField = new Custom_Field();
 			if ($customFields) {
 				?>
@@ -745,10 +814,10 @@ class Person extends DB_Object
 		$res = parent::processForm($prefix, $fields);
 		foreach ($this->getCustomFields() as $fieldid => $fieldDetails) {
 			$field = $GLOBALS['system']->getDBObject('custom_field', $fieldid);
-			$this->setCustomValue($fieldid, $field->processWidget());
+			$this->setCustomValue($fieldid, $field->processWidget($prefix));
 		}
 
-		$this->_photo_data = Photo_Handler::getUploadedPhotoData('photo');
+		$this->_photo_data = Photo_Handler::getUploadedPhotoData($prefix.'photo');
 		return $res;
 	}
 
@@ -757,7 +826,7 @@ class Person extends DB_Object
 		switch ($name) {
 			case 'photo':
 				?>
-				<input type="file" name="photo" />
+				<input type="file" name="<?php echo $prefix; ?>photo" />
 				<?php
 				break;
 			case 'familyid':
@@ -790,17 +859,18 @@ class Person extends DB_Object
 		return $uuid;
 	}
 
-	private function &getCustomFields()
+	public static function &getCustomFields()
 	{
-		if (!isset($this->_tmp['custom_fields'])) {
-			$this->_tmp['custom_fields'] = $GLOBALS['system']->getDBObjectData('custom_field', Array(), 'OR', 'rank');
+		static $customFields = NULL;
+		if ($customFields === NULL) {
+			$customFields = $GLOBALS['system']->getDBObjectData('custom_field', Array(), 'OR', 'rank');
 		}
-		return $this->_tmp['custom_fields'];
+		return $customFields;
 	}
 
 	public function setCustomValue($fieldid, $newVal, $addToExisting=FALSE)
 	{
-		$fields = $this->getCustomFields();
+		$fields = self::getCustomFields();
 		$oldVal = array_get($this->_custom_values, $fieldid, '');
 		if ((!empty($oldVal) || !empty($newVal)) && ($addToExisting || ($oldVal != $newVal))) {
 			$this->_old_custom_values[$fieldid] = $oldVal;
@@ -808,6 +878,62 @@ class Person extends DB_Object
 				$this->_custom_values[$fieldid] = array_merge((array)$oldVal, (array)$newVal);
 			} else {
 				$this->_custom_values[$fieldid] = $newVal;
+			}
+		}
+	}
+
+	public function getCustomValues()
+	{
+		return $this->_custom_values;
+	}
+
+	public function fromCsvRow($row) {
+		$this->_custom_values = Array();
+		$this->_old_custom_values = Array();
+		
+		static $customFields = NULL;
+		if ($customFields === NULL) {
+			$fields = $GLOBALS['system']->getDBObjectdata('custom_field');
+			foreach ($fields as $fieldID => $field) {
+				$field['id'] = $fieldID;
+				$customFields[strtolower($field['name'])] = $GLOBALS['system']->getDBObject('custom_field', $fieldID);
+			}
+		}
+		foreach ($row as $k => $v) {
+			$k = strtolower($k);
+			if (isset($customFields[$k]) && strlen($v)) {
+				$this->setCustomValue($customFields[$k]->id, $customFields[$k]->parseValue($v));
+				unset($row[$k]); // so it doesn't upset db_object::fromCsvRow
+			}
+		}
+
+		if (isset($row['age_bracket'])) {
+			foreach (Age_Bracket::getMap() as $id => $label) {
+				if (trim(strtolower($label)) == trim(strtolower($row['age_bracket']))) {
+					$row['age_bracketid'] = $id;
+					break;
+				}
+			}
+			if (!isset($row['age_bracketid'])) {
+				// no match was found - copy the raw value across to trigger an error later
+				trigger_error("Invalid age bracket ".$row['age_bracket']);
+				$row['age_bracketid'] = NULL;
+			}
+			unset($row['age_bracket']);
+		}
+
+		parent::fromCsvRow($row);
+	}
+
+	public function populate($id, $values)
+	{
+		parent::populate($id, $values);
+		$this->_custom_values = Array();
+		$this->_old_custom_values = Array();
+		
+		foreach ($values as $k => $v) {
+			if (0 === strpos($k, 'CUSTOM_')) {
+				$this->setCustomValue(substr($k, 7), $v);
 			}
 		}
 	}

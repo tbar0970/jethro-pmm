@@ -10,7 +10,7 @@ class View__Edit_Congregation extends View
 
 	function processView()
 	{
-		$this->_congregation =& $GLOBALS['system']->getDBObject('congregation', (int)$_REQUEST['congregationid']);
+		$this->_congregation = $GLOBALS['system']->getDBObject('congregation', (int)$_REQUEST['congregationid']);
 		if (is_null($this->_congregation)) {
 			trigger_error('Congregation #'.(int)$_REQUEST['congregationid'].' does not exist', E_USER_WARNING);
 			return;
@@ -81,7 +81,7 @@ class View__Edit_Congregation extends View
 		}
 		if ($show_form) {
 			?>
-			<form method="post" class="form form-horizontal" id="congregation_form" data-lock-length="<?php echo LOCK_LENGTH; ?>">
+			<form method="post" class="form form-horizontal" id="congregation_form" data-lock-length="<?php echo db_object::getLockLength() ?>">
 				<input type="hidden" name="edit_congregation_submitted" value="1" />
 				<?php $this->_congregation->printForm(); ?>
 				<div class="controls">

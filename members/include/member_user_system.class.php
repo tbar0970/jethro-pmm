@@ -77,7 +77,6 @@ class Member_User_System extends Abstract_User_System
 	
 	private function handleAccountRequest()
 	{
-
 			$person = $this->_findCandidateMember($_REQUEST['email']);
 			require_once 'include/emailer.class.php';
 			$failureEmail = MEMBER_REGO_FAILURE_EMAIL;
@@ -108,7 +107,7 @@ If you didn't request an account, you can just ignore this email";
 				  ->setSubject(MEMBER_REGO_EMAIL_SUBJECT)
 				  ->setFrom(array(MEMBER_REGO_EMAIL_FROM_ADDRESS => MEMBER_REGO_EMAIL_FROM_NAME))
 				  ->setTo(array($person['email'] => $person['first_name'].' '.$person['last_name']))
-				  ->setBody($body)
+				  ->setBody($text)
 				  ->addPart($html, 'text/html');
 				
 				$res = Emailer::send($message);
@@ -296,9 +295,10 @@ If you didn't request an account, you can just ignore this email";
 		
 		$sql = 'SELECT p.*
 				FROM _person p
+				JOIN age_bracket ab ON ab.id = p.age_bracketid
 				WHERE p.email  = '.$db->quote($email).'
 				AND status <> "archived"
-				ORDER BY (IF(p.member_password IS NOT NULL, 0, 1)), p.age_bracket ASC, p.gender DESC';
+				ORDER BY (IF(p.member_password IS NOT NULL, 0, 1)), ab.rank ASC, p.gender DESC';
 		$res = $db->queryRow($sql);
 		check_db_result($res);
 		

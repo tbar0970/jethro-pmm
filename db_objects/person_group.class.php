@@ -27,14 +27,37 @@ class Person_Group extends db_object
 									'label' => 'Status',
 									'default'	=> 0,
 								),
+			'owner'			=> Array(
+									'type'			=> 'reference',
+									'references'	=> 'staff_member',
+									'label'			=> 'Visibility',
+									'allow_empty'   => TRUE,
+									'default'      => NULL,
+								   ),
+			'show_add_family'	=> Array(
+									'type' => 'select',
+									'options' => Array(
+													'selected' => 'Yes - selected',
+													'unselected' => 'Yes - not selected',
+													'no' => 'No',
+												),
+									'default' => 'no',
+									'label' => 'Show on add-family page?',
+									'note' => 'Should this group be shown as an option when <a href="?view=families__add">adding a new family</a>?',
+									'divider_before' => true,
+									// This feature disabled for now
+									'editable'		=> false,
+									'show_in_summary'	=> false,
+									),
 			'share_member_details' => Array(
 									'type' => 'select',
 									'options' => Array('No', 'Yes'),
-									'note' => 'If set to yes, members of this group will be able to see other members\' details when they log in to the <a href="'.BASE_URL.'members">member portal</a>'
+									'note' => 'Should members of this group be able to see each others\'s details in <a href="'.BASE_URL.'members">member portal</a>?',
+									'label' => 'Share member details?',
 								),
 		);
 		// Check if attendance is enabled
-		$enabled = explode(',', ENABLED_FEATURES);
+		$enabled = explode(',', ifdef('ENABLED_FEATURES', 'ATTENDANCE'));
 		if(in_array('ATTENDANCE', $enabled)){
 			 $fields['attendance_recording_days']	= Array(
 									'type'		=> 'bitmask',
@@ -49,8 +72,8 @@ class Person_Group extends db_object
 									),
 									'default'	=> 0,
 									'label'		=> 'Attendance Recording Days',
-									'cols'		=> 2,
-									'note'		=> 'Select nothing if you do not plan to record attendance for this group',
+									'cols'		=> 4,
+									'note'		=> 'If you want to record attendance at this group, select the applicable weekdays. ',
 									'show_unselected' => FALSE,
 						   );
 		}
@@ -71,7 +94,7 @@ class Person_Group extends db_object
 		}
 	}
 
-	function getInitSQL()
+	function getInitSQL($table_name=NULL)
 	{
 		// Need to create the group-membership table as well as the group table
 		return Array(
@@ -91,12 +114,12 @@ class Person_Group extends db_object
 				"CREATE TABLE `person_group_membership` (
 				  `personid` int(11) NOT NULL default '0',
 				  `groupid` int(11) NOT NULL default '0',
-				  `membership_status` int DEFAULT NULL,
+				  `membership_status` int NOT NULL,
 				  `created` timestamp NOT NULL default CURRENT_TIMESTAMP,
 				  PRIMARY KEY  (`personid`,`groupid`),
 				  INDEX personid (personid),
 				  INDEX groupid (groupid),
-				  CONSTRAINT `membership_status_fk` FOREIGN KEY (membership_status) REFERENCES person_group_membership_status (id) ON DELETE SET NULL
+				  CONSTRAINT `membership_status_fk` FOREIGN KEY (membership_status) REFERENCES person_group_membership_status (id) ON DELETE RESTRICT
 				) ENGINE=InnoDB",
 		);
 	}
@@ -284,14 +307,18 @@ class Person_Group extends db_object
 		switch ($fieldname) {
 			case 'attendance_recording_days':
 				if ($value == 0) {
-					echo 'No';
+					echo _('No');
 					return;
 				}
 				if ($value == 127) {
-					echo 'Yes, any day';
+					echo _('Yes, any day');
 					return;
 				}
 				return parent::printFieldValue($fieldname, $value);
+				break;
+
+			case 'owner':
+				echo _(($value === NULL) ? 'Everyone' : 'Only me');
 				break;
 				
 			case 'categoryid':
@@ -307,28 +334,59 @@ class Person_Group extends db_object
 
 	function printFieldInterface($fieldname, $prefix='')
 	{
-		if ($fieldname == 'categoryid') {
-			$GLOBALS['system']->includeDBClass('person_group_category');
-			Person_Group_Category::printChooser($prefix.$fieldname, $this->getValue('categoryid'));
-			echo ' &nbsp; &nbsp;<small><a href="'.build_url(Array('view' => 'groups__manage_categories')).'">Manage categories</a></small>';
-		} else {
-			return parent::printFieldInterface($fieldname, $prefix);
+		switch ($fieldname) {
+			case 'categoryid':
+				$GLOBALS['system']->includeDBClass('person_group_category');
+				Person_Group_Category::printChooser($prefix.$fieldname, $this->getValue('categoryid'));
+				echo ' &nbsp; &nbsp;<small><a href="'.build_url(Array('view' => 'groups__manage_categories')).'">Manage categories</a></small>';
+				break;
+			case 'owner':
+				$visibilityParams = Array(
+					'type' => 'select',
+					'options' => Array('Visible to everyone', 'Visible only to me')
+				);
+				print_widget('is_private', $visibilityParams, $this->getValue('owner') !== NULL);
+				break;
+			default:
+				return parent::printFieldInterface($fieldname, $prefix);
 		}
 	}
 
-	public static function getMembershipStatusOptionsAndDefault()
+	public function processFieldInterface($name, $prefix='')
 	{
-		$sql = 'SELECT * FROM person_group_membership_status ORDER BY rank';
+		switch ($name) {
+			case 'owner':
+				$this->setValue('owner', empty($_REQUEST['is_private']) ? NULL : $GLOBALS['user_system']->getCurrentUser('id'));
+				break;
+			default:
+				return parent::processFieldInterface($name, $prefix);
+		}
+	}
+
+	public static function getMembershipStatusOptionsAndDefault($with_usages = FALSE)
+	{
+		if ($with_usages) {
+			$sql = 'SELECT s.*, COUNT(pgm.personid) as usages
+					FROM person_group_membership_status s
+					LEFT JOIN person_group_membership pgm ON pgm.membership_status = s.id
+					ORDER BY s.rank';
+		} else {
+			$sql = 'SELECT s.*
+					FROM person_group_membership_status s
+					ORDER BY s.rank';
+		}
 		$res = $GLOBALS['db']->queryAll($sql, null, null, true);
 		check_db_result($res);
 		$options = Array();
 		$default = null;
+		$usages = Array();
 		foreach ($res as $id => $detail) {
 			$options[$id] = $detail['label'];
+			if ($with_usages) $usages[$id] = $detail['usages'];
 			if ($detail['is_default']) $default = $id;
 		}
 		if (empty($default)) $default = key($options);
-		return Array($options, $default);
+		return Array($options, $default, $usages);
 	}
 		
 
@@ -400,7 +458,7 @@ class Person_Group extends db_object
 		if ($cats === NULL) $cats = $GLOBALS['system']->getDBObjectData('person_group_category', Array(), 'OR', 'name');
 		if ($groups === NULL) $groups = $GLOBALS['system']->getDBObjectData('person_group', Array('is_archived' => 0), 'OR', 'name');
 		if (empty($groups)) {
-			?><i>There are no groups in the system yet</i><?php
+			?><i>There are no groups in the system yet</i> &nbsp;<?php
 			return FALSE;
 		}
 		?>

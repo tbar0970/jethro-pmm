@@ -17,6 +17,7 @@
 				<div class="alert"><strong><?php echo _('Error: Javascript is Disabled')?></strong><br /><?php echo _('For Jethro to function correctly you must enable javascript, which is done most simply by lowering the security level your browser uses for this website')?></div>
 			</noscript>
 			<?php
+			dump_messages();
 			if (!empty($this->_error)) {
 				echo '<div class="alert alert-error">'.$this->_error.'</div>';
 			} else {

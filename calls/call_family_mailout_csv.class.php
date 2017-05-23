@@ -4,7 +4,7 @@ class Call_Family_Mailout_CSV extends Call
         function run()
         {
 		header('Content-type: text/plain');
-		$group =& $GLOBALS['system']->getDBObject('person_group', (int)$_REQUEST['groupid']);
+		$group = $GLOBALS['system']->getDBObject('person_group', (int)$_REQUEST['groupid']);
 		header('Content-disposition: attachment; filename="'.str_replace('"', '\\"', $group->getValue('name')).'.csv"');
                 if (!empty($_REQUEST['groupid'])) {
 			$families = $GLOBALS['system']->getDBObjectData('family', Array('(family.id' => 'SELECT familyid FROM person JOIN person_group_membership pgm ON person.id = pgm.personid WHERE pgm.groupid = '.(int)$_REQUEST['groupid'], '!status' => 'archived'), 'AND', 'address_street');

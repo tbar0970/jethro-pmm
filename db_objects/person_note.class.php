@@ -19,7 +19,7 @@ class Person_Note extends Abstract_Note
 	}
 
 
-	function getInitSQL()
+	function getInitSQL($table_name=NULL)
 	{
 		return "
 			CREATE TABLE `person_note` (
@@ -35,7 +35,7 @@ class Person_Note extends Abstract_Note
 		if (is_null($value)) $value = $this->values[$name];
 		if ($name == 'personid') {
 			if (!empty($value)) {
-				$person =& $GLOBALS['system']->getDBObject('person', $value);
+				$person = $GLOBALS['system']->getDBObject('person', $value);
 				?>
 				<a href="?view=persons&personid=<?php echo $value; ?>"><?php echo $person->toString(); ?></a> (#<?php echo $value; ?>)
 				<?php

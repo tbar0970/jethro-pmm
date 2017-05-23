@@ -74,7 +74,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 			<table class="valign-middle">
 			<?php
 			$dummy = new Person();
-			foreach (Array('congregationid', 'status', 'age_bracket') as $field) {
+			foreach (Array('congregationid', 'status', 'age_bracketid') as $field) {
 				$dummy->fields[$field]['allow_empty'] = TRUE;
 				$dummy->fields[$field]['empty_text'] = '(No change)';
 				$dummy->setValue($field, NULL);
@@ -272,21 +272,32 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 			<div class="control-group">
 				<label class="control-label">Message: </label>
 				<div class="controls">
-					<textarea name="message" class="span4" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
+					<textarea id="bulk_sms_message" name="message" class="span4" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
 					<br />
-					<input type="submit" class="btn bulk-sms-submit" value="Send" data-set-form-action="<?php echo BASE_URL; ?>?view=_send_sms_http" />
-                    <span id="smscharactercount"><?php echo SMS_MAX_LENGTH; ?> characters remaining.</span>
+                    <span class="smscharactercount"><?php echo SMS_MAX_LENGTH; ?> characters remaining.</span>
 				</div>
 			</div>
-            <div class="control-group">
-                <label class="control-label">After sending:</label>
-              <div class="controls">
-                <label class="checkbox">
-                  <input type="checkbox" name="saveasnote" accesskey="n" <?php if (ifdef('SMS_SAVE_TO_NOTE_BY_DEFAULT')) { echo 'checked="checked"'; } ?>  />
-                  save as note
-                </label>
-              </div>
-            </div>
+		<?php
+		if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
+			?>			
+			<div class="control-group">
+				<label class="control-label">After sending:</label>
+				<div class="controls">
+				  <label class="checkbox">
+					<input type="checkbox" name="saveasnote" accesskey="n" <?php if (ifdef('SMS_SAVE_TO_NOTE_BY_DEFAULT')) { echo 'checked="checked"'; } ?>  />
+					save as note
+				  </label>
+				</div>
+			</div>
+			<?php
+		}
+		?>
+			<div class="control-group">
+				<div class="controls">
+					<input type="button" class="btn bulk-sms-submit" value="Send" />
+				</div>
+			</div>
+			<div class="control-group" id="bulk-sms-results"></div>
 		</div>
 		<?php
 	}
@@ -330,9 +341,13 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 	<div class="bulk-action well" id="vcf">
 		<input type="submit" value="Go" class="btn" data-set-form-action="<?php echo BASE_URL; ?>?call=vcf" />
 	</div>
+	
+	<?php
+	if (function_exists('custom_bulk_action_bodies')) {
+		custom_bulk_action_bodies();
+	}
+	?>
+	
 </div>
 
-<?php
-if (function_exists('custom_bulk_action_bodies')) {
-	custom_bulk_action_bodies();
-}
+

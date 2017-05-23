@@ -50,7 +50,7 @@ class Service_Component_Category extends db_object
 		return $fields;
 	}
 	
-	function getInitSQL()
+	function getInitSQL($table_name=NULL)
 	{
 		$res = (array)parent::getInitSQL();
 		$res[] = 'INSERT INTO service_component_category

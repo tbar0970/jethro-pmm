@@ -36,7 +36,7 @@ class Custom_Field_Option extends db_object
 			'fieldid'  => 'custom_field(id) ON DELETE CASCADE',
 		);
 	}
-	
+
 	function delete()
 	{
 		$GLOBALS['system']->doTransaction('BEGIN');
@@ -47,7 +47,7 @@ class Custom_Field_Option extends db_object
 		$GLOBALS['system']->doTransaction('COMMIT');
 	}
 
-	function printFieldInterface($fieldname, $prefix)
+	function printFieldInterface($fieldname, $prefix='')
 	{
 		return parent::printFieldInterface($fieldname, $prefix);
 	}

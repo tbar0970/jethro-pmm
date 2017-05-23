@@ -57,9 +57,14 @@ function strip_all_slashes() {
 
 function bam($x)
 {
-	echo '<pre style="text-align: left">';
-	print_r($x);
-	echo '</pre>';
+	if (php_sapi_name() == 'cli') {
+		print_r($x);
+		echo "\n";
+	} else {
+		echo '<pre style="text-align: left">';
+		print_r($x);
+		echo '</pre>';
+	}
 }
 
 
@@ -141,10 +146,14 @@ function dump_messages()
 
 function print_message($msg, $class='success', $html=FALSE)
 {
-	if ($class == 'failure') $class='error';
-	?>
-	<div class="alert alert-<?php echo $class; ?>"><?php echo $html ? $msg : ents($msg); ?></div>
-	<?php
+	if (php_sapi_name() == 'cli') {
+		echo strtoupper($class).': '.$msg."\n";
+	} else {
+		if ($class == 'failure') $class='error';
+		?>
+		<div class="alert alert-<?php echo $class; ?>"><?php echo $html ? $msg : ents($msg); ?></div>
+		<?php
+	}
 }
 
 
@@ -179,13 +188,18 @@ function print_widget($name, $params, $value)
 			$maxlength_exp = empty($params['maxlength']) ? '' : 'maxlength="'.$params['maxlength'].'"';
 			if (array_get($params, 'height', 1) > 1) {
 				$cols_exp = empty($params['width']) ? '' : 'cols="'.$params['width'].'"';
+				$placeholder_exp = empty($params['placeholder']) ? '' : 'placeholder="'.ents($params['placeholder']).'"';
 				?>
-				<textarea name="<?php echo $name; ?>" rows="<?php echo $params['height']; ?>" <?php echo $cols_exp; ?> class="<?php echo trim($classes); ?>" <?php echo $maxlength_exp; ?>><?php echo ents($value); ?></textarea>
+				<textarea name="<?php echo $name; ?>" 
+						  rows="<?php echo $params['height']; ?>" 
+						  class="<?php echo trim($classes); ?>" 
+						  <?php echo $maxlength_exp.' '.$cols_exp .' '.$placeholder_exp; ?> 
+				><?php echo ents($value); ?></textarea>
 				<?php
 			} else {
 				$width_exp = empty($params['width']) ? '' : 'size="'.$params['width'].'"';
-				$regex_exp = empty($params['regex']) ? '' : 'regex="'.trim($params['regex'], '/ ').'"';
-				$placeholder_exp = empty($params['placeholder']) ? '' : 'placeholder="'.$params['placeholder'].'"';
+				$regex_exp = empty($params['regex']) ? '' : 'regex="'.ents(trim($params['regex'], '/ ')).'"';
+				$placeholder_exp = empty($params['placeholder']) ? '' : 'placeholder="'.ents($params['placeholder']).'"';
 				$autocomplete_exp = isset($params['autocomplete']) ? 'autocomplete='.($params['autocomplete'] ? 'on' : 'off').'"' : '';
 				?>
 				<input type="<?php echo $params['type']; ?>" name="<?php echo $name; ?>" value="<?php echo ents($value); ?>" class="<?php echo trim($classes); ?>" <?php echo implode(' ', Array($maxlength_exp, $width_exp, $regex_exp, $autocomplete_exp, $placeholder_exp)); ?> <?php echo $attrs; ?> />
@@ -203,10 +217,9 @@ function print_widget($name, $params, $value)
 			if (array_get($params, 'toolbar') == 'basic') {
 				$ckParams = "
 					toolbar: [
-						{ name: 'styles', items: [ 'Format' ] },
+						{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList' ] },
 						{ name: 'basicstyles', items : ['Bold', 'Italic', 'Underscore', 'RemoveFormat'] },
-						{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList' ] }
-
+						{ name: 'styles', items: [ 'Format' ] },
 					],
 					removePlugins: 'elementspath',
 					resize_enabled: false,
@@ -220,6 +233,11 @@ function print_widget($name, $params, $value)
 			if ($height = array_get($params, 'height')) {
 				$ckParams .= "
 					height: '{$height}',
+				";
+			}
+			if ($toolbarLocation = array_get($params, 'toolbarLocation')) {
+				$ckParams .= "
+					toolbarLocation: '{$toolbarLocation}',
 				";
 			}
 			?>
@@ -243,9 +261,19 @@ function print_widget($name, $params, $value)
 			<input type="text" name="<?php echo $name; ?>" value="<?php echo $value; ?>" class="<?php echo trim($classes); ?>" <?php echo $width_exp; ?> <?php echo $attrs; ?> />
 			<?php
 			break;
+		case 'boolean':
+		case 'bool':
+			if (empty($params['options'])) {
+				$params['type'] = 'checkbox';
+				return print_widget($name, $params, $value);
+			}
+			// deliberate fallthrough...
 		case 'select':
 			$our_val = Array();
-			if ($value !== NULL && $value !== '') {
+			if (!empty($params['allow_multiple']) && $value === '*') {
+				// magic value to select all
+				$our_val = array_keys($params['options']);
+			} else if ($value !== NULL && (isset($params['options']['']) || $value !== '')) {
 				$our_val = is_array($value) ? $value : Array("$value");
 			}
 			foreach ($our_val as $k => $v) $our_val[$k] = "$v";
@@ -277,7 +305,8 @@ function print_widget($name, $params, $value)
 			} else if (array_get($params, 'allow_multiple')) {
 				$height = array_get($params, 'height', min(count($params['options']), 4));
 				if (substr($name, -2) != '[]') $name .= '[]';
-				$style = 'height: '.($height*1.7).'em';
+				$style = '';
+				if ($height > 0) $style = 'height: '.($height*1.7).'em';
 				$classes .= ' multi-select';
 				// the empty onclick below is to make labels work on iOS
 				// see http://stackoverflow.com/questions/5421659/html-label-command-doesnt-work-in-iphone-browser
@@ -352,7 +381,8 @@ function print_widget($name, $params, $value)
 				if (empty($value)) $value = date('Y-m-d'); // blank dates not allowed
 			}
 			for ($i = 1; $i < 13; $i++) $months[$i] = date(array_get($params, 'month_format', 'F'), strtotime("2007-$i-01"));
-			$value = reset(explode(' ', $value));
+			$value = explode(' ', $value);
+			$value = reset($value);
 			list($year_val, $month_val, $day_val) = explode('-', substr($value, 0, 10));
 			?>
 			<span class="nowrap" <?php echo $attrs; ?> >
@@ -377,6 +407,7 @@ function print_widget($name, $params, $value)
 				$options = $GLOBALS['system']->getDBObjectData($params['references'], $where, $where_logic, array_get($params, 'order_by'));
 				$dummy = new $params['references']();
 				$our_val = is_array($value) ? $value : (empty($value) ? Array() : Array($value));
+				$default = NULL;
 				if (!empty($params['filter']) && is_callable($params['filter'])) {
 					foreach ($options as $i => $o) {
 						$dummy->populate($i, $o);
@@ -389,8 +420,10 @@ function print_widget($name, $params, $value)
 				foreach ($options as $k => $details) {
 					$dummy->populate($k, $details);
 					$params['options'][$k] = $dummy->toString();
+					if (!empty($details['is_default'])) $default = $k;
 				}
 				$params['type'] = 'select';
+				if (empty($params['allow_empty']) && ($value === '')) $value = $default;
 				print_widget($name, $params, $value);
 			}
 			break;
@@ -547,6 +580,9 @@ function process_widget($name, $params, $index=NULL, $preserveEmpties=FALSE)
 				$value = htmLawed($rawVal, array('deny_attribute' => '* -href', 'safe'=>1));
 			}
 			break;
+		case 'reference':
+			$value = empty($rawVal) ? NULL : (int)$rawVal;
+			break;
 		default:
 			$value = $rawVal;
 			if (!empty($params['regex']) && !empty($value) && !preg_match('/'.trim($params['regex'], '/').'/i', $value)) {
@@ -561,7 +597,7 @@ function process_widget($name, $params, $index=NULL, $preserveEmpties=FALSE)
 function format_value($value, $params)
 {
 	if (!empty($params['references'])) {
-		$obj =& $GLOBALS['system']->getDBObject($params['references'], $value);
+		$obj = $GLOBALS['system']->getDBObject($params['references'], $value);
 		if (!is_null($obj)) {
 			if (!array_get($params, 'show_id', true)) {
 				return $obj->toString();

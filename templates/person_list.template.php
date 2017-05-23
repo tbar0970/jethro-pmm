@@ -46,7 +46,7 @@ if ($show_actions) {
 		$dummy_person->populate($id, $details);
 		$tr_class = ($details['status'] === 'archived') ? ' class="archived"' : '';
 		?>
-		<tr<?php echo $tr_class; ?>>
+		<tr data-personid="<?php echo $id; ?>" <?php echo $tr_class; ?>>
 			<td><?php echo $id; ?></td>
 			<td class="nowrap"><?php echo $dummy_person->printFieldvalue('name'); ?></td>
 		<?php
@@ -64,7 +64,7 @@ if ($show_actions) {
 			<?php
 		}?>
 			<td><?php $dummy_person->printFieldValue('status'); ?></td>
-			<td><?php $dummy_person->printFieldValue('age_bracket'); ?></td>
+			<td><?php $dummy_person->printFieldValue('age_bracketid'); ?></td>
 			<td><?php $dummy_person->printFieldValue('gender'); ?></td>
 			<?php 
 				if (defined('PERSON_LIST_SHOW_GROUPS') && PERSON_LIST_SHOW_GROUPS) {

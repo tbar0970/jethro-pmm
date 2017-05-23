@@ -18,7 +18,7 @@ class View_Admin__Congregations extends View
 			if ($cong) {
 				$members = $GLOBALS['system']->getDBObjectData('person', Array('congregationid' => $cong->id));
 				if (count($members)) {
-					add_message(_("Cannot delete congregation because it is not empty", "error"));
+					add_message(_("Cannot delete congregation because it is not empty"), "error");
 				} else {
 					$cong->delete();
 					add_message(_("Congregation deleted"));
@@ -30,6 +30,9 @@ class View_Admin__Congregations extends View
 	function printView()
 	{
 		?>
+		<p class="text alert alert-info">
+			<?php echo _("Each person can be in one congregation.  A person with status 'contact' can be congregationless.  You may want to create extra congregations to represent kids church, housebound persons, etc."); ?>
+		</p>
 		<p>
 			<a href="?view=_add_congregation"><i class="icon-plus-sign"></i>Add New Congregation</a>
 		</p>

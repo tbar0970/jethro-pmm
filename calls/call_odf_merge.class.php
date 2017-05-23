@@ -50,14 +50,13 @@ class Call_ODF_Merge extends Call
 		// and causes errors.
 		$data = array_values($this->getMergeData());
 
-		// NB THIS FILE HAS BEEN CHANGED!
-		require_once 'include/phpword/src/PhpWord/Autoloader.php';
-		\PhpOffice\PhpWord\Autoloader::register();
-		\PhpOffice\PhpWord\Settings::setTempDir(dirname($source_file));
+		require_once 'vendor/autoload.php';
+		\PhpOffice\PhpWord\Settings::setTempDir(sys_get_temp_dir());
+		\PhpOffice\PhpWord\Settings::setOutputEscapingEnabled(TRUE);
 		$templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor($source_file);
 
+		$vars = $templateProcessor->getVariables();
 		if (!$templateProcessor->cloneBlock('MERGEBLOCK', count($data))) {
-			$vars = $templateProcessor->getVariables();
 			if (empty($vars)) {
 				trigger_error("You don't seem to have included any \${keywords} in your file; cannot merge");
 				return;
@@ -66,8 +65,16 @@ class Call_ODF_Merge extends Call
 			
 		}
 		foreach ($data as $num => $row) {
+			$setVars = Array();
 			foreach ($row as $k => $v) {
 				$templateProcessor->setValue(strtoupper($k).'#'.($num+1), $this->xmlEntities($v));
+				$setVars[strtoupper($k)] = TRUE;
+			}
+			// Set blank value for any remaining keywords
+			foreach ($vars as $v) {
+				if (!isset($setVars[strtoupper($v)])) {
+					$templateProcessor->setValue(strtoupper($v).'#'.($num+1), '');
+				}
 			}
 		}
 		$templateProcessor->saveAs($merged_file);
@@ -79,6 +86,7 @@ class Call_ODF_Merge extends Call
 		require_once 'include/odf_tools.class.php';
 
 		$content = ODF_Tools::getXML($source_file, $xml_filename);
+		$keywords = ODF_Tools::getKeywords($source_file, $xml_filename);
 		if (empty($content)) {
 			trigger_error('Could not find content within this '.$extension.' file');
 			return;
@@ -101,8 +109,16 @@ class Call_ODF_Merge extends Call
 		foreach ($this->getMergeData() as $id => $row) {
 			if (empty($row)) continue;
 			$this_middle = $middle_template;
+			$replaced = Array();
 			foreach ($row as $k => $v) {
 				$this_middle = str_replace('%'.strtoupper($k).'%', ODF_Tools::odfEntities(trim($v)), $this_middle);
+				$replaced[strtoupper($k)] = TRUE;
+			}
+			// replace keywords without values with blanks
+			foreach ($keywords as $k) {
+				if (!isset($replaced[strtoupper($k)])) {
+					$this_middle = str_replace('%'.strtoupper($k).'%', '', $this_middle);
+				}
 			}
 			$merged_middle .= $this_middle;
 		}
@@ -125,6 +141,10 @@ class Call_ODF_Merge extends Call
 			case 'person':
 			default:
 				$temp_merge_data = $GLOBALS['system']->getDBObjectData('person', Array('id' => $_POST['personid']));
+				foreach (Person::getCustomMergeData($_POST['personid']) as $personid => $data) {
+					$temp_merge_data[$personid] += $data;
+				}
+
 				$merge_data = Array();
 				foreach ($_REQUEST['personid'] as $id) {
 					$merge_data[$id] = $temp_merge_data[$id];

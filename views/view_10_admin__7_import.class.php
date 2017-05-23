@@ -45,6 +45,8 @@ class View_Admin__Import extends View
 	{
 		if (in_array($errno, array(E_USER_NOTICE, E_USER_WARNING, E_NOTICE, E_WARNING))) {
 			$this->_captured_errors[] = $errstr;
+		} else {
+			$GLOBALS['system']->_handleError($errno, $errstr, $errfile, $errline);
 		}
 	}
 
@@ -119,25 +121,25 @@ class View_Admin__Import extends View
 				}
 			}
 			if ($errors = $this->_getErrors()) {
-				$msg = 'Errors during import - import aborted. <ul><li>'.implode('</li></li>', $errors).'</li></ul>';
+				$msg = _('Errors during import - import aborted').'. <ul><li>'.implode('</li></li>', $errors).'</li></ul>';
 				add_message($msg, 'failure', true);
 				$GLOBALS['system']->doTransaction('ROLLBACK');
 			} else {
-				add_message('Import complete', 'success');
+				add_message(_('Import complete'), 'success');
 				$GLOBALS['system']->doTransaction('COMMIT');
 			}
-			?><script>document.location = '<?php echo build_url(Array()); ?>&done=1';</script>
+			?><script>document.location = '<?php echo build_url(Array('view' => 'groups', 'groupid' => $group->id)); ?>&done=1';</script>
 			<?php
 			exit;
 		
 		} else if (!empty($_FILES['import'])) {
 			if (empty($_REQUEST['groupid'])) {
-				add_message("You must choose a group first", 'error');
+				add_message(_("You must choose a group first"), 'error');
 				$this->stage = 'begin';
 				return;
 			}
 			if (empty($_FILES['import']) || empty($_FILES['import']['tmp_name'])) {
-				add_message("You must upload a file", 'error');
+				add_message(_("You must upload a file"), 'error');
 				return;
 			}
 			$this->_dummy_family = new Family();
@@ -147,13 +149,12 @@ class View_Admin__Import extends View
 			ini_set("auto_detect_line_endings", "1");
 			$fp = fopen($_FILES['import']['tmp_name'], 'r');
 			if (!$fp) {
-				add_message("There was a problem reading your CSV file.  Please try again.", 'error');
+				add_message(_("There was a problem reading your CSV file.  Please try again."), 'error');
 				$this->stage = 'begin';
 				return;
 			}
 			
 			$map = fgetcsv($fp, 0, ",", '"');
-
 			$_SESSION['import']['groupid'] = (int)$_POST['groupid'];
 			$_SESSION['import']['families'] = Array();
 			$_SESSION['import']['total_families'] = 0;
@@ -213,6 +214,10 @@ class View_Admin__Import extends View
 					$row_errors[$i] = array_merge(array_get($row_errors, $i, array()), $errors);
 				} else {
 					$member = $this->_dummy_person->values + Array('congregation' => $this->_dummy_person->getFormattedValue('congregationid'));
+					foreach ($this->_dummy_person->getCustomValues() as $fieldID => $val) {
+						$member['CUSTOM_'.$fieldID] = $val;
+						$_SESSION['import']['custom_field_ids'][$fieldID] = true;
+					}
 					if (!empty($row['note'])) {
 						$member['note'] = $row['note'];
 						$_SESSION['import']['total_notes']++;
@@ -223,7 +228,7 @@ class View_Admin__Import extends View
 				$i++;
 			}
 			if (!empty($row_errors)) {
-				$msg = 'Your import file is not valid.  Please correct the following errors and try again:<ul>';
+				$msg = _('Your import file is not valid.  Please correct the following errors and try again:').'<ul>';
 				foreach ($row_errors as $line => $errors) {
 					$msg .= '<li>Row '.($line+1).': '.implode('; ', $errors).'</li>';
 				}
@@ -242,15 +247,18 @@ class View_Admin__Import extends View
 		switch ($this->_stage) {
 			case 'begin':
 				if (!($GLOBALS['system']->getDBObjectData('person_group'))) {
-					print_message('You must create a group to import into before you can import persons.  See Groups > Add.');
+					print_message(_('You must create a group to import into before you can import persons.  See Groups > Add.'));
 					return;
 				}
+				$text = _('This page allows you to import persons, families and notes from a CSV file.  The CSV must be in a format like this sample file.  (The order of columns is flexible but the first row must be a header with these column names).
+					You may also include extra columns labelled with the exact name of custom fields.
+					Jethro will create a new person record for each row in the CSV file.  Jethro will create a new family record whenever a row contains different family details to the previous row (although changing to or from a blank value does not count as a change).  A new family is also triggered if you include an entirely blank row.
+					All the imported persons will be added to the group you choose below.');
+				$s = _('sample file');
+				$text = str_replace($s, '<a href="'.BASE_URL.'/resources/sample_import.csv">'.$s.'</a>', $text);
+				$text = '<p class="text">'.str_replace("\n", '</p><p class="text">', $text);
+				echo $text;
 				?>
-				<p>This page allows you to import persons, families and notes from a CSV file.</p>
-				<p>The CSV file must be in a format like this <a href="<?php echo BASE_URL; ?>/resources/sample_import.csv">sample file</a>. <br />(The order of columns is flexible but the first row must be a header with these column names).</p>
-				<p>A new person record will be created for each row in the file. </p>
-				<p>A new family record will be created whenever a new row contains a change in family name or family details.  <br />However, changing to or from a blank value in a field does not create a new family unless the whole row is blank.</p>
-				<p>All the imported persons will be added to the group you choose below.</p>
 				<form method="post" enctype="multipart/form-data">
 				<table>
 					<tr>
@@ -267,7 +275,7 @@ class View_Admin__Import extends View
 					</tr>
 				</table>
 				</form>
-				<p>(You will be asked to confirm at the next step)</p>
+				<p>(<?php echo _('You will be asked to confirm at the next step'); ?>)</p>
 				<?php
 				break;
 				
@@ -276,19 +284,40 @@ class View_Admin__Import extends View
 				$GLOBALS['system']->includeDBClass('family');
 				$this->_dummy_family = new Family();
 				?>
-				<p>Please check the following is correct and click "confirm" at the bottom</p>
-				<p><b><?php echo $_SESSION['import']['total_families']; ?></b> families,<br />
-				<b><?php echo $_SESSION['import']['total_persons']; ?></b> persons and <br />
-				<b><?php echo $_SESSION['import']['total_notes']; ?></b> notes<br />
-				will be created</p>
-				<p>The new persons will be added to the <b><?php echo $groupname; ?></b> group</p>
+				<p class="alert alert-info text">
+				<?php echo _('Please check the following is correct then click "confirm" at the bottom'); ?><br />
+				<b>
+						<?php printf(
+								_('%s families,
+									%s persons and
+									%s notes
+									will be created.'),
+								$_SESSION['import']['total_families'],
+								$_SESSION['import']['total_persons'],
+								$_SESSION['import']['total_notes']
+								);
+						?>
+				</b><br />
+				<?php printf(ents(_('The new persons will be added to the %s group.')), $groupname);	?>
+				</p>
 
 				<?php
 				foreach ($_SESSION['import']['families'] as $family) {
-					foreach ($family['members'] as $k => &$v) unset($v['note']);
+					foreach ($family['members'] as $k => &$v) {
+
+						unset($v['note']); // don't show notes in the preview
+
+						// format custom field names and values
+						foreach (array_get($_SESSION['import'], 'custom_field_ids', Array()) as $fieldID => $x) {
+							$field = $GLOBALS['system']->getDBObject('custom_field', $fieldID);
+							$v[$field->getValue('name')] = $field->formatValue(array_get($v, 'CUSTOM_'.$fieldID));
+							unset($v['CUSTOM_'.$fieldID]);
+						}
+					}
 					?>
 					<h3><?php echo ents($family['family_name']); ?> family</h3>
 					<?php
+					$this->_dummy_family->reset();
 					$this->_dummy_family->populate(0, $family);
 					$this->_dummy_family->printSummaryWithMembers(FALSE, $family['members']);
 				}
@@ -303,4 +332,3 @@ class View_Admin__Import extends View
 		}
 	}
 }
-?>

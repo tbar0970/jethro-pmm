@@ -19,6 +19,7 @@ class Paginator
 			$y = chr(ord($x) + $this->_slice_size- 1);
 			if (ord($y) > ord('Z')) $y = 'Z';
 			if ($i == $this->_slice_num) {
+				if ($x == 'A') $x = '0'; // include numbers in first batch
 				return Array($x, $y);
 			}
 			$x = chr(ord($y) + 1);

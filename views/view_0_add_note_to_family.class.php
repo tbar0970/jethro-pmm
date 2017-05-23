@@ -15,7 +15,7 @@ class View__Add_Note_To_Family extends View
                         trigger_error("Cannot add note, no family ID specified", E_USER_WARNING);
                         return;
                 }
-		$this->_family =& $GLOBALS['system']->getDBObject('family', $_REQUEST['familyid']);
+		$this->_family = $GLOBALS['system']->getDBObject('family', $_REQUEST['familyid']);
 		$GLOBALS['system']->includeDBClass('family_note');
 		$this->_note = new Family_Note();
 		if (array_get($_REQUEST, 'new_note_submitted')) {
@@ -51,8 +51,8 @@ class View__Add_Note_To_Family extends View
 			$this->_note->printForm();
 			?>
 			<div class="controls">
-				<button type="submit" class="btn"><?php _('Add Note to Family')?></button>
-				<a class="btn" href="<?php echo build_url(Array('view' => 'families', 'familyid' => $this->_family->id)); ?>">Cancel</a>
+				<button type="submit" class="btn"><?php echo _('Add Note to Family')?></button>
+				<a class="btn" href="<?php echo build_url(Array('view' => 'families', 'familyid' => $this->_family->id)); ?>"><?php echo _('Cancel')?></a>
 		</form>
 		<?php
 

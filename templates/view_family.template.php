@@ -14,7 +14,8 @@ if (!$accordion) {
 		<li class="active"><a data-toggle="tab" href="#basic"><?php echo _('Basic Details')?></a></li>
 	<?php
 	if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
-		$notes = $GLOBALS['system']->getDBObjectData('family_note', Array('familyid' => $family->id), 'OR', 'created');
+		$order =(ifdef('NOTES_ORDER', 'ASC') == 'ASC') ? 'ASC' : 'DESC';
+		$notes = $GLOBALS['system']->getDBObjectData('family_note', Array('familyid' => $family->id), 'OR', 'created '.$order);
 		?>
 		<li><a data-toggle="tab" href="#notes"><?php echo _('Notes')?> (<?php echo count($notes); ?>)</a></li>
 		<?php
@@ -113,13 +114,13 @@ printf($panel_header, 'basic', 'Basic Details & Members', 'active');
 					}
 					?>
 					<label>
-						<input type="checkbox" checked="checked" value="<?php echo (int)$personid; ?>" />
+						<input name="personid[]" type="checkbox" checked="checked" value="<?php echo (int)$personid; ?>" />
 					</label>
 					<div>
 						<strong><?php echo ents($dummy->toString()); ?></strong>
 						<br />
 						<?php
-						echo ents($dummy->getFormattedValue('age_bracket'));
+						echo ents($dummy->getFormattedValue('age_bracketid'));
 						echo ' &bull; ';
 						echo ents($dummy->getFormattedValue('gender'));
 						echo '<br />';
@@ -176,7 +177,7 @@ if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
 				<?php
 			} else {
 				?>
-				<a href="?view=_add_note_to_person&personid=<?php echo reset(array_keys($members)); ?>"><?php echo _('Add Person Note')?></a>
+				<a href="?view=_add_note_to_person&personid=<?php $memberarray = array_keys($members); echo reset($memberarray); ?>"><?php echo _('Add Person Note')?></a>
 				<?php
 			}
 			?>
@@ -194,7 +195,7 @@ if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE) || !$GLOBALS['system']->fea
 	printf($panel_header, 'history', 'History', '');
 	?>
 	<p><?php echo _('Family Record Created on ')?><?php $family->printFieldValue('created'); ?> by <?php $family->printFieldValue('creator'); ?></p>
-	<?php 
+	<?php
 	$family->printFieldValue('history');
 	echo $panel_footer;
 }

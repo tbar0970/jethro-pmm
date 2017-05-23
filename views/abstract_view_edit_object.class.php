@@ -19,7 +19,7 @@ class Abstract_View_Edit_Object extends View
 	function _initEditedObject()
 	{
 		if (empty($this->_object_id_field)) $this->_object_id_field = $this->_editing_type.'id';
-		$this->_edited_object =& $GLOBALS['system']->getDBObject($this->_editing_type, (int)$_REQUEST[$this->_object_id_field]);
+		$this->_edited_object = $GLOBALS['system']->getDBObject($this->_editing_type, (int)$_REQUEST[$this->_object_id_field]);
 		if (is_null($this->_edited_object)) {
 			trigger_error($this->getEditingTypeFriendly().' #'.(int)$_REQUEST[$this->_object_id_field].' does not exist', E_USER_WARNING);
 			return false;
@@ -97,7 +97,7 @@ class Abstract_View_Edit_Object extends View
 		}
 		if ($show_form) {
 			?>
-			<form method="post" enctype="multipart/form-data" data-lock-length="<?php echo LOCK_LENGTH; ?>" id="edit-<?php echo $this->_editing_type; ?>" class="<?php echo $this->_form_classnames; ?>">
+			<form method="post" enctype="multipart/form-data" data-lock-length="<?php echo db_object::getLockLength() ?>" id="edit-<?php echo $this->_editing_type; ?>" class="<?php echo $this->_form_classnames; ?>">
 				<input type="hidden" name="edit_object_submitted" value="1" />
 				<?php $this->_edited_object->printForm(); ?>
 				<hr />

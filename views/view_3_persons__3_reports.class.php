@@ -22,7 +22,7 @@ class View_Persons__Reports extends View
 			if (($this->_query->getValue('creator') == $GLOBALS['user_system']->getCurrentUser('id')) || $GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 				$can_delete = true;
 			} else {
-				$query_creator =& $GLOBALS['system']->getDBObject('staff_member', $this->_query->getValue('creator'));
+				$query_creator = $GLOBALS['system']->getDBObject('staff_member', $this->_query->getValue('creator'));
 				if (!$query_creator->getValue('active')) {
 					$can_delete = true;
 				}
@@ -90,6 +90,9 @@ class View_Persons__Reports extends View
 			<?php
 
 		} else if (!empty($this->_query)) {
+			?>
+			<?php
+			
 			$this->_query->printResults();
 			?>
 			<hr />
@@ -146,9 +149,10 @@ class View_Persons__Reports extends View
 						<tr>
 							<td>-</td>
 							<td><i><?php echo _('Last ad-hoc query');?></i></td>
+							<td>-</td>
 							<td class="action-cell">
 								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=TEMP&configure=1"><i class="icon-wrench"></i><?php echo _('Configure');?></a> &nbsp;
-								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=TEMP"><i class="icon-list"></i><?php echo _('View Results');?></a> &nbsp;
+								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=TEMP"><i class="icon-list"></i><?php echo _('View');?></a> &nbsp;
 							</td>
 							<td>&nbsp;</td>
 						<?php

@@ -10,7 +10,7 @@ class View_Admin__Custom_Fields extends View
 
 	function getTitle()
 	{
-		return 'Configure Custom Fields';
+		return 'Custom Fields';
 	}
 
 	function processView()
@@ -68,7 +68,16 @@ class View_Admin__Custom_Fields extends View
 	function printView()
 	{
 		if (is_null($this->fields)) return;
-		
+		?>
+		<p class="text alert alert-info">
+			<?php 
+			echo _("When you define a custom field here, you'll then be able to enter a value for that field when editing a person record.");
+			echo '<br />';
+			echo _("Custom fields are useful for recording dates of birth, accreditations and medical details.");
+			?>
+		</p>
+		<?php
+
 		if (empty($this->fields)) {
 			?>
 			<p><i>No custom fields have been set up in the system yet.</i></p>
@@ -84,9 +93,7 @@ class View_Admin__Custom_Fields extends View
 					<th>ID</th>
 					<th>Name</th>
 					<th>Type</th>
-					<th>Multi?</th>
-					<th>Divider?</th>
-					<th>Heading?</th>
+					<th>Settings</th>
 					<th>Parameters</th>
 					<th><i class="icon-trash"></i></th>
 				</tr>
@@ -119,17 +126,45 @@ class View_Admin__Custom_Fields extends View
 						}
 						?>
 					</td>
-					<td class="center">
-						<?php $field->printFieldInterface('allow_multiple', $prefix); ?>
-					</td>
-					<td class="center toggle-divider">
-						<?php $field->printFieldInterface('divider_before', $prefix); ?>
-					</td>
-					<td class="center toggle-heading">
-						<?php $field->printFieldInterface('heading_before_toggle', $prefix); ?>
+					<td>
+						<label class="radio">
+							<?php $field->printFieldInterface('allow_multiple', $prefix); ?>
+							Allow Multiple
+						</label>
+						<label class="radio">
+							<?php $field->printFieldInterface('show_add_family', $prefix); ?>
+							Show on add-family page
+						</label>
+					<?php
+					if (empty($field->id) || $field->getValue('type') == 'text') {
+						?>
+						<label class="radio">
+							<?php $field->printFieldInterface('searchable', $prefix); ?>
+							Include in system-wide search
+						</label>
+						<?php
+					}
+					?>
+						<label class="radio toggle-divider">
+							<?php $field->printFieldInterface('divider_before', $prefix); ?>
+							Divider Before
+						</label>
+						<label class="radio toggle-heading">
+							<?php $field->printFieldInterface('heading_before_toggle', $prefix); ?>
+							Heading Before
+						</label>
+						<label class="radio toggle-tooltip">
+							<?php $field->printFieldInterface('tooltip_toggle', $prefix); ?>
+							Tooltip
+							<br />
+							<?php $field->printFieldInterface('tooltip', $prefix); ?>
+						</label>
+						
 					</td>
 					<td>
-						<?php $field->printFieldInterface('params', $prefix); ?>
+						<?php 
+						$field->printFieldInterface('params', $prefix); 
+						?>
 					</td>
 					<td class="center">
 						<?php

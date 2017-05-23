@@ -121,7 +121,7 @@ class roster_view extends db_object
 		unset($this->fields['members']);
 	}
 
-	function printFieldInterface($name, $prefix)
+	function printFieldInterface($name, $prefix='')
 	{
 		switch ($name) {
 			case 'members':
@@ -159,7 +159,7 @@ class roster_view extends db_object
 					?>
 					<tr>
 						<td>
-							<img src="<?php echo BASE_URL; ?>/resources/img/expand_up_down_green_small.png" class="icon insert-row-below" style="position: relative; top: 2ex" title="Create a blank entry here" />
+							<div class="insert-row-below" title="Create a blank entry here" />
 						</td>
 						<td class="nowrap">
 							<select class="roster-view-member-type-chooser">
@@ -233,7 +233,7 @@ class roster_view extends db_object
 		unset($this->fields['members']);
 	}
 
-	function processFieldInterface($name, $prefix)
+	function processFieldInterface($name, $prefix='')
 	{
 		switch ($name) {
 			case 'members':
@@ -340,7 +340,7 @@ class roster_view extends db_object
 	}
 
 
-	function getAssignments($start_date, $end_date)
+	private function getAssignments($start_date, $end_date)
 	{
 		$roleids = $this->getRoleIds();
 		if (empty($roleids)) return Array();
@@ -353,10 +353,11 @@ class roster_view extends db_object
 		// which assignments involve 'hidden' persons so we treat them as read-only.
 		$visiblePersonTable = $this->getValue('is_public') ? '_person' : 'person';
 
-		$sql = 'SELECT roster_role_id, assignment_date, rra.personid,
+		$sql = 'SELECT roster_role_id, assignment_date, rank, rra.personid,
 				IFNULL(CONCAT(publicassignee.first_name, " ", publicassignee.last_name), "'.self::hiddenPersonLabel.'") as assignee,
 				IF(privateassignee.id IS NULL, 1, 0) as assigneehidden,
 				privateassignee.email as email,
+				privateassignee.mobile_tel as mobile,
 				CONCAT(assigner.first_name, " ", assigner.last_name) as assigner, 
 				rra.assignedon
 				FROM roster_role_assignment rra
@@ -364,14 +365,17 @@ class roster_view extends db_object
 				LEFT JOIN '.$visiblePersonTable.' publicassignee ON rra.personid = publicassignee.id
 				LEFT JOIN person assigner ON rra.assigner = assigner.id
 				WHERE roster_role_id IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $roleids)).')
-				AND assignment_date BETWEEN '.$GLOBALS['db']->quote($start_date).' AND '.$GLOBALS['db']->quote($end_date);
+				AND assignment_date BETWEEN '.$GLOBALS['db']->quote($start_date).' AND '.$GLOBALS['db']->quote($end_date).'
+				ORDER BY assignment_date, roster_role_id, rank, privateassignee.last_name, privateassignee.first_name';
 		$rows = $GLOBALS['db']->queryAll($sql);
 		check_db_result($rows);
 		$res = Array();
 		foreach ($rows as $row) {
-			$res[$row['assignment_date']][$row['roster_role_id']][$row['personid']] = Array(
+			$res[$row['assignment_date']][$row['roster_role_id']][] = Array(
+				'personid' => $row['personid'],
 				'name' => $row['assignee'],
 				'email' => $row['email'],
+				'mobile' => $row['mobile'],
 				'assigner' => $row['assigner'],
 				'assignedon' => $row['assignedon'],
 				'assigneehidden' => $row['assigneehidden'],
@@ -450,7 +454,7 @@ class roster_view extends db_object
 
 				if (!empty($mdetail['role_id'])) {
 					$names = Array();
-					foreach (array_get($ddetail['assignments'], $mdetail['role_id'], Array()) as $personid => $vs) {
+					foreach (array_get($ddetail['assignments'], $mdetail['role_id'], Array()) as $rank => $vs) {
 						$names[] = $vs['name'];
 					}
 					$row[] = implode("\n", $names);;
@@ -560,8 +564,8 @@ class roster_view extends db_object
 	{
 		if ($member['role_id']) {
 			if (empty($asn)) echo '--';
-			foreach ($asn as $personid => $asn) {
-				if ($withLinks) echo '<a href="?view=persons&personid='.$personid.'" class="med-popup">';
+			foreach ($asn as $rank => $asn) {
+				if ($withLinks) echo '<a href="?view=persons&personid='.$asn['personid'].'" class="med-popup">';
 				echo ents($asn['name']);
 				if ($withLinks) {
 					echo '</a>';
@@ -600,7 +604,7 @@ class roster_view extends db_object
 		foreach ($this->getAssignments($start_date, $end_date) as $date => $date_assignments) {
 			$to_print[$date]['assignments'] = $date_assignments;
 			foreach ($date_assignments as $rid => $asns) {
-				foreach ($asns as $pid => $dets) {
+				foreach ($asns as $rank => $dets) {
 					if ($dets['assigneehidden']) $haveHidden = TRUE;
 					break(2);
 				}
@@ -653,28 +657,36 @@ class roster_view extends db_object
 				print_message("There are some roles in this roster which you are not able to edit because they refer to a volunteer group you do not have access to.");
 			}
 			?>
-			<form id="roster" method="post" class="warn-unsaved bubble-option-props" data-lock-length="<?php echo LOCK_LENGTH; ?>">
+			<form id="roster" method="post" class="warn-unsaved bubble-option-props" data-lock-length="<?php echo db_object::getLockLength() ?>">
 			<?php
 		}
+		if (!$public) {
+			require_once 'include/sms_sender.class.php';
+			SMS_Sender::printModal();
+			?>
+			<div id="choose-assignee-modal" class="modal hide fade" role="dialog" aria-hidden="true">
+				<div class="modal-header">
+					<h4>Choose assignee</h4>
+				</div>
+				<div class="modal-body">
+					<?php Person::printSingleFinder('personid', NULL); ?>
+				</div>
+				<div class="modal-footer">
+					<button class="btn" data-dismiss="modal" id="choose-assignee-save">Save</button>
+					<button class="btn" data-dismiss="modal"id="choose-assignee-cancel">Cancel</button>
+				</div>
+			</div>
+			<?php
+		}
+		
 		?>
-		<div id="choose-assignee-modal" class="modal hide fade" role="dialog" aria-hidden="true">
-			<div class="modal-header">
-				<h4>Choose assignee</h4>
-			</div>
-			<div class="modal-body">
-				<?php Person::printSingleFinder('personid', NULL); ?>
-			</div>
-			<div class="modal-footer">
-				<button class="btn" data-dismiss="modal" id="choose-assignee-save">Save</button>
-				<button class="btn" data-dismiss="modal"id="choose-assignee-cancel">Cancel</button>
-			</div>
-		</div>
 		<table class="table roster" border="1" cellspacing="0" cellpadding="1">
 
 			<?php $this->_printTableHeader($editing, $public); ?>
 
 			<tbody>
 			<?php
+
 			foreach ($to_print as $date => $ddetail) {
 				if ($public && empty($ddetail['assignments'])) continue;
 				$class_clause = ($date == $this_sunday) ? 'class="tblib-hover"' : '';
@@ -685,46 +697,32 @@ class roster_view extends db_object
 						echo '<strong>'.str_replace(' ', '&nbsp;', date('j M y', strtotime($date))).'</strong>';
 						if (!$editing && !$public) {
 							$emails = Array();
+							$mobiles = Array();
+							$personids = Array();
 							foreach ($ddetail['assignments'] as $roleid => $assignees) {
-								foreach ($assignees as $pid => $pdetails) {
+								foreach ($assignees as $rank => $pdetails) {
+									$personids[] = $pdetails['personid'];
 									if (!empty($pdetails['email']) && $pdetails['email'] != $my_email) {
 										$emails[] = $pdetails['email'];
 									}
+									if (!empty($pdetails['mobile'])) {
+										$mobiles[] = $pdetails['mobile'];
+									}
 								}
 							}
-							$emails = array_unique($emails);
 							if (!empty($emails)) {
 								?>
-								<p class="smallprint no-print">
+								<span class="smallprint no-print">
 									<a href="<?php echo get_email_href($my_email, NULL, $emails, date('jS F', strtotime($date))); ?>" <?php echo email_link_extras(); ?>>Email All</a>
-									<?php
-									if (defined('SMS_HTTP_URL') && constant('SMS_HTTP_URL') && $GLOBALS['user_system']->havePerm(PERM_SENDSMS)) {
-										?>
-										| <span class="clickable" onclick="$(this).parent().next('form').toggle(); $(this).parents('tr:first').addClass('tblib-hover')">SMS All</span>
-										<?php
-									}
-									?>
-								</p>
+				                </span>
 								<?php
-								if (defined('SMS_HTTP_URL') && constant('SMS_HTTP_URL') && $GLOBALS['user_system']->havePerm(PERM_SENDSMS)) {
-									$url = build_url(Array(
-										'view' => '_send_sms_http',
-										'roster_view' => $this->id,
-										'start_date' => $date,
-										'end_date' => $date
-									));
-									?>
-									<form method="post" action="<?php echo $url; ?>" style="position: absolute; display: none">
-										<div class="well well-small">
-										<h3>Send SMS</h3>
-										<textarea name="message" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
-										<br />
-										<input class="btn" type="submit" value="Send" />
-										<input class="btn" type="button" onclick="$(this).parents('form').toggle(); $(this).parents('tr:first').removeClass('tblib-hover')" value="Cancel" />
-										</div>
-									</form>
-									<?php
-								}
+							}
+							if (!empty($mobiles) && defined('SMS_HTTP_URL') && constant('SMS_HTTP_URL') && $GLOBALS['user_system']->havePerm(PERM_SENDSMS)) {
+								?>
+								<span class="smallprint no-print">
+								  <a href="#send-sms-modal" data-personid="<?php echo implode(',', array_unique($personids)); ?>" data-toggle="sms-modal" data-name="People Rostered on <?php echo $date;?>" onclick="$(this).parents('tr:first').addClass('tblib-hover')">SMS All</a>
+								</span>
+								<?php
 							}
 						}
 						?>
@@ -742,16 +740,16 @@ class roster_view extends db_object
 					<?php
 					if ($mdetail['role_id']) {
 						$haveHidden = FALSE;
-						foreach (array_get($ddetail['assignments'], $mdetail['role_id'], Array()) as $pid => $pdetails) {
+						foreach (array_get($ddetail['assignments'], $mdetail['role_id'], Array()) as $pdetails) {
 							if ($pdetails['assigneehidden']) $haveHidden = TRUE;
 						}
 						if ($editing && empty($mdetail['readonly']) && !$haveHidden) {
 							$currentval = Array();
-							foreach (array_get($ddetail['assignments'], $mdetail['role_id'], Array()) as $pid => $pdetails) {
-								$currentval[$pid] = $pdetails['name'];
+							foreach (array_get($ddetail['assignments'], $mdetail['role_id'], Array()) as $rank => $pdetails) {
+								$currentval[] = $pdetails['personid'];
 							}
 							if (empty($role_objects[$mdetail['role_id']])) {
-								$role_objects[$mdetail['role_id']] =& $GLOBALS['system']->getDBObject('roster_role', $mdetail['role_id']);
+								$role_objects[$mdetail['role_id']] = $GLOBALS['system']->getDBObject('roster_role', $mdetail['role_id']);
 							}
 							if (empty($role_objects[$mdetail['role_id']])) {
 								// must've been a problem
@@ -760,10 +758,14 @@ class roster_view extends db_object
 							$role_objects[$mdetail['role_id']]->printChooser($date, $currentval);
 						} else {
 							$names = Array();
-							foreach (array_get($ddetail['assignments'], $mdetail['role_id'], Array()) as $personid => $vs) {
+							foreach (array_get($ddetail['assignments'], $mdetail['role_id'], Array()) as $rank => $vs) {
+								$personid = $vs['personid'];
 								if (!$public && !$vs['assigneehidden']) {
-									$n = '<a href="'.BASE_URL.'?view=persons&personid='.$personid.'" title="Assigned by '.ents($vs['assigner']).' on '.format_datetime($vs['assignedon']).'">'.nbsp(ents($vs['name'])).'</a>';
+									$n = '<a data-personid="'.$personid . '" href="'.BASE_URL.'?view=persons&personid='.$personid.'" title="Assigned by '.ents($vs['assigner']).' on '.format_datetime($vs['assignedon']).'">'.nbsp(ents($vs['name'])).'</a>';
 									if (('' === $vs['email'])) $n .= '&nbsp;<img src="'.BASE_URL.'resources/img/no_email.png" style="display:inline" title="No Email Address" />';
+									if (('' === $vs['mobile'])) {
+										$n .= '&nbsp;<img src="'.BASE_URL.'resources/img/no_phone.png" style="display:inline" title="No Mobile" />';
+					                }
 									$names[] = $n;
 								} else {
 									$names[] = nbsp($vs['name']);
@@ -946,15 +948,15 @@ class roster_view extends db_object
 			if (!empty($_POST['assignees'][$roleid])) {
 				foreach ($_POST['assignees'][$roleid] as $date => $assignee) {
 					if (!is_array($assignee)) $assignee = Array($assignee);
-					foreach ($assignee as $new_personid) {
+					foreach ($assignee as $rank => $new_personid) {
 						$new_personid = (int)$new_personid;
 						if (empty($new_personid)) continue;
-						if (isset($to_delete[$date][$roleid][$new_personid])) {
+						if (isset($to_delete[$date][$roleid][$rank]) && $to_delete[$date][$roleid][$rank] == $new_personid) {
 							// unchanged allocation - leave it as is
-							unset($to_delete[$date][$roleid][$new_personid]);
+							unset($to_delete[$date][$roleid][$rank]);
 						} else {
 							// new allocation
-							$to_add[] = '('.(int)$roleid.', '.$GLOBALS['db']->quote($date).', '.(int)$new_personid.', '.(int)$GLOBALS['user_system']->getCurrentUser('id').')';
+							$to_add[] = '('.(int)$roleid.', '.$GLOBALS['db']->quote($date).', '.(int)$new_personid.', '.(int)$rank.', '.(int)$GLOBALS['user_system']->getCurrentUser('id').')';
 						}
 					}
 				}
@@ -964,9 +966,9 @@ class roster_view extends db_object
 		foreach ($to_delete as $date => $date_allocs) {
 			foreach ($date_allocs as $roleid => $role_allocs) {
 				if (in_array($roleid, $roles)) { // don't delete any allocations for read-only roles!!
-					foreach ($role_allocs as $personid => $person_details) {
+					foreach ($role_allocs as $rank => $person_details) {
 						if ($person_details['assigneehidden']) continue;
-						$del_clauses[] = '(roster_role_id = '.(int)$roleid.' AND assignment_date = '.$GLOBALS['db']->quote($date).' AND personid = '.(int)$personid.')';
+						$del_clauses[] = '(roster_role_id = '.(int)$roleid.' AND assignment_date = '.$GLOBALS['db']->quote($date).' AND rank = '.(int)$rank.')';
 					}
 				}
 			}
@@ -980,7 +982,8 @@ class roster_view extends db_object
 		}
 		if (!empty($to_add)) {
 			$to_add = array_unique($to_add);
-			$sql = 'REPLACE INTO roster_role_assignment (roster_role_id, assignment_date, personid, assigner) VALUES '.implode(",\n", $to_add);
+			$sql = 'REPLACE INTO roster_role_assignment (roster_role_id, assignment_date, personid, rank, assigner)
+					VALUES '.implode(",\n", $to_add);
 			$res = $GLOBALS['db']->query($sql);
 			check_db_result($res);
 		}

@@ -14,20 +14,25 @@ class View__Execute_Plans extends View
 
 		$plans = Array();
 		foreach ($_REQUEST['planid'] as $planid) {
-			$plans[] = $GLOBALS['system']->getDBObject('action_plan', $planid);
+			$plans[$planid] = $GLOBALS['system']->getDBObject('action_plan', $planid);
 		}
 
 		$refdate = process_widget('plan_reference_date', Array('type' => 'date'));
 
-		
-		foreach ($_REQUEST['personid'] as $personid) {
-			foreach ($plans as $plan) {
-				$plan->execute('person', (int)$personid, $refdate);
+		$success = Array();
+		foreach ($plans as $planid => $plan) {
+			$success[$planid] = 0;
+			foreach ($_REQUEST['personid'] as $personid) {
+				$success[$planid] += (int)$plan->execute('person', (int)$personid, $refdate);
 			}
 		}
 
-		foreach ($plans as $plan) {
-			add_message('"'.$plan->getValue('name').'" plan executed for '.count($_REQUEST['personid']).' person(s)', 'success');
+		foreach ($plans as $planid => $plan) {
+			if ($success[$planid] > 0) {
+				add_message('"'.$plan->getValue('name').'" plan executed for '.$success[$planid].' person(s)', 'success');
+			} else {
+				add_message('"'.$plan->getValue('name').'" plan was not executed for any persons', 'failure');
+			}
 		}
 		if (count($_REQUEST['personid']) == 1) {
 			redirect('persons', Array('personid' => (int)reset($_REQUEST['personid'])));

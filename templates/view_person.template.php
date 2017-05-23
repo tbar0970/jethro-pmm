@@ -52,7 +52,7 @@ if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
 				?>
 			</div>
 			<div class="modal-footer">
-				<input type="submit" class="btn" value="Go" accesskey="s" onclick="if (!$('[name=groupid]').val()) { alert(<?php echo _('"Choose a group first"');?>; return false; }" />
+				<input type="submit" class="btn" value="Go" accesskey="s" onclick="if (!$('[name=groupid]').val()) { alert('<?php echo _('Choose a group first'); ?>'); return false; }" />
 				<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
 			</div>
 		</form>
@@ -118,7 +118,7 @@ if (!$accordion) {
 	$panel_header = '
 		<div class="accordion-group">
 			<div class="accordion-heading">
-				<a class="accordion-toggle" data-toggle="collapse" href="#%1$s">
+				<a class="accordion-toggle" data-toggle="collapse" href="#%1$s"  onclick="void(0)">
 					<i class="icon-chevron-down icon-white pull-right"></i>
 					%2$s
 				</a>
@@ -164,12 +164,12 @@ printf($panel_header, 'basic', _('Basic Details'), 'active');
 
 			if ($family->getValue('address_street')) {
 				?>
-				<a href="?call=envelopes&personid=<?php echo $person->id; ?>" class="pull-right envelope-popup"><i class="icon-envelope"></i><?php echo _('Print Envelope')?></a>
+				<a href="?call=envelopes&personid=<?php echo $person->id; ?>" class="pull-right envelope-popup hidden-phone"><i class="icon-envelope"></i><?php echo _('Print Envelope')?></a>
 				<?php
 			}
 			if ($plan_chooser) {
 				?>
-				<a href="#action-plan-modal" data-toggle="modal"><i class="icon-forward"></i><?php echo _('Execute Action Plan')?></a>
+				<a class="hidden-phone" href="#action-plan-modal" data-toggle="modal"><i class="icon-forward"></i><?php echo _('Execute Action Plan')?></a>
 				<?php
 			}
 			?>
