@@ -19,6 +19,13 @@ class JethroDB extends PDO {
     return 	$result;
   }
 
+  public function quote($string) {
+	if ($string === NULL) {
+		return 'NULL';
+	} else {
+		return parent::quote($string);
+	}
+  }
   public function quoteIdentifier($field) {
     $parts = explode('.', $field);
     foreach (array_keys($parts) as $k) {
@@ -55,7 +62,7 @@ class JethroDB extends PDO {
 		if ($emptyonerror) {
 			return Array();
 		} else {
-            trigger_error("Database Error: " . $statement->errorCode(), E_USER_ERROR);
+            trigger_error("Database Error: " . $stmnt->errorCode(), E_USER_ERROR);
 		}
 	}
     if (!$rekey) {
@@ -119,7 +126,18 @@ class JethroDB extends PDO {
   /*
    * Returns true if there is an error, false if there is no error
    */
-  public function check_db_error() {
-    return ((self::errorCode() !== '00000') && (self::errorCode() !== NULL));
+  public function check_db_error($res=null) {
+	if ($res !== null) {
+	  if (is_bool($res)) { 
+  	    return !$res;
+      } else {
+        return false;
+      }
+    } else {
+	  $res = ((self::errorCode() !== '00000') && (self::errorCode() !== NULL));
+	  if ($res) { trigger_error("Database error", E_USER_ERROR); }
+	  return $res;
+    }
   }
+  
 }
