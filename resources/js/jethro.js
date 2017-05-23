@@ -623,7 +623,7 @@ JethroSMS.onAJAXSuccess = function (data, resultsDiv) {
 	resultsDiv.html(""); // Reset results in case there's something there
 	var message = '';
 	if (data.error!==undefined) {
-		alert('Server error sending SMS\n '+data.error);
+		alert('Server error sending SMS\n'+data.error);
 		return true;
 	}
 	if (sentCount > 0) {
