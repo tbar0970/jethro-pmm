@@ -939,6 +939,9 @@ class db_object
 				if (isset($this->fields[$raw_field]) && $this->fields[$raw_field]['type'] == 'text') {
 					$val = strtolower($val);
 				}
+				if ((is_array($val) && empty($val))) {
+					$val = '';
+				}
 				$wheres[] = '('.$prefix.$field.' '.$operator.' '.$db->quote($val).$suffix.')';
 			}
 		}
