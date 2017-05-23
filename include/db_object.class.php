@@ -1,6 +1,5 @@
 <?php
 
-require_once 'MDB2/Date.php';
 class db_object
 {
 
@@ -48,6 +47,10 @@ class db_object
 		}
 	}
 
+	public function unixToTimestamp($unix_timestamp)
+	{
+		return date('Y-m-d H:i:s', $unix_timestamp);
+	}
 
 	public function getInitSQL($table_name=NULL)
 	{
@@ -756,7 +759,7 @@ class db_object
 						AND objectid = '.$db->quote($this->id).'
 						AND lock_type = '.$db->quote($type).'
 						AND userid = '.$GLOBALS['user_system']->getCurrentPerson('id').'
-						AND expires > '.$db->quote(MDB2_Date::unix2Mdbstamp(time()));
+						AND expires > '.$db->quote(self::unixToTimestamp(time()));
 			$this->_held_locks[$type] = $db->queryOne($sql);
 			check_db_result($this->_held_locks[$type]);
 		}
@@ -773,7 +776,7 @@ class db_object
 					WHERE object_type = '.$db->quote(strtolower(get_class($this))).'
 						AND lock_type = '.$db->quote($type).'
 						AND objectid = '.$db->quote($this->id).'
-						AND expires > '.$db->quote(MDB2_Date::unix2Mdbstamp(time()));
+						AND expires > '.$db->quote(self::unixToTimestamp(time()));
 			$res = $db->queryOne($sql);
 			check_db_result($res);
 			if ($res == $GLOBALS['user_system']->getCurrentPerson('id')) {
@@ -798,7 +801,7 @@ class db_object
 					'.$db->quote(strtolower(get_class($this))).',
 					'.$db->quote($type).',
 					'.$db->quote($GLOBALS['user_system']->getCurrentPerson('id')).',
-					'.$db->quote(MDB2_Date::unix2Mdbstamp(strtotime('+'.self::getLockLength()))).')';
+					'.$db->quote(self::unixToTimestamp(strtotime('+'.self::getLockLength()))).')';
 		$res = $db->query($sql);
 		check_db_result($res);
 		if ($res !== FALSE) $res->closeCursor();
@@ -807,7 +810,7 @@ class db_object
 
 		if (rand(10, 100) == 100) {
 			$sql = 'DELETE FROM db_object_lock
-					WHERE expires < '.$db->quote(MDB2_Date::unix2Mdbstamp(time()));
+					WHERE expires < '.$db->quote(self::unixToTimestamp(time()));
 			$res = $db->query($sql);
 			check_db_result($res);
 			if ($res !== FALSE) $res->closeCursor();

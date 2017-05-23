@@ -406,7 +406,7 @@ class Installer
 	{
 		$tables = $GLOBALS['db']->queryCol('SHOW TABLES');
 		$routines = $GLOBALS['db']->queryCol('SHOW CREATE FUNCTION getCurrentUserID');
-		if (!empty($tables) || !($routines instanceof MDB2_Error)) {
+		if (!empty($tables) || (($GLOBALS['db']->errorCode() !== '00000') && ($GLOBALS['db']->errorCode() !== NULL))) {
 			print_message('Your MySQL database is not empty.  This could be due to a failed previous installation attempt.  Please drop and re-create the database to ensure it is entirely blank, then reload this page.', 'error');
 			return;
 		}
