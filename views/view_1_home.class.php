@@ -18,7 +18,7 @@ class View_Home extends View
 
 		?>
 		<div class="homepage homepage-<?php echo $num_cols; ?>-col">
-
+		<div class="row">
 		<div class="homepage-box search-forms">
 			<h3>
 				<a class="pull-right hide-phone"
@@ -125,7 +125,64 @@ class View_Home extends View
 		}
 
 		?>
-		</div>
+		</div>  <!-- End Row -->
+		<div class="row">
+		<?php
+
+		// Check permissions for showing special dates?
+			?>
+			<div class="homepage-box special-dates">
+				<h3>
+					Upcoming special dates
+
+                                </h3>
+                                <?php
+                                $GLOBALS['system']->includeDBClass('special_dates');
+                                $special_dates = Special_Dates::getUpcomingDates($GLOBALS['user_system']->getCurrentUser('id'));
+                                if ($special_dates) {
+                                ?>
+                                    <table class="table table-condensed table-striped table-hover clickable-rows" width="100%">
+						<thead>
+							<tr>
+								<th>Person</th>
+                                                                <th>Date</th>
+								<th>Occassion</th>
+							</tr>
+						</thead>
+						<tbody>
+                                <?php
+                                    foreach($special_dates as $personid => $special_date_inner) {
+                                        foreach($special_date_inner as $special_date) {
+                                            $occassion = $special_date['occassion'];
+                                            if ($special_date['value_text'] !== '') {
+                                                $occassion .= ' (' .$special_date['value_text'] . ')';
+                                            }
+                                            $occassion_date = date_format(date_create($special_date['occassion_date']), 'j M') ;
+                                            ?>
+                                                        <tr>
+                                                            <td><a href="?view=persons&personid=<?php echo $personid; ?>"><i class="icon-user"></i> <?php echo $special_date['person_name']; ?></a></td>
+                                                            <td><?php echo $occassion_date; ?></td>
+                                                            <td><?php echo $occassion; ?></td>
+                                                        </tr>
+                                            <?php
+                                        }
+                                    }
+                                        ?>
+                                                </tbody>
+                                    </table>
+                                        <?php
+
+                                } else {
+                                    ?>
+                                    <p><i>None</i></p>
+                                    <?php
+                                }
+                                ?>
+                        </div>
+                        <?php
+
+		?>
+		</div> <!-- End Row -->
 		<?php
 
 	}
