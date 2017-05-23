@@ -108,21 +108,22 @@ Class SMS_Sender
 			$fp = fopen(SMS_HTTP_URL, 'r', false, stream_context_create($opts));
 			if (!$fp) {
 				$http_error = "ERROR: Unable to connect to SMS Server.<br>" . join("<br>", $http_response_header);
-				return array("success" => false, "successes" => array(), "failures" => array(), "rawresponse" => $http_error);
+				return array("success" => false, "successes" => array(), "failures" => array(), "rawresponse" => $http_error, "error" => $http_error);
 			} else {
 				$response = stream_get_contents($fp);
 				fclose($fp);
 			}
 		} catch (Exception $e) {
 			$error = "ERROR: Unable to connect to SMS Server. " + $e->getMessage();
-			return array("success" => false, "successes" => array(), "failures" => array(), "rawresponse" => $error);
+			return array("success" => false, "successes" => array(), "failures" => array(), "rawresponse" => $error, "error" => $error);
 		}
 		restore_error_handler(); // Restore system error_handler
 		$success = !empty($response);
+		$error = null;
 		if (ifdef('SMS_HTTP_RESPONSE_ERROR_REGEX')) {
-			if (preg_match(SMS_HTTP_RESPONSE_ERROR_REGEX, $rawresponse)) {
+			if (preg_match("/" . SMS_HTTP_RESPONSE_ERROR_REGEX . "/", $response)) {
 				$success = FALSE;
-				$ajax['error'] = $rawresponse;
+				$error = "$response";
 			}
 		}
 		$successes = $failures = Array();
@@ -152,6 +153,7 @@ Class SMS_Sender
 			"successes" => $successes,
 			"failures" => $failures,
 			"rawresponse" => $response,
+			"error" => $error
 		);
 	}
 
