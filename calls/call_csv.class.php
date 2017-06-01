@@ -27,7 +27,9 @@ class Call_csv extends Call
 				$dummy_family = new Family();
 				break;
 		}
-		$headerrow = Array('ID');
+
+		fputs($fp, '"ID",');// https://superuser.com/questions/210027/why-does-excel-think-csv-files-are-sylk
+		$headerrow = Array();
 		foreach (array_keys(reset($merge_data)) as $header) {
 			if ($header == 'familyid') continue;
 			$headerrow[] = strtoupper($dummy->getFieldLabel($header));
