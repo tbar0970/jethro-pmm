@@ -32,9 +32,10 @@ class View_Rosters__Define_Roster_Roles extends View
 		<?php
 
 		$congs = $GLOBALS['system']->getDBObjectData('congregation', Array('!meeting_time' => ''), 'AND', 'meeting_time');
-		$congs += Array(0 => Array('name' => 'Non-Congregational'));
+		$congs += Array('' => Array('name' => 'Non-Congregational'));
 		$allroles = Array();
 		foreach ($congs as $cid => $details) {
+			if ($cid == '') $cid = NULL;
 			$croles = $GLOBALS['system']->getDBObjectData('roster_role', Array('congregationid' => $cid), 'OR', 'active DESC, title ASC');
 			if ($croles) $allroles[$cid] = $croles;
 		}

@@ -880,6 +880,8 @@ class db_object
 				// beginning-of-word match
 				$operator = 'WORDBEGIN';
 				$field = substr($field, 1);
+			} else if ($val === NULL) {
+				$operator = 'IS';
 			}
 			$raw_field = $field;
 			if ($field == 'id') {
