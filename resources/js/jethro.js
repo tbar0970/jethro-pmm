@@ -336,7 +336,7 @@ $(document).ready(function() {
                 headCountInput.val(currentHeadCount+1);
             } else if (attendanceInput.val()==='present') { // going from present to something else
                 headCountInput.val(currentHeadCount-1);
-            }
+            }            
         }
         attendanceInput.val(this.attr('data-val'));
 
