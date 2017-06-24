@@ -9,7 +9,6 @@ class JethroDB extends PDO {
     if ($options === NULL) { $options = array();}
     $options[PDO::ATTR_PERSISTENT] = true;
     $options[PDO::ATTR_DEFAULT_FETCH_MODE] = PDO::FETCH_ASSOC;
-    $options[PDO::NULL_EMPTY_STRING] = true;
     try {
       $result =  parent::__construct($dsn, $username, $password, $options);
     } catch (PDOException $e) {
