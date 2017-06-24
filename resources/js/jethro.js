@@ -582,13 +582,11 @@ JethroSMS.init = function() {
 				context: $(this),
 				error: function(jqXHR, status, error) {
 					alert('Server error while sending SMS');
-					console.log(jqXHR);
-					console.log(status);
-					console.log(error);
 					sendButton.html("Send");
 				},
 				success: function(data) {
 					var modalDiv = $("#send-sms-modal");
+                    
 					var showResults = JethroSMS.onAJAXSuccess(data, resultsDiv);
 					if (showResults) {
 						resultsDiv.show();
@@ -633,7 +631,7 @@ JethroSMS.onAJAXSuccess = function (data, resultsDiv) {
 	resultsDiv.html(""); // Reset results in case there's something there
 	var message = '';
 	if (data.error!==undefined) {
-		alert('Server error sending SMS\n '+data.error);
+		alert('Server error sending SMS: '+data.error);
 		return true;
 	}
 	if (sentCount > 0) {
