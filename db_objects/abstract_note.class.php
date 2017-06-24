@@ -214,7 +214,6 @@ class Abstract_Note extends DB_Object
 		$db =& $GLOBALS['db'];
 		$sql = 'DELETE FROM note_comment WHERE noteid = '.$db->quote($this->id);
 		$res = $db->query($sql);
-		$res->closeCursor();
 		return TRUE;
 	}
 

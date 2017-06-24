@@ -180,7 +180,6 @@ class Person_Group extends db_object
 				$sql .= ' ON DUPLICATE KEY UPDATE membership_status=VALUES(membership_status)';
 			}
 			$res = $db->query($sql);
-			$res->closeCursor();
 			return TRUE;
 		}
 		return FALSE;
@@ -199,7 +198,6 @@ class Person_Group extends db_object
 					WHERE groupid = '.$db->quote((int)$this->id).'
 						AND personid = '.$db->quote((int)$personid);
 			$res = $db->query($sql);
-			$res->closeCursor();
 			return TRUE;
 		}
 		return FALSE;
@@ -219,7 +217,6 @@ class Person_Group extends db_object
 					WHERE groupid = '.$db->quote((int)$this->id).'
 						AND personid IN ('.implode(',', array_map(Array($db, 'quote'), array_keys($members))).')';
 			$res = $db->query($SQL);
-			$res->closeCursor();
 			return TRUE;
 		}
 		return FALSE;
@@ -294,7 +291,6 @@ class Person_Group extends db_object
 		$db =& $GLOBALS['db'];
 		$sql = 'DELETE FROM person_group_membership WHERE groupid = '.$db->quote($this->id);
 		$res = $db->query($sql);
-		$res->closeCursor();
 		return $r;
 	}
 
@@ -415,7 +411,6 @@ class Person_Group extends db_object
 										SET membership_status = '.$GLOBALS['db']->quote($status).'
 										WHERE groupid = '.(int)$this->id.'
 											AND personid = '.(int)$personid);
-			$res->closeCursor();
 		}
 		$GLOBALS['system']->doTransaction('COMMIT');
 		return TRUE;

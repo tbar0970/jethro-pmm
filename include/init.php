@@ -59,7 +59,6 @@ Config_Manager::init();
 if (defined('TIMEZONE') && constant('TIMEZONE')) {
 	date_default_timezone_set(constant('TIMEZONE'));
 	$res = $GLOBALS['db']->query('SET time_zone = "'.date('P').'"');
-	if ($res !== FALSE) $res->closeCursor();
 }
 
 @ini_set('default_charset', 'UTF-8');

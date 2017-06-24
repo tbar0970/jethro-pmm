@@ -215,7 +215,6 @@ class Attendance_Record_Set
 		$sql .= '  AND personid IN ('.implode(',', array_map(Array($db, 'quote'), array_keys($this->_persons))).')';
 
 		$res = $db->query($sql);
-		$res->closeCursor();
 	}
 
 
@@ -749,7 +748,6 @@ class Attendance_Record_Set
 		}
 		$dates = array_keys($dates);
 		sort($dates);
-		$res->closeCursor();
 		return Array($dates, $attendances, $totals);
 	}
 

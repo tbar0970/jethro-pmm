@@ -104,7 +104,6 @@ class Installer
 					if (!is_array($sql)) $sql = Array($sql);
 					foreach ($sql as $s) {
 						$r = $GLOBALS['db']->query($s);
-						if ($r !== FALSE) $r->closeCursor();
 					}
 				}
 
@@ -294,7 +293,6 @@ class Installer
 		);
 		foreach ($sql as $s) {
 			$r = $GLOBALS['db']->query($s);
-			if ($r !== FALSE) $r->closeCursor();
 		}
 
 		foreach ($fks as $table => $keys) {
@@ -307,7 +305,6 @@ class Installer
 						ADD CONSTRAINT `'.$name.'`
 						FOREIGN KEY ('.$from.') REFERENCES '.$to;
 				$r = $GLOBALS['db']->query($SQL);
-				if ($r !== FALSE) $r->closeCursor();
 			}
 		}
 

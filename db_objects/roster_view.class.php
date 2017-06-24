@@ -263,10 +263,8 @@ class roster_view extends db_object
 		if (!empty($this->_members_to_set)) {
 			$sql = 'DELETE FROM roster_view_role_membership WHERE roster_view_id = '.(int)$this->id;
 			$q = $GLOBALS['db']->query($sql);
-			$q->closeCursor();
 			$sql = 'DELETE FROM roster_view_service_field WHERE roster_view_id = '.(int)$this->id;
 			$q = $GLOBALS['db']->query($sql);
-			$q->closeCursor();
 
 			$role_inserts = Array();
 			$field_inserts = Array();
@@ -285,14 +283,12 @@ class roster_view extends db_object
 				$sql = 'INSERT INTO roster_view_role_membership (roster_view_id, roster_role_id, order_num) VALUES ';
 				$sql .= implode(', ', $role_inserts);
 				$q = $GLOBALS['db']->query($sql);
-				$q>closeCursor();
 			}
 
 			if (!empty($field_inserts)) {
 				$sql = 'INSERT INTO roster_view_service_field (roster_view_id, congregationid, service_field, order_num) VALUES ';
 				$sql .= implode(', ', $field_inserts);
 				$q = $GLOBALS['db']->query($sql);
-				$q->closeCursor();
 			}
 
 			$this->_members_to_set = Array();
@@ -975,14 +971,12 @@ class roster_view extends db_object
 		if (!empty($del_clauses)) {
 			$sql = 'DELETE FROM roster_role_assignment WHERE ('.implode(' OR ', $del_clauses).')';
 			$res = $GLOBALS['db']->query($sql);
-			$res->closeCursor();
 		}
 		if (!empty($to_add)) {
 			$to_add = array_unique($to_add);
 			$sql = 'REPLACE INTO roster_role_assignment (roster_role_id, assignment_date, personid, rank, assigner)
 					VALUES '.implode(",\n", $to_add);
 			$res = $GLOBALS['db']->query($sql);
-			$res->closeCursor();
 		}
 		foreach ($roles as $i => $roleid) {
 			$role = $GLOBALS['system']->getDBObject('roster_role', $roleid);

@@ -131,7 +131,6 @@ class service extends db_object
 		$sql = 'DELETE FROM service_bible_reading
 				WHERE service_id = '.(int)$this->id;
 		$res = $GLOBALS['db']->query($sql);
-		$res->closeCursor();
 	}
 
 	function __insertBibleReadings()
@@ -146,7 +145,6 @@ class service extends db_object
 			$sql = 'INSERT INTO service_bible_reading (service_id, order_num, bible_ref, to_read, to_preach)
 				VALUES '.implode(', ', $values);
 			$res = $GLOBALS['db']->query($sql);
-			$res->closeCursor();
 		}
 		$this->_old_readings = $this->_readings;
 	}
@@ -221,7 +219,6 @@ class service extends db_object
 				AND congregationid IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congids)).')
 				ORDER BY date '.(($shift_by > 0) ? 'DESC' : 'ASC');
 		$res = $GLOBALS['db']->query($sql);
-		$res->closeCursor();
 	}
 
 	function getFormattedValue($fieldname, $value=null)

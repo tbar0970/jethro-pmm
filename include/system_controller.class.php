@@ -218,7 +218,6 @@ class System_Controller
 			case 'COMMIT':
 			case 'ROLLBACK':
 				$r = $GLOBALS['db']->query(strtoupper($operation));
-				if ($r !== FALSE) $r->closeCursor();
 		}
 	}
 

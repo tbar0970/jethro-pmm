@@ -556,7 +556,6 @@ class Person extends DB_Object
 			$SQL = 'REPLACE INTO person_photo (personid, photodata)
 					VALUES ('.(int)$this->id.', '.$db->quote($this->_photo_data).')';
 			$res = $db->query($SQL);
-			$res->closeCursor();
 		}
 	}
 
@@ -564,7 +563,6 @@ class Person extends DB_Object
 		$db =& $GLOBALS['db'];
 		$SQL = 'DELETE FROM custom_field_value WHERE personid = '.(int)$this->id;
 		$res = $db->query($SQL);
-		if ($res !== FALSE) $res->closeCursor();
 		$SQL = 'INSERT INTO custom_field_value
 				(personid, fieldid, value_text, value_date, value_optionid)
 				VALUES ';
@@ -594,7 +592,6 @@ class Person extends DB_Object
 		if ($sets) {
 			$SQL .= implode(",\n", $sets);
 			$res = $GLOBALS['db']->query($SQL);
-			if ($res !== FALSE) $res->closeCursor();
 		}
 	}
 

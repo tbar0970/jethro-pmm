@@ -339,7 +339,6 @@ class Staff_Member extends Person
 				foreach (Array('congregation', 'group') as $type) {
 					if (array_get($this->_restrictions, $type, Array()) != array_get($this->_old_restrictions, $type, Array())) {
 						$res = $GLOBALS['db']->query('DELETE FROM account_'.$type.'_restriction WHERE personid = '.(int)$this->id);
-						$res->closeCursor();
 					}
 				}
 				$this->_insertRestrictions();
@@ -366,7 +365,6 @@ class Staff_Member extends Person
 					$rows[] = '('.(int)$this->id.','.(int)$id.')';
 				}
 				$res = $GLOBALS['db']->query('INSERT IGNORE INTO account_'.$type.'_restriction (personid, '.$type.'id) VALUES '.implode(',', $rows));
-				$res->closeCursor();
 			}
 		}
 	}

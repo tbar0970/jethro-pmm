@@ -39,7 +39,6 @@ class Person_Group_Category extends db_object
 		parent::delete();
 		$sql = 'UPDATE person_group SET categoryid = 0 WHERE categoryid = '.(int)$this->id;
 		$res = $GLOBALS['db']->query($sql);
-		$res->closeCursor();
 		$GLOBALS['system']->doTransaction('COMMIT');
 	}
 

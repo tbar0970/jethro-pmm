@@ -477,7 +477,6 @@ class family extends db_object
 			$SQL = 'REPLACE INTO family_photo (familyid, photodata)
 					VALUES ('.(int)$this->id.', '.$db->quote($this->_photo_data).')';
 			$res = $db->query($SQL);
-			$res->closeCursor();
 		}
 	}
 

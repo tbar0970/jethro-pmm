@@ -228,7 +228,6 @@ class db_object
 		$res = $db->query($sql);
 		if (empty($this->id)) $this->id = $db->lastInsertId();
 		$this->_old_values = Array();
-		if ($res !== FALSE) $res->closeCursor();
 		return TRUE;
 	}
 
@@ -375,7 +374,6 @@ class db_object
 					SET '.implode("\n, ", $sets).'
 					WHERE id = '.$db->quote($this->id);
 			$res = $db->query($sql);
-			if ($res !== FALSE) $res->closeCursor();
 		}
 
 		$this->_old_values = Array();
@@ -426,7 +424,6 @@ class db_object
 		while ($table_name != 'db_object') {
 			$sql = 'DELETE FROM '.$table_name.' WHERE id='.$db->quote($this->id);
 			$res = $db->query($sql);
-			if ($res !== FALSE) $res->closeCursor();
 			$table_name = strtolower(get_parent_class($table_name));
 		}
 		$GLOBALS['system']->doTransaction('commit');
@@ -797,7 +794,6 @@ class db_object
 					'.$db->quote($GLOBALS['user_system']->getCurrentPerson('id')).',
 					'.$db->quote(self::unixToTimestamp(strtotime('+'.self::getLockLength()))).')';
 		$res = $db->query($sql);
-		if ($res !== FALSE) $res->closeCursor();
 		$this->_held_locks[$type] = TRUE;
 		$this->_acquirable_locks[$type] = TRUE;
 
@@ -805,7 +801,6 @@ class db_object
 			$sql = 'DELETE FROM db_object_lock
 					WHERE expires < '.$db->quote(self::unixToTimestamp(time()));
 			$res = $db->query($sql);
-			if ($res !== FALSE) $res->closeCursor();
 		}
 
 		return TRUE;
@@ -822,7 +817,6 @@ class db_object
 		$SQL = 'DELETE FROM db_object_lock
 				WHERE userid = '.$db->quote($userid);
 		$res = $db->query($SQL);
-		if ($res !== FALSE) $res->closeCursor();
 		// We actually don't care if this fails - it shouldn't hold up the logout.
 	}
 
@@ -836,7 +830,6 @@ class db_object
 					AND lock_type = '.$db->quote($type).'
 					AND object_type = '.$db->quote(strtolower(get_class($this)));
 		$res = $db->query($sql);
-		if ($res !== FALSE) $res->closeCursor();
 		$this->_held_locks[$type] = FALSE;
 		$this->_acquirable_locks[$type] = NULL;
 	}

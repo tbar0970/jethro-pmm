@@ -1146,7 +1146,6 @@ class Person_Query extends DB_Object
 													familyid int(10) not null primary key,
 													names varchar(512) not null
 													)');
-						$r1->closeCursor();
 						$r2 = $GLOBALS['db']->query('INSERT INTO _family_adults'.$this->id.' (familyid, names)
 											SELECT familyid, IF (
 												GROUP_CONCAT(DISTINCT last_name) = ff.family_name, 
@@ -1158,7 +1157,6 @@ class Person_Query extends DB_Object
 											JOIN family ff ON pp.familyid = ff.id
 											WHERE pp.status <> "archived" AND ab.is_adult
 											GROUP BY familyid');
-						$r2->closeCursor();
 						$query['from'] .= ' LEFT JOIN _family_adults'.$this->id.' ON _family_adults'.$this->id.'.familyid = p.familyid
 											';
 						$query['select'][] = '_family_adults'.$this->id.'.names as `Adult Family Members`';
@@ -1290,7 +1288,6 @@ class Person_Query extends DB_Object
 		if (is_null($sql)) return 0;
 		$res = $db->query($sql);
 		$result = $res->numRows();
-		$res->closeCursor();
 		return $result;
 	}
 
