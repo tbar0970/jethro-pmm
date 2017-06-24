@@ -586,7 +586,7 @@ JethroSMS.init = function() {
 				},
 				success: function(data) {
 					var modalDiv = $("#send-sms-modal");
-                    
+
 					var showResults = JethroSMS.onAJAXSuccess(data, resultsDiv);
 					if (showResults) {
 						resultsDiv.show();
