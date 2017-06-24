@@ -328,7 +328,17 @@ $(document).ready(function() {
 	function onRadioButtonActivated(event) {
 		this.addClass('active');
 		this.siblings('div').removeClass('active');
-		this.parents('.radio-button-group').find('input').val(this.attr('data-val'));
+        attendanceInput = this.parents('.radio-button-group').find('input');
+        if (attendanceInput.val() !== this.attr('data-val')) {
+            headCountInput = this.closest('table').parent().find('.int-box');
+            currentHeadCount = parseInt(headCountInput.val()) || 0;
+            if (this.attr('data-val')==='present') {
+                headCountInput.val(currentHeadCount+1);
+            } else if (attendanceInput.val()==='present') { // going from present to something else
+                headCountInput.val(currentHeadCount-1);
+            }
+        }
+        attendanceInput.val(this.attr('data-val'));
 
 		if (attendanceUseKeyboard) {
 			var thisCell = $(this).parents('td');
@@ -572,11 +582,13 @@ JethroSMS.init = function() {
 				context: $(this),
 				error: function(jqXHR, status, error) {
 					alert('Server error while sending SMS');
+					console.log(jqXHR);
+					console.log(status);
+					console.log(error);
 					sendButton.html("Send");
 				},
 				success: function(data) {
 					var modalDiv = $("#send-sms-modal");
-
 					var showResults = JethroSMS.onAJAXSuccess(data, resultsDiv);
 					if (showResults) {
 						resultsDiv.show();
@@ -621,7 +633,7 @@ JethroSMS.onAJAXSuccess = function (data, resultsDiv) {
 	resultsDiv.html(""); // Reset results in case there's something there
 	var message = '';
 	if (data.error!==undefined) {
-		alert('Server error sending SMS: '+data.error);
+		alert('Server error sending SMS\n '+data.error);
 		return true;
 	}
 	if (sentCount > 0) {
