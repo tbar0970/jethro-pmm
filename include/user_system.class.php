@@ -63,8 +63,7 @@ class User_System extends Abstract_User_System
 			}
 			$_SESSION['last_activity_time'] = time();
 
-			$res = $GLOBALS['db']->query('SET @current_user_id = '.(int)$_SESSION['user']['id']);
-			if ($GLOBALS['db']->check_db_error()) trigger_error('Failed to set user id in database', E_USER_ERROR);
+            $GLOBALS['db']->setCurrentUserID((int)$_SESSION['user']['id']);
 		}
 
 	}//end constructor
@@ -88,9 +87,6 @@ class User_System extends Abstract_User_System
 	{
 		$sql = 'SELECT count(*) FROM staff_member LIMIT 1';
 		$res = $GLOBALS['db']->queryRow($sql);
-		if ($GLOBALS['db']->check_db_error()) {
-			$res = 0;
-		}
 		return (bool)$res;
 	}
 
@@ -158,8 +154,7 @@ class User_System extends Abstract_User_System
 	// Called by the public interface to indicate no login expected
 	public function setPublic()
 	{
-		$res = $GLOBALS['db']->query('SET @current_user_id = -1');
-		if ($GLOBALS['db']->check_db_error()) trigger_error('Failed to set user id in database', E_USER_ERROR);
+        $GLOBALS['db']->setCurrentUserID(-1);
 		$this->_is_public = TRUE;
 	}
 

@@ -155,37 +155,6 @@ class JethroDB extends PDO {
     }
     return $result;
   }
-
-
-  public function check_db_statement($statement) {
-    if (($statement->errorCode() !== NULL) && ($statement->errorCode() > 0)) {
-			print "Database Error: " . $statement->errorCode();
-    }
-  }
-
-  public function check_db_statement_and_exit($statement) {
-    if (($statement->errorCode() !== NULL) && ($statement->errorCode() > 0)) {
-		var_dump(debug_backtrace());
-	    trigger_error("Database Error: " . $statement->errorCode(), E_USER_ERROR);
-        exit();
-    }
-  }
-  /*
-   * Returns true if there is an error, false if there is no error
-   */
-  public function check_db_error($res=null) {
-	if ($res !== null) {
-	  if (is_bool($res)) { 
-  	    return !$res;
-      } else {
-        return false;
-      }
-    } else {
-	  $res = ((self::errorCode() !== '00000') && (self::errorCode() !== NULL));
-	  if ($res) { trigger_error("Database error", E_USER_ERROR); }
-	  return $res;
-    }
-  }
   
   public function setCurrentUserID($userid) {
     try {
