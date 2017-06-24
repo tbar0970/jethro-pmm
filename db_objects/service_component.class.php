@@ -185,7 +185,6 @@ class Service_Component extends db_object
 		$SQL = 'SELECT ccli_number, id
 				FROM service_component';
 		$res = $GLOBALS['db']->queryAll($SQL, null, null, true, false);
-		check_db_result($res);
 		return $res;
 	}
 
@@ -406,7 +405,7 @@ class Service_Component extends db_object
 	private function _saveCongregations($deleteOld=FALSE)
 	{
 		if ($deleteOld) {
-			check_db_result($GLOBALS['db']->exec('DELETE FROM congregation_service_component WHERE componentid = '.(int)$this->id));
+			$GLOBALS['db']->exec('DELETE FROM congregation_service_component WHERE componentid = '.(int)$this->id);
 		}
 		$sets = Array();
 		foreach (array_unique(array_get($this->values, 'congregationids', Array())) as $congid) {
@@ -418,14 +417,13 @@ class Service_Component extends db_object
 					VALUES
 					'.implode(",\n", $sets);
 			$x = $GLOBALS['db']->exec($SQL);
-			check_db_result($x);
 		}
 	}
 
 	private function _saveTags($deleteOld=FALSE)
 	{
 		if ($deleteOld) {
-			check_db_result($GLOBALS['db']->exec('DELETE FROM service_component_tagging WHERE componentid = '.(int)$this->id));
+			$GLOBALS['db']->exec('DELETE FROM service_component_tagging WHERE componentid = '.(int)$this->id);
 		}
 		$sets = Array();
 		foreach (array_unique(array_get($this->_tmp, 'tagids', Array())) as $tagid) {
@@ -437,7 +435,6 @@ class Service_Component extends db_object
 					VALUES
 					'.implode(",\n", $sets);
 			$x = $GLOBALS['db']->exec($SQL);
-			check_db_result($x);
 		}
 
 	}

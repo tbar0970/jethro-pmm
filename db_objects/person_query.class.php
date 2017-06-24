@@ -797,7 +797,6 @@ class Person_Query extends DB_Object
 			do {
 				$sql = 'SELECT id FROM person_group_category WHERE parent_category IN ('.implode(',', $prevsubids).')';
 				$subids = $db->queryCol($sql);
-				check_db_result($subids);
 				foreach ($subids as $id) $int_categoryids[] = (int)$id;
 				$prevsubids = $subids;
 			} while (!empty($subids));
@@ -1147,7 +1146,6 @@ class Person_Query extends DB_Object
 													familyid int(10) not null primary key,
 													names varchar(512) not null
 													)');
-						check_db_result($r1);
 						$r1->closeCursor();
 						$r2 = $GLOBALS['db']->query('INSERT INTO _family_adults'.$this->id.' (familyid, names)
 											SELECT familyid, IF (
@@ -1160,7 +1158,6 @@ class Person_Query extends DB_Object
 											JOIN family ff ON pp.familyid = ff.id
 											WHERE pp.status <> "archived" AND ab.is_adult
 											GROUP BY familyid');
-						check_db_result($r2);
 						$r2->closeCursor();
 						$query['from'] .= ' LEFT JOIN _family_adults'.$this->id.' ON _family_adults'.$this->id.'.familyid = p.familyid
 											';
@@ -1292,7 +1289,6 @@ class Person_Query extends DB_Object
 		$sql = $this->getSQL();
 		if (is_null($sql)) return 0;
 		$res = $db->query($sql);
-		check_db_result($res);
 		$result = $res->numRows();
 		$res->closeCursor();
 		return $result;
@@ -1305,7 +1301,6 @@ class Person_Query extends DB_Object
 		$sql = $this->getSQL('p.id');
 		if (is_null($sql)) return Array();
 		$res = $db->queryCol($sql);
-		check_db_result($res);
 		return $res;
 	}
 
@@ -1325,11 +1320,9 @@ class Person_Query extends DB_Object
 		$grouping_field = $params['group_by'];
 		if (empty($grouping_field)) {
 			$res = $db->queryAll($sql, null, null, true, true);
-			check_db_result($res);
 			$this->_printResultSet($res, $format);
 		} else {
 			$res = $db->queryAll($sql, null, null, true, false, true);
-			check_db_result($res);
 			$this->_printResultGroups($res, $params, $format);
 		}
 

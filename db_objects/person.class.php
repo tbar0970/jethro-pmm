@@ -222,7 +222,6 @@ class Person extends DB_Object
 				FROM custom_field_value v
 				WHERE personid = '.(int)$this->id;
 		$res = $GLOBALS['db']->queryAll($SQL, NULL, NULL, true, FALSE, TRUE);
-		check_db_result($res);
 		$this->_custom_values = $res;
 	}
 
@@ -408,7 +407,6 @@ class Person extends DB_Object
 				ORDER BY recorded.groupid, recorded.date';
 		$attendances = $db->queryAll($sql, null, null, true, true, true);
 		if ($groupid != -1) $attendances = reset($attendances);
-		check_db_result($attendances);
 		return $attendances;
 	}
 
@@ -420,7 +418,6 @@ class Person extends DB_Object
 				AND date IN ('.implode(',', array_map((Array($db, 'quote')), array_keys($attendances))).')
 				AND groupid = '.(int)$groupid;
 		$res = $db->exec($SQL);
-		check_db_result($res);
 
 		$SQL = 'INSERT INTO attendance_record (personid, groupid, date, present)
 				VALUES ';
@@ -430,7 +427,6 @@ class Person extends DB_Object
 		}
 		$SQL .= implode(",\n", $sets);
 		$res = $db->exec($SQL);
-		check_db_result($res);
 
 	}
 
@@ -472,7 +468,6 @@ class Person extends DB_Object
 			GROUP BY pp.id
 			';
 		$res = $db->queryAll($SQL, null, null, true, true); // 5th param forces array even if one col
-		check_db_result($res);
 		return $res;
 
 	}
@@ -561,7 +556,6 @@ class Person extends DB_Object
 			$SQL = 'REPLACE INTO person_photo (personid, photodata)
 					VALUES ('.(int)$this->id.', '.$db->quote($this->_photo_data).')';
 			$res = $db->query($SQL);
-			check_db_result($res);
 			$res->closeCursor();
 		}
 	}
@@ -570,7 +564,6 @@ class Person extends DB_Object
 		$db =& $GLOBALS['db'];
 		$SQL = 'DELETE FROM custom_field_value WHERE personid = '.(int)$this->id;
 		$res = $db->query($SQL);
-		check_db_result($res);
 		if ($res !== FALSE) $res->closeCursor();
 		$SQL = 'INSERT INTO custom_field_value
 				(personid, fieldid, value_text, value_date, value_optionid)
@@ -601,7 +594,6 @@ class Person extends DB_Object
 		if ($sets) {
 			$SQL .= implode(",\n", $sets);
 			$res = $GLOBALS['db']->query($SQL);
-			check_db_result($res);
 			if ($res !== FALSE) $res->closeCursor();
 		}
 	}
@@ -686,7 +678,6 @@ class Person extends DB_Object
 				FROM person
 				GROUP BY status';
 		$res = $GLOBALS['db']->queryAll($sql, NULL, NULL, true);
-		check_db_result($res);
 		$out = Array();
 		foreach ($status_options as $k => $v) {
 			$out[$v] = (int)array_get($res, $k, 0);

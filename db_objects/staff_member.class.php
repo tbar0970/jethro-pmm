@@ -31,7 +31,6 @@ class Staff_Member extends Person
 				FROM account_group_restriction
 				WHERE personid = '.(int)$id;
 		$res = $GLOBALS['db']->queryAll($sql);
-		check_db_result($res);
 		foreach ($res as $row) {
 			$type = empty($row['congregationid']) ? 'group' : 'congregation';
 			$this->_restrictions[$type][] = $row[$type.'id'];
@@ -121,7 +120,6 @@ class Staff_Member extends Person
 					'.$date_exp.'
 				ORDER BY action_date ASC';
 		$res = $db->queryAll($sql, null, null, true);
-		check_db_result($res);
 		return $res;
 	}
 
@@ -341,7 +339,6 @@ class Staff_Member extends Person
 				foreach (Array('congregation', 'group') as $type) {
 					if (array_get($this->_restrictions, $type, Array()) != array_get($this->_old_restrictions, $type, Array())) {
 						$res = $GLOBALS['db']->query('DELETE FROM account_'.$type.'_restriction WHERE personid = '.(int)$this->id);
-						check_db_result($res);
 						$res->closeCursor();
 					}
 				}
@@ -369,7 +366,6 @@ class Staff_Member extends Person
 					$rows[] = '('.(int)$this->id.','.(int)$id.')';
 				}
 				$res = $GLOBALS['db']->query('INSERT IGNORE INTO account_'.$type.'_restriction (personid, '.$type.'id) VALUES '.implode(',', $rows));
-				check_db_result($res);
 				$res->closeCursor();
 			}
 		}

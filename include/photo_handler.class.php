@@ -73,7 +73,6 @@ Class Photo_Handler {
 	{
 		$SQL = 'SELECT photodata FROM '.$type.'_photo WHERE '.$type.'id = '.(int)$id;
 		$res = $GLOBALS['db']->queryOne($SQL);
-		check_db_result($res);
 		return 'data:image/jpg;base64,'.base64_encode($res);
 	}
 

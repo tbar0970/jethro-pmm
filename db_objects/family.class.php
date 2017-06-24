@@ -477,7 +477,6 @@ class family extends db_object
 			$SQL = 'REPLACE INTO family_photo (familyid, photodata)
 					VALUES ('.(int)$this->id.', '.$db->quote($this->_photo_data).')';
 			$res = $db->query($SQL);
-			check_db_result($res);
 			$res->closeCursor();
 		}
 	}
@@ -537,7 +536,6 @@ class family extends db_object
 			GROUP BY f.id
 			ORDER BY f.family_name';
 		$res = $GLOBALS['db']->queryAll($sql, NULL, NULL, TRUE);
-		check_db_result($res);
 		return $res;
 	}
 

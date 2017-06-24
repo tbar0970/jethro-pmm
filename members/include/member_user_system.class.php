@@ -89,7 +89,6 @@ class Member_User_System extends Abstract_User_System
 						resetexpires = NOW() + INTERVAL 24 HOUR
 						WHERE id = '.(int)$person['id'];
 				$res = $GLOBALS['db']->exec($SQL);
-				check_db_result($res);
 
 				$url = BASE_URL.'/members/?email='.rawurlencode($person['email']).'&verify='.rawurlencode($hash);
 
@@ -196,7 +195,6 @@ If you didn't request an account, you can just ignore this email";
 					. 'resetexpires = NULL '
 					. 'WHERE id = '.(int)$_SESSION['member']['id'];
 			$res = $db->exec($sql);
-			check_db_result($res);
 
 			if (!empty($_REQUEST['isreset'])) {
 				add_message('Your password has been successfully changed.');
@@ -286,7 +284,6 @@ If you didn't request an account, you can just ignore this email";
 				. 'WHERE email = '.$db->quote($email).''
 				. 'AND status <> "archived"';
 		$familyCount = $db->queryOne($sql);
-		check_db_result($familyCount);
 
 		if ($familyCount > 1) return -1;
 
@@ -298,7 +295,6 @@ If you didn't request an account, you can just ignore this email";
 				AND status <> "archived"
 				ORDER BY (IF(p.member_password IS NOT NULL, 0, 1)), ab.rank ASC, p.gender DESC';
 		$res = $db->queryRow($sql);
-		check_db_result($res);
 
 		return $res;
 	}
@@ -317,7 +313,6 @@ If you didn't request an account, you can just ignore this email";
 				AND resethash = '.$db->quote($hash).'
 				AND resetexpires > NOW()';
 		$res = $db->queryRow($sql);
-		check_db_result($res);
 		return $res;
 	}
 
@@ -335,7 +330,6 @@ If you didn't request an account, you can just ignore this email";
 				FROM _person p
 				WHERE p.email  = '.$db->quote($email).' AND member_password IS NOT NULL';
 		$res = $db->queryAll($sql);
-		check_db_result($res);
 		foreach ($res as $row) {
 			if (jethro_password_verify($password, $row['member_password'])) {
 				unset($row['member_password']);

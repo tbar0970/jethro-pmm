@@ -147,7 +147,6 @@ class Attendance_Record_Set
 				AND p.age_bracketid IN ('.implode(',', array_map(Array($db, 'quote'), $this->age_brackets)).')';
 		}
 		$this->_attendance_records = $db->queryAll($sql, null, null, true);
-		check_db_result($this->_attendance_records);
 
 		// NOW FETCH THE APPLICABLE PERSON RECORDS
 		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
@@ -189,10 +188,12 @@ class Attendance_Record_Set
 		$GLOBALS['system']->doTransaction('begin');
 			$this->delete();
 			$stmt = $db->prepare('REPLACE INTO attendance_record (date, groupid, personid, present) VALUES ('.$db->quote($this->date).', '.(int)$this->groupid.', ?, ?)', Array('integer', 'integer', 'integer'));
-			check_db_result($stmt);
 			foreach ($this->_attendance_records as $personid => $present) {
-				$res = $stmt->execute(Array($personid, $present));
-				check_db_result($res);
+              try {
+                $res = $stmt->execute(Array($personid, $present));
+              } catch (PDOException $e) {
+                $db->db_error($e);
+              }
 			}
 		$GLOBALS['system']->doTransaction('commit');
 	}
@@ -214,7 +215,6 @@ class Attendance_Record_Set
 		$sql .= '  AND personid IN ('.implode(',', array_map(Array($db, 'quote'), array_keys($this->_persons))).')';
 
 		$res = $db->query($sql);
-		check_db_result($res);
 		$res->closeCursor();
 	}
 
@@ -390,7 +390,6 @@ class Attendance_Record_Set
 				GROUP BY present, '.$groupingField.'
 				ORDER BY present, '.$groupingField;
 		$res = $db->queryAll($SQL);
-		check_db_result($res);
 		$totals = Array(0 => 0, 1 => 0);
 		$breakdowns = Array(0 => Array(), 1 => Array());
 		$dummy = new Person();
@@ -518,8 +517,7 @@ class Attendance_Record_Set
 						GROUP BY ar.personid, '.$selectCol.'
 					) indiv
 					GROUP BY '.$rank.' '.$groupingField.' WITH ROLLUP';
-			$res = $db->queryAll($sql);
-			check_db_result($res);
+			$res = $db->queryAll($sql);			
 
 			foreach ($res as $row) {
 				if (NULL !== $row[$groupingField]) {
@@ -549,7 +547,6 @@ class Attendance_Record_Set
 						GROUP BY ar.date, '.$groupingField.'
 					) perdate GROUP BY '.$groupingField.'';
 			$res = $db->queryAll($sql);
-			check_db_result($res);
 			foreach ($res as $row) {
 				foreach (Array('avg_present', 'avg_absent') as $key) {
 					$stats[$groupingField][$row[$groupingField]][$key] = $row[$key];
@@ -634,7 +631,6 @@ class Attendance_Record_Set
 		$SQL .=  "GROUP BY person.id \n";
 		$SQL .= ' ORDER BY '.$order."\n";
 		$res= $db->queryAll($SQL, null, null, true);
-		check_db_result($res);
 		return $res;
 
 
@@ -658,7 +654,6 @@ class Attendance_Record_Set
 				break;
 		}
 		$res = $GLOBALS['db']->queryOne($SQL);
-		check_db_result($res);
 		return $res;
 	}
 
@@ -741,7 +736,6 @@ class Attendance_Record_Set
 		$attendances = Array();
 		$totals = Array();
 		$res = $GLOBALS['db']->query($SQL);
-		check_db_result($res);
 		while ($row = $res->fetch()) {
 			if (!empty($row['date'])) $dates[$row['date']] = 1;
 			foreach (Array('last_name', 'first_name', 'membership_status', 'status') as $f) {

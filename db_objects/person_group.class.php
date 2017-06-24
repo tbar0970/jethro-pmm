@@ -180,7 +180,6 @@ class Person_Group extends db_object
 				$sql .= ' ON DUPLICATE KEY UPDATE membership_status=VALUES(membership_status)';
 			}
 			$res = $db->query($sql);
-			check_db_result($res);
 			$res->closeCursor();
 			return TRUE;
 		}
@@ -200,7 +199,6 @@ class Person_Group extends db_object
 					WHERE groupid = '.$db->quote((int)$this->id).'
 						AND personid = '.$db->quote((int)$personid);
 			$res = $db->query($sql);
-			check_db_result($res);
 			$res->closeCursor();
 			return TRUE;
 		}
@@ -221,7 +219,6 @@ class Person_Group extends db_object
 					WHERE groupid = '.$db->quote((int)$this->id).'
 						AND personid IN ('.implode(',', array_map(Array($db, 'quote'), array_keys($members))).')';
 			$res = $db->query($SQL);
-			check_db_result($res);
 			$res->closeCursor();
 			return TRUE;
 		}
@@ -241,7 +238,6 @@ class Person_Group extends db_object
 				'.(is_null($whichShareMemberDetails) ? '' : ' AND g.share_member_details = '.(int)$whichShareMemberDetails).'
 				ORDER BY g.name';
 		$res = $db->queryAll($sql, null, null, true);
-		check_db_result($res);
 		return $res;
 	}
 
@@ -289,7 +285,6 @@ class Person_Group extends db_object
 	{
 		$SQL = 'SELECT COUNT(*) FROM account_group_restriction WHERE groupid = '.(int)$this->id;
 		$res = $GLOBALS['db']->queryOne($SQL);
-		check_db_result($res);
 		if ($res > 0) {
 			add_message("This group cannot be deleted because it is used to restrict one or more user accounts", 'error');
 			return FALSE;
@@ -299,7 +294,6 @@ class Person_Group extends db_object
 		$db =& $GLOBALS['db'];
 		$sql = 'DELETE FROM person_group_membership WHERE groupid = '.$db->quote($this->id);
 		$res = $db->query($sql);
-		check_db_result($res);
 		$res->closeCursor();
 		return $r;
 	}
@@ -378,7 +372,6 @@ class Person_Group extends db_object
 					ORDER BY s.rank';
 		}
 		$res = $GLOBALS['db']->queryAll($sql, null, null, true);
-		check_db_result($res);
 		$options = Array();
 		$default = null;
 		$usages = Array();
@@ -422,7 +415,6 @@ class Person_Group extends db_object
 										SET membership_status = '.$GLOBALS['db']->quote($status).'
 										WHERE groupid = '.(int)$this->id.'
 											AND personid = '.(int)$personid);
-			check_db_result($res);
 			$res->closeCursor();
 		}
 		$GLOBALS['system']->doTransaction('COMMIT');

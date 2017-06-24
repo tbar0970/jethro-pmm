@@ -184,7 +184,6 @@ class User_System extends Abstract_User_System
 					AND active = 1
 				GROUP BY p.id';
 		$row = $db->queryRow($sql);
-		check_db_result($row);
 		if (!empty($row) && jethro_password_verify($password, $row['password'])) {
 			$row['congregation_restrictions'] = empty($row['congregation_restrictions']) ? Array() : explode(',', $row['congregation_restrictions']);
 			$row['group_restrictions'] = empty($row['group_restrictions']) ? Array() : explode(',', $row['group_restrictions']);

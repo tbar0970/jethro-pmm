@@ -124,7 +124,6 @@ class service extends db_object
 				ORDER BY order_num ASC';
 		$this->_readings = $GLOBALS['db']->queryAll($sql, null, null, true);
 		$this->_old_readings = $this->_readings;
-		check_db_result($this->_readings);
 	}
 
 	function __deleteBibleReadings()
@@ -132,7 +131,6 @@ class service extends db_object
 		$sql = 'DELETE FROM service_bible_reading
 				WHERE service_id = '.(int)$this->id;
 		$res = $GLOBALS['db']->query($sql);
-		check_db_result($res);
 		$res->closeCursor();
 	}
 
@@ -148,7 +146,6 @@ class service extends db_object
 			$sql = 'INSERT INTO service_bible_reading (service_id, order_num, bible_ref, to_read, to_preach)
 				VALUES '.implode(', ', $values);
 			$res = $GLOBALS['db']->query($sql);
-			check_db_result($res);
 			$res->closeCursor();
 		}
 		$this->_old_readings = $this->_readings;
@@ -224,7 +221,6 @@ class service extends db_object
 				AND congregationid IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congids)).')
 				ORDER BY date '.(($shift_by > 0) ? 'DESC' : 'ASC');
 		$res = $GLOBALS['db']->query($sql);
-		check_db_result($res);
 		$res->closeCursor();
 	}
 
@@ -488,7 +484,6 @@ class service extends db_object
 				AND rra.assignment_date = '.$GLOBALS['db']->quote($this->getValue('date')).'
 				ORDER BY roster_role_id, rank';
 		$assignments =  $GLOBALS['db']->queryAll($sql, null, null, false);
-		check_db_result($assignments);
 		$role_ids = Array();
 		$names = Array();
 		foreach ($assignments as $assignment) {
@@ -532,7 +527,6 @@ class service extends db_object
                     ' and congregationid = ' . $db->quote($congregationid);
             }
             $res = $db->queryAll($sql);
-            check_db_result($res);
             $services = Array();
             foreach ($res as $row)
             {
@@ -547,7 +541,6 @@ class service extends db_object
 	{
 		$db = $GLOBALS['db'];
 		$res = $db->exec('DELETE FROM service_item WHERE serviceid = '.(int)$this->id);
-		check_db_result($res);
 
 		$compids = $comps = Array();
 		foreach ($itemList as $item) {
@@ -580,7 +573,6 @@ class service extends db_object
 			}
 			$SQL .= implode(",\n", $sets);
 			$res = $db->exec($SQL);;
-			check_db_result($res);
 		}
 	}
 
@@ -598,7 +590,6 @@ class service extends db_object
 					SET comments = '.$db->quote($comments).'
 					WHERE id = '.(int)$this->id;
 			$res = $db->exec($SQL);
-			check_db_result($res);
 			$this->values['comments'] = $comments;
 			return TRUE;
 		}
@@ -623,7 +614,6 @@ class service extends db_object
 		if (!empty($ofCategoryID)) $SQL .= ' AND sc.categoryid = '.(int)$ofCategoryID."\n";
 		$SQL .= ' ORDER BY rank';
 		$res = $GLOBALS['db']->queryAll($SQL);
-		check_db_result($res);
 
 		foreach ($res as $k => &$item) {
 			$item['personnel'] = $this->replaceKeywords($item['personnel']);
