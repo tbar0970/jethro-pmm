@@ -33,8 +33,26 @@ set_include_path(get_include_path().PATH_SEPARATOR.dirname(THIS_DIR));
 require_once dirname(THIS_DIR).'/conf.php';
 
 // Initialise system
-define('DSN', MEMBERS_DSN);
 define('IS_PUBLIC', true);
+
+// Initialise system
+// Check for old style DSN - and try to work - but this is messy and horrible to use
+if (defined('MEMBERS_DSN')) {
+	  // This solution found on stackoverflow!
+		preg_match('|([a-z]+)://([^:]*)(:(.*))?@([A-Za-z0-9\.-]*)(/([0-9a-zA-Z_/\.]*))|',
+     MEMBERS_DSN,$matches);
+		 if (!defined('DB_TYPE')) define('DB_TYPE', $matches[1]);
+		 if (!defined('DB_HOST')) define('DB_HOST', $matches[5]);
+		 if (!defined('DB_DATABASE')) define('DB_DATABASE', $matches[7]);
+		 if (!defined('DB_MEMBERS_USERNAME')) define('DB_MEMBERS_USERNAME', $matches[2]);
+		 if (!defined('DB_MEMBERS_PASSWORD')) define('DB_MEMBERS_PASSWORD', $matches[4]);
+}
+if (!defined('DSN')) {
+		define('DSN', DB_TYPE . ':host=' . DB_HOST . (!empty(DB_PORT)? (';port=' . DB_PORT):'') . ';dbname=' . DB_DATABASE . ';charset=utf8');
+}
+if (!defined('DB_USERNAME')) define('DB_USERNAME', DB_MEMBERS_USERNAME);
+if (!defined('DB_PASSWORD')) define('DB_PASSWORD', DB_MEMBERS_PASSWORD);
+
 require_once JETHRO_ROOT.'/include/init.php';
 
 // Check if member access is enabled
@@ -62,7 +80,6 @@ if (!defined('DSN')) {
 if (!defined('DB_USERNAME')) define('DB_USERNAME', DB_MEMBERS_USERNAME);
 if (!defined('DB_PASSWORD')) define('DB_PASSWORD', DB_MEMBERS_PASSWORD);
 
-define('IS_PUBLIC', true);
 require_once JETHRO_ROOT.'/include/init.php';
 
 // Set up the user system
