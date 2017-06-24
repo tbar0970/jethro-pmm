@@ -68,11 +68,6 @@ function bam($x)
 }
 
 
-function check_db_result(&$res)
-{
-	$GLOBALS['db']->check_db_error();
-}
-
 function format_datetime($d)
 {
 	if (!is_int($d)) {

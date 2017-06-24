@@ -9,6 +9,7 @@ class JethroDB extends PDO {
     if ($options === NULL) { $options = array();}
     $options[PDO::ATTR_PERSISTENT] = true;
     $options[PDO::ATTR_DEFAULT_FETCH_MODE] = PDO::FETCH_ASSOC;
+    $options[PDO::ATTR_ERRMODE] = PDO::ERRMODE_EXCEPTION;
     try {
       $result =  parent::__construct($dsn, $username, $password, $options);
     } catch (PDOException $e) {
@@ -18,6 +19,12 @@ class JethroDB extends PDO {
     return 	$result;
   }
 
+  public function db_error($exception) {
+    $errorInfo = implode(" ", $exception::errorInfo());
+    trigger_error('Database Error in query.<br>( ' . $errorInfo . ')', E_USER_ERROR);
+    exit();
+  }
+  
   public function quote($string) {
 	if ($string === NULL) {
 		return 'NULL';
@@ -25,6 +32,7 @@ class JethroDB extends PDO {
 		return parent::quote($string);
 	}
   }
+    
   public function quoteIdentifier($field) {
     $parts = explode('.', $field);
     foreach (array_keys($parts) as $k) {
@@ -33,78 +41,118 @@ class JethroDB extends PDO {
     return implode('.', $parts);
   }
 
+  public function prepare($statement, $driver_options=array()) {
+    try {
+      $result = parent::prepare($statement, $driver_options);
+    }
+    catch (PDOException $e) {
+      db_error($e);
+    }
+    return $result;
+  }
+  
+  public function query($sql) {
+    try {
+      $result = parent::query($sql);
+    } catch (PDOException $e) {
+      db_error($e);
+    }
+    return $result;
+  }
+  
+  public function exec($sql) {
+    try {
+      $result = parent::exec($sql);
+    } catch (PDOException $e) {
+      db_error($e);
+    }
+    return $result;
+  }
   public function queryRow($sql) {
-    $stmnt = self::prepare($sql);
-    $stmnt->execute();
-    self::check_db_statement_and_exit($stmnt);
-    $result = $stmnt->fetch();
-    $stmnt->closeCursor();
+    try {
+      $stmnt = self::prepare($sql);
+      $stmnt->execute();
+      $result = $stmnt->fetch();
+      $stmnt->closeCursor();
+    } catch (PDOException $e) {
+      db_error($e);
+    }
     return $result;
   }
   /*
    * $colnum can be a column number or name
    */
   public function queryCol($sql, $colnum=0) {
-    $stmnt = self::prepare($sql);
-    $stmnt->execute();
-    self::check_db_statement_and_exit($stmnt);
-    $result = $stmnt->fetchAll(PDO::FETCH_COLUMN, $colnum);
-    $stmnt->closeCursor();
+    try {
+      $stmnt = self::prepare($sql);
+      $stmnt->execute();
+      $result = $stmnt->fetchAll(PDO::FETCH_COLUMN, $colnum);
+      $stmnt->closeCursor();
+    } catch (PDOException $e) {
+      db_error($e);
+    }
     return $result;
   }
 
   public function queryAll($sql, $types=null, $fetchmode=null, $rekey=false, $force_array=false, $group=false,$emptyonerror=false) {
-    $all = array();
-    $stmnt = self::prepare($sql);
+  $all = array();
+  $stmnt = self::prepare($sql);
+  try {
     $stmnt->execute();
-	if (($stmnt->errorCode() !== NULL) && ($stmnt->errorCode() > 0)) {
-		if ($emptyonerror) {
-			return Array();
-		} else {
-            trigger_error("Database Error: " . $stmnt->errorCode(), E_USER_ERROR);
-		}
-	}
-    if (!$rekey) {
-      $all = $stmnt->fetchAll();
+  } catch (PDOException $e) {
+    if ($emptyonerror) {
+      return Array();
     } else {
-      $row = $stmnt->fetch();
-      if ($row === false) { return $all; } // return an empty array if there is nothing here
-      $shift_array = $rekey ? false: null;
-      if (null !== $shift_array) {
-        $colnum = count($row);
-        if ($colnum < 2) {
-          return new Exception('rekey feature requires at least 2 columns');
-        }
-        $shift_array = (!$force_array && $colnum == 2);
-      }
-      do {
-        $key = reset($row);
-        unset($row[key($row)]);
-        if ($shift_array) {
-          $row = array_shift($row);
-        }
-        if ($group) {
-          $all[$key][] = $row;
-        } else {
-          $all[$key] = $row;
-        }
-      } while (($row = $stmnt->fetch()));
+      db_error($e);
     }
-
-    $stmnt->closeCursor();
+  }
+  
+  try {
+    if (!$rekey) {
+        $all = $stmnt->fetchAll();
+      } else {
+        $row = $stmnt->fetch();
+        if ($row === false) { return $all; } // return an empty array if there is nothing here
+        $shift_array = $rekey ? false: null;
+        if (null !== $shift_array) {
+          $colnum = count($row);
+          if ($colnum < 2) {
+            return new Exception('rekey feature requires at least 2 columns');
+          }
+          $shift_array = (!$force_array && $colnum == 2);
+        }
+        do {
+          $key = reset($row);
+          unset($row[key($row)]);
+          if ($shift_array) {
+            $row = array_shift($row);
+          }
+          if ($group) {
+            $all[$key][] = $row;
+          } else {
+            $all[$key] = $row;
+          }
+        } while (($row = $stmnt->fetch()));
+      }
+    } catch (PDOException $e) {
+      db_error($e);
+    }
     return $all;
   }
 
   public function queryOne($query, $type=null, $colnum=0) {
-    $result = false;
-    $stmnt = self::prepare($query);
-    $stmnt->execute();
-    self::check_db_statement($stmnt);
-    $row = $stmnt->fetch(PDO::FETCH_NUM);
-    if ($row) {
-      $result = $row[$colnum];
+    try {
+      $result = false;
+      $stmnt = self::prepare($query);
+      $stmnt->execute();
+      $row = $stmnt->fetch(PDO::FETCH_NUM);
+      if ($row) {
+        $result = $row[$colnum];
+      }
+      $stmnt->closeCursor();
+    } catch (PDOException $e) {
+      db_error($e);
     }
-    $stmnt->closeCursor();
     return $result;
   }
 
@@ -139,4 +187,11 @@ class JethroDB extends PDO {
     }
   }
   
+  public function setCurrentUserID($userid) {
+    try {
+      $ql = 'SET @current_user_id = '. $userid;
+      $result = parent::query($sql);
+    } catch (PDOException $e) {
+      trigger_error('Failed to set user id in database', E_USER_ERROR);
+    }
 }

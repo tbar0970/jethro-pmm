@@ -164,7 +164,6 @@ class Abstract_Note extends DB_Object
 					ORDER BY noteid, created';
 			$db =& $GLOBALS['db'];
 			$comments = $db->queryAll($sql, null, null, true, false, true);
-			check_db_result($comments);
 			foreach ($res as $i => $v) {
 				$res[$i]['comments'] = array_get($comments, $i, Array());
 			}
@@ -215,7 +214,6 @@ class Abstract_Note extends DB_Object
 		$db =& $GLOBALS['db'];
 		$sql = 'DELETE FROM note_comment WHERE noteid = '.$db->quote($this->id);
 		$res = $db->query($sql);
-		check_db_result($res);
 		$res->closeCursor();
 		return TRUE;
 	}

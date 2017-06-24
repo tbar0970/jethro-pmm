@@ -106,7 +106,6 @@ if (empty($report)) {
 $db =& $GLOBALS['db'];
 $sql = $report->getSQL('LOWER(p.email) as loweremail, p.email, p.first_name, p.last_name, p.gender, p.age_bracketid, p.status, p.congregationid');
 $report_members = $db->queryAll($sql, null, null, true);
-check_db_result($report_members);
 unset($report_members['']); // with no email.
 if ($DEBUG > 1) {
 	bam("PERSONS FROM REPORT (excl email-less persons):");

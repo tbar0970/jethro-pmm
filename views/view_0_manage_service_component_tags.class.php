@@ -29,7 +29,6 @@ class View__Manage_Service_Component_Tags extends View
 						SET tag = '.$GLOBALS['db']->quote($name).'
 						WHERE id = '.(int)$id;
 				$res = $GLOBALS['db']->query($SQL);
-				check_db_result($res);
 				$res->closeCursor();
 			}
 			$res = $GLOBALS['db']->query('DELETE FROM service_component_tag WHERE id NOT IN ('.implode(',', array_merge(array_keys($to_update))).')');
@@ -38,7 +37,6 @@ class View__Manage_Service_Component_Tags extends View
 				$SQL = 'INSERT INTO service_component_tag (tag)
 						VALUES ('.$GLOBALS['db']->quote($name).')';
 				$res = $GLOBALS['db']->query($SQL);
-				check_db_result($res);
 				$res->closeCursor();
 			}
 			add_message("Tags updated");

@@ -60,7 +60,6 @@ if (!defined('TASK_NOTIFICATION_FROM_ADDRESS')) {
 }
 
 $reminders = Abstract_Note::getNotifications($minutes);
-check_db_result($reminders);
 $fromText = ifdef('TASK_NOTIFICATION_FROM_NAME', SYSTEM_NAME.' Jethro');
 $subject = ifdef('TASK_NOTIFICATION_SUBJECT', 'New notes assigned to you');
 

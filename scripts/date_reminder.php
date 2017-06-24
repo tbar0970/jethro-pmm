@@ -73,7 +73,6 @@ $SQL .= '
 		AND p.status <> "archived"
 		GROUP BY p.id';
 $res = $GLOBALS['db']->queryAll($SQL);
-check_db_result($res);
 
 if (empty($res) && !empty($ini['VERBOSE'])) {
 	echo "No persons found with custom field ".$ini['CUSTOM_FIELD_ID'].' '.$ini['REMINDER_OFFSET']." days from now \n";

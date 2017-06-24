@@ -33,11 +33,9 @@ $db = $GLOBALS['db'];
 
 $SQL = 'CREATE TABLE IF NOT EXISTS _disused_person_query_backup SELECT * from person_query';
 $res = $db->exec($SQL);
-check_db_result($res);
 
 $SQL = 'SELECT id, params FROM _disused_person_query_backup';
 $queries = $db->queryAll($SQL);
-check_db_result($queries);
 foreach ($queries as $row) {
 	$params = unserialize($row['params']);
 	if (!empty($params['rules']['p.age_bracket'])) {
@@ -48,7 +46,6 @@ foreach ($queries as $row) {
 		unset($params['rules']['p.age_bracket']);
 		$SQL = 'UPDATE person_query SET params = '.$db->quote(serialize($params)).' WHERE id = '.(int)$row['id'];
 		$res = $db->exec($SQL);
-		check_db_result($res);
 	}
 }
 

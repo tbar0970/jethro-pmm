@@ -39,10 +39,8 @@ class Member_User_System extends Abstract_User_System
 
 			}
 			$_SESSION['last_activity_time'] = time();
-
-			$res = $GLOBALS['db']->query('SET @current_user_id = '.(int)$_SESSION['member']['id']);
-			if ($GLOBALS['db']->check_db_statement($res)) trigger_error('Failed to set user id in database', E_USER_ERROR);
-			$res->closeCursor();
+            $GLOBALS['db']->setCurrentUserID((int)$_SESSION['member']['id']);
+			
 
 			include JETHRO_ROOT.'/include/permission_levels.php';
 			foreach ($PERM_LEVELS as $i => $detail) {
