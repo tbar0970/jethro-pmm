@@ -4,6 +4,10 @@ class Call_csv extends Call
 {
 	function run()
 	{
+		if (empty($_REQUEST['personid'])) {
+			trigger_error("You must select some persons");
+			exit;
+		}
 		$fp = fopen('php://output', 'w');
 		header('Content-type: application/force-download');
 		header("Content-Type: application/download");
@@ -27,20 +31,25 @@ class Call_csv extends Call
 				$dummy_family = new Family();
 				break;
 		}
-		$headerrow = Array('ID');
+
+		fputs($fp, '"ID",');// https://superuser.com/questions/210027/why-does-excel-think-csv-files-are-sylk
+		$headerrow = Array();
 		foreach (array_keys(reset($merge_data)) as $header) {
 			if ($header == 'familyid') continue;
+			if ($header == 'history') continue;
+			if ($header == 'feed_uuid') continue;
 			$headerrow[] = strtoupper($dummy->getFieldLabel($header));
 		}
 		fputcsv($fp, $headerrow);
-		
-		foreach ($_REQUEST['personid'] as $id) {
-			$row = array_get($merge_data, $id, Array());
+
+
+		foreach ($merge_data as $id => $row) {
 			@$dummy->populate($id, $row);
 			$outputrow = Array($id);
 			foreach ($row as $k => $v) {
 				if ($k == 'history') continue;
 				if ($k == 'familyid') continue;
+				if ($k == 'feed_uuid') continue;
 				if ($dummy->hasField($k)) {
 					$outputrow[] = $dummy->getFormattedValue($k, $v); // pass value to work around read-only fields
 				} else if ($dummy_family && $dummy_family->hasField($k)) {

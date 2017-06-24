@@ -743,10 +743,9 @@ class Person extends DB_Object
 
 		if ($GLOBALS['system']->featureEnabled('PHOTOS')
 			&& (is_null($fields) || in_array('photo', $fields))
-			&& !SizeDetector::isNarrow()
 		) {
 			$this->fields['photo'] = Array('divider_before' => true); // fake field for interface purposes
-			if ($this->id) {
+			if ($this->id && !SizeDetector::isNarrow()) {
 				?>
 				<div class="person-photo-container">
 					<img src="?call=photo&personid=<?php echo (int)$this->id; ?>" />
@@ -831,7 +830,7 @@ class Person extends DB_Object
 		switch ($name) {
 			case 'photo':
 				?>
-				<input type="file" name="<?php echo $prefix; ?>photo" />
+				<input type="file" capture="camera" accept="image/*" name="<?php echo $prefix; ?>photo" />
 				<?php
 				break;
 			case 'familyid':
