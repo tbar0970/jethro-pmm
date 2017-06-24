@@ -189,9 +189,10 @@ class JethroDB extends PDO {
   
   public function setCurrentUserID($userid) {
     try {
-      $ql = 'SET @current_user_id = '. $userid;
+      $sql = 'SET @current_user_id = '. $userid;
       $result = parent::query($sql);
     } catch (PDOException $e) {
       trigger_error('Failed to set user id in database', E_USER_ERROR);
     }
+  }
 }
