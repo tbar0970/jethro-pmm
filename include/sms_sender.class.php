@@ -120,9 +120,9 @@ Class SMS_Sender
 		restore_error_handler(); // Restore system error_handler
 		$success = !empty($response);
 		if (ifdef('SMS_HTTP_RESPONSE_ERROR_REGEX')) {
-			if (preg_match(SMS_HTTP_RESPONSE_ERROR_REGEX, $rawresponse)) {
+			if (preg_match('/' . SMS_HTTP_RESPONSE_ERROR_REGEX .'/', $response)) {
 				$success = FALSE;
-				$ajax['error'] = $rawresponse;
+				$ajax['error'] = $response;
 			}
 		}
 		$successes = $failures = Array();
