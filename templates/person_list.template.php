@@ -66,8 +66,13 @@ if ($show_actions) {
 			<td><?php $dummy_person->printFieldValue('status'); ?></td>
 			<td><?php $dummy_person->printFieldValue('age_bracket'); ?></td>
 			<td><?php $dummy_person->printFieldValue('gender'); ?></td>
+			<?php
+				include_once 'include/size_detector.class.php';
+				if (!SizeDetector::isNarrow()) {
+			?>			
 			<td><?php $dummy_person->printFieldvalue('mobile_tel'); ?></td>
-			<?php 
+			<?php
+			}
 				if (defined('PERSON_LIST_SHOW_GROUPS') && PERSON_LIST_SHOW_GROUPS) {
 				?>
 					<td>  
