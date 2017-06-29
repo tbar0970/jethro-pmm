@@ -25,11 +25,11 @@ class JethroDB extends PDO {
     exit();
   }
   
-  public function quote($string) {
+  public function quote($string, $paramtype=NULL) {
 	if ($string === NULL) {
 		return 'NULL';
 	} else {
-		return parent::quote($string);
+		return parent::quote($string, $paramtype);
 	}
   }
     
