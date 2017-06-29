@@ -46,7 +46,7 @@ class JethroDB extends PDO {
       $result = parent::prepare($statement, $driver_options);
     }
     catch (PDOException $e) {
-      db_error($e);
+      self::db_error($e);
     }
     return $result;
   }
@@ -55,7 +55,7 @@ class JethroDB extends PDO {
     try {
       $result = parent::query($sql);
     } catch (PDOException $e) {
-      db_error($e);
+      self::db_error($e);
     }
     return $result;
   }
@@ -64,7 +64,7 @@ class JethroDB extends PDO {
     try {
       $result = parent::exec($sql);
     } catch (PDOException $e) {
-      db_error($e);
+      self::db_error($e);
     }
     return $result;
   }
@@ -75,7 +75,7 @@ class JethroDB extends PDO {
       $result = $stmnt->fetch();
       $stmnt->closeCursor();
     } catch (PDOException $e) {
-      db_error($e);
+      self::db_error($e);
     }
     return $result;
   }
@@ -89,7 +89,7 @@ class JethroDB extends PDO {
       $result = $stmnt->fetchAll(PDO::FETCH_COLUMN, $colnum);
       $stmnt->closeCursor();
     } catch (PDOException $e) {
-      db_error($e);
+      self::db_error($e);
     }
     return $result;
   }
@@ -103,7 +103,7 @@ class JethroDB extends PDO {
     if ($emptyonerror) {
       return Array();
     } else {
-      db_error($e);
+      self::db_error($e);
     }
   }
   
@@ -135,7 +135,7 @@ class JethroDB extends PDO {
         } while (($row = $stmnt->fetch()));
       }
     } catch (PDOException $e) {
-      db_error($e);
+      self::db_error($e);
     }
     return $all;
   }
@@ -151,7 +151,7 @@ class JethroDB extends PDO {
       }
       $stmnt->closeCursor();
     } catch (PDOException $e) {
-      db_error($e);
+      self::db_error($e);
     }
     return $result;
   }
