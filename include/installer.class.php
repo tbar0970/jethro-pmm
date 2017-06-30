@@ -13,7 +13,7 @@ class Installer
 	function run()
 	{
 		$res = $GLOBALS['db']->hasPersons();
-		if (!$res) {
+		if ($res) {
 			trigger_error('System has already been installed, installer is aborting');
 			exit();
 		}
