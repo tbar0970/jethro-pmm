@@ -12,9 +12,8 @@ class Installer
 
 	function run()
 	{
-		$sql = 'SELECT count(*) FROM _person';
-		$res = $GLOBALS['db']->queryOne($sql);
-		if ($res) {
+		$res = $GLOBALS['db']->hasPersons();
+		if (!$res) {
 			trigger_error('System has already been installed, installer is aborting');
 			exit();
 		}
@@ -398,9 +397,9 @@ class Installer
 
 	function printForm()
 	{
-		$tables = $GLOBALS['db']->queryCol('SHOW TABLES');
-		$routines = $GLOBALS['db']->queryCol('SHOW CREATE FUNCTION getCurrentUserID');
-		if (!empty($tables) || (($GLOBALS['db']->errorCode() !== '00000') && ($GLOBALS['db']->errorCode() !== NULL))) {
+		$tables = $GLOBALS['db']->isInstalled_Tables();
+		$routines = $GLOBALS['db']->isInstalled_Routines();
+		if ($tables || $routines) {
 			print_message('Your MySQL database is not empty.  This could be due to a failed previous installation attempt.  Please drop and re-create the database to ensure it is entirely blank, then reload this page.', 'error');
 			return;
 		}

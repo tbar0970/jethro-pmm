@@ -20,8 +20,8 @@ class JethroDB extends PDO {
   }
 
   public function db_error($exception) {
-    $errorInfo = implode(" ", $exception::errorInfo());
-    trigger_error('Database Error in query.<br>( ' . $errorInfo . ')', E_USER_ERROR);
+        debug_print_backtrace();
+    trigger_error('Database Error in query.<br>( ' . $exception->getMessage() . ')', E_USER_ERROR);
     exit();
   }
   
@@ -156,6 +156,62 @@ class JethroDB extends PDO {
     return $result;
   }
   
+  public function hasStaff() {
+      $sql = 'SELECT count(*) FROM staff_member LIMIT 1';
+      try {
+        $stmnt = self::prepare($sql);
+        $stmnt->execute();
+        $result = (bool)$stmnt->fetch();
+    } catch (PDOException $e) {
+    	$result = false; // if there is an error, we have no users
+    }
+    return $result;
+  }
+  
+  public function hasPersons() {
+    $sql = 'SELECT count(*) FROM _persons LIMIT 1';
+    try {
+      $result = true;
+      $stmnt = self::prepare($sql);
+      $stmnt->execute();
+      $row = $stmnt->fetch(PDO::FETCH_NUM);
+      if ($row) {
+        $result = $row[$colnum];
+      }
+      $stmnt->closeCursor();
+    } catch (PDOException $e) {
+      $result = false;
+    }
+    return $result;
+  }
+ 
+  public function isInstalled_Tables() {
+    try {
+      $stmnt = self::prepare('SHOW TABLES');
+      $stmnt->execute();
+      $result = $stmnt->fetchAll(PDO::FETCH_COLUMN, 0);
+      $stmnt->closeCursor();
+    } catch (PDOException $e) {
+      self::db_error($e);
+    }
+    return !empty($result);
+  }
+
+  public function isInstalled_Functions() {
+    try {
+	  $result = true; 
+      $stmnt = self::prepare('SHOW CREATE FUNCTION getCurrentUserID');
+      $stmnt->execute();
+      $res =$stmnt->fetchAll(PDO::FETCH_COLUMN, 0);
+      $stmnt->closeCursor();
+    } catch (PDOException $e) {
+	  $result = false;
+    } 
+    return $result;
+
+  }
+  
+ 
   public function setCurrentUserID($userid) {
     try {
       $sql = 'SET @current_user_id = '. $userid;

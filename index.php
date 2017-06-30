@@ -61,7 +61,7 @@ $GLOBALS['user_system'] = new User_System();
 if ($GLOBALS['user_system']->getCurrentUser() == NULL) {
 	System_Controller::checkConfigHealth();
 	// Nobody is logged in, so show login screen or installer
-	if (!$GLOBALS['user_system']->hasUsers()) {
+	if (!$GLOBALS['db']->hasStaff()) {
 		require_once JETHRO_ROOT.'/include/installer.class.php';
 		$installer = new Installer();
 		$installer->run();

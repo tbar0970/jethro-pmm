@@ -83,13 +83,6 @@ class User_System extends Abstract_User_System
 		$_SESSION['last_activity_time'] = NULL;
 	}
 
-	public function hasUsers()
-	{
-		$sql = 'SELECT count(*) FROM staff_member LIMIT 1';
-		$res = $GLOBALS['db']->queryRow($sql);
-		return (bool)$res;
-	}
-
 	/**
 	 * Get details of the currently-authorised user account
 	 * @see Abstract_User_System::getCurrentPerson()
