@@ -398,8 +398,8 @@ class Installer
 	function printForm()
 	{
 		$tables = $GLOBALS['db']->isInstalled_Tables();
-		$routines = $GLOBALS['db']->isInstalled_Routines();
-		if ($tables || $routines) {
+		$functions = $GLOBALS['db']->isInstalled_Functions();
+		if ($tables || $functions) {
 			print_message('Your MySQL database is not empty.  This could be due to a failed previous installation attempt.  Please drop and re-create the database to ensure it is entirely blank, then reload this page.', 'error');
 			return;
 		}

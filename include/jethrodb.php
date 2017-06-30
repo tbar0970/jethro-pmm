@@ -170,15 +170,14 @@ class JethroDB extends PDO {
   
   public function hasPersons() {
     $sql = 'SELECT count(*) FROM _persons LIMIT 1';
+    $result = true;
     try {
-      $result = true;
       $stmnt = self::prepare($sql);
       $stmnt->execute();
       $row = $stmnt->fetch(PDO::FETCH_NUM);
       if ($row) {
-        $result = $row[$colnum];
+        $result = (bool)$row[$colnum];
       }
-      $stmnt->closeCursor();
     } catch (PDOException $e) {
       $result = false;
     }
@@ -190,7 +189,6 @@ class JethroDB extends PDO {
       $stmnt = self::prepare('SHOW TABLES');
       $stmnt->execute();
       $result = $stmnt->fetchAll(PDO::FETCH_COLUMN, 0);
-      $stmnt->closeCursor();
     } catch (PDOException $e) {
       self::db_error($e);
     }
