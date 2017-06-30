@@ -20,8 +20,7 @@ class JethroDB extends PDO {
   }
 
   public function db_error($exception) {
-        debug_print_backtrace();
-    trigger_error('Database Error in query.<br>( ' . $exception->getMessage() . ')', E_USER_ERROR);
+    trigger_error('Database Error in query.<br>( ' . $exception::getMessage() . ')', E_USER_ERROR);
     exit();
   }
   
