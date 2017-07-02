@@ -395,7 +395,7 @@ class MailChimp
             return false;
         }
 
-        $this->last_error = 'Unknown error, call getLastResponse() to find out what happened.';
+       // $this->last_error = 'Unknown error, call getLastResponse() to find out what happened.';
         return false;
     }
 
