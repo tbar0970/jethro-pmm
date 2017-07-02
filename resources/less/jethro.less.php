@@ -199,6 +199,9 @@ body {
 		padding-left: 10px !important;
 	}
 }
+@media (max-width: 640px) {
+	#body { margin: 0px 7px }
+}
 #jethro-nav-background {
 	position: absolute;
 	z-index: -100;
@@ -887,8 +890,11 @@ img.person-photo {
 @media(max-width:600px) {
 	.person-details, .person-photo, .view-person .details-box {
 		float: none;
-		width: 100%;
+		width: 100% !important;
 		margin-left: 0px;
+	}
+	.details-box, img.person-photo {
+		margin-bottom: 7px !important;
 	}
 }
 
@@ -1192,6 +1198,10 @@ ul.nav-tabs {
 	text-decoration: none;
 	text-shadow: 0 1px 0 @jethroDarkText;
 }
+#body .accordion-inner {
+	padding: 7px;
+}
+
 
 /*********** ROSTERS ***********/
 #body table.roster td {

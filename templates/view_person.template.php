@@ -191,6 +191,14 @@ printf($panel_header, 'basic', _('Basic Details'), 'active');
 			$family->printSummaryWithMembers();
 			?>
 		</div>
+
+		<?php
+		if ($accordion && $GLOBALS['system']->featureEnabled('PHOTOS')) {
+			?>
+			<img class="person-photo" src="?call=photo&personid=<?php echo (int)$person->id; ?>" />
+			<?php
+		}
+		?>
 	</div>
 
 	<?php
