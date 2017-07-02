@@ -22,6 +22,10 @@ class ComposerStaticInit891505eecbb5aad96b1421acd9fecb83
             'PhpOffice\\PhpWord\\' => 18,
             'PhpOffice\\Common\\' => 17,
         ),
+        'D' => 
+        array (
+            'DrewM\\MailChimp\\' => 16,
+        ),
     );
 
     public static $prefixDirsPsr4 = array (
@@ -44,6 +48,10 @@ class ComposerStaticInit891505eecbb5aad96b1421acd9fecb83
         'PhpOffice\\Common\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpoffice/common/src/Common',
+        ),
+        'DrewM\\MailChimp\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/drewm/mailchimp-api/src',
         ),
     );
 
