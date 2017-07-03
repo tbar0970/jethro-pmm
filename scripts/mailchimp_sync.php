@@ -119,7 +119,7 @@ if ($DEBUG > 1) {
 }
 
 // Get the existing members of the mailchimp list
-$members_res = $mc->get('lists/'.$list_id.'/members', Array('count' => 10000), 30);
+$members_res = $mc->get('lists/'.$list_id.'/members', Array('count' => 10000), 60);
 if (FALSE === $members_res) {
 	trigger_error("Mailchimp API Error fetching list members: ".$mc->getLastError(), E_USER_ERROR);
 }
