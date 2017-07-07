@@ -754,11 +754,12 @@ class roster_view extends db_object
 							foreach (array_get($ddetail['assignments'], $mdetail['role_id'], Array()) as $rank => $vs) {
 								$personid = $vs['personid'];
 								if (!$public && !$vs['assigneehidden']) {
-									$n = '<a data-personid="'.$personid . '" href="'.BASE_URL.'?view=persons&personid='.$personid.'" title="Assigned by '.ents($vs['assigner']).' on '.format_datetime($vs['assignedon']).'">'.nbsp(ents($vs['name'])).'</a>';
-									if (('' === $vs['email'])) $n .= '&nbsp;<img src="'.BASE_URL.'resources/img/no_email.png" style="display:inline" title="No Email Address" />';
+									$n = '<span class="nowrap"><a data-personid="'.$personid . '" href="'.BASE_URL.'?view=persons&personid='.$personid.'" title="Assigned by '.ents($vs['assigner']).' on '.format_datetime($vs['assignedon']).'">'.ents($vs['name']).'</a>';
+									if (('' === $vs['email'])) $n .= ' <img class="visible-desktop" src="'.BASE_URL.'resources/img/no_email.png" title="No Email Address" />';
 									if (('' === $vs['mobile'])) {
-										$n .= '&nbsp;<img src="'.BASE_URL.'resources/img/no_phone.png" style="display:inline" title="No Mobile" />';
+										$n .= ' <img class="visible-desktop" src="'.BASE_URL.'resources/img/no_phone.png" title="No Mobile" />';
 					                }
+									$n .= '</span>';
 									$names[] = $n;
 								} else {
 									$names[] = nbsp($vs['name']);
