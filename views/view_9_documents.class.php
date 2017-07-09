@@ -77,7 +77,7 @@ class View_Documents extends View
 						add_message("Your file could not be saved because the file is too big.", 'error');
 						return NULL;
 					} else {
-						trigger_error("Technical error uploading photo file: Error #".$err, E_USER_ERROR);
+						trigger_error("Technical error uploading photo file: Error #".$error, E_USER_ERROR);
 					}
 				}
 			}
