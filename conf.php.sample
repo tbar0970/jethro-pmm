@@ -84,7 +84,7 @@ define('REQUIRE_HTTPS', FALSE);
 // * For smsbroadcast.com.au
 //   define('SMS_HTTP_RESPONSE_OK_REGEX', '[\s\S]*_RECIPIENT_INTERNATIONAL_\",\"id\"\:\d*,\"status\"\:\d*,\"status_text\"\:\"Sen');
 // * For 5centsms
-//   define('SMS_HTTP_RESPONSE_OK_REGEX', '[{]\s*"destination":\s*"_RECIPIENT_",[^}]*"status":\s*(1000|1001|1002|1004|1006|1011|1527),');
+//   define('SMS_HTTP_RESPONSE_OK_REGEX', '[{]\s*"destination":\s*"_RECIPIENT_",[^}]*"status":\s*"?(1000|1001|1002|1004|1006|1011|1527)"?,');
 // define('SMS_HTTP_RESPONSE_OK_REGEX', '');
 
 // Regex to detect an overall error response from the API server (eg bad credentials).
