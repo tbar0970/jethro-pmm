@@ -28,7 +28,6 @@ class Member extends DB_Object
 				join member m on m.congregationid = c.id
 				group by c.id';
 		$res = $GLOBALS['db']->queryAll($SQL, null, null, true, false);
-		check_db_result($res);
 		return $res;
 
 	}

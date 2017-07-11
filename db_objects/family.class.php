@@ -167,7 +167,7 @@ class family extends db_object
 			$this->printMemberList(array_get($this->_tmp, 'abbreviate_member_list', FALSE));
 			return;
 		}
-		if (is_null($value)) $value = $this->getValue($name); 
+		if (is_null($value)) $value = $this->getValue($name);
 		if (($name == 'address_street') && MAP_LOOKUP_URL) {
 			parent::printFieldValue($name, $value);
 			if (!empty($value) && ($value == $this->values['address_street'])) {
@@ -248,9 +248,9 @@ class family extends db_object
 			<?php
 			return;
 		}
-		
+
 		parent::printFieldInterface($name);
-		
+
 		$postcode_url = POSTCODE_LOOKUP_URL;
 		if (($name == 'address_suburb') && !empty($postcode_url)) {
 			?>
@@ -332,7 +332,7 @@ class family extends db_object
 		parent::printSummary();
 		unset($this->fields['members']);
 	}
-	
+
 	function printCustomSummary($showMembersCallback)
 	{
 		// TODO: test this in the mmebers interface
@@ -412,7 +412,7 @@ class family extends db_object
 					// Status has just been changed from archived to something else
 					$msg = 'NB Members of the family will need to be de-archived separately';
 				}
-					
+
 			}
 			if (!empty($this->_old_values['family_name'])) {
 				// Family name has changed
@@ -477,7 +477,6 @@ class family extends db_object
 			$SQL = 'REPLACE INTO family_photo (familyid, photodata)
 					VALUES ('.(int)$this->id.', '.$db->quote($this->_photo_data).')';
 			$res = $db->query($SQL);
-			check_db_result($res);
 		}
 	}
 
@@ -536,10 +535,9 @@ class family extends db_object
 			GROUP BY f.id
 			ORDER BY f.family_name';
 		$res = $GLOBALS['db']->queryAll($sql, NULL, NULL, TRUE);
-		check_db_result($res);
 		return $res;
 	}
-		
+
 
 
 	static function printSingleFinder($name, $currentval=NULL)

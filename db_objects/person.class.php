@@ -148,7 +148,7 @@ class Person extends DB_Object
 									'editable'		=> false,
 									'show_in_summary'	=> false,
 									)
-	
+
 		);
 		if (defined('PERSON_STATUS_DEFAULT')) {
 			if (FALSE !== ($i = array_search(constant('PERSON_STATUS_DEFAULT'), $res['status']['options']))) {
@@ -222,7 +222,6 @@ class Person extends DB_Object
 				FROM custom_field_value v
 				WHERE personid = '.(int)$this->id;
 		$res = $GLOBALS['db']->queryAll($SQL, NULL, NULL, true, FALSE, TRUE);
-		check_db_result($res);
 		$this->_custom_values = $res;
 	}
 
@@ -396,7 +395,7 @@ class Person extends DB_Object
 						AND ar.groupid = recorded.groupid
 						AND ar.personid = '.$db->quote($this->id).'
 					LEFT JOIN person_group g ON recorded.groupid = g.id
-				WHERE 
+				WHERE
 				';
 		if ($groupid != -1) {
 			$sql .= ' recorded.groupid = '.(int)$groupid;
@@ -408,7 +407,6 @@ class Person extends DB_Object
 				ORDER BY recorded.groupid, recorded.date';
 		$attendances = $db->queryAll($sql, null, null, true, true, true);
 		if ($groupid != -1) $attendances = reset($attendances);
-		check_db_result($attendances);
 		return $attendances;
 	}
 
@@ -420,7 +418,6 @@ class Person extends DB_Object
 				AND date IN ('.implode(',', array_map((Array($db, 'quote')), array_keys($attendances))).')
 				AND groupid = '.(int)$groupid;
 		$res = $db->exec($SQL);
-		check_db_result($res);
 
 		$SQL = 'INSERT INTO attendance_record (personid, groupid, date, present)
 				VALUES ';
@@ -430,8 +427,7 @@ class Person extends DB_Object
 		}
 		$SQL .= implode(",\n", $sets);
 		$res = $db->exec($SQL);
-		check_db_result($res);
-		
+
 	}
 
 	public static function getPersonsBySearch($searchTerm, $includeArchived=true)
@@ -472,7 +468,6 @@ class Person extends DB_Object
 			GROUP BY pp.id
 			';
 		$res = $db->queryAll($SQL, null, null, true, true); // 5th param forces array even if one col
-		check_db_result($res);
 		return $res;
 
 	}
@@ -489,7 +484,7 @@ class Person extends DB_Object
 			if (!empty($this->_old_values['status']) || !empty($this->_old_values['last_name'])) {
 				$family = $GLOBALS['system']->getDBObject('family', $this->getValue('familyid'));
 				$members = $family->getMemberData();
-				
+
 				if (!empty($this->_old_values['status']) && ($this->getValue('status') == 'archived')) {
 					// status has just been changed to 'archived' so archive family if no live members
 
@@ -561,14 +556,13 @@ class Person extends DB_Object
 			$SQL = 'REPLACE INTO person_photo (personid, photodata)
 					VALUES ('.(int)$this->id.', '.$db->quote($this->_photo_data).')';
 			$res = $db->query($SQL);
-			check_db_result($res);
 		}
 	}
 
 	function _saveCustomValues() {
 		$db =& $GLOBALS['db'];
 		$SQL = 'DELETE FROM custom_field_value WHERE personid = '.(int)$this->id;
-		check_db_result($db->query($SQL));
+		$res = $db->query($SQL);
 		$SQL = 'INSERT INTO custom_field_value
 				(personid, fieldid, value_text, value_date, value_optionid)
 				VALUES ';
@@ -597,7 +591,7 @@ class Person extends DB_Object
 		}
 		if ($sets) {
 			$SQL .= implode(",\n", $sets);
-			check_db_result($GLOBALS['db']->query($SQL));
+			$res = $GLOBALS['db']->query($SQL);
 		}
 	}
 
@@ -681,7 +675,6 @@ class Person extends DB_Object
 				FROM person
 				GROUP BY status';
 		$res = $GLOBALS['db']->queryAll($sql, NULL, NULL, true);
-		check_db_result($res);
 		$out = Array();
 		foreach ($status_options as $k => $v) {
 			$out[$v] = (int)array_get($res, $k, 0);

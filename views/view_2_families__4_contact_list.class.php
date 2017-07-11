@@ -250,7 +250,6 @@ class View_Families__Contact_List extends View
 		order by family_name asc, familyid, ab.rank asc, gender desc
 		';
 		$res = $db->queryAll($sql, null, null, true, true, true);
-		check_db_result($res);
 
 		if (empty($res)) {
 			?><p><i><?php echo _('No families to show');?></i></p><?php

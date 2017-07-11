@@ -8,7 +8,7 @@
  *
  * It is called with an ini file as first argument
  * eg: php date_reminder.php my-config-file.ini
- * 
+ *
  * @see date_reminder_sample.ini for config file format.
  */
 
@@ -26,7 +26,21 @@ if (!is_readable(JETHRO_ROOT.'/conf.php')) {
 	exit();
 }
 require_once JETHRO_ROOT.'/conf.php';
-if (!defined('DSN')) define('DSN', constant('PRIVATE_DSN'));
+// Check for old style DSN - and try to work - but this is messy and horrible to use
+if (defined('PRIVATE_DSN')) {
+		preg_match('|([a-z]+)://([^:]*)(:(.*))?@([A-Za-z0-9\.-]*)(/([0-9a-zA-Z_/\.]*))|',
+     PRIVATE_DSN,$matches);
+		 if (!defined('DB_TYPE')) define('DB_TYPE', $matches[1]);
+		 if (!defined('DB_HOST')) define('DB_HOST', $matches[5]);
+		 if (!defined('DB_DATABASE')) define('DB_DATABASE', $matches[7]);
+		 if (!defined('DB_PRIVATE_USERNAME')) define('DB_PRIVATE_USERNAME', $matches[2]);
+		 if (!defined('DB_PRIVATE_PASSWORD')) define('DB_PRIVATE_PASSWORD', $matches[4]);
+}
+if (!defined('DSN')) {
+		define('DSN', DB_TYPE . ':host=' . DB_HOST . (!empty(DB_PORT)? (';port=' . DB_PORT):'') . ';dbname=' . DB_DATABASE . ';charset=utf8');
+}
+if (!defined('DB_USERNAME')) define('DB_USERNAME', DB_PRIVATE_USERNAME);
+if (!defined('DB_PASSWORD')) define('DB_PASSWORD', DB_PRIVATE_PASSWORD);
 require_once JETHRO_ROOT.'/include/init.php';
 require_once JETHRO_ROOT.'/include/user_system.class.php';
 require_once JETHRO_ROOT.'/include/system_controller.class.php';
@@ -59,7 +73,6 @@ $SQL .= '
 		AND p.status <> "archived"
 		GROUP BY p.id';
 $res = $GLOBALS['db']->queryAll($SQL);
-check_db_result($res);
 
 if (empty($res) && !empty($ini['VERBOSE'])) {
 	echo "No persons found with custom field ".$ini['CUSTOM_FIELD_ID'].' '.$ini['REMINDER_OFFSET']." days from now \n";
@@ -106,7 +119,7 @@ foreach ($summaries as $supervisors => $remindees) {
 	foreach (explode(';', $supervisors) as $sup) {
 		if (!empty($ini['OVERRIDE_RECIPIENT'])) {
 			$sup = $ini['OVERRIDE_RECIPIENT'];
-		}		
+		}
 		$message->setTo($sup);
 	}
 	$res = Emailer::send($message);
@@ -125,7 +138,7 @@ function send_reminder($person)
 	
 	$sentSomething = FALSE;
 	if (!empty($ini['EMAIL_BODY'])) {
-		if (strlen($person['email'])) {		
+		if (strlen($person['email'])) {
 			$toEmail = $person['email'];
 			if (!empty($ini['OVERRIDE_RECIPIENT'])) $toEmail = $ini['OVERRIDE_RECIPIENT'];
 
@@ -161,15 +174,15 @@ function send_reminder($person)
 			if (count($res['successes']) != 1) {
 				echo "Failed to send SMS to ".$toNumber."\n";
 			} else {
-				$sentSomething = TRUE;			
+				$sentSomething = TRUE;
 				if (!empty($ini['VERBOSE'])) {
 					echo "Sent SMS reminder to ".$person['first_name'].' '.$person['last_name'].' '.$toNumber."\n";
 				}
 			}
 		} else {
-			if (!empty($ini['VERBOSE'])) echo $person['first_name'].' '.$person['last_name']." has no mobile number and will not be sent an SMS \n";		
+			if (!empty($ini['VERBOSE'])) echo $person['first_name'].' '.$person['last_name']." has no mobile number and will not be sent an SMS \n";
 		}
-	}	
+	}
 	
 	if (!empty($ini['VERBOSE']) && !$sentSomething) {
 		echo $person['first_name'].' '.$person['last_name']." was not sent any notification \n";
@@ -196,4 +209,3 @@ function replace_keywords($content, $person)
 	}
 	return $content;
 }
-

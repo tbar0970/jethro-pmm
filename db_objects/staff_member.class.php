@@ -21,17 +21,16 @@ class Staff_Member extends Person
 	function load($id)
 	{
 		$res = parent::load($id);
-		
+
 		// Load restrictions
-		$sql = 'SELECT congregationid, NULL as groupid 
+		$sql = 'SELECT congregationid, NULL as groupid
 				FROM account_congregation_restriction
 				WHERE personid = '.(int)$id.'
 				UNION
 				SELECT NULL as congregationid, groupid
-				FROM account_group_restriction 
+				FROM account_group_restriction
 				WHERE personid = '.(int)$id;
 		$res = $GLOBALS['db']->queryAll($sql);
-		check_db_result($res);
 		foreach ($res as $row) {
 			$type = empty($row['congregationid']) ? 'group' : 'congregation';
 			$this->_restrictions[$type][] = $row[$type.'id'];
@@ -103,12 +102,12 @@ class Staff_Member extends Person
 				$date_exp = 'AND action_date > DATE(NOW())';
 		}
 		$db =& $GLOBALS['db'];
-		$sql = 'SELECT 
-					an.id, an.subject, pn.personid, fn.familyid, an.action_date, 
+		$sql = 'SELECT
+					an.id, an.subject, pn.personid, fn.familyid, an.action_date,
 					IF(p.id IS NOT NULL,
 						CONCAT(p.first_name, '.$db->quote(' ').', p.last_name),
 						CONCAT(f.family_name, '.$db->quote(' Family').')
-					) as name, 
+					) as name,
 					IF(p.id IS NOT NULL, '.$db->quote('person').', '.$db->quote('family').') as type
 				FROM abstract_note an
 						LEFT JOIN person_note pn ON an.id = pn.id
@@ -121,7 +120,6 @@ class Staff_Member extends Person
 					'.$date_exp.'
 				ORDER BY action_date ASC';
 		$res = $db->queryAll($sql, null, null, true);
-		check_db_result($res);
 		return $res;
 	}
 
@@ -217,7 +215,7 @@ class Staff_Member extends Person
 								?>
 							</td>
 							<td>
-								<?php 
+								<?php
 								Person_Group::printMultiChooser('restrictions[group]', array_get($this->_restrictions, 'group', Array()), Array(), FALSE);
 								?>
 							</td>
@@ -286,7 +284,7 @@ class Staff_Member extends Person
 				parent::processFieldInterface($name, $prefix);
 		}
 	}
-	
+
 	private function getMinPasswordLength() {
 		$minLen = defined('PASSWORD_MIN_LENGTH') ? (int)PASSWORD_MIN_LENGTH : 0;
 		$minLen = max($minLen, 8);
@@ -341,7 +339,6 @@ class Staff_Member extends Person
 				foreach (Array('congregation', 'group') as $type) {
 					if (array_get($this->_restrictions, $type, Array()) != array_get($this->_old_restrictions, $type, Array())) {
 						$res = $GLOBALS['db']->query('DELETE FROM account_'.$type.'_restriction WHERE personid = '.(int)$this->id);
-						check_db_result($res);
 					}
 				}
 				$this->_insertRestrictions();
@@ -368,11 +365,10 @@ class Staff_Member extends Person
 					$rows[] = '('.(int)$this->id.','.(int)$id.')';
 				}
 				$res = $GLOBALS['db']->query('INSERT IGNORE INTO account_'.$type.'_restriction (personid, '.$type.'id) VALUES '.implode(',', $rows));
-				check_db_result($res);
 			}
 		}
 	}
-	
+
 	public function checkUniqueUsername()
 	{
 		$others = $GLOBALS['system']->getDBObjectData('staff_member', Array('username' => $this->getValue('username'), '!id' => $this->id), 'AND');

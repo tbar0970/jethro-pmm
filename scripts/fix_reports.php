@@ -13,17 +13,29 @@ if (!is_readable(JETHRO_ROOT.'/conf.php')) {
 	exit();
 }
 require_once JETHRO_ROOT.'/conf.php';
-if (!defined('DSN')) define('DSN', constant('PRIVATE_DSN'));
+if (defined('PRIVATE_DSN')) {
+        preg_match('|([a-z]+)://([^:]*)(:(.*))?@([A-Za-z0-9\.-]*)(/([0-9a-zA-Z_/\.]*))|',
+     PRIVATE_DSN,$matches);
+         if (!defined('DB_TYPE')) define('DB_TYPE', $matches[1]);
+         if (!defined('DB_HOST')) define('DB_HOST', $matches[5]);
+         if (!defined('DB_DATABASE')) define('DB_DATABASE', $matches[7]);
+         if (!defined('DB_PRIVATE_USERNAME')) define('DB_PRIVATE_USERNAME', $matches[2]);
+         if (!defined('DB_PRIVATE_PASSWORD')) define('DB_PRIVATE_PASSWORD', $matches[4]);
+}
+if (!defined('DSN')) {
+        define('DSN', DB_TYPE . ':host=' . DB_HOST . (!empty(DB_PORT)? (';port=' . DB_PORT):'') . ';dbname=' . DB_DATABASE . ';charset=utf8');
+}
+if (!defined('DB_USERNAME')) define('DB_USERNAME', DB_PRIVATE_USERNAME);
+if (!defined('DB_PASSWORD')) define('DB_PASSWORD', DB_PRIVATE_PASSWORD);
+
 require_once JETHRO_ROOT.'/include/init.php';
 $db = $GLOBALS['db'];
 
 $SQL = 'CREATE TABLE IF NOT EXISTS _disused_person_query_backup SELECT * from person_query';
 $res = $db->exec($SQL);
-check_db_result($res);
 
 $SQL = 'SELECT id, params FROM _disused_person_query_backup';
 $queries = $db->queryAll($SQL);
-check_db_result($queries);
 foreach ($queries as $row) {
 	$params = unserialize($row['params']);
 	if (!empty($params['rules']['p.age_bracket'])) {
@@ -34,7 +46,6 @@ foreach ($queries as $row) {
 		unset($params['rules']['p.age_bracket']);
 		$SQL = 'UPDATE person_query SET params = '.$db->quote(serialize($params)).' WHERE id = '.(int)$row['id'];
 		$res = $db->exec($SQL);
-		check_db_result($res);
 	}
 }
 

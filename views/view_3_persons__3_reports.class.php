@@ -92,7 +92,7 @@ class View_Persons__Reports extends View
 		} else if (!empty($this->_query)) {
 			?>
 			<?php
-			
+
 			$this->_query->printResults();
 			?>
 			<hr />
