@@ -282,4 +282,3 @@ function needsUpdate($jethroData, $mcData)
 	}
 	return FALSE;
 }
-
