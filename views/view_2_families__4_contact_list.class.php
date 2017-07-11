@@ -13,7 +13,7 @@ class View_Families__Contact_List extends View
 		$GLOBALS['system']->includeDBClass('person');
 		$GLOBALS['system']->includeDBClass('person_group');
 	}
-	
+
 	function getTitle()
 	{
 		return _('Contact List');
@@ -27,7 +27,7 @@ class View_Families__Contact_List extends View
 				?>
 				<div class="pull-right">
 				<a class="clickable back"><i class="icon-wrench"></i>Adjust configuration</a><br />
-				<i class="icon-download"></i> Download as 
+				<i class="icon-download"></i> Download as
 				<a href="<?php echo build_url(Array('call' => 'contact_list', 'format' => 'html', 'view' => NULL)); ?>">HTML</a> |
 				<a href="<?php echo build_url(Array('call' => 'contact_list', 'format' => 'docx', 'view' => NULL)); ?>">DOCX</a>
 				</div>
@@ -140,9 +140,10 @@ class View_Families__Contact_List extends View
 			<tr>
 			<?php
 			if (!empty($_REQUEST['include_photos'])) {
-				$rowSpan = count($family['optins']) + 3;
+				$rowSpan = count($family['optins']) + 2;
 				if (!empty($_REQUEST['include_home_tel']) && $family['home_tel']) $rowSpan++;
 				if (!empty($_REQUEST['include_address']) && $family['address_street']) $rowSpan++;
+				if (count($family['all']) > count($family['optins'])) $rowSpan++;
 				if (($family['have_photo']) || count($family['optins']) == 1) {
 					if ($dataURLs) {
 						$src = Photo_Handler::getDataURL('family', $family['familyid']);
@@ -163,17 +164,21 @@ class View_Families__Contact_List extends View
 					<h2 style="margin: 5px 0px 0px 0px"><?php echo $family['family_name']; ?></h2>
 				</td>
 			</tr>
-			<tr style="height: 1px">
-				<td colspan="4"><i><?php echo ents($family['all_names']); ?></td>
-			</tr>
 			<?php
+			if (count($family['all']) > count($family['optins'])) {
+				?>
+				<tr style="height: 1px">
+					<td colspan="4"><i><?php echo ents($family['all_names']); ?></td>
+				</tr>
+				<?php
+			}
 			if (!empty($_REQUEST['include_home_tel']) && $family['home_tel']) {
 				echo '<tr style="height: 1px"><td colspan="4">';
 				echo ents($family['home_tel']);
 				echo '</td></tr>';
 			}
 			if (!empty($_REQUEST['include_address']) && $family['address_street']) {
-				echo '<tr style="height: 1px"><td colspan="4">'.nl2br(ents($family['address_street'])).'<br />';
+				echo '<tr style="height: 1px"><td colspan="4">'.str_replace("\n", ', ', ents($family['address_street'])).', ';
 				echo ents($family['address_suburb'].' '.$family['address_state'].' '.$family['address_postcode']);
 				echo '</td></tr>';
 			}
@@ -182,8 +187,8 @@ class View_Families__Contact_List extends View
 				<tr style="height: 1px">
 					<td style="padding-right: 1ex"><?php echo ents($adult['name']); ?></td>
 					<td style="padding-right: 1ex">
-						<?php 
-						if (!empty($_REQUEST['include_congregation'])) echo ents($adult['congname']); 
+						<?php
+						if (!empty($_REQUEST['include_congregation'])) echo ents($adult['congname']);
 						?>
 					</td>
 					<td style="padding-right: 1ex"><?php echo ents($adult['mobile_tel']); ?></td>
@@ -222,13 +227,15 @@ class View_Families__Contact_List extends View
 			congregation.long_name as congname,
 			address_street, address_suburb, address_state, address_postcode,
 			IF (fp.familyid IS NULL, 0, 1) as have_photo,
-			IF (signup.groupid IS NULL, 0, 1) as signed_up
+			IF (signup.groupid IS NULL, 0, 1) as signed_up,
+			IF (pp.personid IS NULL, 0, 1) as have_person_photo
 		from family
 		join person on family.id = person.familyid
 		join age_bracket ab ON ab.id = person.age_bracketid
 		left join congregation on person.congregationid = congregation.id
 		left join family_photo fp ON fp.familyid = family.id
 		left join person_group_membership signup ON signup.personid = person.id AND signup.groupid = '.(int)$groupid.'
+		left join person_photo pp ON pp.personid = person.id
 		where person.status <> "archived"
 		and family.id in
 		(select familyid
@@ -277,7 +284,7 @@ class View_Families__Contact_List extends View
 						$adults_use_full = true;
 					}
 				}
-				
+
 				if ($member['signed_up'] || $all_member_details != -1) {
 					$family['all'][] = $member;
 				}
@@ -326,7 +333,7 @@ class View_Families__Contact_List extends View
 		require_once 'vendor/autoload.php';
 		\PhpOffice\PhpWord\Settings::setTempDir(sys_get_temp_dir());
 		\PhpOffice\PhpWord\Settings::setOutputEscapingEnabled(TRUE);
-		
+
 		require_once 'view_9_documents.class.php';
 		$width = 11338; // 20cm in twips
 		$phpWord =  new \PhpOffice\PhpWord\PhpWord();
@@ -338,50 +345,80 @@ class View_Families__Contact_List extends View
 		$phpWord->addFontStyle('ADDRESS', array());
 		$phpWord->addFontStyle('PERSON-NAME', array('bold' => true));
 		$phpWord->addTableStyle('FAMILY-LIST', array('width' => $width, 'borderSize' => 0, 'cellMargin' => 80,'borderColor' => 'CCCCCC'));
-
-		/*$intro = $phpWord->addSection();
-		$intro->addTitle(SYSTEM_NAME.' Contact List', 1);
-		$intro->addText('Intro text goes here');*/
-
 		$section = $phpWord->addSection(array('breakType' => 'continuous'));
 
-		/*$outro = $phpWord->addSection(array('breakType' => 'continuous'));
-		$outro->addText('Concluding text goes here');*/
-
-		
+		/////////////////////////////////////////////////////////////////////////////////
+		// STEP ONE - BUILD A TEMPORARY DOCX FILE WITH THE TABLE OF CONTACT DATA:
 
 		$table = $section->addTable('FAMILY-LIST');
-
 		$gridspan = 3;
 		if (!empty($_REQUEST['include_congregation'])) $gridspan++;
-		
-		$wideCellProps = array('gridSpan' => $gridspan, 'valign' => 'top');
-		$narrowCellProps = array('valign' => 'top');
 
+		$extraWideCellProps = $wideCellProps = array('gridSpan' => $gridspan, 'valign' => 'top');
+		if (!empty($_REQUEST['include_photos'])) {
+			$extraWideCellProps['gridSpan']++;
+		}
+		$narrowCellProps = array('valign' => 'top', 'vMerge' => 'restart');
+		$mergeProps = array('vMerge' => 'continue');
+		$imageStyle = Array('width' => 100);
+		require_once 'JethroWordImage.class.php';
+		$cleanup = Array();
 		foreach ($this->getData() as $family) {
 			$table->addRow();
-			$table->addCell(NULL, $wideCellProps)
-						->addText($family['family_name'], 'FAMILY-NAME', 'FAMILY-HEADER');
-						
-			$table->addRow();
-			$table->addCell(NULL, $wideCellProps)
-						->addText($family['all_names'], 'FAMILY-MEMBERS', 'FAMILY-SUB-HEADER');
 
+			$table->addCell(NULL, $extraWideCellProps)
+						->addText($family['family_name'], 'FAMILY-NAME', 'FAMILY-HEADER');
+
+			$table->addRow();
+			if (!empty($_REQUEST['include_photos'])) {
+
+				$cell = $table->addCell(NULL, $narrowCellProps);
+				if ($family['have_photo']) {
+					$tempfile = str_replace('.tmp', '', tempnam(sys_get_temp_dir(), 'contactlistphoto')).'.jpg';
+					$cleanup[] = $tempfile;
+					file_put_contents($tempfile, Photo_Handler::getPhotoData('family', $family['familyid']));
+					$cell->addImage($tempfile, $imageStyle);
+				} else if (count($family['optins']) == 1) {
+					if ($family['optins'][0]['have_person_photo']) {
+						$tempfile = str_replace('.tmp', '', tempnam(sys_get_temp_dir(), 'contactlistphoto')).'.jpeg';
+						$cleanup[] = $tempfile;
+						file_put_contents($tempfile, Photo_Handler::getPhotoData('person', $family['optins'][0]['id']));
+						$cell->addImage($tempfile, $imageStyle);
+					} else {
+						$cell->addImage(JETHRO_ROOT.'/resources/img/unknown.jpg', $imageStyle);
+					}
+				} else {
+					$cell->addImage(JETHRO_ROOT.'/resources/img/unknown_family.jpg', $imageStyle);
+				}
+			}
+			if (count($family['all']) > count($family['optins'])) {
+				$table->addCell(NULL, $wideCellProps)
+							->addText($family['all_names'], 'FAMILY-MEMBERS', 'FAMILY-SUB-HEADER');
+			}
+			
 			if (!empty($_REQUEST['include_address']) && $family['address_street']) {
 				$table->addRow();
 				$cell = $table->addCell(NULL, $wideCellProps);
-				$cell->addText($family['address_street'], 'ADDRESS');
-				$cell->addText($family['address_suburb'].' '.$family['address_state'].' '.$family['address_postcode'], 'ADDRESS');
+				// save vertical space by putting address on one line
+				$text = str_replace("\n", ', ', $family['address_street']).', ';
+				$text .= $family['address_suburb'].' '.$family['address_state'].' '.$family['address_postcode'];
+				$cell->addText($text, 'ADDRESS');
 			}
 
 			if (!empty($_REQUEST['include_home_tel']) && $family['home_tel']) {
 				$table->addRow();
+				if (!empty($_REQUEST['include_photos'])) {
+					$table->addCell(NULL, $mergeProps);
+				}
 				$table->addCell(NULL, $wideCellProps)
 							->addText($family['home_tel'], 'HOME PHONE');
 			}
 
 			foreach ($family['optins'] as $member) {
 				$table->addRow();
+				if (!empty($_REQUEST['include_photos'])) {
+					$table->addCell(NULL, $mergeProps);
+				}
 				$table->addCell($width*0.3, $narrowCellProps)->addText($member['name'], 'PERSON-NAME');
 				if (!empty($_REQUEST['include_congregation'])) {
 					$table->addCell($width*0.25, $narrowCellProps)->addText($member['congname']);
@@ -394,11 +431,34 @@ class View_Families__Contact_List extends View
 		$objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'Word2007');
 		$tempname = tempnam(sys_get_temp_dir(), 'contactlist');
 		$objWriter->save($tempname);
-		
-		//readfile($tempname);
-		
+
+		foreach ($cleanup as $file) {
+			unlink($file);
+		}
+
+		//readfile($tempname); exit; // TEMP
+
+		/////////////////////////////////////////////////////////////////////////////////
+		// STEP 2 - MERGE THE CONTACT LIST DATA FROM THE TEMPORARY FILE INTO A TEMPLATE
+		// EITHER THE BUILT-IN ONE OR A CUSTOM ONE
+
+		// In the original file:
+		//  - in word/media folder
+		//		rename xyz.jpg to jethroimage-xyz.jpg
+		//  - in word/_rels/document.xml.rels
+		//     change ID="xyz" to ID="jethroimage-xyz"
+		//     change Target="media/xyz.jpg" to Target="media/jethroimage-xyz.jpg"
+		//  - in word/document.xml
+		//		change r:id="xyz" to r:id="jethroimage-xyz"
+		//  Then copy the document content into the new word/document.xml
+		//  Then add the images from word/media to the new zip
+		//  Then add the relationships from word/_rels/document.xml.rels to new zip's rels file.
+		//
+
+
 		$templateFilename = Documents_Manager::getRootPath().'/Templates/contact_list_template.docx';
 		if (!file_exists($templateFilename)) {
+			// no custom template found - use the built-in template
 			$templateFilename = JETHRO_ROOT.'/resources/contact_list_template.docx';
 		}
 		if (file_exists($templateFilename)) {
@@ -411,9 +471,11 @@ class View_Families__Contact_List extends View
 			readfile($outname);
 			unlink($outname);
 		} else {
+			// Couldn't find any template (!) - dump the temporary raw file.
 			readfile($tempname);
 		}
 		unlink($tempname);
-		 
+
 	}
 }
+

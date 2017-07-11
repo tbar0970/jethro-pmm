@@ -39,22 +39,22 @@ Class ODF_Tools
 	{
 		if (!is_writeable($filename)) {
 			trigger_error("ODT file is not writeable $filename");
-			return;
+			return FALSE;
 		}
 		$outzip = new ZipArchive;
 		if (TRUE !== $outzip->open($filename, ZipArchive::CREATE)) {
 			trigger_error("Could not open ODT file $filename");
-			return;
+			return FALSE;
 		}
 
 		if (!$outzip->addFromString($xml_filename, $content)) {
 			trigger_error("Could not write content.xml back to file");
-			return;
+			return FALSE;
 		}
 
 		if (!$outzip->close()) {
 			trigger_error("Could not write content back to $filename");
-			return;
+			return FALSE;
 		}
 
 		return TRUE;
@@ -145,6 +145,9 @@ Class ODF_Tools
 		$xmlFilename = 'word/document.xml'; // todo: sniff filename to support ODT
 		//$namespace = 'urn:oasis:names:tc:opendocument:xmlns:text:1.0'; //  ODT
 		$namespace = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'; // DOCX
+		$relsNamespace = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+		$imageNamespace = 'urn:schemas-microsoft-com:vml';
+		$prefix = 'jethromerge-';
 		
 		$targetXML = self::getXML($targetFile, $xmlFilename);
 		if (!$targetXML) {
@@ -166,11 +169,12 @@ Class ODF_Tools
 		}
 		if (NULL === $insertPoint) {
 			trigger_error("Could not find $placeholder in a paragraph to insert the new content");
-			bam($targetDOM->saveXML());
+			self::bam($targetDOM->saveXML());
 			return FALSE;
 		}
 		
 		$sourceXML = self::getXML($sourceFile, $xmlFilename);
+
 		if (!$sourceXML) {
 			trigger_error("Cannot get source file XML");
 			return FALSE;
@@ -187,6 +191,14 @@ Class ODF_Tools
 		}
 		
 		foreach ($bodies as $body) {
+			// Add prefix to the imagedata relid attributes
+			$imageDataElts = $body->getElementsByTagNameNS($imageNamespace, 'imagedata');
+			foreach ($imageDataElts as $img) {
+				$relID = $img->getAttributeNS($relsNamespace, 'id');
+				$newRelID = str_replace('rId', 'rId10', $relID);
+				$img->setAttributeNS($relsNamespace, 'id', $newRelID);
+			}
+
 			foreach ($body->childNodes as $newNode) {
 				$newNew = $targetDOM->importNode($newNode, true);
 				$insertPoint->parentNode->insertBefore($newNew, $insertPoint);
@@ -195,7 +207,95 @@ Class ODF_Tools
  
  		$insertPoint->parentNode->removeChild($insertPoint);
 		
-		return ODF_Tools::setXML($targetFile, $targetDOM->saveXML(), $xmlFilename);
+		if (!ODF_Tools::setXML($targetFile, $targetDOM->saveXML(), $xmlFilename)) {
+			return FALSE;
+		}
+
+		$relsXML = self::getXML($sourceFile, 'word/_rels/document.xml.rels');
+		if (empty($relsXML)) {
+			trigger_error("Could not get XML from source word/rels/document.xml.rels");
+			return FALSE;
+		}
+		$sourceRelsDOM = new DOMDocument();
+		$sourceRelsDOM->loadXML($relsXML);
+		$sourceRelsDOM->preserveWhiteSpace = true;
+		$sourceRelsDOM->formatOutput = true;
+
+		$relsXML = self::getXML($targetFile, 'word/_rels/document.xml.rels');
+		if (empty($relsXML)) {
+			trigger_error("Could not get XML from target word/rels/document.xml.rels");
+			return FALSE;
+		}
+		$targetRelsDOM = new DOMDocument();
+		$targetRelsDOM->loadXML($relsXML);
+		$targetRelsDOM->preserveWhiteSpace = true;
+		$targetRelsDOM->formatOutput = true;
+
+		$rels = $sourceRelsDOM->getElementsByTagName('Relationship');
+		$targetParent = $targetRelsDOM->getElementsByTagName('Relationships');
+		// For each relationship, add the prefix to its relID and its target filename
+		// then add it to the target relationships file
+		foreach ($rels as $rel) {
+			if ($rel->getAttribute('Type') != 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image') {
+				continue;
+			}
+			$relID = $rel->getAttribute('Id');
+			// incremeent the RID number by 100, eg ID="rId103"
+			$newRelID = str_replace('rId', 'rId10', $relID);
+			$rel->setAttribute('Id', $newRelID);
+			$target = $rel->getAttribute('Target');
+			$rel->setAttribute('Target', str_replace("media/", "media/".$prefix, $target));
+			foreach ($targetParent as $parent) {
+				$newNew = $targetRelsDOM->importNode($rel, true);
+				$parent->appendChild($newNew);
+			}
+		}
+		if (!self::setXML($targetFile, $targetRelsDOM->saveXML(), 'word/_rels/document.xml.rels')) {
+			return FALSE;
+		}
+
+		// Copy the images from old to new DOCX archives, prepending names.
+		$sourceZIP = new ZipArchive;
+		$sourceZIP->open($sourceFile);
+		$targetZIP = new ZipArchive;
+		$targetZIP->open($targetFile, ZipArchive::CREATE);
+		for ($i = 0; $i < $sourceZIP->numFiles; $i++) {
+			$filename = $sourceZIP->getNameIndex($i);
+			if (preg_match('#^word/media/(.*).jpg$#', $filename)) {
+				$newFilename = str_replace('media/', 'media/'.$prefix, $filename);
+				// Copy the file across.
+				$content = $sourceZIP->getFromIndex($i);
+
+				// REMOVE THIS TO GET RID OF ERROR
+				$targetZIP->addFromString($newFilename, $content);
+				unset($content);
+			}
+		}
+
+		// Add the default extension jpg entry to [Content_Types].xml
+		$cts = $targetZIP->getFromName('[Content_Types].xml');
+		$tag = '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">';
+		$cts = str_replace($tag, $tag.'<Default ContentType="image/jpeg" Extension="jpg"/>', $cts);
+
+		// REMOVE THIS TO GET RID OF ERROR
+		$targetZIP->addFromString('[Content_Types].xml', $cts);
+		
+		//$targetZIP->addFromString('foobar.txt', 'foobar');
+
+		// THE ERROR GOES AWAY WHEN I REMOVE BOTH OF THE ABOVE
+		//
+
+		$sourceZIP->close();
+		$targetZIP->close();
+		return TRUE;
+
+
+
+
+
+
+
+
 	}
 	
 	static function insertHTML($filename, $html, $placeholder='%CONTENT%')
@@ -315,6 +415,16 @@ Class ODF_Tools
 		$insertPoint->parentNode->removeChild($insertPoint);
 
 		return ODF_Tools::setXML($filename, $dom->saveXML());
+	}
+
+	static function bam($x)
+	{
+		if (!headers_sent()) {
+			header('Content-disposition: inline');
+			header('Content-type: text/html');
+		}
+		if (is_string($x)) $x = htmlentities($x);
+		bam($x);
 	}
 	
 }
