@@ -356,7 +356,11 @@ class View_Attendance__Record extends View
 				<?php
 			}
 			?>
-                
+                <tr class="headcount">
+					<th class="right" colspan="<?php echo 1+(2*(int)SizeDetector::isWide())+(int)$this->_show_photos; ?>"><?php
+                      echo EXTRA_ATTENDANCE_CATEGORIES;
+                      ?></th>
+              </tr>
 				<tr class="headcount">
 					<th class="right" colspan="<?php echo 1+(2*(int)SizeDetector::isWide())+(int)$this->_show_photos; ?>"><?php echo _('Total Headcount:');?> &nbsp;</th>
 				<?php
