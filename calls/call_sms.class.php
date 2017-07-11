@@ -30,9 +30,13 @@ class Call_sms extends Call
 		$success = $sendResponse['success'];
 		$successes = $sendResponse['successes'];
 		$failures = $sendResponse['failures'];
+		$rawresponse = $sendResponse['rawresponse'];
+		$error = $sendResponse['error'];
+
+		$ajax['rawresponse'] = $rawresponse;
 
         if (!$success) {
-          $ajax['error'] = "Failure communicating with SMS server";
+          $ajax['error'] = "Unable to send SMS\n" . $error;
         } else {
           if ((!empty($successes)) || (!empty($failures))) { // we managed to parse the server response to get information
             if (!empty($successes)) {
