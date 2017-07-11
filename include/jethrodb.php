@@ -196,14 +196,14 @@ class JethroDB extends PDO {
 
   public function isInstalled_Functions() {
     try {
-	  $result = true; 
+	  $result = true;
       $stmnt = self::prepare('SHOW CREATE FUNCTION getCurrentUserID');
       $stmnt->execute();
       $res =$stmnt->fetchAll(PDO::FETCH_COLUMN, 0);
       $stmnt->closeCursor();
     } catch (PDOException $e) {
 	  $result = false;
-    } 
+    }
     return $result;
 
   }
