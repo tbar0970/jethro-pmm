@@ -48,7 +48,6 @@ class Headcount
 					WHERE `date` = '.$db->quote($date).' AND '.$entitytype.'id = '.$db->quote($entityid);
 		}
 		$res = $db->exec($SQL);
-		check_db_result($res);
 		return TRUE;
 	}
 
@@ -59,7 +58,6 @@ class Headcount
 		$SQL = 'SELECT number FROM '.$entitytype.'_headcount
 				WHERE `date` = '.$db->quote($date).' AND '.$entitytype.'id = '.$db->quote($entityid);
 		$res = $db->queryOne($SQL);
-		check_db_result($res);
 		return $res;
 	}
 
@@ -71,7 +69,6 @@ class Headcount
 				WHERE (`date` BETWEEN '.$db->quote($fromDate).' AND '.$db->quote($toDate).')
 				AND '.$entitytype.'id = '.$db->quote($entityid);
 		$res = $db->queryAll($SQL, null, null, true);
-		check_db_result($res);
 		return $res;
 	}
 	
@@ -83,7 +80,6 @@ class Headcount
 				WHERE (`date` BETWEEN '.$db->quote($fromDate).' AND '.$db->quote($toDate).')
 				AND '.$entitytype.'id = '.$db->quote($entityid);
 		$res = $db->queryOne($SQL);
-		check_db_result($res);
 		return $res;
 		
 	}

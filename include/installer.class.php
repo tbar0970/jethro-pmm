@@ -12,9 +12,8 @@ class Installer
 
 	function run()
 	{
-		$sql = 'SELECT count(*) FROM _person';
-		$res = $GLOBALS['db']->queryOne($sql);
-		if (!PEAR::isError($res)) {
+		$res = $GLOBALS['db']->hasPersons();
+		if ($res) {
 			trigger_error('System has already been installed, installer is aborting');
 			exit();
 		}
@@ -104,7 +103,6 @@ class Installer
 					if (!is_array($sql)) $sql = Array($sql);
 					foreach ($sql as $s) {
 						$r = $GLOBALS['db']->query($s);
-						check_db_result($r);
 					}
 				}
 
@@ -194,7 +192,7 @@ class Installer
 			FROM _person mp
 			JOIN family mf ON mf.id = mp.familyid
 			JOIN _person self ON self.familyid = mp.familyid
-			WHERE 
+			WHERE
 				self.id = getCurrentUserID()
 				AND mp.status <> "archived"
 				AND mf.status <> "archived"
@@ -294,7 +292,6 @@ class Installer
 		);
 		foreach ($sql as $s) {
 			$r = $GLOBALS['db']->query($s);
-			check_db_result($r);
 		}
 
 		foreach ($fks as $table => $keys) {
@@ -307,8 +304,6 @@ class Installer
 						ADD CONSTRAINT `'.$name.'`
 						FOREIGN KEY ('.$from.') REFERENCES '.$to;
 				$r = $GLOBALS['db']->query($SQL);
-				check_db_result($r);
-
 			}
 		}
 
@@ -343,7 +338,7 @@ class Installer
 			$this->congregations[] = $c;
 			if (!$c->validateFields()) return FALSE;
 		}
-		
+
 		$this->user = new Staff_Member();
 		foreach ($this->initial_person_fields as $field) {
 			$this->user->processFieldInterface($field, 'install_');
@@ -371,7 +366,7 @@ class Installer
 			}
 			$cong_ids[] = $cong->id;
 		}
-		
+
 		if (!$this->family->create()) {
 			$this->reportFailure();
 			return;
@@ -384,7 +379,7 @@ class Installer
 			$this->reportFailure();
 			return;
 		}
-		
+
 
 		$this->user->setValue('creator', $this->user->id);
 		$this->user->save();
@@ -402,16 +397,16 @@ class Installer
 
 	function printForm()
 	{
-		$tables = $GLOBALS['db']->queryCol('SHOW TABLES');
-		$routines = $GLOBALS['db']->queryCol('SHOW CREATE FUNCTION getCurrentUserID');
-		if (!empty($tables) || !($routines instanceof MDB2_Error)) {
+		$tables = $GLOBALS['db']->isInstalled_Tables();
+		$functions = $GLOBALS['db']->isInstalled_Functions();
+		if ($tables || $functions) {
 			print_message('Your MySQL database is not empty.  This could be due to a failed previous installation attempt.  Please drop and re-create the database to ensure it is entirely blank, then reload this page.', 'error');
 			return;
 		}
 		?>
 		<h2>Welcome</h2>
 		<p>Welcome to the Jethro installer.  The installation process will set up your MySQL database so that <br />it's ready to run Jethro.  First we need to collect some details to get things started.</p>
-		
+
 		<form method="post">
 			<h3>Overall Settings</h3>
 			<p>Please enter a name for your system and choose a set of default settings appropriate for your location.
@@ -490,7 +485,7 @@ class Installer
 		<h2>Installation Complete!</h2>
 
 		You can now <a href="<?php echo BASE_URL; ?>">log in to the system</a> to start work.
-		
+
 		<?php
 	}
 }

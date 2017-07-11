@@ -13,9 +13,8 @@ class Attendance_Record_Set
 	private $_persons = NULL;
 	private $_attendance_records = Array();
 	private $_cohort_object = NULL;
-	
-	const LIST_ORDER_DEFAULT = 'status ASC, family_name ASC, familyid, ab.rank ASC, gender DESC';
 
+	const LIST_ORDER_DEFAULT = 'status ASC, family_name ASC, familyid, ab.rank ASC, gender DESC';
 //--        CREATING, LOADING AND SAVING        --//
 
 	function Attendance_Record_Set($date=NULL, $cohort=NULL, $age_brackets=NULL, $statuses=NULL)
@@ -24,7 +23,7 @@ class Attendance_Record_Set
 			$this->load($date, $cohort, $age_brackets, $statuses);
 		}
 	}
-	
+
 	private function _getCohortObject()
 	{
 		if (!$this->_cohort_object) {
@@ -36,7 +35,7 @@ class Attendance_Record_Set
 		}
 		return $this->_cohort_object;
 	}
-	
+
 	public function acquireLock()
 	{
 		$obj = $this->_getCohortObject();
@@ -46,7 +45,7 @@ class Attendance_Record_Set
 		}
 		return $obj->acquireLock('att-'.$this->date);
 	}
-	
+
 	public function haveLock()
 	{
 		$obj = $this->_getCohortObject();
@@ -56,7 +55,7 @@ class Attendance_Record_Set
 		}
 		return $obj->haveLock('att-'.$this->date);
 	}
-	
+
 	public function releaseLock()
 	{
 		$obj = $this->_getCohortObject();
@@ -66,7 +65,6 @@ class Attendance_Record_Set
 		}
 		return $obj->releaseLock('att-'.$this->date);
 	}
-	
 
 	function create()
 	{
@@ -85,7 +83,7 @@ class Attendance_Record_Set
 			) ENGINE=InnoDB ;
 		";
 	}
-	
+
 	public function getForeignKeys()
 	{
 		return Array();
@@ -117,7 +115,7 @@ class Attendance_Record_Set
 		$sql = 'SELECT ar.personid, ar.present
 					FROM attendance_record ar
 					JOIN person p ON ar.personid = p.id
-					LEFT JOIN person_group_membership pgm 
+					LEFT JOIN person_group_membership pgm
 						ON pgm.groupid = ar.groupid AND pgm.personid = p.id
 				WHERE ar.date = '.$db->quote($date).'
 					AND ar.groupid = '.(int)$this->groupid;
@@ -149,7 +147,6 @@ class Attendance_Record_Set
 				AND p.age_bracketid IN ('.implode(',', array_map(Array($db, 'quote'), $this->age_brackets)).')';
 		}
 		$this->_attendance_records = $db->queryAll($sql, null, null, true);
-		check_db_result($this->_attendance_records);
 
 		// NOW FETCH THE APPLICABLE PERSON RECORDS
 		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
@@ -190,11 +187,13 @@ class Attendance_Record_Set
 		$db =& $GLOBALS['db'];
 		$GLOBALS['system']->doTransaction('begin');
 			$this->delete();
-			$stmt = $db->prepare('REPLACE INTO attendance_record (date, groupid, personid, present) VALUES ('.$db->quote($this->date).', '.(int)$this->groupid.', ?, ?)', Array('integer', 'integer', 'integer'), MDB2_PREPARE_MANIP);
-			check_db_result($stmt);
+			$stmt = $db->prepare('REPLACE INTO attendance_record (date, groupid, personid, present) VALUES ('.$db->quote($this->date).', '.(int)$this->groupid.', ?, ?)', Array('integer', 'integer', 'integer'));
 			foreach ($this->_attendance_records as $personid => $present) {
-				$res = $stmt->execute(Array($personid, $present));
-				check_db_result($res);
+              try {
+                $res = $stmt->execute(Array($personid, $present));
+              } catch (PDOException $e) {
+                $db->db_error($e);
+              }
 			}
 		$GLOBALS['system']->doTransaction('commit');
 	}
@@ -203,20 +202,19 @@ class Attendance_Record_Set
 	function delete()
 	{
 		$db =& $GLOBALS['db'];
-		$sql = 'DELETE ar 
+		$sql = 'DELETE ar
 				FROM attendance_record ar
 				JOIN person p ON ar.personid = p.id
 				WHERE date = '.$db->quote($this->date).'
 					AND (ar.groupid = '.$db->quote((int)$this->groupid).')';
 		if ($this->congregationid) {
 			$sql .= '
-					AND (congregationid = '.$db->quote($this->congregationid).') 
+					AND (congregationid = '.$db->quote($this->congregationid).')
 					';
 		}
 		$sql .= '  AND personid IN ('.implode(',', array_map(Array($db, 'quote'), array_keys($this->_persons))).')';
 
 		$res = $db->query($sql);
-		check_db_result($res);
 	}
 
 
@@ -256,24 +254,24 @@ class Attendance_Record_Set
 	{
 		return $this->_persons;
 	}
-	
+
 	public function getCohortName()
 	{
 		$obj = $this->_getCohortObject();
 		if ($obj) return $obj->getValue('name');
 	}
-	
+
 	public function checkAllowedDate()
 	{
 		$obj = $this->_getCohortObject();
 		if (!$obj) return FALSE;
 		return $obj->canRecordAttendanceOn($this->date);
 	}
-	
+
 	public function printForm($prefix=0)
 	{
 		if (empty($this->_persons)) return 0;
-		
+
 		$GLOBALS['system']->includeDBClass('person');
 		$dummy = new Person();
 		?>
@@ -284,7 +282,7 @@ class Attendance_Record_Set
 			$dummy->populate($personid, $details);
 			?>
 			<tr>
-			<?php 
+			<?php
 			if (!SizeDetector::isNarrow()) {
 				?>
 				<td><?php echo $personid; ?></td>
@@ -303,7 +301,7 @@ class Attendance_Record_Set
 				<td>
 					<?php echo ents($details['first_name'].' '.$details['last_name']); ?>
 				</td>
-			<?php 
+			<?php
 			if (!SizeDetector::isNarrow()) {
 				?>
 				<td>
@@ -391,7 +389,6 @@ class Attendance_Record_Set
 				GROUP BY present, '.$groupingField.'
 				ORDER BY present, '.$groupingField;
 		$res = $db->queryAll($SQL);
-		check_db_result($res);
 		$totals = Array(0 => 0, 1 => 0);
 		$breakdowns = Array(0 => Array(), 1 => Array());
 		$dummy = new Person();
@@ -477,7 +474,7 @@ class Attendance_Record_Set
 	function getStatsForPeriod($start_date, $end_date, $cohortid)
 	{
 		$db =& $GLOBALS['db'];
-		
+
 		list($type, $id) = explode('-', $cohortid);
 		$groupid = ($type == 'g') ? $id : 0;
 		$status_col = ($type == 'g') ? 'pgms.id' : 'p.status';
@@ -519,8 +516,7 @@ class Attendance_Record_Set
 						GROUP BY ar.personid, '.$selectCol.'
 					) indiv
 					GROUP BY '.$rank.' '.$groupingField.' WITH ROLLUP';
-			$res = $db->queryAll($sql);
-			check_db_result($res);
+			$res = $db->queryAll($sql);			
 
 			foreach ($res as $row) {
 				if (NULL !== $row[$groupingField]) {
@@ -550,7 +546,6 @@ class Attendance_Record_Set
 						GROUP BY ar.date, '.$groupingField.'
 					) perdate GROUP BY '.$groupingField.'';
 			$res = $db->queryAll($sql);
-			check_db_result($res);
 			foreach ($res as $row) {
 				foreach (Array('avg_present', 'avg_absent') as $key) {
 					$stats[$groupingField][$row[$groupingField]][$key] = $row[$key];
@@ -635,7 +630,6 @@ class Attendance_Record_Set
 		$SQL .=  "GROUP BY person.id \n";
 		$SQL .= ' ORDER BY '.$order."\n";
 		$res= $db->queryAll($SQL, null, null, true);
-		check_db_result($res);
 		return $res;
 
 
@@ -659,7 +653,6 @@ class Attendance_Record_Set
 				break;
 		}
 		$res = $GLOBALS['db']->queryOne($SQL);
-		check_db_result($res);
 		return $res;
 	}
 
@@ -742,8 +735,7 @@ class Attendance_Record_Set
 		$attendances = Array();
 		$totals = Array();
 		$res = $GLOBALS['db']->query($SQL);
-		check_db_result($res);
-		while ($row = $res->fetchRow()) {
+		while ($row = $res->fetch()) {
 			if (!empty($row['date'])) $dates[$row['date']] = 1;
 			foreach (Array('last_name', 'first_name', 'membership_status', 'status') as $f) {
 				if (array_key_exists($f, $row)) $attendances[$row['id']][$f] = $row[$f];
@@ -807,7 +799,7 @@ class Attendance_Record_Set
 		</tr>
 		<?php
 	}
-	
+
 	public static function printPersonFilters($age_brackets, $statuses)
 	{
 		?>
@@ -897,7 +889,7 @@ class Attendance_Record_Set
 
 
 
-		
+
 
 
 }//end class

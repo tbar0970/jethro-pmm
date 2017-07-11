@@ -44,18 +44,8 @@ if (php_sapi_name() != 'cli') {
 }
 
 // Set up the DB
-if (!@include_once('MDB2.php')) {
-	trigger_error('MDB2 Library not found on the server.  See the readme file for how to work around this');
-	exit();
-}
-$GLOBALS['db'] =& MDB2::factory(DSN);
-if (MDB2::isError($GLOBALS['db']) || MDB2::isError($GLOBALS['db']->getConnection())) {
-	trigger_error('Could not connect to database - please check for mistakes in your DSN in conf.php, and check in MySQL that the database exists and the specified user has been granted access.', E_USER_ERROR);
-	exit();
-}
-
-$GLOBALS['db']->setOption('portability', $GLOBALS['db']->getOption('portability') & !MDB2_PORTABILITY_EMPTY_TO_NULL);
-$GLOBALS['db']->setFetchmode(MDB2_FETCHMODE_ASSOC);
+require_once JETHRO_ROOT .'/include/jethrodb.php';
+$GLOBALS['db'] = new JethroDB(DSN, DB_USERNAME,DB_PASSWORD);
 
 //SET MySQL session variables to account for strict mode
 if (defined('STRICT_MODE_FIX') && STRICT_MODE_FIX) {
@@ -68,5 +58,7 @@ Config_Manager::init();
 
 if (defined('TIMEZONE') && constant('TIMEZONE')) {
 	date_default_timezone_set(constant('TIMEZONE'));
-	$GLOBALS['db']->query('SET time_zone = "'.date('P').'"');
+	$res = $GLOBALS['db']->query('SET time_zone = "'.date('P').'"');
 }
+
+@ini_set('default_charset', 'UTF-8');

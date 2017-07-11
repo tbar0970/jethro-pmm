@@ -63,8 +63,7 @@ class User_System extends Abstract_User_System
 			}
 			$_SESSION['last_activity_time'] = time();
 
-			$res = $GLOBALS['db']->query('SET @current_user_id = '.(int)$_SESSION['user']['id']);
-			if (PEAR::isError($res)) trigger_error('Failed to set user id in database', E_USER_ERROR);
+            $GLOBALS['db']->setCurrentUserID((int)$_SESSION['user']['id']);
 		}
 
 	}//end constructor
@@ -82,16 +81,6 @@ class User_System extends Abstract_User_System
 		$_SESSION['user'] = NULL;
 		$_SESSION['login_time'] = NULL;
 		$_SESSION['last_activity_time'] = NULL;
-	}
-
-	public function hasUsers()
-	{
-		$sql = 'SELECT count(*) FROM staff_member';
-		$res = $GLOBALS['db']->queryRow($sql);
-		if (PEAR::isError($res)) {
-			$res = 0;
-		}
-		return (bool)$res;
 	}
 
 	/**
@@ -158,8 +147,7 @@ class User_System extends Abstract_User_System
 	// Called by the public interface to indicate no login expected
 	public function setPublic()
 	{
-		$res = $GLOBALS['db']->query('SET @current_user_id = -1');
-		if (PEAR::isError($res)) trigger_error('Failed to set user id in database', E_USER_ERROR);
+        $GLOBALS['db']->setCurrentUserID(-1);
 		$this->_is_public = TRUE;
 	}
 
@@ -182,7 +170,6 @@ class User_System extends Abstract_User_System
 					AND active = 1
 				GROUP BY p.id';
 		$row = $db->queryRow($sql);
-		check_db_result($row);
 		if (!empty($row) && jethro_password_verify($password, $row['password'])) {
 			$row['congregation_restrictions'] = empty($row['congregation_restrictions']) ? Array() : explode(',', $row['congregation_restrictions']);
 			$row['group_restrictions'] = empty($row['group_restrictions']) ? Array() : explode(',', $row['group_restrictions']);
