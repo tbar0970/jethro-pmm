@@ -71,9 +71,37 @@ Class Photo_Handler {
 
 	public static function getDataURL($type, $id)
 	{
-		$SQL = 'SELECT photodata FROM '.$type.'_photo WHERE '.$type.'id = '.(int)$id;
-		$res = $GLOBALS['db']->queryOne($SQL);
-		return 'data:image/jpg;base64,'.base64_encode($res);
+		if ($res = self::getPhotoData($type, $id)) {
+			return 'data:image/jpg;base64,'.base64_encode($res);
+		} else {
+			return 'data:image/gif;base64,'.base64_encode(file_get_contents(BASE_URL.'resources/img/unknown_family.gif'));
+		}
+	}	
+
+	public static function getPhotoData($type, $id)
+	{
+		$db = $GLOBALS['db'];
+		if ($type == 'person') {
+			$obj = $GLOBALS['system']->getDBObject('person', (int)$id);
+			$SQL = 'SELECT photodata FROM person_photo WHERE personid = '.$obj->id;
+		} else if ($type == 'family') {
+			$obj = $GLOBALS['system']->getDBObject('family', (int)$id);
+			// for single-member families, treat person photo as family photo
+			$SQL = 'SELECT COALESCE(fp.photodata, IF(count(p.id) = 1, pp.photodata, NULL)) as photodata
+					FROM family f
+					LEFT JOIN family_photo fp ON fp.familyid = f.id
+					LEFT JOIN person p ON p.familyid = f.id
+					LEFT JOIN person_photo pp ON pp.personid = p.id
+					WHERE f.id = '.(int)$obj->id.'
+					GROUP BY f.id';
+
+		}
+		if ($obj) {
+			$res = $GLOBALS['db']->queryOne($SQL);
+			if ($res) {
+				return $res;
+			}
+		}
 	}
 
 }

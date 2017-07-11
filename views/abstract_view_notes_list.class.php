@@ -27,7 +27,7 @@ class Abstract_View_Notes_List extends View
 
 		}
 		// these will have changed
-		$this->_notes = $this->_getNotesToShow(array_get($_REQUEST, 'assignee'));
+		$this->_notes = $this->_getNotesToShow(array_get($_REQUEST, 'assignee'), array_get($_REQUEST, 'search'));
 	}
 
 
@@ -43,7 +43,8 @@ class Abstract_View_Notes_List extends View
 		<form class="well well-small form-inline">
 		<input type="hidden" name="view" value="<?php echo $_REQUEST['view']; ?>" />
 		<?php
-		echo _('Show notes assigned to ');
+		$string = "Show %s of notes assigned to %s with subject containing %s";
+		ob_start();
 		print_widget(
 			'assignee',
 			Array(
@@ -55,6 +56,30 @@ class Abstract_View_Notes_List extends View
 			),
 			array_get($_REQUEST, 'assignee')
 		);
+		echo '<br class="visible-phone" />';
+		$assignee_widget = ob_get_clean();
+
+		ob_start();
+		print_widget(
+			'display_full',
+			Array(
+				'type' => 'select',
+				'options' => Array('summary', 'full content'),
+			),
+			array_get($_REQUEST, 'display_full', 0)
+		);
+		echo '<br class="visible-phone" />';
+		$display_widget = ob_get_clean();
+
+		ob_start();
+		print_widget(
+			'search',
+			Array('type' => 'text', 'width' => 10),
+			array_get($_REQUEST, 'search', '')
+		);
+		$search_widget = ob_get_clean();
+
+		printf(_($string), $display_widget, $assignee_widget, $search_widget);
 		?>
 		<button type="submit" class="btn"><?php echo _('Go'); ?></button>
 		</form>
@@ -66,7 +91,7 @@ class Abstract_View_Notes_List extends View
 			<p><i><?php echo _('There are no notes to show'); ?></i></p>
 			<?php
 		} else {
-			if (!$reassigning && $GLOBALS['user_system']->havePerm(PERM_BULKNOTE)) {
+			if (!$reassigning && empty($_REQUEST['display_full']) && $GLOBALS['user_system']->havePerm(PERM_BULKNOTE)) {
 				?>
 				<p class="pull-right">
 					<a href="<?php echo build_url(Array('reassigning' => 1)); ?>">
@@ -80,7 +105,13 @@ class Abstract_View_Notes_List extends View
 			<p><b><?php echo sprintf(_('%s notes in total'), count($this->_notes)); ?></b></p>
 			<?php
 			$notes =& $this->_notes;
-			include 'templates/list_notes_assorted.template.php';
+			if (empty($_REQUEST['display_full'])) {
+				include 'templates/list_notes_assorted.template.php';
+			} else {
+				$show_names = TRUE;
+				$show_edit_link = TRUE;
+				include 'templates/list_notes.template.php';
+			}
 		}
 	}
 }

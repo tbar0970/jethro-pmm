@@ -748,6 +748,9 @@ table.object-summary>tbody>tr>td>table>tbody>tr:first-child td {
 .form-horizontal .control-group {
 	margin-bottom: 8px !important;
 }
+.form-inline {
+	line-height: 32px;
+}
 .controls-text {
 	padding-top: 5px; /* to vertically align with control label */
 }
@@ -1387,6 +1390,9 @@ table.service-details td table td input {
 
 
 /*********** NOTES **************/
+.notes-history-entry small {
+	display: inline;
+}
 .notes-history-entry.well {
 	padding: 20px 20px 10px 20px;
 	max-width: 40em;
@@ -1417,6 +1423,9 @@ table.service-details td table td input {
 	line-height: 1.1em;
 }
 .notes-history-entry h4 {
+	margin: -10px 0px 7px 0px;
+}
+.notes-history-entry h4.note-update {
 	margin-left: 45px;
 	color: @grayLight;
 	border-bottom: 1px solid @jethroDarkish;

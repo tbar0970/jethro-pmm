@@ -18,33 +18,20 @@ class Call_Photo extends Call
 	 */
 	function run()
 	{
-		$db = $GLOBALS['db'];
 		if (!empty($_REQUEST['personid'])) {
-			$obj = $GLOBALS['system']->getDBObject('person', (int)$_REQUEST['personid']);
-			$SQL = 'SELECT photodata FROM person_photo WHERE personid = '.$obj->id;
+			$data = Photo_Handler::getPhotoData('person', (int)$_REQUEST['personid']);
+			$fallback = 'unknown.jpg';
 		} else if (!empty($_REQUEST['familyid'])) {
-			$obj = $GLOBALS['system']->getDBObject('family', (int)$_REQUEST['familyid']);
-			// for single-member families, treat person photo as family photo
-			$SQL = 'SELECT COALESCE(fp.photodata, IF(count(p.id) = 1, pp.photodata, NULL)) as photodata
-					FROM family f
-					LEFT JOIN family_photo fp ON fp.familyid = f.id
-					LEFT JOIN person p ON p.familyid = f.id
-					LEFT JOIN person_photo pp ON pp.personid = p.id
-					WHERE f.id = '.(int)$obj->id.'
-					GROUP BY f.id';
-
+			$data = Photo_Handler::getPhotoData('family', (int)$_REQUEST['familyid']);
+			$fallback = 'unknown_family.jpg';
 		}
-		if ($obj) {
-			$res = $db->queryRow($SQL);
-			if ($res && $res['photodata']) {
-				header('Content-type: image/jpeg');
-				echo $res['photodata'];
-				return;
-			}
+		header('Content-type: image/jpeg');
+		if ($data) {
+			echo $data;
+			return;
+		} else {
+			readfile(JETHRO_ROOT.'/resources/img/'.$fallback);
 		}
-		header('Content-type: image/gif');
-		$placeholder = !empty($_REQUEST['personid']) ? 'unknown.gif' : 'unknown_family.gif';
-		readfile(JETHRO_ROOT.'/resources/img/'.$placeholder);
 	}
 }
 ?>
