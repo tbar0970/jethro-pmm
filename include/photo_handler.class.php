@@ -76,7 +76,7 @@ Class Photo_Handler {
 		} else {
 			return 'data:image/gif;base64,'.base64_encode(file_get_contents(BASE_URL.'resources/img/unknown_family.gif'));
 		}
-	}	
+	}
 
 	public static function getPhotoData($type, $id)
 	{
