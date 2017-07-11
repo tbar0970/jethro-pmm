@@ -339,7 +339,7 @@ class Action_Plan extends DB_Object
 				$r = $GLOBALS['db']->exec($SQL);
 				check_db_result($r);
 			}
-		}	
+		}
 	}
 
 	function processForm($prefix = '', $fields = NULL)
@@ -474,7 +474,7 @@ class Action_Plan extends DB_Object
 		
 		if ($abs = $this->getAgeBracketRestrictions()) {
 			$personids = array_keys($GLOBALS['system']->getDBObjectData(
-				'person', 
+				'person',
 				Array(
 					'(id' => $personids,
 					'(age_bracketid' => $abs,
@@ -489,7 +489,7 @@ class Action_Plan extends DB_Object
 					$person = new Person($subject_id);
 					add_message('"'.$this->getValue('name').'" plan was not executed on '.$person->toString().' because they don\'t have the appropriate age bracket', 'warning');
 				}
-				return FALSE;				
+				return FALSE;
 			}
 		}
 		

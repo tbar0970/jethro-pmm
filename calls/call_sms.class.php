@@ -25,7 +25,7 @@ class Call_sms extends Call
       } else if (strlen($message) > SMS_MAX_LENGTH) {
         $ajax['error'] = "Message too long";
       } else {
-        $successes = $failures = $rawresponse = Array();      
+        $successes = $failures = $rawresponse = Array();
 		$sendResponse = SMS_Sender::sendMessage($message, $recips, array_get($_REQUEST, 'saveasnote'));
 		$success = $sendResponse['success'];
 		$successes = $sendResponse['successes'];
