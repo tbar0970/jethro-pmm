@@ -4,7 +4,7 @@ Class Photo_Handler {
 	const MAX_PHOTO_WIDTH = 200;
 	const MAX_PHOTO_HEIGHT = 200;
 	
-	function getUploadedPhotoData($fieldName)
+	public static function getUploadedPhotoData($fieldName)
 	{
 		if (!empty($_FILES[$fieldName]) && !empty($_FILES[$fieldName]['name'])) {
 			if (!empty($_FILES[$fieldName]['error'])) {
@@ -98,7 +98,6 @@ Class Photo_Handler {
 		}
 		if ($obj) {
 			$res = $GLOBALS['db']->queryOne($SQL);
-			check_db_result($res);
 			if ($res) {
 				return $res;
 			}

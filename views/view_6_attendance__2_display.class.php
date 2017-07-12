@@ -422,7 +422,8 @@ class View_Attendance__Display extends View
 							$group = $GLOBALS['system']->getDBObject('person_group', $id);
 							$name = $group->getValue('name');
 						}
-						$short = reset(explode(' ', $name));
+						$name_bits = explode(' ', $name);
+						$short = reset($name_bits);
 						if ((strlen($short) > 5) && !preg_match('/[0-9]/', $short)) $short = substr($short, 0, 3).'…';
 						$class = $first ? 'new-cohort' : '';
 						?>

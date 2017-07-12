@@ -16,7 +16,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with Jethro PMM.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * index.php - first stop for every request
  *
  * @author Tom Barrett <tom@tombarrett.id.au>
@@ -33,8 +33,10 @@ set_include_path(get_include_path().PATH_SEPARATOR.dirname(THIS_DIR));
 require_once dirname(THIS_DIR).'/conf.php';
 
 // Initialise system
-define('DSN', MEMBERS_DSN);
 define('IS_PUBLIC', true);
+
+// Initialise system
+define('DB_MODE', 'MEMBERS');
 require_once JETHRO_ROOT.'/include/init.php';
 
 // Check if member access is enabled

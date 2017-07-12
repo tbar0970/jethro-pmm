@@ -39,7 +39,6 @@ class roster_role_assignment extends db_object
 		$sql .= '
 			ORDER BY rra.assignment_date ASC, c.meeting_time';
 		$res = $GLOBALS['db']->queryAll($sql, NULL, NULL, true, false, true);
-		check_db_result($res);
 		return $res;
 	}
 
