@@ -47,11 +47,6 @@ class db_object
 		}
 	}
 
-	public function unixToTimestamp($unix_timestamp)
-	{
-		return date('Y-m-d H:i:s', $unix_timestamp);
-	}
-
 	public function getInitSQL($table_name=NULL)
 	{
 		return $this->_getInitSQL($table_name);
@@ -752,7 +747,7 @@ class db_object
 						AND objectid = '.$db->quote($this->id).'
 						AND lock_type = '.$db->quote($type).'
 						AND userid = '.$GLOBALS['user_system']->getCurrentPerson('id').'
-						AND expires > '.$db->quote(self::unixToTimestamp(time()));
+						AND expires > NOW()';
 			$this->_held_locks[$type] = $db->queryOne($sql);
 		}
 		return $this->_held_locks[$type];
@@ -768,7 +763,7 @@ class db_object
 					WHERE object_type = '.$db->quote(strtolower(get_class($this))).'
 						AND lock_type = '.$db->quote($type).'
 						AND objectid = '.$db->quote($this->id).'
-						AND expires > '.$db->quote(self::unixToTimestamp(time()));
+						AND expires > NOW()';
 			$res = $db->queryOne($sql);
 			if ($res == $GLOBALS['user_system']->getCurrentPerson('id')) {
 				$this->_acquirable_locks[$type] = TRUE; // already got it, what the heck
@@ -785,6 +780,8 @@ class db_object
 		if (!$this->id) return TRUE;
 		if ($this->haveLock($type)) return TRUE;
 		if (!$this->canAcquireLock($type)) return FALSE;
+		$bits = explode(' ', self::getLockLength());
+		$mins = reset($bits);
 		$db =& $GLOBALS['db'];
 		$sql = 'INSERT INTO db_object_lock (objectid, object_type, lock_type, userid, expires)
 				VALUES (
@@ -792,14 +789,14 @@ class db_object
 					'.$db->quote(strtolower(get_class($this))).',
 					'.$db->quote($type).',
 					'.$db->quote($GLOBALS['user_system']->getCurrentPerson('id')).',
-					'.$db->quote(self::unixToTimestamp(strtotime('+'.self::getLockLength()))).')';
+					NOW() + INTERVAL '.$db->quote($mins).' MINUTE)';
 		$res = $db->query($sql);
 		$this->_held_locks[$type] = TRUE;
 		$this->_acquirable_locks[$type] = TRUE;
 
 		if (rand(10, 100) == 100) {
 			$sql = 'DELETE FROM db_object_lock
-					WHERE expires < '.$db->quote(self::unixToTimestamp(time()));
+					WHERE expires < NOW()';
 			$res = $db->query($sql);
 		}
 
@@ -816,8 +813,11 @@ class db_object
 		$db = $GLOBALS['db'];
 		$SQL = 'DELETE FROM db_object_lock
 				WHERE userid = '.$db->quote($userid);
-		$res = $db->query($SQL);
-		// We actually don't care if this fails - it shouldn't hold up the logout.
+		try {
+			$res = $db->query($SQL);
+		} catch (PDOException $e) {
+			// We actually don't care if this fails - it shouldn't hold up the logout.
+		}
 	}
 
 
