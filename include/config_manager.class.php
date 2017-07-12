@@ -35,34 +35,17 @@ class Config_Manager {
 		return FALSE;
 	}
 
-	public static function getInitSQL()
-	{
-		// TODO: paste from the upgrade file in here
-	}
-
 	public static function getSettings()
 	{
 		$SQL = 'SELECT symbol, s.* from setting s ORDER BY rank';
-		$res = $GLOBALS['db']->queryAll($SQL, NULL, NULL, TRUE,FALSE,FALSE,TRUE); // no fatal error because we might be in the installer
+		$res = Array();
+		try {
+			$res = $GLOBALS['db']->queryAll($SQL, NULL, NULL, TRUE);
+		} catch (PDOException $e) {
+			 // no fatal error because we might be in the installer
+		}
 		return $res;
 	}
-/*
-	public static function migrateFileToDB()
-	{
-		$savedFromFile = FALSE;
-		foreach (Config_Manager::getSettings() as $symbol => $details) {
-			if (defined($symbol.'_IN_CONFIG_FILE')) {
-				$migrateMethod = 'migrate'.str_replace('_', '', $symbol);
-				if (method_exists(__CLASS__, $migrateMethod)) {
-					call_user_func(Array(__CLASS__, $migrateMethod));
-				} else {
-					self::saveSetting($symbol, constant($symbol));
-					$savedFromFile = TRUE;
-				}
-			}
-		}
-		return $savedFromFile;
-	}*/
 
 	public static function migrateEnabledFeatures()
 	{
@@ -82,8 +65,13 @@ class Config_Manager {
 	public static function migrateAgeBracketOptions()
 	{
 		$db = $GLOBALS['db'];
-		$SQL = 'SELECT count(*) FROM _disused_person_age_brackets';
-		$res = $db->query($SQL);
+		$res = NULL;
+		try {
+			$SQL = 'SELECT count(*) FROM _disused_person_age_brackets';
+			$res = $db->queryAll($SQL);
+		} catch (PDOException $e) {
+			// No data to migrate
+		}
 		if (!$res) {
 			// No data to migrate
 			return;
