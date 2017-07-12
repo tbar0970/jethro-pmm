@@ -50,8 +50,15 @@ class View_services extends View
 							return;
 						}
 						$newItems = $fromService->getItems();
-						// WHAT TO DO WITH AD HOC ITEMS?
 						foreach ($newItems as $k => $v) {
+							$newItems[$k]['personnel'] = '';
+							if (!empty($v['componentid'])) {
+								$comp = $GLOBALS['system']->getDBObject('service_component', $v['componentid']);
+								if ($comp) {
+									$newItems[$k]['personnel'] = $this->service->replaceKeywords($comp->getValue('personnel'));
+								}
+							}
+
 							if (!in_array($v['categoryid'], $_REQUEST['copy_category_ids'])) {
 								unset($newItems[$k]);
 							}

@@ -13,14 +13,13 @@
 // ESSENTIAL SETTINGS - these must be filled in for the system to run at all:
 ///////////////////////////////////////////////////////////////////////////
 
-// Database details - you need to replace at least USERNAME, PASSWORD and DB_NAME for both of these.
-// The Private DSN is used for the main system that users log in to.
-// For enhanced security you can use a different database user for the Public DSN
-// and only grant reduced access privileges to that user (eg only SELECT priveleges, only certain tables)
-// Ref: http://en.wikipedia.org/wiki/Database_Source_Name
-define('PUBLIC_DSN', "mysql://USERNAME:PASSWORD@localhost/DB_NAME");
-define('PRIVATE_DSN', "mysql://USERNAME:PASSWORD@localhost/DB_NAME");
-define('MEMBERS_DSN', "mysql://USERNAME:PASSWORD@localhost/DB_NAME");
+
+// Name of the mysql database, eg jethro
+define('DB_DATABASE', '');
+
+// Username and password of the mysql account with which to access the mysql database
+define('DB_USERNAME', '');
+define('DB_PASSWORD', '');
 
 // The URL jethro will be running at.  NB The final slash is important!!
 define('BASE_URL', 'http://example.com/jethro/');
@@ -29,6 +28,28 @@ define('BASE_URL', 'http://example.com/jethro/');
 // If this is true, the BASE_URL above must begin with https://
 define('REQUIRE_HTTPS', FALSE);
 
+///////////////////////////////////////////////////////////////////////////
+// OPTIONAL DATABASE SETTINGS -
+// you can use these for more precise control of your mysql database
+///////////////////////////////////////////////////////////////////////////
+
+// Username and password of the mysql account that the MEMBERS area of Jethro should
+// use. Optional. This can be used to add an extra layer of security by only granting
+// access to the tables needed for members area features.
+define('DB_MEMBERS_USERNAME', '');
+define('DB_MEMBERS_PASSWORD', '');
+
+// Username and password of the mysql account that the PUBLIC area of Jethro should
+// use. Optional. This can be used to add an extra layer of security by only granting
+// access to the tables needed for public  area features.
+define('DB_PUBLIC_USERNAME', '');
+define('DB_PUBLIC_PASSWORD', '');
+
+// Server on which mysql is running - usually localhost
+define('DB_HOST', 'localhost');
+
+// Database type - usually mysql.
+define('DB_TYPE', 'mysql');
 
 ///////////////////////////////////////////////////////////////////////////
 // SMS SETTINGS - These can also be configured in the web interface,
@@ -84,7 +105,7 @@ define('REQUIRE_HTTPS', FALSE);
 // * For smsbroadcast.com.au
 //   define('SMS_HTTP_RESPONSE_OK_REGEX', '[\s\S]*_RECIPIENT_INTERNATIONAL_\",\"id\"\:\d*,\"status\"\:\d*,\"status_text\"\:\"Sen');
 // * For 5centsms
-//   define('SMS_HTTP_RESPONSE_OK_REGEX', '[{]\s*"destination":\s*"_RECIPIENT_",[^}]*"status":\s*(1000|1001|1002|1004|1006|1011|1527),');
+//   define('SMS_HTTP_RESPONSE_OK_REGEX', '[{]\s*"destination":\s*"_RECIPIENT_",[^}]*"status":\s*"?(1000|1001|1002|1004|1006|1011|1527)"?,');
 // define('SMS_HTTP_RESPONSE_OK_REGEX', '');
 
 // Regex to detect an overall error response from the API server (eg bad credentials).

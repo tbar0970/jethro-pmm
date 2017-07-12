@@ -14,8 +14,7 @@ if (!is_readable(JETHRO_ROOT.'/conf.php')) {
 	exit();
 }
 require_once JETHRO_ROOT.'/conf.php';
-
-if (!defined('DSN')) define('DSN', constant('PRIVATE_DSN'));
+define('DB_MODE', 'PRIVATE');
 require_once JETHRO_ROOT.'/include/init.php';
 
 if (ifdef('TASK_NOTIFICATION_ENABLED', FALSE) == FALSE) {
@@ -46,7 +45,6 @@ if (!defined('TASK_NOTIFICATION_FROM_ADDRESS')) {
 }
 
 $reminders = Abstract_Note::getNotifications($minutes);
-check_db_result($reminders);
 $fromText = ifdef('TASK_NOTIFICATION_FROM_NAME', SYSTEM_NAME.' Jethro');
 $subject = ifdef('TASK_NOTIFICATION_SUBJECT', 'New notes assigned to you');
 

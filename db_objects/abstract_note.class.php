@@ -158,13 +158,12 @@ class Abstract_Note extends DB_Object
 
 		// Get the comments to go with them
 		if (!empty($res)) {
-			$sql = 'SELECT c.noteid, c.*, p.first_name as creator_fn, p.last_name as creator_ln 
+			$sql = 'SELECT c.noteid, c.*, p.first_name as creator_fn, p.last_name as creator_ln
 					FROM note_comment c JOIN person p on c.creator = p.id
 					WHERE noteid IN ('.implode(', ', array_keys($res)).')
 					ORDER BY noteid, created';
 			$db =& $GLOBALS['db'];
 			$comments = $db->queryAll($sql, null, null, true, false, true);
-			check_db_result($comments);
 			foreach ($res as $i => $v) {
 				$res[$i]['comments'] = array_get($comments, $i, Array());
 			}
@@ -188,7 +187,7 @@ class Abstract_Note extends DB_Object
 			$this->printFieldValue('status');
 		}
 	}
-	
+
 	/**
 	 * @return boolean	True if the current user is allowed to delete this note
 	 */
@@ -196,7 +195,7 @@ class Abstract_Note extends DB_Object
 		return ($this->getValue('status') !== 'pending')
 			&& ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN));
 	}
-	
+
 	/**
 	 * @return boolean	True if the current user is allowed to edit the original content of this note
 	 */
@@ -215,10 +214,9 @@ class Abstract_Note extends DB_Object
 		$db =& $GLOBALS['db'];
 		$sql = 'DELETE FROM note_comment WHERE noteid = '.$db->quote($this->id);
 		$res = $db->query($sql);
-		check_db_result($res);
 		return TRUE;
 	}
-	
+
 	function save()
 	{
 		// If the subject or details is updated, set the 'editor' and 'edited' fields
@@ -322,4 +320,3 @@ class Abstract_Note extends DB_Object
 		return $GLOBALS['db']->queryAll($SQL);
 	}
 }
-

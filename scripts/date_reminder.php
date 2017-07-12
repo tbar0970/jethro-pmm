@@ -8,7 +8,7 @@
  *
  * It is called with an ini file as first argument
  * eg: php date_reminder.php my-config-file.ini
- * 
+ *
  * @see date_reminder_sample.ini for config file format.
  */
 
@@ -26,7 +26,7 @@ if (!is_readable(JETHRO_ROOT.'/conf.php')) {
 	exit();
 }
 require_once JETHRO_ROOT.'/conf.php';
-if (!defined('DSN')) define('DSN', constant('PRIVATE_DSN'));
+define('DB_MODE', 'private');
 require_once JETHRO_ROOT.'/include/init.php';
 require_once JETHRO_ROOT.'/include/user_system.class.php';
 require_once JETHRO_ROOT.'/include/system_controller.class.php';
@@ -59,7 +59,6 @@ $SQL .= '
 		AND p.status <> "archived"
 		GROUP BY p.id';
 $res = $GLOBALS['db']->queryAll($SQL);
-check_db_result($res);
 
 if (empty($res) && !empty($ini['VERBOSE'])) {
 	echo "No persons found with custom field ".$ini['CUSTOM_FIELD_ID'].' '.$ini['REMINDER_OFFSET']." days from now \n";
@@ -106,7 +105,7 @@ foreach ($summaries as $supervisors => $remindees) {
 	foreach (explode(';', $supervisors) as $sup) {
 		if (!empty($ini['OVERRIDE_RECIPIENT'])) {
 			$sup = $ini['OVERRIDE_RECIPIENT'];
-		}		
+		}
 		$message->setTo($sup);
 	}
 	$res = Emailer::send($message);
@@ -125,7 +124,7 @@ function send_reminder($person)
 	
 	$sentSomething = FALSE;
 	if (!empty($ini['EMAIL_BODY'])) {
-		if (strlen($person['email'])) {		
+		if (strlen($person['email'])) {
 			$toEmail = $person['email'];
 			if (!empty($ini['OVERRIDE_RECIPIENT'])) $toEmail = $ini['OVERRIDE_RECIPIENT'];
 
@@ -161,15 +160,15 @@ function send_reminder($person)
 			if (count($res['successes']) != 1) {
 				echo "Failed to send SMS to ".$toNumber."\n";
 			} else {
-				$sentSomething = TRUE;			
+				$sentSomething = TRUE;
 				if (!empty($ini['VERBOSE'])) {
 					echo "Sent SMS reminder to ".$person['first_name'].' '.$person['last_name'].' '.$toNumber."\n";
 				}
 			}
 		} else {
-			if (!empty($ini['VERBOSE'])) echo $person['first_name'].' '.$person['last_name']." has no mobile number and will not be sent an SMS \n";		
+			if (!empty($ini['VERBOSE'])) echo $person['first_name'].' '.$person['last_name']." has no mobile number and will not be sent an SMS \n";
 		}
-	}	
+	}
 	
 	if (!empty($ini['VERBOSE']) && !$sentSomething) {
 		echo $person['first_name'].' '.$person['last_name']." was not sent any notification \n";
@@ -196,4 +195,3 @@ function replace_keywords($content, $person)
 	}
 	return $content;
 }
-

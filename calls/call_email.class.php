@@ -23,7 +23,6 @@ class Call_email extends Call
 		} else if (!empty($_REQUEST['roster_view'])) {
 			$view = $GLOBALS['system']->getDBObject('roster_view', (int)$_REQUEST['roster_view']);
 			$recips = $view->getAssignees($_REQUEST['start_date'], $_REQUEST['end_date']);
-			// TODO: find email-less people here?
 		} else {
 			switch (array_get($_REQUEST, 'email_type')) {
 				case 'family':

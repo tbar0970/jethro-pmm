@@ -16,7 +16,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with Jethro PMM.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * index.php - first stop for every request
  *
  * @author Tom Barrett <tom@tombarrett.id.au>
@@ -34,18 +34,18 @@ if (!is_readable(JETHRO_ROOT.'/conf.php')) {
 }
 require_once JETHRO_ROOT.'/conf.php';
 
-// Initialise system
-if (!defined('DSN')) define('DSN', constant('PRIVATE_DSN'));
+define('DB_MODE', 'PRIVATE');
 require_once JETHRO_ROOT.'/include/init.php';
 
 // Set up the user system
 require_once JETHRO_ROOT.'/include/user_system.class.php';
 require_once JETHRO_ROOT.'/include/system_controller.class.php';
 $GLOBALS['user_system'] = new User_System();
+
 if ($GLOBALS['user_system']->getCurrentUser() == NULL) {
 	System_Controller::checkConfigHealth();
 	// Nobody is logged in, so show login screen or installer
-	if (!$GLOBALS['user_system']->hasUsers()) {
+	if (!$GLOBALS['db']->hasTables()) {
 		require_once JETHRO_ROOT.'/include/installer.class.php';
 		$installer = new Installer();
 		$installer->run();

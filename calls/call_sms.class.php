@@ -25,14 +25,18 @@ class Call_sms extends Call
       } else if (strlen($message) > SMS_MAX_LENGTH) {
         $ajax['error'] = "Message too long";
       } else {
-        $successes = $failures = $rawresponse = Array();      
+        $successes = $failures = $rawresponse = Array();
 		$sendResponse = SMS_Sender::sendMessage($message, $recips, array_get($_REQUEST, 'saveasnote'));
 		$success = $sendResponse['success'];
 		$successes = $sendResponse['successes'];
 		$failures = $sendResponse['failures'];
+		$rawresponse = $sendResponse['rawresponse'];
+		$error = $sendResponse['error'];
+
+		$ajax['rawresponse'] = $rawresponse;
 
         if (!$success) {
-          $ajax['error'] = "Failure communicating with SMS server";
+          $ajax['error'] = "Unable to send SMS\n" . $error;
         } else {
           if ((!empty($successes)) || (!empty($failures))) { // we managed to parse the server response to get information
             if (!empty($successes)) {

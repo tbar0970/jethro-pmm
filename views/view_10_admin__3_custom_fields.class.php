@@ -163,7 +163,7 @@ class View_Admin__Custom_Fields extends View
 					</td>
 					<td>
 						<?php 
-						$field->printFieldInterface('params', $prefix); 
+						$field->printFieldInterface('params', $prefix);
 						?>
 					</td>
 					<td class="center">

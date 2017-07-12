@@ -311,7 +311,6 @@ class Action_Plan extends DB_Object
 		$SQL = 'SELECT age_bracketid FROM action_plan_age_bracket
 				WHERE action_planid = '.(int)$this->id;
 		$res = $GLOBALS['db']->queryCol($SQL);
-		check_db_result($res);
 		return $res;
 	}
 
@@ -322,7 +321,6 @@ class Action_Plan extends DB_Object
 		$age_bracket_ids = $this->_tmp['abs'];
 		$SQL = 'DELETE FROM action_plan_age_bracket WHERE action_planid = '.(int)$this->id;
 		$r = $GLOBALS['db']->exec($SQL);
-		check_db_result($r);
 
 		if (!empty($age_bracket_ids)) {
 			// if they've selected every age bracket, don't add any restrictions.
@@ -337,9 +335,8 @@ class Action_Plan extends DB_Object
 						VALUES
 						'.implode(',', $sets);
 				$r = $GLOBALS['db']->exec($SQL);
-				check_db_result($r);
 			}
-		}	
+		}
 	}
 
 	function processForm($prefix = '', $fields = NULL)
@@ -474,7 +471,7 @@ class Action_Plan extends DB_Object
 		
 		if ($abs = $this->getAgeBracketRestrictions()) {
 			$personids = array_keys($GLOBALS['system']->getDBObjectData(
-				'person', 
+				'person',
 				Array(
 					'(id' => $personids,
 					'(age_bracketid' => $abs,
@@ -489,7 +486,7 @@ class Action_Plan extends DB_Object
 					$person = new Person($subject_id);
 					add_message('"'.$this->getValue('name').'" plan was not executed on '.$person->toString().' because they don\'t have the appropriate age bracket', 'warning');
 				}
-				return FALSE;				
+				return FALSE;
 			}
 		}
 		
