@@ -82,11 +82,11 @@ class Headcount
 		$db = $GLOBALS['db'];
         if ($category == '') {
           $SQL = 'SELECT number FROM '.$entitytype.'_headcount
-		  		  WHERE `date` = '.$db->quote($date).' AND '.$entitytype.'id = '.$db->quote($entityid);  
+		  		  WHERE `date` = '.$db->quote($date).' AND '.$entitytype.'id = '.$db->quote($entityid);
         } else {
           $SQL = 'SELECT number FROM '.$entitytype.'_headcount
 		  		  WHERE `date` = '.$db->quote($date).' AND '.$entitytype.'id = '.$db->quote($entityid) . ' AND category = ' . $db->quote($category);
-        }		
+        }
 		$res = $db->queryOne($SQL);
 		return $res;
 	}
