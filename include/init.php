@@ -13,7 +13,7 @@ spl_autoload_register(function ($class_name) {
 });
 
 // set error level such that we cope with PHP versions before and after 5.3 when E_DEPRECATED was introduced.
-$error_level = defined('E_DEPRECATED') ? (E_ALL & ~constant('E_DEPRECATED') & ~constant('E_STRICT')) : E_ALL;
+$error_level = defined('E_DEPRECATED') ? (E_ALL & ~constant('E_DEPRECATED') /*& ~constant('E_STRICT')*/) : E_ALL;
 error_reporting($error_level);
 @ini_set('display_errors', 1);
 
@@ -45,7 +45,7 @@ if (php_sapi_name() != 'cli') {
 
 // Set up the DB
 require_once JETHRO_ROOT .'/include/jethrodb.php';
-$GLOBALS['db'] = new JethroDB(DSN, DB_USERNAME,DB_PASSWORD);
+JethroDB::init(ifdef('DB_MODE', 'PRIVATE'));
 
 //SET MySQL session variables to account for strict mode
 if (defined('STRICT_MODE_FIX') && STRICT_MODE_FIX) {
