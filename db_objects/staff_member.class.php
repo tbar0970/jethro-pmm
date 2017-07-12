@@ -361,7 +361,6 @@ class Staff_Member extends Person
 			if (!empty($this->_restrictions[$type])) {
 				$rows = Array();
 				foreach ($this->_restrictions[$type] as $id) {
-					// TODO: only insert new restrictions!!!!
 					$rows[] = '('.(int)$this->id.','.(int)$id.')';
 				}
 				$res = $GLOBALS['db']->query('INSERT IGNORE INTO account_'.$type.'_restriction (personid, '.$type.'id) VALUES '.implode(',', $rows));
