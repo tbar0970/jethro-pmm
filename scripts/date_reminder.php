@@ -8,7 +8,7 @@
  *
  * It is called with an ini file as first argument
  * eg: php date_reminder.php my-config-file.ini
- * 
+ *
  * @see date_reminder_sample.ini for config file format.
  */
 
@@ -26,7 +26,7 @@ if (!is_readable(JETHRO_ROOT.'/conf.php')) {
 	exit();
 }
 require_once JETHRO_ROOT.'/conf.php';
-if (!defined('DSN')) define('DSN', constant('PRIVATE_DSN'));
+define('DB_MODE', 'private');
 require_once JETHRO_ROOT.'/include/init.php';
 require_once JETHRO_ROOT.'/include/user_system.class.php';
 require_once JETHRO_ROOT.'/include/system_controller.class.php';
@@ -59,7 +59,6 @@ $SQL .= '
 		AND p.status <> "archived"
 		GROUP BY p.id';
 $res = $GLOBALS['db']->queryAll($SQL);
-check_db_result($res);
 
 if (empty($res) && !empty($ini['VERBOSE'])) {
 	echo "No persons found with custom field ".$ini['CUSTOM_FIELD_ID'].' '.$ini['REMINDER_OFFSET']." days from now \n";
@@ -196,4 +195,3 @@ function replace_keywords($content, $person)
 	}
 	return $content;
 }
-

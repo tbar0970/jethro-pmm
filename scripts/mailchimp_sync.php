@@ -31,8 +31,7 @@ if (!is_readable(JETHRO_ROOT.'/conf.php')) {
 	exit();
 }
 require_once JETHRO_ROOT.'/conf.php';
-
-if (!defined('DSN')) define('DSN', constant('PRIVATE_DSN'));
+define('DB_MODE', 'private');
 require_once JETHRO_ROOT.'/include/init.php';
 
 require_once JETHRO_ROOT.'/include/user_system.class.php';
@@ -105,7 +104,6 @@ if (empty($report)) {
 $db =& $GLOBALS['db'];
 $sql = $report->getSQL('TRIM(LOWER(p.email)) as loweremail, p.email, p.first_name, p.last_name, p.gender, p.age_bracketid, p.status, p.congregationid');
 $rres = $db->queryAll($sql, null, null, true);
-check_db_result($rres);
 unset($rres['']); // with no email.
 $report_members = Array();
 foreach ($rres as $loweremail => $persondata) {

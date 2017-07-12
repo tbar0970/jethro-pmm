@@ -16,6 +16,7 @@ if (!is_readable(JETHRO_ROOT.'/conf.php')) {
 	exit();
 }
 require_once JETHRO_ROOT.'/conf.php';
-if (!defined('DSN')) define('DSN', constant('PRIVATE_DSN'));
+
+define('DB_MODE', 'PRIVATE');
 require_once JETHRO_ROOT.'/include/init.php';
 dump_messages();

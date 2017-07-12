@@ -21,11 +21,7 @@ The steps to install are:
 2. Create a mysql database and database user for your jethro system to use
 3. Edit Jethro's configuration file conf.php and fill in the essential details (system name, URL, database details).  Further explanation can be found inside the file.
 4. Open the jethro system URL in your web browser
-5. If you encounter an error about MDB2.php not being found, you need to install the MDB2 PEAR library.  If you have command line access this can be done by running
-<code>pear install MDB2
-pear install MDB2_Driver_mysql</code>
-If you don't have command line access you can unzip [this ZIP file](http://sourceforge.net/project/showfiles.php?group_id=192555&package_id=247862&release_id=544189) into your Jethro folder.
-6. In your web browser, the Jethro installer will start automatically and will prompt you for details to create the initial user account.  When the installer completes, it will prompt you to log into the installed system.
+5.. In your web browser, the Jethro installer will start automatically and will prompt you for details to create the initial user account.  When the installer completes, it will prompt you to log into the installed system.
 
 # Documentation
 

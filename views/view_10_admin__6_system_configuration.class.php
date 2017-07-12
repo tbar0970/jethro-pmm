@@ -312,14 +312,12 @@ class View_Admin__System_Configuration extends View {
 				}
 				if ($sql) {
 					$res = $db->query($sql);
-					check_db_result($res);
 					if ($is_default) $saved_default = true;
 				}
 				$i++;
 			}
 			if (!$saved_default) {
 				$db->query('UPDATE person_group_membership_status SET is_default = 1 ORDER BY label LIMIT 1');
-				check_db_result($res);
 			}
 			if (!empty($_POST['membership_status_delete'])) {
 				$idSet = implode(',', array_map(Array($db, 'quote'), $_POST['membership_status_delete']));
@@ -328,14 +326,11 @@ class View_Admin__System_Configuration extends View {
 						SET membership_status = (SELECT id FROM person_group_membership_status WHERE is_default = 1 AND id NOT IN ('.$idSet.'))
 						WHERE membership_status IN ('.$idSet.')';
 				$res = $db->query($sql);
-				check_db_result($res);
+				
 				$sql = 'DELETE FROM person_group_membership_status
 						WHERE id IN ('.$idSet.')';
 				$res = $db->query($sql);
-				check_db_result($res);
 			}
-
-			check_db_result($res);
 		}
 	}
 	
@@ -440,7 +435,6 @@ class View_Admin__System_Configuration extends View {
 			}
 			if (!$saved_default) {
 				$db->query('UPDATE age_bracket SET is_default = 1 ORDER BY rank LIMIT 1');
-				check_db_result($res);
 			}
 			if (!empty($_POST['age_bracket_delete'])) {
 				$idSet = implode(',', array_map(Array($db, 'quote'), $_POST['age_bracket_delete']));
@@ -449,14 +443,10 @@ class View_Admin__System_Configuration extends View {
 						SET age_bracketid = (SELECT id FROM age_bracket WHERE is_default = 1 AND id NOT IN ('.$idSet.'))
 						WHERE age_bracketid IN ('.$idSet.')';
 				$res = $db->query($sql);
-				check_db_result($res);
 				$sql = 'DELETE FROM age_bracket
 						WHERE id IN ('.$idSet.')';
 				$res = $db->query($sql);
-				check_db_result($res);
 			}
-
-			check_db_result($res);
 		}
 
 	}

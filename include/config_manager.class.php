@@ -35,35 +35,17 @@ class Config_Manager {
 		return FALSE;
 	}
 
-	public static function getInitSQL()
-	{
-		// TODO: paste from the upgrade file in here
-	}
-
 	public static function getSettings()
 	{
 		$SQL = 'SELECT symbol, s.* from setting s ORDER BY rank';
-		$res = $GLOBALS['db']->queryAll($SQL, NULL, NULL, TRUE);
-		if (PEAR::isError($res)) return Array(); // no fatal error because we might be in the installer
+		$res = Array();
+		try {
+			$res = $GLOBALS['db']->queryAll($SQL, NULL, NULL, TRUE);
+		} catch (PDOException $e) {
+			 // no fatal error because we might be in the installer
+		}
 		return $res;
 	}
-/*
-	public static function migrateFileToDB()
-	{
-		$savedFromFile = FALSE;
-		foreach (Config_Manager::getSettings() as $symbol => $details) {
-			if (defined($symbol.'_IN_CONFIG_FILE')) {
-				$migrateMethod = 'migrate'.str_replace('_', '', $symbol);
-				if (method_exists(__CLASS__, $migrateMethod)) {
-					call_user_func(Array(__CLASS__, $migrateMethod));
-				} else {
-					self::saveSetting($symbol, constant($symbol));
-					$savedFromFile = TRUE;
-				}
-			}
-		}
-		return $savedFromFile;
-	}*/
 
 	public static function migrateEnabledFeatures()
 	{
@@ -83,20 +65,23 @@ class Config_Manager {
 	public static function migrateAgeBracketOptions()
 	{
 		$db = $GLOBALS['db'];
-		$SQL = 'SELECT count(*) FROM _disused_person_age_brackets';
-		$res = $db->query($SQL);
-		if (PEAR::isError($res)) {
+		$res = NULL;
+		try {
+			$SQL = 'SELECT count(*) FROM _disused_person_age_brackets';
+			$res = $db->queryAll($SQL);
+		} catch (PDOException $e) {
+			// No data to migrate
+		}
+		if (!$res) {
 			// No data to migrate
 			return;
 		}
 
 		$SQL = 'UPDATE _person SET age_bracketid = NULL';
 		$res = $db->exec($SQL);
-		check_db_result($res);
 
 		$SQL = 'DELETE FROM age_bracket where 1';
 		$res = $db->exec($SQL);
-		check_db_result($res);
 
 		$SQL = 'REPLACE INTO age_bracket (id, label, rank, is_adult, is_default)
 				VALUES ';
@@ -106,7 +91,6 @@ class Config_Manager {
 		}
 		$SQL .= implode(",\n", $sets);
 		$res = $db->exec($SQL);
-		check_db_result($res);
 
 		// Now we need to convert the zero-based to 1-based numbers
 		$SQL = 'UPDATE _person p
@@ -114,12 +98,10 @@ class Config_Manager {
 				JOIN age_bracket ab ON ab.rank = dab.age_bracket
 				SET p.age_bracketid = ab.id';
 		$res = $db->exec($SQL);
-		check_db_result($res);
 
 		// Update references to age brackets in action plans
 		$SQL = 'SELECT id, actions FROM _disused_action_plan_backup';
 		$plans = $db->queryAll($SQL);
-		check_db_result($plans);
 		foreach ($plans as $row) {
 			$actions = unserialize($row['actions']);
 			if (!empty($actions['fields']['age_bracket'])) {
@@ -127,14 +109,12 @@ class Config_Manager {
 				unset($actions['fields']['age_bracket']);
 				$SQL = 'UPDATE action_plan SET actions = '.$db->quote(serialize($actions)).' WHERE id = '.(int)$row['id'];
 				$res = $db->exec($SQL);
-				check_db_result($res);
 			}
 		}
 
 		// Update references to age brackets in person-report rules
 		$SQL = 'SELECT id, params FROM _disused_person_query_backup';
 		$queries = $db->queryAll($SQL);
-		check_db_result($queries);
 		foreach ($queries as $row) {
 			$params = unserialize($row['params']);
 			if (!empty($params['rules']['p.age_bracket'])) {
@@ -145,7 +125,6 @@ class Config_Manager {
 				unset($params['rules']['p.age_bracket']);
 				$SQL = 'UPDATE person_query SET params = '.$db->quote(serialize($params)).' WHERE id = '.(int)$row['id'];
 				$res = $db->exec($SQL);
-				check_db_result($res);
 			}
 		}
 
@@ -158,7 +137,6 @@ class Config_Manager {
 				SET value = '.$db->quote($value).'
 				WHERE symbol = '.$db->quote($symbol);
 		$res = $db->exec($SQL);
-		check_db_result($res);
 		return TRUE;
 
 	}

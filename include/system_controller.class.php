@@ -6,7 +6,7 @@ class System_Controller
 	private $_friendly_errors = false;
 	private $_base_dir = '';
 	private $_object_cache = Array();
-	
+
 	static private $instance = NULL;
 
 	/**
@@ -79,11 +79,13 @@ class System_Controller
 		error_reporting($error_level);
 
 		set_error_handler(Array($this, '_handleError'));
+		set_exception_handler(Array($this, '_handleException'));
 	}
 
 	public function run()
 	{
 		if (!empty($_REQUEST['call'])) {
+			$this->initErrorHandler();
 			$call_name = str_replace('/', '', $_REQUEST['call']);
 			// Try both the Jethro and system_root calls folders
 			$filename = ''; //dirname(dirname(__FILE__)).'/calls/call_'.$call_name.'.class.php';
@@ -218,7 +220,6 @@ class System_Controller
 			case 'COMMIT':
 			case 'ROLLBACK':
 				$r = $GLOBALS['db']->query(strtoupper($operation));
-				check_db_result($r);
 		}
 	}
 
@@ -253,15 +254,24 @@ class System_Controller
 				}
 				// else deliberate fallthrough
 			case E_NOTICE:
+			default:
 				$bg = 'info';
 				$title = 'SYSTEM ERROR (NOTICE)';
 				break;
-			default:
-				return; // E_STRICT or E_DEPRECATED
+//			default:
+//				return; // E_STRICT or E_DEPRECATED
 		}
 
 		$bt = debug_backtrace();
 		array_shift($bt); // remove reference to this handleError function
+
+		$this->_reportError($title, $bg, $errstr, $errfile, $errline, $bt, $send_email);
+		if ($exit) exit();
+
+	}
+
+	private function _reportError($title, $bg, $errstr, $errfile, $errline, $bt, $send_email)
+	{
 		foreach ($bt as &$b) {
 			if (!empty($b['args'])) {
 				foreach ($b['args'] as &$v) {
@@ -271,16 +281,24 @@ class System_Controller
 			unset($b['object']);
 		}
 
+		$showTechDetails = (JETHRO_VERSION == 'DEV') || (defined('SHOW_ERROR_BACKTRACES') && constant('SHOW_ERROR_BACKTRACES'));
+
 		?>
 		<div class="alert<?php if(isset($bg)){ echo" alert-".$bg;} ?>">
+		<?php
+		if ($showTechDetails || !$send_email) {
+			?>
 			<h4><?php echo $title; ?></h4>
 			<p><?php echo $errstr; ?></p>
-		<?php
-		if ((JETHRO_VERSION == 'DEV') || (defined('SHOW_ERROR_BACKTRACES') && constant('SHOW_ERROR_BACKTRACES'))) {
+			<?php
+		} else {
+			echo _('An error occurred. Please contact your system administrator for help.');
+		}
+		if ($showTechDetails) {
 			?>
 			<u class="clickable" onclick="var parentDiv=this.parentNode; while (parentDiv.tagName != 'DIV') { parentDiv = parentDiv.parentNode; }; with (parentDiv.getElementsByTagName('PRE')[0].style) { display = (display == 'block') ? 'none' : 'block' }">Show Details</u>
 			<pre style="display: none; background: white; font-weight: normal; color: black"><b>Line <?php echo $errline; ?> of File <?php echo $errfile; ?></b>
-			<?php
+<?php
 			print_r($bt);
 			?>
 			</pre>
@@ -302,7 +320,12 @@ class System_Controller
 			@mail(constant('ERRORS_EMAIL_ADDRESS'), 'Jethro Error from '.BASE_URL, $content);
 		}
 		if ($send_email) error_log("$errstr - Line $errline of $errfile");
-		if ($exit) exit();
+	}
+
+	public function _handleException($exception)
+	{
+		$this->_reportError('Fatal Error (Exception)', 'error', $exception->getMessage(), $exception->getFile(), $exception->getLine(), $exception->getTrace(), TRUE);
+		exit();
 	}
 
 	public function runHooks($hook_name, $params)
@@ -324,13 +347,13 @@ class System_Controller
 		$enabled_features = explode(',', strtoupper(ifdef('ENABLED_FEATURES', '')));
 		return in_array(strtoupper($feature), $enabled_features);
 	}
-	
+
 	public static function checkConfigHealth()
 	{
 		if (REQUIRE_HTTPS && (FALSE === strpos(BASE_URL, 'https://'))) {
 			trigger_error("Configuration file error: If you set REQUIRE_HTTPS to true, your BASE_URL must start with https", E_USER_ERROR);
 		}
-		
+
 		if (substr(BASE_URL, -1) != '/') {
 			trigger_error("Configuration file error: Your BASE_URL must end with a slash", E_USER_ERROR);
 		}

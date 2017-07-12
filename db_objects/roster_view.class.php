@@ -34,14 +34,14 @@ class roster_view extends db_object
 	function load($id)
 	{
 		$res = parent::load($id);
-		
+
 		if (!$this->getValue('is_public') && !$GLOBALS['user_system']->getCurrentUser('id')) {
 			// We don't use trigger_error here because sysadmins don't really care.
 			header($_SERVER["SERVER_PROTOCOL"]." 401 Not Authorised");
 			print_message("Roster view #{$this->id} is only available to logged in users", 'error');
 			exit;
 		}
-		
+
 		$sql = '(
 					SELECT rvrm.order_num as order_num, rr.id as role_id, rr.title as role_title, NULL as service_field, rr.congregationid as congregationid, rrc.name as congregation_name, rr.volunteer_group as volunteer_group
 					FROM
@@ -63,7 +63,6 @@ class roster_view extends db_object
 
 				ORDER BY order_num';
 		$this->_members = $GLOBALS['db']->queryAll($sql, null, null, true);
-		check_db_result($this->_members);
 	}
 
 	function getMembers()
@@ -82,7 +81,7 @@ class roster_view extends db_object
 
 	protected static function _getFields()
 	{
-		
+
 		$fields = Array(
 			'name'			=> Array(
 									'type'		=> 'text',
@@ -264,14 +263,12 @@ class roster_view extends db_object
 		if (!empty($this->_members_to_set)) {
 			$sql = 'DELETE FROM roster_view_role_membership WHERE roster_view_id = '.(int)$this->id;
 			$q = $GLOBALS['db']->query($sql);
-			check_db_result($q);
 			$sql = 'DELETE FROM roster_view_service_field WHERE roster_view_id = '.(int)$this->id;
 			$q = $GLOBALS['db']->query($sql);
-			check_db_result($q);
 
 			$role_inserts = Array();
 			$field_inserts = Array();
-	
+
 			foreach ($this->_members_to_set as $order => $detail) {
 				if (empty($detail)) continue;
 				$bits = explode('-', $detail);
@@ -286,14 +283,12 @@ class roster_view extends db_object
 				$sql = 'INSERT INTO roster_view_role_membership (roster_view_id, roster_role_id, order_num) VALUES ';
 				$sql .= implode(', ', $role_inserts);
 				$q = $GLOBALS['db']->query($sql);
-				check_db_result($q);
 			}
 
 			if (!empty($field_inserts)) {
 				$sql = 'INSERT INTO roster_view_service_field (roster_view_id, congregationid, service_field, order_num) VALUES ';
 				$sql .= implode(', ', $field_inserts);
 				$q = $GLOBALS['db']->query($sql);
-				check_db_result($q);
 			}
 
 			$this->_members_to_set = Array();
@@ -368,7 +363,6 @@ class roster_view extends db_object
 				AND assignment_date BETWEEN '.$GLOBALS['db']->quote($start_date).' AND '.$GLOBALS['db']->quote($end_date).'
 				ORDER BY assignment_date, roster_role_id, rank, privateassignee.last_name, privateassignee.first_name';
 		$rows = $GLOBALS['db']->queryAll($sql);
-		check_db_result($rows);
 		$res = Array();
 		foreach ($rows as $row) {
 			$res[$row['assignment_date']][$row['roster_role_id']][] = Array(
@@ -395,10 +389,9 @@ class roster_view extends db_object
 				WHERE roster_role_id IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $roleids)).')
 				AND assignment_date BETWEEN '.$GLOBALS['db']->quote($start_date).' AND '.$GLOBALS['db']->quote($end_date);
 		$rows = $GLOBALS['db']->queryAll($sql);
-		check_db_result($rows);
 		return $rows;
 	}
-	
+
 	public function printCSV($start_date=NULL, $end_date=NULL)
 	{
 		$GLOBALS['system']->includeDBClass('service');
@@ -422,7 +415,7 @@ class roster_view extends db_object
 		$role_objects = Array();
 
 		$csvData = Array();
-		
+
 		// Headers
 		$row = Array('');
 		$lastCong = '';
@@ -435,7 +428,7 @@ class roster_view extends db_object
 			}
 		}
 		$csvData[] = $row;
-		
+
 		$row = Array('Date');
 		$dummy_service = new Service();
 		foreach ($this->_members as $id => $details) {
@@ -531,7 +524,7 @@ class roster_view extends db_object
 				$i = 0;
 				foreach ($this->_members as $member) {
 					if (!$includeServiceFields && (empty($member['role_id']))) continue;
-					
+
 					if (($i % $totalRows) == $rowNum) {
 						?>
 						<th><?php $this->_printOutputLabel($member, $service); ?></th>
@@ -617,7 +610,7 @@ class roster_view extends db_object
 			if ($public) {
 				?>
 				<div class="alert alert-error">This roster is empty for the current date range.</div>
-				<?php	
+				<?php
 			} else {
 				?>
 				<div class="alert alert-error">There are no services during the date range specified.  Please try a different date range, or create some services using the 'Edit service program' page.</div>
@@ -639,7 +632,7 @@ class roster_view extends db_object
 			foreach ($this->_members as $id => &$details) {
 				if (!empty($details['role_id'])) {
 					$role = $GLOBALS['system']->getDBObject('roster_role', $details['role_id']);
-					
+
 					if (!($role->canAcquireLock('assignments') && $role->acquireLock('assignments'))) {
 						$details['readonly'] = true;
 						$show_lock_fail_msg = true;
@@ -693,7 +686,7 @@ class roster_view extends db_object
 				?>
 				<tr <?php echo $class_clause; ?>>
 					<td class="nowrap">
-						<?php 
+						<?php
 						echo '<strong>'.str_replace(' ', '&nbsp;', date('j M y', strtotime($date))).'</strong>';
 						if (!$editing && !$public) {
 							$emails = Array();
@@ -823,7 +816,7 @@ class roster_view extends db_object
 		<thead>
 			<tr>
 				<th rowspan="2">Date</th>
-				<?php 
+				<?php
 				$this->_printCongHeaders();
 				if (!$public && (count($this->_members) > REPEAT_DATE_THRESHOLD)) {
 					?>
@@ -973,20 +966,18 @@ class roster_view extends db_object
 					}
 				}
 			}
-	
+
 		}
 		$GLOBALS['system']->doTransaction('BEGIN');
 		if (!empty($del_clauses)) {
 			$sql = 'DELETE FROM roster_role_assignment WHERE ('.implode(' OR ', $del_clauses).')';
 			$res = $GLOBALS['db']->query($sql);
-			check_db_result($res);
 		}
 		if (!empty($to_add)) {
 			$to_add = array_unique($to_add);
 			$sql = 'REPLACE INTO roster_role_assignment (roster_role_id, assignment_date, personid, rank, assigner)
 					VALUES '.implode(",\n", $to_add);
 			$res = $GLOBALS['db']->query($sql);
-			check_db_result($res);
 		}
 		foreach ($roles as $i => $roleid) {
 			$role = $GLOBALS['system']->getDBObject('roster_role', $roleid);
@@ -1020,7 +1011,6 @@ class roster_view extends db_object
 			WHERE rr.congregationid = '.(int)$congregationid.'
 		)';
 		$ids = $GLOBALS['db']->queryCol($SQL);
-		check_db_result($ids);
 		foreach ($ids as $id) {
 			$res[] = $GLOBALS['system']->getDBObject('roster_view', $id);
 		}
