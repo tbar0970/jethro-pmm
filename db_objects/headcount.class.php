@@ -27,7 +27,7 @@ class Headcount
 		);
 	}
 
-	private function checkEntityType(&$entityType)
+	private static function checkEntityType(&$entityType)
 	{
 		if ($entityType == 'c') $entityType = 'congregation';
 		if ($entityType == 'g') $entityType = 'person_group';
