@@ -105,7 +105,7 @@ foreach ($summaries as $supervisors => $remindees) {
 	foreach (explode(';', $supervisors) as $sup) {
 		if (!empty($ini['OVERRIDE_RECIPIENT'])) {
 			$sup = $ini['OVERRIDE_RECIPIENT'];
-		}		
+		}
 		$message->setTo($sup);
 	}
 	$res = Emailer::send($message);
@@ -124,7 +124,7 @@ function send_reminder($person)
 	
 	$sentSomething = FALSE;
 	if (!empty($ini['EMAIL_BODY'])) {
-		if (strlen($person['email'])) {		
+		if (strlen($person['email'])) {
 			$toEmail = $person['email'];
 			if (!empty($ini['OVERRIDE_RECIPIENT'])) $toEmail = $ini['OVERRIDE_RECIPIENT'];
 
@@ -160,15 +160,15 @@ function send_reminder($person)
 			if (count($res['successes']) != 1) {
 				echo "Failed to send SMS to ".$toNumber."\n";
 			} else {
-				$sentSomething = TRUE;			
+				$sentSomething = TRUE;
 				if (!empty($ini['VERBOSE'])) {
 					echo "Sent SMS reminder to ".$person['first_name'].' '.$person['last_name'].' '.$toNumber."\n";
 				}
 			}
 		} else {
-			if (!empty($ini['VERBOSE'])) echo $person['first_name'].' '.$person['last_name']." has no mobile number and will not be sent an SMS \n";		
+			if (!empty($ini['VERBOSE'])) echo $person['first_name'].' '.$person['last_name']." has no mobile number and will not be sent an SMS \n";
 		}
-	}	
+	}
 	
 	if (!empty($ini['VERBOSE']) && !$sentSomething) {
 		echo $person['first_name'].' '.$person['last_name']." was not sent any notification \n";

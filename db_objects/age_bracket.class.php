@@ -1,8 +1,8 @@
 <?php
 class Age_Bracket extends db_object
 {
-	protected $_load_permission_level = 0; 
-	protected $_save_permission_level = 0; 
+	protected $_load_permission_level = 0;
+	protected $_save_permission_level = 0;
 
 	protected static function _getFields()
 	{
