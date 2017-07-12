@@ -12,9 +12,8 @@ class Installer
 
 	function run()
 	{
-		$res = $GLOBALS['db']->hasPersons();
-		if ($res) {
-			trigger_error('System has already been installed, installer is aborting');
+		if ($GLOBALS['db']->hasTables() || $GLOBALS['db']->hasFunctions()) {
+			trigger_error('MySQL database is not empty. Installer is aborting');
 			exit();
 		}
 		include 'templates/installer.template.php';
@@ -45,6 +44,11 @@ class Installer
 	function readyToInstall()
 	{
 		if (empty($_POST)) {
+			return FALSE;
+		}
+
+		if ($GLOBALS['db']->hasTables() || $GLOBALS['db']->hasFunctions()) {
+			print_message('MySQL database is not empty. Installer is aborting');
 			return FALSE;
 		}
 
@@ -397,12 +401,6 @@ class Installer
 
 	function printForm()
 	{
-		$tables = $GLOBALS['db']->isInstalled_Tables();
-		$functions = $GLOBALS['db']->isInstalled_Functions();
-		if ($tables || $functions) {
-			print_message('Your MySQL database is not empty.  This could be due to a failed previous installation attempt.  Please drop and re-create the database to ensure it is entirely blank, then reload this page.', 'error');
-			return;
-		}
 		?>
 		<h2>Welcome</h2>
 		<p>Welcome to the Jethro installer.  The installation process will set up your MySQL database so that <br />it's ready to run Jethro.  First we need to collect some details to get things started.</p>

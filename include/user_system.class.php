@@ -153,6 +153,10 @@ class User_System extends Abstract_User_System
 
 	public function printLogin()
 	{
+		if (!$this->hasUsers()) {
+			trigger_error("This system has no user accounts - it has not been installed properly", E_USER_ERROR);
+			exit;
+		}
 		$_SESSION['login_key'] = $login_key = generate_random_string(32);
 		require TEMPLATE_DIR.'/login_form.template.php';
 
@@ -178,6 +182,16 @@ class User_System extends Abstract_User_System
 		return NULL;
 
 	}//end _validateUser()
+
+	public function hasUsers()
+	{
+		$SQL = 'SELECT count(*) FROM staff_member WHERE 1';
+		try {
+			return ($GLOBALS['db']->queryOne($SQL) > 0);
+		} catch (Exception $ex) {
+			return FALSE;
+		}
+	}
 
 
 }//end class
