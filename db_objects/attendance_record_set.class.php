@@ -17,7 +17,7 @@ class Attendance_Record_Set
 	const LIST_ORDER_DEFAULT = 'status ASC, family_name ASC, familyid, ab.rank ASC, gender DESC';
 //--        CREATING, LOADING AND SAVING        --//
 
-	function Attendance_Record_Set($date=NULL, $cohort=NULL, $age_brackets=NULL, $statuses=NULL)
+	function __construct($date=NULL, $cohort=NULL, $age_brackets=NULL, $statuses=NULL)
 	{
 		if ($date && $cohort) {
 			$this->load($date, $cohort, $age_brackets, $statuses);
@@ -189,11 +189,7 @@ class Attendance_Record_Set
 			$this->delete();
 			$stmt = $db->prepare('REPLACE INTO attendance_record (date, groupid, personid, present) VALUES ('.$db->quote($this->date).', '.(int)$this->groupid.', ?, ?)', Array('integer', 'integer', 'integer'));
 			foreach ($this->_attendance_records as $personid => $present) {
-              try {
                 $res = $stmt->execute(Array($personid, $present));
-              } catch (PDOException $e) {
-                $db->db_error($e);
-              }
 			}
 		$GLOBALS['system']->doTransaction('commit');
 	}
@@ -471,7 +467,7 @@ class Attendance_Record_Set
 
 	}
 
-	function getStatsForPeriod($start_date, $end_date, $cohortid)
+	public static function getStatsForPeriod($start_date, $end_date, $cohortid)
 	{
 		$db =& $GLOBALS['db'];
 
