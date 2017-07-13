@@ -56,6 +56,12 @@ class View_Families__Add extends View
 							$success = FALSE;
 							break;
 						}
+						if (!empty($_POST['members_'.$i.'_groupid'])) {
+							$group = $GLOBALS['system']->getDBObject('person_group', (int)$_POST['members_'.$i.'_groupid']);
+							if ($group) {
+								$group->addMember($member->id, array_get($_POST, 'members_'.$i.'_membership_statusid'));
+							}
+						}
 						$members[] =& $member;
 					}
 					$i++;
@@ -165,7 +171,7 @@ class View_Families__Add extends View
 			<input type="hidden" name="new_family_submitted" value="1" />
 			<div class="">
 
-			<label><?php echo _('Family Name:'); ?></label>
+			<label><?php echo _('Family Name'); ?></label>
 			<?php $this->_family->printFieldInterface('family_name'); ?>
 			
 			</div>
@@ -175,7 +181,8 @@ class View_Families__Add extends View
 			<table class="expandable">
 			<?php
 			include_once 'include/size_detector.class.php';
-			if (SizeDetector::isNarrow() || count($customFields) > 0) {
+			$group_options = $GLOBALS['system']->getDBObjectData('person_group', Array('!show_add_family' => 'no'));
+			if (SizeDetector::isNarrow() || count($customFields) > 0 || count($group_options) > 0) {
 				// horizontal view would get too wide if we added custom fields to it
 				?>
 				<tr>
@@ -191,10 +198,38 @@ class View_Families__Add extends View
 							<div><?php $person->printFieldInterface('gender', 'members_0_'); ?></div>
 							<div><?php $person->printFieldInterface('age_bracketid', 'members_0_'); ?></div>
 
-							<label><?php echo _('Status');?></label>
 							<label><?php echo _('Congregation');?></label>
-							<div class="person-status preserve-value"><?php $person->printFieldInterface('status', 'members_0_'); ?></div>
+							<label><?php echo _('Status');?></label>
 							<div class="congregation"><?php $person->printFieldInterface('congregationid', 'members_0_'); ?></div>
+							<div class="person-status preserve-value"><?php $person->printFieldInterface('status', 'members_0_'); ?></div>
+							
+						<?php
+						if (!empty($group_options)) {
+							foreach ($group_options as $id => $g) {
+								$group_options[$id] = $g['name'];
+							}
+							$group_params = Array(
+												'type' => 'select',
+												'options' => $group_options,
+												'allow_empty' => TRUE,
+												'empty_text' => '(None)'
+											);
+							?>
+							<label><?php echo _('Group (optional)');?></label>
+							<label>
+								<?php
+									if (SizeDetector::isNarrow()) {
+										echo _('Membership Status');
+									} else {
+										echo _('Group Membership Status');
+									}
+								?>
+							</label>
+							<div class="congregation"><?php print_widget('members_0_groupid', $group_params, 0);?></div>
+							<div class="person-status preserve-value"><?php Person_Group::printMembershipStatusChooser('members_0_membership_statusid', NULL); ?></div>
+							<?php
+						}
+						?>
 
 							<label><?php echo _('Mobile');?></label>
 							<label><?php echo _('Email');?></label>
