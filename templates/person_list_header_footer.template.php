@@ -11,7 +11,13 @@
 			<th><?php echo _('Status')?></th>
 			<th><?php echo _('Age')?></th>
 			<th><?php echo _('Gender')?></th>
+		<?php
+		include_once 'include/size_detector.class.php';
+		if (!SizeDetector::isNarrow()) {
+		?>
+			<th><?php echo _('Mobile')?></th>
 		<?php 
+		}
 		if (defined('PERSON_LIST_SHOW_GROUPS') && PERSON_LIST_SHOW_GROUPS){
 			?>
 			<th><?php echo _('Groups')?></th>
