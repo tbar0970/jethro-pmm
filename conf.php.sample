@@ -209,3 +209,7 @@ define('DB_TYPE', 'mysql');
 // Pre-filled values for the login form.  Only use on demo systems etc.
 // define('PREFILL_USERNAME', 'tom');
 // define('PREFILL_PASSWORD', 'dotti80');
+
+// For troubleshooting you can use this to show error details in the browser
+// This is usually disabled in production versions but shown in dev.
+// define('SHOW_ERROR_DETAILS', TRUE);
