@@ -334,6 +334,7 @@ class Installer
 
 	function initInitialEntities()
 	{
+		$this->congregations = Array();
 		foreach ($_POST['congregation_name'] as $cname) {
 			if (empty($cname)) continue;
 			$c = new Congregation();
