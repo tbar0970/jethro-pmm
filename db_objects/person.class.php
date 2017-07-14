@@ -580,12 +580,21 @@ class Person extends DB_Object
 							$textVal = implode(' ' , $bits);
 							break;
 						case 'select':
-							$optionVal = $value;
+							$bits = explode(' ', $value);
+							$idVal = array_shift($bits);
+							$otherVal = implode(' ', $bits);
+							if ($idVal) {
+								$optionVal = $value;
+							} else if (strlen($otherVal) && !empty($customFields[$fieldid]['params']['allow_other'])) {
+								$textVal = $otherVal; // 'other' option was selected
+							}
 							break;
 						default:
 							$textVal = $value;
 					}
-					$sets[] = '('.(int)$this->id.','.(int)$fieldid.','.$db->quote($textVal).','.$db->quote($dateVal).','.$db->quote($optionVal).')';
+					if ($textVal || $optionVal || $dateVal) {
+						$sets[] = '('.(int)$this->id.','.(int)$fieldid.','.$db->quote($textVal).','.$db->quote($dateVal).','.$db->quote($optionVal).')';
+					}
 				}
 			}
 		}
@@ -759,7 +768,7 @@ class Person extends DB_Object
 				<?php
 				foreach ($customFields as $fieldid => $fieldDetails) {
 					$dummyField->populate($fieldid, $fieldDetails);
-					$tableClass = $fieldDetails['allow_multiple'] ? 'expandable' : '';
+					$tableClass = $fieldDetails['allow_multiple'] ? 'expandable no-name-increment' : '';
 					$values = isset($this->_custom_values[$fieldid]) ? $this->_custom_values[$fieldid] : Array('');
 
 					if ($fieldDetails['divider_before']) echo '<hr />';
