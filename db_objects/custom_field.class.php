@@ -525,9 +525,11 @@ class Custom_Field extends db_object
 			}
 		}
 		if (($this->getValue('type') == 'select') && !empty($this->values['params']['allow_other'])) {
-			foreach ($res as $k => $v) {
-				if ($v == 'other') {
-					$res[$k] = '0 '.$_REQUEST[$prefix.'custom_'.$this->id.'_other'][$k];
+			if (!empty($res)) {
+				foreach ($res as $k => $v) {
+					if ($v == 'other') {
+						$res[$k] = '0 '.$_REQUEST[$prefix.'custom_'.$this->id.'_other'][$k];
+					}
 				}
 			}
 		}
