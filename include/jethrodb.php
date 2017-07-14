@@ -41,10 +41,12 @@ class JethroDB extends PDO
 			$username = DB_USERNAME;
 			$password = DB_PASSWORD;
 			if ($mode) {
-				if (strlen($x = ifdef(str_replace('DB_', 'DB_' . $mode . '_USERNAME'))))
+				if (strlen($x = ifdef('DB_'.$mode.'_USERNAME'))) {
 					$username = $x;
-				if (strlen($y = ifdef(str_replace('DB_', 'DB_' . $mode . '_PASSWORD'))))
+				}
+				if (strlen($y = ifdef('DB_'.$mode.'_PASSWORD'))) {
 					$password = $y;
+				}
 			}
 		}
 		$port = ifdef('DB_PORT', '');
