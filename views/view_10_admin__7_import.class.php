@@ -155,6 +155,9 @@ class View_Admin__Import extends View
 			}
 			
 			$map = fgetcsv($fp, 0, ",", '"');
+			foreach ($map as $k => $v) {
+				$map[$k] = strtolower(str_replace(' ', '_', $v));
+			}
 			$_SESSION['import']['groupid'] = (int)$_POST['groupid'];
 			$_SESSION['import']['families'] = Array();
 			$_SESSION['import']['total_families'] = 0;
