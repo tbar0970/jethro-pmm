@@ -167,7 +167,7 @@ class View_Families__Add extends View
 
 		$customFields = $GLOBALS['system']->getDBObjectData('custom_field', Array('show_add_family' => 1), 'AND', 'rank');
 		?>
-		<form method="post" id="add-family" class="form-horizontal">
+		<form method="post" id="add-family" class="form-horizontal" enctype="multipart/form-data">
 			<input type="hidden" name="new_family_submitted" value="1" />
 			<div class="">
 
