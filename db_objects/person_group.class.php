@@ -472,7 +472,7 @@ class Person_Group extends db_object
 		return TRUE;
 	}
 
-	function _printChooserOptions($cats, $groups, $value, $allow_category_select=FALSE, $parentcatid=0, $prefix='')
+	private static function _printChooserOptions($cats, $groups, $value, $allow_category_select=FALSE, $parentcatid=0, $prefix='')
 	{
 		foreach ($cats as $cid => $cat) {
 			if ($cat['parent_category'] != $parentcatid) continue;
@@ -496,7 +496,7 @@ class Person_Group extends db_object
 		}
 	}
 
-	function _printChooserGroupOptions($groups, $catid, $value, $prefix='')
+	private static function _printChooserGroupOptions($groups, $catid, $value, $prefix='')
 	{
 		foreach ($groups as $gid => $group) {
 			if ($group['categoryid'] != $catid) continue;
