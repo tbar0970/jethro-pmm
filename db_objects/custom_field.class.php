@@ -489,7 +489,7 @@ class Custom_Field extends db_object
 	{
 		$widgetParams = $this->getWidgetParams();
 		$otherValue = '';
-		if (($this->getValue('type') == 'select') && !empty($this->values['params']['allow_other'])) {
+		if (($this->getValue('type') == 'select') && strlen($value) && !empty($this->values['params']['allow_other'])) {
 			if (!isset($widgetParams['options'][$value])) {
 				$otherValue = $value;
 				$value = 'other';
