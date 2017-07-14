@@ -360,7 +360,6 @@ class View_Families__Contact_List extends View
 		$narrowCellProps = array('valign' => 'top', 'vMerge' => 'restart');
 		$mergeProps = array('vMerge' => 'continue');
 		$imageStyle = Array('width' => 100);
-		require_once 'JethroWordImage.class.php';
 		$cleanup = Array();
 		foreach ($this->getData() as $family) {
 			$table->addRow();
