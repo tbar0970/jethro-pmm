@@ -44,7 +44,7 @@ class View_Attendance__Record extends View
 			$default_day = defined('ATTENDANCE_DEFAULT_DAY') ? ATTENDANCE_DEFAULT_DAY : 'Sunday';
 			$this->_attendance_date = date('Y-m-d', ((date('l') == $default_day) ? time() : strtotime('last '.$default_day)));
 		}
-		
+
 		if (empty($_REQUEST['params_submitted']) && empty($_REQUEST['attendances_submitted'])) {
 			if (!empty($_SESSION['attendance'])) {
 				$this->_age_brackets = array_get($_SESSION['attendance'], 'age_brackets');
@@ -64,12 +64,12 @@ class View_Attendance__Record extends View
 			$this->_show_photos = $_SESSION['attendance']['show_photos'] = array_get($_REQUEST, 'show_photos', FALSE);
 			$this->_parallel_mode = $_SESSION['attendance']['parallel_mode'] = array_get($_REQUEST, 'parallel_mode', FALSE);
 		}
-		
+
 		foreach ($this->_cohortids as $id) {
 			$this->_record_sets[$id] = new Attendance_Record_set($this->_attendance_date, $id, $this->_age_brackets, $this->_statuses);
 			if ($this->_show_photos) $this->_record_sets[$id]->show_photos = TRUE;
 		}
-		
+
 		if (!empty($_REQUEST['release'])) {
 			foreach ($this->_record_sets as $set) {
 				$set->releaseLock();
@@ -94,7 +94,7 @@ class View_Attendance__Record extends View
 		if (!empty($_REQUEST['attendances_submitted'])) {
 			// Process step 2
 			if ($_SESSION['enter_attendance_token'] == $_REQUEST['enter_attendance_token']) {
-				
+
 				// Clear the token from the session on disk
 				$_SESSION['enter_attendance_token'] = NULL;
 				session_write_close();
@@ -108,9 +108,17 @@ class View_Attendance__Record extends View
 						if ($set->processForm($i)) {
 							$set->save();
 							if ((int)$set->congregationid) {
-								Headcount::save('congregation', $this->_attendance_date, $set->congregationid, $_REQUEST['headcount']['congregation'][$set->congregationid]);
+								Headcount::save('congregation', $this->_attendance_date, $set->congregationid, $_REQUEST['headcount']['congregation'][$set->congregationid]['total']);
+								unset($_REQUEST['headcount']['congregation'][$set->congregationid]['total']);
+								foreach ($_REQUEST['headcount']['congregation'][$set->congregationid] as $attendance_category => $attendance_value) {
+									Headcount::save('congregation', $this->_attendance_date, $set->congregationid, $attendance_value, $attendance_category);
+								}
 							} else {
-								Headcount::save('person_group', $this->_attendance_date, $set->groupid, $_REQUEST['headcount']['group'][$set->groupid]);
+								Headcount::save('person_group', $this->_attendance_date, $set->groupid, $_REQUEST['headcount']['group'][$set->groupid]['total']);
+								unset($_REQUEST['headcount']['group'][$set->groupid]['total']);
+								foreach ($_REQUEST['headcount']['group'][$set->groupid] as $attendance_category => $attendance_value) {
+									Headcount::save('person_group', $this->_attendance_date, $set->groupid, $attendance_value, $attendance_category);
+								}
 							}
 							$set->releaseLock();
 						}
@@ -125,9 +133,9 @@ class View_Attendance__Record extends View
 				$_SESSION['enter_attendance_token'] = md5(time());
 			}
 		}
-		
+
 	}
-	
+
 	function printView()
 	{
 		if (!empty($_POST['attendances_submitted'])) {
@@ -209,7 +217,7 @@ class View_Attendance__Record extends View
 		</form>
 		<?php
 	}
-	
+
 	private function printForm()
 	{
 		$_SESSION['enter_attendance_token'] = md5(time());
@@ -265,7 +273,7 @@ class View_Attendance__Record extends View
 		$totalPrinted = 0;
 		$cancelURL = build_url(Array('*' => NULL, 'view' => 'attendance__record', 'cohortids' => $this->_cohortids, 'attendance_date' => $this->_attendance_date, 'release' => 1));
 		$dummy = new Person();
-		
+
 		?>
 		<table class="table table-condensed table-auto-width valign-middle">
 			<thead>
@@ -381,7 +389,7 @@ class View_Attendance__Record extends View
 
 		return $totalPrinted;
 	}
-	
+
 	private function printFormSequential()
 	{
 		$cancelURL = build_url(Array('*' => NULL, 'view' => 'attendance__record', 'cohortids' => $this->_cohortids, 'attendance_date' => $this->_attendance_date, 'release' => 1));
@@ -419,6 +427,24 @@ class View_Attendance__Record extends View
 				$setPrinted = $set->printForm($i);
 				if ($setPrinted > 0) {
 					$totalPrinted += $setPrinted;
+					$categories = ifdef('EXTRA_ATTENDANCE_CATEGORIES', '');
+					if ($categories !== '') {
+                        $categories = explode(',', $categories);
+                    ?>
+                    <h3><?php echo _('Extras'); ?></h3>
+                    <table class="table table-condensed valign-middle">
+					<?php
+                        foreach ($categories as $category) {
+                        ?>
+                    	<tr>
+                            <td><?php echo $category; ?></td>
+                            <td><?php $set->printCategoryHeadcountField($category); ?></td>
+                        </tr><?php
+                        }
+                        ?>
+                        </table>
+                        <?php
+					}
 					?>
 					<div class="container row-fluid control-group">
 						<p class="span6">

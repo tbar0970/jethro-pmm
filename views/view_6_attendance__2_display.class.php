@@ -58,7 +58,7 @@ class View_Attendance__Display extends View
 		}
 
 	}
-	
+
 	public function printView()
 	{
 		$this->_printParams();
@@ -162,7 +162,7 @@ class View_Attendance__Display extends View
 		list($type, $id) = explode('-', $cohortid);
 		if ($type == 'c') $congid = $id;
 		if ($type == 'g') $groupid = $id;
-		
+
 		echo '<h3>';
 		if ($congid) {
 			$cong = $GLOBALS['system']->getDBObject('congregation', $congid);
@@ -177,7 +177,7 @@ class View_Attendance__Display extends View
 		$params = Array();
 		if ($this->age_brackets) $params['(age_bracketid'] = $this->age_brackets;
 		if ($this->statuses) $params['(status'] = $this->statuses;
-		
+
 		foreach ($this->statuses as $status) {
 			if ($status && ($status[0] == 'g') && empty($groupid)) {
 				print_message(_('"Congregational attendance cannot be filtered by a group membership status. Please clear the status filter to display attendance for this congregation."'), 'error');
@@ -192,6 +192,7 @@ class View_Attendance__Display extends View
 			return;
 		}
 		$headcounts = Headcount::fetchRange(($congid ? 'congregation' : 'person_group'), $congid ? $congid : $groupid, $this->start_date, $this->end_date);
+//		$category_headcounts = Headcount::fetchAllCategoriesRange(($congid ? 'congregation' : 'person_group'), $congid ? $congid : $groupid, $this->start_date, $this->end_date);
 		$dummy = new Person();
 		?>
 		<form method="post" action="" class="bulk-person-action">
@@ -317,7 +318,7 @@ class View_Attendance__Display extends View
 		</form>
 		<?php
 	}
-	
+
 	private function _printActionsAndSelector($personid)
 	{
 		?>
@@ -349,7 +350,7 @@ class View_Attendance__Display extends View
 		$params = Array();
 		if ($this->age_brackets) $params['(age_bracketid'] = $this->age_brackets;
 		if ($this->statuses) $params['(status'] = $this->statuses;
-		
+
 		$all_persons = Attendance_Record_Set::getPersonDataForCohorts($this->cohortids, $params);
 		$all_dates = $all_attendances = $all_totals = $all_headcounts = Array();
 		if (!empty($this->cohortids)) {
@@ -402,7 +403,7 @@ class View_Attendance__Display extends View
 				}
 				?>
 					<th <?php if ($this->format != 'totals') echo 'rowspan="2"'; ?>></th>
-					<th class="narrow selector form-inline" rowspan="2"><input type="checkbox" class="select-all" title=<?php echo _('"Select all"');?> /></th>					
+					<th class="narrow selector form-inline" rowspan="2"><input type="checkbox" class="select-all" title=<?php echo _('"Select all"');?> /></th>
 				</tr>
 
 			<?php
@@ -484,7 +485,7 @@ class View_Attendance__Display extends View
 					}
 				}
 				$this->_printActionsAndSelector($personid);
-				?>	
+				?>
 				</tr>
 				<?php
 			}

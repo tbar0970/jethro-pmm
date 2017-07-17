@@ -10,12 +10,12 @@ class Headcount
 					`number` INT(11) NOT NULL,
 					PRIMARY KEY (`date`, `congregationid`)
 				) Engine=InnoDB;',
-            'CREATE TABLE congregation_category_headcount (
+      'CREATE TABLE congregation_category_headcount (
 					`date` DATE NOT NULL,
 					`congregationid` INT(11) NOT NULL,
                     `category` varchar(30) NOT NULL,
 					`number` INT(11) NOT NULL,
-					PRIMARY KEY (`date`, `congregationid`)
+					PRIMARY KEY (`date`, `congregationid`, `category`)
 				) Engine=InnoDB;',
 			 'CREATE TABLE person_group_headcount (
 					`date` DATE NOT NULL,
@@ -28,11 +28,11 @@ class Headcount
 					`person_groupid` INT(11) NOT NULL,
                     `category` varchar(30) NOT NULL,
 					`number` INT(11) NOT NULL,
-					PRIMARY KEY (`date`, `person_groupid`)
+					PRIMARY KEY (`date`, `person_groupid`, `category`)
 				) Engine=InnoDB;'
 		);
 	}
-	
+
 	public function getForeignKeys()
 	{
 		return Array(
@@ -55,21 +55,21 @@ class Headcount
 		self::checkEntityType($entitytype);
 		$db = $GLOBALS['db'];
 		if ((int)$number > 0) {
-            if ($category == '') {
+            if (($category == '') || ($category === 'total')) {
               $SQL = 'REPLACE INTO '.$entitytype.'_headcount
                       (`date`, `'.$entitytype.'id`, `number`)
 					  VALUES ('.$db->quote($date).', '.$db->quote($entityid).', '.$db->quote($number).')';
             } else {
-              $SQL = 'REPLACE INTO '.$entitytype.'_headcount
+              $SQL = 'REPLACE INTO '.$entitytype.'_category_headcount
                       (`date`, `'.$entitytype.'id`, `category`, `number`)
 					  VALUES ('.$db->quote($date).', '.$db->quote($entityid).', '.$db->quote($category) . ', '.$db->quote($number).')';
             }
 		} else {
-          if ($category == '') {
+          if (($category == '') || ($category === 'total')) {
 			$SQL = 'DELETE FROM '.$entitytype.'_headcount
 					WHERE `date` = '.$db->quote($date).' AND '.$entitytype.'id = '.$db->quote($entityid);
           } else {
-            $SQL = 'DELETE FROM '.$entitytype.'_headcount
+            $SQL = 'DELETE FROM '.$entitytype.'_category_headcount
 					WHERE `date` = '.$db->quote($date).' AND '.$entitytype.'id = '.$db->quote($entityid) . ' AND category = ' . $db->quote($category);
           }
 		}
@@ -84,10 +84,19 @@ class Headcount
           $SQL = 'SELECT number FROM '.$entitytype.'_headcount
 		  		  WHERE `date` = '.$db->quote($date).' AND '.$entitytype.'id = '.$db->quote($entityid);
         } else {
-          $SQL = 'SELECT number FROM '.$entitytype.'_headcount
+          $SQL = 'SELECT number FROM '.$entitytype.'_category_headcount
 		  		  WHERE `date` = '.$db->quote($date).' AND '.$entitytype.'id = '.$db->quote($entityid) . ' AND category = ' . $db->quote($category);
         }
 		$res = $db->queryOne($SQL);
+		return $res;
+	}
+
+	public static function fetchAllCategories($entitytype, $date, $entityid) {
+		self::checkEntityType($entitytype);
+		$db = $GLOBALS['db'];
+		$SQL = "SELECT category,number FROM ".$entitytype."_category_headcount
+			WHERE `date` = ".$db->quote($date)." AND ".$entitytype."id = ".$db->quote($entityid);
+		$res = $db->queryAll($SQL);
 		return $res;
 	}
 
@@ -100,7 +109,7 @@ class Headcount
 		  		  WHERE (`date` BETWEEN '.$db->quote($fromDate).' AND '.$db->quote($toDate).')
 				  AND '.$entitytype.'id = '.$db->quote($entityid);
         } else {
-          $SQL = 'SELECT `date`, number FROM '.$entitytype.'_headcount
+          $SQL = 'SELECT `date`, number FROM '.$entitytype.'_category_headcount
 		  		  WHERE (`date` BETWEEN '.$db->quote($fromDate).' AND '.$db->quote($toDate).')
 				  AND '.$entitytype.'id = '.$db->quote($entityid) . '
                   AND category = '.$db->quote($category);
@@ -108,7 +117,7 @@ class Headcount
 		$res = $db->queryAll($SQL, null, null, true);
 		return $res;
 	}
-	
+
 	public static function fetchAverage($entitytype, $entityid, $fromDate, $toDate, $category='')
 	{
 		self::checkEntityType($entitytype);
@@ -118,14 +127,14 @@ class Headcount
 				  WHERE (`date` BETWEEN '.$db->quote($fromDate).' AND '.$db->quote($toDate).')
 				  AND '.$entitytype.'id = '.$db->quote($entityid);
         } else {
-          $SQL = 'SELECT AVG(number) FROM '.$entitytype.'_headcount
+          $SQL = 'SELECT AVG(number) FROM '.$entitytype.'_category_headcount
 				  WHERE (`date` BETWEEN '.$db->quote($fromDate).' AND '.$db->quote($toDate).')
 				  AND '.$entitytype.'id = '.$db->quote($entityid) . '
                   AND category = '.$db->quote($category);
         }
 		$res = $db->queryOne($SQL);
 		return $res;
-		
+
 	}
 
 
