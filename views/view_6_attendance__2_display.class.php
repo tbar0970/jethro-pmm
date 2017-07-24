@@ -372,7 +372,7 @@ class View_Attendance__Display extends View
 		if ($this->statuses) $params['(status'] = $this->statuses;
 
 		$all_persons = Attendance_Record_Set::getPersonDataForCohorts($this->cohortids, $params);
-		$all_dates = $all_attendances = $all_totals = $all_headcounts = Array();
+		$all_dates = $all_attendances = $all_totals = $category_all_totals = $all_headcounts = $all_category_headcounts = Array();
 		if (!empty($this->cohortids)) {
 			foreach ($this->cohortids as $cohortid) {
 				$congid = $groupid = NULL;
@@ -384,6 +384,18 @@ class View_Attendance__Display extends View
 					// Headcounts and extras don't make sense when we are only viewing a segment of the total attendance
 					$hc = Headcount::fetchRange(($congid ? 'congregation' : 'person_group'), $congid ? $congid : $groupid, $this->start_date, $this->end_date);
 					foreach ($hc as $date => $c) $all_headcounts[$date][$cohortid] = $c;
+					$category_headcounts = Headcount::fetchRangeAllCategories(($congid ? 'congregation' : 'person_group'), $congid ? $congid : $groupid, $this->start_date, $this->end_date);
+					foreach ($category_headcounts as $category=>$catheadcounts) {
+						foreach ($catheadcounts as $date => $c) {
+							$all_category_headcounts[$category][$date][$cohortid] = $c;
+//							print "<pre>$date $cohortid " . $category_all_totals[$date][$cohortid] ." </pre>"; exit;
+							if (!isset($category_all_totals[$date][$cohortid])) {
+								$category_all_totals[$date][$cohortid] = $c;
+							} else {
+								$category_all_totals[$date][$cohortid] = $category_all_totals[$date][$cohortid] + $c;
+							}
+						}
+					}
 				}
 				$all_dates = array_merge($all_dates, $cdates);
 				foreach ($ctotals as $date => $t) $all_totals[$date][$cohortid] = $t;
@@ -519,7 +531,27 @@ class View_Attendance__Display extends View
 			<tfoot class="attendance-stats">
 			<?php
 			if (empty($params)) {
+				foreach ($all_category_headcounts as $category => $catheadcounts) {
+					?>
+					<tr class="headcount">
+						<th <?php echo $colspan; ?>><?php echo $category; ?></th>
+					<?php
+						foreach ($all_dates as $date) {
+							$hc = array_get($catheadcounts, $date, Array());
+							foreach ($this->cohortids as $cohortid) {
+								?>
+								<td>
+									<?php echo array_get($hc, $cohortid, ''); ?>
+								</td>
+								<?php
+							}
+						}
+					 ?>
+					</tr>
+					<?php
+				}
 				?>
+
 				<tr class="headcount">
 					<th <?php echo $colspan; ?>><?php echo _('Total Headcount');?></th>
 				<?php
@@ -579,13 +611,15 @@ class View_Attendance__Display extends View
 				<?php
 				foreach ($all_dates as $date) {
 					$tots = array_get($all_totals, $date, Array());
+					$cat_tots = array_get($category_all_totals, $date, Array());
 					$hc = array_get($all_headcounts, $date, Array());
 					foreach ($this->cohortids as $cohortid) {
 						$present = array_get(array_get($tots, $cohortid, Array()), 1, 0);
+						$catpresent = array_get($cat_tots,$cohortid);
 						$headcount = array_get($hc, $cohortid, NULL);
 						?>
 						<td>
-							<?php if ($headcount) echo $headcount - $present; ?>
+							<?php if ($headcount) echo $headcount - $present - $catpresent; ?>
 						</td>
 						<?php
 					}
