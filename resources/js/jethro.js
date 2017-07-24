@@ -330,13 +330,13 @@ $(document).ready(function() {
 		this.siblings('div').removeClass('active');
         attendanceInput = this.parents('.radio-button-group').find('input');
         if (attendanceInput.val() !== this.attr('data-val')) {
-            headCountInput = this.closest('table').parent().find('.int-box');
+            headCountInput = this.closest('table').parent().find('.headcount');
             currentHeadCount = parseInt(headCountInput.val()) || 0;
             if (this.attr('data-val')==='present') {
                 headCountInput.val(currentHeadCount+1);
             } else if (attendanceInput.val()==='present') { // going from present to something else
                 headCountInput.val(currentHeadCount-1);
-            }            
+            }
         }
         attendanceInput.val(this.attr('data-val'));
 
@@ -382,6 +382,17 @@ $(document).ready(function() {
 		});
 	}
 
+  // Category Headcount automatic tallies
+  $('input.categoryHeadcount').change(function() {
+  	var oldvalue = parseInt($(this).data("oldvalue"),10);
+  	var newvalue = $(this).val() == '' ? 0: parseInt($(this).val(),10);
+  	if (newvalue != oldvalue) {
+    	headCountInput = $(this).closest('table').parent().find('.headcount');
+    	var headCount=headCountInput.val() == '' ? 0: parseInt(headCountInput.val(),10);
+    	headCountInput.val(headCount+newvalue-oldvalue);
+    	$(this).data("oldvalue", newvalue);
+  	}
+	});
 	// MULTI-SELECT
 
 	$('div.multi-select label input').change(function() {
@@ -633,7 +644,7 @@ JethroSMS.onAJAXSuccess = function (data, resultsDiv) {
 	resultsDiv.html(""); // Reset results in case there's something there
 	var message = '';
 	if (data.error!==undefined) {
-		alert('Server error sending SMS\n'+data.error);
+		alert('Server error sending SMS\n '+data.error);
 		return true;
 	}
 	if (sentCount > 0) {
@@ -1246,7 +1257,7 @@ var applyNarrowColumns = function(root) {
 	// (even if its parent is less than 100% width).
 	// We want the whole table to be as wide as it needs to be but no wider.
 	var expr = 'td.narrow, th.narrow, table.object-summary th'
-	var cells = $(root).find(expr); 
+	var cells = $(root).find(expr);
 	var parents = cells.parents('table:visible').not('.no-narrow-magic');
 	parents.each(function() {
 		var table = $(this);
