@@ -330,8 +330,10 @@ $(document).ready(function() {
 		this.siblings('div').removeClass('active');
         attendanceInput = this.parents('.radio-button-group').find('input');
         if (attendanceInput.val() !== this.attr('data-val')) {
-            headCountInput = this.closest('table').parent().find('.headcount');
-            currentHeadCount = parseInt(headCountInput.val()) || 0;
+					var headcountID = '#headcount-total-' + attendanceInput.attr("name").replace('attendances[', '').split('][')[0];
+          headCountInput = $(headcountID);
+					console.log(headCountInput);
+          currentHeadCount = parseInt(headCountInput.val()) || 0;
             if (this.attr('data-val')==='present') {
                 headCountInput.val(currentHeadCount+1);
             } else if (attendanceInput.val()==='present') { // going from present to something else
@@ -387,7 +389,8 @@ $(document).ready(function() {
   	var oldvalue = parseInt($(this).data("oldvalue"),10);
   	var newvalue = $(this).val() == '' ? 0: parseInt($(this).val(),10);
   	if (newvalue != oldvalue) {
-    	headCountInput = $(this).closest('table').parent().find('.headcount');
+			var headcountID = '#' + $(this).data("headcounttotal");
+			headCountInput = $(headcountID)
     	var headCount=headCountInput.val() == '' ? 0: parseInt(headCountInput.val(),10);
     	headCountInput.val(headCount+newvalue-oldvalue);
     	$(this).data("oldvalue", newvalue);

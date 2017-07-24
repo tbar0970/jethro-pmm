@@ -339,30 +339,35 @@ class Attendance_Record_Set
 
     function printCategoryHeadcountField($category)
     {
-        if ((int)$this->congregationid) {
+    if ((int)$this->congregationid) {
+			$headcountID = 'headcount-total-c-' . $this->congregationid;
 			$headcountFieldName = 'headcount[congregation]['.$this->congregationid.']['.$category.']';
 			$headcountValue = Headcount::fetch('congregation', $this->date, $this->congregationid, $category);
 		} else {
+			$headcountID = 'headcount-total-g-' . $this->groupid;
 			$headcountFieldName = 'headcount[group]['.$this->groupid.']['.$category.']';
 			$headcountValue = Headcount::fetch('person_group', $this->date, $this->groupid, $category);
 		}
+
 		?>
-		<input type="text" data-oldvalue="<?php echo $headcountValue; ?>" class="int-box categoryHeadcount" name="<?php echo $headcountFieldName; ?>" value="<?php echo $headcountValue; ?>" size="5" />
-		<input type="button" class="btn" onclick="var x = $(this).siblings('input').get(0); x.value = x.value == '' ? 1 : parseInt(x.value, 10)+1" value="+" />
+		<input type="text" data-headcountTotal="<?php echo $headcountID; ?>" data-oldvalue="<?php echo ($headcountValue == '')? "0":$headcountValue; ?>" class="int-box categoryHeadcount" name="<?php echo $headcountFieldName; ?>" value="<?php echo $headcountValue; ?>" size="5" />
+		<input type="button" class="btn" onclick="var x = $(this).siblings('input').get(0); x.value = x.value == '' ? 1 : parseInt(x.value, 10)+1;$(x).trigger('change');" value="+" />
 		<?php
     }
 
 	function printHeadcountField()
 	{
 		if ((int)$this->congregationid) {
+			$headcountID = 'headcount-total-c-' . $this->congregationid;
 			$headcountFieldName = 'headcount[congregation]['.$this->congregationid.'][total]';
 			$headcountValue = Headcount::fetch('congregation', $this->date, $this->congregationid);
 		} else {
+			$headcountID = 'headcount-total-g-' . $this->groupid;
 			$headcountFieldName = 'headcount[group]['.$this->groupid.'][total]';
 			$headcountValue = Headcount::fetch('person_group', $this->date, $this->groupid);
 		}
 		?>
-		<input type="text" class="headcount int-box" name="<?php echo $headcountFieldName; ?>" value="<?php echo $headcountValue; ?>" size="5" />
+		<input type="text" id="<?php echo $headcountID; ?>" class="headcount int-box" name="<?php echo $headcountFieldName; ?>" value="<?php echo $headcountValue; ?>" size="5" />
 		<input type="button" class="btn" onclick="var x = $(this).siblings('input').get(0); x.value = x.value == '' ? 1 : parseInt(x.value, 10)+1" value="+" />
 		<?php
 	}
