@@ -363,12 +363,25 @@ class View_Attendance__Record extends View
 				</tr>
 				<?php
 			}
+			$categories = ifdef('EXTRA_ATTENDANCE_CATEGORIES', '');
+			if ($categories !== '') {
+				$categories = explode(',', $categories);
+				foreach ($categories as $category) { ?>
+					<tr class="headcount">
+						<th class="right" colspan="<?php echo 1+(2*(int)SizeDetector::isWide())+(int)$this->_show_photos; ?>"><?php echo $category; ?></th>
+						<?php
+						foreach ($this->_record_sets as $prefix => $set) {
+							?>
+							<td class="center parallel-attendance"><?php $set->printCategoryHeadcountField($category); ?></td>
+							<?php
+						}
+							?>
+							<td>&nbsp;</td>
+					</tr>
+					<?php
+				}
+			}
 			?>
-                <tr class="headcount">
-					<th class="right" colspan="<?php echo 1+(2*(int)SizeDetector::isWide())+(int)$this->_show_photos; ?>"><?php
-                      echo EXTRA_ATTENDANCE_CATEGORIES;
-                      ?></th>
-              </tr>
 				<tr class="headcount">
 					<th class="right" colspan="<?php echo 1+(2*(int)SizeDetector::isWide())+(int)$this->_show_photos; ?>"><?php echo _('Total Headcount:');?> &nbsp;</th>
 				<?php
