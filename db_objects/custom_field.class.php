@@ -322,6 +322,16 @@ class Custom_Field extends db_object
 				}
 				?>
 			</tbody>
+			<tfoot>
+				<tr>
+					<td colspan="2">
+						<label class="radio">
+							<?php
+							print_widget($prefix.'allow_other', Array('type' => 'checkbox'), array_get($params, 'allow_other', FALSE));
+							echo _('Allow "other"');
+							?>
+						</label>
+			</tfoot>
 		</table>
 		<?php
 	}
@@ -345,7 +355,6 @@ class Custom_Field extends db_object
 				$val['allow_blank_year'] = !empty($_REQUEST[$prefix.'allow_blank_year']);
 				$val['regex'] = array_get($_REQUEST, $prefix.'regex', '');
 				$val['template'] = array_get($_REQUEST, $prefix.'template', '');
-				$this->setValue($fieldname, $val);
 
 				// Also process the options for select fields:
 				if (!empty($_REQUEST[$prefix.'option_ids'])) {
@@ -374,7 +383,11 @@ class Custom_Field extends db_object
 					$this->_tmp['new_options'] = $newOptions;
 					$this->_tmp['update_options'] = $updateOptions;
 					$this->_tmp['delete_options'] = $deleteOptions;
+
+					$val['allow_other'] = array_get($_REQUEST, $prefix.'allow_other', FALSE);
+
 				}
+				$this->setValue($fieldname, $val);
 
 				break;
 			default:
@@ -458,6 +471,9 @@ class Custom_Field extends db_object
 			foreach ($options as $id => $detail) {
 				$params['options'][$id] = $detail['value'];
 			}
+			if (!empty($this->values['params']['allow_other'])) {
+				$params['options']['other'] = _('Other');
+			}
 		}
 		if (!empty($this->values['params']['allow_blank_year'])) $params['allow_blank_year'] = $this->values['params']['allow_blank_year'];
 		if (!empty($this->values['params']['regex'])) $params['regex'] = $this->values['params']['regex'];
@@ -471,10 +487,21 @@ class Custom_Field extends db_object
 	 */
 	public function printWidget($value, $extraParams=Array(), $prefix='')
 	{
-		print_widget($prefix.'custom_'.$this->id.'[]', $extraParams+$this->getWidgetParams(), $value);
+		$widgetParams = $this->getWidgetParams();
+		$otherValue = '';
+		if (($this->getValue('type') == 'select') && strlen($value) && !empty($this->values['params']['allow_other'])) {
+			if (!isset($widgetParams['options'][$value])) {
+				$otherValue = $value;
+				$value = 'other';
+			}
+		}
+		print_widget($prefix.'custom_'.$this->id.'[]', $extraParams+$widgetParams, $value);
 		if (($this->getValue('type') == 'date') && !empty($this->values['params']['allow_note'])) {
 			$note = substr($value, 11);
 			print_widget($prefix.'custom_'.$this->id.'_note[]', Array('type' => 'text', 'placeholder' => '(Note)'), $note);
+		}
+		if (($this->getValue('type') == 'select') && !empty($this->values['params']['allow_other'])) {
+			print_widget($prefix.'custom_'.$this->id.'_other[]', Array('type' => 'text', 'class' => 'select-other'), $otherValue);
 		}
 		if (strlen($this->values['tooltip'])) {
 			?>
@@ -495,6 +522,15 @@ class Custom_Field extends db_object
 			$notes = process_widget($prefix.'custom_'.$this->id.'_note', Array('type' => 'text'), NULL, TRUE);
 			foreach ((array)$notes as $k => $v) {
 				if (!empty($res[$k]) && strlen($v)) $res[$k] .= ' '.$v;
+			}
+		}
+		if (($this->getValue('type') == 'select') && !empty($this->values['params']['allow_other'])) {
+			if (!empty($res)) {
+				foreach ($res as $k => $v) {
+					if ($v == 'other') {
+						$res[$k] = '0 '.$_REQUEST[$prefix.'custom_'.$this->id.'_other'][$k];
+					}
+				}
 			}
 		}
 		if (is_array($res)) $res = array_remove_empties($res);
@@ -523,7 +559,10 @@ class Custom_Field extends db_object
 				break;
 			case 'select':
 				if (empty($val)) return '';
-				return array_get($this->getOptions(), $val, '(Invalid option)');
+				if (!empty($this->values['params']['allow_other'])) {
+					if (0 === strpos($val, '0 ')) $val = substr($val, 2);
+				}
+				return array_get($this->getOptions(), $val, $val);
 				break;
 			case 'link':
 				$template = array_get($this->values['params'], 'template', '');
@@ -576,6 +615,9 @@ class Custom_Field extends db_object
 					if (strtolower($label) == $lowerVal) {
 						return $id;
 					}
+				}
+				if (!empty($this->values['params']['allow_other'])) {
+					return '0 '.$val;
 				}
 				trigger_error("Invalid option '$val'. ".$this->getValue('name')." must be {".implode(',', $this->getOptions())."})");
 				return NULL;

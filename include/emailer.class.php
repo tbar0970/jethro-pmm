@@ -43,7 +43,6 @@ class Emailer
 	}
 	
 	static function validateAddress($email) {
-		require_once 'include/swiftmailer/swift_required.php';
 		return Swift_Validate::email($email);
 	}
 }

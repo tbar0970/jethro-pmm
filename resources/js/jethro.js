@@ -425,7 +425,16 @@ $(document).ready(function() {
 			revert: 100,
 			opacity: 1,
 			axis: 'y',
-		})
+		});
+
+	$('input.select-other').prevAll('select').change(function() {
+		var otherBox = $(this).nextAll('input.select-other');
+		if (this.value == 'other') {
+			otherBox.show().focus();
+		} else {
+			otherBox.val('').hide();
+		}
+	}).change();
 
 	if (document.getElementById('custom-fields-editor')) {
 		$("#custom-fields-editor>tbody").sortable(	{

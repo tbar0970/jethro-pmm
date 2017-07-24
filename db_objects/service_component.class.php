@@ -107,7 +107,7 @@ class Service_Component extends db_object
 		return $fields;
 	}
 
-	function search($keyword, $tagid, $congregationid, $categoryid=NULL)
+	public static function search($keyword, $tagid, $congregationid, $categoryid=NULL)
 	{
 		$conds = Array();
 		if (!empty($keyword)) {
@@ -343,6 +343,10 @@ class Service_Component extends db_object
 
 	public function processForm($prefix='', $fields=NULL) {
 		$res = parent::processForm($prefix, $fields);
+		$credits = $this->getValue('credits');
+		if (FALSE !== strpos($credits, '(c)')) {
+			$this->setValue('credits', str_replace('(c)', '©', $credits));
+		}
 		$this->values['congregationids'] = array_get($_REQUEST, $prefix.'congregationids', Array());
 		$this->_tmp['tagids'] = Array();
 		if (!empty($_REQUEST['tags'])) {

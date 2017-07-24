@@ -29,6 +29,7 @@ class Installer
 		// the first time we call initInitialEntities is just to check for errors
 		if ($this->readyToInstall() && $this->initInitialEntities()) {
 			$GLOBALS['JETHRO_INSTALLING'] = 1;
+			date_default_timezone_set('Australia/Sydney'); // Temporary timezone to avoid errors during install
 			$this->initDB();
 			Config_Manager::init();
 			$this->initInitialEntities(); // do this afresh now that settings have been loaded
@@ -334,6 +335,7 @@ class Installer
 
 	function initInitialEntities()
 	{
+		$this->congregations = Array();
 		foreach ($_POST['congregation_name'] as $cname) {
 			if (empty($cname)) continue;
 			$c = new Congregation();

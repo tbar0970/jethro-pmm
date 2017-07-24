@@ -290,6 +290,9 @@ class Person_Query extends DB_Object
 											'data-select-rule-type' => 'contains'
 										)
 									);
+									if (!empty($fieldDetails['params']['allow_other'])) {
+										$vparams['options'][0] = '[Other]';
+									}
 									print_widget(
 										'params_custom_field_'.$fieldid.'_val',
 										$vparams,
@@ -937,13 +940,18 @@ class Person_Query extends DB_Object
 					switch (array_get($values, 'criteria', 'contains')) {
 						case 'contains':
 							$ids = implode(',', array_map(Array($db, 'quote'), $values['val']));
-							$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IN ('.$ids.'))';
+							$xrule = '(pd'.$fieldid.'.value_optionid IN ('.$ids.'))';
+							if (in_array(0, $values['val'])) {
+								// 'other' option
+								$xrule = '('.$xrule.' OR (pd'.$fieldid.'.value_text IS NOT NULL))';
+							}
+							$customFieldWheres[] = $xrule;
 							break;
 						case 'any':
-							$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NOT NULL)';
+							$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NOT NULL OR pd'.$fieldid.'.value_text IS NOT NULL)';
 							break;
 						case 'empty':
-							$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NULL)';
+							$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NULL AND pd'.$fieldid.'.value_text IS NULL)';
 							break;
 					}
 					break;
@@ -1335,7 +1343,8 @@ class Person_Query extends DB_Object
 	{
 		foreach ($res as $i => $v) {
 			if (0 === strpos($params['group_by'], 'custom-')) {
-				$field = $GLOBALS['system']->getDBObject('custom_field', end(explode('-', $params['group_by'])));
+				$gb_bits = explode('-', $params['group_by']);
+				$field = $GLOBALS['system']->getDBObject('custom_field', end($gb_bits));
 				$heading = $field->formatValue($i);
 				if (!strlen($heading)) $heading = '(Blank)';
 			} else if ($params['group_by'] == 'groupid') {

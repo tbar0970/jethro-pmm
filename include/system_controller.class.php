@@ -246,20 +246,24 @@ class System_Controller
 				$bg = 'warning';
 				$title = 'SYSTEM ERROR (WARNING)';
 				break;
+			case E_NOTICE:
+				$showTechDetails = ifdef('SHOW_ERROR_DETAILS', (JETHRO_VERSION == 'DEV'));
+				$bg = $showTechDetails ? 'info' : NULL; // on prod, send emails but show nothing in browser
+				$title = 'SYSTEM ERROR (NOTICE)';
+				break;
 			case E_USER_NOTICE:
 				$send_email = false;
 				if ($this->_friendly_errors) {
 					add_message('Error: '.$errstr, 'failure');
 					return;
 				}
-				// else deliberate fallthrough
-			case E_NOTICE:
+				$bg = 'info';
+				$title = 'NOTICE';
+				break;
 			default:
 				$bg = 'info';
-				$title = 'SYSTEM ERROR (NOTICE)';
+				$title = 'SYSTEM ERROR';
 				break;
-//			default:
-//				return; // E_STRICT or E_DEPRECATED
 		}
 
 		$bt = debug_backtrace();
@@ -281,32 +285,33 @@ class System_Controller
 			unset($b['object']);
 		}
 
-		$showTechDetails = (JETHRO_VERSION == 'DEV') || (defined('SHOW_ERROR_BACKTRACES') && constant('SHOW_ERROR_BACKTRACES'));
-
-		?>
-		<div class="alert<?php if(isset($bg)){ echo" alert-".$bg;} ?>">
-		<?php
-		if ($showTechDetails || !$send_email) {
+		$showTechDetails = ifdef('SHOW_ERROR_DETAILS', (JETHRO_VERSION == 'DEV'));
+		if ($bg) {
 			?>
-			<h4><?php echo $title; ?></h4>
-			<p><?php echo $errstr; ?></p>
+			<div class="alert<?php if(isset($bg)){ echo" alert-".$bg;} ?>">
 			<?php
-		} else {
-			echo _('An error occurred. Please contact your system administrator for help.');
-		}
-		if ($showTechDetails) {
+			if ($showTechDetails) {
+				?>
+				<h4><?php echo $title; ?></h4>
+				<p><?php echo $errstr; ?></p>
+				<?php
+			} else {
+				echo _('An error occurred. Please contact your system administrator for help.');
+			}
+			if ($showTechDetails) {
+				?>
+				<u class="clickable" onclick="var parentDiv=this.parentNode; while (parentDiv.tagName != 'DIV') { parentDiv = parentDiv.parentNode; }; with (parentDiv.getElementsByTagName('PRE')[0].style) { display = (display == 'block') ? 'none' : 'block' }">Show Details</u>
+				<pre style="display: none; background: white; font-weight: normal; color: black"><b>Line <?php echo $errline; ?> of File <?php echo $errfile; ?></b>
+	<?php
+				print_r($bt);
+				?>
+				</pre>
+				<?php
+			}
 			?>
-			<u class="clickable" onclick="var parentDiv=this.parentNode; while (parentDiv.tagName != 'DIV') { parentDiv = parentDiv.parentNode; }; with (parentDiv.getElementsByTagName('PRE')[0].style) { display = (display == 'block') ? 'none' : 'block' }">Show Details</u>
-			<pre style="display: none; background: white; font-weight: normal; color: black"><b>Line <?php echo $errline; ?> of File <?php echo $errfile; ?></b>
-<?php
-			print_r($bt);
-			?>
-			</pre>
+			</div>
 			<?php
 		}
-		?>
-		</div>
-		<?php
 		if ($send_email && defined('ERRORS_EMAIL_ADDRESS') && constant('ERRORS_EMAIL_ADDRESS')) {
 			$content = "$errstr \nLine $errline of $errfile\n\n";
 			if (!empty($GLOBALS['user_system'])) $content .= "USER:       ".$GLOBALS['user_system']->getCurrentUser('username')."\n";
