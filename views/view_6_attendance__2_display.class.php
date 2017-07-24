@@ -192,7 +192,7 @@ class View_Attendance__Display extends View
 			return;
 		}
 		$headcounts = Headcount::fetchRange(($congid ? 'congregation' : 'person_group'), $congid ? $congid : $groupid, $this->start_date, $this->end_date);
-//		$category_headcounts = Headcount::fetchAllCategoriesRange(($congid ? 'congregation' : 'person_group'), $congid ? $congid : $groupid, $this->start_date, $this->end_date);
+		$category_headcounts = Headcount::fetchRangeAllCategories(($congid ? 'congregation' : 'person_group'), $congid ? $congid : $groupid, $this->start_date, $this->end_date);
 		$dummy = new Person();
 		?>
 		<form method="post" action="" class="bulk-person-action">
@@ -244,6 +244,26 @@ class View_Attendance__Display extends View
 			<tfoot class="attendance-stats">
 			<?php
 			if (empty($params)) {
+				foreach ($category_headcounts as $category=>$catheadcounts) { ?>
+					<tr class="headcount">
+						<th colspan="2"><?php echo $category; ?></th> <?php
+						foreach ($dates as $date) {
+							?>
+							<td>
+								<?php echo array_get($catheadcounts, $date);
+								if (sizeof($totals[$date]) < 3) {
+									array_push($totals[$date], array_get($catheadcounts, $date));
+								} else {
+									$totals[$date][2] += array_get($catheadcounts, $date);
+								}
+								?>
+							</td>
+							<?php
+						} ?>
+						<td colspan="2">&nbsp;</td>
+					</tr>
+					<?php
+				}
 				?>
 				<tr class="headcount">
 					<th colspan="2"><?php echo _('Total Headcount'); ?></th>
@@ -298,7 +318,7 @@ class View_Attendance__Display extends View
 					<td>
 						<?php
 						if (isset($headcounts[$date])) {
-							echo ($headcounts[$date] - array_get($totals[$date], 1, 0));
+							echo ($headcounts[$date] - array_get($totals[$date], 1, 0) - array_get($totals[$date], 2, 0));
 						}
 						?>
 					</td>
