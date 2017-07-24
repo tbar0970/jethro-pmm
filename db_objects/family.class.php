@@ -1,5 +1,6 @@
 <?php
 include_once 'include/db_object.class.php';
+include_once 'include/size_detector.class.php';
 class family extends db_object
 {
 	protected $_save_permission_level = PERM_EDITPERSON;
@@ -36,7 +37,7 @@ class family extends db_object
 									'width'		=> 40,
 									'height'	=> 2,
 									'maxlength'	=> 255,
-									'label'		=> 'Street Address',
+									'label'		=> SizeDetector::isNarrow() ? 'Address' : 'Street Address',
 									'trim'			=> TRUE,
 									'divider_before' => TRUE,
 								   ),

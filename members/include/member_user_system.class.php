@@ -160,6 +160,12 @@ If you didn't request an account, you can just ignore this email";
 				// to tell strangers whether an email is or isn't known.
 				require_once 'templates/account_request_received.template.php';
 				exit;
+			} else {
+				// Show the user the generic "thanks" page - because we do not want
+				// to tell strangers whether an email is or isn't known.
+				// (even though there is no failure email to send)
+				require_once 'templates/account_request_received.template.php';
+				exit;
 			}
 	}
 

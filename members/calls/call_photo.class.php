@@ -24,27 +24,23 @@ class Call_Photo extends Call
 			$SQL = 'SELECT photodata FROM person_photo WHERE personid = '.(int)$obj->id;
 		} else if (!empty($_REQUEST['familyid'])) {
 			$obj = $GLOBALS['system']->getDBObject('family', (int)$_REQUEST['familyid']);
-			// for single-member families, treat person photo as family photo
-			$SQL = 'SELECT COALESCE(fp.photodata, IF(count(p.id) = 1, pp.photodata, NULL)) as photodata
-					FROM family f
-					LEFT JOIN family_photo fp ON fp.familyid = f.id
-					LEFT JOIN member p ON p.familyid = f.id
-					LEFT JOIN person_photo pp ON pp.personid = p.id
-					WHERE f.id = '.(int)$obj->id.'
-					GROUP BY f.id';
 
 		}
-		if ($obj) {
-			$res = $db->queryRow($SQL);
-			if ($res && $res['photodata']) {
-				header('Content-type: image/jpeg');
-				echo $res['photodata'];
-				return;
-			}
+		if (!$obj) return; // might be a person not visible in members inteface
+		if (!empty($_REQUEST['personid'])) {
+			$data = Photo_Handler::getPhotoData('person', (int)$_REQUEST['personid']);
+			$fallback = 'unknown.jpg';
+		} else if (!empty($_REQUEST['familyid'])) {
+			$data = Photo_Handler::getPhotoData('family', (int)$_REQUEST['familyid']);
+			$fallback = 'unknown_family.jpg';
 		}
-		header('Content-type: image/gif');
-		$placeholder = !empty($_REQUEST['personid']) ? 'unknown.gif' : 'unknown_family.gif';
-		readfile(JETHRO_ROOT.'/resources/img/'.$placeholder);
+		header('Content-type: image/jpeg');
+		if ($data) {
+			echo $data;
+			return;
+		} else {
+			readfile(JETHRO_ROOT.'/resources/img/'.$fallback);
+		}
 	}
 }
 ?>

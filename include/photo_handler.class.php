@@ -24,7 +24,8 @@ Class Photo_Handler {
 				trigger_error("Security error with file upload", E_USER_ERROR);
 				return NULL;
 			} else {
-				$ext = strtolower(end(explode('.', $_FILES[$fieldName]['name'])));
+				$bits = explode('.', $_FILES[$fieldName]['name']);
+				$ext = strtolower(end($bits));
 				if ($ext == 'jpg') $ext = 'jpeg';
 				if (!in_array($ext, Array('jpeg', 'gif', 'png'))) {
 					add_message("The uploaded photo was not of a permitted type and has not been saved.  Photos must be JPEG, GIF or PNG", 'error');

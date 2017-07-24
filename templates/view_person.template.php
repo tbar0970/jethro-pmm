@@ -263,7 +263,13 @@ if (isset($tabs['groups'])) {
 					<th>ID</th>
 					<th><?php echo _('Group Name')?></th>
 					<th><?php echo _('Membership Status')?></th>
+				<?php
+				if (!SizeDetector::isNarrow()) {
+					?>
 					<th><?php echo _('Joined Group')?></th>
+					<?php
+				}
+				?>
 					<th></th>
 				</tr>
 			</thead>
@@ -276,8 +282,20 @@ if (isset($tabs['groups'])) {
 					<td><?php echo $id; ?></td>
 					<td><a href="?view=groups&groupid=<?php echo $id; ?>"><?php echo ents($details['name']); ?></a></td>
 					<td><?php echo ents($details['membership_status']); ?></td>
+				<?php
+				if (!SizeDetector::isNarrow()) {
+					?>
 					<td><?php echo format_datetime($details['created']); ?></td>
-					<td><form class="min" method="post" action="?view=_edit_group&action=remove_member&groupid=<?php echo $id; ?>&back_to=persons" ><input type="hidden" name="personid" value="<?php echo $person->id; ?>"><label class="clickable submit confirm-title" title="Remove <?php $person->printFieldValue('name'); ?> from <?php echo ents($details['name']); ?>"><i class="icon-remove-sign"></i><?php echo _('Remove')?></label></form></td>
+					<?php
+				}
+				?>
+					<td>
+						<a data-method="post" class="link-collapse confirm-title"
+						   href="?view=_edit_group&action=remove_member&groupid=<?php echo $id; ?>&back_to=persons&personid=<?php echo $person->id; ?>"
+						   title="Remove <?php $person->printFieldValue('name'); ?> from <?php echo ents($details['name']); ?>">
+							<i class="icon-remove-sign"></i><?php echo _('Remove')?>
+						</a>
+					</td>
 				</tr>
 				<?php
 			}

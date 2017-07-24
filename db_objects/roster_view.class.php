@@ -756,7 +756,7 @@ class roster_view extends db_object
 								if (!$public && !$vs['assigneehidden']) {
 									$n = '<span class="nowrap"><a data-personid="'.$personid . '" href="'.BASE_URL.'?view=persons&personid='.$personid.'" title="Assigned by '.ents($vs['assigner']).' on '.format_datetime($vs['assignedon']).'">'.ents($vs['name']).'</a>';
 									if (('' === $vs['email'])) $n .= ' <img class="visible-desktop" src="'.BASE_URL.'resources/img/no_email.png" title="No Email Address" />';
-									if (('' === $vs['mobile'])) {
+									if (('' === $vs['mobile']) && ifdef('SMS_HTTP_URL')) {
 										$n .= ' <img class="visible-desktop" src="'.BASE_URL.'resources/img/no_phone.png" title="No Mobile" />';
 					                }
 									$n .= '</span>';

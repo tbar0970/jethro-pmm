@@ -108,7 +108,7 @@ $type = (!empty($entry['familyid']) ? 'family' : 'person');
 			<?php
 			if ($entry['status'] == 'pending') {
 				$str = 'Assigned to %s';
-				echo sprintf(nbsp(_($str)), $entry['assignee_fn'].'&nbsp;'.$entry['assignee_ln'].' <span class="visible-desktop">(#'.$entry['assignee'].')</span>');
+				echo ' <span>'.sprintf(nbsp(_($str)), $entry['assignee_fn'].'&nbsp;'.$entry['assignee_ln'].' <span class="visible-desktop">(#'.$entry['assignee'].')</span></span>');
 				
 			}
 

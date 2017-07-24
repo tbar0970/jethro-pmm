@@ -520,6 +520,7 @@ TBLib.expandTable = function(table)
 	var originalRow = rows[index];
 	var newRow = $(originalRow).clone(true,true);
 	var newRowInputs = newRow.find('input, textarea, select');
+	var incrementNames = !$(table).hasClass('no-name-increment');
 	newRowInputs.each(function() {
 		if (!this.name) return;
 		// clear fields in the new row, except those inside a 'preserve-value' container
@@ -536,7 +537,9 @@ TBLib.expandTable = function(table)
 			}
 		}
 		if ($(this).hasClass('bubble-option-classes')) this.change();
-		this.name = this.name.replace('_'+index+'_', '_'+rows.length+'_');
+		if (incrementNames) {
+			this.name = this.name.replace('_'+index+'_', '_'+rows.length+'_');
+		}
 		if (this.name == 'index[]') this.value = rows.length; // so that after re-ordering, the order can be detected server-side
 		if (((this.type == 'radio') || (this.type == 'checkbox')) && (this.value == index)) this.value = rows.length;
 	});
