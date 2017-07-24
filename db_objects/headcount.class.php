@@ -100,19 +100,33 @@ class Headcount
 		return $res;
 	}
 
+	public static function fetchRangeAllCategories($entitytype, $entityid, $fromDate, $toDate) {
+		self::checkEntityType($entitytype);
+		$db = $GLOBALS['db'];
+		$SQL = "SELECT DISTINCT(category) FROM ".$entitytype."_category_headcount
+			WHERE (`date` BETWEEN ".$db->quote($fromDate)." AND ".$db->quote($toDate).")
+		  AND ".$entitytype."id = ".$db->quote($entityid);
+		$res = $db->queryAll($SQL);
+		$result = Array();
+		foreach ($res as $row) {
+			$result[$row['category']] = self::fetchRange($entitytype, $entityid, $fromDate, $toDate, $row['category']);
+		}
+		return $result;
+	}
+
 	public static function fetchRange($entitytype, $entityid, $fromDate, $toDate, $category='')
 	{
 		self::checkEntityType($entitytype);
 		$db = $GLOBALS['db'];
-        if ($category=='') {
-		  $SQL = 'SELECT `date`, number FROM '.$entitytype.'_headcount
+      if ($category=='') {
+		      $SQL = 'SELECT `date`, number FROM '.$entitytype.'_headcount
 		  		  WHERE (`date` BETWEEN '.$db->quote($fromDate).' AND '.$db->quote($toDate).')
-				  AND '.$entitytype.'id = '.$db->quote($entityid);
+				    AND '.$entitytype.'id = '.$db->quote($entityid);
         } else {
           $SQL = 'SELECT `date`, number FROM '.$entitytype.'_category_headcount
 		  		  WHERE (`date` BETWEEN '.$db->quote($fromDate).' AND '.$db->quote($toDate).')
-				  AND '.$entitytype.'id = '.$db->quote($entityid) . '
-                  AND category = '.$db->quote($category);
+				    AND '.$entitytype.'id = '.$db->quote($entityid) . '
+            AND category = '.$db->quote($category);
         }
 		$res = $db->queryAll($SQL, null, null, true);
 		return $res;

@@ -428,7 +428,6 @@ class Attendance_Record_Set
 			$category_headcounts = Headcount::fetchAllCategories('person_group', $this->date, $this->groupid);
 		}
 
-
 		?>
 		<table class="table valign-middle attendance-stats table-bordered" style="width: 40ex">
 		<?php
