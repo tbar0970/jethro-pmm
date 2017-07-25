@@ -103,7 +103,7 @@ require_once JETHRO_ROOT.'/include/emailer.class.php';
 	  ->setFrom(array($ini['EMAIL_FROM'] => $ini['EMAIL_FROM_NAME']))
 	  ->setBody("See CSV data attached")
 	  ->addPart($email_html, 'text/html')
-	  ->setTo($recipients_string);
+	  ->setTo(explode(',', $recipients_string));
 	if ((int)$ini['CSV']==1) {
 	  $attachment = new Swift_Attachment($csv_string, $file_name, 'text/csv');
 	  $message->attach($attachment);  
