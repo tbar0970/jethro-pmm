@@ -91,6 +91,15 @@ class Headcount
 		return $res;
 	}
 
+    public static function categoriesInUse($entitytype, $date, $entityid) {
+		self::checkEntityType($entitytype);
+		$db = $GLOBALS['db'];
+		$SQL = "SELECT category FROM ".$entitytype."_category_headcount
+			WHERE `date` = ".$db->quote($date)." AND ".$entitytype."id = ".$db->quote($entityid);
+		$res = $db->queryAll($SQL);
+		return $res;    
+    }
+    
 	public static function fetchAllCategories($entitytype, $date, $entityid) {
 		self::checkEntityType($entitytype);
 		$db = $GLOBALS['db'];

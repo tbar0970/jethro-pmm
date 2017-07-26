@@ -335,8 +335,17 @@ class Attendance_Record_Set
 		<?php
 		return count($this->_persons);
 	}
-
-
+	
+	function getCategoriesUsed() {
+        $categories = Array();
+        if ((int)$this->congregationid) {
+            $categories = Headcount::categoriesInUse('congregation', $this->date, $this->congregationid);
+        } else {
+            $categories = Headcount::categoriesInUse('person_group', $this->date, $this->groupid);
+        }
+        return $categories;
+	}
+	
     function printCategoryHeadcountField($category)
     {
     if ((int)$this->congregationid) {

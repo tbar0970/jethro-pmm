@@ -366,6 +366,16 @@ class View_Attendance__Record extends View
 			$categories = ifdef('EXTRA_ATTENDANCE_CATEGORIES', '');
 			if ($categories !== '') {
 				$categories = explode(',', $categories);
+				print "<pre>";
+				var_dump($categories);
+				print "</pre>";
+				// Get other categories that might exist from the past
+				foreach ($this->_record_sets as $prefix => $set) {
+                    $usedCategories = $set->getCategoriesUsed();
+                    print "<pre>";
+                    var_dump($usedCategories);
+                    print "</pre>";
+				}
 				foreach ($categories as $category) { ?>
 					<tr class="headcount">
 						<th class="right" colspan="<?php echo 1+(2*(int)SizeDetector::isWide())+(int)$this->_show_photos; ?>"><?php echo $category; ?></th>
