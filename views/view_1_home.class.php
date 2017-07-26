@@ -131,7 +131,7 @@ class View_Home extends View
         $fp_reports = $GLOBALS['db']->query($frontpagesql);
         $GLOBALS['system']->includeDBClass('person_query');
         foreach ($fp_reports as $fp_report) {
-            if ($GLOBALS['user_system']->havePerm(PERM_RUNREPORT) || (bool)$fp_report['noperms']) { 
+            if ($GLOBALS['user_system']->havePerm(PERM_RUNREPORT) || (bool)$fp_report['noperms']) {
                 $_query = new Person_Query($fp_report['queryid']);
             ?>
             <div class="homepage homepage-1-col" style="clear:both;">

@@ -672,12 +672,12 @@ class Person_Query extends DB_Object
         if ((!empty($this->id)) && ($this->id != 'TEMP') && (!empty($_POST['frontpage_display']))) {
             $frontpage_display = $_POST['frontpage_display'];
             $frontpage_display_noperms = 0;
-            if ($frontpage_display) {             
+            if ($frontpage_display) {
                 if (!empty($_POST['frontpage_display_noperms'])) {
 
                     $frontpage_display_noperms = (bool)$_POST['frontpage_display_noperms'];
                 }
-                $frontpagesql = 'REPLACE INTO frontpage_person_query VALUES(' . $this->id . ', ' . $frontpage_display_noperms . ')';                
+                $frontpagesql = 'REPLACE INTO frontpage_person_query VALUES(' . $this->id . ', ' . $frontpage_display_noperms . ')';
             }
 		}
 		$GLOBALS['db']->query($frontpagesql);
