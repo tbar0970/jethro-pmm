@@ -297,7 +297,7 @@ class Person_Query extends DB_Object
 									);
 									if (!empty($fieldDetails['params']['allow_other'])) {
 										$vparams['options'][0] = '[Other]';
-									}									
+									}
 									print_widget(
 										'params_custom_field_'.$fieldid.'_val',
 										$vparams,
@@ -988,7 +988,7 @@ class Person_Query extends DB_Object
 							$customFieldWheres[] = $xrule;
 							break;
 						case 'any':
-							$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NOT NULL OR pd'.$fieldid.'.value_text IS NOT NULL)';							
+							$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NOT NULL OR pd'.$fieldid.'.value_text IS NOT NULL)';
 							break;
 						case 'empty':
 							$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NULL AND pd'.$fieldid.'.value_text IS NULL)';
