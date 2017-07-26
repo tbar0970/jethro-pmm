@@ -71,6 +71,11 @@ class Person_Query extends DB_Object
 			  `params` text NOT NULL,
 			  PRIMARY KEY  (`id`)
 			) ENGINE=InnoDB ;
+			CREATE TABLE `frontpage_person_query` (
+			  `queryid` int(11) NOT NULL auto_increment,
+			  `noperms` bool NOT NULL default false,
+			  PRIMARY KEY  (`queryid`)
+			) ENGINE=InnoDB ;
 		";
 	}
 
@@ -290,9 +295,6 @@ class Person_Query extends DB_Object
 											'data-select-rule-type' => 'contains'
 										)
 									);
-									if (!empty($fieldDetails['params']['allow_other'])) {
-										$vparams['options'][0] = '[Other]';
-									}
 									print_widget(
 										'params_custom_field_'.$fieldid.'_val',
 										$vparams,
@@ -559,6 +561,26 @@ class Person_Query extends DB_Object
 		?>
 		</select>
 
+		<h3>FrontPage Display</h3>
+        <?php 
+        $frontpage_display = $frontpage_display_noperms = '';
+        $frontpagesql = 'SELECT queryid,noperms FROM frontpage_person_query WHERE queryid='. $this->id;
+        $fpsres = $GLOBALS['db']->queryRow($frontpagesql);
+        if (!empty($fpsres)) {
+            $frontpage_display = ' checked';
+            if ($fpsres['noperms']) {
+                $frontpage_display_noperms = ' checked';
+            }
+        }
+        ?>
+		<label class="checkbox">
+            <input autofocus="1" name="frontpage_display" value="1" <?php echo $frontpage_display; ?> id="frontpage_display" type="checkbox">
+			<strong>Display Report Results on Homepage</strong>
+        </label>
+        <label class="checkbox">
+            <input autofocus="1" name="frontpage_display_noperms" value="1" <?php echo $frontpage_display_noperms; ?> id="frontpage_display_noperms" type="checkbox">
+			<strong>Show for all users regardless of permissions</strong>
+        </label>
 		<?php
 		if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
 			$visibilityParams = Array(
@@ -645,6 +667,21 @@ class Person_Query extends DB_Object
 
 		$params = $this->_convertParams($this->getValue('params'));
 
+		// FRONTPAGE DISPLAY
+        $frontpagesql = 'DELETE FROM frontpage_person_query WHERE queryid=' . $this->id;
+        if ((!empty($this->id)) && ($this->id != 'TEMP') && (!empty($_POST['frontpage_display']))) {
+            $frontpage_display = $_POST['frontpage_display'];
+            $frontpage_display_noperms = 0;
+            if ($frontpage_display) {             
+                if (!empty($_POST['frontpage_display_noperms'])) {
+
+                    $frontpage_display_noperms = (bool)$_POST['frontpage_display_noperms'];
+                }
+                $frontpagesql = 'REPLACE INTO frontpage_person_query VALUES(' . $this->id . ', ' . $frontpage_display_noperms . ')';                
+            }
+		}
+		$GLOBALS['db']->query($frontpagesql);
+		
 		// FIELD RULES
 		$rules = Array();
 		if (!empty($_POST['enable_rule'])) {
@@ -722,6 +759,7 @@ class Person_Query extends DB_Object
 			add_message('No groups were chosen, so results cannot be ordered by membership status', 'error');
 			$params['sort_by'] = '';
 		}
+
 		$this->setValue('params', $params);
 	}
 
@@ -940,18 +978,13 @@ class Person_Query extends DB_Object
 					switch (array_get($values, 'criteria', 'contains')) {
 						case 'contains':
 							$ids = implode(',', array_map(Array($db, 'quote'), $values['val']));
-							$xrule = '(pd'.$fieldid.'.value_optionid IN ('.$ids.'))';
-							if (in_array(0, $values['val'])) {
-								// 'other' option
-								$xrule = '('.$xrule.' OR (pd'.$fieldid.'.value_text IS NOT NULL))';
-							}
-							$customFieldWheres[] = $xrule;
+							$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IN ('.$ids.'))';
 							break;
 						case 'any':
-							$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NOT NULL OR pd'.$fieldid.'.value_text IS NOT NULL)';
+							$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NOT NULL)';
 							break;
 						case 'empty':
-							$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NULL AND pd'.$fieldid.'.value_text IS NULL)';
+							$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NULL)';
 							break;
 					}
 					break;
@@ -1284,7 +1317,7 @@ class Person_Query extends DB_Object
 		}
 		$sql .= "\nGROUP BY ".implode(', ', $query['group_by']);
 		$sql .= "\nORDER BY ".$query['order_by'].', p.last_name, p.first_name';
-		
+
 		return $sql;
 	}
 
@@ -1343,8 +1376,7 @@ class Person_Query extends DB_Object
 	{
 		foreach ($res as $i => $v) {
 			if (0 === strpos($params['group_by'], 'custom-')) {
-				$gb_bits = explode('-', $params['group_by']);
-				$field = $GLOBALS['system']->getDBObject('custom_field', end($gb_bits));
+				$field = $GLOBALS['system']->getDBObject('custom_field', end(explode('-', $params['group_by'])));
 				$heading = $field->formatValue($i);
 				if (!strlen($heading)) $heading = '(Blank)';
 			} else if ($params['group_by'] == 'groupid') {

@@ -123,11 +123,31 @@ class View_Home extends View
 			 </div>
 			<?php
 		}
-
 		?>
 		</div>
 		<?php
-
+        $frontpage_display = $frontpage_display_noperms = '';
+        $frontpagesql = 'SELECT queryid,noperms FROM frontpage_person_query';
+        $fp_reports = $GLOBALS['db']->query($frontpagesql);
+        $GLOBALS['system']->includeDBClass('person_query');
+        foreach ($fp_reports as $fp_report) {
+            if ($GLOBALS['user_system']->havePerm(PERM_RUNREPORT) || (bool)$fp_report['noperms']) { 
+                $_query = new Person_Query($fp_report['queryid']);
+            ?>
+            <div class="homepage homepage-1-col" style="clear:both;">
+            <?php
+                if ($_query->getValue('name')) {
+                    print "<h3>" . $_query->getValue('name') . "</h3>";
+                }
+                else {
+                    print "<h3>Person Report " . $fp_report['queryid'] . " Results</h3>";
+                }
+                $_query->printResults();
+            ?>
+            </div>
+            <?php
+            }
+        }
 	}
 }
 ?>
