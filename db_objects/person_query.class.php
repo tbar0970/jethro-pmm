@@ -79,6 +79,14 @@ class Person_Query extends DB_Object
 		";
 	}
 
+        function delete()
+        {
+                $GLOBALS['system']->doTransaction('BEGIN');
+                parent::delete();
+                $sql = 'DELETE FROM frontpage_person_query WHERE queryid='.(int)$this->id;
+                $res = $GLOBALS['db']->query($sql);
+                $GLOBALS['system']->doTransaction('COMMIT');
+	}
 
 	protected static function _getFields()
 	{
