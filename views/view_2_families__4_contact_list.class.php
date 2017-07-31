@@ -334,7 +334,7 @@ class View_Families__Contact_List extends View
 		\PhpOffice\PhpWord\Settings::setOutputEscapingEnabled(TRUE);
 
 		require_once 'view_9_documents.class.php';
-		$width = 11338; // 20cm in twips
+		$width = 14173; // 25cm in twips
 		$phpWord =  new \PhpOffice\PhpWord\PhpWord();
 		$phpWord->addParagraphStyle('FAMILY-HEADER', array());
 		$phpWord->addParagraphStyle('FAMILY-SUB-HEADER', array());
@@ -368,8 +368,9 @@ class View_Families__Contact_List extends View
 						->addText($family['family_name'], 'FAMILY-NAME', 'FAMILY-HEADER');
 
 			$table->addRow();
+			$rowOpen = TRUE;
 			if (!empty($_REQUEST['include_photos'])) {
-
+				// Add photo cell but stay on the same row.
 				$cell = $table->addCell(NULL, $narrowCellProps);
 				if ($family['have_photo']) {
 					$tempfile = str_replace('.tmp', '', tempnam(sys_get_temp_dir(), 'contactlistphoto')).'.jpg';
@@ -389,40 +390,56 @@ class View_Families__Contact_List extends View
 					$cell->addImage(JETHRO_ROOT.'/resources/img/unknown_family.jpg', $imageStyle);
 				}
 			}
+			
 			if (count($family['all']) > count($family['optins'])) {
 				$table->addCell(NULL, $wideCellProps)
 							->addText($family['all_names'], 'FAMILY-MEMBERS', 'FAMILY-SUB-HEADER');
+				$rowOpen = FALSE;
 			}
 			
 			if (!empty($_REQUEST['include_address']) && $family['address_street']) {
-				$table->addRow();
+				if (!$rowOpen) {
+					$table->addRow();
+					if (!empty($_REQUEST['include_photos'])) {
+						$table->addCell(NULL, $mergeProps);
+					}
+				}
+
 				$cell = $table->addCell(NULL, $wideCellProps);
 				// save vertical space by putting address on one line
 				$text = str_replace("\n", ', ', $family['address_street']).', ';
 				$text .= $family['address_suburb'].' '.$family['address_state'].' '.$family['address_postcode'];
 				$cell->addText($text, 'ADDRESS');
+				$rowOpen = FALSE;
 			}
 
 			if (!empty($_REQUEST['include_home_tel']) && $family['home_tel']) {
-				$table->addRow();
-				if (!empty($_REQUEST['include_photos'])) {
-					$table->addCell(NULL, $mergeProps);
+				if (!$rowOpen) {
+					$table->addRow();
+					if (!empty($_REQUEST['include_photos'])) {
+						$table->addCell(NULL, $mergeProps);
+					}
 				}
 				$table->addCell(NULL, $wideCellProps)
 							->addText($family['home_tel'], 'HOME PHONE');
+				$rowOpen = FALSE;
 			}
 
 			foreach ($family['optins'] as $member) {
-				$table->addRow();
-				if (!empty($_REQUEST['include_photos'])) {
-					$table->addCell(NULL, $mergeProps);
+				if (!$rowOpen) {
+					$table->addRow();
+					if (!empty($_REQUEST['include_photos'])) {
+						$table->addCell(NULL, $mergeProps);
+					}
 				}
-				$table->addCell($width*0.3, $narrowCellProps)->addText($member['name'], 'PERSON-NAME');
+				$table->addCell($width*0.25, $narrowCellProps)->addText($member['name'], 'PERSON-NAME');
 				if (!empty($_REQUEST['include_congregation'])) {
 					$table->addCell($width*0.25, $narrowCellProps)->addText($member['congname']);
 				}
-				$table->addCell($width*0.2, $narrowCellProps)->addText($member['mobile_tel']);
+				//$nbsp = html_entity_decode('&nbsp;');
+				$table->addCell($width*0.25, $narrowCellProps)->addText($member['mobile_tel']);
 				$table->addCell($width*0.2, $narrowCellProps)->addText($member['email']);
+				$rowOpen = FALSE;
 			}
 		}
 

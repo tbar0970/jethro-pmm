@@ -533,7 +533,7 @@ JethroSMS.init = function() {
 			data: smsData,
 			context: $(this),
 			error: function(jqXHR, status, error) {
-				alert('Server error sending SMS: ' + error);
+				alert('AJAX error sending SMS: ' + error);
 			},
 			success: function(data) {
 				var smsRequestCount = $("input[name='personid[]']:checked").length;
