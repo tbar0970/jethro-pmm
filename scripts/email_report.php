@@ -32,7 +32,7 @@ if (!is_readable(JETHRO_ROOT.'/conf.php')) {
 	exit(1);
 }
 require_once JETHRO_ROOT.'/conf.php';
-if (!defined('DSN')) define('DSN', constant('PRIVATE_DSN'));
+define('DB_MODE', 'private');
 require_once JETHRO_ROOT.'/include/init.php';
 require_once JETHRO_ROOT.'/include/user_system.class.php';
 $GLOBALS['user_system'] = new User_System();
