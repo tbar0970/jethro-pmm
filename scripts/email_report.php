@@ -61,7 +61,7 @@ ob_end_clean();
 //
 $csv_array = preg_split("/\\r\\n|\\r|\\n/", $csv_string);
 $rows=(count($csv_array)-1);
-$x=0; 
+$x=0;
 $email_html="<html><head></head><body>This is the result of a report generatated from the ".SYSTEM_NAME." Jethro system. <br><br>".$ini['MESSAGE']."<br><h2>Report name: ".$reportname."</h2>";
   $email_html.="<table border='1' cellpadding='5' cellspacing='1'>";
 // TODO: this doesn't handle values containing commas or newlines properly
@@ -73,9 +73,9 @@ while($x < $rows) {
 	} else {
      	foreach ($line as $cell) {$email_html.="<td>".(str_replace('"', "", $cell))."</td>";}
 	}
- 	$email_html.="</tr>";	
+ 	$email_html.="</tr>";
   $x++;
-} 
+}
 $email_html.="</table><br><br><i>If there is no table above then the report returned no results.</i><br></body></html>";
 $email_subject="Jethro Report: ".$reportname;
 $file_name=$reportname.".csv";
@@ -91,13 +91,13 @@ if ((int)$ini['GROUP_ID']!=0) {
   }
   $recipients_string = (implode(',', $recipients));
 }else{
-$recipients_string = $ini['EMAIL_TO'];	
+$recipients_string = $ini['EMAIL_TO'];
 }
 //
 // send the email with .cvs attachment
 //
 if ((int)$ini['PHP_MAIL']==0) {
-require_once JETHRO_ROOT.'/include/emailer.class.php'; 
+require_once JETHRO_ROOT.'/include/emailer.class.php';
 	$message = Emailer::newMessage()
 	  ->setSubject($email_subject)
 	  ->setFrom(array($ini['EMAIL_FROM'] => $ini['EMAIL_FROM_NAME']))
@@ -106,8 +106,8 @@ require_once JETHRO_ROOT.'/include/emailer.class.php';
 	  ->setTo(explode(',', $recipients_string));
 	if ((int)$ini['CSV']==1) {
 	  $attachment = new Swift_Attachment($csv_string, $file_name, 'text/csv');
-	  $message->attach($attachment);  
-	}	
+	  $message->attach($attachment);
+	}
 	$res = Emailer::send($message);
 	if (!$res) {
 		echo "Failed to send report (".$reportname.") to ".$ini['EMAIL_TO']."\n";
