@@ -132,6 +132,9 @@ define('DB_TYPE', 'mysql');
 // SMTP server used to send registration emails (leave blank to use the local 'mail' command)
 // define('SMTP_SERVER', '');
 
+// Port to connect to the SMTP server. Usually 25, 465 if using SSL, or 587 if using TLS encryption.
+// define('SMTP_PORT', '');
+
 // Encryption to use when authenticating with the SMTP server - 'ssl', 'tls', or empty.
 // define('SMTP_ENCRYPTION', '');
 
