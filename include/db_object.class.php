@@ -480,7 +480,7 @@ class db_object
 				}
 			}
 		}
-		if (array_key_exists($name, $this->values) && ($this->values[$name] != $value) && !isset($this->_old_values[$name])) {
+		if (array_key_exists($name, $this->values) && ($this->values[$name] != $value) && !array_key_exists($name, $this->_old_values)) {
 			$this->_old_values[$name] = $this->values[$name];
 		}
 		$this->values[$name] = $value;
@@ -710,7 +710,11 @@ class db_object
 	{
 		if (!$this->id || $this->haveLock()) {
 			$value = process_widget($prefix.$name, $this->fields[$name]);
-			if (!is_null($value)) $this->setValue($name, $value);
+			if (!is_null($value) || $this->fields[$name]['type'] == 'reference') {
+				// For a reference field, 'null' might be a meaninful value
+				// For other fields, it means the field hasn't been submitted.
+				$this->setValue($name, $value);
+			}
 		}
 
 	}
