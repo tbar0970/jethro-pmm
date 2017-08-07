@@ -15,4 +15,4 @@ SET @rank = (SELECT rank FROM setting WHERE symbol = 'SMTP_SERVER');
 INSERT INTO setting
 (rank, heading, symbol, note, type, value)
 VALUES
-(@rank+1, NULL, 'SMTP_PORT', 'Port on which to connect to the SMTP server', 'int', '25');
+(@rank+1, NULL, 'SMTP_PORT', 'Port to connect to the SMTP server. Usually 25, 465 for SSL, or 587 for TLS.', 'int', '25');
