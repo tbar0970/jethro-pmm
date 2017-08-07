@@ -9,3 +9,10 @@ WHERE
   AND
   (NOT EXISTS (SELECT * FROM account_group_restriction gr WHERE gr.personid  = getCurrentUserID())
   OR g.id IN (SELECT groupid FROM account_group_restriction gr WHERE gr.personid = getCurrentUserID()));
+
+/* Fix #397 */
+SET @rank = (SELECT rank FROM setting WHERE symbol = 'SMTP_SERVER');
+INSERT INTO setting
+(rank, heading, symbol, note, type, value)
+VALUES
+(@rank+1, NULL, 'SMTP_PORT', 'Port on which to connect to the SMTP server', 'int', '25');
