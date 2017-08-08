@@ -24,21 +24,25 @@ class Call_email extends Call
 			$view = $GLOBALS['system']->getDBObject('roster_view', (int)$_REQUEST['roster_view']);
 			$recips = $view->getAssignees($_REQUEST['start_date'], $_REQUEST['end_date']);
 		} else {
-			switch (array_get($_REQUEST, 'email_type')) {
-				case 'family':
-					$GLOBALS['system']->includeDBClass('family');
-					$families = Family::getFamilyDataByMemberIDs($_POST['personid']);
-					$recips = $GLOBALS['system']->getDBObjectData('person', Array('(age_bracketid' => Age_Bracket::getAdults(), '(familyid' => array_keys($families), '!email' => '', '!status' => 'archived'), 'AND');
-					$blanks =$GLOBALS['system']->getDBObjectData('person', Array('(age_bracketid' => Age_Bracket::getAdults(), '(familyid' => array_keys($families), 'email' => '', '!status' => 'archived'), 'AND');
-					$archived = $GLOBALS['system']->getDBObjectData('person', Array('(age_bracketid' => Age_Bracket::getAdults(), '(familyid' => array_keys($families), 'status' => 'archived'), 'AND');
-					break;
-				case 'person':
-				default:
-					$recips = $GLOBALS['system']->getDBObjectData('person', Array('id' => $_POST['personid'], '!email' => '', '!status' => 'archived'), 'AND');
-					$blanks = $GLOBALS['system']->getDBObjectData('person', Array('id' => $_POST['personid'], 'email' => '', '!status' => 'archived'), 'AND');
-					$archived = $GLOBALS['system']->getDBObjectData('person', Array('id' => $_POST['personid'], 'status' => 'archived'), 'AND');
-					$GLOBALS['system']->includeDBClass('person');
-					break;
+			if (empty($_REQUEST['personid'])) {
+				$recips = $emails = $blanks = $archived = Array();
+			} else {
+				switch (array_get($_REQUEST, 'email_type')) {
+					case 'family':
+						$GLOBALS['system']->includeDBClass('family');
+						$families = Family::getFamilyDataByMemberIDs($_POST['personid']);
+						$recips = $GLOBALS['system']->getDBObjectData('person', Array('(age_bracketid' => Age_Bracket::getAdults(), '(familyid' => array_keys($families), '!email' => '', '!status' => 'archived'), 'AND');
+						$blanks =$GLOBALS['system']->getDBObjectData('person', Array('(age_bracketid' => Age_Bracket::getAdults(), '(familyid' => array_keys($families), 'email' => '', '!status' => 'archived'), 'AND');
+						$archived = $GLOBALS['system']->getDBObjectData('person', Array('(age_bracketid' => Age_Bracket::getAdults(), '(familyid' => array_keys($families), 'status' => 'archived'), 'AND');
+						break;
+					case 'person':
+					default:
+						$recips = $GLOBALS['system']->getDBObjectData('person', Array('id' => $_POST['personid'], '!email' => '', '!status' => 'archived'), 'AND');
+						$blanks = $GLOBALS['system']->getDBObjectData('person', Array('id' => $_POST['personid'], 'email' => '', '!status' => 'archived'), 'AND');
+						$archived = $GLOBALS['system']->getDBObjectData('person', Array('id' => $_POST['personid'], 'status' => 'archived'), 'AND');
+						$GLOBALS['system']->includeDBClass('person');
+						break;
+				}
 			}
 		}
 		
