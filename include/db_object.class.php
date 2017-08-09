@@ -710,13 +710,15 @@ class db_object
 	{
 		if (!$this->id || $this->haveLock()) {
 			$value = process_widget($prefix.$name, $this->fields[$name]);
-			if (!is_null($value) || $this->fields[$name]['type'] == 'reference') {
-				// For a reference field, 'null' might be a meaninful value
-				// For other fields, it means the field hasn't been submitted.
+			if ($value !== NULL) {
+				if (($this->fields[$name]['type'] == 'reference') && ($value === 0)) {
+					// process_widget returns 0 when the user selects the 'empty' option
+					// but we want to save NULL to the db.
+					$value = NULL;
+				}
 				$this->setValue($name, $value);
 			}
 		}
-
 	}
 
 
