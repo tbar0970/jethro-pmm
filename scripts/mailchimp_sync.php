@@ -46,7 +46,7 @@ if (empty($api_key)) {
 }
 
 require_once 'vendor/autoload.php';
-use \DrewM\MailChimp\Mailchimp;
+use \DrewM\MailChimp\MailChimp;
 $mc = new MailChimp($api_key);
 $mc->verify_ssl = $VERIFY_SSL;
 
