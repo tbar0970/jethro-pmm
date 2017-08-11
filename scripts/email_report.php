@@ -52,31 +52,30 @@ if (!(int)$ini['REPORT_ID']) {
 $report = $GLOBALS['system']->getDBObject('person_query', (int)$ini['REPORT_ID']);
 $reportname = $report->getValue('name');
 if (empty($reportname)) $reportname = 'Jethro-Report-'.date('Y-m-d_H:i');
+//first grab the csv for the attachment
 ob_start();
 $report->printResults('csv');
 $csv_string = ob_get_contents();
 ob_end_clean();
+//then grab the html for the email
+ob_start();
+$report->printResults();
+$html_string = ob_get_contents();
+ob_end_clean();
+//strip everything after and including 'With selected persons:....'
+$html_string = strstr($html_string, 'With selected persons:', true);
+//strip html tags and links which may causse issues - for example links are going to be relative
+$html_string = strip_tags($html_string, '<p><table><b><th><tr><td><div>');
+//string the word "View"
+$html_string = str_replace(">
+														View
+													<", "><", $html_string);
 //
 // turn csv into html table for email content
 //
-$csv_array = preg_split("/\\r\\n|\\r|\\n/", $csv_string);
-$rows=(count($csv_array)-1);
-$x=0; 
 $email_html="<html><head></head><body>This is the result of a report generatated from the ".SYSTEM_NAME." Jethro system. <br><br>".$ini['MESSAGE']."<br><h2>Report name: ".$reportname."</h2>";
-  $email_html.="<table border='1' cellpadding='5' cellspacing='1'>";
-// TODO: this doesn't handle values containing commas or newlines properly
-while($x < $rows) {
-    $line = explode(',',$csv_array[$x]);
-	$email_html.="<tr>";
-     	if ($x==0) {
-     	foreach ($line as $cell) {$email_html.="<th>".(str_replace('"', "", $cell))."</th>";}
-	} else {
-     	foreach ($line as $cell) {$email_html.="<td>".(str_replace('"', "", $cell))."</td>";}
-	}
- 	$email_html.="</tr>";	
-  $x++;
-} 
-$email_html.="</table><br><br><i>If there is no table above then the report returned no results.</i><br></body></html>";
+$email_html.=$html_string;
+$email_html.="<br><i>If there is no table above then the report returned no results.</i><br></body></html>";
 $email_subject="Jethro Report: ".$reportname;
 $file_name=$reportname.".csv";
 // 
@@ -142,8 +141,8 @@ if ((int)$ini['PHP_MAIL']==1) {
 	}
   $message .= "--".$uid."--";
    if (mail($email_to, $email_subject, "$message", $header)) {
-   echo $reportname." Mail send ... OK";
+   echo $reportname." Mail send ... OK ".$recipients_string."\n";
    } else {
-   echo $reportname." Mail send ... ERROR!";
+   echo $reportname." Mail send ... ERROR!\n";
    }
   }
