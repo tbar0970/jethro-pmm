@@ -573,7 +573,11 @@ function process_widget($name, $params, $index=NULL, $preserveEmpties=FALSE)
 			}
 			break;
 		case 'reference':
-			$value = empty($rawVal) ? NULL : (int)$rawVal;
+			if (!array_key_exists($name, $_REQUEST)) {
+				$value = NULL;
+			} else {
+				$value = (int)$rawVal;
+			}
 			break;
 		default:
 			$value = $rawVal;
