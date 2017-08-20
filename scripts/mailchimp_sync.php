@@ -80,7 +80,7 @@ if (!$vars_res) {
 	trigger_error("Mailchimp API Error calling lists/merge-fields: ".$mc->getLastError(), E_USER_ERROR);
 }
 
-foreach ($vars_res['merge_fields'] as $var_details) {
+foreach (array_get($vars_res, 'merge_fields', Array()) as $var_details) {
 	$vars[] = $var_details['tag'];
 }
 $missing_vars = array_diff(Array('STATUS', 'CONG', 'AGEBRACKET', 'GENDER'), $vars);
