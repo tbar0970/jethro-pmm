@@ -52,30 +52,120 @@ if (!(int)$ini['REPORT_ID']) {
 $report = $GLOBALS['system']->getDBObject('person_query', (int)$ini['REPORT_ID']);
 $reportname = $report->getValue('name');
 if (empty($reportname)) $reportname = 'Jethro-Report-'.date('Y-m-d_H:i');
-//first grab the csv for the attachment
 ob_start();
 $report->printResults('csv');
 $csv_string = ob_get_contents();
 ob_end_clean();
-//then grab the html for the email
-ob_start();
-$report->printResults();
-$html_string = ob_get_contents();
-ob_end_clean();
-//strip everything after and including 'With selected persons:....'
-$html_string = strstr($html_string, 'With selected persons:', true);
-//strip html tags and links which may causse issues - for example links are going to be relative
-$html_string = strip_tags($html_string, '<p><table><b><th><tr><td><div>');
-//string the word "View"
-$html_string = str_replace(">
-														View
-													<", "><", $html_string);
 //
 // turn csv into html table for email content
 //
-$email_html="<html><head></head><body>This is the result of a report generatated from the ".SYSTEM_NAME." Jethro system. <br><br>".$ini['MESSAGE']."<br><h2>Report name: ".$reportname."</h2>";
-$email_html.=$html_string;
-$email_html.="<br><i>If there is no table above then the report returned no results.</i><br></body></html>";
+$email_html="<html><head>
+<style>html body { font-family: sans-serif;} table {
+	color:#333333;
+	border-width: 1px;
+	border-color: #666666;
+	border-collapse: collapse;
+}
+table th {
+	border-width: 1px;
+	padding: 8px;
+	border-style: solid;
+	border-color: #666666;
+	background-color: #dedede;
+}
+table.gridtable td {
+	border-width: 1px;
+	padding: 8px;
+	border-style: solid;
+	border-color: #666666;
+	background-color: #ffffff;
+} </style></head><body>This is the result of a report generatated from the ".SYSTEM_NAME." Jethro system. <br><br>".$ini['MESSAGE']."<br><h2>Report name: ".$reportname."</h2>";
+//first work-over $csv_string to deal with the issue of new-lines within a field by replacing those new lines with <br>
+$csv_string  = preg_replace('#\\n(?=[^"]*"[^"]*(?:"[^"]*"[^"]*)*$)#' , '<br>', $csv_string);
+//now separate out the table rows
+$table_rows = explode(PHP_EOL, $csv_string);
+//covert each row into an array
+$table_array = array();
+foreach ($table_rows as $line) {
+    $table_array[] = str_getcsv($line);
+}
+    $rows = (count($table_array)-1);
+    $columns = count($table_array[0]);
+    $y = 0;
+    $table_header = '';
+    $table_body = '';
+    $table_html = '';
+// table headings - as a string AND test if the report results are grouped
+	$table_header .= '<tr>';
+	while ($y < $columns) {
+		if ($table_array[0][$y] == 'GROUPING') {$grouping_column = $y;}
+		else {$table_header .= '<th>'.$table_array[0][$y].'</th>';}
+		$y++;}
+		$table_header .= '</tr>';
+// table body (if the report results are to be grouped)
+	if (isset($grouping_column)) {
+	$x=1;
+	$y = 0;
+	$table_body = '';
+	$group_name = $table_array[$x][$grouping_column];
+	while ($x < $rows) {
+		if ($group_name == $table_array[$x][$grouping_column]){
+			$table_body .= '<tr>';
+			$y = 0;
+			while ($y < $columns) {
+				if ($y != $grouping_column){
+					if ($table_array[$x][$y] == '') {
+						$table_body .= '<td> - </td>';
+					} else {
+						$table_body .= '<td>'.$table_array[$x][$y].'</td>';
+					}
+				}
+				$y++;	
+			}		
+			$table_body .= '</tr>';
+			$group_name = $table_array[$x][$grouping_column];
+		} else {
+			$table_html .= '<h3>'.$group_name.'</h3><table border=1 cellpadding=4 cellspacing=3 >'.$table_header.$table_body.'</table>';	
+			$table_body = '<tr>';
+			$y = 0;
+			while ($y < $columns) {
+				if ($y != $grouping_column){
+					if ($table_array[$x][$y] == '') {
+						$table_body .= '<td> - </td>';
+					} else {
+						$table_body .= '<td>'.$table_array[$x][$y].'</td>';
+					}
+				}
+				$y++;	
+			}		
+			$table_body .= '</tr>';
+			$group_name = $table_array[$x][$grouping_column];			
+			}
+		$x++;
+		}
+			$table_html .= '<h3>'.$group_name.'</h3><table border=1 cellpadding=4 cellspacing=3 >'.$table_header.$table_body.'</table>';	
+	} else {
+// table body (if the report results are ungrouped)
+	$x=1;
+	$y=0;
+	while ($x < $rows){
+		$table_body .= '<tr>';
+		while ($y < $columns) {
+			if ($table_array[$x][$y] == '') {
+				$table_body .= '<td> - </td>';
+			} else {
+				$table_body .= '<td>'.$table_array[$x][$y].'</td>';
+			}
+			$y++;	
+		}		
+		$table_body .= '</tr>';
+		$y = 0;
+		$x++;
+ 		}
+	$table_html = '<table border=1 cellpadding=4 cellspacing=3 >'.$table_header.$table_body.'</table>';
+	}
+$email_html.=$table_html;
+$email_html.="<br><br><i>If there is no table above then the report returned no results.</i><br></body></html>";
 $email_subject="Jethro Report: ".$reportname;
 $file_name=$reportname.".csv";
 // 
@@ -141,8 +231,8 @@ if ((int)$ini['PHP_MAIL']==1) {
 	}
   $message .= "--".$uid."--";
    if (mail($email_to, $email_subject, "$message", $header)) {
-   echo $reportname." Mail send ... OK ".$recipients_string."\n";
+   echo $reportname." Mail send ... OK";
    } else {
-   echo $reportname." Mail send ... ERROR!\n";
+   echo $reportname." Mail send ... ERROR!";
    }
   }
