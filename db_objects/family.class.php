@@ -505,7 +505,7 @@ class family extends db_object
 	}
 
 
-	function getFamilyDataByMemberIDs($member_ids)
+	public static function getFamilyDataByMemberIDs($member_ids)
 	{
 		$quoted_ids = implode(',', array_map(Array($GLOBALS['db'], 'quote'), $member_ids));
 		$sql = '
