@@ -915,22 +915,11 @@ class Person_Query extends DB_Object
 							}
 							$betweenExp = 'BETWEEN '.$db->quote($from).' AND '.$db->quote($to);
 							$valExp = 'pd'.$fieldid.'.value_date';
-							$w = Array();
-							$w[] = "$valExp NOT LIKE '-%' AND $valExp $betweenExp";
+							$w[] = "$valExp $betweenExp";
 							if ($values['criteria'] == 'anniversary') {
-								$qFromYear = $db->quote(substr($from, 0, 4));
-								$qToYear = $db->quote(substr($to, 0, 4));
-
-								$w[] = "$valExp LIKE '-%' AND (
-											CONCAT($qFromYear, $valExp) $betweenExp
-											OR CONCAT($qToYear, $valExp) $betweenExp
-										)";
-								$w[] = "$valExp NOT LIKE '-%' AND (
-											CONCAT($qFromYear, RIGHT($valExp, 6)) $betweenExp
-											OR CONCAT($qToYear, RIGHT($valExp, 6)) $betweenExp
-										)";
+								$w[] = "DAYOFYEAR($valExp) BETWEEN DAYOFYEAR(".$db->quote($from) . ") AND DAYOFYEAR(".$db->quote($to).")";
 							}
-							$customFieldWheres[] = '(('.implode("\n) OR (\n", $w).'))';
+							$customFieldWheres[] = '(('. implode("\n) OR (\n", $w).'))';
 							break;
 
 					}
@@ -1131,7 +1120,7 @@ class Person_Query extends DB_Object
 						$query['from'] .= '
 										JOIN (
 											SELECT familyid, IF (
-												GROUP_CONCAT(DISTINCT last_name) = ff.family_name, 
+												GROUP_CONCAT(DISTINCT last_name) = ff.family_name,
 												GROUP_CONCAT(first_name ORDER BY ab.rank, gender DESC SEPARATOR ", "),
 												GROUP_CONCAT(CONCAT(first_name, " ", last_name) ORDER BY ab.rank, gender DESC SEPARATOR ", ")
 											  ) AS `names`
@@ -1156,7 +1145,7 @@ class Person_Query extends DB_Object
 													)');
 						$r2 = $GLOBALS['db']->query('INSERT INTO _family_adults'.$this->id.' (familyid, names)
 											SELECT familyid, IF (
-												GROUP_CONCAT(DISTINCT last_name) = ff.family_name, 
+												GROUP_CONCAT(DISTINCT last_name) = ff.family_name,
 												GROUP_CONCAT(first_name ORDER BY ab.rank, gender DESC SEPARATOR ", "),
 												GROUP_CONCAT(CONCAT(first_name, " ", last_name) ORDER BY ab.rank, gender DESC SEPARATOR ", ")
 											  )
@@ -1172,9 +1161,9 @@ class Person_Query extends DB_Object
 					case 'attendance_percent':
 							$groupid = $params['attendance_groupid'] == '__cong__' ? 0 : $params['attendance_groupid'];
 							$min_date = date('Y-m-d', strtotime('-'.(int)$params['attendance_weeks'].' weeks'));
-							$query['select'][] = '(SELECT ROUND(SUM(present)/COUNT(*)*100) 
-													FROM attendance_record 
-													WHERE date >= '.$GLOBALS['db']->quote($min_date).' 
+							$query['select'][] = '(SELECT ROUND(SUM(present)/COUNT(*)*100)
+													FROM attendance_record
+													WHERE date >= '.$GLOBALS['db']->quote($min_date).'
 													AND groupid = '.(int)$groupid.'
 													AND personid = p.id) AS `Attendance`';
 						break;
@@ -1238,7 +1227,7 @@ class Person_Query extends DB_Object
 			$order = Array();
 			$order[] = 'IF(cfvorder.personid IS NULL, 1, 0)'; // put those without a value last
 			if ($this->_custom_fields[$customOrder]['type'] == 'date') {
-				$order[] = 'IF(cfvorder.value_date LIKE "-%", 1, 0)'; // put full dates before partial dates
+				$order[] = 'IF(YEAR(cfvorder.value_date)="1584", 1, 0)'; // put full dates before partial dates
 			}
 			$order[] = 'GROUP_CONCAT('.Custom_Field::getSortValueSQLExpr('cfvorder', 'cfoorder').')';
 			$query['order_by'] = implode(', ', $order);
@@ -1284,7 +1273,7 @@ class Person_Query extends DB_Object
 		}
 		$sql .= "\nGROUP BY ".implode(', ', $query['group_by']);
 		$sql .= "\nORDER BY ".$query['order_by'].', p.last_name, p.first_name';
-		
+
 		return $sql;
 	}
 
@@ -1316,6 +1305,7 @@ class Person_Query extends DB_Object
 		$params = $this->_convertParams($this->getValue('params'));
 
 		$sql = $this->getSQL();
+		echo "<pre>$sql</pre>";
 		if (is_null($sql)) return;
 
 		if ($format == 'html' && in_array('checkbox', $params['show_fields'])) {
