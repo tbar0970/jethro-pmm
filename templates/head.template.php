@@ -53,6 +53,8 @@ if (file_exists(JETHRO_ROOT.'/'.$customCSSFile)) {
 if (JETHRO_VERSION == 'DEV') {
 	?>
 	<script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/jquery.js?t=<?php echo time(); ?>"></script>
+        <script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/pikaday.js?t=<?php echo time(); ?>"></script>
+        <script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/pikaday.jquery.js?t=<?php echo time(); ?>"></script>
 	<script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/bootstrap.js?t=<?php echo time(); ?>"></script>
 	<script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/tb_lib.js?t=<?php echo time(); ?>"></script>
 	<script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/jethro.js?t=<?php echo time(); ?>"></script>

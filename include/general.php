@@ -82,7 +82,12 @@ function format_datetime($d)
 function format_date($d, $includeYear=NULL)
 {
 	if ($d == '0000-00-00') return '';
-	$yearless = is_string($d) && ($d[0] == '-');
+	if ((is_string($d)) && ($d != '') && ((strpos($d, '1584')===0) || ($d[0]=='-'))) {
+		$d = substr($d, 4);
+		$yearless = true;
+	} else {
+		$yearless = false;
+	}
 	if (!is_int($d)) {
 		$d = strtotime($yearless ? "2012{$d}" : $d);
 	}
@@ -182,10 +187,10 @@ function print_widget($name, $params, $value)
 				$cols_exp = empty($params['width']) ? '' : 'cols="'.$params['width'].'"';
 				$placeholder_exp = empty($params['placeholder']) ? '' : 'placeholder="'.ents($params['placeholder']).'"';
 				?>
-				<textarea name="<?php echo $name; ?>" 
-						  rows="<?php echo $params['height']; ?>" 
-						  class="<?php echo trim($classes); ?>" 
-						  <?php echo $maxlength_exp.' '.$cols_exp .' '.$placeholder_exp; ?> 
+				<textarea name="<?php echo $name; ?>"
+						  rows="<?php echo $params['height']; ?>"
+						  class="<?php echo trim($classes); ?>"
+						  <?php echo $maxlength_exp.' '.$cols_exp .' '.$placeholder_exp; ?>
 				><?php echo ents($value); ?></textarea>
 				<?php
 			} else {
@@ -376,6 +381,7 @@ function print_widget($name, $params, $value)
 			$value = explode(' ', $value);
 			$value = reset($value);
 			list($year_val, $month_val, $day_val) = explode('-', substr($value, 0, 10));
+			if ($year_val === '1584') { $year_val = '';}
 			?>
 			<span class="nowrap" <?php echo $attrs; ?> >
 			<input type="text" name="<?php printf($name_template, '_d'); ?>" class="day-box <?php echo $day_year_classes; ?>" size="2" maxlength="2" value="<?php echo $day_val; ?>" placeholder="DD" /><select name="<?php printf($name_template, '_m'); ?>" class="month-box <?php echo $classes; ?>">

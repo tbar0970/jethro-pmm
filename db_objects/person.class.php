@@ -572,11 +572,13 @@ class Person extends DB_Object
 			if (!is_array($values)) $values = empty($values) ? Array() : Array($values);
 			foreach ($values as $value) {
 				$dateVal = $textVal = $optionVal = NULL;
+				print "Value: $value";
 				if (strlen($value)) {
 					switch ($customFields[$fieldid]['type']) {
 						case 'date':
 							$bits = explode(' ', $value);
 							$dateVal = array_shift($bits);
+							if (($dateVal!='') && ($dateVal[0] == '-')) { $dateVal = '1584'.$dateVal;}
 							$textVal = implode(' ' , $bits);
 							break;
 						case 'select':
@@ -722,12 +724,12 @@ class Person extends DB_Object
 		}
 		return $res;
 	}
-		
+
 	function getInstancesQueryComps($params, $logic, $order)
 	{
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
 		$res['select'][] = 'f.family_name, f.address_street, f.address_suburb, f.address_state, f.address_postcode, f.home_tel, c.name as congregation, ab.label as age_bracket';
-		$res['from'] = '(('.$res['from'].') 
+		$res['from'] = '(('.$res['from'].')
 						JOIN family f ON person.familyid = f.id)
 						LEFT JOIN congregation c ON person.congregationid = c.id
 						JOIN age_bracket ab on ab.id = person.age_bracketid ';
@@ -891,7 +893,7 @@ class Person extends DB_Object
 	public function fromCsvRow($row) {
 		$this->_custom_values = Array();
 		$this->_old_custom_values = Array();
-		
+
 		static $customFields = NULL;
 		if ($customFields === NULL) {
 			$fields = $GLOBALS['system']->getDBObjectdata('custom_field');
@@ -931,7 +933,7 @@ class Person extends DB_Object
 		parent::populate($id, $values);
 		$this->_custom_values = Array();
 		$this->_old_custom_values = Array();
-		
+
 		foreach ($values as $k => $v) {
 			if (0 === strpos($k, 'CUSTOM_')) {
 				$this->setCustomValue(substr($k, 7), $v);
