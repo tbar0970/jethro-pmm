@@ -1227,7 +1227,7 @@ class Person_Query extends DB_Object
 			$order = Array();
 			$order[] = 'IF(cfvorder.personid IS NULL, 1, 0)'; // put those without a value last
 			if ($this->_custom_fields[$customOrder]['type'] == 'date') {
-				$order[] = 'IF(YEAR(cfvorder.value_date)="1584", 1, 0)'; // put full dates before partial dates
+				$order[] = 'IF(cfvorder.value_date LIKE "-%", 1, 0)'; // put full dates before partial dates
 			}
 			$order[] = 'GROUP_CONCAT('.Custom_Field::getSortValueSQLExpr('cfvorder', 'cfoorder').')';
 			$query['order_by'] = implode(', ', $order);
