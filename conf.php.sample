@@ -132,6 +132,9 @@ define('DB_TYPE', 'mysql');
 // SMTP server used to send registration emails (leave blank to use the local 'mail' command)
 // define('SMTP_SERVER', '');
 
+// Port to connect to the SMTP server. Usually 25, 465 if using SSL, or 587 if using TLS encryption.
+// define('SMTP_PORT', '');
+
 // Encryption to use when authenticating with the SMTP server - 'ssl', 'tls', or empty.
 // define('SMTP_ENCRYPTION', '');
 
@@ -207,8 +210,8 @@ define('DB_TYPE', 'mysql');
 // function custom_email_extras() { return 'target="_mail"'; }
 
 // Pre-filled values for the login form.  Only use on demo systems etc.
-// define('PREFILL_USERNAME', 'tom');
-// define('PREFILL_PASSWORD', 'dotti80');
+// define('PREFILL_USERNAME', '');
+// define('PREFILL_PASSWORD', '');
 
 // For troubleshooting you can use this to show error details in the browser
 // This is usually disabled in production versions but shown in dev.

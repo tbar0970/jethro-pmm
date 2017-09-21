@@ -171,8 +171,10 @@ class Installer
 			WHERE
 			  getCurrentUserID() IS NOT NULL
 			  AND
+			  ((g.owner IS NULL) OR (g.owner = getCurrentUserID()))
+			  AND
 			  (NOT EXISTS (SELECT * FROM account_group_restriction gr WHERE gr.personid  = getCurrentUserID())
-				   OR g.id IN (SELECT groupid FROM account_group_restriction gr WHERE gr.personid = getCurrentUserID()))",
+			  OR g.id IN (SELECT groupid FROM account_group_restriction gr WHERE gr.personid = getCurrentUserID()))",
 
 			'CREATE VIEW member AS
 			SELECT mp.id, mp.first_name, mp.last_name, mp.gender, mp.age_bracketid, mp.congregationid,
