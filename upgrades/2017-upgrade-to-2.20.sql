@@ -9,3 +9,6 @@ VALUES
 (@newRank := @newRank+1, '',                   'TASK_NOTIFICATION_FROM_NAME', 'Name from which task notifications should be sent', 'text', 'Jethro'),
 (@newRank := @newRank+1, '',                   'TASK_NOTIFICATION_FROM_ADDRESS', 'Email address from which task notifications should be sent', 'text', ''),
 (@newRank := @newRank+1, '',                   'TASK_NOTIFICATION_SUBJECT', '', 'text', 'New notes assigned to you');
+
+/* some old systems had NOT NULL for this column */
+alter table _person_group MODIFY COLUMN categoryid INT(11) DEFAULT NULL;

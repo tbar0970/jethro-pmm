@@ -1568,7 +1568,7 @@ class Person_Query extends DB_Object
 
 	function _getColClasses($heading)
 	{
-		$class_list = '';
+		$class_list = Array();
 		if (in_array($heading, Array('edit_link', 'view_link', 'checkbox'))) {
 			$class_list[] = 'no-print narrow';
 		}
