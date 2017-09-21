@@ -55,7 +55,7 @@ define('DB_TYPE', 'mysql');
 // SMS SETTINGS - These can also be configured in the web interface,
 // but you may want to define them here to avoid making credentials visible.
 ///////////////////////////////////////////////////////////////////////////
-
+define('SMS_ENCODING', 'gsm0338');
 // The maximum SMS length users are allowed to send.  160 chars is usually a one-part SMS.
 // define('SMS_MAX_LENGTH', 160);
 

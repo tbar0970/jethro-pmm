@@ -272,14 +272,14 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 			<div class="control-group">
 				<label class="control-label">Message: </label>
 				<div class="controls">
-					<textarea id="bulk_sms_message" name="message" class="span4" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
+					<textarea id="bulk_sms_message" name="message" data-smsencoding="<?php echo SMS_ENCODING; ?>" class="span4" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
 					<br />
                     <span class="smscharactercount"><?php echo SMS_MAX_LENGTH; ?> characters remaining.</span>
 				</div>
 			</div>
 		<?php
 		if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
-			?>			
+			?>
 			<div class="control-group">
 				<label class="control-label">After sending:</label>
 				<div class="controls">
@@ -341,13 +341,11 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 	<div class="bulk-action well" id="vcf">
 		<input type="submit" value="Go" class="btn" data-set-form-action="<?php echo BASE_URL; ?>?call=vcf" />
 	</div>
-	
+
 	<?php
 	if (function_exists('custom_bulk_action_bodies')) {
 		custom_bulk_action_bodies();
 	}
 	?>
-	
+
 </div>
-
-

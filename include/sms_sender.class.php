@@ -191,7 +191,7 @@ Class SMS_Sender
 			</div>
 			<div class="modal-body">
 				Message:<br />
-				<div contenteditable="true" autofocus="autofocus" id="sms_message" data-smsencoding="gsm0338" class="sms_editor" data-maxlength="<?php echo SMS_MAX_LENGTH; ?>"></div>
+				<div contenteditable="true" autofocus="autofocus" id="sms_message" data-smsencoding="<?php echo SMS_ENCODING; ?>" class="sms_editor" data-maxlength="<?php echo SMS_MAX_LENGTH; ?>"></div>
 				<span class="pull-right smscharactercount"><?php echo SMS_MAX_LENGTH; ?> characters remaining.</span>
 			<?php
 			if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {

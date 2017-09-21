@@ -479,16 +479,8 @@ var JethroSMS = {};
 JethroSMS.init = function() {
 
 	// SMS Character counting
-	$('.smscharactercount').parent().find('textarea, div.sms_editor').on('keyup propertychange paste', function() {
-		var maxlength = (this.tagName == 'DIV') ? $(this).attr("data-maxlength") : $(this).attr('maxlength');
-		var currentLength = (this.tagName == 'DIV') ? $(this).text().length : this.value.length;
-		var chars = maxlength - currentLength;
-		if (chars <= 0 && this.tagName == 'DIV') {
-			$(this).val($(this).text().substring(0, maxlength));
-			chars = 0;
-		}
-		$(this).parent().find('.smscharactercount').html(chars + ' characters remaining.');
-	});
+	$('.smscharactercount').parent().find('textarea, div.sms_editor').on('keyup propertychange', function(event) { JethroSMS.updateCharacterCount(this);});
+	$('.smscharactercount').parent().find('textarea, div.sms_editor').on('paste', function(event) { JethroSMS.handlePaste(event, this);});
 
 	$(document).on('click', '[data-toggle="sms-modal"]', function(e) {
 		var $this = $(this)
@@ -608,7 +600,70 @@ JethroSMS.init = function() {
 		}
 	});
 }
+/**
+ * @param messagebox The div or textarea that contains the sms message
+ */
+JethroSMS.updateCharacterCount = function(messagebox) {
+	var isTextArea = $(messagebox).is("textarea");
+	var maxlength = (isTextArea) ? $(messagebox).attr('maxlength'): $(messagebox).attr("data-maxlength");
+	var currentLength = (isTextArea) ? $(messagebox).val().length : $(messagebox).text().length;
+	var chars = maxlength - currentLength;
+	if (chars <= 0) {
+		if (isTextArea) {
+			$(messagebox).val($(messagebox).val().substring(0, maxlength));
+			chars = 0;
+		} else {
+			$(messagebox).text($(messagebox).text().substring(0, maxlength));
+			chars = 0;
+		}
+	}
+	$(messagebox).parent().find('.smscharactercount').html(chars + ' characters remaining.');
+}
+/**
+ * @param event paste event
+ * @param messagebox The div or textarea that contains the sms message
+ */
+JethroSMS.handlePaste = function(event, messagebox) {
+	var gsm0338regex = /[^@ Ã‚Â£$Ã‚Â¥ÃƒÂ¨ÃƒÂ©ÃƒÂ¹ÃƒÂ¬ÃƒÂ²Ãƒâ€¡\fÃƒËœÃƒÂ¸\nÃƒâ€¦ÃƒÂ¥ÃŽâ€_ÃŽÂ¦ÃŽâ€œÃŽâ€ºÃŽÂ©ÃŽ ÃŽÂ¨ÃŽÂ£ÃŽËœÃŽÅ¾Ãƒâ€ ÃƒÂ¦ÃƒÅ¸Ãƒâ€° !\"#Ã‚Â¤%&'()*+,-.\/:;<=>\?Ã‚Â¡Ãƒâ€žÃƒâ€“Ãƒâ€˜ÃƒÅ“Ã‚Â§Ã‚Â¿ÃƒÂ¤ÃƒÂ¶ÃƒÂ±ÃƒÂ¼Ãƒ \^\{\}\[~\]\|Ã¢â€šÂ¬\w]+/g;
+	var clipboardData, pastedData;
+	// Stop data actually being pasted into div until we fix it up
+	event.stopPropagation();
+	event.preventDefault();
 
+	// Get pasted data via clipboard API
+	clipboardData = event.originalEvent.clipboardData || window.clipboardData;
+	pastedData = clipboardData.getData('Text');
+
+	if ( messagebox.hasAttribute('data-smsencoding') && (messagebox.getAttribute('data-smsencoding') == 'gsm0338')) {
+		if (gsm0338regex.test(pastedData)) {
+			messagebox.setAttribute('data-invalidcharacters', true);
+			pastedData = pastedData.replace(gsm0338regex, '');
+		}
+	}
+
+	if ($(messagebox).is("textarea")) {
+		var oldString = $(message).val();
+		$(message).val(oldString.substring(0, messagebox.selectionStart) + pastedData + oldString.substring(messagebox.selectionEnd));
+	} else {
+		var sel, range, html;
+		if (document.getSelection) {
+				sel = document.getSelection();
+				if (sel.getRangeAt && sel.rangeCount) {
+						range = sel.getRangeAt(0);
+						range.deleteContents();
+						text = document.createTextNode(pastedData);
+						range.insertNode(text);
+						range.collapse();
+				}
+		} else if (document.selection && document.selection.createRange) {
+				range = document.selection.createRange();
+				text = document.createTextNode(pastedData);
+				range.insertNode(text);
+				range.collapse();
+		}
+	}
+	JethroSMS.updateCharacterCount(messagebox);
+}
 /**
  *
  * @param object data
@@ -1245,7 +1300,7 @@ var applyNarrowColumns = function(root) {
 	// (even if its parent is less than 100% width).
 	// We want the whole table to be as wide as it needs to be but no wider.
 	var expr = 'td.narrow, th.narrow, table.object-summary th'
-	var cells = $(root).find(expr); 
+	var cells = $(root).find(expr);
 	var parents = cells.parents('table:visible').not('.no-narrow-magic');
 	parents.each(function() {
 		var table = $(this);
