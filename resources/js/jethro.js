@@ -642,8 +642,8 @@ JethroSMS.handlePaste = function(event, messagebox) {
 	}
 
 	if ($(messagebox).is("textarea")) {
-		var oldString = $(message).val();
-		$(message).val(oldString.substring(0, messagebox.selectionStart) + pastedData + oldString.substring(messagebox.selectionEnd));
+		var oldString = $(messagebox).val();
+		$(messagebox).val(oldString.substring(0, messagebox.selectionStart) + pastedData + oldString.substring(messagebox.selectionEnd));
 	} else {
 		var sel, range, html;
 		if (document.getSelection) {
