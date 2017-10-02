@@ -53,7 +53,7 @@ $mc->verify_ssl = $VERIFY_SSL;
 // Check for / look for a list ID
 if (empty($list_id)) {
 	$lists = $mc->get('lists');
-	if ($lists == FALSE) {
+	if (($lists == FALSE) || !$mc->success()) {
 		trigger_error("Mailchimp API Error calling lists(): ".$mc->getLastError(), E_USER_ERROR);
 	}
 	switch (count($lists['lists'])) {
@@ -76,11 +76,11 @@ if (empty($list_id)) {
 // Check that the list has the necessary merge vars
 $vars = array();
 $vars_res = $mc->get('lists/'.$list_id.'/merge-fields');
-if (!$vars_res) {
+if (!$vars_res || !$mc->success()) {
 	trigger_error("Mailchimp API Error calling lists/merge-fields: ".$mc->getLastError(), E_USER_ERROR);
 }
 
-foreach ($vars_res['merge_fields'] as $var_details) {
+foreach (array_get($vars_res, 'merge_fields', Array()) as $var_details) {
 	$vars[] = $var_details['tag'];
 }
 $missing_vars = array_diff(Array('STATUS', 'CONG', 'AGEBRACKET', 'GENDER'), $vars);
@@ -118,7 +118,7 @@ if ($DEBUG > 1) {
 
 // Get the existing members of the mailchimp list
 $members_res = $mc->get('lists/'.$list_id.'/members', Array('count' => 10000), 60);
-if (FALSE === $members_res) {
+if ((FALSE === $members_res) || !$mc->success()) {
 	trigger_error("Mailchimp API Error fetching list members: ".$mc->getLastError(), E_USER_ERROR);
 }
 $mc_members = Array();
