@@ -75,6 +75,7 @@ while($x < $rows) {
 	}
  	$email_html.="</tr>";
   $x++;
+
 }
 $email_html.="</table><br><br><i>If there is no table above then the report returned no results.</i><br></body></html>";
 $email_subject="Jethro Report: ".$reportname;
@@ -96,9 +97,8 @@ $recipients_string = $ini['EMAIL_TO'];
 //
 // send the email with .cvs attachment
 //
-
 if ((int)$ini['PHP_MAIL']==0) {
-require_once JETHRO_ROOT.'/include/emailer.class.php';
+require_once JETHRO_ROOT.'/include/emailer.class.php'; 
 	$message = Emailer::newMessage()
 	  ->setSubject($email_subject)
 	  ->setFrom(array($ini['EMAIL_FROM'] => $ini['EMAIL_FROM_NAME']))
