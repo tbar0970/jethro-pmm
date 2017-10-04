@@ -480,7 +480,7 @@ class db_object
 				}
 			}
 		}
-		if (array_key_exists($name, $this->values) && ($this->values[$name] != $value) && !isset($this->_old_values[$name])) {
+		if (array_key_exists($name, $this->values) && ($this->values[$name] != $value) && !array_key_exists($name, $this->_old_values)) {
 			$this->_old_values[$name] = $this->values[$name];
 		}
 		$this->values[$name] = $value;
@@ -710,9 +710,15 @@ class db_object
 	{
 		if (!$this->id || $this->haveLock()) {
 			$value = process_widget($prefix.$name, $this->fields[$name]);
-			if (!is_null($value)) $this->setValue($name, $value);
+			if ($value !== NULL) {
+				if (($this->fields[$name]['type'] == 'reference') && ($value === 0)) {
+					// process_widget returns 0 when the user selects the 'empty' option
+					// but we want to save NULL to the db.
+					$value = NULL;
+				}
+				$this->setValue($name, $value);
+			}
 		}
-
 	}
 
 
