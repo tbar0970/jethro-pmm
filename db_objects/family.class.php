@@ -541,7 +541,7 @@ class family extends db_object
 
 
 
-	static function printSingleFinder($name, $currentval=NULL)
+	public static function printSingleFinder($name, $currentval=NULL)
 	{
 		$currentid = 0;
 		$currentname = '';
@@ -564,4 +564,3 @@ class family extends db_object
 	}
 
 }
-?>
