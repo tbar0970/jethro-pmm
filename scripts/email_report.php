@@ -98,7 +98,7 @@ $recipients_string = $ini['EMAIL_TO'];
 // send the email with .cvs attachment
 //
 if ((int)$ini['PHP_MAIL']==0) {
-require_once JETHRO_ROOT.'/include/emailer.class.php'; 
+require_once JETHRO_ROOT.'/include/emailer.class.php';
 	$message = Emailer::newMessage()
 	  ->setSubject($email_subject)
 	  ->setFrom(array($ini['EMAIL_FROM'] => $ini['EMAIL_FROM_NAME']))
@@ -107,8 +107,8 @@ require_once JETHRO_ROOT.'/include/emailer.class.php';
 	  ->setTo(explode(',', $recipients_string));
 	if ((int)$ini['CSV']==1) {
 	  $attachment = new Swift_Attachment($csv_string, $file_name, 'text/csv');
-	  $message->attach($attachment);  
-	}	
+	  $message->attach($attachment);
+	}
 	$res = Emailer::send($message);
 	if (!$res) {
 		echo "Failed to send report (".$reportname.") to ".$ini['EMAIL_TO']."\n";
