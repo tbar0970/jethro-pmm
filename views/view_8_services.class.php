@@ -11,7 +11,7 @@ class View_services extends View
 
 	static function getMenuPermissionLevel()
 	{
-		return PERM_EDITSERVICE;
+		return PERM_VIEWSERVICE;
 	}
 	
 	function processView()
@@ -138,6 +138,9 @@ class View_services extends View
 				<div class="row-fluid">
 					<div class="span6">
 						<h3>
+						<?php
+						if ($GLOBALS['user_system']->havePerm(PERM_EDITSERVICE)) {
+							?>
 							<span class="pull-right">
 									<small>
 										<a href="<?php echo build_url(Array('editing' => 1)); ?>"><i class="icon-wrench"></i>Edit</a> &nbsp;
@@ -145,7 +148,10 @@ class View_services extends View
 										<a class="med-popup" href="?call=service_plan&serviceid=<?php echo $this->service->id; ?>"><i class="icon-print"></i>Printable</a>
 									</small>
 							</span>
-							Run Sheet
+							<?php
+						}
+						echo _('Run Sheet');
+						?>
 						</h3>
 
 						<?php

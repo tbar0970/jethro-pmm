@@ -505,7 +505,7 @@ class family extends db_object
 	}
 
 
-	function getFamilyDataByMemberIDs($member_ids)
+	public static function getFamilyDataByMemberIDs($member_ids)
 	{
 		$quoted_ids = implode(',', array_map(Array($GLOBALS['db'], 'quote'), $member_ids));
 		$sql = '
@@ -541,7 +541,7 @@ class family extends db_object
 
 
 
-	static function printSingleFinder($name, $currentval=NULL)
+	public static function printSingleFinder($name, $currentval=NULL)
 	{
 		$currentid = 0;
 		$currentname = '';
@@ -564,4 +564,3 @@ class family extends db_object
 	}
 
 }
-?>

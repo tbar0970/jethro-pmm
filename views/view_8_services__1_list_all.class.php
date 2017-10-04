@@ -12,6 +12,7 @@ class View_Services__List_All extends View
 	private $_dummy_service = NULL;
 	private $_editing = FALSE;
 	private $_saved = FALSE;
+	private $_have_run_sheets = FALSE;
 
 	static function getMenuPermissionLevel()
 	{
@@ -93,6 +94,7 @@ class View_Services__List_All extends View
 			foreach ($services as $id => $details) {
 				$details['id'] = $id;
 				$this->_grouped_services[$details['date']][$details['congregationid']] = $details;
+				if ($details['has_items']) $this->_have_run_sheets = TRUE;
 			}
 		}
 	}
@@ -259,6 +261,8 @@ class View_Services__List_All extends View
 		$message = '';
 		if ($GLOBALS['user_system']->havePerm(PERM_EDITSERVICE)) {
 			$message .= _('Click a service below to edit its run sheet');
+		} else if ($this->_have_run_sheets)  {
+			$message .= _('Click a service below to view its run sheet');
 		}
 		if ($GLOBALS['user_system']->havePerm(PERM_BULKSERVICE)) {
 			$message .= ', '._('or click the "edit" button above to edit the service schedule including bible readings and titles.');
@@ -419,16 +423,14 @@ class View_Services__List_All extends View
 	function _printServiceViewCell($congid, $date, $data)
 	{
 		if (empty($data)) return;
-		if ($GLOBALS['user_system']->havePerm(PERM_EDITSERVICE)) {
-			if ($data['has_items']) {
-				?>
-				<a class="take-parent-click pull-right" title="View service run sheet" href="?view=services&date=<?php echo $date; ?>&congregationid=<?php echo $congid; ?>"><i class="icon-list"></i></a>
-				<?php
-			} else {
-				?>
-				<a class="take-parent-click pull-right" title="Create service run sheet" href="?view=services&editing=1&date=<?php echo $date; ?>&congregationid=<?php echo $congid; ?>"><i class="icon-plus-sign"></i></a>
-				<?php
-			}
+		if ($data['has_items']) {
+			?>
+			<a class="take-parent-click pull-right" title="View service run sheet" href="?view=services&date=<?php echo $date; ?>&congregationid=<?php echo $congid; ?>"><i class="icon-list"></i></a>
+			<?php
+		} else if ($GLOBALS['user_system']->havePerm(PERM_EDITSERVICE)) {
+			?>
+			<a class="take-parent-click pull-right" title="Create service run sheet" href="?view=services&editing=1&date=<?php echo $date; ?>&congregationid=<?php echo $congid; ?>"><i class="icon-plus-sign"></i></a>
+			<?php
 		}
 		$this->_dummy_service->populate($data['id'], $data);
 		$this->_dummy_service->printFieldValue('summary');
