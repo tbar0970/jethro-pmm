@@ -17,8 +17,6 @@
 
 class JethroDB extends PDO
 {
-	// TODO: Comments for all these
-
 	/**
 	 * Create a JethroDB object from the details in conf.php and make it a global variable.
 	 * @param type $mode
@@ -70,12 +68,12 @@ class JethroDB extends PDO
 		if ($options === NULL) {
 			$options = array();
 		}
-		$options[PDO::ATTR_PERSISTENT] = true;
 		$options[PDO::ATTR_DEFAULT_FETCH_MODE] = PDO::FETCH_ASSOC;
 		$options[PDO::ATTR_ERRMODE] = PDO::ERRMODE_EXCEPTION;
 		try {
 			$result = parent::__construct($dsn, $username, $password, $options);
 		} catch (PDOException $e) {
+			error_log((string)$e);
 			trigger_error('Could not connect to database - please check for mistakes in your Database configuration in conf.php, and check in MySQL that the database exists and the specified user has been granted access.', E_USER_ERROR);
 			exit();
 		}

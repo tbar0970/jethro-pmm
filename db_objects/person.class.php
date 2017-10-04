@@ -897,7 +897,7 @@ class Person extends DB_Object
 			$fields = $GLOBALS['system']->getDBObjectdata('custom_field');
 			foreach ($fields as $fieldID => $field) {
 				$field['id'] = $fieldID;
-				$customFields[strtolower($field['name'])] = $GLOBALS['system']->getDBObject('custom_field', $fieldID);
+				$customFields[str_replace(' ', '_', strtolower($field['name']))] = $GLOBALS['system']->getDBObject('custom_field', $fieldID);
 			}
 		}
 		foreach ($row as $k => $v) {
