@@ -7,7 +7,7 @@
 	</title>
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0<?php
-		if (FALSE === strpos($_SERVER['HTTP_USER_AGENT'], 'iPad')) echo ', user-scalable=no';
+		if (FALSE === strpos(array_get($_SERVER, 'HTTP_USER_AGENT', ''), 'iPad')) echo ', user-scalable=no';
 		?>">
 	<!--[if IE]>
 	<link type="text/css" rel="stylesheet" href="<?php echo BASE_URL; ?>resources/css/jethro_msie.css" />
