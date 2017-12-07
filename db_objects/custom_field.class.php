@@ -182,7 +182,7 @@ class Custom_Field extends db_object
 	{
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
 		$res['from'] .= ' LEFT JOIN custom_field_option cfo ON cfo.fieldid = custom_field.id';
-		$res['select'][] = 'GROUP_CONCAT(CONCAT(cfo.id, "__:__", cfo.value) ORDER BY cfo.rank DESC SEPARATOR ";;;") as options';
+		$res['select'][] = 'GROUP_CONCAT(CONCAT(cfo.id, "__:__", cfo.value) ORDER BY cfo.rank ASC SEPARATOR ";;;") as options';
 		$res['select'][] = 'GROUP_CONCAT(CONCAT(cfo.id, "__:__", cfo.value) ORDER BY cfo.rank DESC SEPARATOR ";;;") as reverseoptions';
 		$res['select'][] = 'params';
 		$res['group_by'] = 'custom_field.id';
@@ -206,9 +206,10 @@ class Custom_Field extends db_object
 				$res[$k]['options'] = NULL;
 				$options = array_get($v, 'options', '');
 				if (strlen($options)) {
-					if ($options == strrev($v['reverseoptions'])) {
-						bam($options);
-						foreach (explode(';;;', substr($options, 0, -4)) as $pair) {
+					$pairs =  explode(';;;', $options);
+					$revPairs = explode(';;;', $v['reverseoptions']);
+					if (reset($pairs) == end($revPairs)) {
+						foreach ($pairs as $pair) {
 							list($id, $val) = explode('__:__', $pair);
 							$opts[$id] = $val;
 						}
@@ -219,6 +220,7 @@ class Custom_Field extends db_object
 					}
 				}
 			}
+			unset($res[$k]['reverseoptions']);
 			$res[$k]['params'] = unserialize($v['params']);
 		}
 		return $res;
