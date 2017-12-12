@@ -41,7 +41,7 @@ order by name;
 
 ALTER TABLE date_type RENAME TO _disused_date_type;
 
-SET @rank = (SELECT MAX(rank) FROM custom_field) + 1;
+SET @rank = (SELECT IFNULL(MAX(rank), 0) FROM custom_field) + 1;
 
 /* Some systems have date values with typeid=null */
 INSERT INTO custom_field
