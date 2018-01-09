@@ -194,7 +194,7 @@ class View_Attendance__Display extends View
 		$headcounts = Headcount::fetchRange(($congid ? 'congregation' : 'person_group'), $congid ? $congid : $groupid, $this->start_date, $this->end_date);
 		$dummy = new Person();
 		?>
-		<form method="post" action="" class="bulk-person-action">
+		<form method="post" action="" class="bulk-person-action" enctype="multipart/form-data">
 		<table class="table table-hover table-auto-width nowrap table-bordered table-condensed">
 			<thead>
 				<tr>
@@ -378,11 +378,14 @@ class View_Attendance__Display extends View
 		}
 		$all_dates = array_unique($all_dates);
 		?>
-		<form method="post" action="" class="bulk-person-action">
+		<form method="post" action="" class="bulk-person-action" enctype="multipart/form-data">
 		<table class="table table-hover table-condensed table-auto-width valign-middle table-bordered parallel-attendance-report">
 			<thead>
 				<tr>
-					<th <?php if ($this->format != 'totals') echo 'rowspan="2"'; ?>><?php echo _('Name');?></th>
+					<th <?php if ($this->format != 'totals') echo 'rowspan="2"'; ?>><?php echo _('Name');?>
+            		<input type="hidden" name="data_type" value="attendance_tabular">
+
+					</th>
 				<?php
 				if (SizeDetector::isWide()) {
 					?>
@@ -398,7 +401,9 @@ class View_Attendance__Display extends View
 					$classes = 'center nowrap';
 					if ($this->format != 'totals') $classes .= ' new-cohort';
 					?>
-					<th class="<?php echo $classes; ?>" colspan="<?php echo $colspan; ?>"><?php echo format_date($date); ?></th>
+					<th class="<?php echo $classes; ?>" colspan="<?php echo $colspan; ?>"><?php echo format_date($date); ?>
+					<input type="hidden" name="dates[]" value="<?php echo $date; ?>">
+					</th>
 					<?php
 				}
 				?>
@@ -411,6 +416,7 @@ class View_Attendance__Display extends View
 				?>
 				<tr>
 				<?php
+				$firstdate = TRUE;
 				foreach ($all_dates as $date) {
 					$first = TRUE;
 					foreach ($this->cohortids as $cohortid) {
@@ -427,11 +433,14 @@ class View_Attendance__Display extends View
 						$short = reset($name_bits);
 						if ((strlen($short) > 5) && !preg_match('/[0-9]/', $short)) $short = substr($short, 0, 3).'…';
 						$class = $first ? 'new-cohort' : '';
-						?>
-						<th class="nowrap <?php echo $class; ?>" title="<?php echo ents($name); ?>"><?php echo ents($short); ?></th>
-						<?php
+						echo '<th class="nowrap '.$class.'" title="'.ents($name).'">'.ents($short);
+						if ($firstdate) {
+							echo '<input type="hidden" name="groups[]" value="'.$name.'">';
+						}
+						echo '</th>';
 						$first = FALSE;
 					}
+					$firstdate = FALSE;
 				}
 				?>
 				</tr>
@@ -479,8 +488,9 @@ class View_Attendance__Display extends View
 								$class = $this->classes[$v];
 							}
 							if ($first) $class .= ' new-cohort';
-							echo '<td class="'.$class.'">'.$letter.'</td>';
+							echo '<td class="'.$class.'">'.$letter;
 							$first = FALSE;
+							echo '<input type="hidden" name="data['.$personid.'][]" value="'.$letter.'"></td>';
 						}
 					}
 				}
@@ -565,7 +575,15 @@ class View_Attendance__Display extends View
 						$headcount = array_get($hc, $cohortid, NULL);
 						?>
 						<td>
-							<?php if ($headcount) echo $headcount - $present; ?>
+							<?php 
+							if ($headcount) {
+								$count = $headcount - $present;
+								echo $count;
+							} else {
+								$count = 0;
+							}
+							echo '<input type="hidden" name="data[-1][]" value="'.$count.'">';
+							?>
 						</td>
 						<?php
 					}
@@ -582,6 +600,7 @@ class View_Attendance__Display extends View
 		?>
 		</table>
 		<?php
+		$merge_type_person_attendance = TRUE;
 		include 'templates/bulk_actions.template.php';
 		?>
 		</form>
