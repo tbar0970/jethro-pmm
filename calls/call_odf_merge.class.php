@@ -9,7 +9,7 @@ class Call_ODF_Merge extends Call
 			trigger_error('Template file does not seem to have been uploaded');
 			return;
 		}
-		$extension = strtolower(end(explode('.', $source_file['name'])));
+		$extension = @strtolower(end(explode('.', $source_file['name'])));
 		$source_file = $source_file['tmp_name'];
 		$merged_file = dirname($source_file).'/jethro_merged_'.time().session_id();
 

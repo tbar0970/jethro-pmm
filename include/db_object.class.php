@@ -331,7 +331,7 @@ class db_object
 		// Set any last-changed fields
 		foreach ($this->_old_values as $i => $v) {
 			if (array_key_exists($i.'_last_changed', $this->fields)) {
-				$this->values[$i.'_last_changed'] = date('c');
+				$this->values[$i.'_last_changed'] = date('Y-m-d H:i:s');
 				$this->_old_values[$i.'_last_changed'] = 1;
 			}
 		}

@@ -135,7 +135,7 @@ class View__Import_Service_Components extends View
 									'order_by'			=> 'meeting_time',
 									'allow_empty'		=> false,
 									'allow_multiple'	=> true,
-									'filter'			=> create_function('$x', '$y = $x->getValue("meeting_time"); return !empty($y);'),
+									'filter'			=> function($x) {$y = $x->getValue("meeting_time"); return !empty($y);},
 							), Array());
 						?>
 					</div>

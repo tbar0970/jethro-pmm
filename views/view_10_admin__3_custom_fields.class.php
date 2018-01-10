@@ -57,7 +57,7 @@ class View_Admin__Custom_Fields extends View
 
 
 
-		uasort($this->fields, create_function('$x,$y', 'return (int)$x->getValue("rank") > (int)$y->getValue("rank");'));
+		uasort($this->fields, function($x,$y) {return (int)$x->getValue("rank") > (int)$y->getValue("rank");});
 
 		if ($i > 0) {
 			add_message("Custom fields updated", 'success');
