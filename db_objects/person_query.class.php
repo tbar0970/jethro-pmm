@@ -575,12 +575,14 @@ class Person_Query extends DB_Object
 		<h3>FrontPage Display</h3>
         <?php 
         $frontpage_display = $frontpage_display_noperms = '';
-        $frontpagesql = 'SELECT queryid,noperms FROM frontpage_person_query WHERE queryid='. $this->id;
-        $fpsres = $GLOBALS['db']->queryRow($frontpagesql);
-        if (!empty($fpsres)) {
-            $frontpage_display = ' checked';
-            if ($fpsres['noperms']) {
-                $frontpage_display_noperms = ' checked';
+	if (!is_null($this->id)) {
+            $frontpagesql = 'SELECT queryid,noperms FROM frontpage_person_query WHERE queryid='. $this->id;
+            $fpsres = $GLOBALS['db']->queryRow($frontpagesql);
+            if (!empty($fpsres)) {
+                $frontpage_display = ' checked';
+                if ($fpsres['noperms']) {
+                    $frontpage_display_noperms = ' checked';
+                }  
             }
         }
         ?>
