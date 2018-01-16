@@ -693,7 +693,9 @@ class Person_Query extends DB_Object
                 $frontpagesql = 'REPLACE INTO frontpage_person_query VALUES(' . $this->id . ', ' . $frontpage_display_noperms . ')';
             }
 		}
-		$GLOBALS['db']->query($frontpagesql);
+		if ((!empty($this->id)) && ($this->id != 'TEMP')) {
+         	   $GLOBALS['db']->query($frontpagesql);
+        	}
 		
 		// FIELD RULES
 		$rules = Array();
