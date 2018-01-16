@@ -575,7 +575,7 @@ class Person_Query extends DB_Object
 		<h3>FrontPage Display</h3>
         <?php 
         $frontpage_display = $frontpage_display_noperms = '';
-	if (!is_null($this->id)) {
+	if (!is_null($this->id) && ($this->id != 'TEMP')) {
             $frontpagesql = 'SELECT queryid,noperms FROM frontpage_person_query WHERE queryid='. $this->id;
             $fpsres = $GLOBALS['db']->queryRow($frontpagesql);
             if (!empty($fpsres)) {
