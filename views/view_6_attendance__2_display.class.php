@@ -450,7 +450,6 @@ class View_Attendance__Display extends View
 			</thead>
 			<tbody>
 			<?php
-
 			foreach ($all_persons as $personid => $details) {
 				if (!isset($all_attendances[$personid])) continue;
 				?>
@@ -461,7 +460,7 @@ class View_Attendance__Display extends View
 				<?php
 				if (SizeDetector::isWide()) {
 					?>
-					<td><?php $dummy->printFieldValue('status', $details['status']); ?></th>
+					<td><?php $dummy->printFieldValue('status', $details['status']); ?></td>
 					<?php
 				}
 				foreach ($all_dates as $date) {
@@ -511,16 +510,13 @@ class View_Attendance__Display extends View
 			if (empty($params)) {
 				?>
 				<tr class="headcount">
-					<th <?php echo $colspan; ?>><?php echo _('Total Headcount');?></th>
+					<th <?php echo $colspan; ?>><?php echo _('Total Headcount');?>
 				<?php
+				echo '<input type="hidden" name="tables[]" value="headcount"></th>';
 				foreach ($all_dates as $date) {
 					$hc = array_get($all_headcounts, $date, Array());
 					foreach ($this->cohortids as $cohortid) {
-						?>
-						<td>
-							<?php echo array_get($hc, $cohortid, ''); ?>
-						</td>
-						<?php
+						echo '<td>'.array_get($hc, $cohortid, '').'<input type="hidden" name="headcount[]" value="'.array_get($hc, $cohortid, '').'"></td>';
 					}
 				}
 				?>
@@ -530,32 +526,26 @@ class View_Attendance__Display extends View
 			}
 			?>
 				<tr class="present">
-					<th <?php echo $colspan; ?>><?php echo empty($params) ? _('Total Present') : _('Present'); ?></th>
+					<th <?php echo $colspan; ?>><?php echo empty($params) ? _('Total Present') : _('Present'); ?>
 				<?php
+				echo '<input type="hidden" name="tables[]" value="present"></th>';
 				foreach ($all_dates as $date) {
 					$tots = array_get($all_totals, $date, Array());
 					foreach ($this->cohortids as $cohortid) {
-						?>
-						<td>
-							<?php echo array_get(array_get($tots, $cohortid, Array()), 1, 0); ?>
-						</td>
-						<?php
+						echo '<td>'.array_get(array_get($tots, $cohortid, Array()), 1, 0).'<input type="hidden" name="present[]" value="'.array_get(array_get($tots, $cohortid, Array()), 1, 0).'"></td>';
 					}
 				}
 				?>
 					<td colspan="2">&nbsp;</td>
 				</tr>
 				<tr class="absent">
-					<th <?php echo $colspan; ?>><?php echo empty($params) ? _('Total Absent') : _('Absent'); ?></th>
+					<th <?php echo $colspan; ?>><?php echo empty($params) ? _('Total Absent') : _('Absent'); ?>
 				<?php
+				echo '<input type="hidden" name="tables[]" value="absent"></th>';
 				foreach ($all_dates as $date) {
 					$tots = array_get($all_totals, $date, Array());
 					foreach ($this->cohortids as $cohortid) {
-						?>
-						<td>
-							<?php echo array_get(array_get($tots, $cohortid, Array()), 0, 0); ?>
-						</td>
-						<?php
+						echo '<td>'.array_get(array_get($tots, $cohortid, Array()), 0, 0).'<input type="hidden" name="absent[]" value="'.array_get(array_get($tots, $cohortid, Array()), 0, 0).'"></td>';
 					}
 				}
 				?>
@@ -565,8 +555,9 @@ class View_Attendance__Display extends View
 			if (empty($params)) {
 				?>
 				<tr class="extras">
-					<th <?php echo $colspan; ?>><?php echo _('Extras');?></th>
+					<th <?php echo $colspan; ?>><?php echo _('Extras');?>
 				<?php
+				echo '<input type="hidden" name="tables[]" value="extra"></th>';
 				foreach ($all_dates as $date) {
 					$tots = array_get($all_totals, $date, Array());
 					$hc = array_get($all_headcounts, $date, Array());
@@ -582,10 +573,7 @@ class View_Attendance__Display extends View
 							} else {
 								$count = 0;
 							}
-							echo '<input type="hidden" name="data[-1][]" value="'.$count.'">';
-							?>
-						</td>
-						<?php
+							echo '<input type="hidden" name="extra[]" value="'.$count.'"></td>';
 					}
 				}
 				?>

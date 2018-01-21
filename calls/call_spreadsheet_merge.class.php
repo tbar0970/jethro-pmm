@@ -13,12 +13,16 @@ class Call_spreadsheet_merge extends Call
 		$source_file = $file_info['tmp_name'];
 		rename ($source_file, $source_file.'.'.$extension);
 		$source_file = $source_file.'.'.$extension;
-//print_r(ifdef('SYSTEM_NAME', ''));
-//print_r($_SESSION['user']);
-//print_r($GLOBALS);
 		switch ($extension) {
+			case 'odt':
+			case 'odg':
 			case 'ods':
+			case 'odf':
+			case 'odp':
+			case 'odm':
+			case 'docx':
 			case 'xlsx':
+			case 'ppt':
 				require_once 'include/tbs.class.php';
 				include_once 'include/tbs_plugin_opentbs.php';
 				if (ini_get('date.timezone')=='') {
@@ -44,35 +48,16 @@ class Call_spreadsheet_merge extends Call
 				$TBS->VarRef['email'] = $_SESSION['user']['email'];
 
 				$merge_type = array_get($_REQUEST, 'merge_type', 'person');		
-				$i = 0;
-				if (isset($_REQUEST['dates'])) {
-					$dates = (array)$_REQUEST['dates'];
-					foreach ($dates as $date) {
-						$i += 1;
-						$TBS->VarRef['date'.$i] = $date;
+				$TBS->VarRef['dates'] = $this->TabulatedData($TBS, 'dates', 60, 'date');
+				$TBS->VarRef['groups'] = $this->TabulatedData($TBS, 'groups', 20, 'group');
+				if (isset($_REQUEST['tables'])) {
+					$tables = (array)$_REQUEST['tables'];
+					foreach ($tables as $table) {
+						$TBS->VarRef[$table.'s'] = $this->TabulatedData($TBS, $table);
 					}
 				} 
-				$TBS->VarRef['dates'] = $i;
-				while ($i < 60) {
-					$i += 1;
-					$TBS->VarRef['date'.$i] = '';
-				}
-				$i = 0;
-				if (isset($_REQUEST['groups'])) {
-					$groups = (array)$_REQUEST['groups'];
-					foreach ($groups as $group) {
-						$i += 1;
-						$TBS->VarRef['group'.$i] = $group;
-					}
-				}
-				$TBS->VarRef['groups'] = $i;
-				while ($i < 60) {
-					$i += 1;
-					$TBS->VarRef['group'.$i] = '';
-				}
 				if ($merge_type != 'family') { $merge_type = 'person'; }
 				$data = $this->getMergeData();
-//				print_r($data);
 				$TBS->MergeBlock($merge_type, $data);
 				$filename = basename($file_info['name']);
 				$TBS->Show(OPENTBS_DOWNLOAD, $filename);
@@ -84,45 +69,26 @@ class Call_spreadsheet_merge extends Call
 		}
 
 	}
-	/* person
-			[id] => 1
-            [first_name] => Ivan
-            [last_name] => McLean
-            [gender] => Male
-            [age_bracket] => Adult
-            [congregation] => RCOC
-            [status] => Member
-            [email] => ivan@our-eden.com
-            [mobile_tel] => 
-            [work_tel] => 
-            [contact_remarks] => A random comment
-            [date_of_last_status_change] => 
-            [created_date] => 30 Nov 2017 3:19pm
-            [creator] => 
-            [family_name] => McLean
-            [address_street] => 
-            [address_suburb] => 
-            [address_state] => WA
-            [address_postcode] => 
-            [home_tel] => 
-            
-            family
-            [id] => 3
-            [family_name] => Pearce
-            [street_address] => 
-            [suburb] => 
-            [state] => WA
-            [postcode] => 
-            [home_tel] => 
-            [status] => Current
-            [created_date] => 7 Dec 2017 6:54pm
-            [creator] => Ivan McLean (#1)
-            [members] => Tim, Diana
-            [adult_members] => Tim, Diana
-            [selected_firstnames] => Diana,Tim
-            [selected_lastnames] => Pearce,Pearce
-            */
 
+	protected function TabulatedData($TBS, $table, $max = 60, $base = '')
+	{
+		$i = 0;
+		if (isset($_REQUEST[$table])) {
+			if ($base == '') { $base = $table; }
+			$data = (array)$_REQUEST[$table];
+			foreach ($data as $bit) {
+				$i++;
+				$TBS->VarRef[$base.$i] = $bit;
+			}
+		} 
+		$j = $i;
+		while ($i <= $max) {
+			$i++;
+			$TBS->VarRef[$base.$i] = '';
+		}
+		return $j;
+	}
+	
 	protected function getMergeData()
 	{
 		$return_data = array();
@@ -164,25 +130,30 @@ class Call_spreadsheet_merge extends Call
 		}
 		switch ($data_type) {
 			case 'attendance_tabular':
-				$lastrow[] = '';
 				foreach ($headerrow as $Hash) { $lastrow[$Hash] = ''; }
-				$lastrow['id'] = 0;
-				$lastrow['first_name'] = 'Extras';
 				$dat = 1;
 				foreach ($dates as $date) {
 					$grp = 1;
 					foreach ($groups as $group) {
 						$headerrow[$date.$group.'l'] = 'date'.$dat.'_group'.$grp.'_letter';
 						$headerrow[$date.$group.'n'] = 'date'.$dat.'_group'.$grp.'_number';
-						$grp += 1;
+						$grp++;
 					}
 					$headerrow[$date] = 'date'.$dat;
-					$dat += 1;
+					$dat++;
 				}
 				break;
 		}
 
-		foreach ($merge_data as $id => $row) {
+		if (array_get($_REQUEST, 'merge_type') == 'family') {
+			foreach ($merge_data as $id => $row) {
+				$order_array[] = $id;
+			}
+		} else {
+			$order_array = (array)$_POST['personid'];
+		}
+		foreach ($order_array as $id) {
+			$row = $merge_data[$id];
 			@$dummy->populate($id, $row);
 			$outputrow = Array('id' => $id);
 			foreach ($row as $k => $v) {
@@ -190,7 +161,7 @@ class Call_spreadsheet_merge extends Call
 				if ($k == 'familyid') continue;
 				if ($k == 'feed_uuid') continue;
 				if ($dummy->hasField($k)) {
-					$outputrow[$headerrow[$k]] = $dummy->getFormattedValue($k, $v); // pass value to work around read-only fields
+					$outputrow[$headerrow[$k]] = str_replace("\n", ' ',$dummy->getFormattedValue($k, $v)); // pass value to work around read-only fields
 				} else if ($dummy_family && $dummy_family->hasField($k)) {
 					$outputrow[$headerrow[$k]] = $dummy_family->getFormattedValue($k, $v);
 				} else {
@@ -217,7 +188,7 @@ class Call_spreadsheet_merge extends Call
 									$val = $letter;
 									$extras = TRUE;
 							}
-							$sumval += 1;
+							$sumval++;
 							$outputrow[$headerrow[$date.$group.'l']] = $letter;
 							$outputrow[$headerrow[$date.$group.'n']] = $val;
 							$sum += $val;
@@ -232,22 +203,6 @@ class Call_spreadsheet_merge extends Call
 					break;
 			}
 			$return_data[] = $outputrow;
-		}
-		switch ($data_type) {
-			case 'attendance_tabular':
-				$sumval = 0;
-				foreach ($dates as $date) {
-					$sum = 0;
-					foreach ($groups as $group) {
-						$val = $data[-1][$sumval];
-						$sumval += 1;
-						$lastrow[$headerrow[$date.$group.'n']] = $val;
-						$sum += $val;
-					}
-					$lastrow[$headerrow[$date]] = $sum;
-				}
-				$return_data[] = $lastrow;
-				break;
 		}
 		return $return_data;
 	}

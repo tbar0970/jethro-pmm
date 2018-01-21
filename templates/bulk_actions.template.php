@@ -308,6 +308,9 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 		<div class="bulk-action well" id="csv">
 			<p>Get a CSV file of:</p>
 			<label class="radio"><input class="compulsory" type="radio" name="merge_type" value="person" id="merge_type_person" checked="checked" /><?php echo _('the selected persons')?></label>
+			<?php if (isset($merge_type_person_attendance)) { ?>
+			<label class="radio"><input type="radio" name="merge_type" value="person_attendance" id="merge_type_person_attendance" /><?php echo _('the selected persons with attendance data')?></label>
+			<?php } ?>
 			<label class="radio"><input type="radio" name="merge_type" value="family" id="merge_type_family" /><?php echo _('the families the selected persons belong to')?></label></p>
 			<input type="submit" class="btn " value="Go" data-set-form-action="<?php echo BASE_URL; ?>?call=csv" />
 		</div>
@@ -335,25 +338,20 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 							echo _('each of the selected persons');
 							?>
 							<span class="smallprint">
-								<?php echo _('(Sample file: ')?>
-								<a href="<?php echo BASE_URL; ?>/resources/sample_spreadsheet_merge.ods">ODS</a>,
-								<a href="<?php echo BASE_URL; ?>/resources/sample_spreadsheet_merge.xlsx">XLSX</a>)
-							</span>
+							<a target="roster-merge-help" class="med-newwin" href="<?php echo BASE_URL; ?>index.php?call=opentbs_merge_help"><i class="icon-print"></i>Help and examples</a><br></span>
+					<p class="help-inline"> </p>
 						</label>
 						<label class="radio">
 							<input type="radio" name="merge_type" value="family" id="merge_type_family" />
 							<?php echo _('each of the families that the selected persons belong to')?>
 							<span class="smallprint">
-								(Sample file:
-								<a href="<?php echo BASE_URL; ?>/resources/sample_spreadsheet_merge_family.ods">ODS</a>,
-								<a href="<?php echo BASE_URL; ?>/resources/sample_spreadsheet_merge_family.xlsx">XLSX</a>)
-							</span>
+							<a target="roster-merge-help" class="med-newwin" href="<?php echo BASE_URL; ?>index.php?call=opentbs_merge_help"><i class="icon-print"></i>Help and examples</a><br></span>
 						</label>
 				</div>
 			</div>
 			<div class="control-group">
 				<div class="controls">
-					<input type="submit" class="btn " value="Go" data-set-form-action="<?php echo BASE_URL; ?>?call=spreadsheet_merge" />
+					<input type="submit" class="btn " value="Go" data-set-form-action="<?php echo BASE_URL; ?>index.php?call=spreadsheet_merge" />
 				</div>
 			</div>
 
@@ -402,5 +400,3 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 	?>
 	
 </div>
-
-
