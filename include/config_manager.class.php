@@ -51,7 +51,7 @@ class Config_Manager {
 	{
 		$value = explode(',', ENABLED_FEATURES);
 		$value = array_diff($value, Array('DATES'));
-		self::saveSetting('ENABLED_FEATURES', $value);
+		self::saveSetting('ENABLED_FEATURES', implode(',', $value));
 
 	}
 
