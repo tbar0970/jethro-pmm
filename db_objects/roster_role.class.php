@@ -31,7 +31,7 @@ class Roster_Role extends db_object
 									'show_id'			=> FALSE,
 									'order_by'			=> 'meeting_time',
 									'allow_empty'		=> TRUE,
-									'filter'			=> create_function('$x', '$y = $x->getValue("meeting_time"); return !empty($y);'),
+									'filter'			=> function($x) {$y = $x->getValue("meeting_time"); return !empty($y);},
 									'note'				=> 'Congregations must have a "code name" set to be available here',
 								   ),
 			'title'		=> Array(

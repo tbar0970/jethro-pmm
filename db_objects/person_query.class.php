@@ -196,7 +196,9 @@ class Person_Query extends DB_Object
 
 			<?php
 			if (empty($params['custom_fields'])) $params['custom_fields'] = Array();
+			$dummyField = new Custom_Field();
 			foreach ($this->_custom_fields as $fieldid => $fieldDetails) {
+				$dummyField->populate($fieldid, $fieldDetails);
 				?>
 					<tr>
 						<td>
@@ -284,7 +286,7 @@ class Person_Query extends DB_Object
 									print_widget('params_custom_field_'.$fieldid.'_criteria', $cparams, array_get($value, 'criteria'));
 									$vparams = Array(
 										'type' => 'select',
-										'options' => $fieldDetails['options'],
+										'options' => $dummyField->getOptions(),
 										'allow_multiple' => true,
 										'attrs' => Array(
 											'data-select-rule-type' => 'contains'

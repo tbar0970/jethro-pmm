@@ -182,7 +182,8 @@ class Custom_Field extends db_object
 	{
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
 		$res['from'] .= ' LEFT JOIN custom_field_option cfo ON cfo.fieldid = custom_field.id';
-		$res['select'][] = 'GROUP_CONCAT(CONCAT(cfo.id, "__:__", cfo.value) ORDER BY cfo.rank SEPARATOR ";;;") as options';
+		$res['select'][] = 'GROUP_CONCAT(CONCAT(cfo.id, "__:__", cfo.value) ORDER BY cfo.rank ASC SEPARATOR ";;;") as options';
+		$res['select'][] = 'GROUP_CONCAT(CONCAT(cfo.id, "__:__", cfo.value) ORDER BY cfo.rank DESC SEPARATOR ";;;") as reverseoptions';
 		$res['select'][] = 'params';
 		$res['group_by'] = 'custom_field.id';
 		return $res;
@@ -200,17 +201,26 @@ class Custom_Field extends db_object
 	{
 		$res = parent::getInstancesData($params, $logic, $order);
 		foreach ($res as $k => $v) {
-			$opts = Array();
 			if ($v['type'] == 'select') {
+				$opts = Array();
+				$res[$k]['options'] = NULL;
 				$options = array_get($v, 'options', '');
 				if (strlen($options)) {
-					foreach (explode(';;;', $options) as $pair) {
-						list($id, $val) = explode('__:__', $pair);
-						$opts[$id] = $val;
+					$pairs =  explode(';;;', $options);
+					$revPairs = explode(';;;', $v['reverseoptions']);
+					if (reset($pairs) == end($revPairs)) {
+						foreach ($pairs as $pair) {
+							list($id, $val) = explode('__:__', $pair);
+							$opts[$id] = $val;
+						}
+						$res[$k]['options'] = $opts;
+					} else {
+						// Too many options, it was truncated
+						// That's OK, the options can get loaded on demand later
 					}
 				}
 			}
-			$res[$k]['options'] = $opts;
+			unset($res[$k]['reverseoptions']);
 			$res[$k]['params'] = unserialize($v['params']);
 		}
 		return $res;

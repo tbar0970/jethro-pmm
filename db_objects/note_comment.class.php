@@ -42,7 +42,7 @@ class Note_Comment extends DB_Object
 			  `noteid` int(11) NOT NULL default '0',
 			  `creator` int(11) NOT NULL default '0',
 			  `created` timestamp NOT NULL default CURRENT_TIMESTAMP,
-			  `contents` text collate latin1_general_ci NOT NULL,
+			  `contents` text NOT NULL,
 			  PRIMARY KEY  (`id`)
 			) ENGINE=InnoDB ;
 		";

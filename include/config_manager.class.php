@@ -51,7 +51,7 @@ class Config_Manager {
 	{
 		$value = explode(',', ENABLED_FEATURES);
 		$value = array_diff($value, Array('DATES'));
-		self::saveSetting(ENABLED_FEATURES, $value);
+		self::saveSetting('ENABLED_FEATURES', implode(',', $value));
 
 	}
 
@@ -59,7 +59,7 @@ class Config_Manager {
 	{
 		// used to be in strtotime format; now in minutes
 		$secs = strtotime('+'.LOCK_LENGTH);
-		self::saveSetting(LOCK_LENGTH, $secs/60);
+		self::saveSetting('LOCK_LENGTH', $secs/60);
 	}
 
 	public static function migrateAgeBracketOptions()
