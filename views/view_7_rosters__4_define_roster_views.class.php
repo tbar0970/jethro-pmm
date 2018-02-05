@@ -9,7 +9,7 @@ class View_Rosters__Define_Roster_Views extends View
 	function processView()
 	{
 		if (!empty($_REQUEST['delete_viewid'])) {
-			$view =& $GLOBALS['system']->getDBOBject('roster_view', (int)$_REQUEST['delete_viewid']);
+			$view = $GLOBALS['system']->getDBOBject('roster_view', (int)$_REQUEST['delete_viewid']);
 			if ($view) {
 				$view->delete();
 				add_message('View Deleted');

@@ -110,16 +110,16 @@ class family extends db_object
 			 "
 			CREATE TABLE `family` (
 			  `id` int(11) NOT NULL auto_increment,
-			  `family_name` varchar(128) collate latin1_general_ci NOT NULL default '',
-			  `address_street` varchar(255) collate latin1_general_ci NOT NULL default '',
-			  `address_suburb` varchar(128) collate latin1_general_ci NOT NULL default '',
-			  `address_state` varchar(64) collate latin1_general_ci NOT NULL default '',
-			  `address_postcode` varchar(10) collate latin1_general_ci NOT NULL default '',
-			  `home_tel` varchar(12) collate latin1_general_ci NOT NULL default '',
-			  `status` varchar(64) collate latin1_general_ci NOT NULL default '',
+			  `family_name` varchar(128) NOT NULL default '',
+			  `address_street` varchar(255) NOT NULL default '',
+			  `address_suburb` varchar(128) NOT NULL default '',
+			  `address_state` varchar(64) NOT NULL default '',
+			  `address_postcode` varchar(10) NOT NULL default '',
+			  `home_tel` varchar(12) NOT NULL default '',
+			  `status` varchar(64) NOT NULL default '',
 			  `created` timestamp NOT NULL default CURRENT_TIMESTAMP,
 			  `creator` int(11) NOT NULL default '0',
-			  `history` text collate latin1_general_ci NOT NULL,
+			  `history` text NOT NULL,
 			  PRIMARY KEY  (`id`),
 			  KEY `family_name` (`family_name`,`address_suburb`,`address_postcode`,`home_tel`,`status`)
 			) ENGINE=InnoDB;
@@ -505,7 +505,7 @@ class family extends db_object
 	}
 
 
-	function getFamilyDataByMemberIDs($member_ids)
+	public static function getFamilyDataByMemberIDs($member_ids)
 	{
 		$quoted_ids = implode(',', array_map(Array($GLOBALS['db'], 'quote'), $member_ids));
 		$sql = '
@@ -541,7 +541,7 @@ class family extends db_object
 
 
 
-	static function printSingleFinder($name, $currentval=NULL)
+	public static function printSingleFinder($name, $currentval=NULL)
 	{
 		$currentid = 0;
 		$currentname = '';
@@ -564,4 +564,3 @@ class family extends db_object
 	}
 
 }
-?>

@@ -265,6 +265,7 @@ class View_Families__Contact_List extends View
 			$family = Array(
 						'familyid' => $familyid,
 						'optins' => Array(),
+						'all' => Array(),
 				);
 			$adults_use_full = FALSE;
 			$all_use_full = FALSE;

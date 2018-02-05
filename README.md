@@ -18,7 +18,7 @@ System requirements are:
 The steps to install are:
 
 1. Unzip the files into a web-accessible folder on your web server
-2. Create a mysql database and database user for your jethro system to use
+2. Create a mysql database and database user for your jethro system to use. If asked, choose utf8_unicode_ci as the character set and collation.
 3. Edit Jethro's configuration file conf.php and fill in the essential details (system name, URL, database details).  Further explanation can be found inside the file.
 4. Open the jethro system URL in your web browser
 5.. In your web browser, the Jethro installer will start automatically and will prompt you for details to create the initial user account.  When the installer completes, it will prompt you to log into the installed system.

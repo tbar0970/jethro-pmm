@@ -11,7 +11,7 @@ class Abstract_View_Notes_List extends View
 
 	function processView()
 	{
-		$this->_notes = $this->_getNotesToShow(array_get($_REQUEST, 'assignee'));
+		$this->_notes = $this->_getNotesToShow(array_get($_REQUEST, 'assignee'), array_get($_REQUEST, 'search'));
 		$this->_reassigning = $GLOBALS['user_system']->havePerm(PERM_BULKNOTE) && !empty($_REQUEST['reassigning']);
 		if ($this->_reassigning && !empty($_POST['reassignments_submitted'])) {
 			$dummy_note = new Abstract_Note();
@@ -52,7 +52,7 @@ class Abstract_View_Notes_List extends View
 				'references' => 'staff_member',
 				'allow_empty' => true,
 				'empty_text' => 'Anyone',
-				'filter'		=> create_function('$x', 'return $x->getValue("active") && (($x->getValue("permissions") & PERM_EDITNOTE) == PERM_EDITNOTE);'),
+				'filter'		=> function($x) {return $x->getValue("active") && (($x->getValue("permissions") & PERM_EDITNOTE) == PERM_EDITNOTE);},
 			),
 			array_get($_REQUEST, 'assignee')
 		);

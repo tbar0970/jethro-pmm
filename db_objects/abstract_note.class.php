@@ -47,7 +47,7 @@ class Abstract_Note extends DB_Object
 								'default'		=> $GLOBALS['user_system']->getCurrentUser('id'),
 								'note'			=> 'Choose the user responsible for acting on this note',
 								'allow_empty'	=> true,
-								'filter'		=> create_function('$x', 'return $x->getValue("active") && (($x->getValue("permissions") & PERM_EDITNOTE) == PERM_EDITNOTE);'),
+								'filter'		=> function($x) {return $x->getValue("active") && (($x->getValue("permissions") & PERM_EDITNOTE) == PERM_EDITNOTE);},
 							   ),
 			'assignee_last_changed' => Array(
 									'type'				=> 'datetime',

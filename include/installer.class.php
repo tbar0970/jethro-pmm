@@ -121,7 +121,7 @@ class Installer
 			  `objectid` int(11) NOT NULL default '0',
 			  `userid` int(11) NOT NULL default '0',
 			  `lock_type` VARCHAR( 16 ) NOT NULL,
-			  `object_type` varchar(255) collate latin1_general_ci NOT NULL default '',
+			  `object_type` varchar(255) NOT NULL default '',
 			  `expires` datetime NOT NULL default '0000-00-00 00:00:00',
 			  KEY `objectid` (`objectid`),
 			  KEY `userid` (`userid`),
