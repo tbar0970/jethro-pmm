@@ -87,7 +87,7 @@ Class SMS_Sender
 		}
 
 		$header = "" . ifdef('SMS_HTTP_HEADER_TEMPLATE', '');
-		$header = $header . "Content-Length: " . strlen($content) . "\r\n" . "Content-Type: application/x-www-form-urlencoded\r\n";
+		$header = $header . "\r\nContent-Length: " . strlen($content) . "\r\n" . "Content-Type: application/x-www-form-urlencoded\r\n";
 
 		$opts = Array(
 			'http' => Array(
