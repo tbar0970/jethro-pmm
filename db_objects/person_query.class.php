@@ -584,7 +584,7 @@ class Person_Query extends DB_Object
                 $frontpage_display = ' checked';
                 if ($fpsres['noperms']) {
                     $frontpage_display_noperms = ' checked';
-                }  
+                }
             }
         }
         ?>
