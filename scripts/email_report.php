@@ -120,12 +120,12 @@ foreach ($table_rows as $line) {
 						$table_body .= '<td>'.$table_array[$x][$y].'</td>';
 					}
 				}
-				$y++;	
-			}		
+				$y++;
+			}
 			$table_body .= '</tr>';
 			$group_name = $table_array[$x][$grouping_column];
 		} else {
-			$table_html .= '<h3>'.$group_name.'</h3><table border=1 cellpadding=4 cellspacing=3 >'.$table_header.$table_body.'</table>';	
+			$table_html .= '<h3>'.$group_name.'</h3><table border=1 cellpadding=4 cellspacing=3 >'.$table_header.$table_body.'</table>';
 			$table_body = '<tr>';
 			$y = 0;
 			while ($y < $columns) {
@@ -136,14 +136,14 @@ foreach ($table_rows as $line) {
 						$table_body .= '<td>'.$table_array[$x][$y].'</td>';
 					}
 				}
-				$y++;	
-			}		
+				$y++;
+			}
 			$table_body .= '</tr>';
-			$group_name = $table_array[$x][$grouping_column];			
+			$group_name = $table_array[$x][$grouping_column];
 			}
 		$x++;
 		}
-			$table_html .= '<h3>'.$group_name.'</h3><table border=1 cellpadding=4 cellspacing=3 >'.$table_header.$table_body.'</table>';	
+			$table_html .= '<h3>'.$group_name.'</h3><table border=1 cellpadding=4 cellspacing=3 >'.$table_header.$table_body.'</table>';
 	} else {
 // table body (if the report results are ungrouped)
 	$x=1;
@@ -156,8 +156,8 @@ foreach ($table_rows as $line) {
 			} else {
 				$table_body .= '<td>'.$table_array[$x][$y].'</td>';
 			}
-			$y++;	
-		}		
+			$y++;
+		}
 		$table_body .= '</tr>';
 		$y = 0;
 		$x++;
@@ -180,13 +180,13 @@ if ((int)$ini['GROUP_ID']!=0) {
   }
   $recipients_string = (implode(',', $recipients));
 }else{
-$recipients_string = $ini['EMAIL_TO'];	
+$recipients_string = $ini['EMAIL_TO'];
 }
 //
 // send the email with .cvs attachment
 //
 if ((int)$ini['PHP_MAIL']==0) {
-require_once JETHRO_ROOT.'/include/emailer.class.php'; 
+require_once JETHRO_ROOT.'/include/emailer.class.php';
 	$message = Emailer::newMessage()
 	  ->setSubject($email_subject)
 	  ->setFrom(array($ini['EMAIL_FROM'] => $ini['EMAIL_FROM_NAME']))
@@ -195,8 +195,8 @@ require_once JETHRO_ROOT.'/include/emailer.class.php';
 	  ->setTo(explode(',', $recipients_string));
 	if ((int)$ini['CSV']==1) {
 	  $attachment = new Swift_Attachment($csv_string, $file_name, 'text/csv');
-	  $message->attach($attachment);  
-	}	
+	  $message->attach($attachment);
+	}
 	$res = Emailer::send($message);
 	if (!$res) {
 		echo "Failed to send report (".$reportname.") to ".$ini['EMAIL_TO']."\n";
