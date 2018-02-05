@@ -755,7 +755,7 @@ class Attendance_Record_Set
 			$congregations = $GLOBALS['system']->getDBObjectData('congregation', Array('!attendance_recording_days' => 0), 'OR', 'meeting_time');
 			$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('!attendance_recording_days' => 0, 'is_archived' => 0), 'AND', 'category, name');
 			// need to preserve category too
-			uasort($groups, create_function('$x,$y', '$r = strnatcmp($x["category"], $y["category"]); if ($r == 0) $r = strnatcmp($x["name"], $y["name"]); return $r;')); // to ensure natural sorting
+			uasort($groups, function($x,$y) {$r = strnatcmp($x["category"], $y["category"]); if ($r == 0) $r = strnatcmp($x["name"], $y["name"]); return $r;}); // to ensure natural sorting
 		}
 		$lastCategory = -1;
 		?>
