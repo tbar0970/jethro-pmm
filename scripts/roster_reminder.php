@@ -155,7 +155,7 @@ if ($sendsms) { // make the sms message!
 			$smsresponse = "Unable to send SMS\n\n" . $error;
 		} else {
 			if (count($successes) > 0 ) {
-				$smsresponse = "Sent roster successfully to:\n";
+				$smsresponse .= "Sent roster successfully to:\n";
 				for ($i=0; $i < count($successes); $i++) {
 					$smsresponse .= $successes[$i]['first_name'] . ' ' . $successes[$i]['last_name'];
 					if ($i < (count($successes) - 1)) { $smsresponse .= ', '; } else { $smsresponse .= ".\n\n";}
@@ -170,7 +170,7 @@ if ($sendsms) { // make the sms message!
 			}
 		}
 		SMS_Sender::sendMessage($smsresponse, $coordinator, FALSE);
-		print($smsresponse);
+		print $smsresponse;
 	}
 }
 
