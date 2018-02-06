@@ -168,7 +168,9 @@ if ($sendsms) { // make the sms message!
 			}
 		}
 		SMS_Sender::sendMessage($smsresponse, $coordinator, FALSE);
-		print($smsresponse);
+		if (!empty($verbose)) {
+			echo $smsresponse;
+		}
 	}
 }
 
