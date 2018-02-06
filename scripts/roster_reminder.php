@@ -10,7 +10,7 @@ Where's the roster id number?  When you view a roster via the /jethro/public dir
 
 Use .ini file to set the following
  - how to send the messages: sms, email, both
- - roster coordinator sms
+ - roster coordinator id
  - roster coordinator email / group
  - roster view number
  - pre_message to go with roster reminder
@@ -44,7 +44,7 @@ $messagetype=$ini['MESSAGE_TYPE'];
 $sendemail=($messagetype==='email') || ($messagetype==='both');
 $sendsms=($messagetype==='sms') || ($messagetype==='both');
 $roster_coordinator=$ini['ROSTER_COORDINATOR'];
-$roster_coordinator_id=$init['ROSTER_COORDINATOR_ID'];
+$roster_coordinator_id=$ini['ROSTER_COORDINATOR_ID'];
 $roster_id=$ini['ROSTER_ID'];
 $pre_message=$ini['PRE_MESSAGE'];
 $post_message=$ini['POST_MESSAGE'];
@@ -93,12 +93,15 @@ $roster_name = ob_get_contents();
 ob_end_clean();
 //we will include this weeks roster either as a list or as a table
 //start with a list
+//get the roster as csv
+ob_start();
+$view->printCSV($start_date, $end_date);
+$roster_csv = ob_get_contents();
+ob_end_clean();
+
+$assignees=$view->getAssignees($start_date, $end_date);
+
 if ($sendsms) { // make the sms message!
-	//get the roster as csv
-	ob_start();
-	$view->printCSV($start_date, $end_date);
-	$roster_csv = ob_get_contents();
-	ob_end_clean();
 	//break the csv into lines. trick is there are new lines in some fields so break when new-line and quotes /n" but we want to retain the " so use lookahead(?=  ).
 	$roster_lines = preg_split('/(?=\n")/',$roster_csv);
 	$roster_array = array();
@@ -111,34 +114,67 @@ if ($sendsms) { // make the sms message!
 	$x=0;
 	while ($x < $fields) {
 		$smsroster.= $roster_array[1][$x].': ';
-		if ($roster_array[2][$x]=="") {
+		if ($roster_array[1][$x]=="") {
 			$smsroster.= '- \n';
 		} else {
-			$smsroster.= preg_replace("/\\n/m", "",$roster_array[2][$x]).'\n';
+			$smsroster.= preg_replace("/\\n/m", "",$roster_array[1][$x]).'\n';
 		}
 	  $x++;
 	}
-
-	$assignees=$view->getAssignees($start_date, $end_date);
 	if ((int)$debug==1){
-	 $assignees=null;
+	 $assignees=Array();
 	}
-
 	$coordinator=new Person($roster_coordinator_id);
-	$sql = 'SELECT person.* FROM person.id='.$roster_coordinator_id;
+	$sql = 'SELECT person.* FROM person WHERE person.id='.$roster_coordinator_id;
 	$coordinator = $GLOBALS['db']->queryAll($sql);
 
-	
+	$assignees = array_merge($assignees, $coordinator);
+
+	$sms_message = $pre_message . "\nRoster: \n\n" . $post_message . "\n\n";
+	$sms_message = str_replace('<br>', "\n", $sms_message);
+	$sms_message = str_replace('<BR>', "\n", $sms_message);
+	$sms_message = strip_tags($sms_message);
+	if (strlen($sms_message) > SMS_MAX_LENGTH) {
+		$assignees = $coordinator;
+		$sms_message = 'Roster email is too long for SMS. Increase SMS size limit.';
+	}
+	// now, actually send the messages!
+	require_once JETHRO_ROOT.'/include/sms_sender.class.php';
+	$notification_sms = '';
+	if (!empty($assignees))  {
+		$sendResponse = SMS_Sender::sendMessage($sms_message, $assignees, FALSE);
+		$successes = $failures = $rawresponse = Array();
+		$success = $sendResponse['success'];
+		$successes = $sendResponse['successes'];
+		$failures = $sendResponse['failures'];
+		$rawresponse = $sendResponse['rawresponse'];
+		$error = $sendResponse['error'];
+		if (!$success) {
+			$smsresponse = "Unable to send SMS\n\n" . $error;
+		} else {
+			if (count($successes) > 0 ) {
+				$smsresponse = "Sent roster successfully to:\n";
+				for ($i=0; $i < count($successes); $i++) {
+					$smsresponse .= $successes[$i]['first_name'] . ' ' . $successes[$i]['last_name'];
+					if ($i < (count($successes) - 1)) { $smsresponse .= ', '; } else { $smsresponse .= ".\n\n";}
+				}
+			}
+			if (count($failures) > 0 ) {
+				$smsresponse .= "Failed to send roster to:\n\n";
+				for ($i=0; $i < count($failures); $i++) {
+					$smsresponse .= $failures[$i]['first_name'] . ' ' . $failures[$i]['last_name'];
+					if ($i < (count($failures) - 1)) { $smsresponse .= ', '; } else { $smsresponse .= ".\n\n";}
+				}
+			}
+		}
+		SMS_Sender::sendMessage($smsresponse, $coordinator, FALSE);
+		print($smsresponse);
+	}
 }
 
 if ($sendemail) {
 	// build the roster list to be included in the stream_context_set_params
 	if ((int)$list_not_table==1) {
-		//get the roster as csv
-		ob_start();
-		$view->printCSV($start_date, $end_date);
-		$roster_csv = ob_get_contents();
-		ob_end_clean();
 		//break the csv into lines. trick is there are new lines in some fields so break when new-line and quotes /n" but we want to retain the " so use lookahead(?=  ).
 		$roster_lines = preg_split('/(?=\n")/',$roster_csv);
 		$roster_array = array();
@@ -179,7 +215,6 @@ if ($sendemail) {
 	//
 	$emails=array();
 	$no_emails=array();
-	$assignees=$view->getAssignees($start_date, $end_date);
 	foreach($assignees as $row => $innerArray) {
 		if (!empty($innerArray['email'])) {
 	  	$emails[]=$innerArray['email'];
