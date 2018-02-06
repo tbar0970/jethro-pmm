@@ -109,18 +109,19 @@ if ($sendsms) { // make the sms message!
 	    $roster_array[] = str_getcsv($line);
 	}
 	//now turn the array into a list of roster assignments
-	$smsroster=$roster_array[0][1].'\n';
+	$smsroster=$roster_array[0][1]."\n";
 	$fields=count($roster_array[1]);
 	$x=0;
 	while ($x < $fields) {
-		$smsroster.= $roster_array[1][$x].': ';
-		if ($roster_array[1][$x]=="") {
-			$smsroster.= '- \n';
+		$smsroster.= "\n" . $roster_array[1][$x].": ";
+		if ($roster_array[2][$x]=="") {
+			$smsroster.= "-";
 		} else {
-			$smsroster.= preg_replace("/\\n/m", "",$roster_array[1][$x]).'\n';
+			$smsroster.= preg_replace("/\\n/m", ", ",$roster_array[2][$x]);
 		}
 	  $x++;
 	}
+	$smsroster .= "\n";
 	if ((int)$debug==1){
 	 $assignees=Array();
 	}
@@ -130,7 +131,7 @@ if ($sendsms) { // make the sms message!
 
 	$assignees = array_merge($assignees, $coordinator);
 
-	$sms_message = $pre_message . "\nRoster: \n\n" . $post_message . "\n\n";
+	$sms_message = $pre_message . $smsroster . "\n" .  $post_message;
 	$sms_message = str_replace('<br>', "\n", $sms_message);
 	$sms_message = str_replace('<BR>', "\n", $sms_message);
 	$sms_message = strip_tags($sms_message);
@@ -142,6 +143,7 @@ if ($sendsms) { // make the sms message!
 	require_once JETHRO_ROOT.'/include/sms_sender.class.php';
 	$notification_sms = '';
 	if (!empty($assignees))  {
+		$smsresponse = '';
 		$sendResponse = SMS_Sender::sendMessage($sms_message, $assignees, FALSE);
 		$successes = $failures = $rawresponse = Array();
 		$success = $sendResponse['success'];
@@ -168,9 +170,7 @@ if ($sendsms) { // make the sms message!
 			}
 		}
 		SMS_Sender::sendMessage($smsresponse, $coordinator, FALSE);
-		if (!empty($verbose)) {
-			echo $smsresponse;
-		}
+		print($smsresponse);
 	}
 }
 
