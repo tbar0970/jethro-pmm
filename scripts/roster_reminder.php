@@ -189,6 +189,13 @@ if ($sendsms) { // make the sms message!
 }
 
 if ($sendemail) {
+	$emails=array();
+	$no_emails=array();
+	$eol = PHP_EOL;
+	$uid = md5(uniqid(time()));
+	$email_notification = "No email notification was sent for " . $roster_name . ". There were no people assigned.\n";
+	$email_notification_subject="Roster notifications for $roster_name";
+
 	if (count($assignees) > 0) {
 		// build the roster list to be included in the stream_context_set_params
 		if ((int)$list_not_table==1) {
@@ -230,8 +237,6 @@ if ($sendemail) {
 		//
 		//build the email address array / no email address array
 		//
-		$emails=array();
-		$no_emails=array();
 		foreach($assignees as $row => $innerArray) {
 			if (!empty($innerArray['email'])) {
 		  	$emails[]=$innerArray['email'];
@@ -252,7 +257,7 @@ if ($sendemail) {
 		//send the emails
 		//
 		$no_email_address_message="Jethro has just sent a roster reminder email regarding this roster - <b>".$roster_name." </b><br><br> But the following people do not have an email address recorded and so they have not been sent the reminder:<br>".$no_emails_string;
-		$email_not_sent_subject="warning re: ".$email_subject;
+
 		//if DEBUG then echo the email content
 		if ((int)$debug==1){
 			echo $longstring."<br>";
@@ -265,7 +270,7 @@ if ($sendemail) {
 			$message = Emailer::newMessage()
 			  ->setSubject($email_subject)
 			  ->setFrom(array($email_from => $email_from_name))
-			  ->setBody("roster reminder email")
+			  ->setBody("Roster reminder email")
 			  ->addPart($longstring, 'text/html')
 			  ->setTo(explode(',',$roster_coordinator))
 			  ->setBcc(explode(',',$emails_string));
@@ -278,29 +283,7 @@ if ($sendemail) {
 					echo "Sent roster reminder (".$roster_name.")\n";
 				}
 			}
-			// send an email to the roster coordinator if anyone does not have an email address
-			if (!empty($no_emails)) {
-				$message2 = Emailer::newMessage()
-				  ->setSubject($email_not_sent_subject)
-				  ->setFrom(array($email_from => $email_from_name))
-				  ->setBody("warning re roster reminder email")
-				  ->addPart($no_email_address_message, 'text/html')
-				  ->setTo(explode(',',$roster_coordinator));
-				$res = Emailer::send($message2);
-				if (!$res) {
-					echo "Failed to send roster reminder warning to coordinator (".$roster_name.")\n";
-					exit(1);
-				} else {
-					if (!empty($verbose)) {
-						echo "Sent roster reminder warning to coordinator (".$roster_name.")\n";
-					}
-				}
-			}
-		}
-		//using php mail()
-		if ((int)$phpMail==1) {
-		  $eol = PHP_EOL;
-		  $uid = md5(uniqid(time()));
+		} else { // using php mail()
 		  $email_to=$roster_coordinator;
 		  $header = "From: ".$email_from.$eol;
 		  $header .= "MIME-Version: 1.0".$eol;
@@ -316,23 +299,45 @@ if ($sendemail) {
 		   } else {
 		   	echo "Mail send roster reminder - ".$roster_name." send ERROR!";
 		   }
-			// send an email to the roster coordinator if anyone does not have an email address
-			if (!empty($no_emails)) {
-				$email_to=$roster_coordinator;
-			   	$header = "From: ".$email_from.$eol;
-			  	$header .= "MIME-Version: 1.0".$eol;
-			  	$header .= "Content-Type: multipart/mixed; boundary=\"".$uid."\"";
-			  	$message = "--".$uid.$eol;
-			  	$message .= "Content-type:text/html; charset=iso-8859-1".$eol;
-			  	$message .= "Content-Transfer-Encoding: 8bit".$eol.$eol;
-			  	$message .= $no_email_address_message.$eol;
-			  	$message .= "--".$uid."--";
-			    if (mail($email_to,$email_not_sent_subject,"$message",$header)) {
-			    	echo "email sent to coordinator";
-			    } else {
-			    	echo "email failed to send to coordinator";
-			    }
+		}
+	}
+	if (!empty($no_emails)) {
+		$email_notification = $no_email_address_message;
+	}
+	// send an email to the roster coordinator if anyone does not have an email address
+	if ((int)$phpMail==0) {
+		$message2 = Emailer::newMessage()
+			->setSubject($email_notification_subject)
+			->setFrom(array($email_from => $email_from_name))
+			->setBody("Roster notification for $roster_name")
+			->addPart($email_notification, 'text/html')
+			->setTo(explode(',',$roster_coordinator));
+		$res = Emailer::send($message2);
+		if (!$res) {
+			echo "Failed to send roster ($roster_name) reminder notification to coordinator\n";
+			exit(1);
+		} else {
+			if (!empty($verbose)) {
+				echo "Sent roster ($roster_name) reminder notification to coordinator.\n";
 			}
+		}
+	} else {
+		$email_to=$roster_coordinator;
+		$header = "From: ".$email_from.$eol;
+		$header .= "MIME-Version: 1.0".$eol;
+		$header .= "Content-Type: multipart/mixed; boundary=\"".$uid."\"";
+		$message = "--".$uid.$eol;
+		$message .= "Content-type:text/html; charset=iso-8859-1".$eol;
+		$message .= "Content-Transfer-Encoding: 8bit".$eol.$eol;
+		$message .= $email_notification.$eol;
+		$message .= "--".$uid."--";
+		if (mail($email_to,$email_notification_subject,"$message",$header)) {
+			if (!empty($verbose)) {
+				echo "Sent roster ($roster_name) reminder notification to coordinator.\n";
+			}
+		} else {
+			echo "Failed to send roster ($roster_name) reminder notification to coordinator\n";
+			exit;
 		}
 	}
 }
