@@ -392,7 +392,7 @@ class roster_view extends db_object
 		return $rows;
 	}
 
-	public function printCSV($start_date=NULL, $end_date=NULL, $return_data=FALSE)
+	public function printCSV($start_date=NULL, $end_date=NULL)
 	{
 		$GLOBALS['system']->includeDBClass('service');
 		$dummy_service = new Service();
@@ -462,11 +462,7 @@ class roster_view extends db_object
 			}
 			$csvData[] = $row;
 		}
-		if ($return_data) {
-			return $csvData;
-		} else {
-			print_csv($csvData);
-		}
+		print_csv($csvData);
 	}
 
 	function printSingleViewFlexi($service, $includeServiceFields=FALSE)

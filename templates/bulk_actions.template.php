@@ -48,9 +48,6 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 					<option value="mail-merge"><?php echo _('Mail merge a document')?></option>
 					<?php
 				}
-				if (version_compare(PHP_VERSION, '5.0', '>=')) {
-					echo '<option value="spreadsheet-merge">'._('Mail merge a spreadsheet')."</option>\n";
-				}
 				require_once 'db_objects/action_plan.class.php';
 				$plan_chooser = Action_Plan::getMultiChooser('planid', Array());
 				if ($plan_chooser) {
@@ -308,58 +305,10 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 		<div class="bulk-action well" id="csv">
 			<p>Get a CSV file of:</p>
 			<label class="radio"><input class="compulsory" type="radio" name="merge_type" value="person" id="merge_type_person" checked="checked" /><?php echo _('the selected persons')?></label>
-			<?php if (isset($merge_type_person_attendance)) { ?>
-			<label class="radio"><input type="radio" name="merge_type" value="person_attendance" id="merge_type_person_attendance" /><?php echo _('the selected persons with attendance data')?></label>
-			<?php } ?>
 			<label class="radio"><input type="radio" name="merge_type" value="family" id="merge_type_family" /><?php echo _('the families the selected persons belong to')?></label></p>
 			<input type="submit" class="btn " value="Go" data-set-form-action="<?php echo BASE_URL; ?>?call=csv" />
 		</div>
-    <?php
-	if (version_compare(PHP_VERSION, '5.0', '>=')) {
-		?>
-		<div class="bulk-action well" id="spreadsheet-merge">
-			<div class="control-group">
-				<label class="control-label"><?php echo _('Source Document')?></label>
-				<div class="controls">
-					<input class="compulsory" type="file" name="source_document" />
-					<p class="help-inline">(ODS or XLSX format)</p>
-				</div>
-			</div>
-			<div class="control-group">
-				<label class="control-label"><?php echo _('Merge for')?></label>
-				<div class="controls">
-						<label class="radio">
-						<?php 
-							if (isset($merge_type_person_attendance)) {
-								echo '<input class="compulsory" type="radio" name="merge_type" value="person_data" id="merge_type_person_attendance" checked="checked" />';
-							} else {
-								echo '<input class="compulsory" type="radio" name="merge_type" value="person" id="merge_type_person" checked="checked" />';
-							}
-							echo _('each of the selected persons');
-							?>
-							<span class="smallprint">
-							<a target="roster-merge-help" class="med-newwin" href="<?php echo BASE_URL; ?>index.php?call=opentbs_merge_help"><i class="icon-print"></i>Help and examples</a><br></span>
-					<p class="help-inline"> </p>
-						</label>
-						<label class="radio">
-							<input type="radio" name="merge_type" value="family" id="merge_type_family" />
-							<?php echo _('each of the families that the selected persons belong to')?>
-							<span class="smallprint">
-							<a target="roster-merge-help" class="med-newwin" href="<?php echo BASE_URL; ?>index.php?call=opentbs_merge_help"><i class="icon-print"></i>Help and examples</a><br></span>
-						</label>
-				</div>
-			</div>
-			<div class="control-group">
-				<div class="controls">
-					<input type="submit" class="btn " value="Go" data-set-form-action="<?php echo BASE_URL; ?>index.php?call=spreadsheet_merge" />
-				</div>
-			</div>
 
-
-		</div>
- 		<?php
-	}
-	?>
 		<div class="bulk-action well" id="envelopes">
 			<p><?php echo _('Print envelopes addressed to ')?></p>
 			<label class="radio">
@@ -400,3 +349,5 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 	?>
 	
 </div>
+
+

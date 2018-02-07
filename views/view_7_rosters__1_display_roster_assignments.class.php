@@ -43,26 +43,6 @@ class View_Rosters__Display_Roster_Assignments extends View
 		$this->_printParams();
 		if ($this->_view) {
 			$this->_view->printView($this->_start_date, $this->_end_date, $this->_editing);
-			$viewid = ($this->_view) ? $this->_view->id : null;
-			?>
-			<form method="post" action="" enctype="multipart/form-data">
-			<div class="control-group">
-			<p><?php echo _('Mail merge a spreadsheet or document'); ?></p>
-			<label class="control-label"><?php echo _('Source Document')?></label>
-			<div class="controls">
-           		<input type="hidden" name="roster_view_name" value="<?php echo $this->_view->getValue('name'); ?>">
-				<input class="compulsory" type="file" name="source_document" />
-							<span class="smallprint">
-							<a target="roster-merge-help" class="med-newwin" href="<?php echo BASE_URL; ?>index.php?call=opentbs_merge_help"><i class="icon-print"></i>Help and examples</a><br></span>
-					<p class="help-inline"> </p>
-			</div>
-			<div class="control-group">
-				<div class="controls">
-					<input type="submit" class="btn " value="Go" data-set-form-action="<?php echo BASE_URL.'index.php?call=document_merge_rosters&roster_view='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date; ?>" />
-				</div>
-			</div>
-			</form>
-			<?php
 		}
 	}
 
