@@ -212,7 +212,7 @@ if ($sendemail) {
 			while ($x < $fields) {
 				$roster.= '<b>'.$roster_array[1][$x].'</b><br>';
 				if ($roster_array[2][$x]=="") {
-					$roster.= '<i>nil</i><br><br>';
+					$roster.= '<i>-</i><br><br>';
 				} else {
 					$roster.= preg_replace("/\\n/m", "<br />",$roster_array[2][$x]).'<br><br>';
 				}
