@@ -260,7 +260,8 @@ if ($sendemail) {
 
 		//if DEBUG then echo the email content
 		if ((int)$debug==1){
-			echo $longstring."<br>";
+			echo "Sending the following message:\n\n";
+			echo $longstring."\n\n";
 		}
 		//
 		//send using built in email class
