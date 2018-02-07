@@ -52,6 +52,7 @@ class Congregation extends db_object
 									'type'		=> 'int',
 									'hidden'	=> true,
 									'editable' => false,
+									'default'	=> 1,
 								   ),
 		);
 	}

@@ -119,6 +119,7 @@ class Person extends DB_Object
 							),
 			'status_last_changed' => Array(
 									'type'			=> 'datetime',
+									'readonly'		=> true,
 									'show_in_summary' => false,
 									'allow_empty'	=> TRUE,
 									'editable'			=> false,
