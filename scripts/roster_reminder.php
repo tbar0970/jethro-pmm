@@ -99,6 +99,19 @@ $view->printCSV($start_date, $end_date);
 $roster_csv = ob_get_contents();
 ob_end_clean();
 
+//break the csv into lines. trick is there are new lines in some fields so break when new-line and quotes /n" but we want to retain the " so use lookahead(?=  ).
+$roster_lines = preg_split('/(?=\n")/',$roster_csv);
+$roster_array = array();
+foreach ($roster_lines as $line) {
+	$roster_array[] = str_getcsv($line);
+}
+
+$roster_date = '';
+if (count($roster_array) > 2) {
+	$roster_date_index = array_search('Date', $roster_array[1]);
+	$roster_date = " (" . $roster_array[2][$roster_date_index] . ")";
+}
+
 $assignees=$view->getAssignees($start_date, $end_date);
 
 if ($sendsms) { // make the sms message!
@@ -109,12 +122,7 @@ if ($sendsms) { // make the sms message!
 	$coordinator = $GLOBALS['db']->queryAll($sql);
 
 	if (count($assignees) > 0) {
-		//break the csv into lines. trick is there are new lines in some fields so break when new-line and quotes /n" but we want to retain the " so use lookahead(?=  ).
-		$roster_lines = preg_split('/(?=\n")/',$roster_csv);
-		$roster_array = array();
-		foreach ($roster_lines as $line) {
-		    $roster_array[] = str_getcsv($line);
-		}
+
 		//now turn the array into a list of roster assignments
 		$smsroster=$roster_array[0][1]."\n";
 		$fields=count($roster_array[1]);
@@ -195,16 +203,11 @@ if ($sendemail) {
 	$uid = md5(uniqid(time()));
 	$email_notification = "No email notification was sent for " . $roster_name . ". There were no people assigned.\n";
 	$email_notification_subject="Roster notifications for $roster_name";
+	$no_email_address_message = "";
 
 	if (count($assignees) > 0) {
 		// build the roster list to be included in the stream_context_set_params
 		if ((int)$list_not_table==1) {
-			//break the csv into lines. trick is there are new lines in some fields so break when new-line and quotes /n" but we want to retain the " so use lookahead(?=  ).
-			$roster_lines = preg_split('/(?=\n")/',$roster_csv);
-			$roster_array = array();
-			foreach ($roster_lines as $line) {
-		    $roster_array[] = str_getcsv($line);
-			}
 			//now turn the array into a list of roster assignments
 			$roster=$roster_array[0][1].'<br>';
 			$fields=count($roster_array[1]);
@@ -217,7 +220,7 @@ if ($sendemail) {
 					$roster.= preg_replace("/\\n/m", "<br />",$roster_array[2][$x]).'<br><br>';
 				}
 		  	$x++;
-		  	}
+	 		}
 		} else {
 			// otherwise include as a table
 			ob_start();
@@ -256,7 +259,7 @@ if ($sendemail) {
 		//
 		//send the emails
 		//
-		$no_email_address_message="Jethro has just sent a roster reminder email regarding this roster - <b>".$roster_name." </b><br><br> But the following people do not have an email address recorded and so they have not been sent the reminder:<br>".$no_emails_string;
+		$no_email_address_message="Jethro has just sent a roster reminder email regarding this roster - <b>".$roster_name."</b><br><br> However, the following people do not have an email address recorded. As such, they have not been sent the reminder:<br><span style='padding-left: 1.5em;'>$no_emails_string</span>";
 
 		//if DEBUG then echo the email content
 		if ((int)$debug==1){
@@ -269,7 +272,7 @@ if ($sendemail) {
 		if ((int)$phpMail==0) {
 			require_once JETHRO_ROOT.'/include/emailer.class.php';
 			$message = Emailer::newMessage()
-			  ->setSubject($email_subject)
+			  ->setSubject($email_subject . "$roster_date")
 			  ->setFrom(array($email_from => $email_from_name))
 			  ->setBody("Roster reminder email")
 			  ->addPart($longstring, 'text/html')
@@ -295,7 +298,7 @@ if ($sendemail) {
 		  $message .= "Content-Transfer-Encoding: 8bit".$eol.$eol;
 		  $message .= $longstring.$eol;
 		  $message .= "--".$uid."--";
-		   if (mail($email_to, $email_subject, "$message", $header)) {
+		   if (mail($email_to, $email_subject . "$roster_date", "$message", $header)) {
 		   	echo "Mail send roster reminder - ".$roster_name." sent OK <br>";
 		   } else {
 		   	echo "Mail send roster reminder - ".$roster_name." send ERROR!";
@@ -308,7 +311,7 @@ if ($sendemail) {
 	// send an email to the roster coordinator if anyone does not have an email address
 	if ((int)$phpMail==0) {
 		$message2 = Emailer::newMessage()
-			->setSubject($email_notification_subject)
+			->setSubject($email_notification_subject . "$roster_date")
 			->setFrom(array($email_from => $email_from_name))
 			->setBody("Roster notification for $roster_name")
 			->addPart($email_notification, 'text/html')
@@ -332,7 +335,7 @@ if ($sendemail) {
 		$message .= "Content-Transfer-Encoding: 8bit".$eol.$eol;
 		$message .= $email_notification.$eol;
 		$message .= "--".$uid."--";
-		if (mail($email_to,$email_notification_subject,"$message",$header)) {
+		if (mail($email_to,$email_notification_subject . "$roster_date","$message",$header)) {
 			if (!empty($verbose)) {
 				echo "Sent roster ($roster_name) reminder notification to coordinator.\n";
 			}
