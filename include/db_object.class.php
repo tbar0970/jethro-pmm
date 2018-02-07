@@ -87,6 +87,7 @@ class db_object
 					break;
 				case 'html':
 					$type = 'text';
+					$default = FALSE; // text columns cannot have a default
 					break;
 				case 'text':
 					if (array_get($details, 'height', 1) != 1) {
