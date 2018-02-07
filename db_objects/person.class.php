@@ -472,6 +472,30 @@ class Person extends DB_Object
 
 	}
 
+	public static function getPersonIdByName($first_name, $last_name, $includeArchived=true)
+	{
+		$db = $GLOBALS['db'];
+		$SQL = '
+			SELECT *
+			FROM person p
+			WHERE first_name = '.$db->quote($first_name).'
+			 AND  last_name = '.$db->quote($last_name).'
+		';
+		if (!$includeArchived) {
+			$SQL .= '
+			AND status <> "archived"
+			';
+		}
+		$res = $db->queryAll($SQL, null, null, true, true); // 5th param forces array even if one col
+		if (count($res) > 0) {
+		    end($res);
+		    return key($res);
+		} else {
+		  return -1;
+		}
+
+	}
+
 	function save($update_family=TRUE)
 	{
 		$GLOBALS['system']->doTransaction('BEGIN');

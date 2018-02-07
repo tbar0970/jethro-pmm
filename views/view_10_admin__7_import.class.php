@@ -83,13 +83,37 @@ class View_Admin__Import extends View
 			<div style="border: 1px solid; width: 50%; height: 30px; top: 50%; left: 25%; position: absolute"><div id="progress" style="background: blue; height: 30px; width: 2%; overflow: visible; line-height: 30px; text-align: center; color: white" /></div>
 			<p style="text-align: center; color: #888">If this indicator stops making progress, your import may still be running in the background.<br />You should <a href="<?php echo build_url(Array('view' => 'persons__list_all')); ?>">check your system for the imported persons</a> before running the import again.</p>
 			<?php
+			$results = array();
 			foreach ($_SESSION['import']['families'] as $familydata) {
 				$members = $familydata['members'];
 				unset($familydata['members']);
-				$family = new Family();
-				$family->populate(0, $familydata);
-				if ($family->create()) {
+				unset($family);
+				foreach ($members as $member) {
+					$id = Person::getPersonIdByName($member['first_name'], $member['last_name'], TRUE);
+					if (($id > 0) && (!isset($family))) {
+						$results[] = $member['first_name'].' '. $member['last_name']." already exists - updating existing family<br>\n";
+						$person = new Person($id);
+						$family = new Family($person->getValue('familyid'));
+						unset($person);
+					}
+				}
+				if (!isset($family)) {
+					$family = new Family();
+					$family->populate(0, $familydata);
+					if (!$family->create()) {
+						$results[] = 'Family: '.$familydata['family_name']." not created<br>\n";
+					}
+				}
+				if (isset($family)) {
 					foreach ($members as $persondata) {
+						$id = Person::getPersonIdByName($persondata['first_name'], $persondata['last_name'], TRUE);
+						if ($id > 0) {
+							$person = new Person($id);
+							$group->addMember($person->id);
+							$results[] = 'Added existing person '.$persondata['first_name'].' '.$persondata['last_name']." to group<br>\n";
+							unset($person);
+							continue;
+						}
 						$notetext = null;
 						if (!empty($persondata['note'])) {
 							$notetext = $persondata['note'];
@@ -103,7 +127,7 @@ class View_Admin__Import extends View
 							if ($notetext) {
 								$note = new Person_Note();
 								$note->setValue('subject', 'Import note');
-								$note->setvalue('details', $notetext);
+								$note->setValue('details', $notetext);
 								$note->setValue('personid', $person->id);
 								$note->create();
 								unset($note);
@@ -125,7 +149,10 @@ class View_Admin__Import extends View
 				add_message($msg, 'failure', true);
 				$GLOBALS['system']->doTransaction('ROLLBACK');
 			} else {
-				add_message(_('Import complete'), 'success');
+				add_message(_('Import complete<br>'), 'success',TRUE);
+				foreach ($results as $result) {
+					add_message(_($result), 'success',TRUE);
+				}
 				$GLOBALS['system']->doTransaction('COMMIT');
 			}
 			?><script>document.location = '<?php echo build_url(Array('view' => 'groups', 'groupid' => $group->id)); ?>&done=1';</script>
@@ -256,7 +283,8 @@ class View_Admin__Import extends View
 				$text = _('This page allows you to import persons, families and notes from a CSV file.  The CSV must be in a format like this sample file.  (The order of columns is flexible but the first row must be a header with these column names).
 					You may also include extra columns labelled with the exact name of custom fields.
 					Jethro will create a new person record for each row in the CSV file.  Jethro will create a new family record whenever a row contains different family details to the previous row (although changing to or from a blank value does not count as a change).  A new family is also triggered if you include an entirely blank row.
-					All the imported persons will be added to the group you choose below.');
+					All the imported persons will be added to the group you choose below, with the current default status.
+					If a person with the same name exists, the existing person will be added to the group and otherwise not updated. Furthermore any new person in the same input family will be added to this person'."'s family");
 				$s = _('sample file');
 				$text = str_replace($s, '<a href="'.BASE_URL.'/resources/sample_import.csv">'.$s.'</a>', $text);
 				$text = '<p class="text">'.str_replace("\n", '</p><p class="text">', $text);
