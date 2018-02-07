@@ -201,7 +201,7 @@ if ($sendemail) {
 	$no_emails=array();
 	$eol = PHP_EOL;
 	$uid = md5(uniqid(time()));
-	$email_notification = "No email notification was sent for " . $roster_name . ". There were no people assigned.\n";
+	$email_notification = "Sent roster reminder for $roster_name $roster_date";
 	$email_notification_subject="Roster notifications for $roster_name";
 	$no_email_address_message = "";
 
@@ -304,7 +304,9 @@ if ($sendemail) {
 		   	echo "Mail send roster reminder - ".$roster_name." send ERROR!";
 		   }
 		}
-	}
+	} else {
+        $email_notification = "No email notification was sent for " . $roster_name . ". There were no people assigned.\n";
+    }
 	if (!empty($no_emails)) {
 		$email_notification = $no_email_address_message;
 	}
