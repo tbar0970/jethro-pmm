@@ -165,7 +165,7 @@ if ($sendsms) { // make the sms message!
 			if (!$success) {
 				$sms_notification = "Unable to send SMS\n\n$error\n";
 			} else {
-				if ((count($successses) <= 0) && (count($failures) <= 0)) {
+				if ((count($successes) <= 0) && (count($failures) <= 0)) {
 					$sms_notification = "SMS for $roster_name sent, but sending cannot be confirmed.\n";
 				}
 				if (count($successes) > 0 ) {
