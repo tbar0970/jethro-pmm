@@ -696,7 +696,7 @@ class Person extends DB_Object
 	 * @param type $personids
 	 * @return array
 	 */
-	static function getCustomMergeData($personids)
+	static function getCustomMergeData($personids,$formatted=TRUE)
 	{
 		$db = $GLOBALS['db'];
 		$SQL = 'SELECT '.Custom_Field::getRawValueSQLExpr('v').' AS value, f.name, v.personid, v.fieldid
@@ -713,7 +713,11 @@ class Person extends DB_Object
 		}
 		foreach ($qres as $row) {
 			$fname = strtoupper(str_replace(' ', '_', $row['name']));
-			$fVal = $customFields[$row['fieldid']]->formatValue($row['value']);
+			if ($formatted) {
+				$fVal = $customFields[$row['fieldid']]->formatValue($row['value']);
+			} else {
+				$fVal = $row['value'];
+			}
 			if (isset($res[$row['personid']][$fname])) {
 				$res[$row['personid']][$fname] .= ', '.$fVal;
 			} else {
