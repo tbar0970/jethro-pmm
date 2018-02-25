@@ -204,7 +204,7 @@ if ($batch->get_operations()) {
 			break;
 		}
 		if (time() - $started > 60*5) {
-			$batch_id = $res['id'];
+			$batch_id = $batch_res_summary['id'];
 			trigger_error("Batch $batch_id has been running for more than 5 minutes. Giving up.", E_USER_ERROR);
 			exit;
 		}
