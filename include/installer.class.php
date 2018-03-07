@@ -282,8 +282,9 @@ class Installer
 			(@rank:=@rank+5, 'Task Notifications', 'TASK_NOTIFICATION_ENABLED', '(This feature also requires the task_reminder.php script to be called by cron every 5 minutes)', 'bool', 0),
 			(@rank:=@rank+5, '',                   'TASK_NOTIFICATION_FROM_NAME', 'Name from which task notifications should be sent', 'text', 'Jethro'),
 			(@rank:=@rank+5, '',                   'TASK_NOTIFICATION_FROM_ADDRESS', 'Email address from which task notifications should be sent', 'text', ''),
-			(@rank:=@rank+5, '',                   'TASK_NOTIFICATION_SUBJECT', '', 'text', 'New notes assigned to you');
+			(@rank:=@rank+5, '',                   'TASK_NOTIFICATION_SUBJECT', '', 'text', 'New notes assigned to you'),
 
+			(@rank:=@rank+5, 'Mailchimp Sync',           'MAILCHIMP_API_KEY', 'API Key for Mailchimp integration. NB the mailchimp sync script must also be called regularly by cron.', 'text', ''),
 
 			(@rank:=@rank+5, 'SMTP Email Server',        'SMTP_SERVER','SMTP server for sending emails','text',''),
 			(@rank:=@rank+5, '',                         'SMTP_ENCRYPTION','Encryption method for SMTP server','select{\"ssl\":\"SSL\",\"tls\":\"TLS\",\"\":\"(None)\"}',''),

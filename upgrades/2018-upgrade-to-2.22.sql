@@ -21,3 +21,10 @@ VALUES
 (@newRank := @newRank+1, '',                   'TASK_NOTIFICATION_FROM_NAME', 'Name from which task notifications should be sent', 'text', 'Jethro'),
 (@newRank := @newRank+1, '',                   'TASK_NOTIFICATION_FROM_ADDRESS', 'Email address from which task notifications should be sent', 'text', ''),
 (@newRank := @newRank+1, '',                   'TASK_NOTIFICATION_SUBJECT', '', 'text', 'New notes assigned to you');
+
+ALTER TABLE person_query
+ADD COLUMN mailchimp_list_id VARCHAR(255) NOT NULL DEFAULT '';
+
+SET @newRank = (SELECT rank FROM setting WHERE symbol = 'TASK_NOTIFICATION_SUBJECT');
+INSERT INTO setting (rank, heading, symbol, note, type, value)
+VALUES (@newRank+1, 'Mailchimp Sync', 'MAILCHIMP_API_KEY', 'API Key for mailchimp integration. NB the mailchimp sync script must also be called regularly by cron.', 'text', '');
