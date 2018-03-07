@@ -42,12 +42,13 @@ class View__Send_MC_Campaign extends View
 					'title' => $_POST['subject'],
 					'from_name' => $this->_from_name,
 					'reply_to' => $this->_from_address,
-					/* 'template_id' => '' */
+	 				/*'template_id' => (int)$_POST['templateid'],*/
 				),
 			);
 			$postRes = $this->_mc->post('/campaigns', $postData);
 			if (!$this->_mc->success()) {
 				trigger_error("Mailchimp error: ".$this->_mc->getLastError());
+				return;
 			}
 			$campaignID = $postRes['id'];
 			if (empty($campaignID)) {
@@ -56,7 +57,7 @@ class View__Send_MC_Campaign extends View
 			}
 			$putContent = Array(
 				'html' => $_POST['message'],
-				'template' => Array('id' => (int)$_POST['templateid']),
+				/*'template' => Array('id' => (int)$_POST['templateid']),*/
 
 			);
 			$putRes = $this->_mc->put('/campaigns/'.$campaignID.'/content', $putContent);
@@ -102,10 +103,9 @@ class View__Send_MC_Campaign extends View
 		}
 		$templates = $this->_mc->get('/templates', Array('count' => 100));
 		$defaultTemplateID = NULL;
-		$templateOptions = Array();
+		$templateOptions = Array('' => '(None)');
 		foreach ($templates['templates'] as $t) {
 			$templateOptions[$t['id']] = $t['name'];
-			if (preg_match('/^1 Column$/', $t['name']) && !$defaultTemplateID) $defaultTemplateID = $t['id'];
 		}
 		?>
 		<form method="post" class="form-horizontal" enctype="multipart/form-data">
@@ -133,12 +133,16 @@ class View__Send_MC_Campaign extends View
 					<input type="text" name="subject" size="60" />
 				</div>
 			</div>
+			<?php
+			/*
 			<div class="control-group">
 				<label class="control-label">Template</label>
 				<div class="controls">
-					<?php print_widget('templateid', Array('type' => 'select', 'options' => $templateOptions), $defaultTemplateID); ?>
+					<?php print_widget('templateid', Array('type' => 'select', 'options' => $templateOptions), ''); ?>
 				</div>
 			</div>
+			 */
+			?>
 			<div class="control-group">
 				<label class="control-label">Message</label>
 				<div class="controls">
