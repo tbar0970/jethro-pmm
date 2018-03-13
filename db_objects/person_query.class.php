@@ -625,7 +625,7 @@ class Person_Query extends DB_Object
 						</td>
 					</tr>
 				<?php
-				if (strlen(ifdef('MAILCHIMP_API_KEY'))) {
+				if (strlen(ifdef('MAILCHIMP_API_KEY')) && $GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 					?>
 					<tr>
 						<td>Mailchimp List ID</td>
@@ -648,12 +648,16 @@ class Person_Query extends DB_Object
 				case 'new':
 					$this->populate(0, Array());
 					$this->processFieldInterface('name');
-					$this->processFieldInterface('mailchimp_list_id');
+					if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
+						$this->processFieldInterface('mailchimp_list_id');
+					}
 					$this->setValue('owner', $_POST['is_private'] ? $GLOBALS['user_system']->getCurrentUser('id') : NULL);
 					break;
 				case 'replace':
 					$this->processFieldInterface('name');
-					$this->processFieldInterface('mailchimp_list_id');
+					if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
+						$this->processFieldInterface('mailchimp_list_id');
+					}
 					$this->setValue('owner', $_POST['is_private'] ? $GLOBALS['user_system']->getCurrentUser('id') : NULL);
 					break;
 				case 'temp':

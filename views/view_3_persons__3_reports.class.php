@@ -180,7 +180,7 @@ class View_Persons__Reports extends View
 							<?php
 							if (strlen($details['mailchimp_list_id'])) {
 								?>
-								<a href="?view=_send_mc_campaign&reportid=<?php echo (int)$id; ?>"><i class="icon-envelope"></i>Send campaign</a>
+								<a href="?view=_send_mc_campaign&reportid=<?php echo (int)$id; ?>"><i class="icon-email">@</i>Send campaign</a>
 								<?php
 							} else {
 								?>
