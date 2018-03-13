@@ -33,6 +33,47 @@ class View__Send_MC_Campaign extends View
 		$this->_from_address = $us->getCurrentUser('email');
 
 		if (!empty($_POST['subject']) && !empty($_POST['message'])) {
+			$html = $_POST['message'];
+
+			$attachment_error = FALSE;
+			$attachments = Array();
+			if (!empty($_FILES['attachment'])) {
+				foreach ($_FILES['attachment']['name'] as $i => $name) {
+					if (!strlen($name)) continue;
+					if ($_FILES['attachment']['size'][$i] == 0) {
+						add_message("Attachment ".ents($name)." was empty. Campaign not sent.", 'error');
+						$attachment_error = TRUE;
+						continue;
+					}
+					if ($_FILES['attachment']['size'][$i] > 1024*1024*5) {
+						add_message("Attachment ".ents($name)." was too large (max 5MB).  Campaign not sent.", 'error');
+						$attachment_error = TRUE;
+						continue;
+					}
+					if ($_FILES['attachment']['error'][$i]) {
+						add_message("Error (code ".$_FILES['attachment']['error'].") attaching ".ents($name).". Campaign not sent.", 'error');
+						$attachment_error = TRUE;
+						continue;
+					}
+					$attachments[$name] = $_FILES['attachment']['tmp_name'][$i];
+				}
+			}
+			if ($attachment_error) return; // Do not send.
+
+			$zip = new ZipArchive();
+			$zip_name = str_replace('.tmp', '', tempnam(sys_get_temp_dir(), 'mailchimp_content')).'.zip';
+			if (!$zip->open($zip_name, ZipArchive::CREATE)) {
+				trigger_error("Could not create zip archive to submit to mailchimp", E_USER_ERROR);
+				exit;
+			}
+			foreach ($attachments as $name => $tmpname) {
+				$name = preg_replace('/[^A-Za-z0-9.+-_]/', '', str_replace(' ', '_', trim($name)));
+				$zip->addFile($tmpname, $name);
+				$html .= '<br /><b>Attachment: <a href="'.ents($name).'">'.ents($name).'</a>';
+			}
+			$zip->addFromString('message.html', $html);
+			$zip->close();
+
 			// Let's send us a campaign!
 			$postData = Array(
 				'type' => 'regular',
@@ -56,11 +97,16 @@ class View__Send_MC_Campaign extends View
 				exit;
 			}
 			$putContent = Array(
-				'html' => $_POST['message'],
+				/*'html' => $html,*/
 				/*'template' => Array('id' => (int)$_POST['templateid']),*/
-
+				'archive' => Array(
+					'archive_content' => base64_encode(file_get_contents($zip_name)),
+					'archive_type' => 'zip'
+				)
 			);
-			$putRes = $this->_mc->put('/campaigns/'.$campaignID.'/content', $putContent);
+
+			$timeout = 30; // sometimes takes a while to handle the ZIP
+			$putRes = $this->_mc->put('/campaigns/'.$campaignID.'/content', $putContent, $timeout);
 			if (!$this->_mc->success()) {
 				trigger_error("Mailchimp error: ".$this->_mc->getLastError());
 			}
@@ -81,6 +127,10 @@ class View__Send_MC_Campaign extends View
 				}
 			}
 
+			foreach ($attachments as $name => $tmpname) {
+				unlink($tmpname);
+			}
+			unlink($zip_name);
 
 		}
 	}
@@ -130,7 +180,8 @@ class View__Send_MC_Campaign extends View
 			<div class="control-group">
 				<label class="control-label">Subject</label>
 				<div class="controls">
-					<input type="text" name="subject" size="60" />
+					<?php $subject = $this->_sent_campaign_id ? '' : array_get($_REQUEST, 'subject', ''); ?>
+					<input type="text" name="subject" size="60" value="<?php echo ents($subject); ?>" />
 				</div>
 			</div>
 			<?php
@@ -146,7 +197,10 @@ class View__Send_MC_Campaign extends View
 			<div class="control-group">
 				<label class="control-label">Message</label>
 				<div class="controls">
-					<?php print_widget('message', Array('type' => 'html'), ''); ?>
+					<?php 
+					$content = $this->_sent_campaign_id ? '' : array_get($_REQUEST, 'message', '');
+					print_widget('message', Array('type' => 'html'), $content);
+					?>
 				</div>
 			</div>
 			<div class="control-group">
