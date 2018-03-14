@@ -6,7 +6,7 @@ class Call_Roster_Ical extends Call
 		if (empty($_REQUEST['uuid'])) {
 			header("HTTP/1.0 400 Bad request");
 			?><p>UUID not specified</p><?php
-			exit;			
+			exit;
 		}
 		
 		$personid = $this->_getPersonID($_REQUEST['uuid']);
@@ -19,7 +19,7 @@ class Call_Roster_Ical extends Call
 		$assignments = Roster_Role_Assignment::getUpcomingAssignments($personid, NULL);
 		
 		header('Content-type: text/calendar');
-		header('Content-Disposition: inline; filename=roster.ics'); 
+		header('Content-Disposition: inline; filename=roster.ics');
 		//header('content-type: text/plain');
 
 		require_once 'templates/roster_ical.template.php';

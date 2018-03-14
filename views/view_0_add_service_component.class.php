@@ -4,7 +4,7 @@ class View__Add_Service_Component extends Abstract_View_Add_Object
 {
 	var $_create_type = 'service_component';
 	var $_success_message = 'New component saved';
-	var $_on_success_view = 'services__service_components';
+	var $_on_success_view = 'services__component_library';
 	var $_failure_message = 'Error creating component';
 	var $_submit_label = 'Save';
 	var $_title = 'Add Service Component';
@@ -32,7 +32,7 @@ class View__Add_Service_Component extends Abstract_View_Add_Object
 			$cat = $GLOBALS['system']->getDBObject('service_component_category', (int)$_REQUEST['categoryid']);
 			if ($cat) {
 				$this->_new_object->setValue('categoryid', array_get($_REQUEST, 'categoryid'));
-				foreach (Array('length_mins', 'is_numbered', 'show_in_handout', 'show_on_slide') as $k) {
+				foreach (Array('length_mins', 'show_in_handout', 'show_on_slide') as $k) {
 					$this->_new_object->setValue($k, $cat->getValue($k.'_default'));
 				}
 			}

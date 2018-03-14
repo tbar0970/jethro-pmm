@@ -1,10 +1,10 @@
 <?php
 class Service_Component_Tag extends db_object
 {
-	var $_load_permission_level = 0; // want PERM_VIEWSERVICE | PERM_VIEWROSTER
-	var $_save_permission_level = 0; // FUTURE: PERM_EDITSERVICE;
+	protected $_load_permission_level = 0; // want PERM_VIEWSERVICE | PERM_VIEWROSTER
+	protected $_save_permission_level = 0; // FUTURE: PERM_EDITSERVICE;
 
-	function _getFields()
+	protected static function _getFields()
 	{
 
 		$fields = Array(

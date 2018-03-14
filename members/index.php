@@ -16,7 +16,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with Jethro PMM.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * index.php - first stop for every request
  *
  * @author Tom Barrett <tom@tombarrett.id.au>
@@ -32,6 +32,13 @@ set_include_path(get_include_path().PATH_SEPARATOR.dirname(THIS_DIR));
 // Load configuration
 require_once dirname(THIS_DIR).'/conf.php';
 
+// Initialise system
+define('IS_PUBLIC', true);
+
+// Initialise system
+define('DB_MODE', 'MEMBERS');
+require_once JETHRO_ROOT.'/include/init.php';
+
 // Check if member access is enabled
 if (!defined('MEMBER_LOGIN_ENABLED') || !MEMBER_LOGIN_ENABLED) {
 	?>
@@ -40,17 +47,12 @@ if (!defined('MEMBER_LOGIN_ENABLED') || !MEMBER_LOGIN_ENABLED) {
 	exit;
 }
 
-// Initialise system
-define('DSN', MEMBERS_DSN);
-define('IS_PUBLIC', true);
-require_once JETHRO_ROOT.'/include/init.php';
-
 // Set up the user system
 require_once THIS_DIR.'/include/member_user_system.class.php';
-$GLOBALS['member_user_system'] = new Member_User_System();
-$GLOBALS['member_user_system']->run();
+$GLOBALS['user_system'] = new Member_User_System();
+$GLOBALS['user_system']->run();
 
-if ($GLOBALS['member_user_system']->getCurrentMember() != NULL) {
+if ($GLOBALS['user_system']->getCurrentMember() != NULL) {
 	require_once 'include/system_controller.class.php';
 	$GLOBALS['system'] = System_Controller::get(THIS_DIR);
 	System_Controller::get()->run();

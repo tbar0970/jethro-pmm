@@ -1,10 +1,10 @@
 <?php
 class Service_Component_Category extends db_object
 {
-	var $_load_permission_level = 0; // want PERM_VIEWSERVICE | PERM_VIEWROSTER
-	var $_save_permission_level = 0; // FUTURE: PERM_EDITSERVICE;
+	protected $_load_permission_level = 0; // want PERM_VIEWSERVICE | PERM_VIEWROSTER
+	protected $_save_permission_level = 0; // FUTURE: PERM_EDITSERVICE;
 
-	function _getFields()
+	protected static function _getFields()
 	{
 
 		$fields = Array(
@@ -25,20 +25,22 @@ class Service_Component_Category extends db_object
 									'initial_cap'	=> TRUE,
 									'default' => '%title%',
 								   ),
-			'is_numbered_default'		=> Array(
-									'type'		=> 'select',
-									'options'  => Array('No', 'Yes'),
-									'default' => 1,
-								   ),
 			'show_in_handout_default'		=> Array(
 									'type'		=> 'select',
-									'options'  => Array('No', 'Yes'),
-									'default' => 1,
+									'options'  => Array(
+													'0' => 'No',
+													'title' => 'Title only',
+													'full'  => 'Title and Content',
+													),
+									'default' => 'full',
 								   ),
 			'show_on_slide_default'		=> Array(
 									'type'		=> 'select',
 									'options'  => Array('No', 'Yes'),
 									'default' => 1,
+								   ),
+			'personnel_default'		=> Array(
+									'type'		=> 'text',
 								   ),
 			'length_mins_default'		=> Array(
 									'type'		=> 'int',
@@ -48,16 +50,16 @@ class Service_Component_Category extends db_object
 		return $fields;
 	}
 	
-	function getInitSQL()
+	function getInitSQL($table_name=NULL)
 	{
 		$res = (array)parent::getInitSQL();
 		$res[] = 'INSERT INTO service_component_category
-				  (category_name, runsheet_title_format, handout_title_format, length_mins_default)
+				  (category_name, runsheet_title_format, handout_title_format, length_mins_default, personnel_default)
 				  VALUES 
-				  ("Songs", "Song: %title%", "Song: %title%", 3),
-				  ("Prayers", "%title%", "%title%", 2),
-				  ("Creeds", "The %title%", "The %title%", 2),
-				  ("Other", "%title%", "%title%", 1);';
+				  ("Songs", "Song: %title%", "Song: %title%", 3, "%SONG_LEADER_FIRSTNAME%"),
+				  ("Prayers", "%title%", "%title%", 2, "%SERVICE_LEADER_FIRSTNAME%"),
+				  ("Creeds", "The %title%", "The %title%", 2, "%SERVICE_LEADER_FIRSTNAME%"),
+				  ("Other", "%title%", "%title%", 1, "");';
 		return $res;
 		
 	}

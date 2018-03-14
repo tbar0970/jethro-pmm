@@ -55,7 +55,7 @@ class Call_Service_Content extends Call
 				</style>
 			</head>
 			<body>
-				<h1><?php echo ents($service->toString()); ?></h1>
+				<h1><?php echo ents($service->toString(TRUE)); ?></h1>
 				<?php $service->printServiceContent(); ?>
 			</body>
 		</html>

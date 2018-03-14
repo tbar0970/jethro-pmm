@@ -4,14 +4,14 @@ class View_Rosters extends View
 	public static function getMenuRequiredFeature()
 	{
 		return 'ROSTERS&SERVICES';
-	}	
+	}
 	
 	var $_roster_view = null;
 
 	function processView()
 	{
 		if (!empty($_REQUEST['roster_view'])) {
-			$this->_roster_view =& $GLOBALS['system']->getDBObject('roster_view', (int)$_REQUEST['roster_view']);
+			$this->_roster_view = $GLOBALS['system']->getDBObject('roster_view', (int)$_REQUEST['roster_view']);
 		}
 	}
 	

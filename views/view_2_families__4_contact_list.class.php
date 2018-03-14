@@ -4,7 +4,7 @@ class View_Families__Contact_List extends View
 
 	static function getMenuPermissionLevel()
 	{
-		return PERM_SYSADMIN;
+		return PERM_RUNREPORT;
 	}
 
 	function processView()
@@ -13,10 +13,10 @@ class View_Families__Contact_List extends View
 		$GLOBALS['system']->includeDBClass('person');
 		$GLOBALS['system']->includeDBClass('person_group');
 	}
-	
+
 	function getTitle()
 	{
-		return 'Contact List';
+		return _('Contact List');
 	}
 
 
@@ -25,12 +25,17 @@ class View_Families__Contact_List extends View
 		if (!empty($_REQUEST['go'])) {
 			if (!empty($_REQUEST['groupid'])) {
 				?>
-				<a class="pull-right" href="<?php echo build_url(Array('call' => 'contact_list', 'view' => NULL)); ?>">Download HTML file</a>
+				<div class="pull-right">
+				<a class="clickable back"><i class="icon-wrench"></i>Adjust configuration</a><br />
+				<i class="icon-download"></i> Download as
+				<a href="<?php echo build_url(Array('call' => 'contact_list', 'format' => 'html', 'view' => NULL)); ?>">HTML</a> |
+				<a href="<?php echo build_url(Array('call' => 'contact_list', 'format' => 'docx', 'view' => NULL)); ?>">DOCX</a>
+				</div>
 				<?php
 				$this->printResults();
 				return;
 			} else {
-				print_message("You must choose an opt-in group", 'error');
+				print_message(_("You must choose an opt-in group"), 'error');
 			}
 		}
 		$this->printForm();
@@ -40,74 +45,200 @@ class View_Families__Contact_List extends View
 	{
 		$dummy_person = new Person();
 		$dummy_person->fields['congregationid']['allow_multiple'] = true;
-		$dummy_person->fields['age_bracket']['allow_multiple'] = true;
+		$dummy_person->fields['age_bracketid']['allow_multiple'] = true;
+		$dummy_person->fields['age_bracketid']['allow_empty'] = true;
 		?>
 		<form method="get">
 		<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
 		<table>
 			<tr>
-				<th>Opt-in group</th>
-				<td><?php Person_Group::printChooser('groupid', 0); ?></td>
+				<th><?php echo _('Opt-in group');?></th>
+				<td>
+					<?php echo _('Only show families that have a member in the group'); ?> <br />
+					<?php Person_Group::printChooser('groupid', 0); ?></td>
 			</tr>
 			<tr>
-				<th>Congregation</th>
-				<td>Only include opted-in persons from<br />
+				<th><?php echo _('Congregation');?></th>
+				<td><?php echo _('Only include opted-in persons from');?><br />
 				<?php $dummy_person->printFieldInterface('congregationid'); ?></td>
 			</tr>
 			<tr>
-				<th>Age brackets</th>
-				<td>Only show contact details for persons who are<br />
-				<?php $dummy_person->printFieldInterface('age_bracket'); ?>
+				<th><?php echo _('Age brackets');?></th>
+				<td><?php echo _('Only show contact details for persons who are');?><br />
+				<?php $dummy_person->printFieldInterface('age_bracketid'); ?>
 				</td>
 			</tr>
 			<tr>
-				<th>Other family members</th>
-				<td>For other members of the families of persons who opted in, show<br />
+				<th><?php echo _('Other family members');?></th>
+				<td><?php echo _('When a family has other members not in the opt-in group above:');?><br />
+				<label class="radio">
+					<input type="radio" name="all_member_details" value="-1" checked="checked" id="all_member_details_0" />
+					<?php echo _('Do not show them at all');?>
+				</label>
 				<label class="radio">
 					<input type="radio" name="all_member_details" value="0" checked="checked" id="all_member_details_0" />
-					only their names
+					<?php echo _('Show their names but no contact details');?>
 				</label>
 				<label class="radio">
 					<input type="radio" name="all_member_details" value="1" id="all_member_details_1" />
-					their contact details, same as for opted-in persons
+					<?php echo _('Show their contact details just like the opted-in persons');?>
 				</label>
 			</tr>
 			<tr>
-					<th>Addresses</th>
+					<th><?php echo _('Details to show');?></th>
 					<td>
 						<label class="checkbox">
-							<input type="checkbox" name="include_address" />
-							Include home addresses in results
+							<?php
+							print_widget('include_address', Array('type' => 'checkbox'), array_get($_REQUEST, 'include_address', TRUE));
+							echo _('Home address');
+							?>
 						</label>
+						<label class="checkbox">
+							<?php
+							print_widget('include_home_tel', Array('type' => 'checkbox'), array_get($_REQUEST, 'include_home_tel', TRUE));
+							echo _('Home phone');
+							?>
+						</label>
+						<label class="checkbox">
+							<?php
+							print_widget('include_congregation', Array('type' => 'checkbox'), array_get($_REQUEST, 'include_congregation', TRUE));
+							echo _('Congregation');
+							?>
+						</label>
+					<?php
+					if ($GLOBALS['system']->featureEnabled('PHOTOS')) {
+						?>
+						<label class="checkbox">
+							<?php
+							print_widget('include_photos', Array('type' => 'checkbox'), array_get($_REQUEST, 'include_photos', TRUE));
+							echo _('Family photos');
+							?>
+						</label>
+						<?php
+					}
+					?>
 					</td>
 			</tr>
 			<tr>
 				<th></th>
-				<td><input type="submit" name="go" value="Go" /></td>
+				<td>
+					<input class="btn" type="submit" name="go" value="Show results" />
+				</td>
 			</tr>
 		</table>
 		</form>
 		<?php
 	}
 
-	function printResults($with_links=FALSE)
+	function printResults($dataURLs=FALSE)
 	{
+		?>
+		<table class="contact-list">
+		<?php
+		foreach ($this->getData() as $family) {
+			?>
+			<tr>
+			<?php
+			if (!empty($_REQUEST['include_photos'])) {
+				$rowSpan = count($family['optins']) + 2;
+				if (!empty($_REQUEST['include_home_tel']) && $family['home_tel']) $rowSpan++;
+				if (!empty($_REQUEST['include_address']) && $family['address_street']) $rowSpan++;
+				if (count($family['all']) > count($family['optins'])) $rowSpan++;
+				if (($family['have_photo']) || count($family['optins']) == 1) {
+					if ($dataURLs) {
+						$src = Photo_Handler::getDataURL('family', $family['familyid']);
+					} else {
+						$src = '?call=photo&familyid='.$family['familyid'];
+					}
+				} else {
+					$src = BASE_URL.'resources/img/unknown_family.gif';
+				}
+				?>
+				<td rowspan="<?php echo $rowSpan; ?>" style="padding: 5px">
+					<img src="<?php echo $src; ?>" />
+				</td>
+				<?php
+			}
+			?>
+				<td colspan="4" style="height: 1px">
+					<h2 style="margin: 5px 0px 0px 0px"><?php echo $family['family_name']; ?></h2>
+				</td>
+			</tr>
+			<?php
+			if (count($family['all']) > count($family['optins'])) {
+				?>
+				<tr style="height: 1px">
+					<td colspan="4"><i><?php echo ents($family['all_names']); ?></td>
+				</tr>
+				<?php
+			}
+			if (!empty($_REQUEST['include_home_tel']) && $family['home_tel']) {
+				echo '<tr style="height: 1px"><td colspan="4">';
+				echo ents($family['home_tel']);
+				echo '</td></tr>';
+			}
+			if (!empty($_REQUEST['include_address']) && $family['address_street']) {
+				echo '<tr style="height: 1px"><td colspan="4">'.str_replace("\n", ', ', ents($family['address_street'])).', ';
+				echo ents($family['address_suburb'].' '.$family['address_state'].' '.$family['address_postcode']);
+				echo '</td></tr>';
+			}
+			foreach ($family['optins'] as $adult) {
+				?>
+				<tr style="height: 1px">
+					<td style="padding-right: 1ex"><?php echo ents($adult['name']); ?></td>
+					<td style="padding-right: 1ex">
+						<?php
+						if (!empty($_REQUEST['include_congregation'])) echo ents($adult['congname']);
+						?>
+					</td>
+					<td style="padding-right: 1ex"><?php echo ents($adult['mobile_tel']); ?></td>
+					<td><?php echo ents($adult['email']); ?></td>
+				</tr>
+				<?php
+			}
+			if (!empty($_REQUEST['include_photos'])) {
+				// to take up extra vertical space
+				?>
+				<tr>
+					<td colspan="4">&nbsp;</td>
+				</tr>
+				<?php
+			}
+		}
+		?>
+		</table>
+		<?php
+	}
+
+	private function getData()
+	{
+		$dummy_person = new Person();
+		$dummy_family = new Family();
+
 		$db = $GLOBALS['db'];
 		$groupid = (int)$_REQUEST['groupid'];
 		$all_member_details = array_get($_REQUEST, 'all_member_details', 0);
 
 		if (empty($groupid)) return;
-		
+
 		$sql = '
-		select family.id as familyid, family.family_name, family.home_tel, 
-			person.*, congregation.long_name as congname,
-			address_street, address_suburb, address_state, address_postcode
-		from family 
+		select family.id as familyid, family.family_name, family.home_tel,
+			person.id, person.first_name, person.last_name, person.mobile_tel, person.email, person.age_bracketid,
+			congregation.long_name as congname,
+			address_street, address_suburb, address_state, address_postcode,
+			IF (fp.familyid IS NULL, 0, 1) as have_photo,
+			IF (signup.groupid IS NULL, 0, 1) as signed_up,
+			IF (pp.personid IS NULL, 0, 1) as have_person_photo
+		from family
 		join person on family.id = person.familyid
+		join age_bracket ab ON ab.id = person.age_bracketid
 		left join congregation on person.congregationid = congregation.id
+		left join family_photo fp ON fp.familyid = family.id
+		left join person_group_membership signup ON signup.personid = person.id AND signup.groupid = '.(int)$groupid.'
+		left join person_photo pp ON pp.personid = person.id
 		where person.status <> "archived"
-		and family.id in 
-		(select familyid 
+		and family.id in
+		(select familyid
 		from person join person_group_membership pgm on person.id = pgm.personid
 		where pgm.groupid = '.(int)$groupid;
 
@@ -116,94 +247,251 @@ class View_Families__Contact_List extends View
 				AND person.congregationid in ('.implode(',', array_map(Array($db, 'quote'), $_REQUEST['congregationid'])).')';
 		}
 		$sql .= ')
-		order by family_name asc, age_bracket asc, gender desc
+		order by family_name asc, familyid, ab.rank asc, gender desc
 		';
 		$res = $db->queryAll($sql, null, null, true, true, true);
-		check_db_result($res);
 
 		if (empty($res)) {
-			?><p><i>No families to show</i></p><?php
-			return;
+			?><p><i><?php echo _('No families to show');?></i></p><?php
+			return Array();
 		}
-
-		$sql = '
-		select personid
-		from person_group_membership pgm
-		where pgm.groupid = '.(int)$groupid;
-		$signups = $db->queryCol($sql);
-		check_db_result($signups);
 
 		$GLOBALS['system']->includeDBClass('family');
 		$GLOBALS['system']->includeDBClass('person');
 
-		$dummy_family = new Family();
-		$dummy_person = new Person();
-		?>
+		$families = Array();
 
-		<table class="contact-list">
-		<?php
 		foreach ($res as $familyid => $family_members) {
-			$adults = Array();
-			$children = Array();
-			$adults_use_full = false;
-			$children_use_full = false;
+			$family = Array(
+						'familyid' => $familyid,
+						'optins' => Array(),
+						'all' => Array(),
+				);
+			$adults_use_full = FALSE;
+			$all_use_full = FALSE;
 			foreach ($family_members as $member) {
-				if (empty($_REQUEST['age_bracket']) || in_array($member['age_bracket'], $_REQUEST['age_bracket'])) {
-					$adults[] = $member;
+				$member['name'] = $member['first_name'];
+				// show full details if
+				// - (they are signed up, or all-member-details is 1)
+				// - AND (their age bracket is correct) OR all age brackets are in
+				if (
+					($member['signed_up'] || $all_member_details == 1)
+					&& (empty($_REQUEST['age_bracketid']) || in_array($member['age_bracketid'], $_REQUEST['age_bracketid']))
+				) {
+					$member['mobile_tel'] = $dummy_person->getFormattedValue('mobile_tel', $member['mobile_tel']);
+					$family['optins'][] = $member;
 					if ($member['last_name'] != $member['family_name']) {
 						$adults_use_full = true;
 					}
-				} else {
-					$children[] = $member;
-					if ($member['last_name'] != $member['family_name']) {
-						$children_use_full = true;
-					}
+				}
+
+				if ($member['signed_up'] || $all_member_details != -1) {
+					$family['all'][] = $member;
+				}
+				if ($member['last_name'] != $member['family_name']) {
+					$all_use_full = true;
 				}
 			}
+
+			if ($adults_use_full) {
+				foreach ($family['optins'] as &$adult) {
+					$adult['name'] .= ' '.$adult['last_name'];
+				}
+				unset($adult);
+			}
+			if ($all_use_full) {
+				foreach ($family['all'] as &$member) {
+					$member['name'] .= ' '.$member['last_name'];
+				}
+				unset($member);
+			}
+
+			$family['all_names'] = Array();
+			foreach ($family['all'] as $member) {
+				$family['all_names'][] = $member['name'];
+			}
+			$last = '';
+			if (count($family['all_names']) > 1) $last = array_pop($family['all_names']);
+			$family['all_names'] = implode(', ', $family['all_names']);
+			if ($last) $family['all_names'] .= ' & '.$last;
+
 			$first_member = reset($family_members);
-			?>
-			<tr><td colspan="4"><h2 style="margin-bottom: 0px"><?php echo $first_member['family_name']; ?></h2></td></tr>
-			<?php
-			if ($first_member['home_tel']) {
-				$dummy_family->setValue('home_tel', $first_member['home_tel']);
-				echo '<tr><td colspan="4"><h3 style="border: 0px; margin: 0px; padding: 0px">';
-				echo ents($dummy_family->getFormattedValue('home_tel'));
-				echo '</h3></td></tr>';
+			foreach (Array('have_photo', 'family_name', 'home_tel', 'address_street', 'address_suburb', 'address_state', 'address_postcode') as $ffield) {
+				$family[$ffield] = $first_member[$ffield];
 			}
-			if (!empty($_REQUEST['include_address']) && $first_member['address_street']) {
-				echo '<tr><td colspan="4">'.nl2br(ents($first_member['address_street'])).'<br />';
-				echo ents($first_member['address_suburb'].' '.$first_member['address_state'].' '.$first_member['address_postcode']);
-				echo '</td></tr>';
-			}
-			$fn = $with_links ? 'printFieldValue' : 'getFormattedValue';
-			foreach ($adults as $adult) {
-				$dummy_person->populate($adult['id'], $adult);
-				?>
-				<tr>
-					<td><?php echo ents($adults_use_full ? $adult['first_name'].' '.$adult['last_name'] : $adult['first_name']); ?></td>
-					<td><?php echo ents($adult['congname']); ?></td>
-					<td><?php if ($all_member_details || in_array($adult['id'], $signups)) echo ents($dummy_person->getFormattedValue('mobile_tel')); ?></td>
-					<td><?php if ($all_member_details || in_array($adult['id'], $signups)) echo ents($dummy_person->$fn('email')); ?></td>
-				</tr>
-				<?php
-			}
-			$child_names = Array();
-			foreach ($children as $child) {
-				$child_names[] = $children_use_full ? $child['first_name'].' '.$child['last_name'] : $child['first_name'];
-			}
-			if ($child_names) {
-				?>
-				<tr>
-					<td colspan="4"><?php echo ents(implode(', ', $child_names)); ?></td
-				</tr>
-				<?php
-			}
-			?>
-			<?php
+			$family['home_tel'] = $dummy_family->getFormattedValue('home_tel', $family['home_tel']);
+
+			$families[] = $family;
 		}
-		?>
-		</table>
-		<?php
+		return $families;
+	}
+
+
+	public function printDOCX()
+	{
+		require_once 'include/odf_tools.class.php';
+		require_once 'vendor/autoload.php';
+		\PhpOffice\PhpWord\Settings::setTempDir(sys_get_temp_dir());
+		\PhpOffice\PhpWord\Settings::setOutputEscapingEnabled(TRUE);
+
+		require_once 'view_9_documents.class.php';
+		$width = 14173; // 25cm in twips
+		$phpWord =  new \PhpOffice\PhpWord\PhpWord();
+		$phpWord->addParagraphStyle('FAMILY-HEADER', array());
+		$phpWord->addParagraphStyle('FAMILY-SUB-HEADER', array());
+		$phpWord->addFontStyle('FAMILY-NAME', array('bold' => true, 'size' => 15));
+		$phpWord->addFontStyle('FAMILY-MEMBERS', array('italic' => true));
+		$phpWord->addFontStyle('HOME-PHONE', array());
+		$phpWord->addFontStyle('ADDRESS', array());
+		$phpWord->addFontStyle('PERSON-NAME', array('bold' => true));
+		$phpWord->addTableStyle('FAMILY-LIST', array('width' => $width, 'borderSize' => 0, 'cellMargin' => 80,'borderColor' => 'CCCCCC'));
+		$section = $phpWord->addSection(array('breakType' => 'continuous'));
+
+		/////////////////////////////////////////////////////////////////////////////////
+		// STEP ONE - BUILD A TEMPORARY DOCX FILE WITH THE TABLE OF CONTACT DATA:
+
+		$table = $section->addTable('FAMILY-LIST');
+		$gridspan = 3;
+		if (!empty($_REQUEST['include_congregation'])) $gridspan++;
+
+		$extraWideCellProps = $wideCellProps = array('gridSpan' => $gridspan, 'valign' => 'top');
+		if (!empty($_REQUEST['include_photos'])) {
+			$extraWideCellProps['gridSpan']++;
+		}
+		$narrowCellProps = array('valign' => 'top', 'vMerge' => 'restart');
+		$mergeProps = array('vMerge' => 'continue');
+		$imageStyle = Array('width' => 100);
+		$cleanup = Array();
+		foreach ($this->getData() as $family) {
+			$table->addRow();
+
+			$table->addCell(NULL, $extraWideCellProps)
+						->addText($family['family_name'], 'FAMILY-NAME', 'FAMILY-HEADER');
+
+			$table->addRow();
+			$rowOpen = TRUE;
+			if (!empty($_REQUEST['include_photos'])) {
+				// Add photo cell but stay on the same row.
+				$cell = $table->addCell(NULL, $narrowCellProps);
+				if ($family['have_photo']) {
+					$tempfile = str_replace('.tmp', '', tempnam(sys_get_temp_dir(), 'contactlistphoto')).'.jpg';
+					$cleanup[] = $tempfile;
+					file_put_contents($tempfile, Photo_Handler::getPhotoData('family', $family['familyid']));
+					$cell->addImage($tempfile, $imageStyle);
+				} else if (count($family['optins']) == 1) {
+					if ($family['optins'][0]['have_person_photo']) {
+						$tempfile = str_replace('.tmp', '', tempnam(sys_get_temp_dir(), 'contactlistphoto')).'.jpeg';
+						$cleanup[] = $tempfile;
+						file_put_contents($tempfile, Photo_Handler::getPhotoData('person', $family['optins'][0]['id']));
+						$cell->addImage($tempfile, $imageStyle);
+					} else {
+						$cell->addImage(JETHRO_ROOT.'/resources/img/unknown.jpg', $imageStyle);
+					}
+				} else {
+					$cell->addImage(JETHRO_ROOT.'/resources/img/unknown_family.jpg', $imageStyle);
+				}
+			}
+			
+			if (count($family['all']) > count($family['optins'])) {
+				$table->addCell(NULL, $wideCellProps)
+							->addText($family['all_names'], 'FAMILY-MEMBERS', 'FAMILY-SUB-HEADER');
+				$rowOpen = FALSE;
+			}
+			
+			if (!empty($_REQUEST['include_address']) && $family['address_street']) {
+				if (!$rowOpen) {
+					$table->addRow();
+					if (!empty($_REQUEST['include_photos'])) {
+						$table->addCell(NULL, $mergeProps);
+					}
+				}
+
+				$cell = $table->addCell(NULL, $wideCellProps);
+				// save vertical space by putting address on one line
+				$text = str_replace("\n", ', ', $family['address_street']).', ';
+				$text .= $family['address_suburb'].' '.$family['address_state'].' '.$family['address_postcode'];
+				$cell->addText($text, 'ADDRESS');
+				$rowOpen = FALSE;
+			}
+
+			if (!empty($_REQUEST['include_home_tel']) && $family['home_tel']) {
+				if (!$rowOpen) {
+					$table->addRow();
+					if (!empty($_REQUEST['include_photos'])) {
+						$table->addCell(NULL, $mergeProps);
+					}
+				}
+				$table->addCell(NULL, $wideCellProps)
+							->addText($family['home_tel'], 'HOME PHONE');
+				$rowOpen = FALSE;
+			}
+
+			foreach ($family['optins'] as $member) {
+				if (!$rowOpen) {
+					$table->addRow();
+					if (!empty($_REQUEST['include_photos'])) {
+						$table->addCell(NULL, $mergeProps);
+					}
+				}
+				$table->addCell($width*0.25, $narrowCellProps)->addText($member['name'], 'PERSON-NAME');
+				if (!empty($_REQUEST['include_congregation'])) {
+					$table->addCell($width*0.25, $narrowCellProps)->addText($member['congname']);
+				}
+				//$nbsp = html_entity_decode('&nbsp;');
+				$table->addCell($width*0.25, $narrowCellProps)->addText($member['mobile_tel']);
+				$table->addCell($width*0.2, $narrowCellProps)->addText($member['email']);
+				$rowOpen = FALSE;
+			}
+		}
+
+		$objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'Word2007');
+		$tempname = tempnam(sys_get_temp_dir(), 'contactlist');
+		$objWriter->save($tempname);
+
+		foreach ($cleanup as $file) {
+			unlink($file);
+		}
+
+		//readfile($tempname); exit; // TEMP
+
+		/////////////////////////////////////////////////////////////////////////////////
+		// STEP 2 - MERGE THE CONTACT LIST DATA FROM THE TEMPORARY FILE INTO A TEMPLATE
+		// EITHER THE BUILT-IN ONE OR A CUSTOM ONE
+
+		// In the original file:
+		//  - in word/media folder
+		//		rename xyz.jpg to jethroimage-xyz.jpg
+		//  - in word/_rels/document.xml.rels
+		//     change ID="xyz" to ID="jethroimage-xyz"
+		//     change Target="media/xyz.jpg" to Target="media/jethroimage-xyz.jpg"
+		//  - in word/document.xml
+		//		change r:id="xyz" to r:id="jethroimage-xyz"
+		//  Then copy the document content into the new word/document.xml
+		//  Then add the images from word/media to the new zip
+		//  Then add the relationships from word/_rels/document.xml.rels to new zip's rels file.
+		//
+
+
+		$templateFilename = Documents_Manager::getRootPath().'/Templates/contact_list_template.docx';
+		if (!file_exists($templateFilename)) {
+			// no custom template found - use the built-in template
+			$templateFilename = JETHRO_ROOT.'/resources/contact_list_template.docx';
+		}
+		if (file_exists($templateFilename)) {
+			require_once 'include/odf_tools.class.php';
+			$outname = tempnam(sys_get_temp_dir(), 'contactlist').'.docx';
+			copy($templateFilename, $outname);
+			ODF_Tools::insertFileIntoFile($tempname, $outname, '%CONTACT_LIST%');
+			$replacements = Array('SYSTEM_NAME' => SYSTEM_NAME);
+			ODF_Tools::replaceKeywords($outname, $replacements);
+			readfile($outname);
+			unlink($outname);
+		} else {
+			// Couldn't find any template (!) - dump the temporary raw file.
+			readfile($tempname);
+		}
+		unlink($tempname);
+
 	}
 }
-?>
+

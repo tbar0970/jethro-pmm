@@ -2,10 +2,10 @@
 include_once 'include/db_object.class.php';
 class Note_Comment extends DB_Object
 {
-	var $_load_permission_level = PERM_VIEWNOTE;
-	var $_save_permission_level = PERM_EDITNOTE;
+	protected $_load_permission_level = PERM_VIEWNOTE;
+	protected $_save_permission_level = PERM_EDITNOTE;
 
-	function _getFields()
+	protected static function _getFields()
 	{
 		return Array(
 				'noteid'	=> Array(
@@ -34,7 +34,7 @@ class Note_Comment extends DB_Object
 			   );
 	}
 
-	function getInitSQL()
+	function getInitSQL($table_name=NULL)
 	{
 		return "
 			CREATE TABLE `note_comment` (
@@ -42,7 +42,7 @@ class Note_Comment extends DB_Object
 			  `noteid` int(11) NOT NULL default '0',
 			  `creator` int(11) NOT NULL default '0',
 			  `created` timestamp NOT NULL default CURRENT_TIMESTAMP,
-			  `contents` text collate latin1_general_ci NOT NULL,
+			  `contents` text NOT NULL,
 			  PRIMARY KEY  (`id`)
 			) ENGINE=InnoDB ;
 		";

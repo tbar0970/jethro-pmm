@@ -4,14 +4,15 @@ require_once 'include/size_detector.class.php';
 
 class View_Attendance__Record extends View
 {
-	var $_record_sets = Array();
-	var $_attendance_date = NULL;
-	var $_age_bracket = NULL;
+	private $_record_sets = Array();
+	private $_attendance_date = NULL;
+	private $_age_brackets = NULL;
+	private $_statuses = NULL;
 
-	var $_cohortids = Array();
+	private $_cohortids = Array();
 
-	var $_show_photos = FALSE;
-	var $_parallel_mode = FALSE;
+	private $_show_photos = FALSE;
+	private $_parallel_mode = FALSE;
 
 	static function getMenuPermissionLevel()
 	{
@@ -21,11 +22,11 @@ class View_Attendance__Record extends View
 	function getTitle()
 	{
 		if (!empty($_POST['attendances_submitted'])) {
-			return 'Attendance recorded for '.format_date($this->_attendance_date);
+			return _('Attendance recorded for ').format_date($this->_attendance_date);
 		} else if (!empty($_REQUEST['attendance_date_d'])) {
-			return 'Record Attendance for '.format_date($this->_attendance_date);
+			return _('Record Attendance for ').format_date($this->_attendance_date);
 		} else {
-			return 'Record Attendance';
+			return _('Record Attendance');
 		}
 	}
 
@@ -37,16 +38,17 @@ class View_Attendance__Record extends View
 			}
 			$_SESSION['attendance']['cohortids'] = $this->_cohortids;
 		}
-		$this->_attendance_date = process_widget('attendance_date', Array('type' => 'date'));			
+		$this->_attendance_date = process_widget('attendance_date', Array('type' => 'date'));
 		if (empty($this->_attendance_date)) {
 			// Default to last Sunday, unless today is Sunday
 			$default_day = defined('ATTENDANCE_DEFAULT_DAY') ? ATTENDANCE_DEFAULT_DAY : 'Sunday';
-			$this->_attendance_date = date('Y-m-d', ((date('l') == $default_day) ? time() : strtotime('last '.$default_day)));			
+			$this->_attendance_date = date('Y-m-d', ((date('l') == $default_day) ? time() : strtotime('last '.$default_day)));
 		}
 		
 		if (empty($_REQUEST['params_submitted']) && empty($_REQUEST['attendances_submitted'])) {
 			if (!empty($_SESSION['attendance'])) {
-				$this->_age_bracket = array_get($_SESSION['attendance'], 'age_bracket');
+				$this->_age_brackets = array_get($_SESSION['attendance'], 'age_brackets');
+				$this->_statuses = array_get($_SESSION['attendance'], 'statuses');
 				$this->_cohortids = array_get($_SESSION['attendance'], 'cohortids');
 				$this->_show_photos =  array_get($_SESSION['attendance'], 'show_photos', FALSE);
 				$this->_parallel_mode =  array_get($_SESSION['attendance'], 'parallel_mode', FALSE);
@@ -54,15 +56,17 @@ class View_Attendance__Record extends View
 		}
 
 		if (!empty($_REQUEST['params_submitted']) || !empty($_REQUEST['attendances_submitted'])) {
-			$this->_age_bracket = $_SESSION['attendance']['age_bracket'] = array_get($_REQUEST, 'age_bracket');
+			if (!empty($_REQUEST['age_brackets_all'])) unset($_REQUEST['age_brackets']);
+			if (!empty($_REQUEST['statuses_all'])) unset($_REQUEST['statuses']);
+
+			$this->_age_brackets = $_SESSION['attendance']['age_brackets'] = array_get($_REQUEST, 'age_brackets');
+			$this->_statuses = $_SESSION['attendance']['statuses'] = array_get($_REQUEST, 'statuses');
 			$this->_show_photos = $_SESSION['attendance']['show_photos'] = array_get($_REQUEST, 'show_photos', FALSE);
 			$this->_parallel_mode = $_SESSION['attendance']['parallel_mode'] = array_get($_REQUEST, 'parallel_mode', FALSE);
-
 		}
 		
-		$status = NULL; // TODO
 		foreach ($this->_cohortids as $id) {
-			$this->_record_sets[$id] = new Attendance_Record_set($this->_attendance_date, $id, $this->_age_bracket, $status);
+			$this->_record_sets[$id] = new Attendance_Record_set($this->_attendance_date, $id, $this->_age_brackets, $this->_statuses);
 			if ($this->_show_photos) $this->_record_sets[$id]->show_photos = TRUE;
 		}
 		
@@ -73,14 +77,14 @@ class View_Attendance__Record extends View
 		} else if (!empty($_REQUEST['params_submitted'])) {
 			foreach ($this->_record_sets as $cohortid => $set) {
 				if (!$set->checkAllowedDate()) {
-					add_message("Attendance for '".$set->getCohortName()."' cannot be recorded on a ".date('l', strtotime($this->_attendance_date)), 'error');
+					add_message(_('"Attendance for "').$set->getCohortName()._('" cannot be recorded on a "').date('l', strtotime($this->_attendance_date)), 'error');
 					unset($this->_record_sets[$cohortid]);
 					$this->_cohortids = array_diff($this->_cohortids, Array($cohortid));
 					continue;
 				}
 
 				if (!$set->acquireLock()) {
-					add_message("Another user is currently recording attendance for '".$set->getCohortName()."'.  Please wait until they finish then try again.", 'error');
+					add_message(_('"Another user is currently recording attendance for "').$set->getCohortName()._('".  Please wait until they finish then try again."'), 'error');
 					unset($this->_record_sets[$cohortid]);
 					$this->_cohortids = array_diff($this->_cohortids, Array($cohortid));
 				}
@@ -127,9 +131,9 @@ class View_Attendance__Record extends View
 	function printView()
 	{
 		if (!empty($_POST['attendances_submitted'])) {
-			$this->printConfirmation();			
+			$this->printConfirmation();
 		} else if ($this->_cohortids && !empty($_REQUEST['params_submitted'])) {
-			$this->printForm();			
+			$this->printForm();
 		} else {
 			$this->printParams();
 		}
@@ -140,25 +144,20 @@ class View_Attendance__Record extends View
 		// STEP 1 - choose congregation and date
 		?>
 		<form method="get" class="well well-small clearfix form-inline">
-			<input type="hidden" name="view" value="<?php echo $_REQUEST['view']; ?>" />
+			<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
 			<table class="attendance-config-table">
 				<tr>
-					<th>For</th>
-					<td colspan="2" class="fill-me">
+					<th><?php echo _('For');?></th>
+					<td colspan="2" style="min-width: 240px">
 						<?php
-						print_widget('age_bracket', Array(
-								'type'			=> 'select',
-								'options'		=> Array('' => 'All age brackets') + explode(',', AGE_BRACKET_OPTIONS),
-								'default'		=> '',
-								'allow_empty'	=> false,
-						), $this->_age_bracket);
+						Attendance_Record_Set::printPersonFilters($this->_age_brackets, $this->_statuses);
 						?>
 					</td>
 				</tr>
 				<tr>
-					<th>In</th>
+					<th><?php echo _('In');?></th>
 
-					<td class="valign-top">
+					<td class="valign-top fill-me">
 						<table class="expandable">
 							<?php
 							if (empty($this->_cohortids)) {
@@ -172,7 +171,7 @@ class View_Attendance__Record extends View
 						</table>
 					</td>
 				<tr>
-					<th>On</th>
+					<th><?php echo _('On');?></th>
 					<td colspan="2">
 						<?php
 						print_widget('attendance_date', Array('type' => 'date'), $this->_attendance_date); ?>
@@ -186,7 +185,7 @@ class View_Attendance__Record extends View
 					<td>
 						<label class="checkbox">
 							<input type="checkbox" name="show_photos" value="1" <?php if ($this->_show_photos) echo 'checked="checked"'; ?> />
-							Show photos
+							<?php echo _('Show photos');?>
 						</label>
 					<?php
 					if (!SizeDetector::isNarrow()) {
@@ -194,7 +193,7 @@ class View_Attendance__Record extends View
 						<br />
 						<label class="checkbox" title="Tabular format means that multiple groups/congregations will be shown as columns in a combined table">
 							<input type="checkbox" name="parallel_mode" value="1" <?php if ($this->_parallel_mode) echo 'checked="checked"'; ?> />
-							Use tabular format
+							<?php echo _('Use tabular format');?>
 						</label>
 						<?php
 					}
@@ -205,7 +204,7 @@ class View_Attendance__Record extends View
 			}
 			?>
 			</table>
-			<button type="submit" class="btn attendance-config-submit">Continue <i class="icon-chevron-right"></i></button>
+			<button type="submit" class="btn attendance-config-submit"><?php echo _('Continue');?> <i class="icon-chevron-right"></i></button>
 			<input type="hidden" name="params_submitted" value="1" />
 		</form>
 		<?php
@@ -219,13 +218,16 @@ class View_Attendance__Record extends View
 		?>
 		<form method="post" class="attendance warn-unsaved" action="?view=attendance__record">
 			<input type="hidden" name="attendance_date" value="<?php echo $this->_attendance_date; ?>" />
-			<input type="hidden" name="age_bracket" value="<?php echo $this->_age_bracket; ?>" />
 			<input type="hidden" name="show_photos" value="<?php echo $this->_show_photos; ?>" />
 			<input type="hidden" name="parallel_mode" value="<?php echo $this->_parallel_mode; ?>" />
 			<input type="hidden" name="enter_attendance_token" value="<?php echo $_SESSION['enter_attendance_token']; ?>" />
 			<input type="hidden" name="attendances_submitted" value="1" />
 			<?php
-			print_hidden_fields(Array('cohortids' => $this->_cohortids));
+			print_hidden_fields(Array(
+				'cohortids' => $this->_cohortids,
+				'age_brackets' => $this->_age_brackets,
+				'statuses' => $this->_statuses,
+			));
 			?>
 
 			<p class="visible-desktop smallprint">For greatest speed, press P for present and A for absent.  The cursor will automatically progress to the next person.  To go back, use the arrow keys.</p>
@@ -241,10 +243,10 @@ class View_Attendance__Record extends View
 		<?php
 		if (ini_get('max_input_vars') && ($totalPrinted > ini_get('max_input_vars'))) {
 			ob_end_clean();
-			print_message("The parameters you have selected will list more persons "
-						. "than your server can process.  Please narrow down your parameters, "
-						. "or ask your server administrator to increase the PHP max_input_vars setting"
-						. " (currently ".ini_get('max_input_vars').')', 'error');
+			print_message(_("The parameters you have selected will list more persons ")
+						. _("than your server can process.  Please narrow down your parameters, ")
+						. _("or ask your server administrator to increase the PHP max_input_vars setting")
+						. _(" (currently ").ini_get('max_input_vars').')', 'error');
 		} else {
 			ob_flush();
 		}
@@ -252,7 +254,14 @@ class View_Attendance__Record extends View
 
 	private function printFormParallel()
 	{
-		$totalPersons = Attendance_Record_Set::getPersonIDsForCohorts($this->_cohortids);
+		$params = Array();
+		if ($this->_age_brackets) $params['(age_bracketid'] = $this->_age_brackets;
+		if ($this->_statuses) {
+			$params['(status'] = $this->_statuses;
+		} else {
+			$params['!status'] = 'archived';
+		}
+		$totalPersons = Attendance_Record_Set::getPersonDataForCohorts($this->_cohortids, $params);
 		$totalPrinted = 0;
 		$cancelURL = build_url(Array('*' => NULL, 'view' => 'attendance__record', 'cohortids' => $this->_cohortids, 'attendance_date' => $this->_attendance_date, 'release' => 1));
 		$dummy = new Person();
@@ -274,11 +283,11 @@ class View_Attendance__Record extends View
 				<?php
 			}
 			?>
-					<th>Name</th>
+					<th><?php echo _('Name');?></th>
 			<?php
 			if (SizeDetector::isWide()) {
 				?>
-				<th>Status</th>
+				<th><?php echo _('Status');?></th>
 				<?php
 			}
 			foreach ($this->_record_sets as $prefix => $set) {
@@ -288,7 +297,7 @@ class View_Attendance__Record extends View
 			}
 			if (SizeDetector::isWide()) {
 				?>
-				<th>Actions</th>
+				<th><?php echo _('Actions');?></th>
 				<?php
 			}
 			?>
@@ -311,7 +320,7 @@ class View_Attendance__Record extends View
 					?>
 					<td>
 						<a class="med-popup" tabindex="-1" href="?view=persons&personid=<?php echo $personid; ?>">
-							<img style="width: 50px; max-width: 50px" src="?call=person_photo&personid=<?php echo (int)$personid; ?>" />
+							<img style="width: 50px; max-width: 50px" src="?call=photo&personid=<?php echo (int)$personid; ?>" />
 						</a>
 					</td>
 					<?php
@@ -336,9 +345,9 @@ class View_Attendance__Record extends View
 				if (SizeDetector::isWide()) {
 					?>
 					<td class="action-cell narrow">
-						<a class="med-popup" tabindex="-1" href="?view=persons&personid=<?php echo $personid; ?>"><i class="icon-user"></i>View</a> &nbsp;
-						<a class="med-popup" tabindex="-1" href="?view=_edit_person&personid=<?php echo $personid; ?>"><i class="icon-wrench"></i>Edit</a> &nbsp;
-						<a class="med-popup" tabindex="-1" href="?view=_add_note_to_person&personid=<?php echo $personid; ?>"><i class="icon-pencil"></i>Add Note</a>
+						<a class="med-popup" tabindex="-1" href="?view=persons&personid=<?php echo $personid; ?>"><i class="icon-user"></i><?php echo _('View');?></a> &nbsp;
+						<a class="med-popup" tabindex="-1" href="?view=_edit_person&personid=<?php echo $personid; ?>"><i class="icon-wrench"></i><?php echo _('Edit');?></a> &nbsp;
+						<a class="med-popup" tabindex="-1" href="?view=_add_note_to_person&personid=<?php echo $personid; ?>"><i class="icon-pencil"></i><?php echo _('Add Note');?></a>
 					</td>
 					<?php
 				}
@@ -348,7 +357,7 @@ class View_Attendance__Record extends View
 			}
 			?>
 				<tr class="headcount">
-					<th class="right" colspan="<?php echo 1+(2*(int)SizeDetector::isWide())+(int)$this->_show_photos; ?>">Total Headcount: &nbsp;</th>
+					<th class="right" colspan="<?php echo 1+(2*(int)SizeDetector::isWide())+(int)$this->_show_photos; ?>"><?php echo _('Total Headcount:');?> &nbsp;</th>
 				<?php
 				foreach ($this->_record_sets as $prefix => $set) {
 					?>
@@ -376,17 +385,28 @@ class View_Attendance__Record extends View
 			if ((int)$set->congregationid) {
 				$congregation = $GLOBALS['system']->getDBObject('congregation', (int)$set->congregationid);
 			} else if ($set->groupid) {
-				$group =& $GLOBALS['system']->getDBObject('person_group', $set->groupid);
+				$group = $GLOBALS['system']->getDBObject('person_group', $set->groupid);
 			} else {
 				return;
 			}
 			$title = $set->getCohortName();
-			if (strlen($set->age_bracket)) {
+			$stats = $abs = Array();
+
+			if ($set->statuses) {
+				$options = Attendance_Record_Set::getStatusOptions();
+				foreach ($set->statuses as $s) {
+					$stats[] = $options[$s];
+				}
+			}
+			if ($set->age_brackets) {
 				$GLOBALS['system']->includeDBClass('person');
 				$p = new Person();
-				$p->setValue('age_bracket', $set->age_bracket);
-				$title = $p->getFormattedValue('age_bracket').' in '.$title;
+				foreach ($set->age_brackets as $ab) {
+					$p->setValue('age_bracketid', $ab);
+					$abs[] = $p->getFormattedValue('age_bracketid');
+				}
 			}
+			$title = implode(', ', $stats).' '.implode(',', $abs).' in '.$title;
 			?>
 			<h3><?php echo ents($title); ?></h3>
 			<div class="width-really-auto form-inline">
@@ -397,7 +417,7 @@ class View_Attendance__Record extends View
 					?>
 					<div class="container row-fluid control-group">
 						<p class="span6">
-							Total headcount:
+							<?php echo _('Total headcount:');?>
 							<?php $set->printHeadcountField(); ?>
 						</p>
 						<p class="span6 align-right nowrap">
@@ -408,7 +428,7 @@ class View_Attendance__Record extends View
 					<?php
 				} else {
 					?>
-					<i>(No persons in this listing)</i>
+					<i><?php echo _('(No persons in this listing)');?></i>
 					<?php
 				}
 				?>
@@ -427,15 +447,16 @@ class View_Attendance__Record extends View
 				$congregation = $GLOBALS['system']->getDBObject('congregation', (int)$set->congregationid);
 				$title = $congregation->getValue('name').' congregation';
 			} else {
-				$group =& $GLOBALS['system']->getDBObject('person_group', $set->groupid);
+				$group = $GLOBALS['system']->getDBObject('person_group', $set->groupid);
 				$title = $group->getValue('name').' group';
 			}
 			echo '<h3>'.$title.'</h3>';
 			$set->printStats();
 		}
 		?>
-		<p><a href="?view=<?php echo $_REQUEST['view']; ?>"><i class="icon-pencil"></i>Record more attendances</a></p>
-		<p><a href="?view=persons__reports"><i class="icon-list"></i>Analyse attendance using a person report</a></p>
+		<p><a href="?view=<?php echo $_REQUEST['view']; ?>"><i class="icon-pencil"></i><?php echo _('Record more attendances');?></a></p>
+		<p><a href="?view=persons__reports"><i class="icon-list"></i><?php echo _('Analyse attendance using a person report');?></a></p>
 		<?php
 	}
+
 }

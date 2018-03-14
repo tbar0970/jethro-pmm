@@ -13,11 +13,11 @@ if ($reassigning) {
 <table class="table table-condensed table-striped table-hover valign-middle">
 	<thead>
 		<tr>
-			<th>ID</th>
-			<th>For</th>
-			<th>Subject</th>
-			<th>Assignee</th>
-			<th>Action Date</th>
+			<th><?php echo _('ID')?></th>
+			<th><?php echo _('For')?></th>
+			<th><?php echo _('Subject')?></th>
+			<th><?php echo _('Assignee')?></th>
+			<th><?php echo _('Action Date')?></th>
 			<th>&nbsp;</th>
 		</tr>
 	</thead>
@@ -49,17 +49,17 @@ if ($reassigning) {
 						$fake_note->printFieldInterface('assignee', 'note_'.$id.'_');
 					} else {
 						$fake_note->printFieldValue('assignee');
-						echo '<p class="alert alert-error">This note is locked by another user and cannot be edited at this time.</p>';
+						echo '<p class="alert alert-error">'._('This note is locked by another user and cannot be edited at this time.').'</p>';
 					}
 				} else {
-					echo ents($note['assignee_fn'].' '.$note['assignee_ln']); 
+					echo ents($note['assignee_fn'].' '.$note['assignee_ln']);
 				}
 				?>
 			</td>
 			<td class="nowrap"><?php echo format_date($note['action_date']); ?></td>
 			<td class="nowrap action-cell">
-				<a href="<?php echo $view_url; ?>"><i class="icon-pencil"></i>View</a> &nbsp;
-				<a href="?view=_edit_note&note_type=<?php echo $type; ?>&noteid=<?php echo $id; ?>&back_to=<?php echo ents($_REQUEST['view']); ?>"><i class="icon-wrench"></i>Edit/Comment</a>
+				<a href="<?php echo $view_url; ?>"><i class="icon-pencil"></i><?php echo _('View')?></a> &nbsp;
+				<a href="?view=_edit_note&note_type=<?php echo $type; ?>&noteid=<?php echo $id; ?>&back_to=<?php echo ents($_REQUEST['view']); ?>"><i class="icon-wrench"></i><?php echo _('Edit/Comment')?></a>
 			</td>
 		</tr>
 		<?php
@@ -71,7 +71,7 @@ if ($reassigning) {
 if ($reassigning) {
 	?>
 	<input type="submit" name="reassignments_submitted" value="Save Assignees" class="btn" />
-	<a class="btn" href="<?php echo build_url(Array('reassigning' => 0)); ?>">Cancel</a>
+	<a class="btn" href="<?php echo build_url(Array('reassigning' => 0)); ?>"><?php echo _('Cancel')?></a>
 	</form>
 	<?php
 }

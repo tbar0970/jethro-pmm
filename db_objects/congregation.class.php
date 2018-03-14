@@ -2,7 +2,7 @@
 include_once 'include/db_object.class.php';
 class Congregation extends db_object
 {
-	function _getFields()
+	protected static function _getFields()
 	{
 		return Array(
 			'long_name'	=> Array(
@@ -42,15 +42,16 @@ class Congregation extends db_object
 													32	=> 'Friday',
 													64	=> 'Saturday',
 									),
-									'default'	=> 0,
+									'default'	=> 127,
 									'label'		=> 'Attendance Recording Days',
 									'cols'		=> 2,
-									'note'		=> 'Select nothing if you do not plan to record attendance for this congregation',
+									'note'		=> 'Jethro will only allow you to record attendance for this congregation on the selected days.  Select nothing if you do not plan to record attendance for this congregation.',
 									'show_unselected' => FALSE,
-						   ),			
+						   ),
 			'print_quantity' => Array(
 									'type'		=> 'int',
-									'hidden'	=> true
+									'hidden'	=> true,
+									'editable' => false,
 								   ),
 		);
 	}
@@ -90,7 +91,7 @@ class Congregation extends db_object
 				$congs[$name] = key($matches);
 			}
 		}
-		if (!isset($congs[$name])) trigger_error('No congregation with name "'.$name.'"');
+		if (!isset($congs[$name])) trigger_error('No unique congregation with name "'.$name.'"');
 		return array_get($congs, $name);
 	}
 

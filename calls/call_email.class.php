@@ -1,7 +1,7 @@
 <?php
 class Call_email extends Call
 {
-	function run() 
+	function run()
 	{
 		if (!empty($_REQUEST['print_popup'])) {
 			$GLOBALS['system']->initErrorHandler();
@@ -23,23 +23,26 @@ class Call_email extends Call
 		} else if (!empty($_REQUEST['roster_view'])) {
 			$view = $GLOBALS['system']->getDBObject('roster_view', (int)$_REQUEST['roster_view']);
 			$recips = $view->getAssignees($_REQUEST['start_date'], $_REQUEST['end_date']);
-			// TODO: find email-less people here?
 		} else {
-			switch (array_get($_REQUEST, 'email_type')) {
-				case 'family':
-					$GLOBALS['system']->includeDBClass('family');
-					$families = Family::getFamilyDataByMemberIDs($_POST['personid']);
-					$recips = $GLOBALS['system']->getDBObjectData('person', Array('age_bracket' => '0', '(familyid' => array_keys($families), '!email' => '', '!status' => 'archived'), 'AND');
-					$blanks =$GLOBALS['system']->getDBObjectData('person', Array('age_bracket' => '0', '(familyid' => array_keys($families), 'email' => '', '!status' => 'archived'), 'AND');
-					$archived = $GLOBALS['system']->getDBObjectData('person', Array('age_bracket' => '0', '(familyid' => array_keys($families), 'status' => 'archived'), 'AND');
-					break;
-				case 'person':
-				default:
-					$recips = $GLOBALS['system']->getDBObjectData('person', Array('id' => $_POST['personid'], '!email' => '', '!status' => 'archived'), 'AND');
-					$blanks = $GLOBALS['system']->getDBObjectData('person', Array('id' => $_POST['personid'], 'email' => '', '!status' => 'archived'), 'AND');
-					$archived = $GLOBALS['system']->getDBObjectData('person', Array('id' => $_POST['personid'], 'status' => 'archived'), 'AND');
-					$GLOBALS['system']->includeDBClass('person');
-					break;
+			if (empty($_REQUEST['personid'])) {
+				$recips = $emails = $blanks = $archived = Array();
+			} else {
+				switch (array_get($_REQUEST, 'email_type')) {
+					case 'family':
+						$GLOBALS['system']->includeDBClass('family');
+						$families = Family::getFamilyDataByMemberIDs($_POST['personid']);
+						$recips = $GLOBALS['system']->getDBObjectData('person', Array('(age_bracketid' => Age_Bracket::getAdults(), '(familyid' => array_keys($families), '!email' => '', '!status' => 'archived'), 'AND');
+						$blanks =$GLOBALS['system']->getDBObjectData('person', Array('(age_bracketid' => Age_Bracket::getAdults(), '(familyid' => array_keys($families), 'email' => '', '!status' => 'archived'), 'AND');
+						$archived = $GLOBALS['system']->getDBObjectData('person', Array('(age_bracketid' => Age_Bracket::getAdults(), '(familyid' => array_keys($families), 'status' => 'archived'), 'AND');
+						break;
+					case 'person':
+					default:
+						$recips = $GLOBALS['system']->getDBObjectData('person', Array('id' => $_POST['personid'], '!email' => '', '!status' => 'archived'), 'AND');
+						$blanks = $GLOBALS['system']->getDBObjectData('person', Array('id' => $_POST['personid'], 'email' => '', '!status' => 'archived'), 'AND');
+						$archived = $GLOBALS['system']->getDBObjectData('person', Array('id' => $_POST['personid'], 'status' => 'archived'), 'AND');
+						$GLOBALS['system']->includeDBClass('person');
+						break;
+				}
 			}
 		}
 		
@@ -96,13 +99,13 @@ class Call_email extends Call
 			<?php
 			foreach ($chunks as $i => $chunk) {
 				?>
-				<a href="<?php echo $this->getHref($chunk, FALSE); ?>" class="btn" onclick="this.style.textDecoration='line-through'" <?php echo email_link_extras(); ?>>Email Batch #<?php echo $i; ?></a>
+				<a href="<?php echo $this->getHref($chunk, FALSE); ?>" class="btn" onclick="this.style.textDecoration='line-through'" <?php echo email_link_extras(); ?>>Email Batch #<?php echo ($i+1); ?></a>
 				<?php
 			}
 			?>
 			</p>
 			<?php
-		}	
+		}
 		$this->printBlanks($blanks);
 
 	}

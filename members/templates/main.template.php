@@ -22,7 +22,7 @@ if (empty($_REQUEST['raw'])) {
 						Logged in as 
 						<span class="dropdown">
 						<a class="dropdown-toggle" id="user-menu" data-toggle="dropdown" href="#">
-							<?php echo $GLOBALS['member_user_system']->getCurrentMember('first_name').' '.$GLOBALS['member_user_system']->getCurrentMember('last_name'); ?>
+							<?php echo $GLOBALS['user_system']->getCurrentMember('first_name').' '.$GLOBALS['user_system']->getCurrentMember('last_name'); ?>
 							<i class="caret"></i> 
 						</a>
 						<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="user-menu">
@@ -61,8 +61,8 @@ if (empty($_REQUEST['raw'])) {
 
 		</div>
 		<div id="body">
-			<?php 		
-			dump_messages(); 
+			<?php 
+			dump_messages();
 
 			if ($title = $GLOBALS['system']->getTitle()) {
 				echo '<h1>'.ents($title).'</h1>';

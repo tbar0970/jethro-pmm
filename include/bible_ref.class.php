@@ -92,7 +92,7 @@ class bible_ref
 		'Ps',
 		'Pr',
 		'Eccl',
-		'Song Sol',
+		'Song',
 		'Isa',
 		'Jer',
 		'Lam',
@@ -200,6 +200,10 @@ class bible_ref
 		'eccles'=>20,
 		'eccl'=>20,
 		'ecc'=>20,
+		'song'=>21,
+		'sng'=>21,
+		'sg'=>21,
+		'songsol'=>21,
 		'songofsolomon'=>21,
 		'songofsongs'=>21,
 		'songofsong'=>21,
@@ -380,7 +384,7 @@ class bible_ref
 				// within a single chapter
 				if (($this->start_v == 1) && ($this->end_v == 999)) {
 					// whole chapter
-					
+
 					return $book.' '.$this->start_ch;
 				} else {
 					// designated portion
@@ -406,7 +410,7 @@ class bible_ref
 	public function getLinkedShortString()
 	{
 		$url = str_replace('__REFERENCE__', $this->toShortString(), BIBLE_URL);
-		return '<a target="bible" href="'.$url.'">'.str_replace(' ', '&nbsp;', $this->toShortString()).'</a>';
+		return '<a target="bible" href="'.$url.'">'.nbsp($this->toShortString()).'</a>';
 	}
 
 	public function toCode()

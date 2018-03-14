@@ -4,7 +4,7 @@ class service_bible_reading extends db_object
 {
 	// NB This class only exists for the following SQL
 	// It has no ID
-	function getInitSql()
+	function getInitSql($tablename=NULL)
 	{
 		return 'create table service_bible_reading (
 					service_id int(5) not null,

@@ -16,7 +16,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with Jethro PMM.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * index.php - first stop for every request
  *
  * @author Tom Barrett <tom@tombarrett.id.au>
@@ -31,10 +31,10 @@ set_include_path(get_include_path().PATH_SEPARATOR.dirname(THIS_DIR));
 
 // Load configuration
 require_once dirname(THIS_DIR).'/conf.php';
-define('DSN', PUBLIC_DSN);
-define('IS_PUBLIC', true);
 
 // Initialise system
+define('IS_PUBLIC', true);
+define('DB_MODE', 'PUBLIC');
 require_once JETHRO_ROOT.'/include/init.php';
 
 // Init user system but don't try to auth anyone
@@ -43,5 +43,5 @@ $GLOBALS['user_system'] = new User_System();
 $GLOBALS['user_system']->setPublic();
 
 require_once 'include/system_controller.class.php';
-$GLOBALS['system'] = new System_Controller(THIS_DIR);
+$GLOBALS['system'] = System_Controller::get(THIS_DIR);
 $GLOBALS['system']->run();

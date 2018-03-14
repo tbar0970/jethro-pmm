@@ -13,19 +13,19 @@ class View__Edit_Me extends View
 	function canEdit()
 	{
 		// Non-adults can only edit if there are no adults in the family
-		return 
-			($GLOBALS['member_user_system']->getCurrentMember('age_bracket') == '0')
+		return
+			in_array($GLOBALS['user_system']->getCurrentMember('age_bracketid'), Age_Bracket::getAdults())
 			|| !$this->hasAdult
 		;
 	}
 	
 	function processView()
 	{
-		$this->family = $GLOBALS['system']->getDBOBject('family', $GLOBALS['member_user_system']->getCurrentMember('familyid'));
+		$this->family = $GLOBALS['system']->getDBOBject('family', $GLOBALS['user_system']->getCurrentMember('familyid'));
 		foreach ($this->family->getMemberData() as $id => $member) {
 			$p = $GLOBALS['system']->getDBObject('person', $id);
 			$this->persons[] = $p;
-			if ($p->getValue('age_bracket') == '0') $this->hasAdult = TRUE;
+			if (in_array($p->getValue('age_bracket'), Age_Bracket::getAdults())) $this->hasAdult = TRUE;
 		}
 		
 		if (!empty($_POST) && $this->canEdit()) {
@@ -51,7 +51,7 @@ class View__Edit_Me extends View
 		if (!$this->canEdit()) {
 			print_message("Sorry, only adults are able to edit this family.", 'error');
 			return;
-		}		
+		}
 		
 		$ok = $this->family->acquireLock();
 		foreach ($this->persons as $p) {
@@ -67,18 +67,18 @@ class View__Edit_Me extends View
 				?>
 				<p><i>If you need to change names or other details which are not listed in this form, please contact  <a href="mailto:<?php echo ents(MEMBER_REGO_HELP_EMAIL); ?>"><?php echo ents(MEMBER_REGO_HELP_EMAIL); ?></a>.</i></p>
 				<?php
-			}			
+			}
 
 			
 			?>
-			<form method="post">
+			<form method="post" enctype="multipart/form-data">
 			<h3>Family Details</h3>
 			<?php
-			$this->family->printForm('family', Array('address_street', 'address_suburb', 'address_postcode', 'home_tel'));
+			$this->family->printForm('family', Array('address_street', 'address_suburb', 'address_postcode', 'home_tel', 'photo'));
 
 			foreach ($this->persons as $person) {
 				echo '<h3>'.$person->getValue('first_name').' '.$person->getValue('last_name').'</h3>';
-				$person->printForm('person_'.$person->id, Array('gender', 'age_bracket', 'email', 'mobile_tel', 'work_tel'));
+				$person->printForm('person_'.$person->id, Array('gender', 'age_bracketid', 'email', 'mobile_tel', 'work_tel', 'photo'));
 			}
 				
 			?>

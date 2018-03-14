@@ -1,7 +1,7 @@
 <?php
 class Call_Envelopes extends Call
 {
-	function run() 
+	function run()
 	{
 
 		//Handle special IE contype request
@@ -14,7 +14,7 @@ class Call_Envelopes extends Call
 		$env = new Envelope_List();
 		$GLOBALS['system']->includeDBClass('family');
 		if (!empty($_REQUEST['familyid'])) {
-			$family =& $GLOBALS['system']->getDBObject('family', (int)$_REQUEST['familyid']);
+			$family = $GLOBALS['system']->getDBObject('family', (int)$_REQUEST['familyid']);
 			$env->addAddress($family->getAdultMemberNames()."\n".$family->getPostalAddress());
 		}
 		if (!empty($_REQUEST['personid'])) {
@@ -53,8 +53,8 @@ class Call_Envelopes extends Call
 					$env->addAddress($to."\n".$dummy->getPostalAddress());
 				}
 			} else {
-				$person =& $GLOBALS['system']->getDBObject('person', (int)$_REQUEST['personid']);
-				$family =& $GLOBALS['system']->getDBObject('family', $person->getValue('familyid'));
+				$person = $GLOBALS['system']->getDBObject('person', (int)$_REQUEST['personid']);
+				$family = $GLOBALS['system']->getDBObject('family', $person->getValue('familyid'));
 				$env->addAddress($person->toString()."\n".$family->getPostalAddress());
 			}
 		}
@@ -994,8 +994,6 @@ function Image($file,$x,$y,$w=0,$h=0,$type='',$link='')
 			$type=substr($file,$pos+1);
 		}
 		$type=strtolower($type);
-		$mqr=get_magic_quotes_runtime();
-		set_magic_quotes_runtime(0);
 		if($type=='jpg' || $type=='jpeg')
 			$info=$this->_parsejpg($file);
 		elseif($type=='png')
@@ -1008,7 +1006,6 @@ function Image($file,$x,$y,$w=0,$h=0,$type='',$link='')
 				$this->Error('Unsupported image type: '.$type);
 			$info=$this->$mtd($file);
 		}
-		set_magic_quotes_runtime($mqr);
 		$info['i']=count($this->images)+1;
 		$this->images[$file]=$info;
 	}
@@ -1249,8 +1246,6 @@ function _putfonts()
 		$this->_out('<</Type /Encoding /BaseEncoding /WinAnsiEncoding /Differences ['.$diff.']>>');
 		$this->_out('endobj');
 	}
-	$mqr=get_magic_quotes_runtime();
-	set_magic_quotes_runtime(0);
 	foreach($this->FontFiles as $file=>$info)
 	{
 		//Font file embedding
@@ -1288,7 +1283,6 @@ function _putfonts()
 		$this->_putstream($font);
 		$this->_out('endobj');
 	}
-	set_magic_quotes_runtime($mqr);
 	foreach($this->fonts as $k=>$font)
 	{
 		//Font objects

@@ -1,8 +1,8 @@
 <?php
 class Service_Component extends db_object
 {
-	var $_load_permission_level = PERM_VIEWSERVICE;
-	var $_save_permission_level = PERM_EDITSERVICE;
+	protected $_load_permission_level = PERM_VIEWSERVICE;
+	protected $_save_permission_level = PERM_EDITSERVICE;
 
 	function __construct($id=0)
 	{
@@ -16,7 +16,7 @@ class Service_Component extends db_object
 		}
 	}
 
-	function _getFields()
+	protected static function _getFields()
 	{
 
 		$fields = Array(
@@ -38,34 +38,45 @@ class Service_Component extends db_object
 									'type'		=> 'text',
 									'width'		=> 80,
 									'initial_cap'	=> TRUE,
+									'placeholder' => '(Optional)',
 								   ),
 			'length_mins'		=> Array(
 									'type'		=> 'int',
 									'label'		=> 'Length (mins)',
 									'divider_before' => true,
 								   ),
-			'is_numbered'		=> Array(
-									'type'		=> 'select',
-									'options'  => Array('No', 'Yes'),
-									'label'    => 'Numbered?'
-								   ),
+
 			'runsheet_title_format'	=> Array(
 									'type'		=> 'text',
 									'width'		=> 80,
 									'initial_cap'	=> TRUE,
+									'placeholder' => '(Optional)',
 									'note' => 'How should this component be shown on the run sheet.  Can include replacements such as the component\'s %title%, %SERVICE_TOPIC% or %NAME_OF_SOMEROSTERROLE%.  Leave blank to use the category\'s default.',
 								   ),
+			'personnel'            => Array(
+									'type'		=> 'text',
+									'width'		=> 80,
+									'placeholder' => '(Optional)',
+									'note' => 'What to put in the run sheet\'s "personnel" column by default. Can include roster role keywords such as %SERVICE_LEADER%. Leave blank to use the category\'s default.',
+									),
 			'show_in_handout'		=> Array(
 									'type'		=> 'select',
-									'options'  => Array('No', 'Yes'),
+									'options'  => Array(
+													'0' => 'No',
+													'title' => 'Title only',
+													'full'  => 'Title and Content',
+													),
 									'label'    => 'Show on Handout?',
 									'editable' => true,
 									'show_in_summary' => true,
+									'note' => 'Items that are shown on the handout appear with numbers on the run sheet.',
 								   ),
+
 			'handout_title_format'	=> Array(
 									'type'		=> 'text',
 									'width'		=> 80,
 									'initial_cap'	=> TRUE,
+									'placeholder' => '(Optional)',
 									'note' => 'How should this component be shown on the handout.  Can include replacements such as the component\'s %title%, %SERVICE_TOPIC% or %NAME_OF_SOMEROSTERROLE%.  Leave blank to use the category\'s default.',
 								   ),
 			'show_on_slide'		=> Array(
@@ -88,6 +99,7 @@ class Service_Component extends db_object
 									'initial_cap'	=> TRUE,
 								   ),
 			'ccli_number'		=> Array(
+									'label' => 'CCLI Number',
 									'type'		=> 'int',
 									'width'		=> 8,
 								   ),
@@ -95,7 +107,7 @@ class Service_Component extends db_object
 		return $fields;
 	}
 
-	function search($keyword, $tagid, $congregationid, $categoryid=NULL)
+	public static function search($keyword, $tagid, $congregationid, $categoryid=NULL)
 	{
 		$conds = Array();
 		if (!empty($keyword)) {
@@ -110,7 +122,7 @@ class Service_Component extends db_object
 		if (!empty($categoryid)) {
 			$conds['categoryid'] = (int)$categoryid;
 		}
-		return $GLOBALS['system']->getDBObjectData('service_component', $conds, 'AND', 'title');
+		return $GLOBALS['system']->getDBObjectData('service_component', $conds, 'AND', 'service_component.title');
 	}
 
 	/**
@@ -141,6 +153,7 @@ class Service_Component extends db_object
 		$res['from'] .=  ' LEFT JOIN service svc1m ON svc1m.id = svc.id AND svc1m.date > NOW() - INTERVAL 1 MONTH ';
 		$res['from'] .=  ' LEFT JOIN service svc12m ON svc12m.id = svc.id AND svc12m.date > NOW() - INTERVAL 12 MONTH ';
 		$res['select'][] = 'IF (LENGTH(service_component.runsheet_title_format) = 0, cat.runsheet_title_format, service_component.runsheet_title_format) as runsheet_title_format ';
+		$res['select'][] = 'IF (LENGTH(service_component.personnel) = 0, cat.personnel_default, service_component.personnel) as personnel ';
 		$res['select'][] = 'COUNT(DISTINCT svc1m.id) AS usage_1m';
 		$res['select'][] = 'COUNT(DISTINCT svc12m.id) AS usage_12m';
 		$res['select'][] = 'MAX(svc.date) as lastused';
@@ -161,7 +174,7 @@ class Service_Component extends db_object
 		}
 		if ($keyword) {
 			$qk = $GLOBALS['db']->quote("%{$keyword}%");
-			$res['where'] .= ' '.$logic.' (title LIKE '.$qk.' OR alt_title LIKE '.$qk.' OR content_html LIKE '.$qk.')';
+			$res['where'] .= ' '.$logic.' (service_component.title LIKE '.$qk.' OR alt_title LIKE '.$qk.' OR content_html LIKE '.$qk.')';
 		}
 
 		return $res;
@@ -172,10 +185,9 @@ class Service_Component extends db_object
 		$SQL = 'SELECT ccli_number, id
 				FROM service_component';
 		$res = $GLOBALS['db']->queryAll($SQL, null, null, true, false);
-		check_db_result($res);
 		return $res;
 	}
-	
+
 	protected function _printSummaryRows()
 	{
 		$oldFields = $this->fields;
@@ -194,7 +206,7 @@ class Service_Component extends db_object
 		unset($this->fields['tags']);
 	}
 
-	public function printFieldValue($name)
+	public function printFieldValue($name, $value=NULL)
 	{
 		switch ($name) {
 			case 'congregationids':
@@ -230,7 +242,7 @@ class Service_Component extends db_object
 				return parent::printFieldValue($name);
 		}
 	}
-	
+
 
 
 	function toString()
@@ -331,6 +343,10 @@ class Service_Component extends db_object
 
 	public function processForm($prefix='', $fields=NULL) {
 		$res = parent::processForm($prefix, $fields);
+		$credits = $this->getValue('credits');
+		if (FALSE !== strpos($credits, '(c)')) {
+			$this->setValue('credits', str_replace('(c)', '©', $credits));
+		}
 		$this->values['congregationids'] = array_get($_REQUEST, $prefix.'congregationids', Array());
 		$this->_tmp['tagids'] = Array();
 		if (!empty($_REQUEST['tags'])) {
@@ -393,7 +409,7 @@ class Service_Component extends db_object
 	private function _saveCongregations($deleteOld=FALSE)
 	{
 		if ($deleteOld) {
-			check_db_result($GLOBALS['db']->exec('DELETE FROM congregation_service_component WHERE componentid = '.(int)$this->id));
+			$GLOBALS['db']->exec('DELETE FROM congregation_service_component WHERE componentid = '.(int)$this->id);
 		}
 		$sets = Array();
 		foreach (array_unique(array_get($this->values, 'congregationids', Array())) as $congid) {
@@ -405,14 +421,13 @@ class Service_Component extends db_object
 					VALUES
 					'.implode(",\n", $sets);
 			$x = $GLOBALS['db']->exec($SQL);
-			check_db_result($x);
 		}
 	}
 
 	private function _saveTags($deleteOld=FALSE)
 	{
 		if ($deleteOld) {
-			check_db_result($GLOBALS['db']->exec('DELETE FROM service_component_tagging WHERE componentid = '.(int)$this->id));
+			$GLOBALS['db']->exec('DELETE FROM service_component_tagging WHERE componentid = '.(int)$this->id);
 		}
 		$sets = Array();
 		foreach (array_unique(array_get($this->_tmp, 'tagids', Array())) as $tagid) {
@@ -424,7 +439,6 @@ class Service_Component extends db_object
 					VALUES
 					'.implode(",\n", $sets);
 			$x = $GLOBALS['db']->exec($SQL);
-			check_db_result($x);
 		}
 
 	}

@@ -1,10 +1,12 @@
 <?php
 include_once 'include/db_object.class.php';
+include_once 'include/size_detector.class.php';
 class family extends db_object
 {
-	var $_save_permission_level = PERM_EDITPERSON;
+	protected $_save_permission_level = PERM_EDITPERSON;
+	private $_photo_data = NULL;
 
-	function _getFields()
+	protected static function _getFields()
 	{
 
 		$fields = Array(
@@ -14,7 +16,7 @@ class family extends db_object
 									'maxlength'	=> 128,
 									'allow_empty'	=> FALSE,
 									'initial_cap'	=> TRUE,
-									'class'			=> 'family-name',
+									'class'			=> 'family-name autofocus',
 									'trim'			=> TRUE,
 								   ),
 			'status'			=> Array(
@@ -27,7 +29,7 @@ class family extends db_object
 								   ),
 			'home_tel'			=> Array(
 									'type'			=> 'phone',
-									'formats'		=> defined('HOME_TEL_FORMATS') ? constant('HOME_TEL_FORMATS') : 'XXXX-XXXX',
+									'formats'		=> ifdef('HOME_TEL_FORMATS', 'XXXX-XXXX'),
 									'allow_empty'	=> TRUE,
 								   ),
 			'address_street'	=> Array(
@@ -35,7 +37,7 @@ class family extends db_object
 									'width'		=> 40,
 									'height'	=> 2,
 									'maxlength'	=> 255,
-									'label'		=> 'Street Address',
+									'label'		=> SizeDetector::isNarrow() ? 'Address' : 'Street Address',
 									'trim'			=> TRUE,
 									'divider_before' => TRUE,
 								   ),
@@ -43,20 +45,20 @@ class family extends db_object
 									'type'		=> 'text',
 									'width'		=> 40,
 									'maxlength'	=> 128,
-									'label'		=> defined('ADDRESS_SUBURB_LABEL') ? constant('ADDRESS_SUBURB_LABEL') : 'Suburb',
+									'label'		=> ifdef('ADDRESS_SUBURB_LABEL', 'Suburb'),
 									'initial_cap'	=> TRUE,
 									'trim'			=> TRUE,
 								   ),
 			'address_state'		=> Array(
 									'type'		=> 'text',
-									'default'	=> ADDRESS_STATE_DEFAULT,
-									'label'		=> defined('ADDRESS_STATE_LABEL') ? constant('ADDRESS_STATE_LABEL') : 'State',
+									'default'	=> ifdef('ADDRESS_STATE_DEFAULT', ''),
+									'label'		=> ifdef('ADDRESS_STATE_LABEL', 'State'),
 								   ),
 			'address_postcode'	=> Array(
 									'type'			=> 'text',
-									'width'			=> defined('ADDRESS_POSTCODE_WIDTH') ? constant('ADDRESS_POSTCODE_WIDTH') : 4,
+									'width'			=> ifdef('ADDRESS_POSTCODE_WIDTH', 4),
 									'allow_empty'	=> TRUE,
-									'label'		=> defined('ADDRESS_POSTCODE_LABEL') ? constant('ADDRESS_POSTCODE_LABEL') : 'Postcode',
+									'label'		=> ifdef('ADDRESS_POSTCODE_LABEL', 'Postcode'),
 								   ),
 			'created'			=> Array(
 									'type'			=> 'datetime',
@@ -102,30 +104,71 @@ class family extends db_object
 	}
 
 
-	function getInitSQL()
+	function getInitSQL($table_name=NULL)
 	{
-		return "
+		return Array(
+			 "
 			CREATE TABLE `family` (
 			  `id` int(11) NOT NULL auto_increment,
-			  `family_name` varchar(128) collate latin1_general_ci NOT NULL default '',
-			  `address_street` varchar(255) collate latin1_general_ci NOT NULL default '',
-			  `address_suburb` varchar(128) collate latin1_general_ci NOT NULL default '',
-			  `address_state` varchar(64) collate latin1_general_ci NOT NULL default '',
-			  `address_postcode` varchar(10) collate latin1_general_ci NOT NULL default '',
-			  `home_tel` varchar(12) collate latin1_general_ci NOT NULL default '',
-			  `status` varchar(64) collate latin1_general_ci NOT NULL default '',
+			  `family_name` varchar(128) NOT NULL default '',
+			  `address_street` varchar(255) NOT NULL default '',
+			  `address_suburb` varchar(128) NOT NULL default '',
+			  `address_state` varchar(64) NOT NULL default '',
+			  `address_postcode` varchar(10) NOT NULL default '',
+			  `home_tel` varchar(12) NOT NULL default '',
+			  `status` varchar(64) NOT NULL default '',
 			  `created` timestamp NOT NULL default CURRENT_TIMESTAMP,
 			  `creator` int(11) NOT NULL default '0',
-			  `history` text collate latin1_general_ci NOT NULL,
+			  `history` text NOT NULL,
 			  PRIMARY KEY  (`id`),
 			  KEY `family_name` (`family_name`,`address_suburb`,`address_postcode`,`home_tel`,`status`)
 			) ENGINE=InnoDB;
-		";
+			",
+			"CREATE TABLE family_photo (
+				familyid INT NOT NULL,
+				photodata MEDIUMBLOB NOT NULL,
+				CONSTRAINT `famliyphotofamilyid` FOREIGN KEY (`familyid`) REFERENCES `family` (`id`),
+				PRIMARY KEY (familyid)
+			 ) ENGINE=InnoDB;
+			"
+		);
+	}
+
+	function printForm($prefix='', $fields=NULL)
+	{
+		include_once 'include/size_detector.class.php';
+		if ($GLOBALS['system']->featureEnabled('PHOTOS')
+			&& (is_null($fields) || in_array('photo', $fields))
+		) {
+			$this->fields['photo'] = Array('divider_before' => true); // fake field for interface purposes
+			if ($this->id && !SizeDetector::isNarrow()) {
+				?>
+				<div class="person-photo-container">
+					<img src="?call=photo&familyid=<?php echo (int)$this->id; ?>" />
+				</div>
+				<?php
+			}
+		}
+
+		parent::printForm($prefix, $fields);
+
+		unset($this->fields['photo']);
+	}
+
+	function processForm($prefix='', $fields=NULL)
+	{
+		$res = parent::processForm($prefix, $fields);
+		$this->_photo_data = Photo_Handler::getUploadedPhotoData('photo');
+		return $res;
 	}
 
 	function printFieldValue($name, $value=NULL)
 	{
-		if (is_null($value)) $value = $this->values[$name];
+		if ($name == 'members') {
+			$this->printMemberList(array_get($this->_tmp, 'abbreviate_member_list', FALSE));
+			return;
+		}
+		if (is_null($value)) $value = $this->getValue($name);
 		if (($name == 'address_street') && MAP_LOOKUP_URL) {
 			parent::printFieldValue($name, $value);
 			if (!empty($value) && ($value == $this->values['address_street'])) {
@@ -140,9 +183,75 @@ class family extends db_object
 		}
 	}
 
-	function printFieldInterface($name)
+	function printMemberList($abbreviated=NULL)
 	{
+		$persons = $this->getMemberData();
+		$show_actions = !empty($this->id); // hide actions if this is a "draft" family
+
+		if (isset($this->_tmp['show_member_callback'])) {
+			call_user_func($this->_tmp['show_member_callback'], $persons);
+
+		} else if (!$abbreviated) {
+			?>
+			<div style="float: left" id="member-details-container">
+			<?php
+			// full blown version
+			$special_fields = Array('congregation');
+			if (!empty($this->_tmp['member_list_special_fields'])) {
+				$special_fields = $this->_tmp['member_list_special_fields'];
+			}
+			include 'templates/person_list.template.php';
+			?>
+			</div>
+			<?php
+			if ($GLOBALS['system']->featureEnabled('PHOTOS') && $this->id) {
+				?>
+				<div style="float: left; " id="family-photos-container">
+				<?php
+				foreach ($persons as $personid => $details) {
+					?>
+					<a href="?view=persons&personid=<?php echo (int)$personid; ?>"><img title="<?php echo ents($details['first_name'].' '.$details['last_name']); ?>" src="?call=photo&personid=<?php echo (int)$personid; ?>" /></a>
+					<?php
+				}
+				?>
+				</div>
+				<?php
+			}
+		} else {
+			// abbreviated version
+			$GLOBALS['system']->includeDBClass('person');
+			$dummy_person = new Person();
+			?>
+			<table>
+			<?php
+			foreach ($persons as $id => $person) {
+				$dummy_person->populate($id, $person);
+				$tr_class = ($person['status'] == 'archived') ? ' class="archived"' : '';
+				?>
+				<tr<?php echo $tr_class; ?>>
+					<td class="nowrap"><a href="?view=persons&personid=<?php echo $id; ?>"><?php echo ents($dummy_person->toString()); ?></a></td>
+					<td><?php $dummy_person->printFieldValue('gender'); ?></td>
+					<td><?php $dummy_person->printFieldValue('age_bracketid'); ?></td>
+				</tr>
+				<?php
+			}
+			?>
+			</table>
+			<?php
+		}
+	}
+
+	function printFieldInterface($name, $prefix='')
+	{
+		if ($name == 'photo') {
+			?>
+			<input type="file" name="photo" />
+			<?php
+			return;
+		}
+
 		parent::printFieldInterface($name);
+
 		$postcode_url = POSTCODE_LOOKUP_URL;
 		if (($name == 'address_suburb') && !empty($postcode_url)) {
 			?>
@@ -160,7 +269,7 @@ class family extends db_object
 
 	function getAdultMemberNames()
 	{
-		$adults = $GLOBALS['system']->getDBObjectData('person', Array('familyid' => $this->id, 'age_bracket' => '0', '!status' => 'archived'), 'AND', 'age_bracket, gender DESC');
+		$adults = $GLOBALS['system']->getDBObjectData('person', Array('familyid' => $this->id, '(age_bracketid' => Age_Bracket::getAdults(), '!status' => 'archived'), 'AND', 'ab.rank, gender DESC');
 		if (count($adults) == 1) {
 			$adult = reset($adults);
 			return $adult['first_name'].' '.$adult['last_name'];
@@ -201,118 +310,44 @@ class family extends db_object
 	function getInstancesQueryComps($params, $logic, $order)
 	{
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
-		$res['select'][] = 'GROUP_CONCAT(p.first_name ORDER BY p.age_bracket ASC, p.gender DESC SEPARATOR \', \') as members';
+		$res['select'][] = 'GROUP_CONCAT(p.first_name ORDER BY ab.rank ASC, p.gender DESC SEPARATOR \', \') as members';
 		if (array_get($params, '!status') == 'archived') {
 			// If we are excluding archived families, exclude archived members too
 			$res['from'] .= ' JOIN person p ON family.id = p.familyid AND p.status <> "archived"'; // Families with no visible members will be excluded
 		} else {
 			$res['from'] .= ' JOIN person p ON family.id = p.familyid'; // Families with no visible members will be excluded
 		}
+		$res['from'] .= ' JOIN age_bracket ab ON ab.id = p.age_bracketid ';
 		$res['group_by'] = 'family.id';
 		return $res;
 	}
 
-	function printSummary($abbreviate_member_list=TRUE, $member_data=NULL)
+	function printSummaryWithMembers($abbreviate_member_list=TRUE, $member_data=NULL)
 	{
 		$this->_tmp['abbreviate_member_list'] = $abbreviate_member_list;
 		if (!empty($member_data)) {
 			$this->_tmp['members'] = $member_data;
-			$this->_tmp['member_list_special_fields'] = array_diff(array_keys(reset($member_data)), Array('first_name', 'last_name', 'familyid', 'gender', 'status', 'age_bracket', 'congregationid'));
+			$this->_tmp['member_list_special_fields'] = array_diff(array_keys(reset($member_data)), Array('first_name', 'last_name', 'familyid', 'gender', 'status', 'age_bracketid', 'congregationid'));
 		}
+		$this->fields['members'] = Array('divider_before' => 1);
 		parent::printSummary();
+		unset($this->fields['members']);
 	}
-	
+
 	function printCustomSummary($showMembersCallback)
 	{
+		// TODO: test this in the mmebers interface
+		$this->fields['members'] = Array('divider_before' => 1);
 		$this->_tmp['show_member_callback'] = $showMembersCallback;
 		parent::printSummary();
 		unset($this->_tmp['show_member_callback']);
-	}
-
-	function _printSummaryRows()
-	{
-		parent::_printSummaryRows();
-		
-		include_once 'include/size_detector.class.php';
-		if (SizeDetector::isNarrow()) {
-			?>
-			<tr class="divider-before">
-				<td colspan="2" id="family-members-container">
-				<h4>&nbsp;Members:</h4>
-			<?php
-
-		} else {
-			?>
-			<tr class="divider-before">
-				<th>Members</th>
-				<td id="family-members-container">
-			<?php
-		}
-
-				$persons = $this->getMemberData();
-				$show_actions = !empty($this->id); // hide actions if this is a "draft" family
-				
-				if (isset($this->_tmp['show_member_callback'])) {
-					call_user_func($this->_tmp['show_member_callback'], $persons);
-					
-				} else if (empty($this->_tmp['abbreviate_member_list'])) {
-					?>
-					<div style="float: left" id="member-details-container">
-					<?php
-					// full blown version
-					$special_fields = Array('congregation');
-					if (!empty($this->_tmp['member_list_special_fields'])) {
-						$special_fields = $this->_tmp['member_list_special_fields'];
-					}
-					include 'templates/person_list.template.php';
-					?>
-					</div>
-					<?php
-					if ($GLOBALS['system']->featureEnabled('PHOTOS') && $this->id) {
-						?>
-						<div style="float: left; " id="family-photos-container">
-						<?php
-						foreach ($persons as $personid => $details) {
-							?>
-							<a href="?view=persons&personid=<?php echo (int)$personid; ?>"><img title="<?php echo ents($details['first_name'].' '.$details['last_name']); ?>" src="?call=person_photo&personid=<?php echo (int)$personid; ?>" /></a>
-							<?php
-						}
-						?>
-						</div>
-						<?php
-					}
-				} else {
-					// abbreviated version
-					$GLOBALS['system']->includeDBClass('person');
-					$dummy_person = new Person();
-					?>
-					<table>
-					<?php
-					foreach ($persons as $id => $person) {
-						$dummy_person->populate($id, $person);
-						$tr_class = ($person['status'] == 'archived') ? ' class="archived"' : '';
-						?>
-						<tr<?php echo $tr_class; ?>>
-							<td class="nowrap"><a href="?view=persons&personid=<?php echo $id; ?>"><?php echo ents($dummy_person->toString()); ?></a></td>
-							<td><?php $dummy_person->printFieldValue('gender'); ?></td>
-							<td><?php $dummy_person->printFieldValue('age_bracket'); ?></td>
-						</tr>
-						<?php
-					}
-					?>
-					</table>
-					<?php
-				}
-				?>
-			</td>
-		</tr>
-		<?php
+		unset($this->fields['members']);
 	}
 
 	function getMemberData()
 	{
 		if (!isset($this->_tmp['members'])) {
-			$this->_tmp['members'] = $GLOBALS['system']->getDBObjectData('person', Array('familyid' => $this->id), 'OR', 'age_bracket, gender DESC');
+			$this->_tmp['members'] = $GLOBALS['system']->getDBObjectData('person', Array('familyid' => $this->id), 'OR', 'ab.rank, gender DESC');
 		}
 		return $this->_tmp['members'];
 	}
@@ -334,6 +369,15 @@ class family extends db_object
 			$value = strtoupper($value); // for the UK
 		}
 		return parent::setValue($name, $value);
+	}
+
+	function create()
+	{
+		if (parent::create()) {
+			$this->savePhoto();
+			return TRUE;
+		}
+		return FALSE;
 	}
 
 	function save($update_members=TRUE)
@@ -369,7 +413,7 @@ class family extends db_object
 					// Status has just been changed from archived to something else
 					$msg = 'NB Members of the family will need to be de-archived separately';
 				}
-					
+
 			}
 			if (!empty($this->_old_values['family_name'])) {
 				// Family name has changed
@@ -423,13 +467,23 @@ class family extends db_object
 			}
 		}
 		$res = parent::save();
+		$this->savePhoto();
 		if ($msg) add_message($msg);
 		return $res;
 	}
 
+	private function savePhoto() {
+		$db =& $GLOBALS['db'];
+		if ($this->_photo_data) {
+			$SQL = 'REPLACE INTO family_photo (familyid, photodata)
+					VALUES ('.(int)$this->id.', '.$db->quote($this->_photo_data).')';
+			$res = $db->query($SQL);
+		}
+	}
+
 	/* Find a family that looks like a duplicate of this one - if it has the same family name and a member with the same name
 	*/
-	function findSimilarFamilies()
+	public function findSimilarFamilies()
 	{
 		$res = Array();
 		$same_names = $GLOBALS['system']->getDBObjectData('family', Array('family_name' => $this->getValue('family_name'), '!id' => $this->id), 'AND');
@@ -451,39 +505,43 @@ class family extends db_object
 	}
 
 
-	function getFamilyDataByMemberIDs($member_ids)
+	public static function getFamilyDataByMemberIDs($member_ids)
 	{
 		$quoted_ids = implode(',', array_map(Array($GLOBALS['db'], 'quote'), $member_ids));
 		$sql = '
 			SELECT f.*,
 			allmembers.names as members,
 			IFNULL(adultmembers.names, "") as adult_members,
-			GROUP_CONCAT(p.first_name ORDER BY p.age_bracket ASC, p.gender, p.id DESC SEPARATOR ",") as selected_firstnames,
-			GROUP_CONCAT(p.last_name ORDER BY p.age_bracket ASC, p.gender, p.id DESC SEPARATOR ",") as selected_lastnames
+			GROUP_CONCAT(p.first_name ORDER BY ab.rank ASC, p.gender, p.id DESC SEPARATOR ",") as selected_firstnames,
+			GROUP_CONCAT(p.last_name ORDER BY ab.rank ASC, p.gender, p.id DESC SEPARATOR ",") as selected_lastnames
 			FROM family f
 			JOIN person p ON f.id= p.familyid
-			JOIN 
-			   (select f.id as familyid, GROUP_CONCAT(p.first_name ORDER BY p.age_bracket ASC, p.gender DESC SEPARATOR ", ") as names
+		    JOIN age_bracket ab ON ab.id = p.age_bracketid
+			JOIN (
+			   select f.id as familyid, GROUP_CONCAT(p.first_name ORDER BY ab.rank ASC, p.gender DESC SEPARATOR ", ") as names
 			   FROM person p JOIN family f on p.familyid = f.id
+			   JOIN age_bracket ab ON ab.id = p.age_bracketid
 			   WHERE p.status <> "archived"
 			   GROUP BY f.id
 			) allmembers ON allmembers.familyid = f.id
-			LEFT JOIN
-			   (select f.id as familyid, GROUP_CONCAT(p.first_name ORDER BY p.age_bracket ASC, p.gender DESC SEPARATOR ", ") as names
-			   FROM person p JOIN family f on p.familyid = f.id
-			   WHERE p.age_bracket = 0 and p.status <> "archived"
-			   GROUP BY f.id) adultmembers ON adultmembers.familyid = f.id
+			LEFT JOIN (
+			   select f.id as familyid, GROUP_CONCAT(p.first_name ORDER BY ab.rank ASC, p.gender DESC SEPARATOR ", ") as names
+			   FROM person p 
+			   JOIN family f on p.familyid = f.id
+			   JOIN age_bracket ab ON ab.id = p.age_bracketid
+			   WHERE ab.is_adult and p.status <> "archived"
+			   GROUP BY f.id
+			) adultmembers ON adultmembers.familyid = f.id
 			WHERE p.id IN ('.$quoted_ids.')
 			GROUP BY f.id
 			ORDER BY f.family_name';
 		$res = $GLOBALS['db']->queryAll($sql, NULL, NULL, TRUE);
-		check_db_result($res);
 		return $res;
 	}
-		
 
 
-	static function printSingleFinder($name, $currentval=NULL)
+
+	public static function printSingleFinder($name, $currentval=NULL)
 	{
 		$currentid = 0;
 		$currentname = '';
@@ -506,4 +564,3 @@ class family extends db_object
 	}
 
 }
-?>

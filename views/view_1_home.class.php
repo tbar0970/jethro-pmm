@@ -9,7 +9,7 @@ class View_Home extends View
 	function processView()
 	{
 	}
-	
+
 	function printView()
 	{
 		$num_cols = 1;
@@ -21,19 +21,19 @@ class View_Home extends View
 
 		<div class="homepage-box search-forms">
 			<h3>
-				<a class="pull-right hide-phone" 
+				<a class="pull-right hide-phone"
 				   href="javascript:if (sp = prompt('Search <?php echo SYSTEM_NAME; ?> for: ')) window.location='<?php echo BASE_URL; ?>?view=_mixed_search&search='+sp"
 				   onclick="prompt('To create a search-jethro button in your browser, save the following code as a bookmark/favourite: ', this.href); return false"
 				>
-					<small>Bookmark</small>
+					<i class="icon-bookmark"></i><small class="hidden-phone">Bookmark</small>
 				</a>
-				System-Wide Search</h3>
+				<?php echo _('System-Wide Search');?></h3>
 			<label class="msie-only">Enter a person, family or group name, or phone number or email:</label>
 			<form method="get">
 				<input type="hidden" name="view" value="_mixed_search" />
 				<span class="input-prepend input-append">
 					<span class="add-on"><i class="icon-search"></i></span>
-					<input type="text" name="search" class="" placeholder="Name, Phone or Email" /> 
+					<input type="text" name="search" class="" placeholder=<?php echo _('"Name, Phone or Email"');?> />
 					<button type="submit" class="btn">Go</button>
 				</span>
 			</form>
@@ -41,30 +41,33 @@ class View_Home extends View
 
 		<?php
 		if ( $GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
-			$user =& $GLOBALS['system']->getDBObject('staff_member', $GLOBALS['user_system']->getCurrentUser('id'));
+			$user = $GLOBALS['system']->getDBObject('staff_member', $GLOBALS['user_system']->getCurrentUser('id'));
 			$tasks = $user->getTasks('now');
 			?>
 			<div class="homepage-box my-notes">
-				<h3>Notes <span>for immediate action</span></h3>
+				<h3><?php echo _('Notes '); ?><span><?php echo _('for immediate action');?></span></h3>
 				<?php
 				if ($tasks) {
 					?>
 					<table class="table table-condensed table-striped table-hover clickable-rows" width="100%">
 						<thead>
 							<tr>
-								<th>For</th>
-								<th>Subject</th>
+								<th><?php echo _('For');?></th>
+								<th><?php echo _('Subject');?></th>
 							</tr>
 						</thead>
 						<tbody>
 							<?php
 							foreach ($tasks as $id => $task) {
-								$view = ($task['type'] == 'person') ? 'persons' : 'families';
 								$icon = ($task['type'] == 'person') ? 'user' : 'home';
+								$view = ($task['type'] == 'person') ? 'persons' : 'families';
+								$url = ifdef('NOTES_LINK_TO_EDIT')
+										? '?view=_edit_note&note_type='.ents($task['type']).'&noteid='.(int)$id
+										: '?view='.$view.'&'.$task['type'].'id='.$task[$task['type'].'id'].'#note_'.$id;
 								?>
 								<tr>
 									<td class="narrow"><i class="icon-<?php echo $icon; ?>"></i> <?php echo ents($task['name']); ?></td>
-									<td><a href="?view=<?php echo $view; ?>&<?php echo $task['type']; ?>id=<?php echo $task[$task['type'].'id']; ?>#note_<?php echo $id; ?>"><?php echo ents($task['subject']); ?></a></td>
+									<td><a href="<?php echo $url; ?>"><?php echo ents($task['subject']); ?></a></td>
 								</tr>
 								<?php
 							}
@@ -81,7 +84,7 @@ class View_Home extends View
 				$count = count($later);
 				if ($count) {
 					?>
-					<p class="align-right">You have <a href="<?php echo build_url(Array('view' => 'notes__for_future_action', 'assignee' => $user->id)); ?>"><?php echo count($later); ?> note<?php echo ($count > 1) ? 's' : ''; ?> for future action</a></p>
+					<p class="align-right"><?php echo _('You have ');?><a href="<?php echo build_url(Array('view' => 'notes__for_future_action', 'assignee' => $user->id)); ?>"><?php echo count($later); ?> note<?php echo ($count > 1) ? 's' : ''; ?> <?php echo _('for future action');?></a></p>
 					<?php
 				}
 				?>
@@ -93,8 +96,8 @@ class View_Home extends View
 			?>
 			<div class="homepage-box my-roster">
 				<h3>
-					<a href="?view=_manage_ical" class="pull-right hidden-phone"><small>Subscribe</small></a>
-					Upcoming roster<span> allocations</span>
+					<a href="?view=_manage_ical" class="pull-right"><i class="icon-bookmark"></i><small class="hidden-phone">Subscribe</small></a>
+					Upcoming roster
 				</h3>
 				<?php
 				$GLOBALS['system']->includeDBClass('roster_role_assignment');

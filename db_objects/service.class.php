@@ -6,8 +6,8 @@ class service extends db_object
 	var $_readings = Array(); // bible readings for the service, fetched from the service_bible_reading table
 	var $_old_readings = Array();
 
-	var $_load_permission_level = 0;
-	var $_save_permission_level = PERM_EDITSERVICE;
+	protected $_load_permission_level = 0;
+	protected $_save_permission_level = PERM_EDITSERVICE;
 
 	public function __construct($id=0)
 	{
@@ -19,7 +19,7 @@ class service extends db_object
 		return parent::__construct($id);
 	}
 
-	function _getFields()
+	protected static function _getFields()
 	{
 
 		$fields = Array(
@@ -53,6 +53,14 @@ class service extends db_object
 									'height'	=> 4,
 									'initial_cap'	=> TRUE,
 								   ),
+			'comments'	=> Array(
+									'type'		=> 'html',
+									'height'	=> '7em',
+									'toolbar'  => 'basic',
+									'toolbarLocation'  => 'bottom',
+									'enterMode' => 'BR',
+								   ),
+
 		);
 		return $fields;
 	}
@@ -63,7 +71,7 @@ class service extends db_object
 				'datecong' => Array('date', 'congregationid'),
 			   );
 	}
-	
+
 	function _createFinal()
 	{
 		if (parent::_createFinal()) {
@@ -116,15 +124,13 @@ class service extends db_object
 				ORDER BY order_num ASC';
 		$this->_readings = $GLOBALS['db']->queryAll($sql, null, null, true);
 		$this->_old_readings = $this->_readings;
-		check_db_result($this->_readings);
 	}
-	
+
 	function __deleteBibleReadings()
 	{
 		$sql = 'DELETE FROM service_bible_reading
 				WHERE service_id = '.(int)$this->id;
 		$res = $GLOBALS['db']->query($sql);
-		check_db_result($res);
 	}
 
 	function __insertBibleReadings()
@@ -139,7 +145,6 @@ class service extends db_object
 			$sql = 'INSERT INTO service_bible_reading (service_id, order_num, bible_ref, to_read, to_preach)
 				VALUES '.implode(', ', $values);
 			$res = $GLOBALS['db']->query($sql);
-			check_db_result($res);
 		}
 		$this->_old_readings = $this->_readings;
 	}
@@ -148,7 +153,7 @@ class service extends db_object
 	{
 		$this->_readings[] = Array('bible_ref' => $ref, 'to_read' => $to_read, 'to_preach' => $to_preach);
 	}
-	
+
 	function clearReadings()
 	{
 		$this->_readings = Array();
@@ -156,6 +161,9 @@ class service extends db_object
 
 	function getRawBibleReadings($type='all')
 	{
+		$type = str_replace('to_', '', $type);
+		if (!in_array($type, Array('all', 'preach', 'read'))) return Array();
+
 		$candidate_readings = Array();
 		foreach ($this->_readings as $reading) {
 			if (($type == 'all') || ($reading['to_'.$type])) {
@@ -170,7 +178,7 @@ class service extends db_object
 		if (0 === strpos($field, 'bible_')) {
 			// eg bible_read_1  or bible_preach_all
 			$bits = explode('_', $field);
-			list($bible, $type, $number) = $bits;
+			@list($bible, $type, $number) = $bits;
 			$short = (array_get($bits, 3) == 'short');
 			$candidate_readings = $this->getRawBibleReadings($type);
 			if ($number == 'all') {
@@ -194,9 +202,13 @@ class service extends db_object
 		}
 	}
 
-	function toString()
+	function toString($long=FALSE)
 	{
-		return $this->getFormattedValue('congregationid').' Service on '.$this->getFormattedValue('date');
+		$cong = $GLOBALS['system']->getDBObject('congregation', $this->getValue('congregationid'));
+		$congName = $cong->getValue($long ? 'name' : 'long_name');
+		if (!strlen($congName)) $congName = $cong->toString();
+		$date = $long ? date('jS F Y', strtotime($this->getValue('date'))) : $this->getFormattedValue('date');
+		return $congName.' Service on '.$date;
 	}
 
 	static function shiftServices($congids, $after_date, $shift_by)
@@ -207,10 +219,9 @@ class service extends db_object
 				AND congregationid IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congids)).')
 				ORDER BY date '.(($shift_by > 0) ? 'DESC' : 'ASC');
 		$res = $GLOBALS['db']->query($sql);
-		check_db_result($res);
 	}
 
-	function getFormattedValue($fieldname)
+	function getFormattedValue($fieldname, $value=null)
 	{
 		switch ($fieldname) {
 
@@ -252,7 +263,7 @@ class service extends db_object
 				if ($this->values['notes']) $res[] = $this->values['notes'];
 				return implode("\n", $res);
 				break;
-				
+
 			default:
 				if (strpos($fieldname, 'comps_') === 0) {
 					$compCatID = (int)substr($fieldname, 6);
@@ -266,14 +277,14 @@ class service extends db_object
 				}
 		}	}
 
-	function printFieldValue($fieldname)
+	function printFieldValue($fieldname, $value=NULL)
 	{
 		// a few special cases
 		switch ($fieldname) {
 			case 'bible_to_read':
 			case 'bible_to_preach':
 				$type = substr($fieldname, strlen('bible_to_'));
-				$readings = $this->getRawBibleReadings('read');
+				$readings = $this->getRawBibleReadings($type);
 				$res = Array();
 				foreach ($readings as $reading) {
 					$br = new Bible_Ref($reading['bible_ref']);
@@ -294,24 +305,38 @@ class service extends db_object
 				}
 				echo implode(', ', $res);
 				break;
-				
+
 			case 'format_title':
 			case 'topic_title':
 				echo ents($this->values[$fieldname]);
 				break;
-				
+
 			case 'summary':
-				?>
-				<i><?php echo ents($this->values['topic_title']); ?></i><br />
-				<?php $this->printFieldValue('bible_all'); ?><br />
-				<?php
-				echo ents($this->values['format_title']); 
-				if (!empty($this->values['notes'])) {
-					?>
-					&nbsp;<span class="clickable" onclick="$(this).next('div.hide').toggle()"><i class="icon-chevron-down"></i></span>
-					<div class="smallprint hide"><?php echo nl2br(ents($this->values['notes'])); ?></div>
-					<?php
+			case 'summary_inline':
+				$separator = $fieldname == 'summary' ? '<br />' : '&nbsp; &bull; &nbsp;';
+				$bits = Array();
+				if (strlen($this->values['topic_title'])) {
+					$bits[] = '<i>'.ents($this->values['topic_title']).'</i>';
 				}
+				if ($this->getRawBibleReadings()) {
+					ob_start();
+					$this->printFieldValue('bible_all');
+					$bits[] = ob_get_clean();
+				}
+				if (strlen($this->values['format_title'])) {
+					$bits[] = ents($this->values['format_title']);
+				}
+				if (!empty($this->values['notes'])) {
+					$x = '<small>';
+					if ($fieldname == 'summary_inline') {
+						$x .= str_replace("\n", ' / ', ents($this->values['notes']));
+					} else {
+						$x .= nl2br(ents($this->values['notes']));
+					}
+					$x .= '</small>';
+					$bits[] = $x;
+				}
+				echo implode($separator, $bits);
 				break;
 			default:
 				if (strpos($fieldname, 'comps_') === 0) {
@@ -420,35 +445,48 @@ class service extends db_object
 		if (0 === strpos($keyword, 'NAME_OF_')) {
 			$role_title = substr($keyword, strlen('NAME_OF_'));
 			return $this->getPersonnelByRoleTitle($role_title);
+
+		} else if (substr($keyword, -10) == '_FIRSTNAME') {
+			return $this->getPersonnelByRoleTitle(substr($keyword, 0, -10), TRUE);
+
 		} else if (0 === strpos($keyword, 'SERVICE_')) {
 			$service_field = strtolower(substr($keyword, strlen('SERVICE_')));
-			$res = $this->getValue($service_field);
-			if ($service_field == 'date') {
-				// make a friendly date
-				$res = date('j F Y', strtotime($res));
+			if (in_array($service_field, Array('topic', 'format'))) {
+				$service_field .= '_title';
 			}
-			return $res;
-		} else {
-			return '';
+			if ((substr($service_field, 0, 5) == 'bible') || isset($this->fields[$service_field])) {
+				$res = $this->getValue($service_field);
+				if ($service_field == 'date') {
+					// make a friendly date
+					$res = date('j F Y', strtotime($res));
+				}
+				return $res;
+			}
+
 		}
+
+		// look for a role that matches
+		return $this->getPersonnelByRoleTitle($keyword);
 	}
 
-	function getPersonnelByRoleTitle($role_title)
+	function getPersonnelByRoleTitle($role_title, $first_name_only=FALSE)
 	{
-		$sql = 'SELECT *
+		$sql = 'SELECT roster_role_id, first_name, last_name
 			FROM person
 				JOIN roster_role_assignment rra ON rra.personid = person.id
 				JOIN roster_role rr ON rra.roster_role_id = rr.id
-			WHERE LOWER(REPLACE(rr.title, \' \', \'_\')) = '.$GLOBALS['db']->quote($role_title).'
-				AND rr.congregationid = '.$GLOBALS['db']->quote($this->getValue('congregationid')).'
-				AND rra.assignment_date = '.$GLOBALS['db']->quote($this->getValue('date'));
+			WHERE UPPER(REPLACE(rr.title, \' \', \'_\')) = '.$GLOBALS['db']->quote($role_title).'
+				AND (rr.congregationid = '.$GLOBALS['db']->quote($this->getValue('congregationid')).'
+					OR (IFNULL(rr.congregationid, 0) = 0))
+				AND rra.assignment_date = '.$GLOBALS['db']->quote($this->getValue('date')).'
+				ORDER BY roster_role_id, rank';
 		$assignments =  $GLOBALS['db']->queryAll($sql, null, null, false);
 		$role_ids = Array();
 		$names = Array();
 		foreach ($assignments as $assignment) {
 			$role_id = $assignment['roster_role_id'];
 			$role_ids[$role_id] = 1;
-			$names[] = $assignment['first_name'].' '.$assignment['last_name'];
+			$names[] = $assignment['first_name'].($first_name_only ? '' : (' '.$assignment['last_name']));
 		}
 		if (count($role_ids) != 1) return ''; // either no role found or ambigious role title
 		return implode(', ', $names);
@@ -486,7 +524,6 @@ class service extends db_object
                     ' and congregationid = ' . $db->quote($congregationid);
             }
             $res = $db->queryAll($sql);
-            check_db_result($res);
             $services = Array();
             foreach ($res as $row)
             {
@@ -501,28 +538,71 @@ class service extends db_object
 	{
 		$db = $GLOBALS['db'];
 		$res = $db->exec('DELETE FROM service_item WHERE serviceid = '.(int)$this->id);
-		check_db_result($res);
+
+		$compids = $comps = Array();
+		foreach ($itemList as $item) {
+			if ($item['componentid']) $compids[] = (int)$item['componentid'];
+		}
+		if ($compids) {
+			$set = implode(', ', array_unique($compids));
+			$comps = $GLOBALS['system']->getDBObjectData('service_component', Array('(id' => $set));
+		}
 
 		if (!empty($itemList)) {
 			$SQL = 'INSERT INTO service_item
-					(serviceid, rank, componentid, length_mins, note, heading_text)
+					(serviceid, rank, componentid, title, personnel, show_in_handout, length_mins, note, heading_text)
 					VALUES
 					';
 			$sets = Array();
 			foreach ($itemList as $rank => $item) {
-				$sets[] = '('.(int)$this->id.', '.(int)$rank.', '.(int)$item['componentid'].', '.(int)$item['length_mins'].', '.$db->quote(array_get($item, 'note')).', '.$db->quote(array_get($item, 'heading_text')).')';
+				if ($item['componentid']) {
+					$item['title'] = ''; // title is only saved for ad hoc items
+
+					// only save personnel if it's been changed from the component's default
+					// so that if the roster changes, the run sheet will auto updated.
+					if ($item['personnel'] == $comps[$item['componentid']]['personnel']) {
+						$item['personnel'] = '';
+					}
+				} else {
+					$item['componentid'] = NULL;
+				}
+				$sets[] = '('.(int)$this->id.', '.(int)$rank.', '.$db->quote($item['componentid']).', '.$db->quote($item['title']).', '.$db->quote($item['personnel']).', '.$db->quote($item['show_in_handout']).', '.(int)$item['length_mins'].', '.$db->quote(array_get($item, 'note')).', '.$db->quote(array_get($item, 'heading_text')).')';
 			}
 			$SQL .= implode(",\n", $sets);
 			$res = $db->exec($SQL);;
-			check_db_result($res);
 		}
+	}
+
+	/**
+	 * This is unusual. The 'comments' field gets saved separately
+	 * because it falls under the 'items' lock, not the default lock,
+	 * because it is edited with the run sheet, not the overall service program.
+	 * @param string$comments
+	 */
+	public function saveComments($comments)
+	{
+		if ($this->haveLock('items')) {
+			$db = $GLOBALS['db'];
+			$SQL = 'UPDATE service
+					SET comments = '.$db->quote($comments).'
+					WHERE id = '.(int)$this->id;
+			$res = $db->exec($SQL);
+			$this->values['comments'] = $comments;
+			return TRUE;
+		}
+		return FALSE;
 	}
 
 	public function getItems($withContent=FALSE, $ofCategoryID=NULL)
 	{
-		$SQL = 'SELECT si.*, sc.title, sc.alt_title, sc.is_numbered, '.($withContent ? 'sc.content_html, sc.credits, ' : '').'
-					IF(LENGTH(sc.runsheet_title_format) = 0, scc.runsheet_title_format, sc.runsheet_title_format) AS runsheet_title_format,
-					IF(LENGTH(sc.handout_title_format) = 0, scc.handout_title_format, sc.handout_title_format) AS handout_title_format
+		$SQL = 'SELECT si.*,
+					IF (si.componentid IS NULL, si.title, sc.title) AS title,
+					sc.alt_title,
+					'.($withContent ? 'sc.content_html, sc.credits, ' : '').'
+					IFNULL(IF(LENGTH(sc.runsheet_title_format) = 0, scc.runsheet_title_format, sc.runsheet_title_format), "%title%") AS runsheet_title_format,
+					IFNULL(IF(LENGTH(sc.handout_title_format) = 0, scc.handout_title_format, sc.handout_title_format), "%title%") AS handout_title_format,
+					IF(LENGTH(si.personnel) = 0, sc.personnel, si.personnel) AS personnel,
+					sc.categoryid
 				FROM service_item si
 				LEFT JOIN service_component sc ON si.componentid = sc.id
 				LEFT JOIN service_component_category scc ON sc.categoryid = scc.id
@@ -531,22 +611,26 @@ class service extends db_object
 		if (!empty($ofCategoryID)) $SQL .= ' AND sc.categoryid = '.(int)$ofCategoryID."\n";
 		$SQL .= ' ORDER BY rank';
 		$res = $GLOBALS['db']->queryAll($SQL);
-		check_db_result($res);
+
+		foreach ($res as $k => &$item) {
+			$item['personnel'] = $this->replaceKeywords($item['personnel']);
+		}
+		unset($item);
 		return $res;
 	}
 
-	public function printServicePlan()
+	public function printRunSheet()
 	{
 		?>
-		<table
-			<?php if (empty($_REQUEST['view'])) echo 'border="1"'; ?>
-			class="table table-bordered"
+		<table cellspacing="0" cellpadding="5"
+			class="table table-bordered table-condensed table-full-width run-sheet no-narrow-magic"
 		>
 			<thead>
 				<tr>
 					<th class="narrow">Start</th>
 					<th class="narrow">#</th>
 					<th>Item</th>
+					<th class="narrow">Personnel</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -554,7 +638,7 @@ class service extends db_object
 			$num = 1;
 			$items = $this->getItems();
 			$cong = $GLOBALS['system']->getDBObject('congregation', $this->getValue('congregationid'));
-			$time = strtotime(preg_replace('[^0-9]', '', $cong->getValue('meeting_time')));
+			$time = strtotime(preg_replace('/[^0-9]/', '', $cong->getValue('meeting_time')));
 			foreach ($items as $item) {
 				if ($item['heading_text']) {
 					?>
@@ -565,8 +649,8 @@ class service extends db_object
 				}
 				?>
 				<tr>
-					<td><?php echo date('Hi', $time); ?></td>
-					<td><?php if ($item['is_numbered']) echo $num++; ?></td>
+					<td class="narrow"><?php echo date('H:i', $time); ?></td>
+					<td class="narrow center"><?php if ($item['show_in_handout'] != '0') echo $num++; ?></td>
 					<td>
 						<?php
 						$title = $item['runsheet_title_format'];
@@ -576,12 +660,24 @@ class service extends db_object
 						if ($item['note']) echo '<br /><i><small>'.nl2br(ents($item['note'])).'</small></i>';
 						?>
 					</td>
+					<td class="narrow"><?php echo ents($item['personnel']); ?></td>
 				</tr>
 				<?php
 				$time += $item['length_mins']*60;
 			}
 			?>
 			</tbody>
+		<?php
+		if ($this->getValue('comments')) {
+			?>
+			<tfoot>
+				<tr>
+					<td colspan="4" class="run-sheet-comments"><?php $this->printFieldValue('comments'); ?></td>
+				</tr>
+			</tfoot>
+			<?php
+		}
+		?>
 		</table>
 		<?php
 	}
@@ -596,7 +692,7 @@ class service extends db_object
 				<h3><?php echo ents($i['heading_text']); ?></h3>
 				<?php
 			}
-			if (!$i['is_numbered']) continue;
+			if ($i['show_in_handout'] == '0') continue;
 			?>
 			<h4 id="item<?php echo $k; ?>">
 				<?php
@@ -607,31 +703,62 @@ class service extends db_object
 				echo ents($title);
 				?>
 			</h4>
-			<?php echo $i['content_html']; ?>
-			<small>
-				<?php echo nl2br(ents($i['credits'])); ?>
-			</small>
+			<?php
+			if ($i['show_in_handout'] == 'full') {
+				echo $i['content_html'];
+				?>
+				<small>
+					<?php echo nl2br(ents($i['credits'])); ?>
+				</small>
+				<?php
+			}
+		}
+	}
+
+	public function printRunSheetPersonnelFlexi()
+	{
+		$rosterViews = Roster_View::getForRunSheet($this->getValue('congregationid'));
+		if ($rosterViews) {
+			?>
+			<div class="row-fluid">
+			<div id="service-personnel" class="span12 clearfix">
+				<h3>Personnel</h3>
+				<?php
+				foreach ($rosterViews as $view) {
+					$view->printSingleViewFlexi($this);
+				}
+				?>
+			</div>
+			</div>
 			<?php
 		}
 	}
-        
-        /**
-         * Calculate the meeting date/time.
-         * 
-         * @param int $meetingDate The date of the meeting.
-         * @param string $meetingTime The meeting time is like "1000" for 10:00.
-         * @return int The meeting date/time.
-         */
-        public static function getMeetingDateTime($meetingDate, $meetingTime) {
-            $dateString = date('Y-m-d', $meetingDate);
-            if ($meetingTime != NULL && preg_match('/\\d\\d\\d\\d/', $meetingTime)) {
-                // Time is specified and valid.
-                $dateString .= ' ' . 
-                    substr($meetingTime, 0, 2) .
-                    ":" .
-                    substr($meetingTime, 2, 2) . ':00';
-            }
-            return strtotime($dateString);            
-        }
+
+	public function printRunSheetPersonnelTable()
+	{
+		$rosterViews = Roster_View::getForRunSheet($this->getValue('congregationid'));
+		if ($rosterViews) {
+			?>
+			<?php
+			foreach ($rosterViews as $view) {
+				$view->printSingleViewTable($this);
+			}
+			echo '<br />';
+		}
+	}
+
+	/**
+	 * Calculate the meeting date/time.
+	 *
+	 * @param int $meetingDate The date of the meeting.
+	 * @param string $meetingTime The meeting time is like "1000" for 10:00.
+	 * @return int The meeting date/time.
+	 */
+	public static function getMeetingDateTime($meetingDate, $meetingTime) {
+		$dateString = date('Y-m-d', $meetingDate);
+		if ($meetingTime != NULL && preg_match('/(\\d\\d)(\\d\\d)/', $meetingTime, $matches)) {
+			$dateString .= ' '.$matches[1].':'.$matches[2];
+		}
+		return strtotime($dateString);
+	}
 }
-?>

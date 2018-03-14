@@ -6,11 +6,7 @@ class View_Families__Add extends View
 
 	static function getMenuPermissionLevel()
 	{
-		if ($GLOBALS['user_system']->getCurrentRestrictions()) {
-			return -1; // users with group or cong restrictions can't add families or persons
-		} else {
-			return PERM_EDITPERSON;
-		}
+		return Person::allowedToAdd() ? PERM_EDITPERSON : -1;
 	}
 
 	function processView()
@@ -30,12 +26,12 @@ class View_Families__Add extends View
 				$i++;
 			}
 			if (!$found_member) {
-				add_message('New family must have at least one member', 'failure');
+				add_message(_('New family must have at least one member'), 'failure');
 				return FALSE;
 			}
 			if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
 				if (REQUIRE_INITIAL_NOTE && empty($_POST['initial_note_subject'])) {
-					add_message("A subject must be supplied for the initial family note", 'failure');
+					add_message(_('A subject must be supplied for the initial family note'), 'failure');
 					return FALSE;
 				}
 			}
@@ -59,6 +55,12 @@ class View_Families__Add extends View
 						if (!$member->create()) {
 							$success = FALSE;
 							break;
+						}
+						if (!empty($_POST['members_'.$i.'_groupid'])) {
+							$group = $GLOBALS['system']->getDBObject('person_group', (int)$_POST['members_'.$i.'_groupid']);
+							if ($group) {
+								$group->addMember($member->id, array_get($_POST, 'members_'.$i.'_membership_statusid'));
+							}
 						}
 						$members[] =& $member;
 					}
@@ -103,19 +105,19 @@ class View_Families__Add extends View
 
 			if ($success) {
 				$GLOBALS['system']->doTransaction('commit');
-				add_message('Family Created');
+				add_message(_('Family Created'));
 				redirect('families', Array('familyid' => $this->_family->id));
 			} else {
 				$GLOBALS['system']->doTransaction('rollback');
 				$this->_family->id = 0;
-				add_message('Error during family creation, family not created', 'failure');
+				add_message(_('Error during family creation, family not created'), 'failure');
 			}
 		}
 	}
 	
 	function getTitle()
 	{
-		return 'Add Family';
+		return _('Add Family');
 	}
 
 
@@ -128,84 +130,124 @@ class View_Families__Add extends View
 		}
 	}
 
-	function printSimilarFamilies() 
+	function printSimilarFamilies()
 	{
-		$msg = count($this->_similar_families) > 1 
-			? 'Several families already exist that are similar to the one you are creating' 
-			: 'A family similar to the one you are creating already exists';
+		$msg = count($this->_similar_families) > 1
+			? _('Several families already exist that are similar to the one you are creating')
+			: _('A family similar to the one you are creating already exists');
 		?>
 		<p class="alert alert-error"><b>Warning: <?php echo $msg; ?>.</b></p>
 		<?php 
 		foreach ($this->_similar_families as $family) {
 			?>
-			<h4><a href="<?php echo build_url(array('view' => 'families', 'familyid' => $family->id)); ?>">Family #<?php echo $family->id; ?></a></h4>
+			<h4><a href="<?php echo build_url(array('view' => 'families', 'familyid' => $family->id)); ?>"><?php echo _('Family'); ?>#<?php echo $family->id; ?></a></h4>
 			<?php
-			$family->printSummary();
+			$family->printSummaryWithMembers();
 		}
 		?>
 
 		<form method="post" class="min">
 		<?php print_hidden_fields($_POST); ?>
-		<input type="submit" class="btn" name="override_dup_check" value="Create new family anyway" />
+		<input type="submit" class="btn" name="override_dup_check" value=<?php echo _('Create new family anyway');?> />
 		</form>
 
 		<form method="get" class="min">
-		<input type="submit" class="btn" value="Cancel family creation" />
+		<input type="submit" class="btn" value=<?php echo _('Cancel family creation');?> />
 		</form>
 		<?php
 	}
 
-	function printForm() 
+	function printForm()
 	{
 		$GLOBALS['system']->includeDBClass('person');
 		$person = new Person();
 		$person->fields['first_name']['width'] = 11;
 		$person->fields['last_name']['width'] = 11;
 		$person->fields['email']['width'] = 25;
+
+		$customFields = $GLOBALS['system']->getDBObjectData('custom_field', Array('show_add_family' => 1), 'AND', 'rank');
 		?>
-		<form method="post" id="add-family" class="form-horizontal">
+		<form method="post" id="add-family" class="form-horizontal" enctype="multipart/form-data">
 			<input type="hidden" name="new_family_submitted" value="1" />
 			<div class="">
 
-			<label>Family Name:</label>
+			<label><?php echo _('Family Name'); ?></label>
 			<?php $this->_family->printFieldInterface('family_name'); ?>
 			
 			</div>
 
 			<div>
-			<h3>Family Members</h3>
+			<h3><?php echo _('Family Members');?></h3>
 			<table class="expandable">
 			<?php
 			include_once 'include/size_detector.class.php';
-			if (SizeDetector::isNarrow()) {
+			$group_options = $GLOBALS['system']->getDBObjectData('person_group', Array('!show_add_family' => 'no'));
+			if (SizeDetector::isNarrow() || count($customFields) > 0 || count($group_options) > 0) {
+				// horizontal view would get too wide if we added custom fields to it
 				?>
 				<tr>
 					<td>
 						<div class="compact-2col family-member-box">
-							<label>First Name</label>
-							<label>Last Name</label>
+							<label><?php echo _('First Name');?></label>
+							<label><?php echo _('Last Name');?></label>
 							<div><?php $person->printFieldInterface('first_name', 'members_0_'); ?></div>
 							<div class="last_name preserve-value"><?php $person->printFieldInterface('last_name', 'members_0_'); ?></div>
 
-							<label>Gender</label>
-							<label>Age</label>
+							<label><?php echo _('Gender');?></label>
+							<label><?php echo _('Age');?></label>
 							<div><?php $person->printFieldInterface('gender', 'members_0_'); ?></div>
-							<div><?php $person->printFieldInterface('age_bracket', 'members_0_'); ?></div>
+							<div><?php $person->printFieldInterface('age_bracketid', 'members_0_'); ?></div>
 
-							<label>Status</label>
-							<label>Congregation</label>
-							<div class="person-status preserve-value"><?php $person->printFieldInterface('status', 'members_0_'); ?></div>
+							<label><?php echo _('Congregation');?></label>
+							<label><?php echo _('Status');?></label>
 							<div class="congregation"><?php $person->printFieldInterface('congregationid', 'members_0_'); ?></div>
+							<div class="person-status preserve-value"><?php $person->printFieldInterface('status', 'members_0_'); ?></div>
+							
+						<?php
+						if (!empty($group_options)) {
+							foreach ($group_options as $id => $g) {
+								$group_options[$id] = $g['name'];
+							}
+							$group_params = Array(
+												'type' => 'select',
+												'options' => $group_options,
+												'allow_empty' => TRUE,
+												'empty_text' => '(None)'
+											);
+							?>
+							<label><?php echo _('Group (optional)');?></label>
+							<label>
+								<?php
+									if (SizeDetector::isNarrow()) {
+										echo _('Membership Status');
+									} else {
+										echo _('Group Membership Status');
+									}
+								?>
+							</label>
+							<div class="congregation"><?php print_widget('members_0_groupid', $group_params, 0);?></div>
+							<div class="person-status preserve-value"><?php Person_Group::printMembershipStatusChooser('members_0_membership_statusid', NULL); ?></div>
+							<?php
+						}
+						?>
 
-							<label>Mobile</label>
-							<label>Email</label>
+							<label><?php echo _('Mobile');?></label>
+							<label><?php echo _('Email');?></label>
 							<div><?php $person->printFieldInterface('mobile_tel', 'members_0_'); ?></div>
 							<div><?php $person->printFieldInterface('email', 'members_0_'); ?></div>
 
+						<?php
+						$field = new Custom_Field();
+						foreach ($customFields as $fieldID => $fDetails) {
+							$field->populate($fieldID, $fDetails);
+							?>
+							<label class="fullwidth"><?php $field->printFieldValue('name'); ?></label>
+							<div class="fullwidth"><?php $field->printWidget('', Array(), 'members_0_'); ?></div>
+							<?php
+						}
+						?>
+							
 						</div>
-
-
-
 					</td>
 				</tr>
 				<?php
@@ -213,14 +255,14 @@ class View_Families__Add extends View
 				?>
 				<thead>
 					<tr>
-						<td>First Name</td>
-						<td>Last Name</td>
-						<td>Gender</td>
-						<td>Age</td>
-						<td>Status</td>
-						<td>Cong.</td>
-						<td>Mobile Tel</td>
-						<td>Email</td>
+						<td><?php echo _('First Name');?></td>
+						<td><?php echo _('Last Name');?></td>
+						<td><?php echo _('Gender');?></td>
+						<td><?php echo _('Age');?></td>
+						<td><?php echo _('Status');?></td>
+						<td><?php echo _('Cong.');?></td>
+						<td><?php echo _('Mobile Tel');?></td>
+						<td><?php echo _('Email');?></td>
 					</tr>
 				<thead>
 				<tbody>
@@ -228,7 +270,7 @@ class View_Families__Add extends View
 						<td><?php $person->printFieldInterface('first_name', 'members_0_'); ?></td>
 						<td class="last_name preserve-value"><?php $person->printFieldInterface('last_name', 'members_0_'); ?></td>
 						<td><?php $person->printFieldInterface('gender', 'members_0_'); ?></td>
-						<td><?php $person->printFieldInterface('age_bracket', 'members_0_'); ?></td>
+						<td><?php $person->printFieldInterface('age_bracketid', 'members_0_'); ?></td>
 						<td class="person-status preserve-value"><?php $person->printFieldInterface('status', 'members_0_'); ?></td>
 						<td class="congregation preserve-value"><?php $person->printFieldInterface('congregationid', 'members_0_'); ?></td>
 						<td><?php $person->printFieldInterface('mobile_tel', 'members_0_'); ?></td>
@@ -241,7 +283,7 @@ class View_Families__Add extends View
 			</table>
 			</div>
 
-			<h3>Family Details <small>(optional)</small></h3>
+			<h3><?php echo _('Family Details');?> <small><?php echo _('(optional)');?></small></h3>
 			<?php
 			$this->_family->fields['family_name']['readonly'] = 1;
 			$this->_family->printForm();
@@ -252,7 +294,7 @@ class View_Families__Add extends View
 		if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
 			?>
 			<div <?php echo REQUIRE_INITIAL_NOTE ? '' : 'class="optional"'; ?>>
-			<h3>Initial Note <small>(<?php echo REQUIRE_INITIAL_NOTE ? 'required' : 'optional'; ?>)</small></h3>
+			<h3><?php echo _('Initial Note');?> <small>(<?php echo REQUIRE_INITIAL_NOTE ? _('required') : _('optional'); ?>)</small></h3>
 			<?php
 				$GLOBALS['system']->includeDBClass('family_note');
 				$note = new Family_Note();
@@ -264,19 +306,19 @@ class View_Families__Add extends View
 
 		if ($plan_chooser = Action_Plan::getMultiChooser('execute_plan', 'create_family')) {
 			?>
-			<h3>Action plans <small>(optional)</small></h3>
-			<p>Execute the following action plans for the new family: </p>
+			<h3><?php echo _('Action plans');?> <small><?php echo _('(optional)');?></small></h3>
+			<p><?php echo _('Execute the following action plans for the new family:');?> </p>
 			<div class="indent-left">
 				<?php echo $plan_chooser; ?>
-				<p>Reference date for plans: <?php print_widget('plan_reference_date', Array('type' => 'date'), NULL); ?></p>
+				<p><?php _('Reference date for plans:')?> <?php print_widget('plan_reference_date', Array('type' => 'date'), NULL); ?></p>
 			</div>
 			<?php
 		}
 		?>
-		<h3>Create</h3>
+		<h3><?php echo _('Create');?></h3>
 			<div class="align-right">
-				<input type="submit" class="btn" value="Create Family" />
-				<input type="button" class="back btn" value="Cancel" />
+				<input type="submit" class="btn" value=<?php echo _('Create Family');?> />
+				<input type="button" class="back btn" value=<?php echo _('Cancel');?> />
 			</div>
 		</form>
 		<?php

@@ -4,12 +4,13 @@ class roster_role_assignment extends db_object
 {
 	// NB This class only exists for the following SQL
 	// It has no ID
-	function getInitSql()
+	function getInitSql($table_name = NULL)
 	{
 		return 'create table roster_role_assignment (
 					assignment_date	date not null,
 					roster_role_id	int(11) not null,
 					personid		int(11) not null,
+					rank            int unsigned not null default 0,
 					assigner		int(11) not null,
 					assignedon		timestamp,
 					primary key (roster_role_id, assignment_date, personid),
@@ -38,7 +39,6 @@ class roster_role_assignment extends db_object
 		$sql .= '
 			ORDER BY rra.assignment_date ASC, c.meeting_time';
 		$res = $GLOBALS['db']->queryAll($sql, NULL, NULL, true, false, true);
-		check_db_result($res);
 		return $res;
 	}
 

@@ -11,10 +11,10 @@ class View__Move_Person_To_Family extends View
 	function processView()
 	{
 		$GLOBALS['system']->setFriendlyErrors(TRUE);
-		$this->_person =& $GLOBALS['system']->getDBObject('person', (int)$_REQUEST['personid']);
+		$this->_person = $GLOBALS['system']->getDBObject('person', (int)$_REQUEST['personid']);
 		if (!empty($_REQUEST['move_to'])) {
 			if ($_REQUEST['move_to'] == 'new') {
-				$family =& $GLOBALS['system']->getDBObject('family', (int)$this->_person->getValue('familyid'));
+				$family = $GLOBALS['system']->getDBObject('family', (int)$this->_person->getValue('familyid'));
 				$family->id = 0;
 				$family->create();
 				$this->_person->setValue('familyid', $family->id);
@@ -26,7 +26,7 @@ class View__Move_Person_To_Family extends View
 					trigger_error("You must select a new family to move to, or choose to create a new family");
 					return false;
 				}
-				$family =& $GLOBALS['system']->getDBObject('family', (int)$_REQUEST['familyid']);
+				$family = $GLOBALS['system']->getDBObject('family', (int)$_REQUEST['familyid']);
 				if ($family) {
 					$old_familyid = $this->_person->getValue('familyid');
 					$this->_person->setValue('familyid', (int)$_REQUEST['familyid']);
@@ -35,14 +35,17 @@ class View__Move_Person_To_Family extends View
 
 						$remaining_members = $GLOBALS['system']->getDBObjectData('person', Array('familyid' => $old_familyid));
 						if (empty($remaining_members)) {
-							$old_family =& $GLOBALS['system']->getDBObject('family', $old_familyid);
-							// add a note
-							$GLOBALS['system']->includeDBClass('family_note');
-							$note = new Family_Note();
-							$note->setValue('familyid', $old_familyid);
-							$note->setValue('subject', 'Archived by System');
-							$note->setValue('details', 'The system is archiving this family because its last member ('.$this->_person->toString().' #'.$this->_person->id.') has been moved to another family ('.$family->toString().' #'.$family->id.')');
-							$note->create();
+							$old_family = $GLOBALS['system']->getDBObject('family', $old_familyid);
+							
+							if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
+								// add a note
+								$GLOBALS['system']->includeDBClass('family_note');
+								$note = new Family_Note();
+								$note->setValue('familyid', $old_familyid);
+								$note->setValue('subject', 'Archived by System');
+								$note->setValue('details', 'The system is archiving this family because its last member ('.$this->_person->toString().' #'.$this->_person->id.') has been moved to another family ('.$family->toString().' #'.$family->id.')');
+								$note->create();
+							}
 
 							// archive the family record
 							$old_family->setValue('status', 'archived');
@@ -98,7 +101,7 @@ class View__Move_Person_To_Family extends View
 		}
 		if ($show_form) {
 			?>
-			<form method="post" class="form-horizontal">
+			<form method="post" class="form-horizontal" data-lock-length="<?php echo db_object::getLockLength() ?>">
 				<div class="control-group">
 					<label class="control-label">Current Family</label>
 					<div class="controls controls-text">
@@ -131,10 +134,6 @@ class View__Move_Person_To_Family extends View
 					<a class="btn" href="?view=persons&personid=<?php echo $this->_person->id; ?>">Cancel</a>
 				</div>
 			</form>
-			<script type="text/javascript">
-				setTimeout('showLockExpiryWarning()', <?php echo (strtotime('+'.LOCK_LENGTH, 0)-60)*1000; ?>);
-				setTimeout('showLockExpiredWarning()', <?php echo (strtotime('+'.LOCK_LENGTH, 0))*1000; ?>);
-			</script>
 			<?php
 		}
 	}

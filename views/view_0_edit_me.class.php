@@ -9,13 +9,13 @@ class View__Edit_Me extends Abstract_View_Edit_Object
 
 	function _initEditedObject()
 	{
-		$this->_edited_object =& $GLOBALS['system']->getDBObject('staff_member', $GLOBALS['user_system']->getCurrentUser('id'));
+		$this->_edited_object = $GLOBALS['system']->getDBObject('staff_member', $GLOBALS['user_system']->getCurrentUser('id'));
 		return true;
 	}
 	
 	function getTitle()
 	{
-		return 'Editing User Account for '.$this->_edited_object->toString();
+		return _('Editing User Account for ').$this->_edited_object->toString();
 	}
 
 	function getEditingTypeFriendly() {

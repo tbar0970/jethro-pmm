@@ -29,10 +29,12 @@ class View_Families__Search extends View
 
 		// Put all the archived ones last
 		$archiveds = Array();
-		foreach ($this->_family_data as $k => $v) {
-			if ($v['status'] == 'archived') {
-				$archiveds[$k] = $v;
-				unset($this->_family_data[$k]);
+		if (!empty($this->_family_data)) {
+			foreach ($this->_family_data as $k => $v) {
+				if ($v['status'] == 'archived') {
+					$archiveds[$k] = $v;
+					unset($this->_family_data[$k]);
+				}
 			}
 		}
 		foreach ($archiveds as $k => $v) {
@@ -43,7 +45,7 @@ class View_Families__Search extends View
 	
 	function getTitle()
 	{
-		return 'Family Search Results';
+		return _('Family Search Results');
 	}
 
 	function printView()
@@ -51,7 +53,7 @@ class View_Families__Search extends View
 		$families =& $this->_family_data;
 		if (empty($families)) {
 			?>
-			<p>No matching families were found</p>
+			<p><?php echo _('No matching families were found');?></p>
 			<?php
 		} else {
 			include dirname(dirname(__FILE__)).'/templates/family_list.template.php';

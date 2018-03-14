@@ -1,14 +1,21 @@
 <?php
 require_once dirname(__FILE__).'/general.php';
-class User_System
+require_once dirname(__FILE__).'/abstract_user_system.class.php';
+
+/**
+ * This class is the user system for fully-logged-in users (eg staff members).
+ * See members/include/member_user_system for church-member login handling.
+ */
+class User_System extends Abstract_User_System
 {
 	private $_error;
 	private $_permission_levels = Array();
+	private $_is_public = FALSE;
 
 	public function __construct()
 	{
 		include 'permission_levels.php';
-		$enabled_features = explode(',', strtoupper(ENABLED_FEATURES));
+		$enabled_features = explode(',', strtoupper(ifdef('ENABLED_FEATURES', '')));
 		foreach ($PERM_LEVELS as $i => $detail) {
 			list($define_symbol, $desc, $feature_code) = $detail;
 			define('PERM_'.$define_symbol, $i);
@@ -56,8 +63,7 @@ class User_System
 			}
 			$_SESSION['last_activity_time'] = time();
 
-			$res = $GLOBALS['db']->query('SET @current_user_id = '.(int)$_SESSION['user']['id']);
-			if (PEAR::isError($res)) trigger_error('Failed to set user id in database', E_USER_ERROR);
+            $GLOBALS['db']->setCurrentUserID((int)$_SESSION['user']['id']);
 		}
 
 	}//end constructor
@@ -69,19 +75,24 @@ class User_System
 	}
 
 	private function _logOut() {
+		if (!empty($_SESSION['user'])) {
+			DB_Object::releaseAllLocks($_SESSION['user']['id']);
+		}
 		$_SESSION['user'] = NULL;
 		$_SESSION['login_time'] = NULL;
 		$_SESSION['last_activity_time'] = NULL;
 	}
 
-	public function hasUsers()
+	/**
+	 * Get details of the currently-authorised user account
+	 * @see Abstract_User_System::getCurrentPerson()
+	 * @param string $field	Particular field to return; null=return all fields
+	 * @return mixed
+	 */
+
+	public function getCurrentPerson($field='')
 	{
-		$sql = 'SELECT count(*) FROM staff_member';
-		$res = $GLOBALS['db']->queryRow($sql);
-		if (PEAR::isError($res)) {
-			$res = 0;
-		}
-		return (bool)$res;
+		return $this->getCurrentUser($field);
 	}
 
 	/**
@@ -91,7 +102,7 @@ class User_System
 	 */
 	public function getCurrentUser($field='')
 	{
-		if (empty($_SESSION['user'])) {
+		if (empty($_SESSION['user']) || $this->_is_public) {
 			return NULL;
 		} else {
 			if (empty($field)) {
@@ -103,11 +114,12 @@ class User_System
 
 	}//end getCurrentUser()
 
-	public function getCurrentRestrictions()
+	public function getCurrentRestrictions($type=NULL)
 	{
 		$res = Array();
 		if (!empty($_SESSION['user']['group_restrictions'])) $res['group'] = $_SESSION['user']['group_restrictions'];
 		if (!empty($_SESSION['user']['congregation_restrictions'])) $res['congregation'] = $_SESSION['user']['congregation_restrictions'];
+		if ($type) $res = array_get($res, $type);
 		return $res;
 	}
 
@@ -135,12 +147,16 @@ class User_System
 	// Called by the public interface to indicate no login expected
 	public function setPublic()
 	{
-		$res = $GLOBALS['db']->query('SET @current_user_id = -1');
-		if (PEAR::isError($res)) trigger_error('Failed to set user id in database', E_USER_ERROR);
+        $GLOBALS['db']->setCurrentUserID(-1);
+		$this->_is_public = TRUE;
 	}
 
 	public function printLogin()
 	{
+		if (!$this->hasUsers()) {
+			trigger_error("This system has no user accounts - it has not been installed properly", E_USER_ERROR);
+			exit;
+		}
 		$_SESSION['login_key'] = $login_key = generate_random_string(32);
 		require TEMPLATE_DIR.'/login_form.template.php';
 
@@ -158,7 +174,6 @@ class User_System
 					AND active = 1
 				GROUP BY p.id';
 		$row = $db->queryRow($sql);
-		check_db_result($row);
 		if (!empty($row) && jethro_password_verify($password, $row['password'])) {
 			$row['congregation_restrictions'] = empty($row['congregation_restrictions']) ? Array() : explode(',', $row['congregation_restrictions']);
 			$row['group_restrictions'] = empty($row['group_restrictions']) ? Array() : explode(',', $row['group_restrictions']);
@@ -167,6 +182,16 @@ class User_System
 		return NULL;
 
 	}//end _validateUser()
+
+	public function hasUsers()
+	{
+		$SQL = 'SELECT count(*) FROM staff_member WHERE 1';
+		try {
+			return ($GLOBALS['db']->queryOne($SQL) > 0);
+		} catch (Exception $ex) {
+			return FALSE;
+		}
+	}
 
 
 }//end class

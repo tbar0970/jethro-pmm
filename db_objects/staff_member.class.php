@@ -5,7 +5,7 @@
 include_once 'db_objects/person.class.php';
 class Staff_Member extends Person
 {
-	var $_save_permission_level = PERM_SYSADMIN; // but see below
+	protected $_save_permission_level = PERM_SYSADMIN; // but see below
 
 	var $_restrictions = Array();
 	var $_old_restrictions = NULL;
@@ -21,17 +21,16 @@ class Staff_Member extends Person
 	function load($id)
 	{
 		$res = parent::load($id);
-		
+
 		// Load restrictions
-		$sql = 'SELECT congregationid, NULL as groupid 
+		$sql = 'SELECT congregationid, NULL as groupid
 				FROM account_congregation_restriction
 				WHERE personid = '.(int)$id.'
 				UNION
 				SELECT NULL as congregationid, groupid
-				FROM account_group_restriction 
+				FROM account_group_restriction
 				WHERE personid = '.(int)$id;
 		$res = $GLOBALS['db']->queryAll($sql);
-		check_db_result($res);
 		foreach ($res as $row) {
 			$type = empty($row['congregationid']) ? 'group' : 'congregation';
 			$this->_restrictions[$type][] = $row[$type.'id'];
@@ -40,7 +39,7 @@ class Staff_Member extends Person
 		return $res;
 	}
 
-	function _getFields()
+	protected static function _getFields()
 	{
 		return Array(
 			'username'	=> Array(
@@ -69,9 +68,10 @@ class Staff_Member extends Person
 			'permissions'  => Array(
 									'type'		=> 'bitmask',
 									'options'	=> $GLOBALS['user_system']->getPermissionLevels(),
-									'default'	=> DEFAULT_PERMISSIONS,
+									'default'	=> ifdef('DEFAULT_PERMISSIONS', 2147483647),
 									'label'		=> 'Permissions Granted',
 									'cols'		=> 3,
+									'note'      => 'NOTE: Changes to permissions only take effect the next time a user logs in',
 						   ),
 
 		);
@@ -80,13 +80,18 @@ class Staff_Member extends Person
 
 
 	// We need this to override person::getInitSQL
-	function getInitSQL()
+	public function getInitSQL($table_name=NULL)
 	{
 		return $this->_getInitSQL();
 	}
 
+	public function getForeignKeys()
+	{
+		return Array();
+	}
 
-	function getTasks($type='all')
+
+	public function getTasks($type='all')
 	{
 		$date_exp = '';
 		switch ($type) {
@@ -97,12 +102,12 @@ class Staff_Member extends Person
 				$date_exp = 'AND action_date > DATE(NOW())';
 		}
 		$db =& $GLOBALS['db'];
-		$sql = 'SELECT 
-					an.id, an.subject, pn.personid, fn.familyid, an.action_date, 
+		$sql = 'SELECT
+					an.id, an.subject, pn.personid, fn.familyid, an.action_date,
 					IF(p.id IS NOT NULL,
 						CONCAT(p.first_name, '.$db->quote(' ').', p.last_name),
 						CONCAT(f.family_name, '.$db->quote(' Family').')
-					) as name, 
+					) as name,
 					IF(p.id IS NOT NULL, '.$db->quote('person').', '.$db->quote('family').') as type
 				FROM abstract_note an
 						LEFT JOIN person_note pn ON an.id = pn.id
@@ -115,7 +120,6 @@ class Staff_Member extends Person
 					'.$date_exp.'
 				ORDER BY action_date ASC';
 		$res = $db->queryAll($sql, null, null, true);
-		check_db_result($res);
 		return $res;
 	}
 
@@ -124,7 +128,7 @@ class Staff_Member extends Person
 	*
 	* Subclasses should add links and other HTML markup by overriding this
 	*/
-	function printFieldValue($name, $value=null)
+	function printFieldValue($name, $value=NULL)
 	{
 		if (is_null($value)) $value = $this->getValue($name);
 		if ($name == 'restrictions') {
@@ -175,11 +179,14 @@ class Staff_Member extends Person
 	function printFieldInterface($name, $prefix='')
 	{
 		switch ($name) {
+			case 'username':
+				print_widget($prefix.'user_un', $this->fields['username'], $this->getValue('username'));
+				break;
 			case 'password':
 				if (($GLOBALS['user_system']->getCurrentUser('id') == $this->id) || $GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 					?>
-					<input type="password" data-minlength="<?php echo (int)$this->getMinPasswordLength(); ?>" autocomplete="off" name="<?php echo $prefix.$name.'1'; ?>" /><br />
-					<input type="password" data-minlength="<?php echo (int)$this->getMinPasswordLength(); ?>" autocomplete="off" name="<?php echo $prefix.$name.'2'; ?>" /><br />
+					<input type="password" data-minlength="<?php echo (int)$this->getMinPasswordLength(); ?>" autocomplete="off" name="<?php echo $prefix.'user_pw1'; ?>" /><br />
+					<input type="password" data-minlength="<?php echo (int)$this->getMinPasswordLength(); ?>" autocomplete="off" name="<?php echo $prefix.'user_pw2'; ?>" /><br />
 					<p class="help-inline">Enter once, then again to confirm. Passwords must be at least <?php echo (int)$this->getMinPasswordLength(); ?> characters and contain 2 letters and 2 numbers</p>
 					<?php
 				} else {
@@ -201,15 +208,15 @@ class Staff_Member extends Person
 							<td>
 								<?php
 								print_widget(
-									'restrictions[congregation]', 
+									'restrictions[congregation]',
 									Array('type' => 'reference', 'references' => 'congregation', 'allow_multiple' => true),
 									array_get($this->_restrictions, 'congregation', Array())
 								);
 								?>
 							</td>
 							<td>
-								<?php 
-								Person_Group::printMultiChooser('restrictions[group]', array_get($this->_restrictions, 'group', Array()), Array(), FALSE); 
+								<?php
+								Person_Group::printMultiChooser('restrictions[group]', array_get($this->_restrictions, 'group', Array()), Array(), FALSE);
 								?>
 							</td>
 						</tr>
@@ -232,9 +239,6 @@ class Staff_Member extends Person
 				}
 				if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 					parent::printFieldInterface($name, $prefix);
-					?>
-					<p class="help-inline"><b>Note:</b> Changes to permissions only take effect the next time a user logs in</p>
-					<?php
 				} else {
 					$this->printFieldValue($name);
 					?>
@@ -252,10 +256,13 @@ class Staff_Member extends Person
 	{
 		switch ($name)
 		{
+			case 'username':
+				$this->setValue('username', array_get($_REQUEST, $prefix.'user_un'));
+				break;
 			case 'password':
-				if (!empty($_REQUEST[$prefix.$name.'1'])) {
-					$val = $_REQUEST[$prefix.$name.'1'];
-					if ($val != $_REQUEST[$prefix.$name.'2']) {
+				if (!empty($_REQUEST[$prefix.'user_pw1'])) {
+					$val = $_REQUEST[$prefix.'user_pw1'];
+					if ($val != $_REQUEST[$prefix.'user_pw2']) {
 						trigger_error('Password and password confirmation do not match; Password not saved.');
 					} else if (strlen($val) < $this->getMinPasswordLength()) {
 						trigger_error('Password is too short - must be at least '.$this->getMinPasswordLength().' characters; Password not saved.');
@@ -277,7 +284,7 @@ class Staff_Member extends Person
 				parent::processFieldInterface($name, $prefix);
 		}
 	}
-	
+
 	private function getMinPasswordLength() {
 		$minLen = defined('PASSWORD_MIN_LENGTH') ? (int)PASSWORD_MIN_LENGTH : 0;
 		$minLen = max($minLen, 8);
@@ -319,7 +326,7 @@ class Staff_Member extends Person
 		return $res;
 	}
 
-	function save()
+	function save($update_family = true)
 	{
 		// Only admins can edit staff other than themselves
 		if (!empty($GLOBALS['JETHRO_INSTALLING']) || ($GLOBALS['user_system']->getCurrentUser('id') == $this->id) || $GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
@@ -332,7 +339,6 @@ class Staff_Member extends Person
 				foreach (Array('congregation', 'group') as $type) {
 					if (array_get($this->_restrictions, $type, Array()) != array_get($this->_old_restrictions, $type, Array())) {
 						$res = $GLOBALS['db']->query('DELETE FROM account_'.$type.'_restriction WHERE personid = '.(int)$this->id);
-						check_db_result($res);
 					}
 				}
 				$this->_insertRestrictions();
@@ -355,15 +361,13 @@ class Staff_Member extends Person
 			if (!empty($this->_restrictions[$type])) {
 				$rows = Array();
 				foreach ($this->_restrictions[$type] as $id) {
-					// TODO: only insert new restrictions!!!!
 					$rows[] = '('.(int)$this->id.','.(int)$id.')';
 				}
 				$res = $GLOBALS['db']->query('INSERT IGNORE INTO account_'.$type.'_restriction (personid, '.$type.'id) VALUES '.implode(',', $rows));
-				check_db_result($res);
 			}
 		}
 	}
-	
+
 	public function checkUniqueUsername()
 	{
 		$others = $GLOBALS['system']->getDBObjectData('staff_member', Array('username' => $this->getValue('username'), '!id' => $this->id), 'AND');

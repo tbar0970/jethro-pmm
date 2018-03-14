@@ -35,28 +35,57 @@ class View_People extends View
 		foreach ($list as $id => $member) {
 			$dummy->populate($id, $member);
 			if ($member['familyid'] != $lastFamilyID) {
+				$showAddress = defined('MEMBERS_SHARE_ADDRESS')
+								&& MEMBERS_SHARE_ADDRESS
+								&& !empty($member['address_suburb']);
 				?>
 				<div class="row-fluid">
-					<div class="span12">
+					<div class="span12 member-row family-row">
 						<h3><?php echo ents($member['family_name']); ?></h3>
-						<?php
-						if (!empty($member['home_tel'])) {
-							$dummy->printFieldValue('home_tel');
-						}
-						if (defined('MEMBERS_SHARE_ADDRESS')
-							&& MEMBERS_SHARE_ADDRESS
-							&& !empty($member['address_suburb'])
-						) {
-							echo '<br />'.nl2br(ents($member['address_street'])).'<br />';
-							echo ents($member['address_suburb'].' '.$member['address_state'].' '.$member['address_postcode']);
-						}
-						?>
 					</div>
 				</div>
 				<?php
+				if ($showAddress || $member['home_tel']) {
+					?>
+					<div class="row-fluid">
+						<div class="span12 member-row family-row">
+							<?php
+							if ($showAddress) {
+								echo nl2br(ents($member['address_street'])).'<br />';
+								echo ents($member['address_suburb'].' '.$member['address_state'].' '.$member['address_postcode']);
+								echo '<br />';
+							}
+							if (!empty($member['home_tel'])) {
+								$dummy->printFieldValue('home_tel');
+							}
+							?>
+						</div>
+					</div>
+					<?php
+				}
 			}
-			?>
-				<div class="row-fluid">
+			if ($GLOBALS['system']->featureEnabled('PHOTOS')) {
+				?>
+				<div class="member-card">
+					<?php
+					echo '<img src="?call=photo&personid='.$id.'" />';
+					echo ents($member['first_name'].' '.$member['last_name']);
+					echo '<br />';
+					if ($member['congregationid']) {
+						$dummy->printFieldValue('congregationid');
+						echo '<br />';
+					}
+					if ($member['mobile_tel']) {
+						$dummy->printFieldValue('mobile_tel');
+						echo '<br />';
+					}
+					$dummy->printFieldValue('email');
+					?>
+				</div>
+				<?php
+			} else {
+				?>
+				<div class="row-fluid member-row">
 					<div class="span3">
 						<?php echo ents($member['first_name'].' '.$member['last_name']); ?>
 					</div>
@@ -70,7 +99,8 @@ class View_People extends View
 						<?php $dummy->printFieldValue('email'); ?>
 					</div>
 				</div>
-			<?php
+				<?php
+			}
 			$lastFamilyID = $member['familyid'];
 		}
 		?>

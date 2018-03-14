@@ -10,18 +10,18 @@ Jethro PMM is the software that powers online services such as [Easy Jethro](htt
 
 Download the latest version of Jethro from the [releases page](https://github.com/tbar0970/jethro-pmm/releases)
 
+System requirements are:
+* MySQL 5.1 or above
+* PHP 5.3.0 or above
+* Some web server (apache suggested)
+
 The steps to install are:
 
 1. Unzip the files into a web-accessible folder on your web server
-2. Create a mysql database and database user for your jethro system to use
+2. Create a mysql database and database user for your jethro system to use. If asked, choose utf8_unicode_ci as the character set and collation.
 3. Edit Jethro's configuration file conf.php and fill in the essential details (system name, URL, database details).  Further explanation can be found inside the file.
 4. Open the jethro system URL in your web browser
-5. If you encounter an error about MDB2.php not being found, you need to install the MDB2 PEAR library.  If you have command line access this can be done by running
-<code>pear install MDB2
-pear install MDB2_Driver_mysql</code>
-If you don't have command line access you can unzip [this ZIP file](http://sourceforge.net/project/showfiles.php?group_id=192555&package_id=247862&release_id=544189) into your Jethro folder.
-6. In your web browser, the Jethro installer will start automatically and will prompt you for details to create the initial user account.  When the installer completes, it will prompt you to log into the installed system.
-7. 
+5.. In your web browser, the Jethro installer will start automatically and will prompt you for details to create the initial user account.  When the installer completes, it will prompt you to log into the installed system.
 
 # Documentation
 
@@ -68,10 +68,12 @@ Jethro is designed to facilitate and encourage good team ministry, so its name c
 
 # Acknowledgements
 Jethro development has been sponsored or contributed to by several churches worldwide:
-* [Christ Church Inner West Anlgican Community](http://cciw.org.au), Sydney, Australia (founding sponsor)
+* [Christ Church Inner West Anglican Community](http://cciw.org.au), Sydney, Australia (founding sponsor)
 * [Redlands Presbyterian Church](http://www.redlands.org.au/), Queensland, Australia (sponsor of service planning features)
 * [St Peter's Woolton](http://www.stpeters-woolton.org.uk), Liverpool, UK (sponsor of date field and photo features)
-* [Coast Evanglical Church](http://www.coastec.net.au)</a>, Forster, Australia (sponsor of group-membership statuses, attendance enhancements and more)
+* [Coast Evangelical Church](http://www.coastec.net.au)</a>, Forster, Australia (sponsor of group-membership statuses, attendance enhancements and more)
 * [St George North Anglican Church](http://snac.org.au)</a>, Sydney, Australia (contributor of vCard export)
 * [Macquarie Anglican Church](http://www.macquarieanglican.org/)</a>, Sydney, Australia (contributor of note-search and SMS-family feature)
-* [Dalby Presbyterian Church](http://www.dpc.cc/)</a>, Queensland, Australia (sponsor of edit/delete note features)
+* [Dalby Presbyterian Church](http://www.dpc.cc/)</a>, Queensland, Australia (sponsor of edit/delete note features and family photos)
+* [Professional Standards Unit](http://safeministry.org.au), Anglican Diocese of Sydney (sponsor of custom fields etc)
+There are also several github contributors whose input is invaluable.

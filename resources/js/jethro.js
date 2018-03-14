@@ -1,13 +1,29 @@
-// TODO: more sniffing of the relevant bits (like attendance does) to speed up page load
-
 $(document).ready(function() {
 
 	if ($('.stop-js').length) return; /* Classname flag for big pages that don't want JS to run */
 
+	// Make standalone safari stay standalone
+	if (("standalone" in window.navigator) && window.navigator.standalone) {
+		$('a.brand').parent().prepend('<i class="icon-white icon-chevron-left" onclick="history.go(-1); "></i>')
+		$("a").click(function (event) {
+			if ((!$(this).attr('target'))
+					&& (!$(this).attr('data-toggle'))
+					&& this.href != ''
+					&& this.href.indexOf('#') != 0
+					&& this.href.indexOf('javascript:') != 0
+					&& !((this.innerHTML == 'Search') && $(this).parents('.nav').length)
+			) {
+				event.preventDefault();
+				window.location = $(this).attr("href");
+				return false;
+			}
+		});
+	}
+
 	// This needs to be first!
 	// https://github.com/twitter/bootstrap/issues/3217
 	$('#jethro-overall-width').append($('.modal').not('form .modal').remove());
-	$('.modal').on('shown', function() { 
+	$('.modal').on('shown', function() {
 		$(this).find('input:first, select:first').select();
 	});
 
@@ -19,18 +35,18 @@ $(document).ready(function() {
 			}
 		});
 	});
-	
-	// Attach the quick-search handlers
+
+  	// Attach the quick-search handlers
 	$('.nav a').each(function() {
 		if (this.innerHTML && (this.innerHTML.toLowerCase() == 'search')) {
 			$(this).click(handleSearchLinkClick);
 			this.accessKey = $(this).parents('ul').parents('li').find('a.dropdown-toggle').html().toLowerCase()[0];
 		}
 	});
-	
+
 
 	// Popups etc
-	var envelopeWindow = null;	
+	var envelopeWindow = null;
 	$('a.envelope-popup').click(function() {
 		envelopeWindow = window.open(this.href, 'envelopes', 'height=320,width=500,location=no,menubar=no,titlebar=no,toolbar=no,resizable=yes,statusbar=no');
 		if (envelopeWindow) {
@@ -40,7 +56,7 @@ $(document).ready(function() {
 		}
 		return false;
 	});
-	
+
 	$('a.postcode-lookup').click(function() {
 		var suburb = this.parentNode.getElementsByTagName('INPUT')[0].value;
 		var state = $('select[name=address_state]');
@@ -68,15 +84,15 @@ $(document).ready(function() {
 		}
 		return false;
 	});
-	
+
 	$('a.map').click(function() {
 		var mapWindow = window.open(this.href, 'map', 'height='+parseInt($(window).height()*0.9, 10)+',width='+parseInt($(window).width()*0.9, 10)+',location=no,menubar=no,titlebar=no,toolbar=no,resizable=yes,statusbar=no');
 		if (!mapWindow) {
 			alert('Jethro tried but could not open a popup window - you probably have a popup blocker enabled.  Please disable your popup blocker for this site, reload the page and try again.');
 		}
 		return false;
-	});	
-	
+	});
+
 	$('input.cancel, a.cancel').click(function() {
 		if (window.opener) {
 			try {
@@ -92,25 +108,15 @@ $(document).ready(function() {
 		}
 	});
 
+	/*********************** LOCK EXPIRY WARNING ****************/
+	initLockExpiry();
+
 
 	/*************************** REPORTS *********************/
 	$('input.select-rule-toggle').click(function() {
 		$($(this).parents('tr')[0]).find('div.select-rule-options').css('display', (this.checked ? '' : 'none'));
 	});
 
-	if ($('#datefield-rules')) {
-		$('.datefield-rule-period').hide();
-		$('.datefield-rule-criteria').change(function() {
-			if ((this.value == 'exact') || (this.value == 'anniversary')) {
-				$(this).siblings('.datefield-rule-period').show();
-			} else {
-				$(this).siblings('.datefield-rule-period').hide();
-			}
-		}).change();
-	}
-		
-
-	
 	/************************ SEARCH CHOOSERS ************************/
 
 	$('input.person-search-multiple').each(function() {
@@ -133,7 +139,7 @@ $(document).ready(function() {
 					  )
 		};
 		var as = new bsn.AutoSuggest(this.id, options);
-	});		
+	});
 
 	$('input.person-search-single, input.family-search-single').each(function() {
 		var stem = this.id.substr(0, this.id.length-6);
@@ -166,11 +172,11 @@ $(document).ready(function() {
 		}
 	});
 
-	
+
 	/******************* DOCUMENT REPOSITORY ************************/
 
 	if ($('.document-icons').length) {
-		$('.document-message').hide().fadeIn('medium'); 
+		$('.document-message').hide().fadeIn('medium');
 		$('.rename-file').click(function() {
 			var filename = $(this).parents('tr:first').find('td.filename').text();
 			$('#rename-file-modal')
@@ -204,7 +210,7 @@ $(document).ready(function() {
 						}
 						return true;
 					});
-		});		
+		});
 		$('.move-file').click(function() {
 			var filename = $(this).parents('tr:first').find('td.filename').text();
 			$('#move-file-modal')
@@ -212,7 +218,7 @@ $(document).ready(function() {
 					.html(filename)
 					.end()
 				.modal('show')
-				.on('shown', function() { 
+				.on('shown', function() {
 							$(this).find('select#move-file')
 								.attr('name', 'movefile['+filename+']')
 								.focus();
@@ -228,7 +234,7 @@ $(document).ready(function() {
 				.find('input[type=button]').attr('disabled', true);
 		});
 	}
-	
+
 
 	/*************************** BULK ACTIONS ********************/
 	$('#bulk-action-chooser').change(function() {
@@ -242,21 +248,20 @@ $(document).ready(function() {
 		selectedInputs.filter('[data-toggle=enable]').attr('disabled', false).change();
 	});
 
-	$('form.bulk-person-action').submit(function() {
+	$('form.bulk-person-action').submit(function(event) {
 		var checkboxes = document.getElementsByName('personid[]');
-		for (var i=0; i < checkboxes.length; i++) {
-			if (checkboxes[i].checked) return true;
-		}
-		if (confirm('You have not selected any persons. Would you like to perform this action on every person listed?')) {
-			for (var i=0; i < checkboxes.length; i++) {
+		if ($("input[name='personid[]']:checked").length === 0) {
+			if (confirm('You have not selected any persons. Would you like to perform this action on every person listed?')) {
+			  for (var i = 0; i < checkboxes.length; i++) {
 				checkboxes[i].checked = true;
+			  }
+			} else {
+			  TBLib.cancelValidation();
+			  return false;
 			}
-			return true;
-		} else {
-			TBLib.cancelValidation();
-			return false;
 		}
-	});
+		return true;
+    });
 
 	/********************** TAGGING ******************/
 
@@ -275,13 +280,12 @@ $(document).ready(function() {
 	}
 
 
-
 	/***************** LAYOUT FIXES *******************/
 
 	layOutMatchBoxes();
 	$('a[data-toggle="tab"]').on('shown', layOutMatchBoxes);
 	$(window).resize(layOutMatchBoxes);
-	
+
 	// Make sure the width doesn't bounce around when we change tabs
 	var tabPanes = $('.tab-pane');
 	if (tabPanes.length) {
@@ -303,7 +307,7 @@ $(document).ready(function() {
 			$(".nav-tabs li a[href='#" + window.location.hash.substr(1) + "']").click()
 		}
 	}
-		
+
 	/****** Radio buttons *****/
 
 	var attendanceUseKeyboard = ($(window).width() > 640);
@@ -320,7 +324,7 @@ $(document).ready(function() {
 		.on('click', function() {
 			onRadioButtonActivated.apply($(this));
 		});
-	
+
 	function onRadioButtonActivated(event) {
 		this.addClass('active');
 		this.siblings('div').removeClass('active');
@@ -337,9 +341,9 @@ $(document).ready(function() {
 					wentToNextRow = true;
 					nextCell = thisCell.parents('tr').next('tr').find('td').first();
 				}
-				
+
 			} while (nextCell.length && !nextCell.find('.radio-button-group').length);
-			
+
 			nextCell.find('.radio-button-group').focus();
 		}
 	}
@@ -367,9 +371,9 @@ $(document).ready(function() {
 			$(this).parents('tr:first').addClass('hovered');
 		});
 	}
-	
+
 	// MULTI-SELECT
-		
+
 	$('div.multi-select label input').change(function() {
 		if (this.checked) {
 			$(this.parentNode).addClass('active');
@@ -377,25 +381,346 @@ $(document).ready(function() {
 			$(this.parentNode).removeClass('active');
 		}
 	}).change();
-	
+
 	// FAMILY PHOTOS
 
 	handleFamilyPhotosLayout();
-	
+
 	// NARROW COLUMNS
 
 	setTimeout( "applyNarrowColumns('body'); ", 30);
 
-	if (document.getElementById('service-planner')) {
-		JethroServicePlanner.init();
+	JethroServicePlanner.init();
+
+	JethroRoster.init();
+
+
+	$('table.reorderable tbody').sortable(	{
+			cursor: "move",
+			/*containment: "parent",*/
+			revert: 100,
+			opacity: 1,
+			axis: 'y',
+		});
+
+	$('input.select-other').prevAll('select').change(function() {
+		var otherBox = $(this).nextAll('input.select-other');
+		if (this.value == 'other') {
+			otherBox.show().focus();
+		} else {
+			otherBox.val('').hide();
+		}
+	}).change();
+
+	if (document.getElementById('custom-fields-editor')) {
+		$("#custom-fields-editor>tbody").sortable(	{
+			cursor: "move",
+			/*containment: "parent",*/
+			revert: 100,
+			opacity: 1,
+			axis: 'y',
+			start: function(event, ui) { ui.helper.find('table').hide(); },
+			stop: function(event, ui) { ui.item.find('table').show('medium'); },
+
+		})
+
+		$('#custom-fields-editor').parents('form').submit(function() {
+			var optionsMsg = fieldsMsg = '';
+			$(this).find('input[type=checkbox]').each(function() {
+				if (this.checked){
+					if (this.name.match(/fields_[0-9]+_delete/)) fieldsMsg = "\nDeleting a field will delete all values for that field from all persons.";
+					if (this.name.match(/fields_[0-9]+_options_delete/)) optionsMsg = "\nDeleting a select option will remove that value from all persons currently using it.";
+				}
+			})
+			if (optionsMsg || fieldsMsg) return confirm("WARNING: "+fieldsMsg+optionsMsg+"\nAre you sure you want to continue?");
+		})
+
+		$('#custom-fields-editor .toggle-divider input').click(function() {
+			$(this).parents('tr')[this.checked ? 'addClass' : 'removeClass']('divider-before');
+		});
+		var handleTooltipClick = function() {
+			var tt = $(this).parents('tr').find('.tooltip-text');
+			tt[this.checked ? 'show' : 'hide']();
+			if (this.checked) {
+				tt.focus();
+			} else {
+				tt.val('');
+			}
+		}
+		$('#custom-fields-editor .toggle-tooltip input')
+				.each(handleTooltipClick)
+				.click(handleTooltipClick);
+
+		var handleToggleHeading = function() {
+			var tr = $(this).parents('tr')
+			var headingBox = tr.find('.heading');
+			if (this.checked) {
+				tr.addClass('with-heading');
+				headingBox.focus();
+			} else {
+				tr.removeClass('with-heading');
+				headingBox.val('');
+			}
+		}
+		$('#custom-fields-editor .toggle-heading input')
+			.click(handleToggleHeading)
+			.each(handleToggleHeading);
 	}
 
 	if (document.getElementById('service-program-editor')) {
 		JethroServiceProgram.init();
 	}
 
-
+	JethroSMS.init();
 });
+
+var JethroSMS = {};
+
+JethroSMS.init = function() {
+
+	// SMS Character counting
+	$('.smscharactercount').parent().find('textarea, div.sms_editor').on('keyup propertychange paste', function() {
+		var maxlength = (this.tagName == 'DIV') ? $(this).attr("data-maxlength") : $(this).attr('maxlength');
+		var currentLength = (this.tagName == 'DIV') ? $(this).text().length : this.value.length;
+		var chars = maxlength - currentLength;
+		if (chars <= 0 && this.tagName == 'DIV') {
+			$(this).val($(this).text().substring(0, maxlength));
+			chars = 0;
+		}
+		$(this).parent().find('.smscharactercount').html(chars + ' characters remaining.');
+	});
+
+	$(document).on('click', '[data-toggle="sms-modal"]', function(e) {
+		var $this = $(this)
+				, href = $this.attr('href')
+				, $target = $($this.attr('data-target') || (href && href.replace(/.*(?=#[^\s]+$)/, ''))) //strip for ie7
+				, option = $target.data('modal') ? 'toggle' : $.extend({remote: !/#/.test(href) && href}, $target.data(), $this.data());
+
+		var $recipients = $this.attr('data-name');
+		var $personid = $this.attr('data-personid');
+
+		$("#send-sms-modal .sms_recipients").html($recipients);
+		$("#sms_message").text(""); // Empty the textarea in case of reuse
+		$("#send-sms-modal .results").html(""); // Empty in case of reuse
+		$('#send-sms-modal .smscharactercount').html($("#sms_message").attr("data-maxlength") + ' characters remaining.'); // reset character count
+
+		if (!!$personid) {
+			$("#send-sms-modal").attr("data-sms_type", "person");
+			$("#send-sms-modal").attr("data-personid", $personid);
+			$("#send-sms-modal .sms-modal-option").show();
+			e.preventDefault();
+			$target.modal(option).one('hide', function() {
+				$this.focus()
+			})
+		} else {
+			alert('No SMS recipients found');
+		}
+	});
+
+	$('.bulk-sms-submit').click(function(event) {
+		event.preventDefault();
+		var submitBtn = $("#smshttp .bulk-sms-submit");
+		submitBtn.prop('disabled', true);
+		submitBtn.prop('value', 'Sending...');
+		submitBtn.css('cursor', 'wait');
+
+		var smsData = $(this.form).serialize();
+
+		$.ajax({
+			type: 'POST',
+			dataType: 'JSON',
+			url: '?call=sms',
+			data: smsData,
+			context: $(this),
+			error: function(jqXHR, status, error) {
+				alert('AJAX error sending SMS: ' + error);
+			},
+			success: function(data) {
+				var smsRequestCount = $("input[name='personid[]']:checked").length;
+				var resultsDiv = $('#bulk-sms-results');
+
+				JethroSMS.onAJAXSuccess(data, resultsDiv);
+
+			},
+			complete: function() {
+				var submitBtn = $("#smshttp .bulk-sms-submit");
+				submitBtn.prop('disabled', false);
+				submitBtn.prop('value', 'Send');
+				submitBtn.css('cursor', '');
+			}
+		});
+	});
+
+	$('#send-sms-modal .sms-submit').on('click', function(event) {
+		event.preventDefault();
+		var resultsDiv = $("#send-sms-modal .results");
+		resultsDiv.hide();
+
+		var modalDiv = $("#send-sms-modal");
+		var sms_message = $("#sms_message").text();
+		if (!sms_message) {
+			alert("Please enter a message first.");
+			return false;
+		} else {
+			var smsData, personid;
+			$(this).prop('disabled', true);
+			$(this).html("Sending...");
+			$("#send-sms-modal .results").hide();
+			var sendButton = $(this);
+			smsData = {
+				personid: modalDiv.attr("data-personid"),
+				saveasnote: ($("#send-sms-modal .saveasnote").attr("checked") === "checked") ? '1' : '0',
+				ajax: 1,
+				message: sms_message
+			}
+			$.ajax({
+				type: 'POST',
+				dataType: 'JSON',
+				url: '?call=sms',
+				data: smsData,
+				context: $(this),
+				error: function(jqXHR, status, error) {
+					alert('Server error while sending SMS');
+					console.log(jqXHR);
+					console.log(status);
+					console.log(error);
+					sendButton.html("Send");
+				},
+				success: function(data) {
+					var modalDiv = $("#send-sms-modal");
+					var showResults = JethroSMS.onAJAXSuccess(data, resultsDiv);
+					if (showResults) {
+						resultsDiv.show();
+						sendButton.html("Send");
+						sendButton.removeClass('sms-success');
+					} else { // Success!
+						sendButton.html('<i class="icon-ok"></i> Sent').addClass('sms-success');
+						setTimeout(function() {
+							modalDiv.modal('hide');
+							sendButton.html("Send");
+							sendButton.removeClass('sms-success');
+						}, 1000);
+					}
+					sendButton.prop('disabled', false);
+				}
+			});
+			return false;
+		}
+	});
+}
+
+/**
+ *
+ * @param object data
+ * @param object resultsDiv
+ * @returns {Boolean} TRUE if the modal window should be kept open to display errors.
+ */
+JethroSMS.onAJAXSuccess = function (data, resultsDiv) {
+	var sentCount = 0,
+	failedCount = 0,
+	archivedCount = 0,
+	blankCount = 0,
+	rawresponse = '',
+	statusBtn;
+
+	if (data.sent !== undefined) { sentCount = data.sent.count; }
+	if (data.failed !== undefined) { failedCount = data.failed.count; }
+	if (data.failed_archived !== undefined) { archivedCount = data.failed_archived.count; }
+	if (data.failed_blank !== undefined) { blankCount = data.failed_blank.count; }
+	if (data.rawresponse !== undefined) { rawresponse = data.rawresponse; }
+
+	resultsDiv.html(""); // Reset results in case there's something there
+	var message = '';
+	if (data.error!==undefined) {
+		alert('Server error sending SMS\n'+data.error);
+		return true;
+	}
+	if (sentCount > 0) {
+		if (sentCount == 1) {
+			var recip = data.sent.recipients[Object.keys(data.sent.recipients)[0]];
+			message = 'Message successfully sent to '+recip.first_name+' '+recip.last_name;
+		} else {
+			message = 'Message successfully sent to '+sentCount+' recipients';
+		}
+		JethroSMS.appendAlert(resultsDiv, 'alert-success', message, sentCount == 1 ? null : data.sent.recipients);
+		JethroSMS.markRecipientStatuses('Sent', data.sent.recipients, 'sms-success', 'SMS sent', true);
+
+		if (!data.sent.confirmed) {
+			JethroSMS.appendAlert(resultsDiv, '', 'Unable to confirm whether SMS sending was successful. Please check your system SMS configuration.');
+		}
+	}
+
+	if (blankCount > 0) {
+		if (blankCount == 1) {
+			var recip = data.failed_blank.recipients[Object.keys(data.failed_blank.recipients)[0]];
+			message = recip.first_name+' '+recip.last_name+' was not sent the message because they have no mobile number';
+		} else {
+			message = blankCount+' recipients were not sent the message because they have no mobile number';
+		}
+		JethroSMS.appendAlert(resultsDiv, '', message, blankCount == 1 ? null : data.failed_blank.recipients);
+		JethroSMS.markRecipientStatuses('Failed (No Mobile)', data.failed_blank.recipients, 'sms-failure', null, false);
+	}
+
+	if (archivedCount > 0) {
+		if (archivedCount == 1) {
+			var recip = data.failed_archived.recipients[Object.keys(data.failed_archived.recipients)[0]];
+			message = recip.first_name+' '+recip.last_name+' was not sent the message because they are archived';
+		} else {
+			message = archivedCount+' archived persons were not sent the message';
+		}
+		JethroSMS.appendAlert(resultsDiv, '', message, archivedCount == 1 ? null : data.failed_archived.recipients);
+		JethroSMS.markRecipientStatuses('Failed (Archived)', data.failed_archived.recipients, 'sms-failure', 'SMS not sent - person is archived', false);
+	}
+
+	if (failedCount > 0) {
+		if (failedCount == 1) {
+			var recip = data.failed.recipients[Object.keys(data.failed.recipients)[0]];
+			message = 'SMS sending failed for '+recip.first_name+' '+recip.last_name;
+		} else {
+			message = 'SMS sending failed for '+failedCount+' recipients';
+		}
+		JethroSMS.appendAlert(resultsDiv, 'alert-error', message, failedCount == 1 ? null : data.failed.recipients);
+		JethroSMS.markRecipientStatuses('Failed', data.failed.recipients, 'sms-failure', 'SMS failed', false);
+	}
+
+	return ((failedCount > 0) || (archivedCount > 0) || ( blankCount > 0) || ( sentCount == 0) || (data.error !== undefined));
+}
+
+JethroSMS.appendAlert = function(parent, className, content, recipients)
+{
+	if (recipients) {
+		content += '<p>';
+		var count = 0, personid = 0;
+		for (personID in recipients) {
+			if (recipients.hasOwnProperty(personID)) {
+				if (count > 0) {
+					content += ", ";
+				} else {
+					count = count + 1;
+				}
+				content += recipients[personID]['first_name'] + " " + recipients[personID]['last_name'];
+			}
+		}
+		content += '</p>';
+	}
+	parent.append('<div class="alert ' + className + '">' + content + '</div>');
+
+}
+
+JethroSMS.markRecipientStatuses = function(notice, recipients, rowClass, buttonMessage, untick)
+{
+	var fail_list = '<p class="namelist">';
+	// Silly long version to support IE < 9
+	var personID;
+	for (personID in recipients) {
+		if (recipients.hasOwnProperty(personID)) {
+			if (rowClass) $('tr[data-personid=' + personID + ']').addClass(rowClass);
+			if (untick)
+				$('tr[data-personid=' + personID + '] input[type=checkbox]').attr('checked', false);
+			if (buttonMessage) $('tr[data-personid=' + personID + '] .btn-sms').attr('title', buttonMessage);
+		}
+	}
+}
 
 var JethroServiceProgram = {};
 
@@ -423,6 +748,10 @@ JethroServiceProgram.init = function() {
 			var sourceCell = $(this).parents('td:first').prev('td:first');
 			JethroServiceProgram.copyServiceDetails(sourceCell, targetCell);
 		});
+		$('#populate-services').click(function() {
+			var placeholder = prompt('Enter a topic to apply to all empty services:');
+			if (placeholder) $('[name^="topic_title"][value=]').val(placeholder);
+		})
 };
 	/*
 	function cancelShiftConfirmPopup()
@@ -453,6 +782,9 @@ var JethroServicePlanner = {};
 
 JethroServicePlanner.draggedComp = null;
 
+JethroServicePlanner.newComponentInsertPoint = null;
+JethroServicePlanner.itemBeingEdited = null;
+
 JethroServicePlanner._getTRDragHelper = function(event, tr) {
 	var helper = tr.clone();
 	var originals = tr.children();
@@ -464,9 +796,14 @@ JethroServicePlanner._getTRDragHelper = function(event, tr) {
 
 JethroServicePlanner.init = function() {
 
-	// COMPONENTS TABLES:
+	if (!document.getElementById('service-planner')) return;
 
-	TBLib.anchorBottom('#service-comps, #service-plan-container');
+	// COMPONENTS TABLES:
+	// We have to start off with these hidden so we can set their width explicitly
+	// to their parent width.  Otherwise they always push stuff out.
+	$('#service-comps table').width(
+		$('#service-comps .tab-pane.active').first().width() + 'px'
+	).show();
 
     $("#service-comps tbody tr").draggable({
 		containment: "#service-planner",
@@ -483,7 +820,7 @@ JethroServicePlanner.init = function() {
 		}
     });
 
-	$("#component-search input").keypress(function() {
+	$("#component-search input").keypress(function(event) {
 		if (event.charCode == 13) JethroServicePlanner.beginComponentFiltering();
 	})
 	$("#component-search button[data-action=search]").click(JethroServicePlanner.beginComponentFiltering)
@@ -522,6 +859,7 @@ JethroServicePlanner.init = function() {
 		containment: "parent",
 		revert: 100,
 		opacity: 1,
+		axis: 'y'
     })
 
 	$('#service-plan').on('focus', 'textarea, input', function() {
@@ -550,17 +888,18 @@ JethroServicePlanner.init = function() {
 		var action = $(this).attr('data-action');
 		JethroServicePlanner.Item[action]($(this).parents('tr:first'));
 	})
+	$('#ad-hoc-modal input[data-action]').click(function() {
+		var action = $(this).attr('data-action');
+		JethroServicePlanner.Item[action]();
+	})
+	$('#ad-hoc-modal input').keypress(function(event) {
+		if (event.charCode == 13) JethroServicePlanner.Item.saveItemDetails();
+	})
 
 	JethroServicePlanner.refreshNumbersAndTimes();
 
 	// WARN UNSAVED
-
 	window.onbeforeunload = JethroServicePlanner.onBeforeUnload;
-
-	$('#service-plan-container').submit(function() {
-			
-	});
-
 
 }
 
@@ -624,11 +963,80 @@ JethroServicePlanner.Item.addNote = function($tr) {
 
 JethroServicePlanner.Item.remove = function($tr) {
 	$tr.remove();
+	JethroServicePlanner.refreshNumbersAndTimes();
+	JethroServicePlanner.isChanged = true;
 }
 
 JethroServicePlanner.Item.viewCompDetail = function($tr) {
 	var href="?call=service_comp_detail&head=1&id="+($tr.find('input.componentid').val());
 	TBLib.handleMedPopupLinkClick({'href' : href});
+}
+
+JethroServicePlanner.Item.addAdHoc = function ($tr) {
+	JethroServicePlanner.itemBeingEdited = null
+	JethroServicePlanner.newComponentInsertPoint = $tr.next('tr');
+	$modal = $('#ad-hoc-modal');
+	$modal.find('input[name=title]').val('');
+
+	$modal.find('select[name=show_in_handout] option[value=full]')
+			.css('display', 'none')
+			.attr('disabled');
+	$modal.find('select[name=show_in_handout] option[value=title]')
+			.html('Yes');
+
+	$modal.find('.modal-header h4').html('Add ad-hoc service item');
+	$modal.modal('show');
+}
+
+JethroServicePlanner.Item.saveItemDetails = function () {
+
+	var attrs = {};
+	$('#ad-hoc-modal input[name], #ad-hoc-modal select').each(function() {
+		attrs[this.name] = this.value;
+	});
+	if (attrs['title'] == '') {
+		alert('You must specifiy a title');
+		return;
+	}
+	if (JethroServicePlanner.itemBeingEdited) {
+		for (k in attrs) {
+			JethroServicePlanner.itemBeingEdited.find('input[name="'+k+'[]"]').val(attrs[k]);
+			JethroServicePlanner.itemBeingEdited.find('td.item span').html(attrs['title']);
+		}
+		JethroServicePlanner.itemBeingEdited = null;
+		JethroServicePlanner.refreshNumbersAndTimes();
+		JethroServicePlanner.isChanged = true;
+
+	} else {
+		attrs.componentid = '';
+		JethroServicePlanner.addItem(attrs['title'], attrs, JethroServicePlanner.newComponentInsertPoint);
+	}
+	$('#ad-hoc-modal').modal('hide').find('input[name=title]').val('');
+}
+
+JethroServicePlanner.Item.editDetails = function ($tr) {
+	JethroServicePlanner.itemBeingEdited = $tr;
+	$modal = $('#ad-hoc-modal');
+	var attrs = ['title', 'length_mins', 'show_in_handout'];
+	for (var i=0; i < attrs.length; i++) {
+		$modal.find('[name='+attrs[i]+']').val($tr.find('input[name="'+attrs[i]+'[]"]').val());
+	}
+	// Show 'show in handout = full' only for non-ad-hoc items
+	var componentID = $tr.find('input[name="componentid[]"]').val();
+	$modal.find('select[name=show_in_handout] option[value=full]')
+			.prop('disabled', componentID ? false : true)
+			.css('display', componentID ? '' : 'none');
+	$modal.find('select[name=show_in_handout] option[value=title]')
+			.html(componentID ? 'Title only' : 'Yes');
+
+	// Show the 'title' box only for non-ad-hoc items
+	var titleRow = $modal.find('input[name=title]').parents('.control-group');
+	titleRow[componentID ? 'hide' : 'show']();
+
+	$modal.find('.modal-header h4').html('Edit service item');
+	$modal.modal('show');
+
+
 }
 
 JethroServicePlanner.onItemDrop = function(event, ui) {
@@ -639,16 +1047,26 @@ JethroServicePlanner.onItemDrop = function(event, ui) {
 }
 
 JethroServicePlanner.addFromComponent = function(componentTR, beforeItem) {
-	JethroServicePlanner.isChanged = true;
+	var attrVals = {};
+	var runsheetTitle = componentTR.attr('data-runsheet_title');
+	var newTitle = runsheetTitle ? runsheetTitle : componentTR.find('.title').html();
+	var attrs = ['componentid', 'show_in_handout', 'length_mins', 'personnel'];
+	for (var i=0; i < attrs.length; i++) {
+		attrVals[attrs[i]] = componentTR.attr('data-'+attrs[i]);
+	}
+	JethroServicePlanner.addItem(newTitle, attrVals, beforeItem);
+}
 
+JethroServicePlanner.addItem = function(title, attrVals, beforeItem) {
 	var newTR = $('#service-item-template').clone().attr('id', '');
 	newTR.css('display', '').addClass('service-item');
-	var attrs = ['componentid', 'is_numbered', 'length_mins'];
-	var runsheetTitle = componentTR.attr('data-runsheet_title');
-	var newTitle = runsheetTitle ? runsheetTitle: componentTR.find('.title').html();
-	newTR.find('td.item span').html(newTitle);
-	for (var i=0; i < attrs.length; i++) {
-		newTR.find('td.item').append('<input type="hidden" class="'+attrs[i]+'" name="'+attrs[i]+'[]" value="'+componentTR.attr('data-'+attrs[i])+'" />');
+	if (!attrVals['componentid']) newTR.addClass('ad-hoc');
+	newTR.find('td.item span').html(title);
+	newTR.find('input[name="personnel[]"]').val(attrVals['personnel']);
+	delete attrVals['personnel'];
+	attrVals['title'] = title;
+	for (k in attrVals) {
+		newTR.find('td.item').append('<input type="hidden" class="'+k+'" name="'+k+'[]" value="'+attrVals[k]+'" />');
 	}
 	if (!beforeItem || $(beforeItem).parents('tfoot').length) {
 		beforeItem = "#service-plan tbody tr:last";
@@ -656,11 +1074,12 @@ JethroServicePlanner.addFromComponent = function(componentTR, beforeItem) {
 	$(beforeItem).before(newTR);
 	$('#service-plan-placeholder').remove();
 
-	JethroServicePlanner.refreshNumbersAndTimes();
 	newTR.droppable({
 		drop: JethroServicePlanner.onItemDrop,
 		hoverClass: 'drop-hover',
 	});
+	JethroServicePlanner.refreshNumbersAndTimes();
+	JethroServicePlanner.isChanged = true;
 }
 
 JethroServicePlanner.onItemReorder = function() {
@@ -676,10 +1095,18 @@ JethroServicePlanner.refreshNumbersAndTimes = function() {
 	sp.find('tr.service-item').each(function() {
 		$(this).find('td.start').html(currentTime);
 		currentTime = JethroServicePlanner._addTime(currentTime, $(this).find("input.length_mins").val());
-		if ($(this).find('input.is_numbered').val() == 1) {
+		if ($(this).find('input.show_in_handout').val() != 0) {
 			$(this).find('td.number').html(currentNumber++);
 		}
 	});
+	// Adjust the spacer so the min height is 5 items equivalent
+	var spacer = $('#service-plan-spacer');
+	spacer.remove();
+	$('#service-plan tbody').append(spacer); // make sure it's at the end
+	var spacerHeight = Math.max(0, (5 - $('tr.service-item').length)*30);
+	$('#service-plan-spacer td').height(spacerHeight);
+
+
 }
 
 
@@ -700,7 +1127,104 @@ JethroServicePlanner._addTime = function(clockTime, addMins) {
 }
 
 
+var JethroRoster = {}
 
+JethroRoster.CUSTOM_ASSIGNEE_TARGET = null;
+
+JethroRoster.init = function() {
+	if (!$('form#roster').length) return;
+
+	$('table.roster select').keypress(function() { JethroRoster.onAssignmentChange(this); }).change(function() { JethroRoster.onAssignmentChange(this); });
+	$('table.roster input.person-search-single, table.roster input.person-search-multiple').each(function() {
+		this.onchange = function() { JethroRoster.onAssignmentChange(this); };
+	});
+	$('table.roster > tbody > tr').each(function() { JethroRoster.updateClashesForRow($(this)); });
+
+	$('.roster select').change(function() {
+			$opt = $(this.options[this.selectedIndex]);
+			if ($opt.hasClass('other')) {
+				JethroRoster.CUSTOM_ASSIGNEE_TARGET = this;
+				$('#choose-assignee-modal').modal({});
+			}
+	});
+
+	$('#choose-assignee-save').click(function() {
+		$target = $(JethroRoster.CUSTOM_ASSIGNEE_TARGET)
+		$target.find('.unlisted-allocee').remove();
+		var newID = $('#choose-assignee-modal input[name=personid]').val();
+		var newName = $('#personid-input').val();
+		if (!newID || !newName) {
+			alert("Please choose an assignee");
+			return false;
+		}
+		$newOption = $('<option selected="selected" class="unlisted-allocee" value="'+newID+'">'+newName+'</option>')
+		$target.find('.other').before($newOption);
+		$('#choose-assignee-modal input').val('');
+		$target.change(); //bubbles the props up so it looks orange
+		setTimeout(function() { $target.effect("pulsate", {times: 2}, 700) }, 600);
+	});
+	$('#choose-assignee-cancel').click(function() {
+		$(JethroRoster.CUSTOM_ASSIGNEE_TARGET).val('');
+	});
+}
+
+JethroRoster.onAssignmentChange = function(inputField) {
+	var row = null;
+	if ($(inputField).hasClass('person-search-single') || $(inputField).hasClass('person-search-multiple')) {
+		row = $(inputField).parents('tr:first');
+	} else if (inputField.tagName == 'SELECT' || inputField.type == 'hidden') {
+		var expandableParent = $(inputField).parents('table.expandable');
+		if (expandableParent.length) {
+			var row = $(inputField).parents('table:first').parents('tr:first');
+		} else {
+			var row = $(inputField).parents('tr:first');
+		}
+	}
+	if (row) {
+		JethroRoster.updateClashesForRow(row);
+	}
+}
+
+JethroRoster.updateClashesForRow = function(row) {
+	var uses = new Object();
+	// Deal with the single person choosers and select boxes first
+	var sameRowInputs = row.find('input.person-search-single, select');
+	sameRowInputs.removeClass('clash');
+	sameRowInputs.each(function() {
+		var thisElt = this;
+		var thisVal = 0;
+		if (this.className == 'person-search-single') {
+			var hiddenInput = document.getElementsByName(this.id.substr(0, this.id.length-6))[0];
+			thisVal = hiddenInput.value;
+		} else if (this.tagName == 'SELECT') {
+			thisVal = this.value;
+		}
+		if (thisVal != 0) {
+			if (!uses[thisVal]) {
+				uses[thisVal] = new Array();
+			}
+			uses[thisVal].push(thisElt);
+		}
+	});
+	// Now add the multi person choosers
+	row.find('ul.multi-person-finder li').removeClass('clash').each(function() {
+		var thisVal = $(this).find('input')[0].value;
+		if (thisVal != 0) {
+			if (!uses[thisVal]) {
+				uses[thisVal] = new Array();
+			}
+			uses[thisVal].push(this);
+		}
+	});
+	for (i in uses) {
+		if (uses[i].length > 1) {
+			for (j in uses[i]) {
+				if (typeof uses[i][j] == 'function') continue;
+				$(uses[i][j]).addClass('clash');
+			}
+		}
+	}
+}
 
 function handleFamilyPhotosLayout() {
 	var photoContainer = $('#family-photos-container');
@@ -721,8 +1245,8 @@ var applyNarrowColumns = function(root) {
 	// (even if its parent is less than 100% width).
 	// We want the whole table to be as wide as it needs to be but no wider.
 	var expr = 'td.narrow, th.narrow, table.object-summary th'
-	var cells = $(root).find(expr);
-	var parents = cells.parents('table:visible');
+	var cells = $(root).find(expr); 
+	var parents = cells.parents('table:visible').not('.no-narrow-magic');
 	parents.each(function() {
 		var table = $(this);
 		table.css('width', table.width()+'px');
@@ -743,27 +1267,19 @@ var applyNarrowColumns = function(root) {
 /**
 * Lay out a pair of matching boxes.
 * If they can fit next to each other, make them the same height
-* Otherwise, give them 100% of the width (unless they need even more than that).
 */
-function layOutMatchBoxes() {
-
-	// Only run it once, because applyNarrowColumns will have messed with the table widths after the initial one
-	if (window.haveLaidOutMatchBoxes) return;
-	var matchBoxes = $('.person-details-box:visible');
-	// Remove prior formatting
-	matchBoxes.css('width', 'auto').css('height', 'auto').css('clear', 'none'); //.css('margin-right', 0);
-	if (matchBoxes.length) {
-		window.haveLaidOutMatchBoxes =  1;
-		var first = matchBoxes.first();
-		var second = matchBoxes.last();
-		if (first.position().top == second.position().top) {
-			// make the heights the same and remove margin bottom
-			matchBoxes.height(Math.max(first.height(), second.height())+20).css('margin-bottom', 0);
-		} else {
-			// make the widths equal
-			matchBoxes.css('min-width', '97%');
-		}
-	}
+function layOutMatchBoxes()
+{
+	var maxHeight = 0;
+	var lastTop = -1;
+	var sameTop = true;
+	$('.match-height').each(function() {
+		$(this).css('height', '');
+		if ($(this).height() > maxHeight) maxHeight = $(this).height();
+		if (lastTop == -1) lastTop = $(this).position().top;
+		sameTop = (lastTop == $(this).position().top);
+	});
+	if (sameTop) $('.match-height').height(maxHeight);
 }
 
 /* handle clicks on 'search' links in the top nav by building a modal */
@@ -801,6 +1317,28 @@ function handleSearchLinkClick()
 
 
 /************************** LOCKING ********************************/
+
+function initLockExpiry()
+{
+	$('form[data-lock-length]').each(function() {
+		var length = $(this).attr('data-lock-length');
+		var bits = length.split(' ');
+		var units = parseInt(bits[0],10) * 1000;
+		var warningTime = 60000; // 1 minute
+		switch (bits[1].toLowerCase()) {
+			case 'minute':
+			case 'minutes':
+				units = units * 60;
+				break;
+			case 'hour':
+			case 'hours':
+				units = units * 60 * 60;
+				break;
+		}
+		setTimeout('showLockExpiryWarning()', units - warningTime);
+		setTimeout('showLockExpiredWarning()', units);
+	})
+}
 
 function showLockExpiryWarning()
 {
@@ -875,7 +1413,7 @@ $(document).ready(function() {
 	$('form#edit-family, form#add-family').submit(handleFamilyFormSubmit);
 	$('form#add-family').submit(handleNewFamilySubmit);
 	$('form#add-family input.family-name').blur(handleFamilyNameBlur);
-	$('select.person-status').not('.bulk-action *').change(handlePersonStatusChange).change();
+	$('select.person-status').not('.bulk-action *, .action-plan *').change(handlePersonStatusChange).change();
 	$('form#add-family .person-status select').change(handleNewPersonStatusChange);
 	$('form#add-family .congregation select').change(handleNewPersonCongregationChange);
 
@@ -885,6 +1423,10 @@ $(document).ready(function() {
 		.click(function() { handleNoteStatusChange(this); })
 		.change(function() { handleNoteStatusChange(this); })
 		.change();
+
+	$('#note_template_chooser').change(function() {
+		$('#note-field-widgets').load('?call=note_template_widgets', { templateid: this.value });
+	})
 });
 
 function handleNoteStatusChange(elt) {
@@ -900,7 +1442,7 @@ function handleNoteStatusChange(elt) {
 	} else {
 		$('select[name='+prefix+'assignee] option[value=""]').remove();
 	}
-}	
+}
 
 function handlePersonStatusChange()
 {
@@ -919,14 +1461,16 @@ function handlePersonStatusChange()
 				}
 			}
 		}
-		// if we got to here, there is no blank option
-		if ((this.value == 'contact') || (this.value == 'archived')) {
-			// we need a blank option
-			var newOption = new Option('(None)', '');
-			try {
-				chooser.add(newOption, chooser.options[0]); // standards compliant; doesn't work in IE
-			} catch(ex) {
-				chooser.add(newOption, 0); // IE only
+		if ($(chooser).attr('data-allow-empty') != 0) {
+			// if we got to here, there is no blank option
+			if ((this.value == 'contact') || (this.value == 'archived')) {
+				// we need a blank option
+				var newOption = new Option('(None)', '');
+				try {
+					chooser.add(newOption, chooser.options[0]); // standards compliant; doesn't work in IE
+				} catch(ex) {
+					chooser.add(newOption, 0); // IE only
+				}
 			}
 		}
 	}

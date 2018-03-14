@@ -2,9 +2,17 @@
 <thead>
 	<tr>
 		<th>ID</th>
-		<th>Family Name</th>
-		<th>Family Members</th>
-		<th>Actions</th>
+		<th><?php echo _('Family Name')?></th>
+		<th><?php echo _('Family Members')?></th>
+	<?php
+	include_once 'include/size_detector.class.php';
+	if (!SizeDetector::isNarrow()) {
+		?>
+		<th><?php echo _('Home Phone')?></th>
+		<?php
+	}
+	?>
+		<th><?php echo _('Actions')?></th>
 	</tr>
 </thead>
 <tbody>
@@ -16,17 +24,24 @@ foreach ($families as $id => $details) {
 		<td><?php echo (int)$id; ?></td>
 		<td><?php echo ents($details['family_name']); ?></td>
 		<td><?php echo ents($details['members']); ?></td>
+	<?php
+	if (!SizeDetector::isNarrow()) {
+		?>
+		<td><?php echo ents($details['home_tel']); ?></td>
+		<?php
+	}
+	?>
 		<td class="action-cell narrow">
-			<a href="?view=families&familyid=<?php echo $id; ?>"><i class="icon-user"></i>View</a> &nbsp;
+			<a href="?view=families&familyid=<?php echo $id; ?>"><i class="icon-user"></i><?php echo _('View');?></a> &nbsp;
 		<?php
 		if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
 			?>
-			<a href="?view=_edit_family&familyid=<?php echo $id; ?>"><i class="icon-wrench"></i>Edit</a> &nbsp;
+			<a href="?view=_edit_family&familyid=<?php echo $id; ?>"><i class="icon-wrench"></i><?php echo _('Edit');?></a> &nbsp;
 			<?php
 		}
 		if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
 			?>
-			<a href="?view=_add_note_to_family&familyid=<?php echo $id; ?>"><i class="icon-pencil"></i>Add Note</a></td>
+			<a href="?view=_add_note_to_family&familyid=<?php echo $id; ?>"><i class="icon-pencil"></i><?php echo _('Add Note');?></a></td>
 			<?php
 		}
 		?>

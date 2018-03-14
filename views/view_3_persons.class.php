@@ -8,9 +8,9 @@ class View_Persons extends View
 	function processView()
 	{
 		if (!empty($_REQUEST['personid'])) {
-			$this->_person =& $GLOBALS['system']->getDBObject('person', (int)$_REQUEST['personid']);
+			$this->_person = $GLOBALS['system']->getDBObject('person', (int)$_REQUEST['personid']);
 			if ($this->_person) {
-				$this->_family =& $GLOBALS['system']->getDBObject('family', $this->_person->getValue('familyid'));
+				$this->_family = $GLOBALS['system']->getDBObject('family', $this->_person->getValue('familyid'));
 			}
 		}
 	}
@@ -19,9 +19,9 @@ class View_Persons extends View
 	function getTitle()
 	{
 		if ($this->_person) {
-			return 'Viewing Person: '.$this->_person->toString();
+			return _('Viewing Person: ').$this->_person->toString();
 		} else {
-			return 'Person not found';
+			return _('Person not found');
 		}
 	}
 

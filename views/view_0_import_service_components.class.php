@@ -18,6 +18,7 @@ class View__Import_Service_Components extends View
 			$GLOBALS['system']->doTransaction('BEGIN');
 			$GLOBALS['system']->includeDBClass('service_component');
 			$comp = new Service_Component();
+			ini_set("auto_detect_line_endings", "1");
 			$fp = fopen($_FILES['datafile']['tmp_name'], 'r');
 			if (!$fp) {
 				trigger_error("Your data file could not be read.  Please check the file and try again");
@@ -41,16 +42,21 @@ class View__Import_Service_Components extends View
 					$data['content_html'] = '<p>'.$c.'</p>';
 					unset($data['content']);
 				}
-				foreach (Array('is_numbered', 'show_in_handout') as $k) {
-					if (isset($data[$k])) {
-						if (strtolower($data[$k]) == 'y') {
-							$data[$k] = 1;
-						} else {
-							$data[$k] = (int)$data[$k];
-						}
+				if (isset($data['show_in_handout'])) {
+					$val = $data['show_in_handout'];
+					$map = Array(
+							'y' => 'full',
+							'n' => 0,
+							'yes' => 'full',
+							'no' => 0,
+						  );
+					$val = array_get($map, strtolower($val), $val);
+					if (!in_array($val, Array('0', 'title', 'full'))) {
+						$val = '0';
 					}
+					$data['show_in_handout'] = $val;
 				}
-
+	
 				if (!empty($_REQUEST['dupe-match'])
 					&& !empty($data['ccli_number'])
 					&& isset($all_ccli[$data['ccli_number']])
@@ -79,7 +85,7 @@ class View__Import_Service_Components extends View
 			if (empty($this->errors)) {
 				$GLOBALS['system']->doTransaction('COMMIT');
 				add_message(($rowNum-1).' rows imported successfully');
-				redirect('services__service_components'); // exits
+				redirect('services__component_library'); // exits
 			} else {
 				add_message("Errors were found in the CSV file.  Import has not been performed.  Please correct the errors and try again", 'error');
 				$GLOBALS['system']->doTransaction('ROLLBACK');
@@ -129,7 +135,7 @@ class View__Import_Service_Components extends View
 									'order_by'			=> 'meeting_time',
 									'allow_empty'		=> false,
 									'allow_multiple'	=> true,
-									'filter'			=> create_function('$x', '$y = $x->getValue("meeting_time"); return !empty($y);'),
+									'filter'			=> function($x) {$y = $x->getValue("meeting_time"); return !empty($y);},
 							), Array());
 						?>
 					</div>

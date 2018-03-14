@@ -2,8 +2,8 @@
 include_once 'include/db_object.class.php';
 class Roster_Role extends db_object
 {
-	var $_load_permission_level = NULL;
-	var $_save_permission_level = PERM_MANAGEROSTERS;
+	protected $_load_permission_level = NULL;
+	protected $_save_permission_level = PERM_MANAGEROSTERS;
 	var $_volunteers = NULL;
 
 	function __construct($id=NULL) {
@@ -20,7 +20,7 @@ class Roster_Role extends db_object
 		}
 	}
 
-	function _getFields()
+	protected static function _getFields()
 	{
 		
 		$fields = Array(
@@ -31,7 +31,7 @@ class Roster_Role extends db_object
 									'show_id'			=> FALSE,
 									'order_by'			=> 'meeting_time',
 									'allow_empty'		=> TRUE,
-									'filter'			=> create_function('$x', '$y = $x->getValue("meeting_time"); return !empty($y);'),
+									'filter'			=> function($x) {$y = $x->getValue("meeting_time"); return !empty($y);},
 									'note'				=> 'Congregations must have a "code name" set to be available here',
 								   ),
 			'title'		=> Array(
@@ -54,8 +54,6 @@ class Roster_Role extends db_object
 							   ),
 			'details'		=> Array(
 									'type'		=> 'html',
-									'width'		=> 80,
-									'height'	=> 4,
 									'note' => 'These details will be shown when a public user clicks the role name in the public roster'
 								   ),
 			'active'		=> Array(
@@ -109,10 +107,11 @@ class Roster_Role extends db_object
 		return $res;
 	}
 
-	function _printUnlistedAlloceeOption($personid, $name)
+	function _printUnlistedAlloceeOption($personid)
 	{
+		$person = $GLOBALS['system']->getDBObject('person', $personid);
 		?>
-		<option value="<?php echo (int)$personid; ?>" class="unlisted-allocee" selected="selected" title="This person is no longer in the volunteer group for this role"><?php echo ents($name); ?></option>
+		<option value="<?php echo (int)$personid; ?>" class="unlisted-allocee" selected="selected" title="This person is not in the volunteer group for this role"><?php echo ents($person->toString()); ?></option>
 		<?php
 	}
 
@@ -128,19 +127,20 @@ class Roster_Role extends db_object
 				?>
 				<table class="expandable no-borders no-padding">
 				<?php
-				foreach ($currentval as $id => $name) {
+				foreach ($currentval as $id) {
 					?>
 					<tr><td>
 					<select name="assignees[<?php echo $this->id; ?>][<?php echo $date; ?>][]">
 						<option value=""></option>
 					<?php
-					if (!empty($id) && !isset($volunteers[$id])) $this->_printUnlistedAlloceeOption($id, $name);
+					if (!empty($id) && !isset($volunteers[$id])) $this->_printUnlistedAlloceeOption($id);
 					foreach ($volunteers as $vid => $name) {
 						?>
 						<option value="<?php echo $vid; ?>"<?php if ($vid == $id) echo ' selected="selected"'; ?>><?php echo ents($name); ?></option>
 						<?php
 					}
 					?>
+						<option class="other">Other...</option>
 					</select>
 					</td></tr>
 					<?php
@@ -149,19 +149,19 @@ class Roster_Role extends db_object
 				</table>
 				<?php
 			} else {
-				$currentName = reset($currentval);
-				$currentID = key($currentval);
+				$currentID = reset($currentval);
 				?>
 				<select name="assignees[<?php echo $this->id; ?>][<?php echo $date; ?>]">
 					<option value=""></option>
 				<?php
-				if (!empty($currentID) && !isset($volunteers[$currentID])) $this->_printUnlistedAlloceeOption($currentID, $currentName);
+				if (!empty($currentID) && !isset($volunteers[$currentID])) $this->_printUnlistedAlloceeOption($currentID);
 				foreach ($volunteers as $id => $name) {
 					?>
 					<option value="<?php echo $id; ?>"<?php if ($currentID == $id) echo ' selected="selected"'; ?>><?php echo ents($name); ?></option>
 					<?php
 				}
 				?>
+					<option class="other">Other...</option>
 				</select>
 				<?php
 			}
@@ -170,7 +170,8 @@ class Roster_Role extends db_object
 			if ($this->getValue('assign_multiple')) {
 				Person::printMultipleFinder('assignees['.$this->id.']['.$date.']', $currentval);
 			} else {
-				Person::printSingleFinder('assignees['.$this->id.']['.$date.']', $currentval);
+				$currentID = (int)reset($currentval);
+				Person::printSingleFinder('assignees['.$this->id.']['.$date.']', $currentID);
 			}
 		}
 	}

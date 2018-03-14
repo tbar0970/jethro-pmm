@@ -9,7 +9,7 @@ class View_Rosters__Define_Roster_Views extends View
 	function processView()
 	{
 		if (!empty($_REQUEST['delete_viewid'])) {
-			$view =& $GLOBALS['system']->getDBOBject('roster_view', (int)$_REQUEST['delete_viewid']);
+			$view = $GLOBALS['system']->getDBOBject('roster_view', (int)$_REQUEST['delete_viewid']);
 			if ($view) {
 				$view->delete();
 				add_message('View Deleted');
@@ -30,7 +30,9 @@ class View_Rosters__Define_Roster_Views extends View
 		?>
 		<div class="container row-fluid margin-bottom">
 			<div class="span10">
-				<p><i>A roster view is a collection of roster roles, used when setting or displaying roster assignments.<br />You might like to create views such as "morning congregation" or "all preachers".<br />A roster role can belong to several roster views.</i></p>
+				<p class="text alert alert-info">
+					<?php echo _('A roster view is a collection of roster roles, used when editing or displaying roster assignments.  A roster role can be included in several roster views.  You might like to create views such as "morning congregation" or "all preachers".'); ?>
+				</p>
 			</div>
 			<div class="span2 align-right">
 				<a href="?view=_add_roster_view"><i class="icon-plus-sign"></i>Add View</a>

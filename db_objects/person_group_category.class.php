@@ -2,7 +2,7 @@
 include_once 'include/db_object.class.php';
 class Person_Group_Category extends db_object
 {
-	var $_save_permission_level = PERM_MANAGEGROUPCATS;
+	protected $_save_permission_level = PERM_MANAGEGROUPCATS;
 
 	public function __construct($id=NULL) {
 		parent::__construct($id);
@@ -13,7 +13,7 @@ class Person_Group_Category extends db_object
 		}
 	}
 
-	function _getFields()
+	protected static function _getFields()
 	{
 		return Array(
 			'name'				=> Array(
@@ -39,11 +39,10 @@ class Person_Group_Category extends db_object
 		parent::delete();
 		$sql = 'UPDATE person_group SET categoryid = 0 WHERE categoryid = '.(int)$this->id;
 		$res = $GLOBALS['db']->query($sql);
-		check_db_result($res);
 		$GLOBALS['system']->doTransaction('COMMIT');
 	}
 
-	function printFieldInterface($fieldname, $prefix)
+	function printFieldInterface($fieldname, $prefix='')
 	{
 		if ($fieldname == 'parent_category') {
 			self::printChooser($prefix.$fieldname, $this->getValue('parent_category'), $this->id);

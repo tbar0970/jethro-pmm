@@ -1,11 +1,11 @@
 <?php
 
+require_once 'vendor/autoload.php';
 class Emailer
 {
 	
 	static function newMessage()
 	{
-		require_once 'include/swiftmailer/swift_required.php';
 		return Swift_Message::newInstance();
 	}
 	
@@ -17,7 +17,6 @@ class Emailer
 	static function send($message)
 	{
 		try {
-			require_once 'include/swiftmailer/swift_required.php';
 			if (defined('SMTP_SERVER')) {
 				$port = defined('SMTP_PORT') ? SMTP_PORT : 25;
 				$transport = Swift_SmtpTransport::newInstance(SMTP_SERVER, $port);
@@ -44,7 +43,6 @@ class Emailer
 	}
 	
 	static function validateAddress($email) {
-		require_once 'include/swiftmailer/swift_required.php';
 		return Swift_Validate::email($email);
 	}
 }

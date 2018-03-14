@@ -11,17 +11,18 @@ if (!$accordion) {
 	?>
 	<!---------- TAB HEADERS --------------->
 	<ul class="nav nav-tabs">
-		<li class="active"><a data-toggle="tab" href="#basic">Basic Details</a></li>
+		<li class="active"><a data-toggle="tab" href="#basic"><?php echo _('Basic Details')?></a></li>
 	<?php
 	if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
-		$notes = $GLOBALS['system']->getDBObjectData('family_note', Array('familyid' => $family->id), 'OR', 'created');
+		$order =(ifdef('NOTES_ORDER', 'ASC') == 'ASC') ? 'ASC' : 'DESC';
+		$notes = $GLOBALS['system']->getDBObjectData('family_note', Array('familyid' => $family->id), 'OR', 'created '.$order);
 		?>
-		<li><a data-toggle="tab" href="#notes">Notes (<?php echo count($notes); ?>)</a></li>
+		<li><a data-toggle="tab" href="#notes"><?php echo _('Notes')?> (<?php echo count($notes); ?>)</a></li>
 		<?php
 	}
 	if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE) || !$GLOBALS['system']->featureEnabled('NOTES')) {
 		?>
-		<li><a data-toggle="tab" href="#history">History</a></li>
+		<li><a data-toggle="tab" href="#history"><?php echo _('History')?></a></li>
 		<?php
 	}
 	?>
@@ -53,41 +54,110 @@ if (!$accordion) {
 	<?php
 }
 
-/**************** BASIC DETAILS TAB *************/ 
+/**************** BASIC DETAILS TAB *************/
 
-printf($panel_header, 'basic', 'Basic Details & Members', 'active'); 
-$links = Array();
-if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
-	$links[] = '<a href="?view=_edit_family&familyid='.$family->id.'"><i class="icon-wrench"></i>Edit</a>';
-	if (count($GLOBALS['user_system']->getCurrentRestrictions()) == 0) {
-		// users with group or cong restrictions are not allowed to add persons
-		$links[] = '<a href="?view=_add_person_to_family&familyid='.$family->id.'"><i class="icon-plus-sign"></i>Add Member</a>';
-	}
-}
-if (!empty($links)) {
+printf($panel_header, 'basic', 'Basic Details & Members', 'active');
 	?>
-	<div class="align-right">
-		<?php echo implode(' &nbsp; ', $links); ?>
+	<div class="family-details">
+
+		<div class="details-box">
+			<?php
+			if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
+				?>
+				<div class="header-link pull-right">
+					<a href="?view=_edit_family&familyid=<?php echo $family->id; ?>">
+						<i class="icon-white icon-wrench"></i><?php echo _('Edit'); ?>
+					</a>
+				</div>
+				<?php
+			}
+			?>
+
+			<h3><?php echo _('Family Details'); ?></h3>
+
+			<?php
+			$family->printSummary();
+
+			if ($family->getPostalAddress() != '') {
+				echo '<a class="pull-right" href="?call=envelopes&familyid='.$family->id.'" class="envelope-popup"><i class="icon-envelope"></i>'._('Print Envelope').'</a>';
+			}
+			?>
+		</div>
+
+		<div class="details-box">
+			<?php
+			if (Person::allowedToAdd()) {
+				?>
+				<div class="header-link pull-right">
+					<a href="?view=_add_person_to_family&familyid=<?php echo $family->id; ?>">
+						<i class="icon-white icon-plus-sign"></i><?php echo _('Add Member'); ?>
+					</a>
+				</div>
+				<?php
+			}
+			?>
+			<h3><?php echo _('Members'); ?></h3>
+			<form method="post" enctype="multipart/form-data" action="" class="bulk-person-action">
+
+			<?php
+			$dummy = new Person();
+			foreach ($family->getMemberData() as $personid => $person) {
+				$dummy->populate($personid, $person);
+				?>
+				<a href="?view=persons&personid=<?php echo (int)$personid; ?>">
+				<div class="family-member">
+					<?php
+					if ($GLOBALS['system']->featureEnabled('PHOTOS')) {
+						?>
+						<img src="?call=photo&personid=<?php echo $personid; ?>" />
+						<?php
+					}
+					?>
+					<label>
+						<input name="personid[]" type="checkbox" checked="checked" value="<?php echo (int)$personid; ?>" />
+					</label>
+					<div>
+						<strong><?php echo ents($dummy->toString()); ?></strong>
+						<br />
+						<?php
+						echo ents($dummy->getFormattedValue('age_bracketid'));
+						echo ' &bull; ';
+						echo ents($dummy->getFormattedValue('gender'));
+						echo '<br />';
+						echo ents($dummy->getFormattedValue('status'));
+						echo ' &bull; ';
+						echo ents($dummy->getFormattedValue('congregationid'));
+						?>
+					</div>
+
+				</div>
+				</a>
+				<?php
+			}
+
+			$all_emails = $family->getAllEmailAddrs();
+			if (!empty($all_emails)) {
+				echo '<a class="pull-right" href="'.get_email_href($all_emails).'" '.email_link_extras().'><i class="icon-email">@</i>Email All</a>';
+			}
+			?>
+			<br class="clearfix" />
+
+			<?php include 'templates/bulk_actions.template.php'; ?>
+
+			</form>
+
+		</div>
 	</div>
-	<?php
-}
 
-$family->printSummary($accordion ? TRUE : FALSE);
-
-?>
-<div class="align-right">
 	<?php
-	$links = Array();
-	if ($family->getPostalAddress() != '') {
-		$links[] = '<a href="?call=envelopes&familyid='.$family->id.'" class="envelope-popup"><i class="icon-envelope"></i>Print Envelope</a>';
+	if ($GLOBALS['system']->featureEnabled('PHOTOS')) {
+		?>
+		<img class="person-photo" width="<?php echo Photo_Handler::MAX_PHOTO_WIDTH; ?>" src="?call=photo&familyid=<?php echo (int)$family->id; ?>" />
+		<?php
 	}
-	$all_emails = $family->getAllEmailAddrs();
-	if (!empty($all_emails)) {
-		$links[] = '<a href="'.get_email_href($all_emails).'" '.email_link_extras().'><i class="icon-email">@</i>Email All</a>';
-	}
-	echo implode(' &nbsp; ', $links);
 	?>
-</div>
+	<br class="clearfix" />
+
 <?php
 echo $panel_footer;
 
@@ -103,11 +173,11 @@ if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
 			$members = $family->getMemberData();
 			if (count($members) > 1) {
 				?>
-				<a href="?view=_add_note_to_family&familyid=<?php echo $family->id; ?>"><i class="icon-plus-sign"></i>Add Family Note</a>
+				<a href="?view=_add_note_to_family&familyid=<?php echo $family->id; ?>"><i class="icon-plus-sign"></i><?php echo _('Add Family Note')?></a>
 				<?php
 			} else {
 				?>
-				<a href="?view=_add_note_to_person&personid=<?php echo reset(array_keys($members)); ?>">Add Person Note</a>
+				<a href="?view=_add_note_to_person&personid=<?php $memberarray = array_keys($members); echo reset($memberarray); ?>"><?php echo _('Add Person Note')?></a>
 				<?php
 			}
 			?>
@@ -124,8 +194,8 @@ if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
 if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE) || !$GLOBALS['system']->featureEnabled('NOTES')) {
 	printf($panel_header, 'history', 'History', '');
 	?>
-	<p>Family Record Created on <?php $family->printFieldValue('created'); ?> by <?php $family->printFieldValue('creator'); ?></p>
-	<?php 
+	<p><?php echo _('Family Record Created on ')?><?php $family->printFieldValue('created'); ?> by <?php $family->printFieldValue('creator'); ?></p>
+	<?php
 	$family->printFieldValue('history');
 	echo $panel_footer;
 }

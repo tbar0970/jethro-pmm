@@ -21,19 +21,15 @@ class View__Mixed_Search extends View
 		}
 		if (empty($tel) || (empty($this->_family_data) && empty($this->_person_data))) {
 			// Look for family name, person name, group name or person email
-			$this->_family_data = $GLOBALS['system']->getDBObjectData('family', Array('family_name' => $search.'%'));
-			$this->_person_data = Person::getPersonsByName($search);
+			$this->_family_data = $GLOBALS['system']->getDBObjectData('family', Array('_family_name' => $search.'%'));
+			$this->_person_data = Person::getPersonsBySearch($search);
 
-			$this->_group_data = $GLOBALS['system']->getDBObjectData('person_group', Array('name' => $search.'%'), 'OR', 'name');
+			$this->_group_data = $GLOBALS['system']->getDBObjectData('person_group', Array('_name' => $search.'%'), 'OR', 'name');
 			
 			if (FALSE !== strpos($search, '@')) {
 				// Add email search
 				$this->_person_data += $GLOBALS['system']->getDBObjectData('person', Array('email' => $search));
 			}
-			
-			if (empty($this->_group_data)) {
-				$this->_group_data = $GLOBALS['system']->getDBObjectData('person_group', Array('name' => '%'.$search.'%'), 'OR', 'name');
-			}			
 		}
 		
 		$numResults = count($this->_family_data) + count($this->_group_data) + count($this->_person_data);
@@ -42,13 +38,13 @@ class View__Mixed_Search extends View
 			// For a single result, just redirect to its detail view, don't show a list
 			if (!empty($this->_person_data)) {
 				add_message("One matching person found");
-				redirect('persons', Array('search' => NULL, 'personid' => key($this->_person_data)));				
+				redirect('persons', Array('search' => NULL, 'personid' => key($this->_person_data)));
 			} else if (!empty($this->_family_data)) {
 				add_message("One matching family found");
 				redirect('families', Array('search' => NULL, 'familyid' => key($this->_family_data)));
 			} else if (!empty($this->_group_data)) {
 				add_message("One matching group found");
-				redirect('groups', Array('search' => NULL, 'groupid' => key($this->_group_data)));		
+				redirect('groups', Array('search' => NULL, 'groupid' => key($this->_group_data)));
 			}
 		}
 		
@@ -99,7 +95,7 @@ class View__Mixed_Search extends View
 					</td>
 				</tr>
 				<?php
-			}		
+			}
 			
 		}
 		if (!empty($this->_person_data)) {
@@ -132,6 +128,13 @@ class View__Mixed_Search extends View
 		}
 		?>
 		</table>
+
 		<?php
+		$custom_fields = $GLOBALS['system']->getDBObjectData('custom_field', Array('searchable' => 1));
+		if ($custom_fields) {
+			$msg = _("These results include matches on the searchable custom fields %s");
+			foreach ($custom_fields as $f) $names[] = '"'.$f['name'].'"';
+			echo '<p class="smallprint">'.sprintf($msg, implode(', ', $names)).'</p>';
+		}
 	}
 }
