@@ -28,7 +28,7 @@ if (count($_SERVER['argv']) == 3) {
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-$DEBUG = 2; // 0 for errors only. 1 for basics. 2 for verbose.
+$DEBUG = 0; // 0 for errors only. 1 for basics. 2 for verbose.
 $DRYRUN = 0;
 $VERIFY_SSL = TRUE; // This must be true for prod systems. Can be turned off for dev.
 
