@@ -116,6 +116,13 @@ class Person_Query extends DB_Object
 									'default'		=> $default_params,
 
 								   ),
+			'mailchimp_list_id' => Array(
+									'type'		=> 'text',
+									'editable' => true,
+									'default' => '',
+									'placeholder' => '('._('Optional').')',
+									'tooltip' => _('If you have a MailChimp list you would like to synchronise with the results of this report, enter the relevant List ID here and wait until the sync script runs.'),
+			)
 
 		);
 	}
@@ -196,7 +203,9 @@ class Person_Query extends DB_Object
 
 			<?php
 			if (empty($params['custom_fields'])) $params['custom_fields'] = Array();
+			$dummyField = new Custom_Field();
 			foreach ($this->_custom_fields as $fieldid => $fieldDetails) {
+				$dummyField->populate($fieldid, $fieldDetails);
 				?>
 					<tr>
 						<td>
@@ -284,7 +293,7 @@ class Person_Query extends DB_Object
 									print_widget('params_custom_field_'.$fieldid.'_criteria', $cparams, array_get($value, 'criteria'));
 									$vparams = Array(
 										'type' => 'select',
-										'options' => $fieldDetails['options'],
+										'options' => $dummyField->getOptions(),
 										'allow_multiple' => true,
 										'attrs' => Array(
 											'data-select-rule-type' => 'contains'
@@ -602,19 +611,29 @@ class Person_Query extends DB_Object
 
 				<table id="save-options">
 					<tr>
-						<th>Report title &nbsp;</th>
+						<td>Report title &nbsp;</td>
 						<td>
 							<?php $this->printFieldInterface('name'); ?>
 						</td>
 					</tr>
 					<tr>
-						<th>Visibility</th>
+						<td>Visibility</td>
 						<td>
 							<?php
 							print_widget('is_private', $visibilityParams, $this->getValue('owner') !== NULL);
 							?>
 						</td>
 					</tr>
+				<?php
+				if (strlen(ifdef('MAILCHIMP_API_KEY')) && $GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
+					?>
+					<tr>
+						<td>Mailchimp List ID</td>
+						<td><?php $this->printFieldInterface('mailchimp_list_id'); ?></td>
+					</tr>
+					<?php
+				}
+				?>
 				</table>
 
 			</div>
@@ -629,10 +648,16 @@ class Person_Query extends DB_Object
 				case 'new':
 					$this->populate(0, Array());
 					$this->processFieldInterface('name');
+					if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
+						$this->processFieldInterface('mailchimp_list_id');
+					}
 					$this->setValue('owner', $_POST['is_private'] ? $GLOBALS['user_system']->getCurrentUser('id') : NULL);
 					break;
 				case 'replace':
 					$this->processFieldInterface('name');
+					if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
+						$this->processFieldInterface('mailchimp_list_id');
+					}
 					$this->setValue('owner', $_POST['is_private'] ? $GLOBALS['user_system']->getCurrentUser('id') : NULL);
 					break;
 				case 'temp':

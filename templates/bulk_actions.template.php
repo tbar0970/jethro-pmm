@@ -74,7 +74,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 			<table class="valign-middle">
 			<?php
 			$dummy = new Person();
-			foreach (Array('congregationid', 'status', 'age_bracketid') as $field) {
+			foreach (Array('status', 'age_bracketid') as $field) {
 				$dummy->fields[$field]['allow_empty'] = TRUE;
 				$dummy->fields[$field]['empty_text'] = '(No change)';
 				$dummy->setValue($field, NULL);
@@ -82,6 +82,22 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 				$dummy->printFieldInterface($field);
 				echo '</td></tr>';
 			}
+			//Handle congregation separately because we need to have both 'no change' and 'none' options.
+			$params = Array(
+				'type' => 'select',
+				'allow_empty' => TRUE,
+				'empty_text' => '(No change)',
+				'options' => Array(0 => '(None)'),
+			);
+			foreach ($GLOBALS['system']->getDBObjectdata('congregation', Array()) as $cid => $cong) {
+				$params['options'][$cid] = $cong['name'];
+			}
+			echo '<tr><td>Set congregation to: </td><td>';
+			print_widget('congregationid', $params, NULL);
+			echo '</td></tr>';
+
+
+			$dummy->fields['congregationid']['options'][0] = '(None)';
 			$customFields = $GLOBALS['system']->getDBObjectData('custom_field', Array(), 'OR', 'rank');
 			$dummy = new Custom_Field();
 			$addParams = Array(

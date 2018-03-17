@@ -314,7 +314,9 @@ class System_Controller
 		}
 		if ($send_email && defined('ERRORS_EMAIL_ADDRESS') && constant('ERRORS_EMAIL_ADDRESS')) {
 			$content = "$errstr \nLine $errline of $errfile\n\n";
-			if (!empty($GLOBALS['user_system'])) $content .= "USER:       ".$GLOBALS['user_system']->getCurrentUser('username')."\n";
+			if (!empty($GLOBALS['user_system'])) {
+				$content .= "USER:       ".$GLOBALS['user_system']->getCurrentPerson('id')." ".$GLOBALS['user_system']->getCurrentUser('user')."\n";
+			}
 			$content .= 'REFERER:    '.array_get($_SERVER, 'HTTP_REFERER', '')."\n";
 			$content .= 'USER_AGENT: '.array_get($_SERVER, 'HTTP_USER_AGENT', '')."\n\n";
 			$safe_request = $_REQUEST;

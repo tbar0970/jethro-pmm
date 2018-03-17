@@ -411,6 +411,7 @@ class View_Attendance__Display extends View
 		}
 		$all_dates = array_unique($all_dates);
 		?>
+		<form method="post" action="" class="bulk-person-action">
 		<table class="table table-hover table-condensed table-auto-width valign-middle table-bordered parallel-attendance-report">
 			<thead>
 				<tr>
@@ -637,7 +638,9 @@ class View_Attendance__Display extends View
 		</table>
 		<?php
 		include 'templates/bulk_actions.template.php';
-
+		?>
+		</form>
+		<?php
 	}
 }
 ?>

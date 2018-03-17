@@ -478,6 +478,15 @@ function print_widget($name, $params, $value)
 			<?php
 			break;
 	}
+	static $toolTipID = 1;
+	if (!empty($params['tooltip'])) {
+		?>
+		<i class="clickable icon-question-sign" data-toggle="visible" data-target="#tooltip<?php echo $toolTipID; ?>"></i>
+		<div class="help-block custom-field-tooltip" id="tooltip<?php echo $toolTipID; ?>"><?php echo nl2br(ents($params['tooltip'])); ?></div>
+		<?php
+		$toolTipID++;
+	}
+
 }
 
 function process_widget($name, $params, $index=NULL, $preserveEmpties=FALSE)

@@ -121,7 +121,7 @@ class Installer
 			  `objectid` int(11) NOT NULL default '0',
 			  `userid` int(11) NOT NULL default '0',
 			  `lock_type` VARCHAR( 16 ) NOT NULL,
-			  `object_type` varchar(255) collate latin1_general_ci NOT NULL default '',
+			  `object_type` varchar(255) NOT NULL default '',
 			  `expires` datetime NOT NULL default '0000-00-00 00:00:00',
 			  KEY `objectid` (`objectid`),
 			  KEY `userid` (`userid`),
@@ -278,6 +278,13 @@ class Installer
 			(@rank:=@rank+5, '',                         'MAP_LOOKUP_URL','URL template for map links, with the keywords __ADDRESS_STREET__, __ADDRESS_SUBURB__, __ADDRESS_POSTCODE__, __ADDRESS_STATE__','text','http://maps.google.com.au?q=__ADDRESS_STREET__,%20__ADDRESS_SUBURB__,%20__ADDRESS_STATE__,%20__ADDRESS_POSTCODE__'),
 			(@rank:=@rank+5, '',                         'EMAIL_CHUNK_SIZE','When displaying mailto links for emails, divide into batches of this size','int','25'),
 			(@rank:=@rank+5, '',                         'MULTI_EMAIL_SEPARATOR','When displaying mailto links for emails, separate addresses using this character','text',','),
+
+			(@rank:=@rank+5, 'Task Notifications', 'TASK_NOTIFICATION_ENABLED', '(This feature also requires the task_reminder.php script to be called by cron every 5 minutes)', 'bool', 0),
+			(@rank:=@rank+5, '',                   'TASK_NOTIFICATION_FROM_NAME', 'Name from which task notifications should be sent', 'text', 'Jethro'),
+			(@rank:=@rank+5, '',                   'TASK_NOTIFICATION_FROM_ADDRESS', 'Email address from which task notifications should be sent', 'text', ''),
+			(@rank:=@rank+5, '',                   'TASK_NOTIFICATION_SUBJECT', '', 'text', 'New notes assigned to you'),
+
+			(@rank:=@rank+5, 'Mailchimp Sync',           'MAILCHIMP_API_KEY', 'API Key for Mailchimp integration. NB the mailchimp sync script must also be called regularly by cron.', 'text', ''),
 
 			(@rank:=@rank+5, 'SMTP Email Server',        'SMTP_SERVER','SMTP server for sending emails','text',''),
 			(@rank:=@rank+5, '',                         'SMTP_ENCRYPTION','Encryption method for SMTP server','select{\"ssl\":\"SSL\",\"tls\":\"TLS\",\"\":\"(None)\"}',''),

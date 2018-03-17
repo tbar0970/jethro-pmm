@@ -18,7 +18,7 @@ System requirements are:
 The steps to install are:
 
 1. Unzip the files into a web-accessible folder on your web server
-2. Create a mysql database and database user for your jethro system to use
+2. Create a mysql database and database user for your jethro system to use. If asked, choose utf8_unicode_ci as the character set and collation.
 3. Edit Jethro's configuration file conf.php and fill in the essential details (system name, URL, database details).  Further explanation can be found inside the file.
 4. Open the jethro system URL in your web browser
 5. If you encounter an error about MDB2.php not being found, you need to install the MDB2 PEAR library.  If you have command line access this can be done by running
