@@ -132,6 +132,7 @@ class View_Persons__Reports extends View
 							<th><?php echo _('Visible To');?></th>
 							<th><?php echo _('Actions');?></th>
 							<th></th>
+							<th></th>
 						<?php
 						if (!empty($this->_result_counts)) {
 							?>
@@ -175,13 +176,24 @@ class View_Persons__Reports extends View
 							<td><?php echo $details['name']; ?></td>
 							<td><?php echo ($details['owner'] === NULL) ? _('Everyone') : _('Only Me'); ?></td>
 							<td class="action-cell narrow">
-								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>&configure=1"><i class="icon-wrench"></i><?php echo _('Configure');?></a> &nbsp;
 								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>"><i class="icon-list"></i><?php echo _('View');?></a> &nbsp;
+							<?php
+							if (strlen($details['mailchimp_list_id'])) {
+								?>
+								<a href="?view=_send_mc_campaign&reportid=<?php echo (int)$id; ?>"><i class="icon-email">@</i>Send campaign</a>
+								<?php
+							} else {
+								?>
 								<a href="?call=email&queryid=<?php echo $id; ?>" class="hidden-frame"><i class="icon-email">@</i><?php echo _('Email');?></a>
+								<?php
+							}
+							?>
+							</td>
+							<td>
+								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>&configure=1"><i class="icon-wrench"></i><?php echo _('Configure');?></a> &nbsp;
 							<?php
 							if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
 								?>
-								&nbsp;
 								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>&delete=1" data-method="post" class="double-confirm-title" title="Delete this report"><i class="icon-trash"></i><?php echo _('Delete');?></a>
 								<?php
 							}
