@@ -3,7 +3,7 @@
 $PERM_LEVELS = Array(
 1 =>		Array('EDITPERSON',			'Persons & Families - add/edit/group',	''),
 
-2 =>		Array('SENDSMS',			'SMS - send',							''),
+2 =>		Array('SENDSMS',			'SMS/Mailchimp - send',							''),
 
 4 =>		Array('RUNREPORT',			'Reports - run reports & view stats',	''),
 12 =>		Array('MANAGEREPORTS',		'Reports - save reports',				''),

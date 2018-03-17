@@ -47,8 +47,9 @@ class View__Persons_Bulk_Update extends View
 			$this->_person = new Person((int)$personid);
 			
 			foreach ($this->_allowedFields as $field) {
-				if (isset($_POST[$field])) {
-					$this->_person->setValue($field, $_POST[$field]);
+				if (strlen(array_get($_POST, $field, ''))) {
+					// we need our own isset
+					$this->_person->processFieldInterface($field);
 				}
 			}
 
