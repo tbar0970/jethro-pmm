@@ -52,7 +52,7 @@ class Abstract_View_Notes_List extends View
 				'references' => 'staff_member',
 				'allow_empty' => true,
 				'empty_text' => 'Anyone',
-				'filter'		=> create_function('$x', 'return $x->getValue("active") && (($x->getValue("permissions") & PERM_EDITNOTE) == PERM_EDITNOTE);'),
+				'filter'		=> function($x) {return $x->getValue("active") && (($x->getValue("permissions") & PERM_EDITNOTE) == PERM_EDITNOTE);},
 			),
 			array_get($_REQUEST, 'assignee')
 		);
