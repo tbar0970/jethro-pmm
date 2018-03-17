@@ -373,7 +373,7 @@ $(document).ready(function() {
 		}
 	});
 
-	$('a[data-method=post]').click(function(event) {
+	$('a[data-method=post]').each(function() {
 		var p = $(this).attr('href').split('?');
 		var action = p[0];
 		var params = p[1].split('&');
@@ -381,13 +381,16 @@ $(document).ready(function() {
 		$('body').append(pform);
 		pform.attr('action', action);
 		pform.attr('method', 'post');
-		for (var i=0; i < params.length; i++) {
-			var tmp= (""+params[i]).split('=');
+		pform.css('display', 'none');
+		for (var i = 0; i < params.length; i++) {
+			var tmp = ("" + params[i]).split('=');
 			var key = tmp[0], value = tmp[1];
-			pform.append('<input type="hidden" name="'+key+'" value="'+value+'" />');
+			pform.append('<input type="hidden" name="' + key + '" value="' + value + '" />');
 		}
-		pform.submit();
-		return false;
+		if (!window.postFormID) window.postFormID = 0;
+		pform.attr('id', 'postform'+(window.postFormID++));
+		$(document.body).append(pform);
+		this.href="javascript:document.getElementById('"+pform.attr('id')+"').submit()";
 	});
 
 	TBLib.anchorBottom('.anchor-bottom');
