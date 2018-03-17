@@ -108,9 +108,21 @@ printf($panel_header, 'basic', 'Basic Details & Members', 'active');
 				<div class="family-member">
 					<?php
 					if ($GLOBALS['system']->featureEnabled('PHOTOS')) {
-						?>
-						<img src="?call=photo&personid=<?php echo $personid; ?>" />
-						<?php
+                        if (Photo_Handler::hasPhotoData('person', $personid)) {
+                            ?>
+						    <img src="?call=photo&personid=<?php echo $personid; ?>" />
+                            <?php
+                        } else {
+                            $gravatarURL = "https://www.gravatar.com/avatar/" .
+                                md5( strtolower( trim( $dummy->getValue('email') ) ) ) .
+                                "?d=blank" . "&s=70";
+						    ?>
+                            <div class="person-photo-with-gravatar-div">
+	                            <img width="70" height="70" src="?call=photo&personid=<?php echo $personid; ?>"/>
+	                            <img width="70" src="<?php echo $gravatarURL ?>" style="position: absolute; top: 0; right: 0;"/>
+                            </div>
+						    <?php
+                        }
 					}
 					?>
 					<label>

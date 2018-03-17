@@ -851,11 +851,24 @@ p.report-summary {
 	float: left;
 	margin-right: 15px;
 }
+.person-photo-with-gravatar-div {
+    float: left;
+    position: relative;
+}
 img.person-photo {
 	width: 200px;
 	float: left;
 	border-radius: 5px;
 	border: 1px solid @jethroDarkest;
+}
+img.person-photo-gravatar {
+	width: 200px;
+	float: left;
+	border-radius: 5px;
+	border: 1px solid @jethroDarkest;
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 .details-box {
 	box-sizing: border-box;

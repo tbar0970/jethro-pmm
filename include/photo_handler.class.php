@@ -79,6 +79,21 @@ Class Photo_Handler {
 		}
 	}
 
+    public static function hasPhotoData($type, $id) {
+        $db = $GLOBALS['db'];
+		$SQL = $obj = NULL;
+		if ($type == 'person') {
+			$obj = $GLOBALS['system']->getDBObject('person', (int)$id);
+			if ($obj) $SQL = 'SELECT COUNT(photodata) FROM person_photo WHERE personid = '.$obj->id;
+		}
+		if ($obj) {
+			$res = $GLOBALS['db']->queryOne($SQL);
+			if ($res) {
+				return $res;
+			}
+		}
+    }
+
 	public static function getPhotoData($type, $id)
 	{
 		$db = $GLOBALS['db'];
