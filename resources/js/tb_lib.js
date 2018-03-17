@@ -10,6 +10,19 @@ $(document).ready(function() {
 
 	if ($('.stop-js').length) return; /* Classname flag for big pages that don't want JS to run */
 
+	// open mailto links in a new window (eg for gmail), but close the new window if it's unused (eg outlook desktop)
+	$('a[href^="mailto:').click(function() {
+		var windowRef = window.open(this.href, '_email');
+
+		windowRef.focus();
+
+		setTimeout(function(){
+		  if(!windowRef.document.hasFocus()) {
+			  windowRef.close();
+		  }
+		}, 500);
+		return false;
+	})
 
 	var i = document.createElement('input');
 	if (!('autofocus' in i) || $('[autofocus]').length == 0) {
