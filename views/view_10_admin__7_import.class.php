@@ -301,7 +301,7 @@ class View_Admin__Import extends View
 								);
 						?>
 				</b><br />
-				<?php printf(ents(_('The new persons will be added to the %s group.')), $groupname);	?>
+				<?php ents(printf(_('The new persons will be added to the %s group.'), $groupname));	?>
 				</p>
 
 				<?php
