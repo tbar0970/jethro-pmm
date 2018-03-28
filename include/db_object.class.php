@@ -868,9 +868,17 @@ class db_object
 			} else if ($field[0] == '<') {
 				$operator = '<';
 				$field = substr($field, 1);
+				if ($field[0] == '=') {
+					$operator .= '=';
+					$field = substr($field, 1);
+				}
 			} else if ($field[0] == '>') {
 				$operator = '>';
 				$field = substr($field, 1);
+				if ($field[0] == '=') {
+					$operator .= '=';
+					$field = substr($field, 1);
+				}				
 			} else if ($field[0] == '-') {
 				$operator = 'BETWEEN';
 				$field = substr($field, 1);
@@ -892,6 +900,15 @@ class db_object
 			}
 			if (isset($this->fields[$raw_field]) && $this->fields[$raw_field]['type'] == 'text') {
 				$field = 'LOWER('.$field.')';
+			}
+			if ($operator == 'BETWEEN') {
+				if ($val[1] === NULL) {
+					$operator = '>=';
+					$val = $val[0];
+				} else if ($val[0] === NULL) {
+					$operator = '<=';
+					$val = $val[1];
+				}
 			}
 			if ($operator == 'IN') {
 				if (is_array($val)) {

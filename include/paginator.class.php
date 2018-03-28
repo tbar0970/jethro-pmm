@@ -17,15 +17,15 @@ class Paginator
 		$i = 1;
 		while (ord($x) <= ord('Z') && $i <= 26) {
 			$y = chr(ord($x) + $this->_slice_size- 1);
-			if (ord($y) > ord('Z')) $y = 'Z';
+			if (ord($y) > ord('Z')) $y = NULL; // include staff after Z in last batch
 			if ($i == $this->_slice_num) {
-				if ($x == 'A') $x = '0'; // include numbers in first batch
+				if ($x == 'A') $x = NULL; // include stuff before A in first batch
 				return Array($x, $y);
 			}
 			$x = chr(ord($y) + 1);
 			$i++;
 		}
-		return Array($x, 'Z');
+		return Array($x, NULL);
 	}
 
 	public function printPageNav()
