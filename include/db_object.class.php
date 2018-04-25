@@ -204,6 +204,10 @@ class db_object
 			if (array_get($details, 'readonly')) continue;
 			$flds[] = $name;
 			$v = array_get($this->values, $name, '');
+			if (($v === '') && (($details['type'] == 'date') || $details['type'] == 'datetime')) {
+				// Mysql strict mode doesn't like blank strings being inserted into datetime cols
+				$v = NULL;
+			}
 			if ($details['type'] == 'serialise') {
 				$vals[] = $db->quote(serialize($v));
 			} else {
