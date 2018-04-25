@@ -75,17 +75,32 @@ Class SMS_Sender
 					'Å','ß','.','>','N','Ü','n','ü',
 					'å','É','/','?','O','§','o','à'
 				 );
-				$len = mb_strlen($message, 'UTF-8');
-				$out = '';
-				for ($i=0; $i < $len; $i++) {
-					$char = mb_substr($message,$i,1,'UTF-8');
-					if (in_array($char, $gsm0338)) {
-						$out .= $char;
-					} else {
-						error_log('SMS sender Discarded invalid char "'.$char.'" (ord '.ord($char).')');
+				if (function_exists('mb_strlen')) {
+					$len = mb_strlen($message, 'UTF-8');
+					$out = '';
+					for ($i=0; $i < $len; $i++) {
+						$char = mb_substr($message,$i,1,'UTF-8');
+						if (in_array($char, $gsm0338)) {
+							$out .= $char;
+						} else {
+							error_log('SMS sender Discarded invalid char "'.$char.'" (ord '.ord($char).')');
+						}
 					}
+					return $out;
+				} else {
+					$len = strlen($message);
+					$out = '';
+					for ($i=0; $i < $len; $i++) {
+						$char = substr($message,$i,1);
+						if (in_array($char, $gsm0338)) {
+							$out .= $char;
+						} else {
+							error_log('SMS sender Discarded invalid char "'.$char.'" (ord '.ord($char).')');
+						}
+					}
+					return $out;
+
 				}
-				return $out;
 		}
 		return $message;
 
