@@ -54,7 +54,7 @@ Class SMS_Sender
 	 */
 	private static function cleanseMessage($message)
 	{
-		$encoding = ifdef('SMS_ENCODING', 'GSM0338');
+		$encoding = strtoupper(ifdef('SMS_ENCODING', 'GSM0338'));
 		switch ($encoding) {
 			case 'GSM0338':
 				$gsm0338 = array(
@@ -75,8 +75,6 @@ Class SMS_Sender
 					'Å','ß','.','>','N','Ü','n','ü',
 					'å','É','/','?','O','§','o','à'
 				 );
-				error_log("Testing $message");
-				error_log("Seems like ".mb_detect_encoding($message));
 				$len = mb_strlen($message, 'UTF-8');
 				$out = '';
 				for ($i=0; $i < $len; $i++) {
@@ -84,7 +82,7 @@ Class SMS_Sender
 					if (in_array($char, $gsm0338)) {
 						$out .= $char;
 					} else {
-						error_log("Discarded $char");
+						error_log('SMS sender Discarded invalid char "'.$char.'" (ord '.ord($char).')');
 					}
 				}
 				return $out;
