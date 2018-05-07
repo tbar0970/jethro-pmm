@@ -722,6 +722,8 @@ class db_object
 				}
 				$this->setValue($name, $value);
 			}
+		} else {
+			trigger_error("Could not save value for object #".$this->id." because we do not hold the lock");
 		}
 	}
 
