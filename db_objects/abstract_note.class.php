@@ -76,6 +76,7 @@ class Abstract_Note extends DB_Object
 								'editable'		=> false,
 								'references'	=> 'person',
 								'visible'		=> false,
+								'default'		=> 0,
 							   ),
 			'edited'		=> Array(
 								'type'			=> 'datetime',
