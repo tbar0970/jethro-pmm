@@ -325,7 +325,8 @@ class db_object
 			$changes = $this->_getChanges();
 			if ($changes) {
 				$user = $GLOBALS['user_system']->getCurrentPerson();
-				$this->values['history'][time()] = 'Updated by '.$user['first_name'].' '.$user['last_name'].' (#'.$user['id'].")\n".implode("\n", $changes);
+				$now = time();
+				$this->values['history'][$now] = 'Updated by '.$user['first_name'].' '.$user['last_name'].' (#'.$user['id'].")\n".implode("\n", $changes);
 				$this->_old_values['history'] = 1;
 			}
 		}
