@@ -205,7 +205,8 @@ function print_widget($name, $params, $value)
 				<script src="<?php echo BASE_URL.'resources/ckeditor/ckeditor.js'; ?>"></script>
 				<?php
 			}
-			$ckParams = '';
+			$ckParams = 'disableNativeSpellChecker: false, 
+						';
 			if (array_get($params, 'toolbar') == 'basic') {
 				$ckParams = "
 					toolbar: [
