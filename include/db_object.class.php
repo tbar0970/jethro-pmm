@@ -885,7 +885,7 @@ class db_object
 				if ($field[0] == '=') {
 					$operator .= '=';
 					$field = substr($field, 1);
-				}				
+				}
 			} else if ($field[0] == '-') {
 				$operator = 'BETWEEN';
 				$field = substr($field, 1);
