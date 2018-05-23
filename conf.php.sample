@@ -216,3 +216,7 @@ define('DB_TYPE', 'mysql');
 // For troubleshooting you can use this to show error details in the browser
 // This is usually disabled in production versions but shown in dev.
 // define('SHOW_ERROR_DETAILS', TRUE);
+
+// Text encoding for sending SMS messages.
+// Change it to something other than GSM0338 to stop Jethro filtering out non-GSMS0338 characters.
+// define('SMS_ENCODING', 'GSM0338');

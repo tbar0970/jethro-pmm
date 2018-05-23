@@ -69,6 +69,7 @@ class Person_Query extends DB_Object
 			  `created` timestamp NOT NULL default CURRENT_TIMESTAMP,
 			  `owner` int(11) DEFAULT NULL,
 			  `params` text NOT NULL,
+			  `mailchimp_list_id` varchar(255) NOT NULL default '',
 			  PRIMARY KEY  (`id`)
 			) ENGINE=InnoDB ;
 		";

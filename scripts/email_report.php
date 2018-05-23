@@ -1,6 +1,6 @@
 <?php
 /*****************************************************************
-This script will send the results of a report in an email and also attached as a .csv file. 
+This script will send the results of a report in an email and also attached as a .csv file.
 usage:  php /path/to/this-script.php /path/to/variables-in-a-file.ini
 Possible application could be:
 - email a list of people who have missed church for three sundays to the minister or the pastoral care group
@@ -8,8 +8,8 @@ Possible application could be:
 - email upcoming birthdays to the Sunday School coordinator or sunday school teachers group
 - generate a regular report (e.g. monthly) of childsafe training details for childsafe administrator
 The recipient/s of the email need not be given user access to Jethro. You can send to a specific Jethro group, or to one or more emails entered in the ini file
-You can adjust the format of the report, or the membership of the recipient group in Jethro without needing to change this script or the cron job that calls it. 
-With a bit of work this script could be modified to send multiple different reports. 
+You can adjust the format of the report, or the membership of the recipient group in Jethro without needing to change this script or the cron job that calls it.
+With a bit of work this script could be modified to send multiple different reports.
 TODO - there may be issues with formatting if a report is grouped into multiple tables?
 ******************************************************************/
 //
@@ -59,27 +59,116 @@ ob_end_clean();
 //
 // turn csv into html table for email content
 //
-$csv_array = preg_split("/\\r\\n|\\r|\\n/", $csv_string);
-$rows=(count($csv_array)-1);
-$x=0;
-$email_html="<html><head></head><body>This is the result of a report generatated from the ".SYSTEM_NAME." Jethro system. <br><br>".$ini['MESSAGE']."<br><h2>Report name: ".$reportname."</h2>";
-  $email_html.="<table border='1' cellpadding='5' cellspacing='1'>";
-// TODO: this doesn't handle values containing commas or newlines properly
-while($x < $rows) {
-    $line = explode(',',$csv_array[$x]);
-	$email_html.="<tr>";
-     	if ($x==0) {
-     	foreach ($line as $cell) {$email_html.="<th>".(str_replace('"', "", $cell))."</th>";}
-	} else {
-     	foreach ($line as $cell) {$email_html.="<td>".(str_replace('"', "", $cell))."</td>";}
-	}
- 	$email_html.="</tr>";
-  $x++;
+$email_html="<html><head>
+<style>html body { font-family: sans-serif;} table {
+	color:#333333;
+	border-width: 1px;
+	border-color: #666666;
+	border-collapse: collapse;
 }
-$email_html.="</table><br><br><i>If there is no table above then the report returned no results.</i><br></body></html>";
+table th {
+	border-width: 1px;
+	padding: 8px;
+	border-style: solid;
+	border-color: #666666;
+	background-color: #dedede;
+}
+table.gridtable td {
+	border-width: 1px;
+	padding: 8px;
+	border-style: solid;
+	border-color: #666666;
+	background-color: #ffffff;
+} </style></head><body>This is the result of a report generatated from the ".SYSTEM_NAME." Jethro system. <br><br>".$ini['MESSAGE']."<br><h2>Report name: ".$reportname."</h2>";
+//first work-over $csv_string to deal with the issue of new-lines within a field by replacing those new lines with <br>
+$csv_string  = preg_replace('#\\n(?=[^"]*"[^"]*(?:"[^"]*"[^"]*)*$)#' , '<br>', $csv_string);
+//now separate out the table rows
+$table_rows = explode(PHP_EOL, $csv_string);
+//covert each row into an array
+$table_array = array();
+foreach ($table_rows as $line) {
+    $table_array[] = str_getcsv($line);
+}
+    $rows = (count($table_array)-1);
+    $columns = count($table_array[0]);
+    $y = 0;
+    $table_header = '';
+    $table_body = '';
+    $table_html = '';
+// table headings - as a string AND test if the report results are grouped
+	$table_header .= '<tr>';
+	while ($y < $columns) {
+		if ($table_array[0][$y] == 'GROUPING') {$grouping_column = $y;}
+		else {$table_header .= '<th>'.$table_array[0][$y].'</th>';}
+		$y++;}
+		$table_header .= '</tr>';
+// table body (if the report results are to be grouped)
+	if (isset($grouping_column)) {
+	$x=1;
+	$y = 0;
+	$table_body = '';
+	$group_name = $table_array[$x][$grouping_column];
+	while ($x < $rows) {
+		if ($group_name == $table_array[$x][$grouping_column]){
+			$table_body .= '<tr>';
+			$y = 0;
+			while ($y < $columns) {
+				if ($y != $grouping_column){
+					if ($table_array[$x][$y] == '') {
+						$table_body .= '<td> - </td>';
+					} else {
+						$table_body .= '<td>'.$table_array[$x][$y].'</td>';
+					}
+				}
+				$y++;
+			}
+			$table_body .= '</tr>';
+			$group_name = $table_array[$x][$grouping_column];
+		} else {
+			$table_html .= '<h3>'.$group_name.'</h3><table border=1 cellpadding=4 cellspacing=3 >'.$table_header.$table_body.'</table>';
+			$table_body = '<tr>';
+			$y = 0;
+			while ($y < $columns) {
+				if ($y != $grouping_column){
+					if ($table_array[$x][$y] == '') {
+						$table_body .= '<td> - </td>';
+					} else {
+						$table_body .= '<td>'.$table_array[$x][$y].'</td>';
+					}
+				}
+				$y++;
+			}
+			$table_body .= '</tr>';
+			$group_name = $table_array[$x][$grouping_column];
+			}
+		$x++;
+		}
+			$table_html .= '<h3>'.$group_name.'</h3><table border=1 cellpadding=4 cellspacing=3 >'.$table_header.$table_body.'</table>';
+	} else {
+// table body (if the report results are ungrouped)
+	$x=1;
+	$y=0;
+	while ($x < $rows){
+		$table_body .= '<tr>';
+		while ($y < $columns) {
+			if ($table_array[$x][$y] == '') {
+				$table_body .= '<td> - </td>';
+			} else {
+				$table_body .= '<td>'.$table_array[$x][$y].'</td>';
+			}
+			$y++;
+		}
+		$table_body .= '</tr>';
+		$y = 0;
+		$x++;
+ 		}
+	$table_html = '<table border=1 cellpadding=4 cellspacing=3 >'.$table_header.$table_body.'</table>';
+	}
+$email_html.=$table_html;
+$email_html.="<br><br><i>If there is no table above then the report returned no results.</i><br></body></html>";
 $email_subject="Jethro Report: ".$reportname;
 $file_name=$reportname.".csv";
-// 
+//
 // compile the list of recipients for the email
 //
 if ((int)$ini['GROUP_ID']!=0) {

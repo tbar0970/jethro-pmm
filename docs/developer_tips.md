@@ -6,3 +6,4 @@
 ## Tips
 * Remember the _empty()_ function can handle non-set array elements without erroring.  So we can do `if (empty($_REQUEST['something']))` will efficiently test whether the element is non-set, blank string, false, null, zero etc.
 * Don't include a close-php tag at the very end of a file. Can cause problems with outputting whitespace.
+* Turn off any editor settings that will auto-adjust the indentation/whitespace throughout every file.  Makes pull requests very messy.  Only change the lines you change.
