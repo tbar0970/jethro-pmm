@@ -32,7 +32,10 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 				?>
 					<option value="email"><?php echo _('Send email')?></option>
 				<?php
-				$enable_sms = $GLOBALS['user_system']->havePerm(PERM_SENDSMS) && defined('SMS_HTTP_URL') && constant('SMS_HTTP_URL') && defined('SMS_HTTP_POST_TEMPLATE') && constant('SMS_HTTP_POST_TEMPLATE');
+				$enable_sms =  $GLOBALS['user_system']->havePerm(PERM_SENDSMS)
+										&& defined('SMS_HTTP_URL') && constant('SMS_HTTP_URL')
+										&& defined('SMS_HTTP_POST_TEMPLATE') && constant('SMS_HTTP_POST_TEMPLATE')
+										&& ((defined('SMS_OVERRIDE_SENDER_NUMBER') && strlen(constant('SMS_OVERRIDE_SENDER_NUMBER'))) || ($GLOBALS['user_system']->getCurrentUser('mobile_tel') !== ''));
 				if ($enable_sms) {
 					?>
 					<option value="smshttp"><?php echo _('Send SMS')?></option>
@@ -295,7 +298,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 			</div>
 		<?php
 		if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
-			?>			
+			?>
 			<div class="control-group">
 				<label class="control-label">After sending:</label>
 				<div class="controls">
@@ -357,13 +360,11 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 	<div class="bulk-action well" id="vcf">
 		<input type="submit" value="Go" class="btn" data-set-form-action="<?php echo BASE_URL; ?>?call=vcf" />
 	</div>
-	
+
 	<?php
 	if (function_exists('custom_bulk_action_bodies')) {
 		custom_bulk_action_bodies();
 	}
 	?>
-	
+
 </div>
-
-
