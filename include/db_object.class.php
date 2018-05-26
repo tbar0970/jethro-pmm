@@ -204,6 +204,10 @@ class db_object
 			if (array_get($details, 'readonly')) continue;
 			$flds[] = $name;
 			$v = array_get($this->values, $name, '');
+			if (($v === '') && (($details['type'] == 'date') || $details['type'] == 'datetime')) {
+				// Mysql strict mode doesn't like blank strings being inserted into datetime cols
+				$v = NULL;
+			}
 			if ($details['type'] == 'serialise') {
 				$vals[] = $db->quote(serialize($v));
 			} else {
@@ -321,7 +325,8 @@ class db_object
 			$changes = $this->_getChanges();
 			if ($changes) {
 				$user = $GLOBALS['user_system']->getCurrentPerson();
-				$this->values['history'][time()] = 'Updated by '.$user['first_name'].' '.$user['last_name'].' (#'.$user['id'].")\n".implode("\n", $changes);
+				$now = time();
+				$this->values['history'][$now] = 'Updated by '.$user['first_name'].' '.$user['last_name'].' (#'.$user['id'].")\n".implode("\n", $changes);
 				$this->_old_values['history'] = 1;
 			}
 		}
@@ -718,6 +723,8 @@ class db_object
 				}
 				$this->setValue($name, $value);
 			}
+		} else {
+			trigger_error("Could not save value for object #".$this->id." because we do not hold the lock");
 		}
 	}
 
@@ -868,9 +875,17 @@ class db_object
 			} else if ($field[0] == '<') {
 				$operator = '<';
 				$field = substr($field, 1);
+				if ($field[0] == '=') {
+					$operator .= '=';
+					$field = substr($field, 1);
+				}
 			} else if ($field[0] == '>') {
 				$operator = '>';
 				$field = substr($field, 1);
+				if ($field[0] == '=') {
+					$operator .= '=';
+					$field = substr($field, 1);
+				}				
 			} else if ($field[0] == '-') {
 				$operator = 'BETWEEN';
 				$field = substr($field, 1);
@@ -892,6 +907,15 @@ class db_object
 			}
 			if (isset($this->fields[$raw_field]) && $this->fields[$raw_field]['type'] == 'text') {
 				$field = 'LOWER('.$field.')';
+			}
+			if ($operator == 'BETWEEN') {
+				if ($val[1] === NULL) {
+					$operator = '>=';
+					$val = $val[0];
+				} else if ($val[0] === NULL) {
+					$operator = '<=';
+					$val = $val[1];
+				}
 			}
 			if ($operator == 'IN') {
 				if (is_array($val)) {
