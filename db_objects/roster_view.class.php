@@ -353,7 +353,7 @@ class roster_view extends db_object
 				IF(privateassignee.id IS NULL, 1, 0) as assigneehidden,
 				privateassignee.email as email,
 				privateassignee.mobile_tel as mobile,
-				CONCAT(assigner.first_name, " ", assigner.last_name) as assigner, 
+				CONCAT(assigner.first_name, " ", assigner.last_name) as assigner,
 				rra.assignedon
 				FROM roster_role_assignment rra
 				LEFT JOIN person privateassignee ON rra.personid = privateassignee.id
@@ -671,7 +671,7 @@ class roster_view extends db_object
 			</div>
 			<?php
 		}
-		
+
 		?>
 		<table class="table roster" border="1" cellspacing="0" cellpadding="1">
 
@@ -710,7 +710,11 @@ class roster_view extends db_object
 				                </span>
 								<?php
 							}
-							if (!empty($mobiles) && defined('SMS_HTTP_URL') && constant('SMS_HTTP_URL') && $GLOBALS['user_system']->havePerm(PERM_SENDSMS)) {
+							$enable_sms =  $GLOBALS['user_system']->havePerm(PERM_SENDSMS)
+													&& defined('SMS_HTTP_URL') && constant('SMS_HTTP_URL')
+													&& defined('SMS_HTTP_POST_TEMPLATE') && constant('SMS_HTTP_POST_TEMPLATE')
+													&& ((defined('SMS_OVERRIDE_SENDER_NUMBER') && strlen(constant('SMS_OVERRIDE_SENDER_NUMBER'))) || ($GLOBALS['user_system']->getCurrentUser('mobile_tel') !== ''));
+							if (!empty($mobiles) && $enable_sms) {
 								?>
 								<span class="smallprint no-print">
 								  <a href="#send-sms-modal" data-personid="<?php echo implode(',', array_unique($personids)); ?>" data-toggle="sms-modal" data-name="People Rostered on <?php echo $date;?>" onclick="$(this).parents('tr:first').addClass('tblib-hover')">SMS All</a>

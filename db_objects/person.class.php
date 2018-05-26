@@ -244,14 +244,15 @@ class Person extends DB_Object
 				echo ents($this->getFormattedValue($name, $value));
 
 				$smsLink = '';
+				$enable_sms =  $GLOBALS['user_system']->havePerm(PERM_SENDSMS)
+										&& defined('SMS_HTTP_URL') && constant('SMS_HTTP_URL')
+										&& defined('SMS_HTTP_POST_TEMPLATE') && constant('SMS_HTTP_POST_TEMPLATE')
+										&& ((defined('SMS_OVERRIDE_SENDER_NUMBER') && strlen(constant('SMS_OVERRIDE_SENDER_NUMBER'))) || ($GLOBALS['user_system']->getCurrentUser('mobile_tel') !== ''));
 				if (SizeDetector::isNarrow()) {
 					// Probably a phone - use a plain sms: link
 					$smsLink = 'href="sms:'.ents($value).'"';
 				} else if (
-						defined('SMS_HTTP_URL')
-						&& constant('SMS_HTTP_URL')
-						&& $GLOBALS['user_system']->havePerm(PERM_SENDSMS)
-						&& !empty($this->id)
+						$enable_sms && !empty($this->id)
 					) {
 					// Provide a link to send SMS through the SMS gateway
 					$smsLink = 'href="#send-sms-modal" data-toggle="sms-modal" data-personid="' . $this->id . '" data-name="' . $person_name . '"';
@@ -722,12 +723,12 @@ class Person extends DB_Object
 		}
 		return $res;
 	}
-		
+
 	function getInstancesQueryComps($params, $logic, $order)
 	{
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
 		$res['select'][] = 'f.family_name, f.address_street, f.address_suburb, f.address_state, f.address_postcode, f.home_tel, c.name as congregation, ab.label as age_bracket';
-		$res['from'] = '(('.$res['from'].') 
+		$res['from'] = '(('.$res['from'].')
 						JOIN family f ON person.familyid = f.id)
 						LEFT JOIN congregation c ON person.congregationid = c.id
 						JOIN age_bracket ab on ab.id = person.age_bracketid ';
@@ -891,7 +892,7 @@ class Person extends DB_Object
 	public function fromCsvRow($row) {
 		$this->_custom_values = Array();
 		$this->_old_custom_values = Array();
-		
+
 		static $customFields = NULL;
 		if ($customFields === NULL) {
 			$fields = $GLOBALS['system']->getDBObjectdata('custom_field');
@@ -931,7 +932,7 @@ class Person extends DB_Object
 		parent::populate($id, $values);
 		$this->_custom_values = Array();
 		$this->_old_custom_values = Array();
-		
+
 		foreach ($values as $k => $v) {
 			if (0 === strpos($k, 'CUSTOM_')) {
 				$this->setCustomValue(substr($k, 7), $v);

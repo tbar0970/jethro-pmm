@@ -44,7 +44,7 @@ Class SMS_Sender
 		}
 		return Array($recips, $blanks, $archived);
 	}
-	
+
 	/**
 	 * Remove invalid characters from message.
 	 * Only understands GSM0338 at the moment - any other charset does not get filtered.
@@ -124,10 +124,19 @@ Class SMS_Sender
 			$mobile_tels = array_keys($mobile_tels);
 		}
 
+		$sendermobile = "";
+		if (defined('SMS_OVERRIDE_SENDER_NUMBER') && strlen(constant('SMS_OVERRIDE_SENDER_NUMBER'))) {
+			$sendermobile =constant('SMS_OVERRIDE_SENDER_NUMBER');
+		} else {
+			$sendermobile = $GLOBALS['user_system']->getCurrentUser('mobile_tel');
+		}
+
 		$response = '';
 		$success = false;
+
 		$content = SMS_HTTP_POST_TEMPLATE;
-		$content = str_replace('_USER_MOBILE_', urlencode($GLOBALS['user_system']->getCurrentUser('mobile_tel')), $content);
+		$content = str_replace('_USER_MOBILE_', urlencode($sendermobile), $content);
+		$content = str_replace('_USER_INTERNATIONAL_MOBILE_', urlencode(self::internationaliseNumber($sendermobile)), $content);
 		$content = str_replace('_USER_EMAIL_', urlencode($GLOBALS['user_system']->getCurrentUser('email')), $content);
 		$content = str_replace('_MESSAGE_', urlencode($message), $content);
 		$content = str_replace('_RECIPIENTS_COMMAS_', urlencode(implode(',', $mobile_tels)), $content);
