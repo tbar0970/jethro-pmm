@@ -35,7 +35,7 @@ class View__Persons_Bulk_Update extends View
 			if (!empty($_REQUEST['backto'])) {
 				parse_str($_REQUEST['backto'], $back);
 				unset($back['backto']);
-				$back['*'] = NULL;		
+				$back['*'] = NULL;
 				redirect($back['view'], $back);
 			}
 			return;
