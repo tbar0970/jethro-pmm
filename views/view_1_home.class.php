@@ -126,28 +126,21 @@ class View_Home extends View
 		?>
 		</div>
 		<?php
-        $frontpage_display = $frontpage_display_noperms = '';
-        $frontpagesql = 'SELECT queryid,noperms FROM frontpage_person_query';
-        $fp_reports = $GLOBALS['db']->query($frontpagesql);
-        $GLOBALS['system']->includeDBClass('person_query');
-        foreach ($fp_reports as $fp_report) {
-            if ($GLOBALS['user_system']->havePerm(PERM_RUNREPORT) || (bool)$fp_report['noperms']) {
-                $_query = new Person_Query($fp_report['queryid']);
-            ?>
-            <div class="homepage homepage-1-col" style="clear:both;">
-            <?php
-                if ($_query->getValue('name')) {
-                    print "<h3>" . $_query->getValue('name') . "</h3>";
-                }
-                else {
-                    print "<h3>Person Report " . $fp_report['queryid'] . " Results</h3>";
-                }
-                $_query->printResults();
-            ?>
-            </div>
-            <?php
-            }
-        }
+		 $frontpagereports = $GLOBALS['system']->getDBObjectData('person_query', Array('show_on_homepage' => 2));
+		 if ($GLOBALS['user_system']->havePerm(PERM_RUNREPORT)) {
+			  $frontpagereports = $frontpagereports + $GLOBALS['system']->getDBObjectData('person_query', Array('show_on_homepage' => 1));
+		 }
+
+		 foreach ($frontpagereports as $reportid=>$reportparams) {
+			 $report = $GLOBALS['system']->getDBObject('person_query', $reportid);
+
+			 ?>
+			 <div class="homepage homepage-1-col" style="clear:both;">
+			 	<h3><?php echo $reportparams['name']; ?></h3>
+				<?php $report->printResults(); ?>
+			</div>
+			<?php
+		 }
 	}
 }
 ?>

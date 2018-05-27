@@ -70,23 +70,17 @@ class Person_Query extends DB_Object
 			  `owner` int(11) DEFAULT NULL,
 			  `params` text NOT NULL,
 			  `mailchimp_list_id` varchar(255) NOT NULL default '',
+				`show_on_homepage` int(11) DEFAULT NULL,
 			  PRIMARY KEY  (`id`)
-			) ENGINE=InnoDB ;
-			CREATE TABLE `frontpage_person_query` (
-			  `queryid` int(11) NOT NULL auto_increment,
-			  `noperms` bool NOT NULL default false,
-			  PRIMARY KEY  (`queryid`)
 			) ENGINE=InnoDB ;
 		";
 	}
 
-        function delete()
-        {
-                $GLOBALS['system']->doTransaction('BEGIN');
-                parent::delete();
-                $sql = 'DELETE FROM frontpage_person_query WHERE queryid='.(int)$this->id;
-                $res = $GLOBALS['db']->query($sql);
-                $GLOBALS['system']->doTransaction('COMMIT');
+  function delete()
+  {
+		$GLOBALS['system']->doTransaction('BEGIN');
+    parent::delete();
+    $GLOBALS['system']->doTransaction('COMMIT');
 	}
 
 	protected static function _getFields()
@@ -136,8 +130,13 @@ class Person_Query extends DB_Object
 									'default' => '',
 									'placeholder' => '('._('Optional').')',
 									'tooltip' => _('If you have a MailChimp list you would like to synchronise with the results of this report, enter the relevant List ID here and wait until the sync script runs.'),
-			)
-
+			),
+			'show_on_homepage' => Array(
+									'type' => 'int',
+									'editable'=> true,
+									'tooltip' => 'Visibility of this report on the homepage.',
+									'default' => NULL,
+			),
 		);
 	}
 
@@ -581,34 +580,15 @@ class Person_Query extends DB_Object
 
 		?>
 		</select>
-
-		<h3>FrontPage Display</h3>
-        <?php 
-        $frontpage_display = $frontpage_display_noperms = '';
-	if (!is_null($this->id) && ($this->id != 'TEMP')) {
-            $frontpagesql = 'SELECT queryid,noperms FROM frontpage_person_query WHERE queryid='. $this->id;
-            $fpsres = $GLOBALS['db']->queryRow($frontpagesql);
-            if (!empty($fpsres)) {
-                $frontpage_display = ' checked';
-                if ($fpsres['noperms']) {
-                    $frontpage_display_noperms = ' checked';
-                }
-            }
-        }
-        ?>
-		<label class="checkbox">
-            <input autofocus="1" name="frontpage_display" value="1" <?php echo $frontpage_display; ?> id="frontpage_display" type="checkbox">
-			<strong>Display Report Results on Homepage</strong>
-        </label>
-        <label class="checkbox">
-            <input autofocus="1" name="frontpage_display_noperms" value="1" <?php echo $frontpage_display_noperms; ?> id="frontpage_display_noperms" type="checkbox">
-			<strong>Show for all users regardless of permissions</strong>
-        </label>
 		<?php
 		if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
 			$visibilityParams = Array(
 				'type' => 'select',
 				'options' => Array('visible to everyone', 'visible only to me')
+			);
+			$homepageParams = Array(
+				'type' => 'select',
+				'options' => Array('Don\'t show on Homepage', 'Show on Homepage for authorised users', 'Show on Homepage for all users')
 			);
 			?>
 			<h3>I want to save this report...</h3>
@@ -660,6 +640,14 @@ class Person_Query extends DB_Object
 							?>
 						</td>
 					</tr>
+					<tr>
+						<td></td>
+						<td>
+							<?php
+								print_widget('show_on_homepage', $homepageParams, $this->getValue('show_on_homepage'));
+							?>
+						</td>
+					</tr>
 				<?php
 				if (strlen(ifdef('MAILCHIMP_API_KEY')) && $GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 					?>
@@ -671,7 +659,6 @@ class Person_Query extends DB_Object
 				}
 				?>
 				</table>
-
 			</div>
 			<?php
 		}
@@ -688,6 +675,7 @@ class Person_Query extends DB_Object
 						$this->processFieldInterface('mailchimp_list_id');
 					}
 					$this->setValue('owner', $_POST['is_private'] ? $GLOBALS['user_system']->getCurrentUser('id') : NULL);
+					$this->setValue('show_on_homepage', $_POST['show_on_homepage']);
 					break;
 				case 'replace':
 					$this->processFieldInterface('name');
@@ -695,6 +683,7 @@ class Person_Query extends DB_Object
 						$this->processFieldInterface('mailchimp_list_id');
 					}
 					$this->setValue('owner', $_POST['is_private'] ? $GLOBALS['user_system']->getCurrentUser('id') : NULL);
+					$this->setValue('show_on_homepage', $_POST['show_on_homepage']);
 					break;
 				case 'temp':
 					$this->id = 'TEMP';
@@ -704,25 +693,9 @@ class Person_Query extends DB_Object
 			$this->id = 'TEMP';
 		}
 
+
 		$params = $this->_convertParams($this->getValue('params'));
 
-		// FRONTPAGE DISPLAY
-        $frontpagesql = 'DELETE FROM frontpage_person_query WHERE queryid=' . $this->id;
-        if ((!empty($this->id)) && ($this->id != 'TEMP') && (!empty($_POST['frontpage_display']))) {
-            $frontpage_display = $_POST['frontpage_display'];
-            $frontpage_display_noperms = 0;
-            if ($frontpage_display) {
-                if (!empty($_POST['frontpage_display_noperms'])) {
-
-                    $frontpage_display_noperms = (bool)$_POST['frontpage_display_noperms'];
-                }
-                $frontpagesql = 'REPLACE INTO frontpage_person_query VALUES(' . $this->id . ', ' . $frontpage_display_noperms . ')';
-            }
-		}
-		if ((!empty($this->id)) && ($this->id != 'TEMP')) {
-         	   $GLOBALS['db']->query($frontpagesql);
-        	}
-		
 		// FIELD RULES
 		$rules = Array();
 		if (!empty($_POST['enable_rule'])) {
@@ -1209,7 +1182,7 @@ class Person_Query extends DB_Object
 						$query['from'] .= '
 										JOIN (
 											SELECT familyid, IF (
-												GROUP_CONCAT(DISTINCT last_name) = ff.family_name, 
+												GROUP_CONCAT(DISTINCT last_name) = ff.family_name,
 												GROUP_CONCAT(first_name ORDER BY ab.rank, gender DESC SEPARATOR ", "),
 												GROUP_CONCAT(CONCAT(first_name, " ", last_name) ORDER BY ab.rank, gender DESC SEPARATOR ", ")
 											  ) AS `names`
@@ -1234,7 +1207,7 @@ class Person_Query extends DB_Object
 													)');
 						$r2 = $GLOBALS['db']->query('INSERT INTO _family_adults'.$this->id.' (familyid, names)
 											SELECT familyid, IF (
-												GROUP_CONCAT(DISTINCT last_name) = ff.family_name, 
+												GROUP_CONCAT(DISTINCT last_name) = ff.family_name,
 												GROUP_CONCAT(first_name ORDER BY ab.rank, gender DESC SEPARATOR ", "),
 												GROUP_CONCAT(CONCAT(first_name, " ", last_name) ORDER BY ab.rank, gender DESC SEPARATOR ", ")
 											  )
@@ -1250,9 +1223,9 @@ class Person_Query extends DB_Object
 					case 'attendance_percent':
 							$groupid = $params['attendance_groupid'] == '__cong__' ? 0 : $params['attendance_groupid'];
 							$min_date = date('Y-m-d', strtotime('-'.(int)$params['attendance_weeks'].' weeks'));
-							$query['select'][] = '(SELECT ROUND(SUM(present)/COUNT(*)*100) 
-													FROM attendance_record 
-													WHERE date >= '.$GLOBALS['db']->quote($min_date).' 
+							$query['select'][] = '(SELECT ROUND(SUM(present)/COUNT(*)*100)
+													FROM attendance_record
+													WHERE date >= '.$GLOBALS['db']->quote($min_date).'
 													AND groupid = '.(int)$groupid.'
 													AND personid = p.id) AS `Attendance`';
 						break;
