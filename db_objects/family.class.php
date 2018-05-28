@@ -562,5 +562,29 @@ class family extends db_object
 		<input type="hidden" name="<?php echo $name; ?>" value="<?php echo $currentid; ?>" />
 		<?php
 	}
-
+	
+	public function archiveAndClean()
+	{
+		if (!$this->acquireLock()) return FALSE;
+		foreach ($this->fields as $fieldname => $params) {
+			switch ($fieldname) {
+				case 'family_name':
+					$this->setValue($fieldname, '(Removed)');
+					break;
+				case 'status_last_changed':
+				case 'creator':
+				case 'created':
+					// leave these intact
+					break;
+				case 'status':
+					$this->setValue($fieldname, 'archived');
+					break;
+				default:
+					$this->setValue($fieldname, '');
+			}
+		}
+		if (!$this->save()) return FALSE;
+		$this->releaseLock();
+		return TRUE;
+	}
 }
