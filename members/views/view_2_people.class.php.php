@@ -32,12 +32,17 @@ class View_People extends View
 		$list = Member::getList(array_get($_REQUEST, 'search'), array_get($_REQUEST, 'congregationid'));
 		$lastFamilyID = NULL;
 		$dummy = new Member();
+		$persons = Array();
 		foreach ($list as $id => $member) {
-			$dummy->populate($id, $member);
 			if ($member['familyid'] != $lastFamilyID) {
+				include 'templates/member_list.template.php';
+				$persons = Array();
+
+				$dummy->populate($id, $member);
 				$showAddress = defined('MEMBERS_SHARE_ADDRESS')
 								&& MEMBERS_SHARE_ADDRESS
 								&& !empty($member['address_suburb']);
+
 				?>
 				<div class="row-fluid">
 					<div class="span12 member-row family-row">
@@ -64,6 +69,8 @@ class View_People extends View
 					<?php
 				}
 			}
+			$persons[$id] = $member;
+			/*
 			if ($GLOBALS['system']->featureEnabled('PHOTOS')) {
 				?>
 				<div class="member-card">
@@ -101,11 +108,10 @@ class View_People extends View
 				</div>
 				<?php
 			}
+*/
 			$lastFamilyID = $member['familyid'];
 		}
-		?>
-		</table>
-		<?php
+				include 'templates/member_list.template.php';
 
 	}
 

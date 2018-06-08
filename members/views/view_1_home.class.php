@@ -18,7 +18,7 @@ class View_Home extends View
 			<h3>Search people</h3>
 			<form method="get" class="form-inline">
 				<input type="hidden" name="view" value="people" />
-				<input name="search" type="text" placeholder="Enter name to search" value="<?php echo ents(array_get($_REQUEST, 'search')); ?>">
+				<input name="search" type="text" placeholder="Enter name to search" style="width: 70%" value="<?php echo ents(array_get($_REQUEST, 'search')); ?>">
 				<button data-action="search" class="btn" type="submit">Search</button>
 			</form>
 		</div>
@@ -29,9 +29,22 @@ class View_Home extends View
 				My Family
 			</h3>
 			<?php
+
+
 			$family = $GLOBALS['system']->getDBObject('family', $GLOBALS['user_system']->getCurrentMember('familyid'));
 			unset($family->fields['status']);
-			$family->printCustomSummary(Array($this, 'printFamilyMembers'));
+
+			if ($GLOBALS['system']->featureEnabled('PHOTOS')) {
+				?>
+				<div class="person-photo-container">
+					<img src="?call=photo&familyid=<?php echo (int)$family->id; ?>" />
+				</div>
+				<?php
+			}
+			
+			$family->printSummary();
+			$persons = $family->getMemberData();
+			include 'templates/member_list.template.php';
 			?>
 		</div>
 
