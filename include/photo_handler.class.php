@@ -33,9 +33,26 @@ Class Photo_Handler {
 				}
 				if (function_exists('imagepng')) {
 					$fn = 'imagecreatefrom'.$ext;
-					list($orig_width, $orig_height) = getimagesize($_FILES[$fieldName]['tmp_name']);
 					$input_img = $fn($_FILES[$fieldName]['tmp_name']);
 					if (!$input_img) exit;
+					// Rotate the image as necessary - thanks http://php.net/manual/en/function.exif-read-data.php#110894
+					$exif = @exif_read_data($_FILES[$fieldName]['tmp_name']);
+					if (!empty($exif['Orientation'])) {
+						switch($exif['Orientation']) {
+							case 8:
+								$input_img = imagerotate($input_img,90,0);
+								break;
+							case 3:
+								$input_img = imagerotate($input_img,180,0);
+								break;
+							case 6:
+								$input_img = imagerotate($input_img,-90,0);
+								break;
+						}
+					}
+					$orig_width = imagesx($input_img);
+					$orig_height = imagesy($input_img);
+
 					$orig_ratio = $orig_width / $orig_height;
 					if (($orig_width > self::MAX_PHOTO_WIDTH) || ($orig_height > self::MAX_PHOTO_HEIGHT)) {
 						if (self::MAX_PHOTO_WIDTH > self::MAX_PHOTO_HEIGHT) {
