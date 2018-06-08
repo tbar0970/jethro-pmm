@@ -325,7 +325,8 @@ class db_object
 			$changes = $this->_getChanges();
 			if ($changes) {
 				$user = $GLOBALS['user_system']->getCurrentPerson();
-				$this->values['history'][time()] = 'Updated by '.$user['first_name'].' '.$user['last_name'].' (#'.$user['id'].")\n".implode("\n", $changes);
+				$now = time();
+				$this->values['history'][$now] = 'Updated by '.$user['first_name'].' '.$user['last_name'].' (#'.$user['id'].")\n".implode("\n", $changes);
 				$this->_old_values['history'] = 1;
 			}
 		}
@@ -722,6 +723,8 @@ class db_object
 				}
 				$this->setValue($name, $value);
 			}
+		} else {
+			trigger_error("Could not save value for object #".$this->id." because we do not hold the lock");
 		}
 	}
 
