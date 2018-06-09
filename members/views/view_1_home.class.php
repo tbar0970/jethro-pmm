@@ -25,7 +25,7 @@ class View_Home extends View
 
 		<div class="member-homepage-box">
 			<h3>
-				<a class="pull-right" href="?view=_edit_me"><small>Edit</small></a>
+				<a class="pull-right" href="?view=_edit_me"><small><i class="icon-wrench"></i>Edit</small></a>
 				My Family
 			</h3>
 			<?php
@@ -36,15 +36,15 @@ class View_Home extends View
 
 			if ($GLOBALS['system']->featureEnabled('PHOTOS')) {
 				?>
-				<div class="person-photo-container">
-					<img src="?call=photo&familyid=<?php echo (int)$family->id; ?>" />
-				</div>
+				<img class="family-photo" src="?call=photo&familyid=<?php echo (int)$family->id; ?>" />
 				<?php
 			}
 			
 			$family->printSummary();
+			echo '<div class="member-family-members" style="clear: both">';
 			$persons = $family->getMemberData();
 			include 'templates/member_list.template.php';
+			echo '</div>';
 			?>
 		</div>
 
@@ -53,7 +53,7 @@ class View_Home extends View
 			?>
 			<div class="member-homepage-box">
 			<h3>
-				<a class="pull-right" href="?view=_edit_ical"><small>Subscribe</small></a>
+				<a class="pull-right" href="?view=_edit_ical"><small><i class="icon-calendar"></i>Subscribe</small></a>
 				My Roster Allocations &nbsp;
 			</h3>
 			<?php
