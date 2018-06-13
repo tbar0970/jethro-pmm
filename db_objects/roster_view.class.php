@@ -502,6 +502,8 @@ class roster_view extends db_object
 		?>
 		</div>
 		<?php
+
+		return $asns;
 	}
 
 	function printSingleViewTable($service, $columns=2, $includeServiceFields=FALSE)
@@ -1012,7 +1014,7 @@ class roster_view extends db_object
 		)';
 		$ids = $GLOBALS['db']->queryCol($SQL);
 		foreach ($ids as $id) {
-			$res[] = $GLOBALS['system']->getDBObject('roster_view', $id);
+			$res[$id] = $GLOBALS['system']->getDBObject('roster_view', $id);
 		}
 		return $res;
 	}

@@ -719,14 +719,43 @@ class service extends db_object
 	{
 		$rosterViews = Roster_View::getForRunSheet($this->getValue('congregationid'));
 		if ($rosterViews) {
+			ob_start();
+			$emails = $personids = Array();
+			foreach ($rosterViews as $view) {
+				$asns = $view->printSingleViewFlexi($this);
+				foreach ($asns as $role => $roleAsns) {
+					foreach ($roleAsns as $asn) {
+						if (!empty($asn['personid'])) $personids[] = $asn['personid'];
+						if (!empty($asn['email'])) $emails[] = $asn['email'];
+					}
+				}
+			}
+			$assignments_output = ob_get_clean();
+			$email_href = get_email_href($GLOBALS['user_system']->getCurrentUser('email'), NULL, array_unique($emails), $this->toString());
+			if ($GLOBALS['user_system']->havePerm('PERM_SENDSMS') && ifdef('SMS_HTTP_URL')) {
+				require_once 'include/sms_sender.class.php';
+				SMS_Sender::printModal();
+			}
+
 			?>
 			<div class="row-fluid">
 			<div id="service-personnel" class="span12 clearfix">
-				<h3>Personnel</h3>
+				<h3>
+					<span class="pull-right"><small>
+						<a href="<?php echo $email_href; ?>"><i class="icon-email">@</i>Email</a>
+					<?php
+					if ($GLOBALS['user_system']->havePerm('PERM_SENDSMS') && ifdef('SMS_HTTP_URL')) {
+						?>
+						&nbsp;
+						<a href="#send-sms-modal" data-personid="<?php echo implode(',', array_unique($personids)); ?>" data-toggle="sms-modal" data-name="Personnel for <?php echo ents($this->toString());?>"><i class="icon-envelope"></i>SMS</a>
+						<?php
+					}
+					?>
+					</small></span>
+					Personnel
+				</h3>
 				<?php
-				foreach ($rosterViews as $view) {
-					$view->printSingleViewFlexi($this);
-				}
+				echo $assignments_output;
 				?>
 			</div>
 			</div>
