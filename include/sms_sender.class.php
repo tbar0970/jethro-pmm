@@ -129,7 +129,7 @@ Class SMS_Sender
 		$content = SMS_HTTP_POST_TEMPLATE;
 		$content = str_replace('_USER_MOBILE_', urlencode($GLOBALS['user_system']->getCurrentUser('mobile_tel')), $content);
 		$content = str_replace('_USER_EMAIL_', urlencode($GLOBALS['user_system']->getCurrentUser('email')), $content);
-		$content = str_replace('_MESSAGE_', ($message), $content);
+		$content = str_replace('_MESSAGE_', urlencode($message), $content);
 		$content = str_replace('_RECIPIENTS_COMMAS_', urlencode(implode(',', $mobile_tels)), $content);
 		$content = str_replace('_RECIPIENTS_NEWLINES_', urlencode(implode("\n", $mobile_tels)), $content);
 		if (ifdef('SMS_RECIPIENT_ARRAY_PARAMETER')) {
