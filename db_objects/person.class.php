@@ -559,7 +559,10 @@ class Person extends DB_Object
 		}
 	}
 
-	function _saveCustomValues() {
+	function _saveCustomValues()
+	{
+		if (empty($this->_old_custom_values)) return; // Nothing to do.
+		
 		$db =& $GLOBALS['db'];
 		$SQL = 'DELETE FROM custom_field_value WHERE personid = '.(int)$this->id;
 		$res = $db->query($SQL);
@@ -813,9 +816,11 @@ class Person extends DB_Object
 	function processForm($prefix='', $fields=NULL)
 	{
 		$res = parent::processForm($prefix, $fields);
-		foreach ($this->getCustomFields() as $fieldid => $fieldDetails) {
-			$field = $GLOBALS['system']->getDBObject('custom_field', $fieldid);
-			$this->setCustomValue($fieldid, $field->processWidget($prefix));
+		if (empty($fields)) {
+			foreach ($this->getCustomFields() as $fieldid => $fieldDetails) {
+				$field = $GLOBALS['system']->getDBObject('custom_field', $fieldid);
+				$this->setCustomValue($fieldid, $field->processWidget($prefix));
+			}
 		}
 
 		$this->_photo_data = Photo_Handler::getUploadedPhotoData($prefix.'photo');
