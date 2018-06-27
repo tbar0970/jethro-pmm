@@ -469,7 +469,7 @@ class service extends db_object
 		return $this->getPersonnelByRoleTitle($keyword);
 	}
 
-	function getPersonnelByRoleTitle($role_title, $first_name_only=FALSE)
+	function getPersonnelByRoleTitle($role_title, $first_name_only=FALSE, $index=NULL)
 	{
 		$sql = 'SELECT roster_role_id, first_name, last_name
 			FROM person
@@ -479,6 +479,11 @@ class service extends db_object
 				AND (rr.congregationid = '.$GLOBALS['db']->quote($this->getValue('congregationid')).'
 					OR (IFNULL(rr.congregationid, 0) = 0))
 				AND rra.assignment_date = '.$GLOBALS['db']->quote($this->getValue('date')).'
+		';
+		if ($index !== NULL) {
+			$sql .= 'AND rank = '.($index-1).' ';
+		}
+		$sql .= '
 				ORDER BY roster_role_id, rank';
 		$assignments =  $GLOBALS['db']->queryAll($sql, null, null, false);
 		$role_ids = Array();
@@ -488,6 +493,14 @@ class service extends db_object
 			$role_ids[$role_id] = 1;
 			$names[] = $assignment['first_name'].($first_name_only ? '' : (' '.$assignment['last_name']));
 		}
+		if ((count($role_ids) == 0) && preg_match('/_[0-9]+$/', $role_title)) {
+			// Try treating the last bit as rank
+			$bits = explode('_', $role_title);
+			$index = array_pop($bits);
+			$short_title = implode('_', $bits);
+			return $this->getPersonnelByRoleTitle($short_title, $first_name_only, $index);
+		}
+		
 		if (count($role_ids) != 1) return ''; // either no role found or ambigious role title
 		return implode(', ', $names);
 	}
