@@ -8,6 +8,11 @@ function array_get($array, $index, $alt=NULL)
 	}
 }
 
+function hard_trim($value)
+{
+	return trim($value, ",;. \t\n\r\0\x0B");
+}
+
 function ifdef($constantName, $fallback=NULL)
 {
 	return defined($constantName) ? constant($constantName) : $fallback;

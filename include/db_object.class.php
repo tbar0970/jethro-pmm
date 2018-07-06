@@ -455,7 +455,7 @@ class db_object
 			$value = ucfirst($value);
 		}
 		if (array_get($this->fields[$name], 'trim')) {
-			$value = trim($value, ",;. \t\n\r\0\x0B");
+			$value = hard_trim($value);
 		}
 		if ($this->fields[$name]['type'] == 'select') {
 			if (!isset($this->fields[$name]['options'][$value]) && !(array_get($this->fields[$name], 'allow_empty', 1) && empty($value))) {
