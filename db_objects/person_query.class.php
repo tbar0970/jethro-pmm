@@ -423,9 +423,9 @@ class Person_Query extends DB_Object
 							'class' => 'attendance-input',
 						   );
 			print_widget('attendance_operator', $operator_params, array_get($params, 'attendance_operator', '<')); ?>
-			<input name="attendance_percent" type="text" size="2" class="int-box attendance-input" value="<?php echo (int)array_get($params, 'attendance_percent', 50); ?>" />%
+			<input name="attendance_percent" type="number" size="2" class="attendance-input" value="<?php echo (int)array_get($params, 'attendance_percent', 50); ?>" />%
 
-			<br />over the last <input name="attendance_weeks" type="text" size="2" class="int-box attendance-input" value="<?php echo (int)array_get($params, 'attendance_weeks', 2); ?>" /> weeks
+			<br />over the last <input name="attendance_weeks" type="number" size="2" class="attendance-input" value="<?php echo (int)array_get($params, 'attendance_weeks', 2); ?>" /> weeks
 		</div>
 		<?php
 	}
