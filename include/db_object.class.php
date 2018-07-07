@@ -389,6 +389,11 @@ class db_object
 		foreach ($this->_old_values as $name => $old_val) {
 			if ($name == 'history') continue;
 			if ($name == 'password') continue;
+			if (!array_get($this->fields[$name], 'show_in_summary', TRUE)
+					&& !array_get($this->fields[$name], 'editable', TRUE)
+			) {
+				continue;
+			}
 			$changes[] = $this->getFieldLabel($name).' changed from "'.ents($this->getFormattedValue($name, $old_val)).'" to "'.ents($this->getFormattedValue($name)).'"';
 		}
 		return $changes;
