@@ -1,8 +1,8 @@
 <?php
 Class Photo_Handler {
 
-	const MAX_PHOTO_WIDTH = 200;
-	const MAX_PHOTO_HEIGHT = 200;
+	const MAX_PHOTO_WIDTH = 500;
+	const MAX_PHOTO_HEIGHT = 500;
 	
 	public static function getUploadedPhotoData($fieldName)
 	{
