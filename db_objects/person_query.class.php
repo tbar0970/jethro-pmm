@@ -1085,9 +1085,11 @@ class Person_Query extends DB_Object
 			$query['from'] .= ' LEFT JOIN custom_field_option cfogroup
 									ON cfogroup.id = cfvgroup.value_optionid
 								';
+			$query['from'] .= ' LEFT JOIN custom_field cfgroup ON cfgroup.id = cfvgroup.fieldid
+									';
 			$grouping_order = 'IF(cfvgroup.personid IS NULL, 1, 0), '.Custom_Field::getSortValueSQLExpr('cfvgroup', 'cfogroup').', ';
-			$grouping_field = Custom_Field::getRawValueSQLExpr('cfvgroup', 'cfogroup').', ';
-			$query['group_by'][] = Custom_Field::getRawValueSQLExpr('cfvgroup', 'cfogroup');
+			$grouping_field = Custom_Field::getRawValueSQLExpr('cfvgroup', 'cfgroup').', ';
+			$query['group_by'][] = Custom_Field::getRawValueSQLExpr('cfvgroup', 'cfgroup');
 		} else {
 			// by some core field
 			$grouping_order = $grouping_field = $params['group_by'].', ';
@@ -1241,7 +1243,9 @@ class Person_Query extends DB_Object
 								$field = new Custom_Field();
 								$field->populate($customFieldID, $this->_custom_fields[$customFieldID]);
 								$query['from'] .= ' LEFT JOIN custom_field_value cfv'.$customFieldID.' ON cfv'.$customFieldID.'.personid = p.id AND cfv'.$customFieldID.'.fieldid = '.$db->quote($customFieldID)."\n";
-								$query['select'][] = 'GROUP_CONCAT(DISTINCT '.Custom_Field::getRawValueSQLExpr('cfv'.$customFieldID).' ORDER BY '.Custom_Field::getRawValueSQLExpr('cfv'.$customFieldID).' SEPARATOR "'.self::CUSTOMFIELDVAL_SEP.'") as '.$db->quote(self::CUSTOMFIELD_PREFIX.$customFieldID)."\n";
+								$query['from'] .= ' LEFT JOIN custom_field cf'.$customFieldID.' ON cfv'.$customFieldID.'.fieldid = cf'.$customFieldID.'.id '."\n";
+
+								$query['select'][] = 'GROUP_CONCAT(DISTINCT '.Custom_Field::getRawValueSQLExpr('cfv'.$customFieldID, 'cf'.$customFieldID).' ORDER BY '.Custom_Field::getRawValueSQLExpr('cfv'.$customFieldID, 'cf'.$customFieldID).' SEPARATOR "'.self::CUSTOMFIELDVAL_SEP.'") as '.$db->quote(self::CUSTOMFIELD_PREFIX.$customFieldID)."\n";
 							}
 						} else {
 							$query['select'][] = $this->_quoteAliasAndColumn($field).' AS '.$db->quote($field);
