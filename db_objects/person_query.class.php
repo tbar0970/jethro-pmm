@@ -70,11 +70,11 @@ class Person_Query extends DB_Object
 			  `owner` int(11) DEFAULT NULL,
 			  `params` text NOT NULL,
 			  `mailchimp_list_id` varchar(255) NOT NULL default '',
+			  `show_on_homepage` varchar(12) not null default '',
 			  PRIMARY KEY  (`id`)
 			) ENGINE=InnoDB ;
 		";
 	}
-
 
 	protected static function _getFields()
 	{
@@ -123,8 +123,17 @@ class Person_Query extends DB_Object
 									'default' => '',
 									'placeholder' => '('._('Optional').')',
 									'tooltip' => _('If you have a MailChimp list you would like to synchronise with the results of this report, enter the relevant List ID here and wait until the sync script runs.'),
-			)
+			),
+			'show_on_homepage' => Array(
+									'type' => 'select',
+									'editable'=> true,
+									'default' => NULL,
+									'options' => Array(
+													'' => 'No',
+													'auth' => 'Show for users with access to this report',
+													'all' => 'Show for all users'),
 
+			),
 		);
 	}
 
@@ -568,7 +577,6 @@ class Person_Query extends DB_Object
 
 		?>
 		</select>
-
 		<?php
 		if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
 			$visibilityParams = Array(
@@ -625,6 +633,14 @@ class Person_Query extends DB_Object
 							?>
 						</td>
 					</tr>
+					<tr>
+						<td></td>
+						<td>Show on home page?
+							<?php
+							$this->printFieldInterface('show_on_homepage');
+							?>
+						</td>
+					</tr>
 				<?php
 				if (strlen(ifdef('MAILCHIMP_API_KEY')) && $GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 					?>
@@ -636,7 +652,6 @@ class Person_Query extends DB_Object
 				}
 				?>
 				</table>
-
 			</div>
 			<?php
 		}
@@ -653,6 +668,7 @@ class Person_Query extends DB_Object
 						$this->processFieldInterface('mailchimp_list_id');
 					}
 					$this->setValue('owner', $_POST['is_private'] ? $GLOBALS['user_system']->getCurrentUser('id') : NULL);
+					$this->processFieldInterface('show_on_homepage');
 					break;
 				case 'replace':
 					$this->processFieldInterface('name');
@@ -660,6 +676,7 @@ class Person_Query extends DB_Object
 						$this->processFieldInterface('mailchimp_list_id');
 					}
 					$this->setValue('owner', $_POST['is_private'] ? $GLOBALS['user_system']->getCurrentUser('id') : NULL);
+					$this->processFieldInterface('show_on_homepage');
 					break;
 				case 'temp':
 					$this->id = 'TEMP';
@@ -668,6 +685,7 @@ class Person_Query extends DB_Object
 		} else {
 			$this->id = 'TEMP';
 		}
+
 
 		$params = $this->_convertParams($this->getValue('params'));
 
@@ -1159,7 +1177,7 @@ class Person_Query extends DB_Object
 						$query['from'] .= '
 										JOIN (
 											SELECT familyid, IF (
-												GROUP_CONCAT(DISTINCT last_name) = ff.family_name, 
+												GROUP_CONCAT(DISTINCT last_name) = ff.family_name,
 												GROUP_CONCAT(first_name ORDER BY ab.rank, gender DESC SEPARATOR ", "),
 												GROUP_CONCAT(CONCAT(first_name, " ", last_name) ORDER BY ab.rank, gender DESC SEPARATOR ", ")
 											  ) AS `names`
@@ -1184,7 +1202,7 @@ class Person_Query extends DB_Object
 													)');
 						$r2 = $GLOBALS['db']->query('INSERT INTO _family_adults'.$this->id.' (familyid, names)
 											SELECT familyid, IF (
-												GROUP_CONCAT(DISTINCT last_name) = ff.family_name, 
+												GROUP_CONCAT(DISTINCT last_name) = ff.family_name,
 												GROUP_CONCAT(first_name ORDER BY ab.rank, gender DESC SEPARATOR ", "),
 												GROUP_CONCAT(CONCAT(first_name, " ", last_name) ORDER BY ab.rank, gender DESC SEPARATOR ", ")
 											  )
@@ -1200,9 +1218,9 @@ class Person_Query extends DB_Object
 					case 'attendance_percent':
 							$groupid = $params['attendance_groupid'] == '__cong__' ? 0 : $params['attendance_groupid'];
 							$min_date = date('Y-m-d', strtotime('-'.(int)$params['attendance_weeks'].' weeks'));
-							$query['select'][] = '(SELECT ROUND(SUM(present)/COUNT(*)*100) 
-													FROM attendance_record 
-													WHERE date >= '.$GLOBALS['db']->quote($min_date).' 
+							$query['select'][] = '(SELECT ROUND(SUM(present)/COUNT(*)*100)
+													FROM attendance_record
+													WHERE date >= '.$GLOBALS['db']->quote($min_date).'
 													AND groupid = '.(int)$groupid.'
 													AND personid = p.id) AS `Attendance`';
 						break;
@@ -1314,7 +1332,7 @@ class Person_Query extends DB_Object
 		}
 		$sql .= "\nGROUP BY ".implode(', ', $query['group_by']);
 		$sql .= "\nORDER BY ".$query['order_by'].', p.last_name, p.first_name';
-		
+
 		return $sql;
 	}
 

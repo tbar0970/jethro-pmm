@@ -124,11 +124,22 @@ class View_Home extends View
 			 </div>
 			<?php
 		}
-
 		?>
 		</div>
 		<?php
-
+		$reportVals = Array('all');
+		if ($GLOBALS['user_system']->havePerm(PERM_RUNREPORT)) {
+			$reportVals[] = 'auth';
+		}
+		$frontpagereports = $GLOBALS['system']->getDBObjectData('person_query', Array('show_on_homepage' => $reportVals));
+		foreach ($frontpagereports as $reportid => $reportparams) {
+			$report = $GLOBALS['system']->getDBObject('person_query', $reportid);
+			?>
+			<div class="homepage homepage-1-col" style="clear:both;">
+				<h3><?php echo $reportparams['name']; ?></h3>
+				<?php $report->printResults(); ?>
+			</div>
+			<?php
+		 }
 	}
 }
-?>
