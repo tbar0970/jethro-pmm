@@ -512,7 +512,7 @@ class Attendance_Record_Set
 						GROUP BY ar.personid, '.$selectCol.'
 					) indiv
 					GROUP BY '.$rank.' '.$groupingField.' WITH ROLLUP';
-			$res = $db->queryAll($sql);			
+			$res = $db->queryAll($sql);
 
 			foreach ($res as $row) {
 				if (NULL !== $row[$groupingField]) {
