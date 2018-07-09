@@ -188,7 +188,7 @@ class family extends db_object
 		$persons = $this->getMemberData();
 		$show_actions = !empty($this->id); // hide actions if this is a "draft" family
 
-		if (isset($this->_tmp['show_member_callback'])) {
+		if (!empty($this->_tmp['show_member_callback'])) {
 			call_user_func($this->_tmp['show_member_callback'], $persons);
 
 		} else if (!$abbreviated) {
@@ -336,7 +336,6 @@ class family extends db_object
 
 	function printCustomSummary($showMembersCallback)
 	{
-		// TODO: test this in the mmebers interface
 		$this->fields['members'] = Array('divider_before' => 1);
 		$this->_tmp['show_member_callback'] = $showMembersCallback;
 		parent::printSummary();

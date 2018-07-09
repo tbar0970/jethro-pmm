@@ -25,9 +25,9 @@ class View_Admin__Import extends View
 	{
 		foreach (Array('family_name', 'address_street', 'address_suburb', 'address_state', 'home_tel') as $field) {
 			if (!empty($row[$field]) && !empty($current_family[$field])) {
-				$newVal = strtolower($row[$field]);
+				$newVal = hard_trim(strtolower($row[$field]));
 				if ($field == 'home_tel') $newVal = preg_replace('/[^0-9]/', '', $newVal);
-				if ($newVal != strtolower($current_family[$field])) {
+				if ($newVal != hard_trim(strtolower($current_family[$field]))) {
 					return TRUE;
 				}
 			}

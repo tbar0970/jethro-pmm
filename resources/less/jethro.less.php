@@ -761,10 +761,10 @@ table.object-summary>tbody>tr>td>table>tbody>tr:first-child td {
 }
 
 .day-box {
-	width: 3ex !important;
+	width: 4.5ex !important;
 }
 .year-box {
-	width: 5ex !important;
+	width: 6.5ex !important;
 }
 @media (min-width: 1px) {
 	/* support for media queries roughly equivalent for support for such things as the placeholder attr */
@@ -1094,10 +1094,27 @@ img.person-photo {
 		float: none !important;
 	}
 }
+.member-homepage-box img.family-photo {
+	float: right !important;
+	width: 150px;
+	right: 5px;
+	margin-bottom: 5px;
+	border-radius: 5px;
+	border: 1px solid @jethroDarkest;
+}
+.member-homepage-box table {
+	width: auto !important;
+}
+@media (max-width: 440px) {
+	.member-homepage-box img.family-photo {
+		float: none;
+		width: 100%;
+	}
+}
 
 /*************** PERSON LIST IN MEMBER INTERFACE *************/
 #member-list {
-	max-width: 90ex;
+	max-width: 110ex;
 	margin-left: 0px;
 	margin-top: 15px;
 }
@@ -1114,26 +1131,43 @@ img.person-photo {
 #member-list .family-row {
 	margin-bottom: 10px;
 }
+#member-list img.family {
+	float: right;
+	width: 150px;
+	border-radius: 5px;
+	border: 1px solid @jethroDarkest;
+}
+#member-list div.member-family-details {
+	margin: 5px 0px;
+}
+#member-list div.member-family-contents {
+	margin-right: 152px;
+}
+.member-family-members {
+	overflow: auto; /* clearfix */
+}
+.member-family-members .family-member {
+	width: 49%;
+	margin: 0 1% 5px 0;
+}
 #member-list h3 {
 	clear: both;
-	margin-bottom: 0px;
+	margin-bottom: 5px;
+	margin-top: 15px;
 }
-#member-list div.member-card {
-	float: left;
-	padding-left: 60px;
-	width: 230px;
-	margin-bottom: 10px;
-	height: 80px;
+
+@media (max-width: 600px) {
+	.member-family-members .family-member {
+		width: 98%;
+	}
 }
-#member-list div.member-card img {
-	width: 50px;
-	margin-left: -60px;
-	float: left;
-	margin-top: 3px;
-}
-@media (max-width: 400px) {
-	#member-list div.person {
+@media (max-width: 440px) {
+	#member-list img.family {
+		float: none;
 		width: 100%;
+	}
+	#member-list div.member-family-contents {
+		margin-right: 0;
 	}
 }
 

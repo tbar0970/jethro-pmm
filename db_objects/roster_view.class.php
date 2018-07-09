@@ -502,6 +502,8 @@ class roster_view extends db_object
 		?>
 		</div>
 		<?php
+
+		return $asns;
 	}
 
 	function printSingleViewTable($service, $columns=2, $includeServiceFields=FALSE)
@@ -558,10 +560,17 @@ class roster_view extends db_object
 		if ($member['role_id']) {
 			if (empty($asn)) echo '--';
 			foreach ($asn as $rank => $asn) {
-				if ($withLinks) echo '<a href="?view=persons&personid='.$asn['personid'].'" class="med-popup">';
+				if ($withLinks) echo '<span class="nowrap"><a href="?view=persons&personid='.$asn['personid'].'" class="med-popup">';
 				echo ents($asn['name']);
 				if ($withLinks) {
 					echo '</a>';
+					if (('' === $asn['email'])) echo ' <img class="visible-desktop" src="'.BASE_URL.'resources/img/no_email.png" title="No Email Address" />';
+					if (('' === $asn['mobile']) && ifdef('SMS_HTTP_URL')) {
+						echo ' <img class="visible-desktop" src="'.BASE_URL.'resources/img/no_phone.png" title="No Mobile" />';
+					}
+					echo '</span>';
+					
+
 				} else {
 					echo '&nbsp;';
 				}
@@ -1012,7 +1021,7 @@ class roster_view extends db_object
 		)';
 		$ids = $GLOBALS['db']->queryCol($SQL);
 		foreach ($ids as $id) {
-			$res[] = $GLOBALS['system']->getDBObject('roster_view', $id);
+			$res[$id] = $GLOBALS['system']->getDBObject('roster_view', $id);
 		}
 		return $res;
 	}

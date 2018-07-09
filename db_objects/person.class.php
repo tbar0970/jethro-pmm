@@ -218,8 +218,9 @@ class Person extends DB_Object
 		parent::load($id);
 
 		// Load custom values
-		$SQL = 'SELECT v.fieldid, '.Custom_Field::getRawValueSQLExpr('v').' as value
+		$SQL = 'SELECT v.fieldid, '.Custom_Field::getRawValueSQLExpr('v', 'f').' as value
 				FROM custom_field_value v
+				JOIN custom_field f ON v.fieldid = f.id
 				WHERE personid = '.(int)$this->id;
 		$res = $GLOBALS['db']->queryAll($SQL, NULL, NULL, true, FALSE, TRUE);
 		$this->_custom_values = $res;
@@ -559,7 +560,10 @@ class Person extends DB_Object
 		}
 	}
 
-	function _saveCustomValues() {
+	function _saveCustomValues()
+	{
+		if (empty($this->_old_custom_values)) return; // Nothing to do.
+		
 		$db =& $GLOBALS['db'];
 		$SQL = 'DELETE FROM custom_field_value WHERE personid = '.(int)$this->id;
 		$res = $db->query($SQL);
@@ -699,7 +703,7 @@ class Person extends DB_Object
 	static function getCustomMergeData($personids)
 	{
 		$db = $GLOBALS['db'];
-		$SQL = 'SELECT '.Custom_Field::getRawValueSQLExpr('v').' AS value, f.name, v.personid, v.fieldid
+		$SQL = 'SELECT '.Custom_Field::getRawValueSQLExpr('v', 'f').' AS value, f.name, v.personid, v.fieldid
 				FROM custom_field_value v
 				JOIN custom_field f ON v.fieldid = f.id
 				WHERE v.personid IN ('.implode(',', array_map(Array($db, 'quote'), $personids)).')';
@@ -813,11 +817,12 @@ class Person extends DB_Object
 	function processForm($prefix='', $fields=NULL)
 	{
 		$res = parent::processForm($prefix, $fields);
-		foreach ($this->getCustomFields() as $fieldid => $fieldDetails) {
-			$field = $GLOBALS['system']->getDBObject('custom_field', $fieldid);
-			$this->setCustomValue($fieldid, $field->processWidget($prefix));
+		if (empty($fields)) {
+			foreach ($this->getCustomFields() as $fieldid => $fieldDetails) {
+				$field = $GLOBALS['system']->getDBObject('custom_field', $fieldid);
+				$this->setCustomValue($fieldid, $field->processWidget($prefix));
+			}
 		}
-
 		$this->_photo_data = Photo_Handler::getUploadedPhotoData($prefix.'photo');
 		return $res;
 	}

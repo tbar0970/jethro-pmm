@@ -36,8 +36,6 @@ $(document).ready(function() {
 	}
 
 	//// VALIDATION ////
-	$(document.body).on('focus', 'input.int-box', TBLib.handleIntBoxFocus)
-			.on('keydown', 'input.int-box', TBLib.handleIntBoxKeyPress);
 	$('input.bible-ref').change(TBLib.handleBibleRefBlur);
 	$('input.valid-email').change(TBLib.handleEmailBlur);
 	$('input.day-box').change(TBLib.handleDayBoxBlur);
@@ -820,28 +818,6 @@ TBLib.handleEmailBlur = function()
 		return false;
 	}
 	return true;
-}
-
-TBLib.handleIntBoxKeyPress = function(event)
-{
-	if (!event) event = window.event;
-	if (event.altKey || event.ctrlKey || event.metaKey) return true;
-	var keyCode = event.keyCode ? event.keyCode : event.which;
-	validKeys = new Array(8, 9, 13, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 97, 98, 99, 100, 101, 102, 103, 104, 105, 96, 46, 36, 35, 37, 39);
-	if (!validKeys.contains(keyCode)) {
-		return false;
-	}
-}
-
-TBLib.handleIntBoxFocus = function()
-{
-	// This complexity is to work around a problem in chrome where the event somehow fired twice
-	// resulting in the box being selected then unselected.
-	if (TBLib.intBoxFocuser) {
-		clearTimeout(TBLib.intBoxFocuser);
-	}
-	var w = this;
-	TBLib.intBoxFocuser = setTimeout(function() { w.select() }, 100);
 }
 
 TBLib.handleSelectAllClick = function()

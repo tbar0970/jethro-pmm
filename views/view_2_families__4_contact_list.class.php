@@ -155,7 +155,7 @@ class View_Families__Contact_List extends View
 				}
 				?>
 				<td rowspan="<?php echo $rowSpan; ?>" style="padding: 5px">
-					<img src="<?php echo $src; ?>" />
+					<img style="width: 200px" src="<?php echo $src; ?>" />
 				</td>
 				<?php
 			}
