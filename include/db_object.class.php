@@ -320,8 +320,8 @@ class db_object
 			return FALSE;
 		}
 
-		// Set the history
-		if (isset($this->fields['history'])) {
+		// Add to the history, unless it's been explicly set as a value (see Person::archiveAndClean())
+		if (isset($this->fields['history']) && empty($this->_old_values['history'])) {
 			$changes = $this->_getChanges();
 			if ($changes) {
 				$user = $GLOBALS['user_system']->getCurrentPerson();
@@ -599,7 +599,7 @@ class db_object
 			return NULL;
 		}
 		if (is_null($value)) $value = $this->getValue($name);
-		if (($name == 'history') && !empty($value)) {
+		if (($name == 'history')) {
 			?>
 			<table class="history table table-full-width table-striped">
 			<?php
