@@ -575,7 +575,7 @@ class family extends db_object
 		foreach ($this->fields as $fieldname => $params) {
 			switch ($fieldname) {
 				case 'family_name':
-					$this->setValue($fieldname, '(Removed)');
+					$this->setValue($fieldname, '['._('Removed').']');
 					break;
 				case 'status_last_changed':
 				case 'creator':
@@ -585,6 +585,9 @@ class family extends db_object
 					break;
 				case 'status':
 					$this->setValue($fieldname, 'archived');
+					break;
+				case 'history':
+					$this->setValue($fieldname, Array());
 					break;
 				default:
 					$this->setValue($fieldname, '');
