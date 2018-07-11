@@ -5,10 +5,11 @@ class View__Delete_Person extends View
 	private $_staff_member = NULL;
 	
 	const EXPLANATION = '<ul>
-				<li>Change their name to "Removed"</li>
+				<li>Change their name to "[Removed]"</li>
 				<li>Change their status to "archived"</li>
-				<li>Blank out all their fields except congregation</li>
-				<li>Clear their history and notes</li>
+				<li>Blank out all their fields and custom fields, except congregation and age bracket</li>
+				<li>Clear their history, notes and photo</li>
+				<li>Do the same for their family, if the family has no remaining non-archived members</li>
 				<li>Preserve their (anonymous) roster assignments, group memberships and attendance records</li>
 			</ul>
 ';
@@ -29,16 +30,23 @@ class View__Delete_Person extends View
 		if (empty($this->_staff_member) && !empty($_POST['confirm_delete'])) {
 			// delete the person altogether
 			$this->_person->delete();
+			add_message($this->_person->toString().' has been deleted', 'success');
+			redirect('home');
 			
 		} else if (!empty($_POST['confirm_archiveclean'])) {
 			// archive and anononmize the person
-			if (!$this->_person->aquireLock()) {
+			if (!$this->_person->acquireLock()) {
 				add_message('This person cannot be deleted because somebody else holds the lock.  Try again later.', 'error');
 				redirect('persons', Array('personid' => $this->_person->id)); // exits
 			}
-			$this->_person->archiveAndClean();
-			add_message($this->_person->toString().' has been archived and cleaned', 'success');
-			redirect('persons', Array('personid' => $this->_person->id)); // exits
+			$message = $this->_person->toString().' has been archived and cleaned';
+			$res = $this->_person->archiveAndClean();
+			if ($res == 2) $message .= ' and so has their family';
+			if ($res == 1) $message .= ' but their family has a remaining member and has been left untouched';
+			if ($res) {
+				add_message($message, 'success');
+				redirect('persons', Array('personid' => $this->_person->id)); // exits
+			}
 
 		}
 	}
@@ -58,16 +66,18 @@ class View__Delete_Person extends View
 		if ($this->_staff_member) {
 			?>
 			<p><?php echo _('This person has a user account and cannot be deleted altogether.')?></p>
-			<p><?php echo _('You can archive and clean this person, which will')?></p>
+			<p><?php echo _('You can archive and clean this person, which will')?>
 			<?php 
 			echo self::EXPLANATION;
+			echo '</p>';
 			unset($buttons['delete']);
-		} else if ($this->_person->hasRosterAssignments() || $this->_person->hasAttendance()) {
+		} else if (Roster_Role_Assignment::hasAssignments($this->_person->id) || $this->_person->getAttendance()) {
 			?>
 			<p><?php echo _('Deleting this person is not recommended since they have roster assignments and/or attendance records, and deleting them will affect historical statistics.')?></p>
-			<p><?php echo _('It is recommended that you archive and clean the person, which will')?></p>
+			<p><?php echo _('It is recommended that you archive and clean the person, which will')?>
 			<?php
 			echo self::EXPLANATION;
+			echo '</p>';
 			$buttons['delete'] = 'Delete anyway';
 		}
 		?>
@@ -76,7 +86,7 @@ class View__Delete_Person extends View
 		<?php
 		foreach ($buttons as $key => $label) {
 			?>
-			<input type="button" class="btn" name="confirm_<?php echo $key; ?>" value="<?php echo ents($label); ?>" />
+			<input type="submit" class="btn" name="confirm_<?php echo $key; ?>" value="<?php echo ents($label); ?>" />
 			<?php
 		}
 		?>

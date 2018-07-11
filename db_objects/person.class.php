@@ -473,7 +473,7 @@ class Person extends DB_Object
 
 	}
 
-	function save($update_family=TRUE)
+	public function save($update_family=TRUE)
 	{
 		$GLOBALS['system']->doTransaction('BEGIN');
 		$msg = '';
@@ -551,7 +551,8 @@ class Person extends DB_Object
 		return $res;
 	}
 
-	function _savePhoto() {
+	private function _savePhoto()
+	{
 		$db =& $GLOBALS['db'];
 		if ($this->_photo_data) {
 			$SQL = 'REPLACE INTO person_photo (personid, photodata)
@@ -560,13 +561,25 @@ class Person extends DB_Object
 		}
 	}
 
-	function _saveCustomValues()
+	private function _clearPhoto()
 	{
-		if (empty($this->_old_custom_values)) return; // Nothing to do.
-		
+		$db =& $GLOBALS['db'];
+		$SQL = 'DELETE FROM person_photo WHERE personid = '.(int)$this->id;
+		return $db->query($SQL);
+	}
+
+	private function _clearCustomValues()
+	{
 		$db =& $GLOBALS['db'];
 		$SQL = 'DELETE FROM custom_field_value WHERE personid = '.(int)$this->id;
 		$res = $db->query($SQL);
+	}
+
+	private function _saveCustomValues()
+	{
+		if (empty($this->_old_custom_values)) return; // Nothing to do.
+		$this->_clearCustomValues();
+		$db =& $GLOBALS['db'];
 		$SQL = 'INSERT INTO custom_field_value
 				(personid, fieldid, value_text, value_date, value_optionid)
 				VALUES ';
@@ -944,5 +957,54 @@ class Person extends DB_Object
 		}
 	}
 
+	/**
+	 * Archive and clean this record:
+	 *  Change their name to "Removed"
+	 *	Change their status to "archived"
+	 *	Blank out all their fields except congregation
+	 *	Clear their history and notes
+	 *	Preserve their (anonymous) roster assignments, group memberships and attendance records
+	 */
+	public function archiveAndClean()
+	{
+		$res = 1;
+		$GLOBALS['system']->doTransaction('BEGIN');
+		$this->setValue('first_name', '['._('Removed').']');
+		$this->setValue('last_name', '['._('Removed').']');
+		$this->setValue('email', '');
+		$this->setValue('mobile_tel', '');
+		$this->setValue('work_tel', '');
+		$this->setValue('remarks', '');
+		$this->setValue('gender', '');
+		$this->setValue('feed_uuid', '');
+		$this->setValue('status', 'archived');
+		$this->setValue('history', Array());
+		$this->_clearCustomValues();
+		$this->_clearPhoto();
+		if (!$this->save(FALSE)) return FALSE;
+
+		$notes = $GLOBALS['system']->getDBObjectData('person_note', Array('personid' => $this->id));
+		foreach ($notes as $noteid => $data) {
+			$n = new Person_Note($noteid);
+			$n->delete();
+		}
+
+		$family = $GLOBALS['system']->getDBObject('family', $this->getValue('familyid'));
+		$members = $family->getMemberData();
+		$found_live_member = false;
+		foreach ($members as $id => $details) {
+			if ($id == $this->id) continue;
+			if ($details['status'] != 'archived') {
+				$found_live_member = true;
+				break;
+			}
+		}
+		if (!$found_live_member) {
+			if ($family->archiveAndClean()) $res = 2;
+		}
+
+		$GLOBALS['system']->doTransaction('COMMIT');
+		return $res;
+	}
 
 }

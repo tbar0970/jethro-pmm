@@ -42,5 +42,12 @@ class roster_role_assignment extends db_object
 		return $res;
 	}
 
+	static function hasAssignments($personid)
+	{
+		$SQL = 'SELECT count(*) FROM roster_role_assignment
+				WHERE personid = '.(int)$personid;
+		$res = $GLOBALS['db']->queryOne($SQL);
+	}
+
 }
 ?>

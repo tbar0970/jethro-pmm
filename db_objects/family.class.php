@@ -480,6 +480,13 @@ class family extends db_object
 		}
 	}
 
+	private function _clearPhoto()
+	{
+		$db =& $GLOBALS['db'];
+		$SQL = 'DELETE FROM family_photo WHERE familyid = '.(int)$this->id;
+		return $db->query($SQL);
+	}
+
 	/* Find a family that looks like a duplicate of this one - if it has the same family name and a member with the same name
 	*/
 	public function findSimilarFamilies()
@@ -573,6 +580,7 @@ class family extends db_object
 				case 'status_last_changed':
 				case 'creator':
 				case 'created':
+				case 'state':
 					// leave these intact
 					break;
 				case 'status':
@@ -582,7 +590,14 @@ class family extends db_object
 					$this->setValue($fieldname, '');
 			}
 		}
-		if (!$this->save()) return FALSE;
+		if (!$this->save(FALSE)) return FALSE;
+
+		$notes = $GLOBALS['system']->getDBObjectData('family_note', Array('familyid' => $this->id));
+		foreach ($notes as $noteid => $data) {
+			$n = new Family_Note($noteid);
+			$n->delete();
+		}
+		
 		$this->releaseLock();
 		return TRUE;
 	}
