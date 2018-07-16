@@ -365,6 +365,13 @@ class Person extends DB_Object
 		return TRUE;
 	}
 
+	function hasAttendance()
+	{
+		$SQL = 'SELECT count(*) FROM attendance_record
+				WHERE personid = '.(int)$this->id;
+		return $GLOBALS['db']->queryOne($SQL);
+	}
+
 
 	function getAttendance($from='1970-01-01', $to='2999-01-01', $groupid=-1)
 	{
@@ -1005,6 +1012,19 @@ class Person extends DB_Object
 
 		$GLOBALS['system']->doTransaction('COMMIT');
 		return $res;
+	}
+
+	public function delete()
+	{
+		$GLOBALS['system']->doTransaction('BEGIN');
+		$family = $GLOBALS['system']->getDBObject('family', $this->getValue('familyid'));
+		$members = $family->getMemberData();
+		unset($members[$this->id]);
+		parent::delete();
+		if (empty($members)) {
+			$family->delete();
+		}
+		$GLOBALS['system']->doTransaction('COMMIT');
 	}
 
 }

@@ -44,13 +44,6 @@ class View__Delete_Person extends View
 			$this->_notes = array_merge($this->_notes, $fnotes);
 		}
 
-		if (!empty($pnotes)) {
-
-		}
-
-		// TODO: check for active notes on the person or (if they are single-person family) the family.
-		// If so, tell the user to resolve the notes first.
-		
 		if (empty($this->_staff_member) && !empty($_POST['confirm_delete'])) {
 			// delete the person altogether
 			$this->_person->delete();
@@ -83,8 +76,9 @@ class View__Delete_Person extends View
 	public function printView()
 	{
 		$buttons = Array(
+					'archive' => _('Archive only'),
+					'archiveclean' => _('Archive and Cleanse'),
 					'delete' => _('Delete altogether'),
-					'archiveclean' => _('Archive and Clean'),
 					);
 		if ($this->_notes) {
 			?>
@@ -99,20 +93,33 @@ class View__Delete_Person extends View
 			return;
 		} else if ($this->_staff_member) {
 			?>
-			<p><?php echo _('This person has a user account and cannot be deleted altogether.')?></p>
-			<p><?php echo _('You can archive and clean this person, which will')?>
+			<p><?php echo _('Because this person has a user account, they cannot be deleted altogether. ')?></p>
+			<p><?php echo _('But they can be archived, and you can also cleanse their archived record, which will')?>
 			<?php 
 			echo self::EXPLANATION;
 			echo '</p>';
 			unset($buttons['delete']);
-		} else if (Roster_Role_Assignment::hasAssignments($this->_person->id) || $this->_person->getAttendance()) {
+		} else if (Roster_Role_Assignment::hasAssignments($this->_person->id) || $this->_person->hasAttendance()) {
 			?>
 			<p><?php echo _('Deleting this person is not recommended since they have roster assignments and/or attendance records, and deleting them will affect historical statistics.')?></p>
-			<p><?php echo _('It is recommended that you archive and clean the person, which will')?>
+			<p>
+				<?php
+				echo _('It is recommended that you archive them instead.  You can also cleanse their archived record, which will');
+				echo self::EXPLANATION;
+				?>
+			</p>
+			<p><?php echo _('Deleting a person altogether cannot be undone.')?></p>
 			<?php
+		} else {
+			?>
+			<p class="text">
+			<?php
+			echo _('Deleting a person cannot be undone. Rather than deleting a person altogether, it is usually preferable to archive them so that they remain on the historical record. ');
+			echo _('You can also cleanse their archived record, which will');
 			echo self::EXPLANATION;
-			echo '</p>';
-			$buttons['delete'] = 'Delete anyway';
+			?>
+			</p>
+			<?php
 		}
 		?>
 		<form method="post">

@@ -208,7 +208,7 @@ class Abstract_Note extends DB_Object
 	function delete()
 	{
 		if (!$this->canBeDeleted()) {
-			trigger_error("This note can not be deleted");
+			trigger_error("This note can not be deleted", E_USER_WARNING);
 			return FALSE;
 		}
 		if (!parent::delete()) return FALSE;
