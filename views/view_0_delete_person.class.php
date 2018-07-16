@@ -3,6 +3,7 @@ class View__Delete_Person extends View
 {
 	private $_person = NULL;
 	private $_staff_member = NULL;
+	private $_notes = NULL;
 	
 	const EXPLANATION = '<ul>
 				<li>Change their name to "[Removed]"</li>
@@ -16,7 +17,7 @@ class View__Delete_Person extends View
 	
 	static function getMenuPermissionLevel()
 	{
-		return PERM_SYSADMIN; // TODO: check
+		return PERM_SYSADMIN;
 	}
 
 	function processView()
@@ -26,6 +27,29 @@ class View__Delete_Person extends View
 		}
 		if (empty($this->_person)) trigger_error("Person not found", E_USER_ERROR); // exits
 		$this->_staff_member = $GLOBALS['system']->getDBObject('staff_member', $this->_person->id);
+
+		$this->_notes = $GLOBALS['system']->getDBObjectData(
+											'person_note',
+											Array('personid' => $this->_person->id, 'status' => 'pending'),
+											'AND'
+			  	  );
+		$family = $GLOBALS['system']->getDBObject('family', $this->_person->getValue('familyid'));
+		$members = $family->getMemberData();
+		if (count($members) == 1) {
+			$fnotes = $GLOBALS['system']->getDBObjectData(
+											'family_note',
+											Array('familyid' => $family->id, 'status' => 'pending'),
+											'AND'
+					  );
+			$this->_notes = array_merge($this->_notes, $fnotes);
+		}
+
+		if (!empty($pnotes)) {
+
+		}
+
+		// TODO: check for active notes on the person or (if they are single-person family) the family.
+		// If so, tell the user to resolve the notes first.
 		
 		if (empty($this->_staff_member) && !empty($_POST['confirm_delete'])) {
 			// delete the person altogether
@@ -62,8 +86,18 @@ class View__Delete_Person extends View
 					'delete' => _('Delete altogether'),
 					'archiveclean' => _('Archive and Clean'),
 					);
-		
-		if ($this->_staff_member) {
+		if ($this->_notes) {
+			?>
+			<p>
+				<?php
+				echo _('This person cannot be deleted because they or their family have notes requiring action. ');
+				echo _('Resolve the note(s) and then try again.');
+				?>
+			</p>
+			<button type="button" class="btn back">Back</button>
+			<?php
+			return;
+		} else if ($this->_staff_member) {
 			?>
 			<p><?php echo _('This person has a user account and cannot be deleted altogether.')?></p>
 			<p><?php echo _('You can archive and clean this person, which will')?>
@@ -90,6 +124,8 @@ class View__Delete_Person extends View
 			<?php
 		}
 		?>
+		<button type="button" class="btn back">Cancel</button>
+
 		</form>
 		<?php
 	}
