@@ -102,11 +102,21 @@ Class Photo_Handler {
 		$SQL = $obj = NULL;
 		if ($type == 'person') {
 			$obj = $GLOBALS['system']->getDBObject('person', (int)$id);
-			if ($obj) $SQL = 'SELECT photodata FROM person_photo WHERE personid = '.$obj->id;
+			if ($obj) {
+				// for single-member families, show family photo as individual photo if individual photo is missing
+				$SQL = 'SELECT COALESCE(pp.photodata, IF(count(member.id) = 1, fp.photodata, NULL)) as photodata
+						FROM person p
+						JOIN family f ON p.familyid = f.id
+						JOIN person member ON member.familyid = f.id
+						LEFT JOIN person_photo pp ON pp.personid = p.id
+						LEFT JOIN family_photo fp ON fp.familyid = f.id
+						WHERE p.id = '.(int)$obj->id.'
+						GROUP BY p.id';
+			}
 		} else if ($type == 'family') {
 			$obj = $GLOBALS['system']->getDBObject('family', (int)$id);
 			if ($obj) {
-				// for single-member families, treat person photo as family photo
+				// for single-member families, treat person photo as family photo if family photo is missing
 				$SQL = 'SELECT COALESCE(fp.photodata, IF(count(p.id) = 1, pp.photodata, NULL)) as photodata
 						FROM family f
 						LEFT JOIN family_photo fp ON fp.familyid = f.id
