@@ -3,9 +3,14 @@ Class Photo_Handler {
 
 	const MAX_PHOTO_WIDTH = 500;
 	const MAX_PHOTO_HEIGHT = 500;
-	
-	public static function getUploadedPhotoData($fieldName)
+
+	const CROP_WIDTH = 1;
+	const CROP_HEIGHT = 2;
+	const CROP_NONE = 3;
+
+	public static function getUploadedPhotoData($fieldName, $crop=NULL)
 	{
+		if ($crop === NULL) $crop = self::CROP_WIDTH;
 		if (!empty($_FILES[$fieldName]) && !empty($_FILES[$fieldName]['name'])) {
 			if (!empty($_FILES[$fieldName]['error'])) {
 				$err = $_FILES[$fieldName]['error'];
@@ -55,7 +60,7 @@ Class Photo_Handler {
 
 					$orig_ratio = $orig_width / $orig_height;
 					if (($orig_width > self::MAX_PHOTO_WIDTH) || ($orig_height > self::MAX_PHOTO_HEIGHT)) {
-						if (self::MAX_PHOTO_WIDTH > self::MAX_PHOTO_HEIGHT) {
+						if ($crop == self::CROP_HEIGHT) {
 							// resize to fit width then crop to fit height
 							$new_width = self::MAX_PHOTO_WIDTH;
 							$new_height = min(self::MAX_PHOTO_HEIGHT, $new_width / $orig_ratio);
@@ -63,7 +68,7 @@ Class Photo_Handler {
 							$src_w = $orig_width;
 							$src_h = $new_height * ($orig_width / $new_width);
 							$src_y = (int)max(0, ($orig_height - $src_h) / 2);
-						} else {
+						} else if ($crop == self::CROP_WIDTH) {
 							// resize to fit height then crop to fit width
 							$new_height = self::MAX_PHOTO_HEIGHT;
 							$new_width = min(self::MAX_PHOTO_WIDTH, $new_height * $orig_ratio);
@@ -71,6 +76,13 @@ Class Photo_Handler {
 							$src_h = $orig_height;
 							$src_w = $new_width * ($orig_height / $new_height);
 							$src_x = (int)max(0, ($orig_width - $src_w) / 2);
+						} else {
+							// Just resize, no cropping
+							$new_width = self::MAX_PHOTO_WIDTH;
+							$new_height = min(self::MAX_PHOTO_HEIGHT, $new_width / $orig_ratio);
+							$src_x = $src_y = 0;
+							$src_w = $orig_width;
+							$src_h = $orig_height;
 						}
 						$output_img = imagecreatetruecolor($new_width, $new_height);
 						imagecopyresampled($output_img, $input_img, 0, 0, $src_x, $src_y, $new_width, $new_height, $src_w, $src_h);

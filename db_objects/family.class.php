@@ -158,7 +158,7 @@ class family extends db_object
 	function processForm($prefix='', $fields=NULL)
 	{
 		$res = parent::processForm($prefix, $fields);
-		$this->_photo_data = Photo_Handler::getUploadedPhotoData('photo');
+		$this->_photo_data = Photo_Handler::getUploadedPhotoData('photo', Photo_Handler::CROP_NONE);
 		return $res;
 	}
 
