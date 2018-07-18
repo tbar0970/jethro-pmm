@@ -480,7 +480,7 @@ class family extends db_object
 		}
 	}
 
-	private function _clearPhoto()
+	private function clearPhoto()
 	{
 		$db =& $GLOBALS['db'];
 		$SQL = 'DELETE FROM family_photo WHERE familyid = '.(int)$this->id;
@@ -593,6 +593,7 @@ class family extends db_object
 					$this->setValue($fieldname, '');
 			}
 		}
+		$this->clearPhoto();
 		if (!$this->save(FALSE)) return FALSE;
 
 		$notes = $GLOBALS['system']->getDBObjectData('family_note', Array('familyid' => $this->id));
