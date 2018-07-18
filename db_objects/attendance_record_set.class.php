@@ -79,7 +79,8 @@ class Attendance_Record_Set
 			  `personid` int(11) NOT NULL default '0',
 			  `groupid` int(11) NOT NULL default '0',
 			  `present` tinyint(1) unsigned NOT NULL default '0',
-			  PRIMARY KEY  (`date`,`personid`,`groupid`)
+			  PRIMARY KEY  (`date`,`personid`,`groupid`),
+			  CONSTRAINT `ar_personid` FOREIGN KEY (personid) REFERENCES _person(id) ON DELETE CASCADE
 			) ENGINE=InnoDB ;
 		";
 	}
@@ -346,7 +347,7 @@ class Attendance_Record_Set
 			$headcountValue = Headcount::fetch('person_group', $this->date, $this->groupid);
 		}
 		?>
-		<input type="number" name="<?php echo $headcountFieldName; ?>" value="<?php echo $headcountValue; ?>" size="5" />
+		<input type="number" name="<?php echo $headcountFieldName; ?>" value="<?php echo $headcountValue; ?>" style="width: 60px" />
 		<input type="button" class="btn" onclick="var x = $(this).siblings('input').get(0); x.value = x.value == '' ? 1 : parseInt(x.value, 10)+1" value="+" />
 		<?php
 	}

@@ -303,7 +303,7 @@ class Abstract_Note extends DB_Object
 					COUNT(DISTINCT nn.id) as new_notes,
 					GROUP_CONCAT(nn.id) as new_note_ids
 				FROM person p
-				JOIN abstract_note nn ON nn.assignee = p.id 
+				JOIN abstract_note nn ON nn.assignee = p.id
 										AND nn.status = "pending"
 										AND nn.action_date <= DATE(NOW())
 										AND ((
@@ -319,5 +319,19 @@ class Abstract_Note extends DB_Object
 				WHERE email <> ""
 				GROUP BY p.id';
 		return $GLOBALS['db']->queryAll($SQL);
+	}
+
+	/**
+	 * Clean up any orphaned records that are not references by a person or family note
+	 * @return boolean
+	 */
+	public static function cleanupInstances()
+	{
+		$SQL = 'DELETE FROM abstract_note WHERE id NOT IN (
+					SELECT id FROM person_note
+					UNION
+					SELECT id from family_note
+				)';
+		return $GLOBALS['db']->exec($SQL);
 	}
 }

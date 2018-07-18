@@ -127,7 +127,7 @@ class family extends db_object
 			"CREATE TABLE family_photo (
 				familyid INT NOT NULL,
 				photodata MEDIUMBLOB NOT NULL,
-				CONSTRAINT `famliyphotofamilyid` FOREIGN KEY (`familyid`) REFERENCES `family` (`id`),
+				CONSTRAINT `famliyphotofamilyid` FOREIGN KEY (`familyid`) REFERENCES `family` (`id`) ON DELETE CASCADE,
 				PRIMARY KEY (familyid)
 			 ) ENGINE=InnoDB;
 			"
@@ -532,7 +532,7 @@ class family extends db_object
 			) allmembers ON allmembers.familyid = f.id
 			LEFT JOIN (
 			   select f.id as familyid, GROUP_CONCAT(p.first_name ORDER BY ab.rank ASC, p.gender DESC SEPARATOR ", ") as names
-			   FROM person p 
+			   FROM person p
 			   JOIN family f on p.familyid = f.id
 			   JOIN age_bracket ab ON ab.id = p.age_bracketid
 			   WHERE ab.is_adult and p.status <> "archived"
@@ -568,7 +568,7 @@ class family extends db_object
 		<input type="hidden" name="<?php echo $name; ?>" value="<?php echo $currentid; ?>" />
 		<?php
 	}
-	
+
 	public function archiveAndClean()
 	{
 		if (!$this->acquireLock()) return FALSE;
@@ -600,8 +600,15 @@ class family extends db_object
 			$n = new Family_Note($noteid);
 			$n->delete();
 		}
-		
+
 		$this->releaseLock();
+		return TRUE;
+	}
+
+	public function delete()
+	{
+		parent::delete();
+		Abstract_Note::cleanupInstances();
 		return TRUE;
 	}
 }

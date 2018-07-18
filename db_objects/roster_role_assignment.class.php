@@ -15,7 +15,7 @@ class roster_role_assignment extends db_object
 					assignedon		timestamp,
 					primary key (roster_role_id, assignment_date, personid),
 					constraint foreign key rra_assiger (assigner) references _person(id),
-					constraint foreign key rra_personid (personid) references _person(id),
+					constraint foreign key rra_personid (personid) references _person(id) ON DELETE CASCADE,
 					constraint foreign key rra_roster_role_id (roster_role_id) references roster_role(id)
 				) ENGINE=InnoDB ;';
 	}
