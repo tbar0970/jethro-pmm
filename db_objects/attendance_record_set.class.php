@@ -70,26 +70,6 @@ class Attendance_Record_Set
 	{
 	}
 
-
-	function getInitSQL($table_name=NULL)
-	{
-		return "
-			CREATE TABLE `attendance_record` (
-			  `date` date NOT NULL default '0000-00-00',
-			  `personid` int(11) NOT NULL default '0',
-			  `groupid` int(11) NOT NULL default '0',
-			  `present` tinyint(1) unsigned NOT NULL default '0',
-			  PRIMARY KEY  (`date`,`personid`,`groupid`),
-			  CONSTRAINT `ar_personid` FOREIGN KEY (personid) REFERENCES _person(id) ON DELETE CASCADE
-			) ENGINE=InnoDB ;
-		";
-	}
-
-	public function getForeignKeys()
-	{
-		return Array();
-	}
-
 	function load($date, $cohort, $age_brackets, $statuses)
 	{
 		$this->date = $date;
