@@ -13,11 +13,27 @@ ALTER TABLE age_bracket MODIFY COLUMN is_adult TINYINT(1) UNSIGNED NOT NULL DEFA
 UPDATE setting SET note = 'Can users with congregation restrictions add new persons and families?' where symbol = 'RESTRICTED_USERS_CAN_ADD';
 
 /* issue #30 - delete people altogether */
-ALTER TABLE roster_role_assignment
-DROP FOREIGN KEY rra_personid;
+/* To make sure FKs are right on roster_role_assignment we recreate the table
+since the FK names are historically inconsistent */
 
 ALTER TABLE roster_role_assignment
-ADD CONSTRAINT `rra_personid` FOREIGN KEY (personid) REFERENCES _person(id) ON DELETE CASCADE;
+RENAME TO _disused_roster_role_assn;
+
+create table roster_role_assignment (
+assignment_date	date not null,
+roster_role_id	int(11) not null,
+personid		int(11) not null,
+rank            int unsigned not null default 0,
+assigner		int(11) not null,
+assignedon		timestamp,
+primary key (roster_role_id, assignment_date, personid),
+constraint `rra_assiger` foreign key (assigner) references _person(id),
+constraint `rra_personid` foreign key (personid) references _person(id) ON DELETE CASCADE,
+constraint `rra_roster_role_id` foreign key (roster_role_id) references roster_role(id)
+) ENGINE=InnoDB ;
+
+INSERT INTO roster_role_assignment
+SELECT * FROM _disused_roster_role_assn;
 
 DELETE FROM attendance_record WHERE personid NOT IN (select id FROM _person);
 ALTER TABLE attendance_record
