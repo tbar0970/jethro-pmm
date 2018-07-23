@@ -4,6 +4,7 @@ class View__Edit_Me extends View
 	private $family = NULL;
 	private $persons = Array();
 	private $hasAdult = FALSE;
+	private $person_fields = Array('gender', 'age_bracketid', 'email', 'mobile_tel', 'work_tel', 'photo');
 	
 	function getTitle()
 	{
@@ -32,9 +33,9 @@ class View__Edit_Me extends View
 			$this->family->processForm();
 			$this->family->save();
 			$this->family->releaseLock();
-			
+			$fields = Array('gender', 'age_bracket', 'email', 'mobile_tel', 'work_tel');
 			foreach ($this->persons as $person) {
-				$person->processForm('person_'.$person->id);
+				$person->processForm('person_'.$person->id, $this->person_fields);
 				$person->save(FALSE);
 				$person->releaseLock();
 			}
@@ -78,7 +79,7 @@ class View__Edit_Me extends View
 
 			foreach ($this->persons as $person) {
 				echo '<h3>'.$person->getValue('first_name').' '.$person->getValue('last_name').'</h3>';
-				$person->printForm('person_'.$person->id, Array('gender', 'age_bracketid', 'email', 'mobile_tel', 'work_tel', 'photo'));
+				$person->printForm('person_'.$person->id, $this->person_fields);
 			}
 				
 			?>

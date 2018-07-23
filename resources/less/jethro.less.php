@@ -761,10 +761,10 @@ table.object-summary>tbody>tr>td>table>tbody>tr:first-child td {
 }
 
 .day-box {
-	width: 3ex !important;
+	width: 4.5ex !important;
 }
 .year-box {
-	width: 5ex !important;
+	width: 6.5ex !important;
 }
 @media (min-width: 1px) {
 	/* support for media queries roughly equivalent for support for such things as the placeholder attr */

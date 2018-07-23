@@ -64,9 +64,10 @@ class View_Home extends View
 								$url = ifdef('NOTES_LINK_TO_EDIT')
 										? '?view=_edit_note&note_type='.ents($task['type']).'&noteid='.(int)$id
 										: '?view='.$view.'&'.$task['type'].'id='.$task[$task['type'].'id'].'#note_'.$id;
+								$nameurl = '?view='.$view.'&'.$task['type'].'id='.$task[$task['type'].'id'];
 								?>
 								<tr>
-									<td class="narrow"><i class="icon-<?php echo $icon; ?>"></i> <?php echo ents($task['name']); ?></td>
+									<td class="narrow"><a href="<?php echo $nameurl; ?>"><i class="icon-<?php echo $icon; ?>"></i><?php echo ents($task['name']); ?></a></td>
 									<td><a href="<?php echo $url; ?>"><?php echo ents($task['subject']); ?></a></td>
 								</tr>
 								<?php
@@ -123,11 +124,22 @@ class View_Home extends View
 			 </div>
 			<?php
 		}
-
 		?>
 		</div>
 		<?php
-
+		$reportVals = Array('all');
+		if ($GLOBALS['user_system']->havePerm(PERM_RUNREPORT)) {
+			$reportVals[] = 'auth';
+		}
+		$frontpagereports = $GLOBALS['system']->getDBObjectData('person_query', Array('show_on_homepage' => $reportVals));
+		foreach ($frontpagereports as $reportid => $reportparams) {
+			$report = $GLOBALS['system']->getDBObject('person_query', $reportid);
+			?>
+			<div class="homepage homepage-1-col" style="clear:both;">
+				<h3><?php echo $reportparams['name']; ?></h3>
+				<?php $report->printResults(); ?>
+			</div>
+			<?php
+		 }
 	}
 }
-?>
