@@ -967,61 +967,6 @@ class Person extends DB_Object
 		}
 	}
 
-<<<<<<< HEAD
-	
-	/* 
-	 * <li>Change their name to "Removed"</li>
-				<li>Change their status to "archived"</li>
-				<li>Blank out all their fields except congregation</li>
-				<li>Clear their history and notes</li>
-				<li>Preserve their (anonymous) roster assignments, group memberships and attendance records</li>
-	 */
-	public function archiveAndClean()
-	{
-		if (!$this->acquireLock()) return FALSE;
-		$GLOBALS['system']->doTransaction('BEGIN');
-		foreach ($this->fields as $fieldname => $params) {
-			switch ($fieldname) {
-				case 'first_name':
-				case 'last_name':
-					$this->setValue($fieldname, '(Removed)');
-					break;
-				case 'congregationid':
-				case 'familyid':
-				case 'status_last_changed':
-				case 'creator':
-				case 'created':
-					// leave these intact
-					break;
-				case 'status':
-					$this->setValue($fieldname, 'archived');
-					break;
-				default:
-					$this->setValue($fieldname, '');
-			}
-		}
-		// todo: clear the history ??
-		$this->save();
-		$family = $GLOBALS['system']->getDBObject('family', $this->getValue('familyid'));
-		$members = $family->getMemberData();
-		$found_live = FALSE;
-		foreach ($members as $id => $detail) {
-			if (($detail['status'] != 'archived') && ($id != $this->id)) $found_live = TRUE;
-		}
-		if (!$found_live) {
-			if (!$family->acquireLock()) {
-				add_message("This person could not be archived and cleaned because their family record is locked by another user.  Try again later.");
-				$GLOBALS['system']->doTransaction('ROLLBACK');
-				$this->releaseLock();
-				return FALSE;
-			}
-			$family->archiveAndClean();
-			add_message("Since the ".$family->getValue('family_name').' family had no remaining members, it has been archived and cleaned also');
-		}
-		$GLOBALS['system']->doTransaction('COMMIT');
-		$this->releaseLock();
-		return TRUE;
-=======
 	/**
 	 * Archive and clean this record:
 	 *  Change their name to "Removed"
@@ -1084,7 +1029,6 @@ class Person extends DB_Object
 		}
 		Abstract_Note::cleanupInstances();
 		$GLOBALS['system']->doTransaction('COMMIT');
->>>>>>> 6622ab7ffc27fa88e336672820b7059284f0e340
 	}
 
 }
