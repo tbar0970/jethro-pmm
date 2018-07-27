@@ -345,8 +345,10 @@ class family extends db_object
 
 	function getMemberData()
 	{
+		//$objectType = $GLOBALS['user_system']->getCurrentUser() ? 'person' : 'member';
+		$restriction = $GLOBALS['user_system']->getCurrentUser() ? Array('!status' => 'archived') : Array();
 		if (!isset($this->_tmp['members'])) {
-			$this->_tmp['members'] = $GLOBALS['system']->getDBObjectData('person', Array('familyid' => $this->id), 'OR', 'ab.rank, gender DESC');
+			$this->_tmp['members'] = $GLOBALS['system']->getDBObjectData('person', Array('familyid' => $this->id)+$restriction, 'AND', 'ab.rank, gender DESC');
 		}
 		return $this->_tmp['members'];
 	}

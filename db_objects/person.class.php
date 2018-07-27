@@ -262,6 +262,9 @@ class Person extends DB_Object
 						SMS_Sender::printModal();
 						$printedModal = TRUE;
 					}
+				} else if (FALSE !== strpos($_SERVER['HTTP_USER_AGENT'], 'Macintosh')) {
+					// on mac we can use the messages app
+					$smsLink = 'href="imessage:'.ents($value).'"';
 				}
 				?>
 				<span class="nowrap">
@@ -1029,3 +1032,4 @@ class Person extends DB_Object
 	}
 
 }
+

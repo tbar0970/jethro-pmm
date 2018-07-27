@@ -247,7 +247,7 @@ class View_Families__Contact_List extends View
 				AND person.congregationid in ('.implode(',', array_map(Array($db, 'quote'), $_REQUEST['congregationid'])).')';
 		}
 		$sql .= ')
-		order by family_name asc, familyid, ab.rank asc, gender desc
+		order by family_name asc, familyid, ab.rank asc, IF(ab.is_adult, gender, "") desc, first_name asc
 		';
 		$res = $db->queryAll($sql, null, null, true, true, true);
 
@@ -482,7 +482,7 @@ class View_Families__Contact_List extends View
 			$outname = tempnam(sys_get_temp_dir(), 'contactlist').'.docx';
 			copy($templateFilename, $outname);
 			ODF_Tools::insertFileIntoFile($tempname, $outname, '%CONTACT_LIST%');
-			$replacements = Array('SYSTEM_NAME' => SYSTEM_NAME);
+			$replacements = Array('SYSTEM_NAME' => SYSTEM_NAME, 'MONTH' => date('F d'));
 			ODF_Tools::replaceKeywords($outname, $replacements);
 			readfile($outname);
 			unlink($outname);
