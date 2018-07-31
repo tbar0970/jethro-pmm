@@ -855,7 +855,7 @@ class Person extends DB_Object
 		switch ($name) {
 			case 'photo':
 				?>
-				<input type="file" capture="camera" accept="image/*" name="<?php echo $prefix; ?>photo" />
+				<input type="file" accept="image/*" name="<?php echo $prefix; ?>photo" />
 				<?php
 				break;
 			case 'familyid':
