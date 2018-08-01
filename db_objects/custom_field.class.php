@@ -558,7 +558,7 @@ class Custom_Field extends db_object
 	{
 		if (is_array($val)) return implode(', ', array_map(Array($this, 'formatValue'), $val));
 		if (!strlen($val)) return '';
-		
+
 		switch ($this->getValue('type')) {
 			case 'date':
 				if (!preg_match('/(([-0-9]{4})?-([0-9]{2}-[0-9]{2}))( (.*))?/', $val, $matches)) {
@@ -644,7 +644,7 @@ class Custom_Field extends db_object
 	 */
 	public static function getRawValueSQLExpr($valueTableAlias, $fieldTableAlias)
 	{
-		return 'TRIM(CONCAT(COALESCE('.$valueTableAlias.'.value_optionid, CONCAT('.$valueTableAlias.'.value_date, " "), ""), COALESCE(CONCAT(IF('.$fieldTableAlias.'.type="select", "0 ", ""), '.$valueTableAlias.'.value_text, ""))))';
+		return 'TRIM(CONCAT(COALESCE('.$valueTableAlias.'.value_optionid, CONCAT('.$valueTableAlias.'.value_date, " "), ""), COALESCE(CONCAT(IF('.$fieldTableAlias.'.type="select", "0 ", ""), '.$valueTableAlias.'.value_text), "")))';
 	}
 
 	/**
