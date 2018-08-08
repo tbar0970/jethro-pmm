@@ -79,7 +79,7 @@ Class Photo_Handler {
 						} else {
 							// Just resize, no cropping
 							$new_width = self::MAX_PHOTO_WIDTH;
-							$new_height = min(self::MAX_PHOTO_HEIGHT, $new_width / $orig_ratio);
+							$new_height = $new_width / $orig_ratio;
 							$src_x = $src_y = 0;
 							$src_w = $orig_width;
 							$src_h = $orig_height;
