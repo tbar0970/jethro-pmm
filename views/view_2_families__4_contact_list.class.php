@@ -493,7 +493,7 @@ class View_Families__Contact_List extends View
 			$outname = tempnam(sys_get_temp_dir(), 'contactlist').'.docx';
 			copy($templateFilename, $outname);
 			ODF_Tools::insertFileIntoFile($tempname, $outname, '%CONTACT_LIST%');
-			$replacements = Array('SYSTEM_NAME' => SYSTEM_NAME, 'MONTH' => date('F d'));
+			$replacements = Array('SYSTEM_NAME' => SYSTEM_NAME, 'MONTH' => date('F Y'));
 			ODF_Tools::replaceKeywords($outname, $replacements);
 			readfile($outname);
 			unlink($outname);
