@@ -318,7 +318,7 @@ class View_Families__Contact_List extends View
 			if ($last) $family['all_names'] .= ' & '.$last;
 
 			$first_member = reset($family_members);
-			foreach (Array('have_photo', 'family_name', 'home_tel', 'address_street', 'address_suburb', 'address_state', 'address_postcode') as $ffield) {
+			foreach (Array('have_photo', 'have_person_photo', 'family_name', 'home_tel', 'address_street', 'address_suburb', 'address_state', 'address_postcode') as $ffield) {
 				$family[$ffield] = $first_member[$ffield];
 			}
 			$family['home_tel'] = $dummy_family->getFormattedValue('home_tel', $family['home_tel']);
@@ -382,7 +382,7 @@ class View_Families__Contact_List extends View
 				// Add photo cell but stay on the same row.
 				$cell = $table->addCell($imageWidthTwips, $narrowCellProps);
 				$imageStyle = (count($family['all']) == 1) ? $singleImageStyle : $familyImageStyle;
-				if ($family['have_photo']) {
+				if ($family['have_photo'] || (count($family['all']) == 1 && $family['have_person_photo'])  ) {
 					$tempfile = str_replace('.tmp', '', tempnam(sys_get_temp_dir(), 'contactlistphoto')).'.jpg';
 					$cleanup[] = $tempfile;
 					file_put_contents($tempfile, Photo_Handler::getPhotoData('family', $family['familyid']));
