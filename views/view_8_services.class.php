@@ -525,7 +525,7 @@ class View_services extends View
 							   title="Double-click or drag to add to service">
 							<thead>
 								<tr>
-									<th data-sort="string" id="title">Title</th>
+									<th data-sort="string-ins" id="title">Title</th>
 									<th data-sort="int" id="weeks" data-sort-multicolumn="title" class="narrow" title="Weeks since last usage">Last</th>
 									<th data-sort="int" data-sort-multicolumn="weeks" data-sort-default="desc" class="narrow" title="Number of usages in last 12 months">12m<i class="icon-arrow-up"></i></th>
 									<th class="narrow"></th>
