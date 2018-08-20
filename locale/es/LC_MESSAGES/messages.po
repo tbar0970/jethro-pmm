@@ -1339,7 +1339,7 @@ msgid "Results"
 msgstr "Resultados"
 
 #: views/view_3_persons__3_reports.class.php:148
-msgid "Last ad-hoc query"
+msgid "Last ad-hoc report"
 msgstr "Ultima consulta personalizada"
 
 #: views/view_3_persons__3_reports.class.php:150

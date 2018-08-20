@@ -54,7 +54,7 @@ $type = (!empty($entry['familyid']) ? 'family' : 'person');
 			if ($entry['editor']) {
 				$editor = $GLOBALS['system']->getDBObject('person', $entry['editor']);
 				$name = $editor ? $editor->toString() : '(restricted user)';
-				echo _('". Edited by "').ents($name)." <span class=\"visible-desktop\">(#{$entry['editor']})</span>, ".format_datetime($entry['edited']);
+				echo '. '._('Edited by').' '.ents($name)." <span class=\"visible-desktop\">(#{$entry['editor']})</span>, ".format_datetime($entry['edited']);
 			}
 			?>
 		</small>

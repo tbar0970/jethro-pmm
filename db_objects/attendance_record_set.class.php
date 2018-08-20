@@ -327,7 +327,7 @@ class Attendance_Record_Set
 			$headcountValue = Headcount::fetch('person_group', $this->date, $this->groupid);
 		}
 		?>
-		<input type="number" name="<?php echo $headcountFieldName; ?>" value="<?php echo $headcountValue; ?>" style="width: 60px" />
+		<input type="number" inputmode="numeric" pattern="[0-9]*" name="<?php echo $headcountFieldName; ?>" value="<?php echo $headcountValue; ?>" style="width: 60px" />
 		<input type="button" class="btn" onclick="var x = $(this).siblings('input').get(0); x.value = x.value == '' ? 1 : parseInt(x.value, 10)+1" value="+" />
 		<?php
 	}

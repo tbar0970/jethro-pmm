@@ -245,7 +245,7 @@ class family extends db_object
 	{
 		if ($name == 'photo') {
 			?>
-			<input type="file" name="photo" />
+			<input type="file" accept="image/*" name="photo" />
 			<?php
 			return;
 		}

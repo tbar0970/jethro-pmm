@@ -149,7 +149,7 @@ class View_Persons__Reports extends View
 						?>
 						<tr>
 							<td>-</td>
-							<td><i><?php echo _('Last ad-hoc query');?></i></td>
+							<td><i><?php echo _('Last ad-hoc report');?></i></td>
 							<td>-</td>
 							<td class="action-cell">
 								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=TEMP&configure=1"><i class="icon-wrench"></i><?php echo _('Configure');?></a> &nbsp;
