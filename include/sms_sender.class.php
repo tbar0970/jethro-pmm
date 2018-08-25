@@ -138,16 +138,16 @@ Class SMS_Sender
 		$success = false;
 		$content = SMS_HTTP_POST_TEMPLATE;
 
+		$me = $GLOBALS['system']->getDBObject('person', $GLOBALS['user_system']->getCurrentUser('id'));
 		if (FALSE !== strpos($content, '_USER_MOBILE_')) {
-			$me = $GLOBALS['system']->getDBObject('person', $GLOBALS['user_system']->getCurrentUser('id'));
 			if (!strlen($me->getValue('mobile_tel'))) {
 				return Array('success' => FALSE, 'successes' => Array(), 'failures' => Array(), 'rawresponse' => '',
 					'error' => 'You must save your own mobile number before you can send an SMS');
 			}
 		}
 
-		$content = str_replace('_USER_MOBILE_', urlencode($GLOBALS['user_system']->getCurrentUser('mobile_tel')), $content);
-		$content = str_replace('_USER_EMAIL_', urlencode($GLOBALS['user_system']->getCurrentUser('email')), $content);
+		$content = str_replace('_USER_MOBILE_', urlencode($me->getValue('mobile_tel')), $content);
+		$content = str_replace('_USER_EMAIL_', urlencode($me->getValue('email')), $content);
 		$content = str_replace('_MESSAGE_', urlencode($message), $content);
 		$content = str_replace('_RECIPIENTS_COMMAS_', urlencode(implode(',', $mobile_tels)), $content);
 		$content = str_replace('_RECIPIENTS_NEWLINES_', urlencode(implode("\n", $mobile_tels)), $content);
