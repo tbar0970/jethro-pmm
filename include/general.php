@@ -187,10 +187,10 @@ function print_widget($name, $params, $value)
 				$cols_exp = empty($params['width']) ? '' : 'cols="'.$params['width'].'"';
 				$placeholder_exp = empty($params['placeholder']) ? '' : 'placeholder="'.ents($params['placeholder']).'"';
 				?>
-				<textarea name="<?php echo $name; ?>" 
-						  rows="<?php echo $params['height']; ?>" 
-						  class="<?php echo trim($classes); ?>" 
-						  <?php echo $maxlength_exp.' '.$cols_exp .' '.$placeholder_exp; ?> 
+				<textarea name="<?php echo $name; ?>"
+						  rows="<?php echo $params['height']; ?>"
+						  class="<?php echo trim($classes); ?>"
+						  <?php echo $maxlength_exp.' '.$cols_exp .' '.$placeholder_exp; ?>
 				><?php echo ents($value); ?></textarea>
 				<?php
 			} else {
@@ -210,7 +210,7 @@ function print_widget($name, $params, $value)
 				<script src="<?php echo BASE_URL.'resources/ckeditor/ckeditor.js'; ?>"></script>
 				<?php
 			}
-			$ckParams = 'disableNativeSpellChecker: false, 
+			$ckParams = 'disableNativeSpellChecker: false,
 						';
 			if (array_get($params, 'toolbar') == 'basic') {
 				$ckParams = "
@@ -783,15 +783,11 @@ function get_email_href($to, $name=NULL, $bcc=NULL, $subject=NULL)
 	$is_chrome_mac = (FALSE !== strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'chrome/'))
 						&& (FALSE !== strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'macintosh'));
 
-	if (!$is_chrome_mac && !empty($name) && empty($bcc) && empty($subject)) {
-		$res = rawurlencode($name).' <'.rawurlencode($to).'>';
-	} else {
-		$res = rawurlencode($to);
-		$extras = Array();
-		if ($bcc) $extras[] = 'bcc='.rawurlencode($bcc);
-		if ($subject) $extras[] = 'subject='.rawurlencode($subject);
-		if ($extras) $res .= '?'.implode('&', $extras);
-	}
+	$res = ents($to);
+	$extras = Array();
+	if ($bcc) $extras[] = 'bcc='.ents($bcc);
+	if ($subject) $extras[] = 'subject='.ents($subject);
+	if ($extras) $res .= '?'.implode('&', $extras);
 	return 'mailto:'.$res;
 }
 
