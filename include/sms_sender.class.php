@@ -4,6 +4,15 @@ Class SMS_Sender
 {
 
 	/**
+	 * Return true if we are able to send a message, considering config, perms etc.
+	 */
+	public static function canSend()
+	{
+		return ifdef('SMS_HTTP_URL')
+				&& $GLOBALS['user_system']->havePerm(PERM_SENDSMS);
+	}
+
+	/**
 	 * Get Recipients based on the $_REQUEST
 	 * @return array('recips' => array, 'blanks' => array, 'archived' => array)
 	 */
@@ -44,7 +53,7 @@ Class SMS_Sender
 		}
 		return Array($recips, $blanks, $archived);
 	}
-	
+
 	/**
 	 * Remove invalid characters from message.
 	 * Only understands GSM0338 at the moment - any other charset does not get filtered.
