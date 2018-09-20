@@ -500,7 +500,7 @@ class service extends db_object
 			$short_title = implode('_', $bits);
 			return $this->getPersonnelByRoleTitle($short_title, $first_name_only, $index);
 		}
-		
+
 		if (count($role_ids) != 1) return ''; // either no role found or ambigious role title
 		return implode(', ', $names);
 	}
@@ -745,8 +745,7 @@ class service extends db_object
 			}
 			$assignments_output = ob_get_clean();
 			$email_href = get_email_href($GLOBALS['user_system']->getCurrentUser('email'), NULL, array_unique($emails), $this->toString());
-			if ($GLOBALS['user_system']->havePerm('PERM_SENDSMS') && ifdef('SMS_HTTP_URL')) {
-				require_once 'include/sms_sender.class.php';
+			if (SMS_Sender::canSend()) {
 				SMS_Sender::printModal();
 			}
 
@@ -757,7 +756,7 @@ class service extends db_object
 					<span class="pull-right"><small>
 						<a href="<?php echo $email_href; ?>"><i class="icon-email">@</i>Email</a>
 					<?php
-					if ($GLOBALS['user_system']->havePerm('PERM_SENDSMS') && ifdef('SMS_HTTP_URL')) {
+					if (SMS_Sender::canSend()) {
 						?>
 						&nbsp;
 						<a href="#send-sms-modal" data-personid="<?php echo implode(',', array_unique($personids)); ?>" data-toggle="sms-modal" data-name="Personnel for <?php echo ents($this->toString());?>"><i class="icon-envelope"></i>SMS</a>

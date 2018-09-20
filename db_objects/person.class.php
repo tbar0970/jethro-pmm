@@ -242,47 +242,46 @@ class Person extends DB_Object
 				return;
 			case 'mobile_tel':
 				if (!strlen($value)) return;
-				echo ents($this->getFormattedValue($name, $value));
-
-				$smsLink = '';
-				if (SizeDetector::isNarrow()) {
-					// Probably a phone - use a plain sms: link
-					$smsLink = 'href="sms:'.ents($value).'"';
-				} else if (
-						defined('SMS_HTTP_URL')
-						&& constant('SMS_HTTP_URL')
-						&& $GLOBALS['user_system']->havePerm(PERM_SENDSMS)
-						&& !empty($this->id)
-					) {
-					// Provide a link to send SMS through the SMS gateway
-					$smsLink = 'href="#send-sms-modal" data-toggle="sms-modal" data-personid="' . $this->id . '" data-name="' . $person_name . '"';
-
+				$links = Array('<a href="tel:'.ents($value).'"><i class="icon-phone"></i> Call</a>');
+				if (SMS_Sender::canSend()) {
+					$msg = _('SMS via Jethro');
+					$links[] = '<a href="#send-sms-modal" data-toggle="sms-modal" data-personid="' . $this->id . '" data-name="' . $person_name . '"><i class="icon-envelope"></i> '.$msg.'</a>';
 					static $printedModal = FALSE;
 					if (!$printedModal) {
 						SMS_Sender::printModal();
 						$printedModal = TRUE;
 					}
-				} else if (FALSE !== strpos($_SERVER['HTTP_USER_AGENT'], 'Macintosh')) {
+				}
+				if (FALSE !== strpos($_SERVER['HTTP_USER_AGENT'], 'Macintosh')) {
 					// on mac we can use the messages app
-					$smsLink = 'href="imessage:'.ents($value).'"';
+					$msg = _('SMS via iMessage');
+					$links[] = '<a href="imessage:'.ents($value).'"><i class="icon-envelope"></i> '.$msg.'</a>';
+				} else if (SizeDetector::isNarrow()) {
+					// Probably a phone - use SMS link
+					$msg = SMS_Sender::canSend() ? 'SMS via my device' : 'SMS';
+					$links[] = '<a href="sms:'.ents($value).'"><i class="icon-envelope"></i> '.$msg.'</a>';
 				}
+
 				?>
-				<span class="nowrap">
-					<a href="tel:<?php echo ents($value); ?>" class="btn btn-mini"><i class="icon-phone"></i></a>
-				<?php
-				if ($smsLink) {
-					?>
-					<a <?php echo $smsLink; ?> class="btn btn-mini btn-sms"><i class="icon-envelope"></i></a>
+				<span class="dropdown nowrap">
+					<a class="dropdown-toggle mobile-tel" id="mobile-<?php echo $this->id; ?>" data-toggle="dropdown" href="#"><?php echo ents($this->getFormattedValue('mobile_tel')); ?></a>
+					<ul class="dropdown-menu" role="menu" aria-labelledby="mobile-<?php echo $this->id; ?>">
 					<?php
-				}
-				?>
+					foreach ($links as $l) {
+						?>
+						<li><?php echo $l; ?></li>
+						<?php
+					}
+					?>
+					</ul>
 				</span>
 				<?php
 				return;
-
+			default:
+				parent::printFieldValue($name, $value);
 
 		}
-		parent::printFieldValue($name, $value);
+
 	}
 
 	protected function _printSummaryRows() {

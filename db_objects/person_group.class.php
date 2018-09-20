@@ -384,7 +384,6 @@ class Person_Group extends db_object
 		$params = Array(
 			'type' => 'select',
 			'options' => $options,
-			'class' => 'autofocus',
 		);
 		if (empty($value)) $value = $default;
 		if ($multi) {
