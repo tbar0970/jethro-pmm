@@ -17,14 +17,6 @@ $error_level = defined('E_DEPRECATED') ? (E_ALL & ~constant('E_DEPRECATED') /*& 
 error_reporting($error_level);
 @ini_set('display_errors', 1);
 
-// If max length is set, set the cookie timeout - this will allow sessions to outlast browser invocations
-$expiryTime = defined('SESSION_MAXLENGTH_MINS') ? SESSION_MAXLENGTH_MINS * 60 : NULL;
-session_set_cookie_params($expiryTime, parse_url(BASE_URL, PHP_URL_PATH));
-
-if (session_id() == '') {
-	session_name('JethroSession');
-	session_start();
-}
 require_once JETHRO_ROOT.'/include/general.php';
 strip_all_slashes();
 
@@ -55,6 +47,14 @@ if (defined('STRICT_MODE_FIX') && STRICT_MODE_FIX) {
 @ini_set('default_charset', 'UTF-8');
 
 Config_Manager::init();
+
+// If max length is set, set the cookie timeout - this will allow sessions to outlast browser invocations
+$expiryTime = defined('SESSION_MAXLENGTH_MINS') ? SESSION_MAXLENGTH_MINS * 60 : NULL;
+session_set_cookie_params($expiryTime, parse_url(BASE_URL, PHP_URL_PATH));
+if (session_id() == '') {
+	session_name('JethroSession');
+	session_start();
+}
 
 if (defined('TIMEZONE') && constant('TIMEZONE')) {
 	date_default_timezone_set(constant('TIMEZONE'));
