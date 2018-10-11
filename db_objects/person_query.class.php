@@ -1280,6 +1280,8 @@ class Person_Query extends DB_Object
 		} else if (0 === strpos($params['sort_by'], self::CUSTOMFIELD_PREFIX)) {
 			$customOrder = substr($params['sort_by'], 14);
 		}
+		$query['from'] .= '
+			JOIN age_bracket absort ON absort.id = p.age_bracketid ';
 		if ($customOrder) {
 			$query['from'] .= ' LEFT JOIN custom_field_value cfvorder ON cfvorder.personid = p.id AND cfvorder.fieldid = '.$db->quote($customOrder)."\n";
 			$query['from'] .= " LEFT JOIN custom_field_option cfoorder ON cfoorder.id = cfvorder.value_optionid \n";
@@ -1295,6 +1297,8 @@ class Person_Query extends DB_Object
 			$query['from'] .= '
 				LEFT JOIN congregation cord ON p.congregationid = cord.id ';
 			$query['order_by'] = 'IF(cord.id IS NULL, 1, 0), IF(LENGTH(cord.meeting_time)>0, 0, 1), cord.meeting_time, cord.name';
+		} else if ($params['sort_by'] == 'p.age_bracketid') {
+			$query['order_by'] = 'absort.rank';
 		} else {
 			$query['order_by'] = $this->_quoteAliasAndColumn($params['sort_by']);
 		}
@@ -1331,7 +1335,7 @@ class Person_Query extends DB_Object
 				';
 		}
 		$sql .= "\nGROUP BY ".implode(', ', $query['group_by']);
-		$sql .= "\nORDER BY ".$query['order_by'].', p.last_name, p.first_name';
+		$sql .= "\nORDER BY ".$query['order_by'].', p.last_name, p.familyid, absort.rank, IF (absort.is_adult, p.gender, 1) DESC, p.first_name';
 
 		return $sql;
 	}
