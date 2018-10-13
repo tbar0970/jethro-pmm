@@ -115,7 +115,8 @@ class Person_Group extends db_object
 				  PRIMARY KEY  (`personid`,`groupid`),
 				  INDEX personid (personid),
 				  INDEX groupid (groupid),
-				  CONSTRAINT `membership_status_fk` FOREIGN KEY (membership_status) REFERENCES person_group_membership_status (id) ON DELETE RESTRICT
+				  CONSTRAINT `membership_status_fk` FOREIGN KEY (membership_status) REFERENCES person_group_membership_status (id) ON DELETE RESTRICT,
+				  CONSTRAINT `pgm_personid` FOREIGN KEY (personid) REFERENCES _person(id) ON DELETE CASCADE
 				) ENGINE=InnoDB",
 		);
 	}
@@ -308,7 +309,7 @@ class Person_Group extends db_object
 			case 'owner':
 				echo _(($value === NULL) ? 'Everyone' : 'Only me');
 				break;
-				
+
 			case 'categoryid':
 				if ($value == 0) {
 					echo '<i>(Uncategorised)</i>';
@@ -383,7 +384,6 @@ class Person_Group extends db_object
 		$params = Array(
 			'type' => 'select',
 			'options' => $options,
-			'class' => 'autofocus',
 		);
 		if (empty($value)) $value = $default;
 		if ($multi) {

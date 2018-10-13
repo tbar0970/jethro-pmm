@@ -35,6 +35,7 @@ class View__Persons_Bulk_Update extends View
 			if (!empty($_REQUEST['backto'])) {
 				parse_str($_REQUEST['backto'], $back);
 				unset($back['backto']);
+				$back['*'] = NULL;
 				redirect($back['view'], $back);
 			}
 			return;
@@ -45,10 +46,14 @@ class View__Persons_Bulk_Update extends View
 		foreach ((array)$_REQUEST['personid'] as $personid) {
 
 			$this->_person = new Person((int)$personid);
+			if (!$this->_person->acquireLock()) {
+				add_message($this->_person->toString().' is locked by another user and cannot be updated. Please try again later', 'error');
+			}
 			
 			foreach ($this->_allowedFields as $field) {
-				if (isset($_POST[$field])) {
-					$this->_person->setValue($field, $_POST[$field]);
+				if (strlen(array_get($_POST, $field, ''))) {
+					// we need our own isset
+					$this->_person->processFieldInterface($field);
 				}
 			}
 
@@ -70,6 +75,7 @@ class View__Persons_Bulk_Update extends View
 		if (!empty($_REQUEST['backto'])) {
 			parse_str($_REQUEST['backto'], $back);
 			unset($back['backto']);
+			$back['*'] = NULL;
 			redirect($back['view'], $back);
 		}
 		

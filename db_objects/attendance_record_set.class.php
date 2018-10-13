@@ -70,25 +70,6 @@ class Attendance_Record_Set
 	{
 	}
 
-
-	function getInitSQL($table_name=NULL)
-	{
-		return "
-			CREATE TABLE `attendance_record` (
-			  `date` date NOT NULL default '0000-00-00',
-			  `personid` int(11) NOT NULL default '0',
-			  `groupid` int(11) NOT NULL default '0',
-			  `present` tinyint(1) unsigned NOT NULL default '0',
-			  PRIMARY KEY  (`date`,`personid`,`groupid`)
-			) ENGINE=InnoDB ;
-		";
-	}
-
-	public function getForeignKeys()
-	{
-		return Array();
-	}
-
 	function load($date, $cohort, $age_brackets, $statuses)
 	{
 		$this->date = $date;
@@ -346,7 +327,7 @@ class Attendance_Record_Set
 			$headcountValue = Headcount::fetch('person_group', $this->date, $this->groupid);
 		}
 		?>
-		<input type="text" class="int-box" name="<?php echo $headcountFieldName; ?>" value="<?php echo $headcountValue; ?>" size="5" />
+		<input type="number" inputmode="numeric" pattern="[0-9]*" name="<?php echo $headcountFieldName; ?>" value="<?php echo $headcountValue; ?>" style="width: 60px" />
 		<input type="button" class="btn" onclick="var x = $(this).siblings('input').get(0); x.value = x.value == '' ? 1 : parseInt(x.value, 10)+1" value="+" />
 		<?php
 	}
@@ -512,7 +493,7 @@ class Attendance_Record_Set
 						GROUP BY ar.personid, '.$selectCol.'
 					) indiv
 					GROUP BY '.$rank.' '.$groupingField.' WITH ROLLUP';
-			$res = $db->queryAll($sql);			
+			$res = $db->queryAll($sql);
 
 			foreach ($res as $row) {
 				if (NULL !== $row[$groupingField]) {

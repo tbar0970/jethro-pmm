@@ -21,7 +21,6 @@ class Call_Photo extends Call
 		$db = $GLOBALS['db'];
 		if (!empty($_REQUEST['personid'])) {
 			$obj = $GLOBALS['system']->getDBObject('member', (int)$_REQUEST['personid']);
-			$SQL = 'SELECT photodata FROM person_photo WHERE personid = '.(int)$obj->id;
 		} else if (!empty($_REQUEST['familyid'])) {
 			$obj = $GLOBALS['system']->getDBObject('family', (int)$_REQUEST['familyid']);
 

@@ -1,6 +1,8 @@
 <?php
 class View_Families__Contact_List extends View
 {
+	
+	// NOTE: DOCX Contact lists have to be A4.  We can only add table cells with fixed widths.
 
 	static function getMenuPermissionLevel()
 	{
@@ -155,7 +157,7 @@ class View_Families__Contact_List extends View
 				}
 				?>
 				<td rowspan="<?php echo $rowSpan; ?>" style="padding: 5px">
-					<img src="<?php echo $src; ?>" />
+					<img style="width: 200px" src="<?php echo $src; ?>" />
 				</td>
 				<?php
 			}
@@ -247,7 +249,7 @@ class View_Families__Contact_List extends View
 				AND person.congregationid in ('.implode(',', array_map(Array($db, 'quote'), $_REQUEST['congregationid'])).')';
 		}
 		$sql .= ')
-		order by family_name asc, familyid, ab.rank asc, gender desc
+		order by family_name asc, familyid, ab.rank asc, IF(ab.is_adult, gender, "") desc, first_name asc
 		';
 		$res = $db->queryAll($sql, null, null, true, true, true);
 
@@ -316,7 +318,7 @@ class View_Families__Contact_List extends View
 			if ($last) $family['all_names'] .= ' & '.$last;
 
 			$first_member = reset($family_members);
-			foreach (Array('have_photo', 'family_name', 'home_tel', 'address_street', 'address_suburb', 'address_state', 'address_postcode') as $ffield) {
+			foreach (Array('have_photo', 'have_person_photo', 'family_name', 'home_tel', 'address_street', 'address_suburb', 'address_state', 'address_postcode') as $ffield) {
 				$family[$ffield] = $first_member[$ffield];
 			}
 			$family['home_tel'] = $dummy_family->getFormattedValue('home_tel', $family['home_tel']);
@@ -344,7 +346,7 @@ class View_Families__Contact_List extends View
 		$phpWord->addFontStyle('HOME-PHONE', array());
 		$phpWord->addFontStyle('ADDRESS', array());
 		$phpWord->addFontStyle('PERSON-NAME', array('bold' => true));
-		$phpWord->addTableStyle('FAMILY-LIST', array('width' => $width, 'borderSize' => 0, 'cellMargin' => 80,'borderColor' => 'CCCCCC'));
+		$phpWord->addTableStyle('FAMILY-LIST', array('width' => $width, 'borderSize' => 0, 'cellMargin' => 40,'borderColor' => 'CCCCCC'));
 		$section = $phpWord->addSection(array('breakType' => 'continuous'));
 
 		/////////////////////////////////////////////////////////////////////////////////
@@ -356,11 +358,17 @@ class View_Families__Contact_List extends View
 
 		$extraWideCellProps = $wideCellProps = array('gridSpan' => $gridspan, 'valign' => 'top');
 		if (!empty($_REQUEST['include_photos'])) {
-			$extraWideCellProps['gridSpan']++;
+			$wideCellProps['gridSpan']--;
 		}
 		$narrowCellProps = array('valign' => 'top', 'vMerge' => 'restart');
 		$mergeProps = array('vMerge' => 'continue');
-		$imageStyle = Array('width' => 100);
+
+		// Show single-person photos at 65% the width of family photos
+		$imageWidthPoints = 172;
+		$imageWidthTwips = $imageWidthPoints*20;
+		$familyImageStyle = Array('width' => $imageWidthPoints);
+		$singleImageStyle = Array('width' => $imageWidthPoints*0.65);
+		
 		$cleanup = Array();
 		foreach ($this->getData() as $family) {
 			$table->addRow();
@@ -372,23 +380,16 @@ class View_Families__Contact_List extends View
 			$rowOpen = TRUE;
 			if (!empty($_REQUEST['include_photos'])) {
 				// Add photo cell but stay on the same row.
-				$cell = $table->addCell(NULL, $narrowCellProps);
-				if ($family['have_photo']) {
+				$cell = $table->addCell($imageWidthTwips, $narrowCellProps);
+				$imageStyle = (count($family['all']) == 1) ? $singleImageStyle : $familyImageStyle;
+				if ($family['have_photo'] || (count($family['all']) == 1 && $family['have_person_photo'])  ) {
 					$tempfile = str_replace('.tmp', '', tempnam(sys_get_temp_dir(), 'contactlistphoto')).'.jpg';
 					$cleanup[] = $tempfile;
 					file_put_contents($tempfile, Photo_Handler::getPhotoData('family', $family['familyid']));
 					$cell->addImage($tempfile, $imageStyle);
-				} else if (count($family['optins']) == 1) {
-					if ($family['optins'][0]['have_person_photo']) {
-						$tempfile = str_replace('.tmp', '', tempnam(sys_get_temp_dir(), 'contactlistphoto')).'.jpeg';
-						$cleanup[] = $tempfile;
-						file_put_contents($tempfile, Photo_Handler::getPhotoData('person', $family['optins'][0]['id']));
-						$cell->addImage($tempfile, $imageStyle);
-					} else {
-						$cell->addImage(JETHRO_ROOT.'/resources/img/unknown.jpg', $imageStyle);
-					}
 				} else {
-					$cell->addImage(JETHRO_ROOT.'/resources/img/unknown_family.jpg', $imageStyle);
+					// Previously we included the placeholder images. But it seems better not to.
+					//$cell->addImage(JETHRO_ROOT.'/resources/img/unknown.jpg', $imageStyle);
 				}
 			}
 			
@@ -437,9 +438,19 @@ class View_Families__Contact_List extends View
 				if (!empty($_REQUEST['include_congregation'])) {
 					$table->addCell($width*0.25, $narrowCellProps)->addText($member['congname']);
 				}
-				//$nbsp = html_entity_decode('&nbsp;');
-				$table->addCell($width*0.25, $narrowCellProps)->addText($member['mobile_tel']);
-				$table->addCell($width*0.2, $narrowCellProps)->addText($member['email']);
+				$contactCell = $table->addCell($width*0.25, $narrowCellProps);
+				if (strlen($member['mobile_tel'])) $contactCell->addText($member['mobile_tel']);
+				if (strlen($member['email'])) {
+					if (!empty($_REQUEST['include_photos'])) {
+						// If there's a photo, put mobile and email in the same cell on different lines
+						$contactCell->addText($member['email']);
+					} else {
+						$table->addCell($width*0.2, $narrowCellProps)->addText($member['email']);
+					}
+				}
+
+
+
 				$rowOpen = FALSE;
 			}
 		}
@@ -482,7 +493,7 @@ class View_Families__Contact_List extends View
 			$outname = tempnam(sys_get_temp_dir(), 'contactlist').'.docx';
 			copy($templateFilename, $outname);
 			ODF_Tools::insertFileIntoFile($tempname, $outname, '%CONTACT_LIST%');
-			$replacements = Array('SYSTEM_NAME' => SYSTEM_NAME);
+			$replacements = Array('SYSTEM_NAME' => SYSTEM_NAME, 'MONTH' => date('F Y'));
 			ODF_Tools::replaceKeywords($outname, $replacements);
 			readfile($outname);
 			unlink($outname);

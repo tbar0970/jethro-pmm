@@ -14,9 +14,9 @@ class roster_role_assignment extends db_object
 					assigner		int(11) not null,
 					assignedon		timestamp,
 					primary key (roster_role_id, assignment_date, personid),
-					constraint foreign key rra_assiger (assigner) references _person(id),
-					constraint foreign key rra_personid (personid) references _person(id),
-					constraint foreign key rra_roster_role_id (roster_role_id) references roster_role(id)
+					constraint `rra_assiger` foreign key (assigner) references _person(id),
+					constraint `rra_personid` foreign key (personid) references _person(id) ON DELETE CASCADE,
+					constraint `rra_roster_role_id` foreign key (roster_role_id) references roster_role(id)
 				) ENGINE=InnoDB ;';
 	}
 
@@ -40,6 +40,13 @@ class roster_role_assignment extends db_object
 			ORDER BY rra.assignment_date ASC, c.meeting_time';
 		$res = $GLOBALS['db']->queryAll($sql, NULL, NULL, true, false, true);
 		return $res;
+	}
+
+	static function hasAssignments($personid)
+	{
+		$SQL = 'SELECT count(*) FROM roster_role_assignment
+				WHERE personid = '.(int)$personid;
+		$res = $GLOBALS['db']->queryOne($SQL);
 	}
 
 }

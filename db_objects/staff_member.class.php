@@ -201,8 +201,8 @@ class Staff_Member extends Person
 					?>
 					<table class="standard">
 						<tr>
-							<th>Restrict to these congregations: &nbsp;</th>
-							<th>Restrict to these groups:</th>
+							<td>Restrict to these congregations: &nbsp</td>
+							<td>Restrict to these groups:</td>
 						</tr>
 						<tr>
 							<td>
@@ -221,7 +221,9 @@ class Staff_Member extends Person
 							</td>
 						</tr>
 					</table>
-					<p class="help-inline">If you select congregations or groups here, this user will only be able to see persons who belong to one of the selected congregations or groups.  It will look like those are the only congregations, groups and persons in the system.  Users with congregation or group restrictions cannot add new persons or families.  Changes to restrictions take effect immediately.</p>
+					<p class="help-inline">If you select congregations or groups here, this user will only be able to see persons who belong to one of the selected congregations or groups.  It will look like those are the only congregations, groups and persons in the system.  
+						Users with group <?php if (!ifdef('RESTRICTED_USERS_CAN_ADD')) echo 'or congregation'; ?> restrictions cannot add new persons or families.  Changes to restrictions take effect immediately.
+					</p>
 					<?php
 				} else {
 					$this->printFieldValue($name);

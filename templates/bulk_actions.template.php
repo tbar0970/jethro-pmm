@@ -32,8 +32,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 				?>
 					<option value="email"><?php echo _('Send email')?></option>
 				<?php
-				$enable_sms = $GLOBALS['user_system']->havePerm(PERM_SENDSMS) && defined('SMS_HTTP_URL') && constant('SMS_HTTP_URL') && defined('SMS_HTTP_POST_TEMPLATE') && constant('SMS_HTTP_POST_TEMPLATE');
-				if ($enable_sms) {
+				if (SMS_Sender::canSend()) {
 					?>
 					<option value="smshttp"><?php echo _('Send SMS')?></option>
 					<?php
@@ -74,7 +73,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 			<table class="valign-middle">
 			<?php
 			$dummy = new Person();
-			foreach (Array('congregationid', 'status', 'age_bracketid') as $field) {
+			foreach (Array('status', 'age_bracketid') as $field) {
 				$dummy->fields[$field]['allow_empty'] = TRUE;
 				$dummy->fields[$field]['empty_text'] = '(No change)';
 				$dummy->setValue($field, NULL);
@@ -82,6 +81,22 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 				$dummy->printFieldInterface($field);
 				echo '</td></tr>';
 			}
+			//Handle congregation separately because we need to have both 'no change' and 'none' options.
+			$params = Array(
+				'type' => 'select',
+				'allow_empty' => TRUE,
+				'empty_text' => '(No change)',
+				'options' => Array(0 => '(None)'),
+			);
+			foreach ($GLOBALS['system']->getDBObjectdata('congregation', Array()) as $cid => $cong) {
+				$params['options'][$cid] = $cong['name'];
+			}
+			echo '<tr><td>Set congregation to: </td><td>';
+			print_widget('congregationid', $params, NULL);
+			echo '</td></tr>';
+
+
+			$dummy->fields['congregationid']['options'][0] = '(None)';
 			$customFields = $GLOBALS['system']->getDBObjectData('custom_field', Array(), 'OR', 'rank');
 			$dummy = new Custom_Field();
 			$addParams = Array(
@@ -253,7 +268,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 			<input type="submit" class="btn " value="Go" data-set-form-target="hidden" data-set-form-action="<?php echo BASE_URL; ?>?call=email" />
 		</div>
 	<?php
-	if ($enable_sms) {
+	if (SMS_Sender::canSend()) {
 		?>
 		<div class="bulk-action well" id="smshttp">
 			<div class="control-group">
@@ -279,7 +294,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 			</div>
 		<?php
 		if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
-			?>			
+			?>
 			<div class="control-group">
 				<label class="control-label">After sending:</label>
 				<div class="controls">
@@ -341,13 +356,13 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 	<div class="bulk-action well" id="vcf">
 		<input type="submit" value="Go" class="btn" data-set-form-action="<?php echo BASE_URL; ?>?call=vcf" />
 	</div>
-	
+
 	<?php
 	if (function_exists('custom_bulk_action_bodies')) {
 		custom_bulk_action_bodies();
 	}
 	?>
-	
+
 </div>
 
 

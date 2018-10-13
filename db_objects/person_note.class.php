@@ -25,7 +25,9 @@ class Person_Note extends Abstract_Note
 			CREATE TABLE `person_note` (
 			  `personid` int(11) NOT NULL default '0',
 			  `id` int(11) NOT NULL default '0',
-			  PRIMARY KEY  (`personid`,`id`)
+			  PRIMARY KEY  (`personid`,`id`),
+			  CONSTRAINT `pn_personid` FOREIGN KEY (personid) REFERENCES _person(id) ON DELETE CASCADE,
+			  CONSTRAINT pn_id FOREIGN KEY (id) REFERENCES abstract_note(id) ON DELETE CASCADE
 			) ENGINE=InnoDB ;
 		";
 	}
@@ -68,7 +70,7 @@ class Person_Note extends Abstract_Note
 			<?php
 		}
 	}
-	
+
 	function setTemplate($template)
 	{
 		if (!$this->id) $this->setValue('subject', $template->getValue('subject'));
