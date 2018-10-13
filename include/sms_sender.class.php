@@ -4,6 +4,16 @@ Class SMS_Sender
 {
 
 	/**
+	 * Return true if we are able to send a message, considering config, perms etc.
+	 */
+	public static function canSend()
+	{
+		return ifdef('SMS_HTTP_URL')
+				&& ifdef('SMS_HTTP_POST_TEMPLATE')
+				&& $GLOBALS['user_system']->havePerm(PERM_SENDSMS);
+	}
+
+	/**
 	 * Get Recipients based on the $_REQUEST
 	 * @return array('recips' => array, 'blanks' => array, 'archived' => array)
 	 */
@@ -46,6 +56,67 @@ Class SMS_Sender
 	}
 
 	/**
+	 * Remove invalid characters from message.
+	 * Only understands GSM0338 at the moment - any other charset does not get filtered.
+	 * @see SMS_ENCODING setting/constant.  Defaults to GSM0338.
+	 * @param string $message
+	 * @return string
+	 */
+	private static function cleanseMessage($message)
+	{
+		$encoding = strtoupper(ifdef('SMS_ENCODING', 'GSM0338'));
+		switch ($encoding) {
+			case 'GSM0338':
+				$gsm0338 = array(
+					'@','Δ',' ','0','¡','P','¿','p',
+					'£','_','!','1','A','Q','a','q',
+					'$','Φ','"','2','B','R','b','r',
+					'¥','Γ','#','3','C','S','c','s',
+					'è','Λ','¤','4','D','T','d','t',
+					'é','Ω','%','5','E','U','e','u',
+					'ù','Π','&','6','F','V','f','v',
+					'ì','Ψ','\'','7','G','W','g','w',
+					'ò','Σ','(','8','H','X','h','x',
+					'Ç','Θ',')','9','I','Y','i','y',
+					"\n",'Ξ','*',':','J','Z','j','z',
+					'Ø',"\x1B",'+',';','K','Ä','k','ä',
+					'ø','Æ',',','<','L','Ö','l','ö',
+					"\r",'æ','-','=','M','Ñ','m','ñ',
+					'Å','ß','.','>','N','Ü','n','ü',
+					'å','É','/','?','O','§','o','à'
+				 );
+				if (function_exists('mb_strlen')) {
+					$len = mb_strlen($message, 'UTF-8');
+					$out = '';
+					for ($i=0; $i < $len; $i++) {
+						$char = mb_substr($message,$i,1,'UTF-8');
+						if (in_array($char, $gsm0338)) {
+							$out .= $char;
+						} else {
+							error_log('SMS sender Discarded invalid char "'.$char.'" (ord '.ord($char).')');
+						}
+					}
+					return $out;
+				} else {
+					$len = strlen($message);
+					$out = '';
+					for ($i=0; $i < $len; $i++) {
+						$char = substr($message,$i,1);
+						if (in_array($char, $gsm0338)) {
+							$out .= $char;
+						} else {
+							error_log('SMS sender Discarded invalid char "'.$char.'" (ord '.ord($char).')');
+						}
+					}
+					return $out;
+
+				}
+		}
+		return $message;
+
+	}
+
+	/**
 	 * Send an SMS message
 	 * @param string $message
 	 * @param array $recips	Array of person records
@@ -54,6 +125,7 @@ Class SMS_Sender
 	 */
 	public static function sendMessage($message, $recips, $saveAsNote=FALSE)
 	{
+		$message = self::cleanseMessage($message);
 		$mobile_tels = Array();
 		if (!empty($recips)) {
 			foreach ($recips as $recip) {
@@ -65,8 +137,17 @@ Class SMS_Sender
 		$response = '';
 		$success = false;
 		$content = SMS_HTTP_POST_TEMPLATE;
-		$content = str_replace('_USER_MOBILE_', urlencode($GLOBALS['user_system']->getCurrentUser('mobile_tel')), $content);
-		$content = str_replace('_USER_EMAIL_', urlencode($GLOBALS['user_system']->getCurrentUser('email')), $content);
+
+		$me = $GLOBALS['system']->getDBObject('person', $GLOBALS['user_system']->getCurrentUser('id'));
+		if (FALSE !== strpos($content, '_USER_MOBILE_')) {
+			if (!strlen($me->getValue('mobile_tel'))) {
+				return Array('success' => FALSE, 'successes' => Array(), 'failures' => Array(), 'rawresponse' => '',
+					'error' => 'You must save your own mobile number before you can send an SMS');
+			}
+		}
+
+		$content = str_replace('_USER_MOBILE_', urlencode($me->getValue('mobile_tel')), $content);
+		$content = str_replace('_USER_EMAIL_', urlencode($me->getValue('email')), $content);
 		$content = str_replace('_MESSAGE_', urlencode($message), $content);
 		$content = str_replace('_RECIPIENTS_COMMAS_', urlencode(implode(',', $mobile_tels)), $content);
 		$content = str_replace('_RECIPIENTS_NEWLINES_', urlencode(implode("\n", $mobile_tels)), $content);

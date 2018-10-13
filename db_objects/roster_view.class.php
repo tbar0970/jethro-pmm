@@ -353,7 +353,7 @@ class roster_view extends db_object
 				IF(privateassignee.id IS NULL, 1, 0) as assigneehidden,
 				privateassignee.email as email,
 				privateassignee.mobile_tel as mobile,
-				CONCAT(assigner.first_name, " ", assigner.last_name) as assigner, 
+				CONCAT(assigner.first_name, " ", assigner.last_name) as assigner,
 				rra.assignedon
 				FROM roster_role_assignment rra
 				LEFT JOIN person privateassignee ON rra.personid = privateassignee.id
@@ -502,6 +502,8 @@ class roster_view extends db_object
 		?>
 		</div>
 		<?php
+
+		return $asns;
 	}
 
 	function printSingleViewTable($service, $columns=2, $includeServiceFields=FALSE)
@@ -558,10 +560,17 @@ class roster_view extends db_object
 		if ($member['role_id']) {
 			if (empty($asn)) echo '--';
 			foreach ($asn as $rank => $asn) {
-				if ($withLinks) echo '<a href="?view=persons&personid='.$asn['personid'].'" class="med-popup">';
+				if ($withLinks) echo '<span class="nowrap"><a href="?view=persons&personid='.$asn['personid'].'" class="med-popup">';
 				echo ents($asn['name']);
 				if ($withLinks) {
 					echo '</a>';
+					if (('' === $asn['email'])) echo ' <img class="visible-desktop" src="'.BASE_URL.'resources/img/no_email.png" title="No Email Address" />';
+					if (('' === $asn['mobile']) && SMS_Sender::canSend()) {
+						echo ' <img class="visible-desktop" src="'.BASE_URL.'resources/img/no_phone.png" title="No Mobile" />';
+					}
+					echo '</span>';
+
+
 				} else {
 					echo '&nbsp;';
 				}
@@ -671,7 +680,7 @@ class roster_view extends db_object
 			</div>
 			<?php
 		}
-		
+
 		?>
 		<table class="table roster" border="1" cellspacing="0" cellpadding="1">
 
@@ -710,7 +719,7 @@ class roster_view extends db_object
 				                </span>
 								<?php
 							}
-							if (!empty($mobiles) && defined('SMS_HTTP_URL') && constant('SMS_HTTP_URL') && $GLOBALS['user_system']->havePerm(PERM_SENDSMS)) {
+							if (!empty($mobiles) && SMS_Sender::canSend()) {
 								?>
 								<span class="smallprint no-print">
 								  <a href="#send-sms-modal" data-personid="<?php echo implode(',', array_unique($personids)); ?>" data-toggle="sms-modal" data-name="People Rostered on <?php echo $date;?>" onclick="$(this).parents('tr:first').addClass('tblib-hover')">SMS All</a>
@@ -756,7 +765,7 @@ class roster_view extends db_object
 								if (!$public && !$vs['assigneehidden']) {
 									$n = '<span class="nowrap"><a data-personid="'.$personid . '" href="'.BASE_URL.'?view=persons&personid='.$personid.'" title="Assigned by '.ents($vs['assigner']).' on '.format_datetime($vs['assignedon']).'">'.ents($vs['name']).'</a>';
 									if (('' === $vs['email'])) $n .= ' <img class="visible-desktop" src="'.BASE_URL.'resources/img/no_email.png" title="No Email Address" />';
-									if (('' === $vs['mobile']) && ifdef('SMS_HTTP_URL')) {
+									if (('' === $vs['mobile']) && SMS_Sender::canSend()) {
 										$n .= ' <img class="visible-desktop" src="'.BASE_URL.'resources/img/no_phone.png" title="No Mobile" />';
 					                }
 									$n .= '</span>';
@@ -1012,7 +1021,7 @@ class roster_view extends db_object
 		)';
 		$ids = $GLOBALS['db']->queryCol($SQL);
 		foreach ($ids as $id) {
-			$res[] = $GLOBALS['system']->getDBObject('roster_view', $id);
+			$res[$id] = $GLOBALS['system']->getDBObject('roster_view', $id);
 		}
 		return $res;
 	}

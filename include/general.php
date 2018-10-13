@@ -8,6 +8,11 @@ function array_get($array, $index, $alt=NULL)
 	}
 }
 
+function hard_trim($value)
+{
+	return trim($value, ",;. \t\n\r\0\x0B");
+}
+
 function ifdef($constantName, $fallback=NULL)
 {
 	return defined($constantName) ? constant($constantName) : $fallback;
@@ -182,10 +187,10 @@ function print_widget($name, $params, $value)
 				$cols_exp = empty($params['width']) ? '' : 'cols="'.$params['width'].'"';
 				$placeholder_exp = empty($params['placeholder']) ? '' : 'placeholder="'.ents($params['placeholder']).'"';
 				?>
-				<textarea name="<?php echo $name; ?>" 
-						  rows="<?php echo $params['height']; ?>" 
-						  class="<?php echo trim($classes); ?>" 
-						  <?php echo $maxlength_exp.' '.$cols_exp .' '.$placeholder_exp; ?> 
+				<textarea name="<?php echo $name; ?>"
+						  rows="<?php echo $params['height']; ?>"
+						  class="<?php echo trim($classes); ?>"
+						  <?php echo $maxlength_exp.' '.$cols_exp .' '.$placeholder_exp; ?>
 				><?php echo ents($value); ?></textarea>
 				<?php
 			} else {
@@ -205,7 +210,8 @@ function print_widget($name, $params, $value)
 				<script src="<?php echo BASE_URL.'resources/ckeditor/ckeditor.js'; ?>"></script>
 				<?php
 			}
-			$ckParams = '';
+			$ckParams = 'disableNativeSpellChecker: false,
+						';
 			if (array_get($params, 'toolbar') == 'basic') {
 				$ckParams = "
 					toolbar: [
@@ -242,7 +248,6 @@ function print_widget($name, $params, $value)
 			<?php
 			break;
 		case 'int':
-			$classes .= ' int-box';
 			$width_exp = '';
 			if (!empty($params['width'])) {
 				$width_exp = 'size="'.$params['width'].'" ';
@@ -250,7 +255,7 @@ function print_widget($name, $params, $value)
 				$width_exp = 'size="3" ';
 			}
 			?>
-			<input type="text" name="<?php echo $name; ?>" value="<?php echo $value; ?>" class="<?php echo trim($classes); ?>" <?php echo $width_exp; ?> <?php echo $attrs; ?> />
+			<input type="number" name="<?php echo $name; ?>" value="<?php echo $value; ?>" class="<?php echo trim($classes); ?>" <?php echo $width_exp; ?> <?php echo $attrs; ?> />
 			<?php
 			break;
 		case 'boolean':
@@ -354,7 +359,7 @@ function print_widget($name, $params, $value)
 			}
 			break;
 		case 'date':
-			$year_classes = $day_year_classes = trim($classes.' int-box');
+			$year_classes = $day_year_classes = $classes;
 			if (array_get($params, 'allow_blank_year', false)) $year_classes .= ' optional-year';
 			if (FALSE === strpos($name, '[')) {
 				$name_template = $name.'%s';
@@ -378,7 +383,7 @@ function print_widget($name, $params, $value)
 			list($year_val, $month_val, $day_val) = explode('-', substr($value, 0, 10));
 			?>
 			<span class="nowrap" <?php echo $attrs; ?> >
-			<input type="text" name="<?php printf($name_template, '_d'); ?>" class="day-box <?php echo $day_year_classes; ?>" size="2" maxlength="2" value="<?php echo $day_val; ?>" placeholder="DD" /><select name="<?php printf($name_template, '_m'); ?>" class="month-box <?php echo $classes; ?>">
+			<input type="number" name="<?php printf($name_template, '_d'); ?>" class="day-box <?php echo $day_year_classes; ?>" size="2" maxlength="2" value="<?php echo $day_val; ?>" placeholder="DD" /><select name="<?php printf($name_template, '_m'); ?>" class="month-box <?php echo $classes; ?>">
 				<?php
 				foreach ($months as $i => $month_name) {
 					$selected = (($i) == $month_val) ? ' selected="selected"' : '';
@@ -387,7 +392,7 @@ function print_widget($name, $params, $value)
 					<?php
 				}
 				?>
-			</select><input type="text" name="<?php printf($name_template, '_y'); ?>" class="year-box <?php echo $year_classes; ?>" size="4" maxlength="4" value="<?php echo $year_val; ?>" placeholder="YYYY"/>
+			</select><input type="number" name="<?php printf($name_template, '_y'); ?>" class="year-box <?php echo $year_classes; ?>" size="4" maxlength="4" value="<?php echo $year_val; ?>" placeholder="YYYY"/>
 			</span>
 			<?php
 			break;
@@ -778,15 +783,11 @@ function get_email_href($to, $name=NULL, $bcc=NULL, $subject=NULL)
 	$is_chrome_mac = (FALSE !== strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'chrome/'))
 						&& (FALSE !== strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'macintosh'));
 
-	if (!$is_chrome_mac && !empty($name) && empty($bcc) && empty($subject)) {
-		$res = rawurlencode($name).' <'.rawurlencode($to).'>';
-	} else {
-		$res = rawurlencode($to);
-		$extras = Array();
-		if ($bcc) $extras[] = 'bcc='.rawurlencode($bcc);
-		if ($subject) $extras[] = 'subject='.rawurlencode($subject);
-		if ($extras) $res .= '?'.implode('&', $extras);
-	}
+	$res = ents($to);
+	$extras = Array();
+	if ($bcc) $extras[] = 'bcc='.ents($bcc);
+	if ($subject) $extras[] = 'subject='.ents($subject);
+	if ($extras) $res .= '?'.implode('&', $extras);
 	return 'mailto:'.$res;
 }
 

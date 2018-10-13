@@ -204,6 +204,10 @@ class db_object
 			if (array_get($details, 'readonly')) continue;
 			$flds[] = $name;
 			$v = array_get($this->values, $name, '');
+			if (($v === '') && (($details['type'] == 'date') || $details['type'] == 'datetime')) {
+				// Mysql strict mode doesn't like blank strings being inserted into datetime cols
+				$v = NULL;
+			}
 			if ($details['type'] == 'serialise') {
 				$vals[] = $db->quote(serialize($v));
 			} else {
@@ -316,12 +320,13 @@ class db_object
 			return FALSE;
 		}
 
-		// Set the history
-		if (isset($this->fields['history'])) {
+		// Add to the history, unless it's been explicly set as a value (see Person::archiveAndClean())
+		if (isset($this->fields['history']) && empty($this->_old_values['history'])) {
 			$changes = $this->_getChanges();
 			if ($changes) {
 				$user = $GLOBALS['user_system']->getCurrentPerson();
-				$this->values['history'][time()] = 'Updated by '.$user['first_name'].' '.$user['last_name'].' (#'.$user['id'].")\n".implode("\n", $changes);
+				$now = time();
+				$this->values['history'][$now] = 'Updated by '.$user['first_name'].' '.$user['last_name'].' (#'.$user['id'].")\n".implode("\n", $changes);
 				$this->_old_values['history'] = 1;
 			}
 		}
@@ -384,6 +389,11 @@ class db_object
 		foreach ($this->_old_values as $name => $old_val) {
 			if ($name == 'history') continue;
 			if ($name == 'password') continue;
+			if (!array_get($this->fields[$name], 'show_in_summary', TRUE)
+					&& !array_get($this->fields[$name], 'editable', TRUE)
+			) {
+				continue;
+			}
 			$changes[] = $this->getFieldLabel($name).' changed from "'.ents($this->getFormattedValue($name, $old_val)).'" to "'.ents($this->getFormattedValue($name)).'"';
 		}
 		return $changes;
@@ -450,7 +460,7 @@ class db_object
 			$value = ucfirst($value);
 		}
 		if (array_get($this->fields[$name], 'trim')) {
-			$value = trim($value, ",;. \t\n\r\0\x0B");
+			$value = hard_trim($value);
 		}
 		if ($this->fields[$name]['type'] == 'select') {
 			if (!isset($this->fields[$name]['options'][$value]) && !(array_get($this->fields[$name], 'allow_empty', 1) && empty($value))) {
@@ -589,7 +599,7 @@ class db_object
 			return NULL;
 		}
 		if (is_null($value)) $value = $this->getValue($name);
-		if (($name == 'history') && !empty($value)) {
+		if (($name == 'history')) {
 			?>
 			<table class="history table table-full-width table-striped">
 			<?php
@@ -718,6 +728,8 @@ class db_object
 				}
 				$this->setValue($name, $value);
 			}
+		} else {
+			trigger_error("Could not save value for object #".$this->id." because we do not hold the lock");
 		}
 	}
 
@@ -868,9 +880,17 @@ class db_object
 			} else if ($field[0] == '<') {
 				$operator = '<';
 				$field = substr($field, 1);
+				if ($field[0] == '=') {
+					$operator .= '=';
+					$field = substr($field, 1);
+				}
 			} else if ($field[0] == '>') {
 				$operator = '>';
 				$field = substr($field, 1);
+				if ($field[0] == '=') {
+					$operator .= '=';
+					$field = substr($field, 1);
+				}
 			} else if ($field[0] == '-') {
 				$operator = 'BETWEEN';
 				$field = substr($field, 1);
@@ -892,6 +912,15 @@ class db_object
 			}
 			if (isset($this->fields[$raw_field]) && $this->fields[$raw_field]['type'] == 'text') {
 				$field = 'LOWER('.$field.')';
+			}
+			if ($operator == 'BETWEEN') {
+				if ($val[1] === NULL) {
+					$operator = '>=';
+					$val = $val[0];
+				} else if ($val[0] === NULL) {
+					$operator = '<=';
+					$val = $val[1];
+				}
 			}
 			if ($operator == 'IN') {
 				if (is_array($val)) {

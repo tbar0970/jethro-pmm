@@ -32,23 +32,34 @@ class View_People extends View
 		$list = Member::getList(array_get($_REQUEST, 'search'), array_get($_REQUEST, 'congregationid'));
 		$lastFamilyID = NULL;
 		$dummy = new Member();
+		$persons = Array();
 		foreach ($list as $id => $member) {
-			$dummy->populate($id, $member);
 			if ($member['familyid'] != $lastFamilyID) {
+				if (!empty($persons)) {
+					echo '<div class="member-family-members">';
+					include 'templates/member_list.template.php';
+					echo '</div>';
+					echo '</div>'; // member-family-contents
+				}
+				$persons = Array();
+
+				$dummy->populate($id, $member);
 				$showAddress = defined('MEMBERS_SHARE_ADDRESS')
 								&& MEMBERS_SHARE_ADDRESS
 								&& !empty($member['address_suburb']);
+
 				?>
-				<div class="row-fluid">
-					<div class="span12 member-row family-row">
-						<h3><?php echo ents($member['family_name']); ?></h3>
-					</div>
-				</div>
+				<h3><?php echo ents($member['family_name']); ?></h3>
 				<?php
+				if ($GLOBALS['system']->featureEnabled('PHOTOS')) {
+					?>
+					<img class="family" src="?call=photo&familyid=<?php echo $member['familyid']; ?>" />
+					<?php
+				}
+				echo '<div class="member-family-contents">';
 				if ($showAddress || $member['home_tel']) {
 					?>
-					<div class="row-fluid">
-						<div class="span12 member-row family-row">
+					<div class="member-family-details">
 							<?php
 							if ($showAddress) {
 								echo nl2br(ents($member['address_street'])).'<br />';
@@ -59,53 +70,17 @@ class View_People extends View
 								$dummy->printFieldValue('home_tel');
 							}
 							?>
-						</div>
 					</div>
 					<?php
 				}
 			}
-			if ($GLOBALS['system']->featureEnabled('PHOTOS')) {
-				?>
-				<div class="member-card">
-					<?php
-					echo '<img src="?call=photo&personid='.$id.'" />';
-					echo ents($member['first_name'].' '.$member['last_name']);
-					echo '<br />';
-					if ($member['congregationid']) {
-						$dummy->printFieldValue('congregationid');
-						echo '<br />';
-					}
-					if ($member['mobile_tel']) {
-						$dummy->printFieldValue('mobile_tel');
-						echo '<br />';
-					}
-					$dummy->printFieldValue('email');
-					?>
-				</div>
-				<?php
-			} else {
-				?>
-				<div class="row-fluid member-row">
-					<div class="span3">
-						<?php echo ents($member['first_name'].' '.$member['last_name']); ?>
-					</div>
-					<div class="span3">
-						<?php $dummy->printFieldValue('congregationid'); ?>
-					</div>
-					<div class="span3">
-						<?php $dummy->printFieldValue('mobile_tel'); ?>
-					</div>
-					<div class="span3">
-						<?php $dummy->printFieldValue('email'); ?>
-					</div>
-				</div>
-				<?php
-			}
+			$persons[$id] = $member;
 			$lastFamilyID = $member['familyid'];
 		}
-		?>
-		</table>
-		<?php
+		echo '<div class="member-family-members">';
+		include 'templates/member_list.template.php';
+		echo '</div>';
+		echo '</div>';
 
 	}
 

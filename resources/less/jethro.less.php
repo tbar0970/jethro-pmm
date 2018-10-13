@@ -761,10 +761,10 @@ table.object-summary>tbody>tr>td>table>tbody>tr:first-child td {
 }
 
 .day-box {
-	width: 3ex !important;
+	width: 4.5ex !important;
 }
 .year-box {
-	width: 5ex !important;
+	width: 6.5ex !important;
 }
 @media (min-width: 1px) {
 	/* support for media queries roughly equivalent for support for such things as the placeholder attr */
@@ -1107,10 +1107,27 @@ img.person-photo-gravatar {
 		float: none !important;
 	}
 }
+.member-homepage-box img.family-photo {
+	float: right !important;
+	width: 150px;
+	right: 5px;
+	margin-bottom: 5px;
+	border-radius: 5px;
+	border: 1px solid @jethroDarkest;
+}
+.member-homepage-box table {
+	width: auto !important;
+}
+@media (max-width: 440px) {
+	.member-homepage-box img.family-photo {
+		float: none;
+		width: 100%;
+	}
+}
 
 /*************** PERSON LIST IN MEMBER INTERFACE *************/
 #member-list {
-	max-width: 90ex;
+	max-width: 110ex;
 	margin-left: 0px;
 	margin-top: 15px;
 }
@@ -1127,26 +1144,43 @@ img.person-photo-gravatar {
 #member-list .family-row {
 	margin-bottom: 10px;
 }
+#member-list img.family {
+	float: right;
+	width: 150px;
+	border-radius: 5px;
+	border: 1px solid @jethroDarkest;
+}
+#member-list div.member-family-details {
+	margin: 5px 0px;
+}
+#member-list div.member-family-contents {
+	margin-right: 152px;
+}
+.member-family-members {
+	overflow: auto; /* clearfix */
+}
+.member-family-members .family-member {
+	width: 49%;
+	margin: 0 1% 5px 0;
+}
 #member-list h3 {
 	clear: both;
-	margin-bottom: 0px;
+	margin-bottom: 5px;
+	margin-top: 15px;
 }
-#member-list div.member-card {
-	float: left;
-	padding-left: 60px;
-	width: 230px;
-	margin-bottom: 10px;
-	height: 80px;
+
+@media (max-width: 600px) {
+	.member-family-members .family-member {
+		width: 98%;
+	}
 }
-#member-list div.member-card img {
-	width: 50px;
-	margin-left: -60px;
-	float: left;
-	margin-top: 3px;
-}
-@media (max-width: 400px) {
-	#member-list div.person {
+@media (max-width: 440px) {
+	#member-list img.family {
+		float: none;
 		width: 100%;
+	}
+	#member-list div.member-family-contents {
+		margin-right: 0;
 	}
 }
 
@@ -2029,12 +2063,15 @@ td.run-sheet-comments * {
 
 
 /*************** SMS MESSAGING ************************/
-button.sms-success, #body tr.sms-success .btn-sms, #body tr.sms-success .btn-sms:hover {
-	background-image: linear-gradient(linear, 0 0, 0 100%, from(#beefae), to(#29b30e)) !important;
-	background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#beefae), to(#29b30e)) !important;
+button.sms-success, #body tr.sms-success .mobile-tel, #body tr.sms-success .mobile-tel:hover {
+	background: #d8e9cb; /* Old browsers */
+	background: -moz-linear-gradient(top, #d8e9cb 0%, #abdc88 99%, #abdc88 99%, #d8e9cb 100%); /* FF3.6-15 */
+	background: -webkit-linear-gradient(top, #d8e9cb 0%,#abdc88 99%,#abdc88 99%,#d8e9cb 100%); /* Chrome10-25,Safari5.1-6 */
+	background: linear-gradient(to bottom, #d8e9cb 0%,#abdc88 99%,#abdc88 99%,#d8e9cb 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#d8e9cb', endColorstr='#d8e9cb',GradientType=0 ); /* IE6-9 */
 	background-position: 0 0 !important;
 }
-#body tr.sms-failure .btn-sms, #body tr.sms-failure .btn-sms:hover {
+#body tr.sms-failure .mobile-tel, #body tr.sms-failure .mobile-tel:hover {
 	background-image: linear-gradient(linear, 0 0, 0 100%, from(#ff9c9c), to(#d22c2c)) !important;
 	background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ff9c9c), to(#d22c2c)) !important;
 	background-position: 0 0 !important;
