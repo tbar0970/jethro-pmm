@@ -1,7 +1,7 @@
 <?php
 class View_Families__Contact_List extends View
 {
-	
+
 	// NOTE: DOCX Contact lists have to be A4.  We can only add table cells with fixed widths.
 
 	static function getMenuPermissionLevel()
@@ -368,7 +368,7 @@ class View_Families__Contact_List extends View
 		$imageWidthTwips = $imageWidthPoints*20;
 		$familyImageStyle = Array('width' => $imageWidthPoints);
 		$singleImageStyle = Array('width' => $imageWidthPoints*0.65);
-		
+
 		$cleanup = Array();
 		foreach ($this->getData() as $family) {
 			$table->addRow();
@@ -386,19 +386,27 @@ class View_Families__Contact_List extends View
 					$tempfile = str_replace('.tmp', '', tempnam(sys_get_temp_dir(), 'contactlistphoto')).'.jpg';
 					$cleanup[] = $tempfile;
 					file_put_contents($tempfile, Photo_Handler::getPhotoData('family', $family['familyid']));
-					$cell->addImage($tempfile, $imageStyle);
+					try {
+						$cell->addImage($tempfile, $imageStyle);
+					} catch (Exception $e) {
+						if (!filesize($tempfile)) {
+							error_log(__METHOD__.': Got zero bytes of photo data for family #'.$family['familyid']);
+						} else {
+							error_log(__METHOD__.' exception adding image to DOCX: '.$e->getMessage());
+						}
+					}
 				} else {
 					// Previously we included the placeholder images. But it seems better not to.
 					//$cell->addImage(JETHRO_ROOT.'/resources/img/unknown.jpg', $imageStyle);
 				}
 			}
-			
+
 			if (count($family['all']) > count($family['optins'])) {
 				$table->addCell(NULL, $wideCellProps)
 							->addText($family['all_names'], 'FAMILY-MEMBERS', 'FAMILY-SUB-HEADER');
 				$rowOpen = FALSE;
 			}
-			
+
 			if (!empty($_REQUEST['include_address']) && $family['address_street']) {
 				if (!$rowOpen) {
 					$table->addRow();
