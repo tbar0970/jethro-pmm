@@ -383,7 +383,7 @@ function print_widget($name, $params, $value)
 			list($year_val, $month_val, $day_val) = explode('-', substr($value, 0, 10));
 			?>
 			<span class="nowrap" <?php echo $attrs; ?> >
-			<input type="number" name="<?php printf($name_template, '_d'); ?>" class="day-box <?php echo $day_year_classes; ?>" size="2" maxlength="2" value="<?php echo $day_val; ?>" placeholder="DD" /><select name="<?php printf($name_template, '_m'); ?>" class="month-box <?php echo $classes; ?>">
+			<input type="number" min="1" max="31" name="<?php printf($name_template, '_d'); ?>" class="day-box <?php echo $day_year_classes; ?>" size="2" maxlength="2" value="<?php echo $day_val; ?>" placeholder="DD" /><select name="<?php printf($name_template, '_m'); ?>" class="month-box <?php echo $classes; ?>">
 				<?php
 				foreach ($months as $i => $month_name) {
 					$selected = (($i) == $month_val) ? ' selected="selected"' : '';
@@ -392,7 +392,7 @@ function print_widget($name, $params, $value)
 					<?php
 				}
 				?>
-			</select><input type="number" name="<?php printf($name_template, '_y'); ?>" class="year-box <?php echo $year_classes; ?>" size="4" maxlength="4" value="<?php echo $year_val; ?>" placeholder="YYYY"/>
+			</select><input type="number" min="1900" max="2100" name="<?php printf($name_template, '_y'); ?>" class="year-box <?php echo $year_classes; ?>" size="4" maxlength="4" value="<?php echo $year_val; ?>" placeholder="YYYY"/>
 			</span>
 			<?php
 			break;
