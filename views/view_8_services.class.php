@@ -164,6 +164,7 @@ class View_services extends View
 							<span class="pull-right">
 									<small>
 										<a class="med-popup" href="?call=service_content&serviceid=<?php echo $this->service->id; ?>"><i class="icon-print"></i>Printable</a>
+										<a class="med-popup" href="?call=service_ppt&serviceid=<?php echo $this->service->id; ?>"><i class="icon-print"></i>PPT</a>
 									</small>
 							</span>
 							Full content
