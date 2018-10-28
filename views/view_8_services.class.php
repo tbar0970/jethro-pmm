@@ -164,7 +164,7 @@ class View_services extends View
 							<span class="pull-right">
 									<small>
 										<a class="med-popup" href="?call=service_content&serviceid=<?php echo $this->service->id; ?>"><i class="icon-print"></i>Printable</a>
-										<a class="med-popup" href="?call=service_ppt&serviceid=<?php echo $this->service->id; ?>"><i class="icon-print"></i>PPT</a>
+										<a class="med-popup" href="?call=service_slides&serviceid=<?php echo $this->service->id; ?>"><i class="icon-film"></i>Make Slides</a>
 									</small>
 							</span>
 							Full content
@@ -555,7 +555,7 @@ class View_services extends View
 									data-personnel="<?php echo ents($comp['personnel']); ?>"
 								>
 									<td>
-										<span class="title"><?php echo ents($comp['title']); ?></span>
+										<span class="title"><?php echo ents($mp['title']); ?></span>
 										<?php
 										if ($comp['alt_title']) {
 											echo ' <span class="alt-title">'.ents($comp['alt_title']).'</span>';
