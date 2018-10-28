@@ -300,7 +300,7 @@ class family extends db_object
 	function getPostalAddress()
 	{
 		if (!empty($this->values['address_street']) && !empty($this->values['address_suburb']) && !empty($this->values['address_postcode'])) {
-			return $this->values['address_street']."\n".$this->values['address_suburb'].' '.$this->values['address_state'].' '.$this->values['address_postcode'];
+			return $this->values['address_street']."\n".$this->values['address_suburb'].' '.$this->values['address_state']."\n".$this->values['address_postcode'];
 		} else {
 			return '';
 		}
