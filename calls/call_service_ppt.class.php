@@ -1,8 +1,6 @@
 <?php
 
-//require_once 'vendor/autoload.php';
-
-class Call_Service_PPT extends Call
+class Call_Service_slides extends Call
 {	
 	function run()
 	{
