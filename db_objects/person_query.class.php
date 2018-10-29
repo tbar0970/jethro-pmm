@@ -859,7 +859,7 @@ class Person_Query extends DB_Object
 		}
 
 		$res = implode(' OR ', $groupid_comps);
-
+		$res = '('.$res.')';
 
 		if (!empty($from_date)) {
 			// restrict the join date too
