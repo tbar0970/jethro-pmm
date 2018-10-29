@@ -858,7 +858,7 @@ class Person_Query extends DB_Object
 			$groupid_comps[] = '(pg.categoryid IN ('.implode(',', $int_categoryids).') AND pg.is_archived = 0)';
 		}
 
-		$res = implode(' OR ', $groupid_comps);
+		$res = '('.implode(' OR ', $groupid_comps).')';
 
 
 		if (!empty($from_date)) {
