@@ -115,38 +115,38 @@ class Call_Service_slides extends Call
 								//clone nodes for each line of text
 								for ($z = 1; $z < ($numlines); $z++) {	
 									$line = $textelements->item($y)->parentNode->cloneNode(true);
-									$newline = $textelements->item($y)->parentNode->parentNode->appendChild($line);								
+									$newline = $textelements->item($y)->parentNode->parentNode->appendChild($line);
 								}
 								//find text elements within cloned nodes above
 								$textlines = $xpath->query(".//*[text()[contains(., 'contents')]]",$textelements->item($y)->parentNode->parentNode);
-								//populate text elements							
+								//populate text elements
 								for ($z = 0; $z < ($numlines); $z++) {
-									$textlines->item($z)->nodeValue = html_entity_decode(strip_tags($lines[$z]));//$Parser->parseString($lines[$z]);			
+									$textlines->item($z)->nodeValue = html_entity_decode(strip_tags($lines[$z]));
 								}	
 								
 							} elseif (strcmp($textelements->item($y)->nodeValue, 'credit') == 0) { //credits textbox
 
 								$slideNumText = 'Slide '.($a+1).' of '.($numVerses);
 								
-								if ($a < $numVerses) {
+								if ($a < $numVerses-1) {
 									$textelements->item($y)->nodeValue = $slideNumText;
 								} else {
 									//deal with multiline text
-									$line = $textelements->item($y)->parentNode->cloneNode(true);
-									$lines = explode('<br />',($slideNumText.'<br />'.$serviceContent[$x][2]));
+									$lines = array($slideNumText);
+									$lines = array_merge($lines, explode('<br />',$serviceContent[$x][2]));
 									$numlines = count($lines);
 								
 									//clone nodes for each line of text
-									for ($z = 1; $z < ($numlines); $z++) {	
+									for ($z = 0; $z < ($numlines-1); $z++) {	
 										$line = $textelements->item($y)->parentNode->cloneNode(true);
 										$newline = $textelements->item($y)->parentNode->parentNode->appendChild($line);								
 									}
 									//find text elements within cloned nodes above
 									$textlines = $xpath->query(".//*[text()[contains(., 'credit')]]",$textelements->item($y)->parentNode->parentNode);
 
-									//populate text elements							
+									//populate text elements
 									for ($z = 0; $z < ($numlines); $z++) {
-										$textlines->item($z)->nodeValue = $lines[$z];						
+										$textlines->item($z)->nodeValue = html_entity_decode(htmlspecialchars($lines[$z]));						
 									}
 								}
 							} 
