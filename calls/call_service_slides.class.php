@@ -9,7 +9,6 @@ class Call_Service_slides extends Call
 		$serviceContent = $service->getServiceContent();
 
 		//options
-		$songsOnly = true; //print only songs, or all service components
 		$fileToModify = 'content.xml';
 		$date = str_replace(' ', '',$service->getFormattedValue("date"));
 		$cong = $service->getFormattedValue("congregationid");
@@ -53,7 +52,6 @@ class Call_Service_slides extends Call
 				//starting slideid
 				$slideid = 10;
 
-				
 				//Count service items to deal with
 				$numitems = count($serviceContent);
 				//loop for each 
@@ -62,8 +60,10 @@ class Call_Service_slides extends Call
 					$title = explode(": ",$serviceContent[$x][0],2);
 					
 					//Skip non-songs if option is set
-					if ($songsOnly and ($title[0] !== 'Song')) { 
+					if (SLIDES_ALL == 0 and ($title[0] !== 'Song')) { 
 						continue;
+					} elseif (SLIDES_ALL == 1 and ($title[0] !== 'Song')){
+						$title[0] = ($serviceContent[$x][0]);
 					}
 					
 					//Break song into verses (<p> tag)
@@ -71,17 +71,10 @@ class Call_Service_slides extends Call
 					//reset variable for checking if slides are repeated
 					$previousVerse = null;
 					$altFlag = false;
-					$numVerses = count($verses)-1; //extra </p> tag at end
-					
-					for ($a=0; $a <= $numVerses; $a++) {
-						if (trim($verses[$a]) === trim($previousVerse)) {
-							$altFlag = !$altFlag;
-						}
-						
-						//Select what sort of template slide to use
-						if ($a == $numVerses) {
-							$newpage = $blank->cloneNode(true);
-						} elseif ($altFlag) {
+					$numVerses = max((count($verses)-1),1); // -1 for extra </p> tag at end, floor at 1 to make a single blank slide appear
+
+					for ($a=0; $a < $numVerses; $a++) {
+						if (trim($verses[$a]) === trim($previousVerse)) { //use alternate slide if content is same as previous slide
 							$newpage = $alternate->cloneNode(true);
 						} else {
 							$newpage = $template->cloneNode(true);
@@ -99,11 +92,7 @@ class Call_Service_slides extends Call
 						
 						for($y = 0; $y < $numtextelements; $y++) {
 							if (strcmp($textelements->item($y)->nodeValue, "title") == 0) { //title textbox
-								if (count($title) == 2) {
-									$textelements->item($y)->nodeValue = $title[1];
-								} else {
-									$textelements->item($y)->nodeValue = "";
-								}
+								$textelements->item($y)->nodeValue = array_values(array_slice($title, -1))[0]; //get last element of title array
 							} elseif (strcmp($textelements->item($y)->nodeValue, 'contents') == 0) { //contents textbox
 
 								//deal with multiline text
@@ -132,8 +121,7 @@ class Call_Service_slides extends Call
 									$textelements->item($y)->nodeValue = $slideNumText;
 								} else {
 									//deal with multiline text
-									$lines = array($slideNumText);
-									$lines = array_merge($lines, explode('<br />',$serviceContent[$x][2]));
+									$lines = array_filter(array_merge(array($slideNumText),explode('<br />',$serviceContent[$x][2])));
 									$numlines = count($lines);
 								
 									//clone nodes for each line of text
@@ -155,6 +143,11 @@ class Call_Service_slides extends Call
 						$dom->saveXML();
 						$previousVerse = $verses[$a];
 					}
+					// Add blank slide after each item
+					$newpage = $blank->cloneNode(true);
+					$newslide = $template->parentNode->insertBefore($newpage,$pages->item($last-1));
+					$newslide->setAttribute('draw:name',('Slide'.($slideid)));//Set slide ID
+					$slideid++;
 				}
 				
 				//remove original template slides
@@ -173,7 +166,7 @@ class Call_Service_slides extends Call
 					$zip->deleteName($fileToModify);
 					$zip->addFromString($fileToModify, $result);
 					$zip->close();
-				
+
 					header('Content-Type: application/zip');
 					header('Content-disposition: attachment; filename='.$outFileName);
 					header('Content-Length: ' . filesize($outname));
