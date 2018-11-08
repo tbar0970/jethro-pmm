@@ -7,13 +7,13 @@ class Call_Service_Comp_Slides extends Call
 		$comp = $GLOBALS['system']->getDBObject('service_component', (int)$_REQUEST['id']);
 		if ($comp) {
 			
-			$title = $comp->getFormattedValue('title');
+			$title = nl2br(ents($comp->getFormattedValue('title')));
 			$content = $comp->getFormattedValue('content_html');
 			$credits = nl2br(ents($comp->getFormattedValue('credits')));
 			
 			//options
 			$fileToModify = 'content.xml';
-			$outFileName = $title.'.odp';
+			$outFileName = preg_replace( '/[^a-zA-Z0-9- ]+/', '', $title).'.odp';
 			
 			$templateFilename = Documents_Manager::getRootPath().'/Templates/slide_template.odp';
 			$outname = Documents_Manager::getRootPath().'/'.$outFileName;
@@ -59,17 +59,10 @@ class Call_Service_Comp_Slides extends Call
 						//reset variable for checking if slides are repeated
 						$previousVerse = null;
 						$altFlag = false;
-						$numVerses = count($verses)-1; //extra </p> tag at end
+						$numVerses = max((count($verses)-1),1); // -1 for extra </p> tag at end, floor at 1 to make a single blank slide appear
 						
-						for ($a=0; $a <= $numVerses; $a++) {
-							if (trim($verses[$a]) === trim($previousVerse)) {
-								$altFlag = !$altFlag;
-							}
-							
-							//Select what sort of template slide to use
-							if ($a == $numVerses) {
-								$newpage = $blank->cloneNode(true);
-							} elseif ($altFlag) {
+						for ($a=0; $a < $numVerses; $a++) {
+							if (trim($verses[$a]) === trim($previousVerse)) { //use alternate slide if content is same as previous slide
 								$newpage = $alternate->cloneNode(true);
 							} else {
 								$newpage = $template->cloneNode(true);
@@ -83,8 +76,6 @@ class Call_Service_Comp_Slides extends Call
 							$textelements = $xpath->query(".//text:span",$newslide);
 							$numtextelements = $textelements->length;
 							
-							
-							
 							for($y = 0; $y < $numtextelements; $y++) {
 								if (strcmp($textelements->item($y)->nodeValue, "title") == 0) { //title textbox
 									$textelements->item($y)->nodeValue = $title;
@@ -92,7 +83,6 @@ class Call_Service_Comp_Slides extends Call
 
 									//deal with multiline text
 									$line = $textelements->item($y)->parentNode->cloneNode(true);
-									$lines = array();
 									$lines = explode('<br />',$verses[$a]);
 									$numlines = count($lines);
 									
@@ -105,7 +95,7 @@ class Call_Service_Comp_Slides extends Call
 									$textlines = $xpath->query(".//*[text()[contains(., 'contents')]]",$textelements->item($y)->parentNode->parentNode);
 									//populate text elements							
 									for ($z = 0; $z < ($numlines); $z++) {
-										$textlines->item($z)->nodeValue = html_entity_decode(strip_tags($lines[$z]));//$Parser->parseString($lines[$z]);			
+										$textlines->item($z)->nodeValue = strip_tags(str_replace('&', '&amp;',html_entity_decode($lines[$z])));
 									}	
 									
 								} elseif (strcmp($textelements->item($y)->nodeValue, 'credit') == 0) { //credits textbox
@@ -116,8 +106,7 @@ class Call_Service_Comp_Slides extends Call
 										$textelements->item($y)->nodeValue = $slideNumText;
 									} else {
 										//deal with multiline text
-										$lines = array($slideNumText);
-										$lines = array_merge($lines, explode('<br />',$credits));
+										$lines = array_filter(array_merge(array($slideNumText),explode('<br />',$credits)));
 										$numlines = count($lines);
 									
 										//clone nodes for each line of text
@@ -130,7 +119,7 @@ class Call_Service_Comp_Slides extends Call
 
 										//populate text elements							
 										for ($z = 0; $z < ($numlines); $z++) {
-											$textlines->item($z)->nodeValue = html_entity_decode(htmlspecialchars($lines[$z]));										
+											$textlines->item($z)->nodeValue = strip_tags(str_replace('&', '&amp;',html_entity_decode($lines[$z], ENT_XML1, 'UTF-8')));
 										}
 									}
 								} 
@@ -139,6 +128,11 @@ class Call_Service_Comp_Slides extends Call
 							$dom->saveXML();
 							$previousVerse = $verses[$a];
 						}
+						// Add blank slide after each item
+						$newpage = $blank->cloneNode(true);
+						$newslide = $template->parentNode->insertBefore($newpage,$pages->item($last-1));
+						$newslide->setAttribute('draw:name',('Slide'.($slideid)));//Set slide ID
+						$slideid++;
 					
 					//remove original template slides
 					for ($z = 0; $z < ($last-1); $z++) {
