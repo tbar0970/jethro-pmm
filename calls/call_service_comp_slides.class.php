@@ -95,7 +95,7 @@ class Call_Service_Comp_Slides extends Call
 									$textlines = $xpath->query(".//*[text()[contains(., 'contents')]]",$textelements->item($y)->parentNode->parentNode);
 									//populate text elements							
 									for ($z = 0; $z < ($numlines); $z++) {
-										$textlines->item($z)->nodeValue = strip_tags(str_replace('&', '&amp;',html_entity_decode($lines[$z])));
+										$textlines->item($z)->nodeValue = htmlspecialchars(strip_tags(html_entity_decode($lines[$z])), ENT_QUOTES, 'UTF-8', false);
 									}	
 									
 								} elseif (strcmp($textelements->item($y)->nodeValue, 'credit') == 0) { //credits textbox
@@ -119,7 +119,7 @@ class Call_Service_Comp_Slides extends Call
 
 										//populate text elements							
 										for ($z = 0; $z < ($numlines); $z++) {
-											$textlines->item($z)->nodeValue = strip_tags(str_replace('&', '&amp;',html_entity_decode($lines[$z], ENT_XML1, 'UTF-8')));
+											$textlines->item($z)->nodeValue = htmlspecialchars(strip_tags(html_entity_decode($lines[$z], ENT_XML1, 'UTF-8')), ENT_QUOTES, 'UTF-8', false);
 										}
 									}
 								} 
