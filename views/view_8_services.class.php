@@ -555,7 +555,7 @@ class View_services extends View
 									data-personnel="<?php echo ents($comp['personnel']); ?>"
 								>
 									<td>
-										<span class="title"><?php echo ents($mp['title']); ?></span>
+										<span class="title"><?php echo ents($comp['title']); ?></span>
 										<?php
 										if ($comp['alt_title']) {
 											echo ' <span class="alt-title">'.ents($comp['alt_title']).'</span>';
