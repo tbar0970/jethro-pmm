@@ -302,7 +302,13 @@ class Attendance_Record_Set
 				<td class="action-cell narrow">
 					<a class="med-popup" tabindex="-1" href="?view=persons&personid=<?php echo $personid; ?>"><i class="icon-user"></i>View</a> &nbsp;
 					<a class="med-popup" tabindex="-1" href="?view=_edit_person&personid=<?php echo $personid; ?>"><i class="icon-wrench"></i>Edit</a> &nbsp;
+				<?php
+				if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
+					?>
 					<a class="med-popup" tabindex="-1" href="?view=_add_note_to_person&personid=<?php echo $personid; ?>"><i class="icon-pencil"></i>Add Note</a>
+					<?php
+				}
+				?>
 				</td>
 				<?php
 			}
