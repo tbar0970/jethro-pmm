@@ -5,7 +5,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 
 <div class="form-horizontal bulk-actions">
 	<?php echo _('With selected persons:')?>
-		<select id="bulk-action-chooser">
+		<select id="bulk-action-chooser" class="no-autofocus">
 			<option><?php echo _('-- Choose Action --')?></option>
 				<?php
 				if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
