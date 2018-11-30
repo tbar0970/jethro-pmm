@@ -512,7 +512,7 @@ class View_Admin__Import extends View
 			</tbody>
 		</table>
 
-		<form class="WASstop-jsTODO" method="post"><input type="submit" name="confirm_import" value="Proceed with import" class="confirm-title btn btn-danger" title="Proceed with import" />
+		<form method="post"><input type="submit" name="confirm_import" value="Proceed with import" class="confirm-title btn btn-danger" title="Proceed with import" />
 		<a href="<?php echo build_url(array()); ?>" class="btn">Cancel and start again</a>
 		</form>
 		<?php
@@ -751,7 +751,6 @@ class View_Admin__Import extends View
 			<?php
 			echo str_repeat('    ', 1024*4);
 		}
-		sleep(1); // TODO REMOVE ME
 
 	}
 
