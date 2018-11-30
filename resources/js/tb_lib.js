@@ -31,7 +31,7 @@ $(document).ready(function() {
 			setTimeout("$('.initial-focus, .autofocus, [autofocus]').get(0).focus()", 200);
 		} else {
 			// Focus the first visible input
-			setTimeout("try { $('body input[type!=checkbox]:visible, select:visible').not('.btn-link, [type=checkbox], [type=radio]').not('.no-autofocus *, .no-autofocus').get(0).focus(); } catch (e) {}", 200);
+			setTimeout("try { $('body input[type!=checkbox]:visible, select:visible').not('.btn-link, [type=checkbox], [type=radio], [type=submit]').not('.no-autofocus *, .no-autofocus').get(0).focus(); } catch (e) {}", 200);
 		}
 	}
 
