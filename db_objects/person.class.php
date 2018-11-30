@@ -324,7 +324,7 @@ class Person extends DB_Object
 					<th><?php echo ents($fieldDetails['name']); ?></th>
 					<td>
 						<?php
-						foreach ($this->_custom_values[$fieldid] as $j => $val) {
+						foreach ((array)$this->_custom_values[$fieldid] as $j => $val) {
 							if ($j > 0) echo '<br />';
 							$dummyField->printFormattedValue($val);
 						}
@@ -915,7 +915,7 @@ class Person extends DB_Object
 		return $this->_custom_values;
 	}
 
-	public function fromCsvRow($row) {
+	public function fromCsvRow($row, $overwriteExistingValues=TRUE) {
 		$this->_custom_values = Array();
 		$this->_old_custom_values = Array();
 
@@ -928,9 +928,14 @@ class Person extends DB_Object
 			}
 		}
 		foreach ($row as $k => $v) {
-			$k = strtolower($k);
+			$k = str_replace(' ', '_', strtolower($k));
 			if (isset($customFields[$k]) && strlen($v)) {
-				$this->setCustomValue($customFields[$k]->id, $customFields[$k]->parseValue($v));
+				if (empty($this->id)
+						|| $overwriteExistingValues
+						|| ($this->getCustomValue($customFields[$k]->id) == '')
+				) {
+					$this->setCustomValue($customFields[$k]->id, $customFields[$k]->parseValue($v));
+				}
 				unset($row[$k]); // so it doesn't upset db_object::fromCsvRow
 			}
 		}
@@ -950,7 +955,7 @@ class Person extends DB_Object
 			unset($row['age_bracket']);
 		}
 
-		parent::fromCsvRow($row);
+		parent::fromCsvRow($row, $overwriteExistingValues);
 	}
 
 	public function populate($id, $values)

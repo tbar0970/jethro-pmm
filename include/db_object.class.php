@@ -398,7 +398,7 @@ class db_object
 		}
 		return $changes;
 	}
-	
+
 	public function reset()
 	{
 		$this->values = $this->_old_values = Array();
@@ -1029,7 +1029,7 @@ class db_object
 		return null;
 	}
 
-	public function fromCsvRow($row)
+	public function fromCsvRow($row, $overwriteExistingValues=TRUE)
 	{
 		foreach ($this->fields as $fieldname => $field) {
 			if (isset($row[$fieldname])) {
@@ -1047,7 +1047,11 @@ class db_object
 						$val = array_get($field, 'default', key($field['options']));
 					}
 				}
-				if ($val !== '') $this->setValue($fieldname, $val);
+				if (($val !== '')
+					&& ($overwriteExistingValues || ($this->getValue($fieldname) == ''))
+				) {
+					$this->setValue($fieldname, $val);
+				}
 			}
 		}
 		$this->validateFields();

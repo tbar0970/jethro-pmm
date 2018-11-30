@@ -514,6 +514,27 @@ class Person_Group extends db_object
 
 	}
 
+	/**
+	 * If there is exactly one group whose name matches, return the group object.
+	 * Matching is done case-insensitively, and considering spaces and underscores as the same.
+	 * @param string $name
+	 */
+	public static function findByName($name)
+	{
+		$name = str_replace(' ', '_', strtolower($name));
+		$SQL = 'SELECT * from person_group WHERE REPLACE(LOWER(name), " ", "_") = '.$GLOBALS['db']->quote($name);
+		$res = $GLOBALS['db']->queryAll($SQL, NULL, NULL, TRUE);
+		if (count($res) > 1) {
+			add_message("Could not match a single group called \"".$name.'" - there are several groups with that name', 'warning');
+		}
+		if (count($res) == 1) {
+			$g = new Person_Group();
+			$g->populate(key($res), reset($res));
+			return $g;
+		}
+		return NULL;
+	}
+
 
 
 
