@@ -57,7 +57,7 @@ class View_Admin__Import extends View
 			return;
 		}
 		$text = _('This page allows you to import persons, families and notes from a CSV file containing one person per row.
-			The CSV must be in a format like this sample file.  (Column order is flexible, but the correct column headers are essential). Along with the person and family details , the "note" column allows you to add a note to the person record, and the "group" columns allow you to add person to one or more groups. Jethro treats successive rows as members of the same family, unless (a) the family name or details are different or (b) there is a blank row in between.
+			The CSV must be in a format like this sample file.  (Column order is flexible, but the correct column headers are essential). Along with the person and family details, the "note" column allows you to add a note to the person record, and the "group" columns allow you to add person to one or more groups. Jethro treats successive rows as members of the same family, unless (a) the family name or details are different or (b) there is a blank row in between.
 			If you choose the "update" option below, Jethro will look for existing records to update rather than always creating new persons and families. If an existing person is matched by an import row, surrounding rows may be imported as new members of that family if applicable.
 			All the created or updated persons will be added to the group you choose below.');
 		$s = _('sample file');
@@ -73,31 +73,31 @@ class View_Admin__Import extends View
 			</tr>
 			<tr>
 				<td>Group:</td>
-				<td><?php Person_Group::printChooser('groupid', 0); ?></td>
+				<td><?php Person_Group::printChooser('groupid', array_get($_REQUEST, 'groupid', 0)); ?></td>
 			</tr>
 			<tr>
 				<td>Options</td>
 				<td>
 					<label class="checkbox">
-						<input type="checkbox" name="match_existing" value="1" checked="checked" data-toggle="enable" data-target="#match-options *"/>
+						<input type="checkbox" name="match_existing" value="1" <?php if (array_get($_REQUEST, 'match_existing', 1)) echo 'checked="checked"';?> data-toggle="enable" data-target="#match-options *"/>
 						Update existing persons if their first and last name match
 					</label>
 					<div class="indent-left" id="match-options">
 						<label class="checkbox">
-							<input type="checkbox" name="match_email" value="1" />
+							<input type="checkbox" name="match_email" value="1" <?php if (array_get($_REQUEST, 'match_email', 0)) echo 'checked="checked"';?>/>
 							Don't match if email address is different
 						</label>
 						<label class="checkbox">
-							<input type="checkbox" name="match_mobile_tel" value="1" />
+							<input type="checkbox" name="match_mobile_tel" value="1" <?php if (array_get($_REQUEST, 'match_mobile_tel', 0)) echo 'checked="checked"';?>/>
 							Don't match if mobile number is different
 						</label>
 						If a field value differs,
 						<label class="checkbox" checked="checked">
-							<input type="radio" name="overwrite_existing" checked="checked" value="1" />
+							<input type="radio" name="overwrite_existing" <?php if (array_get($_REQUEST, 'overwrite_existing', 1)) echo 'checked="checked"';?> value="1" />
 							use the value from the import file
 						</label>
 						<label class="checkbox">
-							<input type="radio" name="overwrite_existing" value="0" />
+							<input type="radio" name="overwrite_existing" <?php if (!array_get($_REQUEST, 'overwrite_existing', 1)) echo 'checked="checked"';?> value="0" />
 							preserve the existing value in Jethro
 						</label>
 					</div>
@@ -145,8 +145,6 @@ class View_Admin__Import extends View
 		// @var Count of new persons
 		$this->_sess['total_new_persons'] = 0;
 
-		$this->_sess['total_new_notes'] = 0;
-
 		// @var New persons to be added to existing families, with ['familyid'] set.
 		$this->_sess['new_persons'] = Array();
 
@@ -163,7 +161,7 @@ class View_Admin__Import extends View
 
 		$custom_fields = Array();
 		foreach (Person::getCustomFields() as $id => $detail) {
-			$custom_fields[$this->_stringToKey($detail['name'])] = $id;
+			$custom_fields[self::_stringToKey($detail['name'])] = $id;
 		}
 
 		// read the csv and save to session
@@ -175,8 +173,12 @@ class View_Admin__Import extends View
 			return;
 		}
 		$map = fgetcsv($fp, 0, ",", '"');
+		$sample_header = self::getSampleHeader();
 		foreach ($map as $k => $v) {
-			$v = $this->_stringToKey($v);
+			$v = self::_stringToKey($v);
+			if (!in_array($v, $sample_header)) {
+				add_message("Unrecognised column \"".$v.'" will be ignored', 'warning');
+			}
 			$map[$k] = $v;
 			if ($cfid = array_get($custom_fields, $v)) {
 				$this->_sess['used_custom_fields'][$cfid] = $v;
@@ -197,7 +199,7 @@ class View_Admin__Import extends View
 				if ($fieldname == 'group') {
 					if (strlen($g = array_get($rawrow, $index, ''))) {
 						$row['_groups'][] = $g;
-						$gk = $this->_stringToKey($g);
+						$gk = self::_stringToKey($g);
 						if (!isset($this->_sess['matched_groups'][$gk])) {
 							if ($gp = Person_Group::findByName($g)) {
 								$this->_sess['matched_groups'][$gk] = $gp;
@@ -209,7 +211,7 @@ class View_Admin__Import extends View
 				} else if ($fieldname == 'note') {
 					if (strlen($n = array_get($rawrow, $index, ''))) $row['_note'] = $n;
 				} else {
-					$row[$fieldname] = array_get($rawrow, $index, '');
+					$row[$fieldname] = trim(array_get($rawrow, $index, ''));
 				}
 			}
 
@@ -294,6 +296,7 @@ class View_Admin__Import extends View
 					if (!$this->_haveErrors($i)) {
 						$person_row['familyid'] = $current_existing_family_data['id'];
 						$this->_sess['new_persons'][] = $person_row;
+						$this->_sess['family_updates'][$current_existing_family_data['id']] = $current_existing_family_data;
 					}
 				} else if (!empty($current_new_family_data)) {
 					// 2B) THE NEW PERSON IS TO BE ADDED TO A NEW FAMILY ALREADY STARTED IN THIS IMPORT
@@ -306,7 +309,6 @@ class View_Admin__Import extends View
 
 					if (!$this->_haveErrors($i)) {
 						$current_new_family_data['members'][] = $person_row;
-						$this->_sess['total_new_persons']++;
 					}
 
 
@@ -321,7 +323,6 @@ class View_Admin__Import extends View
 					if (!$this->_haveErrors($i)) {
 						$current_new_family_data = $family_row;
 						$current_new_family_data['members'][] = $person_row;
-						$this->_sess['total_new_persons']++;
 					}
 				}
 
@@ -334,7 +335,9 @@ class View_Admin__Import extends View
 			$this->_sess['new_families'][] = $current_new_family_data;
 		}
 
-
+		foreach ($this->_sess['new_families'] as $f) {
+			$this->_sess['total_new_persons'] += count($f['members']);
+		}
 
 		$row_errors = $this->_getErrors();
 		if (!empty($row_errors)) {
@@ -371,8 +374,17 @@ class View_Admin__Import extends View
 				<td>New persons to be created</td>
 				<td>
 					<?php
-					echo $this->_sess['total_new_persons'].' within new families';
-					if ($np = count($this->_sess['new_persons'])) echo '<br />'.$np.' within existing families';
+					$printed = FALSE;
+					if ($this->_sess['total_new_persons']) {
+						echo $this->_sess['total_new_persons'].' within new families';
+						$printed = TRUE;
+					}
+					if ($np = count($this->_sess['new_persons'])) {
+						if ($printed) echo '<br />';
+						echo $np.' within existing families';
+						$printed = TRUE;
+					}
+					if (!$printed) echo '0';
 					?>
 				</td>
 			</tr>
@@ -403,114 +415,135 @@ class View_Admin__Import extends View
 		if (!empty($this->_sess['groupid'])) {
 			printf('<p>'._('All new and updated persons will be added to the %s group.').'</p>', '<i>'.ents($groupname).'</i>');
 		}
+
+		if (!empty($this->_sess['new_groups'])) {
+			?>
+			<h3>New groups to be created</h3>
+			<ul>
+				<li>
+					<?php echo implode('</li><li>', $this->_sess['new_groups']); ?>
+				</li>
+			</ul>
+			<?php
+		}
+
+		if (!empty($this->_sess['new_families'])) {
+			?>
+			<h3>New families and persons to be created</h3>
+			<table class="table table-bordered">
+				<thead>
+					<tr>
+						<th>Family Name</th>
+						<th>Home Tel</th>
+						<th>Address</th>
+
+						<?php
+						$this->_printPersonHeaders();
+						?>
+
+					</tr>
+				</thead>
+				<tbody>
+				<?php
+				foreach ($this->_sess['new_families'] as $familydata) {
+					$rowspan = 'rowspan="'.count($familydata['members']).'"';
+					?>
+					<tr>
+						<td <?php echo $rowspan; ?> class="nowrap"><?php echo ents($familydata['family_name']); ?></td>
+						<td <?php echo $rowspan; ?> class="nowrap"><?php echo ents($familydata['home_tel']); ?></td>
+						<td <?php echo $rowspan; ?> class="nowrap">
+							<?php
+							echo nl2br(ents($familydata['address_street']));
+							echo '<br />'.$familydata['address_suburb'].' '.$familydata['address_state'].' '.$familydata['address_postcode'];
+							?>
+						</td>
+					<?php
+					$this->_printPersonRows($familydata['members'], TRUE);
+				}
+				?>
+				</tbody>
+			</table>
+			<?php
+		}
+
+		if (!empty($this->_sess['new_persons'])) {
+			?>
+
+			<h3>New persons to be added to existing families</h3>
+			<table class="table table-bordered">
+				<thead>
+					<tr>
+						<th>Family</th>
+						<?php
+						$this->_printPersonHeaders();
+						?>
+					</tr>
+				</thead>
+				<tbody>
+				<?php
+				$this->_printPersonRows($this->_sess['new_persons'], FALSE, TRUE)
+				?>
+				</tbody>
+			</table>
+			<?php
+		}
+
+		if (!empty($this->_sess['family_updates'])) {
+			?>
+			<h3>Existing families to be updated</h3>
+			<table class="table table-bordered table-auto-width">
+				<thead>
+					<tr>
+						<th>ID</th>
+						<th>Family Name</th>
+						<th>Home Tel</th>
+						<th>Address</th>
+					</tr>
+				</thead>
+				<tbody>
+				<?php
+				foreach ($this->_sess['family_updates'] as $id => $familydata) {
+					?>
+					<tr>
+						<td>
+							<a href="?view=families&familyid=<?php echo (int)$id; ?>" class="med-popup">#<?php echo (int)$id; ?></a>
+						</td>
+						<td class="nowrap"><?php echo ents($familydata['family_name']); ?></td>
+						<td class="nowrap"><?php echo ents($familydata['home_tel']); ?></td>
+						<td class="nowrap">
+							<?php
+							echo nl2br(ents($familydata['address_street']));
+							echo '<br />'.$familydata['address_suburb'].' '.$familydata['address_state'].' '.$familydata['address_postcode'];
+							?>
+						</td>
+					</tr>
+					<?php
+				}
+				?>
+				</tbody>
+			</table>
+			<?php
+		}
+
+		if (!empty($this->_sess['person_updates'])) {
+			?>
+			<h3>Existing persons to be updated</h3>
+			<table class="table table-bordered table-auto-width">
+				<thead>
+					<tr>
+						<th>ID</th>
+						<?php $this->_printPersonHeaders(); ?>
+					</tr>
+				</thead>
+				<tbody>
+				<?php
+				$this->_printPersonRows($this->_sess['person_updates'], FALSE, FALSE, TRUE);
+				?>
+				</tbody>
+			</table>
+			<?php
+		}
 		?>
-
-		<h3>New groups to be created</h3>
-		<ul>
-			<li>
-				<?php echo implode('</li><li>', $this->_sess['new_groups']); ?>
-			</li>
-		</ul>
-
-		<h3>New families and persons to be created</h3>
-		<table class="table table-bordered">
-			<thead>
-				<tr>
-					<th>Family Name</th>
-					<th>Home Tel</th>
-					<th>Address</th>
-
-					<?php
-					$this->_printPersonHeaders();
-					?>
-
-				</tr>
-			</thead>
-			<tbody>
-			<?php
-			foreach ($this->_sess['new_families'] as $familydata) {
-				$rowspan = 'rowspan="'.count($familydata['members']).'"';
-				?>
-				<tr>
-					<td <?php echo $rowspan; ?> class="nowrap"><?php echo ents($familydata['family_name']); ?></td>
-					<td <?php echo $rowspan; ?> class="nowrap"><?php echo ents($familydata['home_tel']); ?></td>
-					<td <?php echo $rowspan; ?> class="nowrap">
-						<?php
-						echo nl2br(ents($familydata['address_street']));
-						echo '<br />'.$familydata['address_suburb'].' '.$familydata['address_state'].' '.$familydata['address_postcode'];
-						?>
-					</td>
-				<?php
-				$this->_printPersonRows($familydata['members'], TRUE);
-			}
-			?>
-			</tbody>
-		</table>
-
-		<h3>New persons to be added to existing families</h3>
-		<table class="table table-bordered">
-			<thead>
-				<tr>
-					<th>Family</th>
-					<?php
-					$this->_printPersonHeaders();
-					?>
-				</tr>
-			</thead>
-			<tbody>
-			<?php
-			$this->_printPersonRows($this->_sess['new_persons'], FALSE, TRUE)
-			?>
-			</tbody>
-		</table>
-
-		<h3>Existing families to be updated</h3>
-		<table class="table table-bordered table-auto-width">
-			<thead>
-				<tr>
-					<th>ID</th>
-					<th>Family Name</th>
-					<th>Home Tel</th>
-					<th>Address</th>
-				</tr>
-			</thead>
-			<tbody>
-			<?php
-			foreach ($this->_sess['family_updates'] as $id => $familydata) {
-				?>
-				<tr>
-					<td>
-						<a href="?view=families&familyid=<?php echo (int)$id; ?>" class="med-popup">#<?php echo (int)$id; ?></a>
-					</td>
-					<td class="nowrap"><?php echo ents($familydata['family_name']); ?></td>
-					<td class="nowrap"><?php echo ents($familydata['home_tel']); ?></td>
-					<td class="nowrap">
-						<?php
-						echo nl2br(ents($familydata['address_street']));
-						echo '<br />'.$familydata['address_suburb'].' '.$familydata['address_state'].' '.$familydata['address_postcode'];
-						?>
-					</td>
-				</tr>
-				<?php
-			}
-			?>
-			</tbody>
-		</table>
-
-		<h3>Existing persons to be updated</h3>
-		<table class="table table-bordered table-auto-width">
-			<thead>
-				<tr>
-					<th>ID</th>
-					<?php $this->_printPersonHeaders(); ?>
-				</tr>
-			</thead>
-			<tbody>
-			<?php
-			$this->_printPersonRows($this->_sess['person_updates'], FALSE, FALSE, TRUE);
-			?>
-			</tbody>
-		</table>
 
 		<form method="post"><input type="submit" name="confirm_import" value="Proceed with import" class="confirm-title btn btn-danger" title="Proceed with import" />
 		<a href="<?php echo build_url(array()); ?>" class="btn">Cancel and start again</a>
@@ -578,17 +611,17 @@ class View_Admin__Import extends View
 			$person = new Person();
 			$person->fromCSVRow($row);
 			if (!$person->create()) {
-				trigger_error("Person: ".$member['first_name'].' '.$member['last_name'].' not created');
+				trigger_error("Person: ".$person['first_name'].' '.$person['last_name'].' not created', E_USER_WARNING);
 				continue;
 			}
-			$this->_finalisePerson($person, $member); // adds note and group
+			$this->_finalisePerson($person, $row); // adds note and group
 			$this->_printProgress($done++, $todo);
 			unset($person);
 		}
 		foreach ($this->_sess['family_updates'] as $familyid => $familyrow) {
 			$family = new Family($familyid);
 			if (!$family->acquireLock()) {
-				trigger_error("Could not update ".$familydata['family_name'].' because another user is editing it. Please try again later.');
+				trigger_error("Could not update ".$familydata['family_name'].' because another user is editing it. Please try again later.', E_USER_WARNING);
 				continue;
 			}
 			$family->fromCSVRow($familyrow, $this->_sess['overwrite_existing']);
@@ -602,12 +635,12 @@ class View_Admin__Import extends View
 		foreach ($this->_sess['person_updates'] as $personid => $row) {
 			$person = new Person($personid);
 			if (!$person->acquireLock()) {
-				trigger_error("Could not update ".$person->toString().' because another user is editing them. Please try again later.');
+				trigger_error("Could not update ".$person->toString().' because another user is editing them. Please try again later.', E_USER_WARNING);
 				continue;
 			}
 			$person->fromCSVRow($row, $this->_sess['overwrite_existing']);
 			if (!$person->save()) {
-				trigger_error("Person: ".$row['first_name'].' '.$row['last_name'].' not created');
+				trigger_error("Person: ".$row['first_name'].' '.$row['last_name'].' not created', E_USER_WARNING);
 				continue;
 			}
 			$this->_finalisePerson($person, $row); // adds note and group
@@ -719,7 +752,7 @@ class View_Admin__Import extends View
 
 		if (!empty($row['_groups'])) {
 			foreach ($row['_groups'] as $groupname) {
-				$gkey = $this->_stringToKey($groupname);
+				$gkey = self::_stringToKey($groupname);
 				$this->_groups[$gkey]->addMember($person->id);
 			}
 		}
@@ -785,7 +818,7 @@ class View_Admin__Import extends View
 		}
 	}
 
-	private function _stringToKey($string)
+	private static function _stringToKey($string)
 	{
 		return str_replace(' ', '_', strtolower($string));
 	}
@@ -879,7 +912,36 @@ class View_Admin__Import extends View
 		return !empty($this->_captured_errors[$i]);
 	}
 
-
+	public static function getSampleHeader()
+	{
+		$header = Array(
+			'family_name',
+			'last_name',
+			'first_name',
+			'congregation',
+			'status',
+			'gender',
+			'age_bracket',
+			'email',
+			'mobile_tel',
+			'work_tel',
+			'home_tel',
+			'address_street',
+			'address_suburb',
+			'address_state',
+			'address_postcode',
+		);
+		$custom_fields = Person::getCustomFields();
+		foreach ($custom_fields as $field) {
+			$header[] = self::_stringToKey($field['name']);
+		}
+		$header[] = 'note';
+		$map = array_flip($header);
+		$header[] = 'group';
+		$header[] = 'group';
+		$header[] = 'group';
+		return $header;
+	}
 
 
 

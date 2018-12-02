@@ -932,7 +932,7 @@ class Person extends DB_Object
 			if (isset($customFields[$k]) && strlen($v)) {
 				if (empty($this->id)
 						|| $overwriteExistingValues
-						|| ($this->getCustomValue($customFields[$k]->id) == '')
+						|| ($this->_custom_values[$customFields[$k]->id] == '')
 				) {
 					$this->setCustomValue($customFields[$k]->id, $customFields[$k]->parseValue($v));
 				}

@@ -521,11 +521,15 @@ class Person_Group extends db_object
 	 */
 	public static function findByName($name)
 	{
+		static $warnings = Array();
 		$name = str_replace(' ', '_', strtolower($name));
 		$SQL = 'SELECT * from person_group WHERE REPLACE(LOWER(name), " ", "_") = '.$GLOBALS['db']->quote($name);
 		$res = $GLOBALS['db']->queryAll($SQL, NULL, NULL, TRUE);
 		if (count($res) > 1) {
-			add_message("Could not match a single group called \"".$name.'" - there are several groups with that name', 'warning');
+			if (empty($warnings[$name])) {
+				add_message("Could not match a single group called \"".$name.'" - there are several groups with that name', 'warning');
+				$warnings[$name] = TRUE;
+			}
 		}
 		if (count($res) == 1) {
 			$g = new Person_Group();

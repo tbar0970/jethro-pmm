@@ -11,32 +11,7 @@ class Call_Sample_Import extends Call
 		$GLOBALS['system']->includeDBClass('family');
 		$GLOBALS['system']->includeDBClass('person');
 
-		$header = Array(
-			'family_name',
-			'last_name',
-			'first_name',
-			'congregation',
-			'status',
-			'gender',
-			'age_bracket',
-			'email',
-			'mobile_tel',
-			'work_tel',
-			'home_tel',
-			'address_street',
-			'address_suburb',
-			'address_state',
-			'address_postcode',
-		);
-		$custom_fields = Person::getCustomFields();
-		foreach ($custom_fields as $field) {
-			$header[] = $field['name'];
-		}
-		$header[] = 'note';
-		$map = array_flip($header);
-		$header[] = 'group';
-		$header[] = 'group';
-		$header[] = 'group';
+		$header = View_Admin__Import::getSampleHeader();
 		fputcsv($fp, $header);
 
 		$congs = $GLOBALS['system']->getDBObjectData('congregation');
