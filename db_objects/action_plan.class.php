@@ -317,7 +317,7 @@ class Action_Plan extends DB_Object
 	private function saveAgeBracketRestrictions()
 	{
 		if (!isset($this->_tmp['abs'])) return;
-		
+
 		$age_bracket_ids = $this->_tmp['abs'];
 		$SQL = 'DELETE FROM action_plan_age_bracket WHERE action_planid = '.(int)$this->id;
 		$r = $GLOBALS['db']->exec($SQL);
@@ -463,12 +463,12 @@ class Action_Plan extends DB_Object
 			trigger_error("Cannot execute plan against a $subject_type");
 			return FALSE;
 		}
-		
+
 		if (empty($personids)) {
 			trigger_error("Could not find persons on which to execute action plan");
 			return FALSE;
 		}
-		
+
 		if ($abs = $this->getAgeBracketRestrictions()) {
 			$personids = array_keys($GLOBALS['system']->getDBObjectData(
 				'person',
@@ -489,15 +489,19 @@ class Action_Plan extends DB_Object
 				return FALSE;
 			}
 		}
-		
+
 
 		$actions = $this->getValue('actions');
 		$membershipStatuses = array_get($actions, 'group_membership_statuses', Array());
 		foreach (array_get($actions, 'groups', Array()) as $i => $groupid) {
 			$group = $GLOBALS['system']->getDBObject('person_group', $groupid);
 			$status = array_get($membershipStatuses, $i);
-			foreach ($personids as $personid) {
-				$group->addMember($personid, $status);
+			if ($group) {
+				foreach ($personids as $personid) {
+					$group->addMember($personid, $status);
+				}
+			} else {
+				add_message("Action plan # {$this->id} could not add people to group # $groupid because it does not exist.", 'error');
 			}
 		}
 		foreach (array_get($actions, 'groups_remove', Array()) as $groupid) {
@@ -517,7 +521,7 @@ class Action_Plan extends DB_Object
 			} else {
 				$notedata['details'] = $footnote;
 			}
-
+			unset($notedata['editor']); // avoid any bad data getting in
 			$note->populate(0, $notedata);
 			$note->setValue($subject_type.'id', $subject_id);
 			$note->create();
@@ -551,7 +555,7 @@ class Action_Plan extends DB_Object
 				}
 			}
 		}
-		
+
 		return TRUE;
 	}
 

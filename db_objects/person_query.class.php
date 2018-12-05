@@ -70,11 +70,11 @@ class Person_Query extends DB_Object
 			  `owner` int(11) DEFAULT NULL,
 			  `params` text NOT NULL,
 			  `mailchimp_list_id` varchar(255) NOT NULL default '',
+			  `show_on_homepage` varchar(12) not null default '',
 			  PRIMARY KEY  (`id`)
 			) ENGINE=InnoDB ;
 		";
 	}
-
 
 	protected static function _getFields()
 	{
@@ -123,8 +123,17 @@ class Person_Query extends DB_Object
 									'default' => '',
 									'placeholder' => '('._('Optional').')',
 									'tooltip' => _('If you have a MailChimp list you would like to synchronise with the results of this report, enter the relevant List ID here and wait until the sync script runs.'),
-			)
+			),
+			'show_on_homepage' => Array(
+									'type' => 'select',
+									'editable'=> true,
+									'default' => NULL,
+									'options' => Array(
+													'' => 'No',
+													'auth' => 'Show for users with access to this report',
+													'all' => 'Show for all users'),
 
+			),
 		);
 	}
 
@@ -423,9 +432,9 @@ class Person_Query extends DB_Object
 							'class' => 'attendance-input',
 						   );
 			print_widget('attendance_operator', $operator_params, array_get($params, 'attendance_operator', '<')); ?>
-			<input name="attendance_percent" type="text" size="2" class="int-box attendance-input" value="<?php echo (int)array_get($params, 'attendance_percent', 50); ?>" />%
+			<input name="attendance_percent" type="number" size="2" class="attendance-input" value="<?php echo (int)array_get($params, 'attendance_percent', 50); ?>" />%
 
-			<br />over the last <input name="attendance_weeks" type="text" size="2" class="int-box attendance-input" value="<?php echo (int)array_get($params, 'attendance_weeks', 2); ?>" /> weeks
+			<br />over the last <input name="attendance_weeks" type="number" size="2" class="attendance-input" value="<?php echo (int)array_get($params, 'attendance_weeks', 2); ?>" /> weeks
 		</div>
 		<?php
 	}
@@ -568,7 +577,6 @@ class Person_Query extends DB_Object
 
 		?>
 		</select>
-
 		<?php
 		if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
 			$visibilityParams = Array(
@@ -625,6 +633,14 @@ class Person_Query extends DB_Object
 							?>
 						</td>
 					</tr>
+					<tr>
+						<td></td>
+						<td>Show on home page?
+							<?php
+							$this->printFieldInterface('show_on_homepage');
+							?>
+						</td>
+					</tr>
 				<?php
 				if (strlen(ifdef('MAILCHIMP_API_KEY')) && $GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 					?>
@@ -636,7 +652,6 @@ class Person_Query extends DB_Object
 				}
 				?>
 				</table>
-
 			</div>
 			<?php
 		}
@@ -653,6 +668,7 @@ class Person_Query extends DB_Object
 						$this->processFieldInterface('mailchimp_list_id');
 					}
 					$this->setValue('owner', $_POST['is_private'] ? $GLOBALS['user_system']->getCurrentUser('id') : NULL);
+					$this->processFieldInterface('show_on_homepage');
 					break;
 				case 'replace':
 					$this->processFieldInterface('name');
@@ -660,6 +676,7 @@ class Person_Query extends DB_Object
 						$this->processFieldInterface('mailchimp_list_id');
 					}
 					$this->setValue('owner', $_POST['is_private'] ? $GLOBALS['user_system']->getCurrentUser('id') : NULL);
+					$this->processFieldInterface('show_on_homepage');
 					break;
 				case 'temp':
 					$this->id = 'TEMP';
@@ -668,6 +685,7 @@ class Person_Query extends DB_Object
 		} else {
 			$this->id = 'TEMP';
 		}
+
 
 		$params = $this->_convertParams($this->getValue('params'));
 
@@ -840,7 +858,7 @@ class Person_Query extends DB_Object
 			$groupid_comps[] = '(pg.categoryid IN ('.implode(',', $int_categoryids).') AND pg.is_archived = 0)';
 		}
 
-		$res = implode(' OR ', $groupid_comps);
+		$res = '('.implode(' OR ', $groupid_comps).')';
 
 
 		if (!empty($from_date)) {
@@ -1085,9 +1103,11 @@ class Person_Query extends DB_Object
 			$query['from'] .= ' LEFT JOIN custom_field_option cfogroup
 									ON cfogroup.id = cfvgroup.value_optionid
 								';
+			$query['from'] .= ' LEFT JOIN custom_field cfgroup ON cfgroup.id = cfvgroup.fieldid
+									';
 			$grouping_order = 'IF(cfvgroup.personid IS NULL, 1, 0), '.Custom_Field::getSortValueSQLExpr('cfvgroup', 'cfogroup').', ';
-			$grouping_field = Custom_Field::getRawValueSQLExpr('cfvgroup', 'cfogroup').', ';
-			$query['group_by'][] = Custom_Field::getRawValueSQLExpr('cfvgroup', 'cfogroup');
+			$grouping_field = Custom_Field::getRawValueSQLExpr('cfvgroup', 'cfgroup').', ';
+			$query['group_by'][] = Custom_Field::getRawValueSQLExpr('cfvgroup', 'cfgroup');
 		} else {
 			// by some core field
 			$grouping_order = $grouping_field = $params['group_by'].', ';
@@ -1157,7 +1177,7 @@ class Person_Query extends DB_Object
 						$query['from'] .= '
 										JOIN (
 											SELECT familyid, IF (
-												GROUP_CONCAT(DISTINCT last_name) = ff.family_name, 
+												GROUP_CONCAT(DISTINCT last_name) = ff.family_name,
 												GROUP_CONCAT(first_name ORDER BY ab.rank, gender DESC SEPARATOR ", "),
 												GROUP_CONCAT(CONCAT(first_name, " ", last_name) ORDER BY ab.rank, gender DESC SEPARATOR ", ")
 											  ) AS `names`
@@ -1182,7 +1202,7 @@ class Person_Query extends DB_Object
 													)');
 						$r2 = $GLOBALS['db']->query('INSERT INTO _family_adults'.$this->id.' (familyid, names)
 											SELECT familyid, IF (
-												GROUP_CONCAT(DISTINCT last_name) = ff.family_name, 
+												GROUP_CONCAT(DISTINCT last_name) = ff.family_name,
 												GROUP_CONCAT(first_name ORDER BY ab.rank, gender DESC SEPARATOR ", "),
 												GROUP_CONCAT(CONCAT(first_name, " ", last_name) ORDER BY ab.rank, gender DESC SEPARATOR ", ")
 											  )
@@ -1198,9 +1218,9 @@ class Person_Query extends DB_Object
 					case 'attendance_percent':
 							$groupid = $params['attendance_groupid'] == '__cong__' ? 0 : $params['attendance_groupid'];
 							$min_date = date('Y-m-d', strtotime('-'.(int)$params['attendance_weeks'].' weeks'));
-							$query['select'][] = '(SELECT ROUND(SUM(present)/COUNT(*)*100) 
-													FROM attendance_record 
-													WHERE date >= '.$GLOBALS['db']->quote($min_date).' 
+							$query['select'][] = '(SELECT ROUND(SUM(present)/COUNT(*)*100)
+													FROM attendance_record
+													WHERE date >= '.$GLOBALS['db']->quote($min_date).'
 													AND groupid = '.(int)$groupid.'
 													AND personid = p.id) AS `Attendance`';
 						break;
@@ -1241,7 +1261,9 @@ class Person_Query extends DB_Object
 								$field = new Custom_Field();
 								$field->populate($customFieldID, $this->_custom_fields[$customFieldID]);
 								$query['from'] .= ' LEFT JOIN custom_field_value cfv'.$customFieldID.' ON cfv'.$customFieldID.'.personid = p.id AND cfv'.$customFieldID.'.fieldid = '.$db->quote($customFieldID)."\n";
-								$query['select'][] = 'GROUP_CONCAT(DISTINCT '.Custom_Field::getRawValueSQLExpr('cfv'.$customFieldID).' ORDER BY '.Custom_Field::getRawValueSQLExpr('cfv'.$customFieldID).' SEPARATOR "'.self::CUSTOMFIELDVAL_SEP.'") as '.$db->quote(self::CUSTOMFIELD_PREFIX.$customFieldID)."\n";
+								$query['from'] .= ' LEFT JOIN custom_field cf'.$customFieldID.' ON cfv'.$customFieldID.'.fieldid = cf'.$customFieldID.'.id '."\n";
+
+								$query['select'][] = 'GROUP_CONCAT(DISTINCT '.Custom_Field::getRawValueSQLExpr('cfv'.$customFieldID, 'cf'.$customFieldID).' ORDER BY '.Custom_Field::getRawValueSQLExpr('cfv'.$customFieldID, 'cf'.$customFieldID).' SEPARATOR "'.self::CUSTOMFIELDVAL_SEP.'") as '.$db->quote(self::CUSTOMFIELD_PREFIX.$customFieldID)."\n";
 							}
 						} else {
 							$query['select'][] = $this->_quoteAliasAndColumn($field).' AS '.$db->quote($field);
@@ -1258,6 +1280,8 @@ class Person_Query extends DB_Object
 		} else if (0 === strpos($params['sort_by'], self::CUSTOMFIELD_PREFIX)) {
 			$customOrder = substr($params['sort_by'], 14);
 		}
+		$query['from'] .= '
+			JOIN age_bracket absort ON absort.id = p.age_bracketid ';
 		if ($customOrder) {
 			$query['from'] .= ' LEFT JOIN custom_field_value cfvorder ON cfvorder.personid = p.id AND cfvorder.fieldid = '.$db->quote($customOrder)."\n";
 			$query['from'] .= " LEFT JOIN custom_field_option cfoorder ON cfoorder.id = cfvorder.value_optionid \n";
@@ -1273,6 +1297,8 @@ class Person_Query extends DB_Object
 			$query['from'] .= '
 				LEFT JOIN congregation cord ON p.congregationid = cord.id ';
 			$query['order_by'] = 'IF(cord.id IS NULL, 1, 0), IF(LENGTH(cord.meeting_time)>0, 0, 1), cord.meeting_time, cord.name';
+		} else if ($params['sort_by'] == 'p.age_bracketid') {
+			$query['order_by'] = 'absort.rank';
 		} else {
 			$query['order_by'] = $this->_quoteAliasAndColumn($params['sort_by']);
 		}
@@ -1309,8 +1335,8 @@ class Person_Query extends DB_Object
 				';
 		}
 		$sql .= "\nGROUP BY ".implode(', ', $query['group_by']);
-		$sql .= "\nORDER BY ".$query['order_by'].', p.last_name, p.first_name';
-		
+		$sql .= "\nORDER BY ".$query['order_by'].', p.last_name, p.familyid, absort.rank, IF (absort.is_adult, p.gender, 1) DESC, p.first_name';
+
 		return $sql;
 	}
 

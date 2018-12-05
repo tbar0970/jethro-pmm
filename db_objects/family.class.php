@@ -127,7 +127,7 @@ class family extends db_object
 			"CREATE TABLE family_photo (
 				familyid INT NOT NULL,
 				photodata MEDIUMBLOB NOT NULL,
-				CONSTRAINT `famliyphotofamilyid` FOREIGN KEY (`familyid`) REFERENCES `family` (`id`),
+				CONSTRAINT `famliyphotofamilyid` FOREIGN KEY (`familyid`) REFERENCES `family` (`id`) ON DELETE CASCADE,
 				PRIMARY KEY (familyid)
 			 ) ENGINE=InnoDB;
 			"
@@ -158,7 +158,7 @@ class family extends db_object
 	function processForm($prefix='', $fields=NULL)
 	{
 		$res = parent::processForm($prefix, $fields);
-		$this->_photo_data = Photo_Handler::getUploadedPhotoData('photo');
+		$this->_photo_data = Photo_Handler::getUploadedPhotoData('photo', Photo_Handler::CROP_NONE);
 		return $res;
 	}
 
@@ -188,7 +188,7 @@ class family extends db_object
 		$persons = $this->getMemberData();
 		$show_actions = !empty($this->id); // hide actions if this is a "draft" family
 
-		if (isset($this->_tmp['show_member_callback'])) {
+		if (!empty($this->_tmp['show_member_callback'])) {
 			call_user_func($this->_tmp['show_member_callback'], $persons);
 
 		} else if (!$abbreviated) {
@@ -245,7 +245,7 @@ class family extends db_object
 	{
 		if ($name == 'photo') {
 			?>
-			<input type="file" name="photo" />
+			<input type="file" accept="image/*" name="photo" />
 			<?php
 			return;
 		}
@@ -336,7 +336,6 @@ class family extends db_object
 
 	function printCustomSummary($showMembersCallback)
 	{
-		// TODO: test this in the mmebers interface
 		$this->fields['members'] = Array('divider_before' => 1);
 		$this->_tmp['show_member_callback'] = $showMembersCallback;
 		parent::printSummary();
@@ -346,8 +345,10 @@ class family extends db_object
 
 	function getMemberData()
 	{
+		//$objectType = $GLOBALS['user_system']->getCurrentUser() ? 'person' : 'member';
+		$restriction = $GLOBALS['user_system']->getCurrentUser() ? Array() : Array('!status' => 'archived');
 		if (!isset($this->_tmp['members'])) {
-			$this->_tmp['members'] = $GLOBALS['system']->getDBObjectData('person', Array('familyid' => $this->id), 'OR', 'ab.rank, gender DESC');
+			$this->_tmp['members'] = $GLOBALS['system']->getDBObjectData('person', Array('familyid' => $this->id)+$restriction, 'AND', 'ab.rank, gender DESC');
 		}
 		return $this->_tmp['members'];
 	}
@@ -481,6 +482,13 @@ class family extends db_object
 		}
 	}
 
+	private function clearPhoto()
+	{
+		$db =& $GLOBALS['db'];
+		$SQL = 'DELETE FROM family_photo WHERE familyid = '.(int)$this->id;
+		return $db->query($SQL);
+	}
+
 	/* Find a family that looks like a duplicate of this one - if it has the same family name and a member with the same name
 	*/
 	public function findSimilarFamilies()
@@ -526,7 +534,7 @@ class family extends db_object
 			) allmembers ON allmembers.familyid = f.id
 			LEFT JOIN (
 			   select f.id as familyid, GROUP_CONCAT(p.first_name ORDER BY ab.rank ASC, p.gender DESC SEPARATOR ", ") as names
-			   FROM person p 
+			   FROM person p
 			   JOIN family f on p.familyid = f.id
 			   JOIN age_bracket ab ON ab.id = p.age_bracketid
 			   WHERE ab.is_adult and p.status <> "archived"
@@ -562,29 +570,48 @@ class family extends db_object
 		<input type="hidden" name="<?php echo $name; ?>" value="<?php echo $currentid; ?>" />
 		<?php
 	}
-	
+
 	public function archiveAndClean()
 	{
 		if (!$this->acquireLock()) return FALSE;
 		foreach ($this->fields as $fieldname => $params) {
 			switch ($fieldname) {
 				case 'family_name':
-					$this->setValue($fieldname, '(Removed)');
+					$this->setValue($fieldname, '['._('Removed').']');
 					break;
 				case 'status_last_changed':
 				case 'creator':
 				case 'created':
+				case 'state':
 					// leave these intact
 					break;
 				case 'status':
 					$this->setValue($fieldname, 'archived');
 					break;
+				case 'history':
+					$this->setValue($fieldname, Array());
+					break;
 				default:
 					$this->setValue($fieldname, '');
 			}
 		}
-		if (!$this->save()) return FALSE;
+		$this->clearPhoto();
+		if (!$this->save(FALSE)) return FALSE;
+
+		$notes = $GLOBALS['system']->getDBObjectData('family_note', Array('familyid' => $this->id));
+		foreach ($notes as $noteid => $data) {
+			$n = new Family_Note($noteid);
+			$n->delete();
+		}
+
 		$this->releaseLock();
+		return TRUE;
+	}
+
+	public function delete()
+	{
+		parent::delete();
+		Abstract_Note::cleanupInstances();
 		return TRUE;
 	}
 }

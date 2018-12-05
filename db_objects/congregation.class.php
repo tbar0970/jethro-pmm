@@ -91,7 +91,7 @@ class Congregation extends db_object
 				$congs[$name] = key($matches);
 			}
 		}
-		if (!isset($congs[$name])) trigger_error('No unique congregation with name "'.$name.'"');
+		if (!isset($congs[$name])) trigger_error('Could not find a unique congregation with name "'.$name.'"');
 		return array_get($congs, $name);
 	}
 

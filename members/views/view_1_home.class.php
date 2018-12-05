@@ -18,20 +18,33 @@ class View_Home extends View
 			<h3>Search people</h3>
 			<form method="get" class="form-inline">
 				<input type="hidden" name="view" value="people" />
-				<input name="search" type="text" placeholder="Enter name to search" value="<?php echo ents(array_get($_REQUEST, 'search')); ?>">
+				<input name="search" type="text" placeholder="Enter name to search" style="width: 70%" value="<?php echo ents(array_get($_REQUEST, 'search')); ?>">
 				<button data-action="search" class="btn" type="submit">Search</button>
 			</form>
 		</div>
 
 		<div class="member-homepage-box">
 			<h3>
-				<a class="pull-right" href="?view=_edit_me"><small>Edit</small></a>
+				<a class="pull-right" href="?view=_edit_me"><small><i class="icon-wrench"></i>Edit</small></a>
 				My Family
 			</h3>
 			<?php
+
+
 			$family = $GLOBALS['system']->getDBObject('family', $GLOBALS['user_system']->getCurrentMember('familyid'));
 			unset($family->fields['status']);
-			$family->printCustomSummary(Array($this, 'printFamilyMembers'));
+
+			if ($GLOBALS['system']->featureEnabled('PHOTOS')) {
+				?>
+				<img class="family-photo" src="?call=photo&familyid=<?php echo (int)$family->id; ?>" />
+				<?php
+			}
+			
+			$family->printSummary();
+			echo '<div class="member-family-members" style="clear: both">';
+			$persons = $family->getMemberData();
+			include 'templates/member_list.template.php';
+			echo '</div>';
 			?>
 		</div>
 
@@ -40,7 +53,7 @@ class View_Home extends View
 			?>
 			<div class="member-homepage-box">
 			<h3>
-				<a class="pull-right" href="?view=_edit_ical"><small>Subscribe</small></a>
+				<a class="pull-right" href="?view=_edit_ical"><small><i class="icon-calendar"></i>Subscribe</small></a>
 				My Roster Allocations &nbsp;
 			</h3>
 			<?php

@@ -162,6 +162,11 @@ printf($panel_header, 'basic', _('Basic Details'), 'active');
 			
 			$person->printSummary();
 
+			if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
+				?>
+				<a class="pull-right hidden-phone indent-left" href="?view=_delete_person&personid=<?php echo $person->id; ?>"><i class="icon-trash"></i><?php echo _('Delete'); ?></a>
+				<?php
+			}
 			if ($family->getValue('address_street')) {
 				?>
 				<a href="?call=envelopes&personid=<?php echo $person->id; ?>" class="pull-right envelope-popup hidden-phone"><i class="icon-envelope"></i><?php echo _('Print Envelope')?></a>

@@ -320,8 +320,8 @@ class db_object
 			return FALSE;
 		}
 
-		// Set the history
-		if (isset($this->fields['history'])) {
+		// Add to the history, unless it's been explicly set as a value (see Person::archiveAndClean())
+		if (isset($this->fields['history']) && empty($this->_old_values['history'])) {
 			$changes = $this->_getChanges();
 			if ($changes) {
 				$user = $GLOBALS['user_system']->getCurrentPerson();
@@ -389,11 +389,16 @@ class db_object
 		foreach ($this->_old_values as $name => $old_val) {
 			if ($name == 'history') continue;
 			if ($name == 'password') continue;
+			if (!array_get($this->fields[$name], 'show_in_summary', TRUE)
+					&& !array_get($this->fields[$name], 'editable', TRUE)
+			) {
+				continue;
+			}
 			$changes[] = $this->getFieldLabel($name).' changed from "'.ents($this->getFormattedValue($name, $old_val)).'" to "'.ents($this->getFormattedValue($name)).'"';
 		}
 		return $changes;
 	}
-	
+
 	public function reset()
 	{
 		$this->values = $this->_old_values = Array();
@@ -455,7 +460,7 @@ class db_object
 			$value = ucfirst($value);
 		}
 		if (array_get($this->fields[$name], 'trim')) {
-			$value = trim($value, ",;. \t\n\r\0\x0B");
+			$value = hard_trim($value);
 		}
 		if ($this->fields[$name]['type'] == 'select') {
 			if (!isset($this->fields[$name]['options'][$value]) && !(array_get($this->fields[$name], 'allow_empty', 1) && empty($value))) {
@@ -594,7 +599,7 @@ class db_object
 			return NULL;
 		}
 		if (is_null($value)) $value = $this->getValue($name);
-		if (($name == 'history') && !empty($value)) {
+		if (($name == 'history')) {
 			?>
 			<table class="history table table-full-width table-striped">
 			<?php
@@ -885,7 +890,7 @@ class db_object
 				if ($field[0] == '=') {
 					$operator .= '=';
 					$field = substr($field, 1);
-				}				
+				}
 			} else if ($field[0] == '-') {
 				$operator = 'BETWEEN';
 				$field = substr($field, 1);
@@ -1024,7 +1029,7 @@ class db_object
 		return null;
 	}
 
-	public function fromCsvRow($row)
+	public function fromCsvRow($row, $overwriteExistingValues=TRUE)
 	{
 		foreach ($this->fields as $fieldname => $field) {
 			if (isset($row[$fieldname])) {
@@ -1042,7 +1047,11 @@ class db_object
 						$val = array_get($field, 'default', key($field['options']));
 					}
 				}
-				if ($val !== '') $this->setValue($fieldname, $val);
+				if (($val !== '')
+					&& ($overwriteExistingValues || ($this->getValue($fieldname) == ''))
+				) {
+					$this->setValue($fieldname, $val);
+				}
 			}
 		}
 		$this->validateFields();

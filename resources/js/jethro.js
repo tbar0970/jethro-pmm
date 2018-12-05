@@ -4,7 +4,22 @@ $(document).ready(function() {
 
 	// Make standalone safari stay standalone
 	if (("standalone" in window.navigator) && window.navigator.standalone) {
+		// http://www.andymercer.net/blog/2016/02/full-screen-web-apps-on-ios/
+		var insideApp = sessionStorage.getItem('insideApp'), location = window.location, stop = /^(a|html)$/i;
+		if (insideApp) {
+			localStorage.setItem('returnToPage', location);
+		} else {
+			var returnToPage = localStorage.getItem('returnToPage');
+			if (returnToPage) {
+				window.location = returnToPage;
+			}
+			sessionStorage.setItem('insideApp', true);
+		}
+
+		// add a back button
 		$('a.brand').parent().prepend('<i class="icon-white icon-chevron-left" onclick="history.go(-1); "></i>')
+
+		// stay inside the app, avoid linking out to mobile safari
 		$("a").click(function (event) {
 			if ((!$(this).attr('target'))
 					&& (!$(this).attr('data-toggle'))
@@ -18,6 +33,9 @@ $(document).ready(function() {
 				return false;
 			}
 		});
+	}
+	if (("standalone" in window.navigator) && !window.navigator.standalone) {
+		// Opportunity to tell them to save to home screen
 	}
 
 	// This needs to be first!

@@ -42,7 +42,11 @@ class View_Attendance__Record extends View
 		if (empty($this->_attendance_date)) {
 			// Default to last Sunday, unless today is Sunday
 			$default_day = defined('ATTENDANCE_DEFAULT_DAY') ? ATTENDANCE_DEFAULT_DAY : 'Sunday';
-			$this->_attendance_date = date('Y-m-d', ((date('l') == $default_day) ? time() : strtotime('last '.$default_day)));
+			if ($default_day == '(Current day)') {
+				$this->_attendance_date = date('Y-m-d');
+			} else {
+				$this->_attendance_date = date('Y-m-d', ((date('l') == $default_day) ? time() : strtotime('last '.$default_day)));
+			}
 		}
 
 		if (empty($_REQUEST['params_submitted']) && empty($_REQUEST['attendances_submitted'])) {

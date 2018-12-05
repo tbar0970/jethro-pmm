@@ -483,6 +483,7 @@ class View_services extends View
 
 	private function printComponentSelector()
 	{
+		$serviceTS = strtotime($this->service->getValue('date'));
 		?>
 		<div class="span6">
 			<h3>
@@ -524,10 +525,9 @@ class View_services extends View
 							   title="Double-click or drag to add to service">
 							<thead>
 								<tr>
-									<th data-sort="string">Title</th>
-									<th data-sort="string" class="narrow" title="Date when this component was last used in a service">Last</th>
-									<th data-sort="int" class="narrow" title="Number of usages in last month">1m</th>
-									<th data-sort="int" class="narrow" title="Number of usages in last 12 months">12m<i class="icon-arrow-up"></i></th>
+									<th data-sort="string-ins" id="title">Title</th>
+									<th data-sort="int" id="weeks" data-sort-multicolumn="title" class="narrow" title="Weeks since last usage">Last</th>
+									<th data-sort="int" data-sort-multicolumn="weeks" data-sort-default="desc" class="narrow" title="Number of usages in last 12 months">12m<i class="icon-arrow-up"></i></th>
 									<th class="narrow"></th>
 								</tr>
 							</thead>
@@ -540,6 +540,11 @@ class View_services extends View
 									$runsheetTitle = $this->service->replaceKeywords($runsheetTitle);
 								}
 								$comp['personnel'] = $this->service->replaceKeywords($comp['personnel']);
+								$weeks = '';
+								if ($comp['lastused']) {
+									$weeks = floor(($serviceTS - strtotime($comp['lastused'])) / 60 / 60 / 24 / 7);
+									$weeks = "{$weeks}w";
+								}
 
 								?>
 								<tr data-componentid="<?php echo (int)$compid; ?>"
@@ -556,16 +561,11 @@ class View_services extends View
 										}
 										?>
 									</td>
-									<td class="hide-in-transit nowrap" data-sort-value="<?php echo ents($comp['lastused']); ?>">
-										<?php
-										if ($comp['lastused']) echo format_date($comp['lastused'], FALSE);
-										?>
+									<td data-sort-value="<?php echo (int)$weeks; ?>" class="hide-in-transit">
+										<?php echo $weeks; ?>
 									</td>
 									<td class="hide-in-transit">
-										<?php echo $comp['usage_1m']; ?>
-									</td>
-									<td class="hide-in-transit">
-										<?php echo $comp['usage_12m']; ?>
+										<?php echo $comp['usage_12m']; ?>x
 									</td>
 									<td class="tools hide-in-transit">
 										<a href="?call=service_comp_detail&id=<?php echo $compid; ?>&head=1" class="med-popup" title="View component detail"><i class="icon-eye-open"> </i></a>

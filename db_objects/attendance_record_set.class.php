@@ -70,25 +70,6 @@ class Attendance_Record_Set
 	{
 	}
 
-
-	function getInitSQL($table_name=NULL)
-	{
-		return "
-			CREATE TABLE `attendance_record` (
-			  `date` date NOT NULL default '0000-00-00',
-			  `personid` int(11) NOT NULL default '0',
-			  `groupid` int(11) NOT NULL default '0',
-			  `present` tinyint(1) unsigned NOT NULL default '0',
-			  PRIMARY KEY  (`date`,`personid`,`groupid`)
-			) ENGINE=InnoDB ;
-		";
-	}
-
-	public function getForeignKeys()
-	{
-		return Array();
-	}
-
 	function load($date, $cohort, $age_brackets, $statuses)
 	{
 		$this->date = $date;
@@ -321,7 +302,13 @@ class Attendance_Record_Set
 				<td class="action-cell narrow">
 					<a class="med-popup" tabindex="-1" href="?view=persons&personid=<?php echo $personid; ?>"><i class="icon-user"></i>View</a> &nbsp;
 					<a class="med-popup" tabindex="-1" href="?view=_edit_person&personid=<?php echo $personid; ?>"><i class="icon-wrench"></i>Edit</a> &nbsp;
+				<?php
+				if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
+					?>
 					<a class="med-popup" tabindex="-1" href="?view=_add_note_to_person&personid=<?php echo $personid; ?>"><i class="icon-pencil"></i>Add Note</a>
+					<?php
+				}
+				?>
 				</td>
 				<?php
 			}
@@ -376,7 +363,7 @@ class Attendance_Record_Set
 			$headcountValue = Headcount::fetch('person_group', $this->date, $this->groupid);
 		}
 		?>
-		<input type="text" id="<?php echo $headcountID; ?>" class="headcount int-box" name="<?php echo $headcountFieldName; ?>" value="<?php echo $headcountValue; ?>" size="5" />
+		<input type="number" inputmode="numeric" pattern="[0-9]*" id="<?php echo $headcountID; ?>" name="<?php echo $headcountFieldName; ?>" value="<?php echo $headcountValue; ?>" class="headcount int-box"  style="width: 60px" />
 		<input type="button" class="btn" onclick="var x = $(this).siblings('input').get(0); x.value = x.value == '' ? 1 : parseInt(x.value, 10)+1" value="+" />
 		<?php
 	}
