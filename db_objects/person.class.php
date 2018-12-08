@@ -344,7 +344,10 @@ class Person extends DB_Object
 		$family_notes = $GLOBALS['system']->getDBObjectData('family_note', Array('familyid' => $this->getValue('familyid')));
 		$person_notes = $GLOBALS['system']->getDBObjectData('person_note', Array('personid' => $this->id));
 		$all_notes = $family_notes + $person_notes;
-		uasort($all_notes, Array($this, '_compareCreatedDates'));
+		ksort($all_notes);
+		if (ifdef('NOTES_ORDER', 'ASC') != 'ASC') {
+			$all_notes = array_reverse($all_notes);
+		}
 		return $all_notes;
 	}
 
