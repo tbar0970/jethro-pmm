@@ -675,6 +675,7 @@ class View_Admin__Import extends View
 				<th>First Name</th>
 				<th>Last Name</th>
 				<th>Age</th>
+				<th>Gender</th>
 				<th>Congregation</th>
 				<th>Status</th>
 				<th>Email</th>
@@ -720,6 +721,7 @@ class View_Admin__Import extends View
 			<td><?php echo ents($person['first_name']); ?></td>
 			<td><?php echo ents($person['last_name']); ?></td>
 			<td><?php echo ents($person['age_bracket']); ?></td>
+			<td><?php echo ents($person['gender']); ?></td>
 			<td><?php echo ents($person['congregation']); ?></td>
 			<td><?php echo ents($person['status']); ?></td>
 			<td><?php echo ents($person['email']); ?></td>
