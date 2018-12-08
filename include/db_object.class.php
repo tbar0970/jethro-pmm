@@ -1048,8 +1048,9 @@ class db_object
 						$val = array_get($field, 'default', key($field['options']));
 					}
 				}
-				if (($val !== '')
-					&& ($overwriteExistingValues || ($this->getValue($fieldname) == ''))
+				if (($overwriteExistingValues && ($val !== ''))
+						|| ($this->getValue($fieldname) == '')
+						|| !$this->id
 				) {
 					$this->setValue($fieldname, $val);
 				}
