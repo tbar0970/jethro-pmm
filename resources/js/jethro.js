@@ -1449,7 +1449,7 @@ $(document).ready(function() {
 
 function handleNoteStatusChange(elt) {
 	var prefix = elt.name.replace('status', '');
-	var newDisplay = (elt.value == 'no_action') ? 'none' : '';
+	var newDisplay = (elt.value != 'pending') ? 'none' : '';
 	$('input[name='+prefix+'action_date_d]').parents('.control-group:first').css('display', newDisplay);
 	$('select[name='+prefix+'assignee]').parents('.control-group:first').css('display', newDisplay);
 	// the 'none' assignee should be removed when action is required
