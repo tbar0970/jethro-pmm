@@ -175,6 +175,7 @@ class View_Admin__Import extends View
 		$map = fgetcsv($fp, 0, ",", '"');
 		$sample_header = self::getSampleHeader();
 		foreach ($map as $k => $v) {
+			if ($v == '') continue;
 			$v = self::_stringToKey($v);
 			if (!in_array($v, $sample_header)) {
 				add_message("Unrecognised column \"".$v.'" will be ignored', 'warning');
@@ -191,9 +192,9 @@ class View_Admin__Import extends View
 		$current_new_family_data = Array();
 		$current_existing_family_data = NULL;
 
-		$i = 1;
+		$i = 0;
 		while ($rawrow = fgetcsv($fp, 0, ",", '"')) {
-
+			$i++;
 			$row = Array();
 			foreach ($map as $index => $fieldname) {
 				if ($fieldname == 'group') {
@@ -202,7 +203,7 @@ class View_Admin__Import extends View
 						$gk = self::_stringToKey($g);
 						if (!isset($this->_sess['matched_groups'][$gk])) {
 							if ($gp = Person_Group::findByName($g)) {
-								$this->_sess['matched_groups'][$gk] = $gp;
+								$this->_sess['matched_groups'][$gk] = $gp->id;
 							} else {
 								$this->_sess['new_groups'][$gk] = $g;
 							}
@@ -325,8 +326,6 @@ class View_Admin__Import extends View
 						$current_new_family_data['members'][] = $person_row;
 					}
 				}
-
-				$i++;
 			}
 		}
 
@@ -578,8 +577,8 @@ class View_Admin__Import extends View
 			}
 			$this->_groups[$key] = $g;
 		}
-		foreach ($this->_sess['matched_groups'] as $key => $group) {
-			$this->_groups[$key] = $group;
+		foreach ($this->_sess['matched_groups'] as $key => $groupid) {
+			$this->_groups[$key] = new Person_Group($groupid);
 		}
 
 		$this->_captureErrors();
