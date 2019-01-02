@@ -264,7 +264,7 @@ class View_Admin__Import extends View
 				$family_row['status'] = 'current';
 				$familyObj = $GLOBALS['system']->getDBObject('family', $existingPerson->getValue('familyid'));
 				$familyObj->fromCsvRow($family_row, $this->_sess['overwrite_existing']);
-				if (empty($current_existing_family_data)) {
+				if (empty($current_existing_family_data) || ($existingPerson->getValue('familyid') != $current_existing_family_data['id'])) {
 					$current_existing_family_data = $family_row + Array('id' => $familyObj->id);
 				} else {
 					$this->_pushIntoArray($family_row, $current_existing_family_data);
@@ -571,6 +571,7 @@ class View_Admin__Import extends View
 		foreach ($this->_sess['new_groups'] as $key => $name) {
 			$g = new Person_Group();
 			$g->setValue('name', $name);
+			$g->setValue('categoryid', NULL);
 			if (!$g->create()) {
 				trigger_error("Could not create group $name");
 				exit;
