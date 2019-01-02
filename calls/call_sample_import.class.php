@@ -11,6 +11,7 @@ class Call_Sample_Import extends Call
 		$GLOBALS['system']->includeDBClass('family');
 		$GLOBALS['system']->includeDBClass('person');
 
+		require_once JETHRO_ROOT.'/views/view_10_admin__7_import.class.php';
 		$header = View_Admin__Import::getSampleHeader();
 		fputcsv($fp, $header);
 
@@ -144,6 +145,7 @@ class Call_Sample_Import extends Call
 				'note' => 'Kids from previous marriage',
 			)
 		);
+		$custom_fields = Person::getCustomFields();
 		foreach ($custom_fields as $field) {
 			switch ($field['type']) {
 				case 'select':
@@ -165,7 +167,7 @@ class Call_Sample_Import extends Call
 		unset($row);
 		foreach ($data as $row) {
 			$out = Array();
-			foreach ($map as $key => $i) {
+			foreach (array_flip($header) as $key => $i) {
 				$out[] = array_get($row, $key, '');
 			}
 			foreach (Array_get($row, 'groups', Array()) as $g) {
@@ -179,6 +181,3 @@ class Call_Sample_Import extends Call
 
 	}
 }
-
-
-?>
