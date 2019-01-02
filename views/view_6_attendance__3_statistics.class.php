@@ -74,7 +74,9 @@ class View_Attendance__Statistics extends View
 		ob_start();
 		$printed = 0;
 		$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('!attendance_recording_days' => 0, 'is_archived' => 0), 'AND');
+		$catids = Array();
 		foreach ($groups as $id => $detail) {
+			$catids[$detail['categoryid']] = 1;
 			if ($this->printSet('g-'.$id, $detail['name'])) {
 				$printed++;
 				if ($printed % 3 == 0) {
@@ -84,6 +86,17 @@ class View_Attendance__Statistics extends View
 					<?php
 				}
 			}
+		}
+		$cats = $GLOBALS['system']->getDBObjectData('person_group_category');
+		foreach ($catids as $catid => $null) {
+			$this->printSet('gc-'.$catid, 'Combined '.$cats[$catid]['name']);
+				$printed++;
+				if ($printed % 3 == 0) {
+					?>
+					</div>
+					<div class="row">
+					<?php
+				}
 		}
 		$group_content = ob_get_clean();
 	
@@ -169,13 +182,16 @@ class View_Attendance__Statistics extends View
 					<td><?php echo number_format($stats[NULL]['avg_present'], 1) ?></td>
 					<td><?php echo number_format($stats[NULL]['avg_absent'], 1) ?></td>
 				</tr>
+			<?php
+			$bits = explode('-', $cohortid);
+			if (($bits[0] != 'gc') && ($bits[1] != '*')) {
+				?>
 				<tr class="headcount">
 					<th colspan="2">
 						<?php echo _('Avg&nbsp;Headcount');?>
 					</th>
 					<td class="right">
 						<?php 
-						$bits = explode('-', $cohortid);
 						$hc = Headcount::fetchAverage($bits[0], $bits[1], $this->_start_date, $this->_end_date);
 						if ($hc) {
 							echo number_format($hc, 1);
@@ -186,6 +202,9 @@ class View_Attendance__Statistics extends View
 					</td>
 					<td colspan="2"></td>
 				</tr>
+				<?php
+			}
+			?>
 			</tbody>
 		</table>
 		</div>

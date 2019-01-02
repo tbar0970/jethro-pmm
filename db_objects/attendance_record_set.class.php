@@ -461,17 +461,25 @@ class Attendance_Record_Set
 		list($type, $id) = explode('-', $cohortid);
 		$groupid = ($type == 'g') ? $id : 0;
 		$status_col = ($type == 'g') ? 'pgms.id' : 'p.status';
-		$cohort_where = 'ar.groupid = '.(int)$groupid;
 		$cohort_joins = '';
 		if ($type == 'c') {
-			if ($id == '*') {
-				// $cohort_where above already restricts to groupid=0.
-			} else {
+			$cohort_where = 'ar.groupid = 0 '; 
+			if ($id != '*') {
 				$cohort_where .= ' AND p.congregationid = '.(int)$id;
 			}
 		}
 		if ($type == 'g') {
+			$cohort_where = 'ar.groupid = '.(int)$groupid; 
 			$cohort_joins = '
+							LEFT JOIN person_group_membership pgm ON pgm.personid = p.id AND pgm.groupid = ar.groupid
+							LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status
+							';
+
+		}
+		if ($type == 'gc') {
+			$cohort_where = 'pg.categoryid = '.(int)$id;
+			$cohort_joins = '
+							JOIN person_group pg ON pg.id = ar.groupid
 							LEFT JOIN person_group_membership pgm ON pgm.personid = p.id AND pgm.groupid = ar.groupid
 							LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status
 							';
@@ -530,7 +538,7 @@ class Attendance_Record_Set
 						WHERE
 							ar.date BETWEEN '.$db->quote($start_date).' AND '.$db->quote($end_date).'
 							AND '.$cohort_where.'
-						GROUP BY ar.date, '.$groupingField.'
+						GROUP BY ar.date, '.$selectCol.'
 					) perdate GROUP BY '.$groupingField.' ';
 
 			$res = $db->queryAll($sql);
