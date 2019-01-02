@@ -57,6 +57,7 @@ class View_Attendance__Statistics extends View
 		ob_start();
 		$printed = 0;
 		$congs = $GLOBALS['system']->getDBObjectData('congregation', Array('!attendance_recording_days' => 0), 'OR', 'meeting_time');
+		$congs['*'] = Array('name' => 'Combined Congregations');
 		foreach ($congs as $id => $detail) {
 			if ($this->printSet('c-'.$id, $detail['name'])) {
 				$printed++;
@@ -109,7 +110,6 @@ class View_Attendance__Statistics extends View
 	private function printSet($cohortid, $cohortname)
 	{
 		$stats = Attendance_Record_Set::getStatsForPeriod($this->_start_date, $this->_end_date, $cohortid);
-		
 		if (empty($stats) || $stats[NULL]['rate'] == 0) {
 			return FALSE;
 		}

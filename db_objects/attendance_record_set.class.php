@@ -464,7 +464,11 @@ class Attendance_Record_Set
 		$cohort_where = 'ar.groupid = '.(int)$groupid;
 		$cohort_joins = '';
 		if ($type == 'c') {
-			$cohort_where .= ' AND p.congregationid = '.(int)$id;
+			if ($id == '*') {
+				// $cohort_where above already restricts to groupid=0.
+			} else {
+				$cohort_where .= ' AND p.congregationid = '.(int)$id;
+			}
 		}
 		if ($type == 'g') {
 			$cohort_joins = '
@@ -474,9 +478,9 @@ class Attendance_Record_Set
 
 		}
 		$stats = Array();
-		$stats[NULL]['rate'] = $stats[NULL]['avg_present'] = $stats[NULL]['avg_absent'] = 0;
 
-		foreach (Array('status', 'age_bracketid') as $groupingField) {
+		foreach (Array('age_bracketid', 'status') as $groupingField) {
+			$stats[NULL]['rate'] = $stats[NULL]['avg_present'] = $stats[NULL]['avg_absent'] = 0.0;
 			$rank = ($groupingField == 'status' && $type == 'g') ? 'rank, ' : '';
 			$selectCol = ($groupingField == 'status') ? $status_col : $groupingField;
 
@@ -527,7 +531,8 @@ class Attendance_Record_Set
 							ar.date BETWEEN '.$db->quote($start_date).' AND '.$db->quote($end_date).'
 							AND '.$cohort_where.'
 						GROUP BY ar.date, '.$groupingField.'
-					) perdate GROUP BY '.$groupingField.'';
+					) perdate GROUP BY '.$groupingField.' ';
+
 			$res = $db->queryAll($sql);
 			foreach ($res as $row) {
 				foreach (Array('avg_present', 'avg_absent') as $key) {
@@ -536,7 +541,6 @@ class Attendance_Record_Set
 				}
 			}
 		}
-		//exit;
 		return $stats;
 	}
 
