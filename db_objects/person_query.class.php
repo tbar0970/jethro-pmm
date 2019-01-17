@@ -1428,7 +1428,14 @@ class Person_Query extends DB_Object
 		static $headerprinted = false;
 		if (!$headerprinted) {
 			$hr = Array();
-			foreach (array_keys(reset($x)) as $heading) {
+			$headers = array_keys(reset($x));
+			if (reset($headers) == 'ID') {
+				// https://superuser.com/questions/210027/why-does-excel-think-csv-files-are-sylk
+				fputs($fp, '"ID",');
+				array_shift($headers);
+			}
+
+			foreach ($headers as $heading) {
 				if (in_array($heading, Array('view_link', 'edit_link', 'checkbox'))) continue;
 				switch($heading) {
 					case 'person_groups':
@@ -1449,6 +1456,7 @@ class Person_Query extends DB_Object
 				}
 			}
 			if ($groupingname) $hr[] = 'GROUPING';
+
 			fputcsv($fp, $hr);
 			$headerprinted = TRUE;
 		}
