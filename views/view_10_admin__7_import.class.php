@@ -279,11 +279,11 @@ class View_Admin__Import extends View
 				// SCENARIO 2 - WE ARE CREATING A NEW PERSON,
 
 				// Try pulling details into person object - will throw errors on bad data
-				$this->_dummy_person->values = Array();
+				$this->_dummy_person->reset();
 				$this->_dummy_person->setValue('familyid', '-1');
 				$this->_dummy_person->fromCsvRow($person_row);
 
-				$this->_dummy_family->values = Array();
+				$this->_dummy_family->reset();
 				$this->_dummy_family->setValue('status', 'current');
 				if (!empty($current_existing_family_data)) {
 					// 2A) THE NEW PERSON IS TO BE ADDED TO AN EXISTING FAMILY

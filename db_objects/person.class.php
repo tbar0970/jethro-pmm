@@ -647,6 +647,13 @@ class Person extends DB_Object
 		return $res;
 	}
 
+	public function reset()
+	{
+		parent::reset();
+		$this->_custom_values = Array();
+		$this->_old_custom_values = Array();
+		$this->_photo_data = NULL;
+	}
 
 	function create()
 	{
@@ -918,10 +925,14 @@ class Person extends DB_Object
 		return $this->_custom_values;
 	}
 
+	/**
+	 * Set values (incl custom values) from an array of data from CSV
+	 * NB it should NOT assume that the input row contains ALL custom fields
+	 * Any existing data not mentioned in the import row should be retained.
+	 * @param array $row
+	 * @param bool $overwriteExistingValues	For fields that already have a value, whether to overwrite with new data from $row.
+	 */
 	public function fromCsvRow($row, $overwriteExistingValues=TRUE) {
-		$this->_custom_values = Array();
-		$this->_old_custom_values = Array();
-
 		static $customFields = NULL;
 		if ($customFields === NULL) {
 			$fields = $GLOBALS['system']->getDBObjectdata('custom_field');
