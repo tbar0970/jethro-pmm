@@ -690,7 +690,6 @@ class roster_view extends db_object
 			<?php
 
 			foreach ($to_print as $date => $ddetail) {
-				if ($public && empty($ddetail['assignments'])) continue;
 				$class_clause = ($date == $this_sunday) ? 'class="tblib-hover"' : '';
 				?>
 				<tr <?php echo $class_clause; ?>>
