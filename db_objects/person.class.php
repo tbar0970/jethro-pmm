@@ -438,8 +438,10 @@ class Person extends DB_Object
 			if ($present == '' || $present == '?' || $present == 'unknown') continue;
 			$sets[] = '('.(int)$this->id.', '.(int)$groupid.', '.$db->quote($date).', '.(($present == 1 || $present == 'present') ? 1 : 0).')';
 		}
-		$SQL .= implode(",\n", $sets);
-		$res = $db->exec($SQL);
+		if ($sets) {
+			$SQL .= implode(",\n", $sets);
+			$res = $db->exec($SQL);
+		}
 
 	}
 
