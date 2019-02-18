@@ -346,7 +346,7 @@ class Person extends DB_Object
 		$all_notes = $family_notes + $person_notes;
 		ksort($all_notes);
 		if (ifdef('NOTES_ORDER', 'ASC') != 'ASC') {
-			$all_notes = array_reverse($all_notes);
+			$all_notes = array_reverse($all_notes, TRUE);
 		}
 		return $all_notes;
 	}
