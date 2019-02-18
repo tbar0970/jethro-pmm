@@ -896,8 +896,16 @@ class db_object
 				$operator = 'BETWEEN';
 				$field = substr($field, 1);
 			} else if ($field[0] == '(') {
-				$operator = 'IN';
-				$field = substr($field, 1);
+				if ($val === Array()) {
+					// We're checking if the value is a member of an empty set.
+					$prefix = '/* empty set check for '.$field.' */';
+					$field = '1';
+					$operator = '=';
+					$val = '2';
+				} else {
+					$operator = 'IN';
+					$field = substr($field, 1);
+				}
 			} else if ($field[0] == '_') {
 				// beginning-of-word match
 				$operator = 'WORDBEGIN';
