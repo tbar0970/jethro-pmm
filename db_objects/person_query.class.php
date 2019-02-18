@@ -8,7 +8,7 @@ class Person_Query extends DB_Object
 		'p.first_name', 'p.last_name', 'f.family_name', 'p.age_bracketid', 'p.gender', 'p.status', 'p.congregationid', NULL,
 		'p.email', 'p.mobile_tel', 'p.work_tel', 'f.home_tel', 'p.remarks',
 		'f.address_street', 'f.address_suburb', 'f.address_state', 'f.address_postcode', NULL,
-		'p.creator', 'p.created', 'f.created', 'p.status_last_changed', );
+		'p.id', 'f.id', 'p.creator', 'p.created', 'f.created', 'p.status_last_changed', );
 	private $_dummy_family = NULL;
 	private $_dummy_person = NULL;
 	private $_dummy_custom_field = NULL;
@@ -52,6 +52,8 @@ class Person_Query extends DB_Object
 				$this->_field_details['f.'.$i] = $v;
 				$this->_field_details['f.'.$i]['allow_empty'] = true;
 			}
+			$this->_field_details['p.id'] = Array('label' => 'Person ID');
+			$this->_field_details['f.id'] = Array('label' => 'Family ID');
 
 			$this->_custom_fields = $GLOBALS['system']->getDBObjectData('custom_field', Array(), 'OR', 'rank');
 			$this->_dummy_custom_field = new Custom_Field();
@@ -1565,6 +1567,10 @@ class Person_Query extends DB_Object
 								break;
 							case 'Attendance':
 								echo $val.'%';
+								break;
+							case 'p.id':
+							case 'f.id':
+								echo $val;
 								break;
 							default:
 								if (isset($this->_field_details[$label])) {
