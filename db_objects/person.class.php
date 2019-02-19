@@ -351,15 +351,6 @@ class Person extends DB_Object
 		return $all_notes;
 	}
 
-	function _compareCreatedDates($a, $b)
-	{
-		if (ifdef('NOTES_ORDER', 'ASC') == 'ASC') {
-			return $a['created'] > $b['created'];
-		} else {
-			return $a['created'] < $b['created'];
-		}
-	}
-
 	function validateFields()
 	{
 		if (!parent::validateFields()) return FALSE;
