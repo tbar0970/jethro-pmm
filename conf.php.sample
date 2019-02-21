@@ -205,6 +205,10 @@ define('DB_TYPE', 'mysql');
 // Write your own, or use the sample below to go direct to gmail.
 // function custom_email_href($to, $name, $bcc, $subject) { return 'https://mail.google.com/mail/?view=cm&fs=1&tf=1&to='.$to.'&bcc='.$bcc.'&su='.$subject; }
 
+// Custom function for adding attributes to email URLs.
+// Write your own, or use the sample below to make sure all mailto links open in a new window.
+// function custom_email_extras() { return 'target="_mail"'; }
+
 // Pre-filled values for the login form.  Only use on demo systems etc.
 // define('PREFILL_USERNAME', '');
 // define('PREFILL_PASSWORD', '');
