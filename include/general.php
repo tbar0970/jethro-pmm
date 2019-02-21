@@ -791,16 +791,6 @@ function get_email_href($to, $name=NULL, $bcc=NULL, $subject=NULL)
 	return 'mailto:'.$res;
 }
 
-/**
- * Returns any additional attributes to be added to an email link, eg target=blank
- * Can be overridden by defining custom_email_extras()
- * @return string
- */
-function email_link_extras()
-{
-	if (function_exists('custom_email_extras')) return custom_email_extras();
-}
-
 // From http://stackoverflow.com/questions/1182584/secure-random-number-generation-in-php
 // get 128 pseudorandom bits in a string of 16 bytes
 function generate_random_string($chars=16)
