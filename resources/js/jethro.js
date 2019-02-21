@@ -10,7 +10,7 @@ $(document).ready(function() {
 			localStorage.setItem('returnToPage', location);
 		} else {
 			var returnToPage = localStorage.getItem('returnToPage');
-			if (returnToPage) {
+			if (returnToPage && (returntoPage != location) && ($('.login-box').length == 0)) {
 				window.location = returnToPage;
 			}
 			sessionStorage.setItem('insideApp', true);
