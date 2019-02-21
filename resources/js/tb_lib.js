@@ -11,7 +11,7 @@ $(document).ready(function() {
 	if ($('.stop-js').length) return; /* Classname flag for big pages that don't want JS to run */
 
 	// open mailto links in a new window (eg for gmail), but close the new window if it's unused (eg outlook desktop)
-	$('a[href^="mailto:"]').click(function() {
+	$('body').on('click', 'a[href^="mailto:"], a[href*="mail.google.com"]', function() {
 		var windowRef = window.open(this.href, '_email');
 
 		windowRef.focus();
