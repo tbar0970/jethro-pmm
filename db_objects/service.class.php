@@ -573,7 +573,7 @@ class service extends db_object
 
 					// only save personnel if it's been changed from the component's default
 					// so that if the roster changes, the run sheet will auto updated.
-					if ($item['personnel'] == $comps[$item['componentid']]['personnel']) {
+					if ($item['personnel'] == $this->replaceKeywords($comps[$item['componentid']]['personnel'])) {
 						$item['personnel'] = '';
 					}
 				} else {
