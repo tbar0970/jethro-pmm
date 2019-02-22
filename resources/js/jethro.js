@@ -1180,6 +1180,13 @@ JethroRoster.init = function() {
 		$('#choose-assignee-modal input').val('');
 		$target.change(); //bubbles the props up so it looks orange
 		setTimeout(function() { $target.effect("pulsate", {times: 2}, 700) }, 600);
+
+		if ($('#choose-assignee-modal input[name=add-to-group]').attr('checked')) {
+			var matches = JethroRoster.CUSTOM_ASSIGNEE_TARGET.name.match(/assignees\[([0-9]+)\]/);
+			var roleID = matches[1];
+			$(JethroRoster.CUSTOM_ASSIGNEE_TARGET.form).append('<input type="hidden" name="new_volunteers['+roleID+'][]" value="'+newID+'" />');
+		}
+
 	});
 	$('#choose-assignee-cancel').click(function() {
 		$(JethroRoster.CUSTOM_ASSIGNEE_TARGET).val('');

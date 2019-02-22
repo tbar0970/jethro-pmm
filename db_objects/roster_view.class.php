@@ -683,6 +683,10 @@ class roster_view extends db_object
 				</div>
 				<div class="modal-body">
 					<?php Person::printSingleFinder('personid', NULL); ?>
+					<label class="checkbox">
+						<input type="checkbox" name="add-to-group" value="1" />
+						Add this person to the volunteer group for this role
+					</label>
 				</div>
 				<div class="modal-footer">
 					<button class="btn" data-dismiss="modal" id="choose-assignee-save">Save</button>
@@ -1002,6 +1006,25 @@ class roster_view extends db_object
 			$role = $GLOBALS['system']->getDBObject('roster_role', $roleid);
 			$role->releaseLock('assignments');
 		}
+
+		if (!empty($_POST['new_volunteers'])) {
+			foreach ($_POST['new_volunteers'] as $roleID => $personIDs) {
+				$role = $GLOBALS['system']->getDBObject('roster_role', $roleid);
+				if (!$role) {
+					trigger_error("Could not find role #$roleID to add new volunteer");
+					continue;
+				}
+				$group = $GLOBALS['system']->getDBObject('person_group', $role->getValue('volunteer_group'));
+				if (!$group) {
+					trigger_error("Could not find volunteer group for role #$roleID");
+					continue;
+				}
+				foreach ($personIDs as $personID) {
+					$group->addMember($personID);
+				}
+			}
+		}
+
 		$GLOBALS['system']->doTransaction('COMMIT');
 		add_message("Role allocations saved");
 		redirect('rosters__display_roster_assignments');
