@@ -5,13 +5,13 @@ $(document).ready(function() {
 	// Make standalone safari stay standalone
 	if (("standalone" in window.navigator) && window.navigator.standalone) {
 		// http://www.andymercer.net/blog/2016/02/full-screen-web-apps-on-ios/
-		var insideApp = sessionStorage.getItem('insideApp'), location = window.location, stop = /^(a|html)$/i;
+		var insideApp = sessionStorage.getItem('insideApp'), location = window.location.href, stop = /^(a|html)$/i;
 		if (insideApp) {
 			localStorage.setItem('returnToPage', location);
 		} else {
 			var returnToPage = localStorage.getItem('returnToPage');
-			if (returnToPage && (returntoPage != location) && ($('.login-box').length == 0)) {
-				window.location = returnToPage;
+			if (returnToPage && (returnToPage != location) && ($('.login-box').length == 0)) {
+				window.location.href = returnToPage;
 			}
 			sessionStorage.setItem('insideApp', true);
 		}
