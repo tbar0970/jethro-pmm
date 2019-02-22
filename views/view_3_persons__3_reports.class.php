@@ -3,8 +3,6 @@
 class View_Persons__Reports extends View
 {
 	var $_query;
-	var $_have_results = FALSE;
-	var $_result_counts = Array();
 
 	static function getMenuPermissionLevel()
 	{
@@ -33,12 +31,6 @@ class View_Persons__Reports extends View
 				redirect($_REQUEST['view']);
 			}
 		}
-		if (!empty($_POST['show_result_count_queryids'])) {
-			foreach($_POST['show_result_count_queryids'] as $queryid) {
-				$query = new Person_Query($queryid);
-				$this->_result_counts[$queryid] = $query->getResultCount();
-			}
-		}
 		if (!empty($_POST['query_submitted'])) {
 			$this->_query->processForm();
 			if ($this->_query->id) {
@@ -49,7 +41,7 @@ class View_Persons__Reports extends View
 			redirect($_REQUEST['view'], Array('queryid' => !empty($_REQUEST['return']) ? NULL : $this->_query->id));
 		}
 	}
-	
+
 	function getTitle()
 	{
 		if ($this->_query) {
@@ -70,7 +62,7 @@ class View_Persons__Reports extends View
 			return _('Person Reports');
 		}
 	}
-	
+
 	function printView()
 	{
 		if (!empty($_REQUEST['configure'])) {
@@ -133,13 +125,6 @@ class View_Persons__Reports extends View
 							<th><?php echo _('Actions');?></th>
 							<th></th>
 							<th></th>
-						<?php
-						if (!empty($this->_result_counts)) {
-							?>
-							<th><?php echo _('Results');?></th>
-							<?php
-						}
-						?>
 						</tr>
 					</thead>
 					<tbody>
@@ -156,13 +141,6 @@ class View_Persons__Reports extends View
 								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=TEMP"><i class="icon-list"></i><?php echo _('View');?></a> &nbsp;
 							</td>
 							<td>&nbsp;</td>
-						<?php
-						if (!empty($this->_result_counts)) {
-							?>
-							<td></td>
-							<?php
-						}
-						?>
 						</tr>
 						<?php
 					}
@@ -199,21 +177,12 @@ class View_Persons__Reports extends View
 							}
 							?>
 							</td>
-							<td class="narrow"><input type="checkbox" name="show_result_count_queryids[]" value="<?php echo (int)$id; ?>" <?php if (isset($this->_result_counts[$id])) echo 'checked="checked"'; ?> /></td>
-						<?php
-						if (!empty($this->_result_counts)) {
-							?>
-							<td class="narrow"><b><?php if (isset($this->_result_counts[$id])) echo (int)$this->_result_counts[$id]; ?></b></td>
-							<?php
-						}
-						?>
 						</tr>
 						<?php
 					}
 					?>
 					</tbody>
 				</table>
-				<input type="submit" class="btn-link pull-right" name="show_result_count" value=<?php echo _('"Show result counts for selected reports"');?> />
 				</form>
 				<?php
 			}
