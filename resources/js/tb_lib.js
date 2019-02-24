@@ -396,20 +396,20 @@ $(document).ready(function() {
 
 
 
-var DATA_CHANGED = false;
+window.DATA_CHANGED = false;
 function setupUnsavedWarnings()
 {
 	var warnForms = $('form.warn-unsaved');
 	if (warnForms.length) {
 		warnForms.submit(function() {
-			DATA_CHANGED = false;
+			window.DATA_CHANGED = false;
 		}).find('input, select, textarea').keypress(function() {
-			DATA_CHANGED = true;
+			window.DATA_CHANGED = true;
 		}).change(function() {
-			DATA_CHANGED = true;
+			window.DATA_CHANGED = true;
 		})
 		window.onbeforeunload = function() {
-			if (DATA_CHANGED) return 'You have unsaved changes which will be lost if you don\'t save first';
+			if (window.DATA_CHANGED) return 'You have unsaved changes which will be lost if you don\'t save first';
 		}
 	}
 }

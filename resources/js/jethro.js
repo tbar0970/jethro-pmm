@@ -17,7 +17,7 @@ $(document).ready(function() {
 		}
 
 		// add a back button
-		$('a.brand').parent().prepend('<i class="icon-white icon-chevron-left" onclick="history.go(-1); "></i>')
+		$('a.brand').parent().prepend('<ei class="icon-white icon-chevron-left" onclick="history.go(-1); "></i>')
 
 		// stay inside the app, avoid linking out to mobile safari
 		$("a").click(function (event) {
@@ -1400,7 +1400,7 @@ function showLockExpiredWarning()
 	$('.reload').click(function() {
 		document.location.href = document.location;
 	});
-
+	window.DATA_CHANGED = false; // see setupUnsavedWarnings() in tb_lib.js
 }
 
 // Allow certain submit buttons to target their form to an envelope-sized popup or hidden frame.
