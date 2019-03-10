@@ -70,25 +70,6 @@ class Attendance_Record_Set
 	{
 	}
 
-
-	function getInitSQL($table_name=NULL)
-	{
-		return "
-			CREATE TABLE `attendance_record` (
-			  `date` date NOT NULL default '0000-00-00',
-			  `personid` int(11) NOT NULL default '0',
-			  `groupid` int(11) NOT NULL default '0',
-			  `present` tinyint(1) unsigned NOT NULL default '0',
-			  PRIMARY KEY  (`date`,`personid`,`groupid`)
-			) ENGINE=InnoDB ;
-		";
-	}
-
-	public function getForeignKeys()
-	{
-		return Array();
-	}
-
 	function load($date, $cohort, $age_brackets, $statuses)
 	{
 		$this->date = $date;
@@ -167,6 +148,11 @@ class Attendance_Record_Set
 		if ($this->congregationid) {
 			$conds['congregationid'] = $this->congregationid;
 			$this->_persons = $GLOBALS['system']->getDBObjectData('person', $conds, 'AND', $order);
+			foreach (Roster_Role_Assignment::getAssignmentsForDateAndCong($date, $this->congregationid) as $personid => $asns) {
+				if (isset($this->_persons[$personid])) {
+					$this->_persons[$personid]['assignments'] = $asns;
+				}
+			}
 		} else {
 			$group = $GLOBALS['system']->getDBObject('person_group', $this->groupid);
 			$this->_persons = $group->getMembers($conds, $order);
@@ -296,6 +282,11 @@ class Attendance_Record_Set
 			?>
 				<td>
 					<?php echo ents($details['first_name'].' '.$details['last_name']); ?>
+					<?php
+					if (!empty($details['assignments'])) {
+						echo '<br /><small><i>'.ents($details['assignments']).'</i></small>';
+					}
+					?>
 				</td>
 			<?php
 			if (!SizeDetector::isNarrow()) {
@@ -321,7 +312,13 @@ class Attendance_Record_Set
 				<td class="action-cell narrow">
 					<a class="med-popup" tabindex="-1" href="?view=persons&personid=<?php echo $personid; ?>"><i class="icon-user"></i>View</a> &nbsp;
 					<a class="med-popup" tabindex="-1" href="?view=_edit_person&personid=<?php echo $personid; ?>"><i class="icon-wrench"></i>Edit</a> &nbsp;
+				<?php
+				if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
+					?>
 					<a class="med-popup" tabindex="-1" href="?view=_add_note_to_person&personid=<?php echo $personid; ?>"><i class="icon-pencil"></i>Add Note</a>
+					<?php
+				}
+				?>
 				</td>
 				<?php
 			}
@@ -346,7 +343,7 @@ class Attendance_Record_Set
 			$headcountValue = Headcount::fetch('person_group', $this->date, $this->groupid);
 		}
 		?>
-		<input type="text" class="int-box" name="<?php echo $headcountFieldName; ?>" value="<?php echo $headcountValue; ?>" size="5" />
+		<input type="number" inputmode="numeric" pattern="[0-9]*" name="<?php echo $headcountFieldName; ?>" value="<?php echo $headcountValue; ?>" style="width: 60px" />
 		<input type="button" class="btn" onclick="var x = $(this).siblings('input').get(0); x.value = x.value == '' ? 1 : parseInt(x.value, 10)+1" value="+" />
 		<?php
 	}
@@ -474,22 +471,34 @@ class Attendance_Record_Set
 		list($type, $id) = explode('-', $cohortid);
 		$groupid = ($type == 'g') ? $id : 0;
 		$status_col = ($type == 'g') ? 'pgms.id' : 'p.status';
-		$cohort_where = 'ar.groupid = '.(int)$groupid;
 		$cohort_joins = '';
 		if ($type == 'c') {
-			$cohort_where .= ' AND p.congregationid = '.(int)$id;
+			$cohort_where = 'ar.groupid = 0 ';
+			if ($id != '*') {
+				$cohort_where .= ' AND p.congregationid = '.(int)$id;
+			}
 		}
 		if ($type == 'g') {
+			$cohort_where = 'ar.groupid = '.(int)$groupid;
 			$cohort_joins = '
 							LEFT JOIN person_group_membership pgm ON pgm.personid = p.id AND pgm.groupid = ar.groupid
 							LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status
 							';
 
 		}
-		$stats = Array();
-		$stats[NULL]['rate'] = $stats[NULL]['avg_present'] = $stats[NULL]['avg_absent'] = 0;
+		if ($type == 'gc') {
+			$cohort_where = 'pg.categoryid = '.(int)$id;
+			$cohort_joins = '
+							JOIN person_group pg ON pg.id = ar.groupid
+							LEFT JOIN person_group_membership pgm ON pgm.personid = p.id AND pgm.groupid = ar.groupid
+							LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status
+							';
 
-		foreach (Array('status', 'age_bracketid') as $groupingField) {
+		}
+		$stats = Array();
+
+		foreach (Array('age_bracketid', 'status') as $groupingField) {
+			$stats[NULL]['rate'] = $stats[NULL]['avg_present'] = $stats[NULL]['avg_absent'] = 0.0;
 			$rank = ($groupingField == 'status' && $type == 'g') ? 'rank, ' : '';
 			$selectCol = ($groupingField == 'status') ? $status_col : $groupingField;
 
@@ -512,7 +521,7 @@ class Attendance_Record_Set
 						GROUP BY ar.personid, '.$selectCol.'
 					) indiv
 					GROUP BY '.$rank.' '.$groupingField.' WITH ROLLUP';
-			$res = $db->queryAll($sql);			
+			$res = $db->queryAll($sql);
 
 			foreach ($res as $row) {
 				if (NULL !== $row[$groupingField]) {
@@ -539,8 +548,9 @@ class Attendance_Record_Set
 						WHERE
 							ar.date BETWEEN '.$db->quote($start_date).' AND '.$db->quote($end_date).'
 							AND '.$cohort_where.'
-						GROUP BY ar.date, '.$groupingField.'
-					) perdate GROUP BY '.$groupingField.'';
+						GROUP BY ar.date, '.$selectCol.'
+					) perdate GROUP BY '.$groupingField.' ';
+
 			$res = $db->queryAll($sql);
 			foreach ($res as $row) {
 				foreach (Array('avg_present', 'avg_absent') as $key) {
@@ -549,7 +559,6 @@ class Attendance_Record_Set
 				}
 			}
 		}
-		//exit;
 		return $stats;
 	}
 

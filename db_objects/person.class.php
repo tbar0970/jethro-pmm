@@ -218,8 +218,9 @@ class Person extends DB_Object
 		parent::load($id);
 
 		// Load custom values
-		$SQL = 'SELECT v.fieldid, '.Custom_Field::getRawValueSQLExpr('v').' as value
+		$SQL = 'SELECT v.fieldid, '.Custom_Field::getRawValueSQLExpr('v', 'f').' as value
 				FROM custom_field_value v
+				JOIN custom_field f ON v.fieldid = f.id
 				WHERE personid = '.(int)$this->id;
 		$res = $GLOBALS['db']->queryAll($SQL, NULL, NULL, true, FALSE, TRUE);
 		$this->_custom_values = $res;
@@ -241,44 +242,46 @@ class Person extends DB_Object
 				return;
 			case 'mobile_tel':
 				if (!strlen($value)) return;
-				echo ents($this->getFormattedValue($name, $value));
-
-				$smsLink = '';
-				if (SizeDetector::isNarrow()) {
-					// Probably a phone - use a plain sms: link
-					$smsLink = 'href="sms:'.ents($value).'"';
-				} else if (
-						defined('SMS_HTTP_URL')
-						&& constant('SMS_HTTP_URL')
-						&& $GLOBALS['user_system']->havePerm(PERM_SENDSMS)
-						&& !empty($this->id)
-					) {
-					// Provide a link to send SMS through the SMS gateway
-					$smsLink = 'href="#send-sms-modal" data-toggle="sms-modal" data-personid="' . $this->id . '" data-name="' . $person_name . '"';
-
+				$links = Array('<a href="tel:'.ents($value).'"><i class="icon-phone"></i> Call</a>');
+				if (SMS_Sender::canSend()) {
+					$msg = _('SMS via Jethro');
+					$links[] = '<a href="#send-sms-modal" data-toggle="sms-modal" data-personid="' . $this->id . '" data-name="' . $person_name . '"><i class="icon-envelope"></i> '.$msg.'</a>';
 					static $printedModal = FALSE;
 					if (!$printedModal) {
 						SMS_Sender::printModal();
 						$printedModal = TRUE;
 					}
 				}
-				?>
-				<span class="nowrap">
-					<a href="tel:<?php echo ents($value); ?>" class="btn btn-mini"><i class="icon-phone"></i></a>
-				<?php
-				if ($smsLink) {
-					?>
-					<a <?php echo $smsLink; ?> class="btn btn-mini btn-sms"><i class="icon-envelope"></i></a>
-					<?php
+				if (FALSE !== strpos($_SERVER['HTTP_USER_AGENT'], 'Macintosh')) {
+					// on mac we can use the messages app
+					$msg = _('SMS via iMessage');
+					$links[] = '<a href="imessage:'.ents($value).'"><i class="icon-envelope"></i> '.$msg.'</a>';
+				} else if (SizeDetector::isNarrow()) {
+					// Probably a phone - use SMS link
+					$msg = SMS_Sender::canSend() ? 'SMS via my device' : 'SMS';
+					$links[] = '<a href="sms:'.ents($value).'"><i class="icon-envelope"></i> '.$msg.'</a>';
 				}
+
 				?>
+				<span class="dropdown nowrap">
+					<a class="dropdown-toggle mobile-tel" id="mobile-<?php echo $this->id; ?>" data-toggle="dropdown" href="#"><?php echo ents($this->getFormattedValue('mobile_tel')); ?></a>
+					<ul class="dropdown-menu" role="menu" aria-labelledby="mobile-<?php echo $this->id; ?>">
+					<?php
+					foreach ($links as $l) {
+						?>
+						<li><?php echo $l; ?></li>
+						<?php
+					}
+					?>
+					</ul>
 				</span>
 				<?php
 				return;
-
+			default:
+				parent::printFieldValue($name, $value);
 
 		}
-		parent::printFieldValue($name, $value);
+
 	}
 
 	protected function _printSummaryRows() {
@@ -321,7 +324,7 @@ class Person extends DB_Object
 					<th><?php echo ents($fieldDetails['name']); ?></th>
 					<td>
 						<?php
-						foreach ($this->_custom_values[$fieldid] as $j => $val) {
+						foreach ((array)$this->_custom_values[$fieldid] as $j => $val) {
 							if ($j > 0) echo '<br />';
 							$dummyField->printFormattedValue($val);
 						}
@@ -341,17 +344,11 @@ class Person extends DB_Object
 		$family_notes = $GLOBALS['system']->getDBObjectData('family_note', Array('familyid' => $this->getValue('familyid')));
 		$person_notes = $GLOBALS['system']->getDBObjectData('person_note', Array('personid' => $this->id));
 		$all_notes = $family_notes + $person_notes;
-		uasort($all_notes, Array($this, '_compareCreatedDates'));
-		return $all_notes;
-	}
-
-	function _compareCreatedDates($a, $b)
-	{
-		if (ifdef('NOTES_ORDER', 'ASC') == 'ASC') {
-			return $a['created'] > $b['created'];
-		} else {
-			return $a['created'] < $b['created'];
+		ksort($all_notes);
+		if (ifdef('NOTES_ORDER', 'ASC') != 'ASC') {
+			$all_notes = array_reverse($all_notes, TRUE);
 		}
+		return $all_notes;
 	}
 
 	function validateFields()
@@ -362,6 +359,13 @@ class Person extends DB_Object
 			return FALSE;
 		}
 		return TRUE;
+	}
+
+	function hasAttendance()
+	{
+		$SQL = 'SELECT count(*) FROM attendance_record
+				WHERE personid = '.(int)$this->id;
+		return $GLOBALS['db']->queryOne($SQL);
 	}
 
 
@@ -425,8 +429,10 @@ class Person extends DB_Object
 			if ($present == '' || $present == '?' || $present == 'unknown') continue;
 			$sets[] = '('.(int)$this->id.', '.(int)$groupid.', '.$db->quote($date).', '.(($present == 1 || $present == 'present') ? 1 : 0).')';
 		}
-		$SQL .= implode(",\n", $sets);
-		$res = $db->exec($SQL);
+		if ($sets) {
+			$SQL .= implode(",\n", $sets);
+			$res = $db->exec($SQL);
+		}
 
 	}
 
@@ -472,7 +478,7 @@ class Person extends DB_Object
 
 	}
 
-	function save($update_family=TRUE)
+	public function save($update_family=TRUE)
 	{
 		$GLOBALS['system']->doTransaction('BEGIN');
 		$msg = '';
@@ -550,7 +556,8 @@ class Person extends DB_Object
 		return $res;
 	}
 
-	function _savePhoto() {
+	private function _savePhoto()
+	{
 		$db =& $GLOBALS['db'];
 		if ($this->_photo_data) {
 			$SQL = 'REPLACE INTO person_photo (personid, photodata)
@@ -559,10 +566,25 @@ class Person extends DB_Object
 		}
 	}
 
-	function _saveCustomValues() {
+	private function _clearPhoto()
+	{
+		$db =& $GLOBALS['db'];
+		$SQL = 'DELETE FROM person_photo WHERE personid = '.(int)$this->id;
+		return $db->query($SQL);
+	}
+
+	private function _clearCustomValues()
+	{
 		$db =& $GLOBALS['db'];
 		$SQL = 'DELETE FROM custom_field_value WHERE personid = '.(int)$this->id;
 		$res = $db->query($SQL);
+	}
+
+	private function _saveCustomValues()
+	{
+		if (empty($this->_old_custom_values)) return; // Nothing to do.
+		$this->_clearCustomValues();
+		$db =& $GLOBALS['db'];
 		$SQL = 'INSERT INTO custom_field_value
 				(personid, fieldid, value_text, value_date, value_optionid)
 				VALUES ';
@@ -618,6 +640,13 @@ class Person extends DB_Object
 		return $res;
 	}
 
+	public function reset()
+	{
+		parent::reset();
+		$this->_custom_values = Array();
+		$this->_old_custom_values = Array();
+		$this->_photo_data = NULL;
+	}
 
 	function create()
 	{
@@ -699,7 +728,7 @@ class Person extends DB_Object
 	static function getCustomMergeData($personids,$formatted=TRUE)
 	{
 		$db = $GLOBALS['db'];
-		$SQL = 'SELECT '.Custom_Field::getRawValueSQLExpr('v').' AS value, f.name, v.personid, v.fieldid
+		$SQL = 'SELECT '.Custom_Field::getRawValueSQLExpr('v', 'f').' AS value, f.name, v.personid, v.fieldid
 				FROM custom_field_value v
 				JOIN custom_field f ON v.fieldid = f.id
 				WHERE v.personid IN ('.implode(',', array_map(Array($db, 'quote'), $personids)).')';
@@ -726,12 +755,12 @@ class Person extends DB_Object
 		}
 		return $res;
 	}
-		
+
 	function getInstancesQueryComps($params, $logic, $order)
 	{
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
 		$res['select'][] = 'f.family_name, f.address_street, f.address_suburb, f.address_state, f.address_postcode, f.home_tel, c.name as congregation, ab.label as age_bracket';
-		$res['from'] = '(('.$res['from'].') 
+		$res['from'] = '(('.$res['from'].')
 						JOIN family f ON person.familyid = f.id)
 						LEFT JOIN congregation c ON person.congregationid = c.id
 						JOIN age_bracket ab on ab.id = person.age_bracketid ';
@@ -817,11 +846,12 @@ class Person extends DB_Object
 	function processForm($prefix='', $fields=NULL)
 	{
 		$res = parent::processForm($prefix, $fields);
-		foreach ($this->getCustomFields() as $fieldid => $fieldDetails) {
-			$field = $GLOBALS['system']->getDBObject('custom_field', $fieldid);
-			$this->setCustomValue($fieldid, $field->processWidget($prefix));
+		if (empty($fields)) {
+			foreach ($this->getCustomFields() as $fieldid => $fieldDetails) {
+				$field = $GLOBALS['system']->getDBObject('custom_field', $fieldid);
+				$this->setCustomValue($fieldid, $field->processWidget($prefix));
+			}
 		}
-
 		$this->_photo_data = Photo_Handler::getUploadedPhotoData($prefix.'photo');
 		return $res;
 	}
@@ -831,7 +861,7 @@ class Person extends DB_Object
 		switch ($name) {
 			case 'photo':
 				?>
-				<input type="file" capture="camera" accept="image/*" name="<?php echo $prefix; ?>photo" />
+				<input type="file" accept="image/*" name="<?php echo $prefix; ?>photo" />
 				<?php
 				break;
 			case 'familyid':
@@ -892,10 +922,14 @@ class Person extends DB_Object
 		return $this->_custom_values;
 	}
 
-	public function fromCsvRow($row) {
-		$this->_custom_values = Array();
-		$this->_old_custom_values = Array();
-		
+	/**
+	 * Set values (incl custom values) from an array of data from CSV
+	 * NB it should NOT assume that the input row contains ALL custom fields
+	 * Any existing data not mentioned in the import row should be retained.
+	 * @param array $row
+	 * @param bool $overwriteExistingValues	For fields that already have a value, whether to overwrite with new data from $row.
+	 */
+	public function fromCsvRow($row, $overwriteExistingValues=TRUE) {
 		static $customFields = NULL;
 		if ($customFields === NULL) {
 			$fields = $GLOBALS['system']->getDBObjectdata('custom_field');
@@ -905,9 +939,14 @@ class Person extends DB_Object
 			}
 		}
 		foreach ($row as $k => $v) {
-			$k = strtolower($k);
+			$k = str_replace(' ', '_', strtolower($k));
 			if (isset($customFields[$k]) && strlen($v)) {
-				$this->setCustomValue($customFields[$k]->id, $customFields[$k]->parseValue($v));
+				if (empty($this->id)
+						|| $overwriteExistingValues
+						|| ($this->_custom_values[$customFields[$k]->id] == '')
+				) {
+					$this->setCustomValue($customFields[$k]->id, $customFields[$k]->parseValue($v));
+				}
 				unset($row[$k]); // so it doesn't upset db_object::fromCsvRow
 			}
 		}
@@ -927,7 +966,7 @@ class Person extends DB_Object
 			unset($row['age_bracket']);
 		}
 
-		parent::fromCsvRow($row);
+		parent::fromCsvRow($row, $overwriteExistingValues);
 	}
 
 	public function populate($id, $values)
@@ -935,7 +974,7 @@ class Person extends DB_Object
 		parent::populate($id, $values);
 		$this->_custom_values = Array();
 		$this->_old_custom_values = Array();
-		
+
 		foreach ($values as $k => $v) {
 			if (0 === strpos($k, 'CUSTOM_')) {
 				$this->setCustomValue(substr($k, 7), $v);
@@ -943,5 +982,69 @@ class Person extends DB_Object
 		}
 	}
 
+	/**
+	 * Archive and clean this record:
+	 *  Change their name to "Removed"
+	 *	Change their status to "archived"
+	 *	Blank out all their fields except congregation
+	 *	Clear their history and notes
+	 *	Preserve their (anonymous) roster assignments, group memberships and attendance records
+	 */
+	public function archiveAndClean()
+	{
+		$res = 1;
+		$GLOBALS['system']->doTransaction('BEGIN');
+		$this->setValue('first_name', '['._('Removed').']');
+		$this->setValue('last_name', '['._('Removed').']');
+		$this->setValue('email', '');
+		$this->setValue('mobile_tel', '');
+		$this->setValue('work_tel', '');
+		$this->setValue('remarks', '');
+		$this->setValue('gender', '');
+		$this->setValue('feed_uuid', '');
+		$this->setValue('status', 'archived');
+		$this->setValue('history', Array());
+		$this->_clearCustomValues();
+		$this->_clearPhoto();
+		if (!$this->save(FALSE)) return FALSE;
+
+		$notes = $GLOBALS['system']->getDBObjectData('person_note', Array('personid' => $this->id));
+		foreach ($notes as $noteid => $data) {
+			$n = new Person_Note($noteid);
+			$n->delete();
+		}
+
+		$family = $GLOBALS['system']->getDBObject('family', $this->getValue('familyid'));
+		$members = $family->getMemberData();
+		$found_live_member = false;
+		foreach ($members as $id => $details) {
+			if ($id == $this->id) continue;
+			if ($details['status'] != 'archived') {
+				$found_live_member = true;
+				break;
+			}
+		}
+		if (!$found_live_member) {
+			if ($family->archiveAndClean()) $res = 2;
+		}
+
+		$GLOBALS['system']->doTransaction('COMMIT');
+		return $res;
+	}
+
+	public function delete()
+	{
+		$GLOBALS['system']->doTransaction('BEGIN');
+		$family = $GLOBALS['system']->getDBObject('family', $this->getValue('familyid'));
+		$members = $family->getMemberData();
+		unset($members[$this->id]);
+		parent::delete();
+		if (empty($members)) {
+			$family->delete();
+		}
+		Abstract_Note::cleanupInstances();
+		$GLOBALS['system']->doTransaction('COMMIT');
+	}
 
 }
+

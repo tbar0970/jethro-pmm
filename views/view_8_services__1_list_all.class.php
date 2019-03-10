@@ -400,11 +400,11 @@ class View_Services__List_All extends View
 				<td class="nowrap">
 					<?php print_widget('end_date', Array('type' => 'date'), $this->_end_date); ?>
 					&nbsp;
-					<input type="submit" class="btn" value="View" />
+					<input type="submit" class="btn" value="View Schedule" />
 				<?php
 				if ($GLOBALS['user_system']->havePerm(PERM_BULKSERVICE)) {
 					?>
-					<input type="submit" name="editing" class="btn" value="Edit" />
+					<input type="submit" name="editing" class="btn" value="Edit Schedule" />
 					<?php
 				}
 				if ($this->_editing) {

@@ -5,6 +5,10 @@ include_once JETHRO_ROOT.'/db_objects/family.class.php';
 class Member extends DB_Object
 {
 
+	function toString()
+	{
+		return $this->values['first_name'].' '.$this->values['last_name'];
+	}
 
 	protected static function _getFields()
 	{

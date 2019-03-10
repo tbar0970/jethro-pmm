@@ -6,6 +6,7 @@ class System_Controller
 	private $_friendly_errors = false;
 	private $_base_dir = '';
 	private $_object_cache = Array();
+	private $_transaction_depth = 0;
 
 	static private $instance = NULL;
 
@@ -217,9 +218,17 @@ class System_Controller
 	{
 		switch (strtoupper($operation)) {
 			case 'BEGIN':
+				$this->_transaction_depth++;
+				if ($this->_transaction_depth == 1) $GLOBALS['db']->beginTransaction();
+				break;
 			case 'COMMIT':
+				$this->_transaction_depth--;
+				if ($this->_transaction_depth == 0) $GLOBALS['db']->commit();
+				break;
 			case 'ROLLBACK':
-				$r = $GLOBALS['db']->query(strtoupper($operation));
+				// Rollback always rolls back everything
+				@$GLOBALS['db']->rollback();
+				$this->_transaction_depth--;
 		}
 	}
 
@@ -314,7 +323,9 @@ class System_Controller
 		}
 		if ($send_email && defined('ERRORS_EMAIL_ADDRESS') && constant('ERRORS_EMAIL_ADDRESS')) {
 			$content = "$errstr \nLine $errline of $errfile\n\n";
-			if (!empty($GLOBALS['user_system'])) $content .= "USER:       ".$GLOBALS['user_system']->getCurrentUser('username')."\n";
+			if (!empty($GLOBALS['user_system'])) {
+				$content .= "USER:       ".$GLOBALS['user_system']->getCurrentPerson('id')." ".$GLOBALS['user_system']->getCurrentUser('user')."\n";
+			}
 			$content .= 'REFERER:    '.array_get($_SERVER, 'HTTP_REFERER', '')."\n";
 			$content .= 'USER_AGENT: '.array_get($_SERVER, 'HTTP_USER_AGENT', '')."\n\n";
 			$safe_request = $_REQUEST;

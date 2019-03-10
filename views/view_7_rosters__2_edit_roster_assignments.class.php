@@ -11,6 +11,10 @@ class View_Rosters__Edit_Roster_Assignments extends View_Rosters__Display_Roster
 
 	function processView()
 	{
+		if (!empty($_REQUEST['viewing']) && $_REQUEST['view'] == 'rosters__edit_roster_assignments') {
+			redirect('rosters__display_roster_assignments');
+		}
+
 		parent::processView();
 
 		if (!empty($_POST) && !empty($this->_view)) {

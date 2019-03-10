@@ -4,7 +4,22 @@ $(document).ready(function() {
 
 	// Make standalone safari stay standalone
 	if (("standalone" in window.navigator) && window.navigator.standalone) {
-		$('a.brand').parent().prepend('<i class="icon-white icon-chevron-left" onclick="history.go(-1); "></i>')
+		// http://www.andymercer.net/blog/2016/02/full-screen-web-apps-on-ios/
+		var insideApp = sessionStorage.getItem('insideApp'), location = window.location.href, stop = /^(a|html)$/i;
+		if (insideApp) {
+			localStorage.setItem('returnToPage', location);
+		} else {
+			var returnToPage = localStorage.getItem('returnToPage');
+			if (returnToPage && (returnToPage != location) && ($('.login-box').length == 0)) {
+				window.location.href = returnToPage;
+			}
+			sessionStorage.setItem('insideApp', true);
+		}
+
+		// add a back button
+		$('a.brand').parent().prepend('<ei class="icon-white icon-chevron-left" onclick="history.go(-1); "></i>')
+
+		// stay inside the app, avoid linking out to mobile safari
 		$("a").click(function (event) {
 			if ((!$(this).attr('target'))
 					&& (!$(this).attr('data-toggle'))
@@ -18,6 +33,9 @@ $(document).ready(function() {
 				return false;
 			}
 		});
+	}
+	if (("standalone" in window.navigator) && !window.navigator.standalone) {
+		// Opportunity to tell them to save to home screen
 	}
 
 	// This needs to be first!
@@ -1162,6 +1180,13 @@ JethroRoster.init = function() {
 		$('#choose-assignee-modal input').val('');
 		$target.change(); //bubbles the props up so it looks orange
 		setTimeout(function() { $target.effect("pulsate", {times: 2}, 700) }, 600);
+
+		if ($('#choose-assignee-modal input[name=add-to-group]').attr('checked')) {
+			var matches = JethroRoster.CUSTOM_ASSIGNEE_TARGET.name.match(/assignees\[([0-9]+)\]/);
+			var roleID = matches[1];
+			$(JethroRoster.CUSTOM_ASSIGNEE_TARGET.form).append('<input type="hidden" name="new_volunteers['+roleID+'][]" value="'+newID+'" />');
+		}
+
 	});
 	$('#choose-assignee-cancel').click(function() {
 		$(JethroRoster.CUSTOM_ASSIGNEE_TARGET).val('');
@@ -1375,7 +1400,7 @@ function showLockExpiredWarning()
 	$('.reload').click(function() {
 		document.location.href = document.location;
 	});
-
+	window.DATA_CHANGED = false; // see setupUnsavedWarnings() in tb_lib.js
 }
 
 // Allow certain submit buttons to target their form to an envelope-sized popup or hidden frame.
@@ -1431,7 +1456,7 @@ $(document).ready(function() {
 
 function handleNoteStatusChange(elt) {
 	var prefix = elt.name.replace('status', '');
-	var newDisplay = (elt.value == 'no_action') ? 'none' : '';
+	var newDisplay = (elt.value != 'pending') ? 'none' : '';
 	$('input[name='+prefix+'action_date_d]').parents('.control-group:first').css('display', newDisplay);
 	$('select[name='+prefix+'assignee]').parents('.control-group:first').css('display', newDisplay);
 	// the 'none' assignee should be removed when action is required

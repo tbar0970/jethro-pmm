@@ -115,7 +115,8 @@ class Person_Group extends db_object
 				  PRIMARY KEY  (`personid`,`groupid`),
 				  INDEX personid (personid),
 				  INDEX groupid (groupid),
-				  CONSTRAINT `membership_status_fk` FOREIGN KEY (membership_status) REFERENCES person_group_membership_status (id) ON DELETE RESTRICT
+				  CONSTRAINT `membership_status_fk` FOREIGN KEY (membership_status) REFERENCES person_group_membership_status (id) ON DELETE RESTRICT,
+				  CONSTRAINT `pgm_personid` FOREIGN KEY (personid) REFERENCES _person(id) ON DELETE CASCADE
 				) ENGINE=InnoDB",
 		);
 	}
@@ -308,7 +309,7 @@ class Person_Group extends db_object
 			case 'owner':
 				echo _(($value === NULL) ? 'Everyone' : 'Only me');
 				break;
-				
+
 			case 'categoryid':
 				if ($value == 0) {
 					echo '<i>(Uncategorised)</i>';
@@ -383,7 +384,6 @@ class Person_Group extends db_object
 		$params = Array(
 			'type' => 'select',
 			'options' => $options,
-			'class' => 'autofocus',
 		);
 		if (empty($value)) $value = $default;
 		if ($multi) {
@@ -512,6 +512,31 @@ class Person_Group extends db_object
 		$testIndex = array_search(date('l', strtotime($date)), $this->fields['attendance_recording_days']['options']);
 		return $testIndex & $this->getValue('attendance_recording_days');
 
+	}
+
+	/**
+	 * If there is exactly one group whose name matches, return the group object.
+	 * Matching is done case-insensitively, and considering spaces and underscores as the same.
+	 * @param string $name
+	 */
+	public static function findByName($name)
+	{
+		static $warnings = Array();
+		$name = str_replace(' ', '_', strtolower($name));
+		$SQL = 'SELECT * from person_group WHERE REPLACE(LOWER(name), " ", "_") = '.$GLOBALS['db']->quote($name);
+		$res = $GLOBALS['db']->queryAll($SQL, NULL, NULL, TRUE);
+		if (count($res) > 1) {
+			if (empty($warnings[$name])) {
+				add_message("Could not match a single group called \"".$name.'" - there are several groups with that name', 'warning');
+				$warnings[$name] = TRUE;
+			}
+		}
+		if (count($res) == 1) {
+			$g = new Person_Group();
+			$g->populate(key($res), reset($res));
+			return $g;
+		}
+		return NULL;
 	}
 
 

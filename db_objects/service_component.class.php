@@ -150,11 +150,9 @@ class Service_Component extends db_object
 		$res['from'] .= ' LEFT JOIN congregation cong ON cong.id = csc.congregationid ';
 		$res['from'] .=  ' LEFT JOIN service_item si ON si.componentid = service_component.id ';
 		$res['from'] .=  ' LEFT JOIN service svc ON svc.id = si.serviceid AND svc.congregationid = cong.id ';
-		$res['from'] .=  ' LEFT JOIN service svc1m ON svc1m.id = svc.id AND svc1m.date > NOW() - INTERVAL 1 MONTH ';
 		$res['from'] .=  ' LEFT JOIN service svc12m ON svc12m.id = svc.id AND svc12m.date > NOW() - INTERVAL 12 MONTH ';
 		$res['select'][] = 'IF (LENGTH(service_component.runsheet_title_format) = 0, cat.runsheet_title_format, service_component.runsheet_title_format) as runsheet_title_format ';
 		$res['select'][] = 'IF (LENGTH(service_component.personnel) = 0, cat.personnel_default, service_component.personnel) as personnel ';
-		$res['select'][] = 'COUNT(DISTINCT svc1m.id) AS usage_1m';
 		$res['select'][] = 'COUNT(DISTINCT svc12m.id) AS usage_12m';
 		$res['select'][] = 'MAX(svc.date) as lastused';
 		$res['group_by'] = 'service_component.id';

@@ -35,11 +35,23 @@ class roster_view extends db_object
 	{
 		$res = parent::load($id);
 
-		if (!$this->getValue('is_public') && !$GLOBALS['user_system']->getCurrentUser('id')) {
-			// We don't use trigger_error here because sysadmins don't really care.
-			header($_SERVER["SERVER_PROTOCOL"]." 401 Not Authorised");
-			print_message("Roster view #{$this->id} is only available to logged in users", 'error');
-			exit;
+		// Enforce visibility
+		switch ($this->getValue('visibility')) {
+			case '':
+				if (!$GLOBALS['user_system']->getCurrentUser('id')) {
+					header($_SERVER["SERVER_PROTOCOL"]." 401 Not Authorised");
+					print_message("Roster view #{$this->id} is only available to logged in operators", 'error');
+					exit;
+				}
+				break;
+			case 'members':
+				// Make sure either a user or a member is logged in
+				if (!$GLOBALS['user_system']->getCurrentPerson('id')) {
+					header($_SERVER["SERVER_PROTOCOL"]." 401 Not Authorised");
+					print_message("Roster view #{$this->id} is only available to logged in members", 'error');
+					exit;
+				}
+				break;
 		}
 
 		$sql = '(
@@ -90,11 +102,11 @@ class roster_view extends db_object
 									'initial_cap'	=> TRUE,
 									'allow_empty'	=> FALSE,
 								   ),
-			'is_public'		=> Array(
+			'visibility'		=> Array(
 									'type'		=> 'select',
-									'options'	=> Array(0 => 'No', 1 => 'Yes'),
+									'options'	=> Array('' => 'Private', 'members' => 'Show in members area', 'public' => 'Show in public area'),
 									'default'	=> 0,
-									'note' => 'Public roster views are available to non-logged-in users via the <a href="'.BASE_URL.'/public/">public site</a> and to church members via the <a href="'.BASE_URL.'/members/">member portal</a>',
+									'note' => 'Whether this roster view is visible in the <a href="'.BASE_URL.'/public/">public area</a> and/or to church members via the <a href="'.BASE_URL.'members/">members area</a>',
 								),
 			'show_on_run_sheet' => Array(
 									'type'	=> 'select',
@@ -114,7 +126,6 @@ class roster_view extends db_object
 			if (defined('PUBLIC_ROSTER_SECRET') && strlen(PUBLIC_ROSTER_SECRET)) {
 				$url .= '&secret='.PUBLIC_ROSTER_SECRET;
 			}
-			$this->fields['is_public']['note'] = 'If set to public, this roster will be available via the <a href="'.BASE_URL.'/members/">member portal</a> and to non-logged-in users at <a class="nowrap" href="'.$url.'">'.$url.'</a>';
 		}
 		parent::printForm($prefix, $fields);
 		unset($this->fields['members']);
@@ -346,14 +357,14 @@ class roster_view extends db_object
 		// will be shown as "Hidden".  BUT if this roster is public, we might as well
 		// show all names all the time.  But even if it's public we need to know
 		// which assignments involve 'hidden' persons so we treat them as read-only.
-		$visiblePersonTable = $this->getValue('is_public') ? '_person' : 'person';
+		$visiblePersonTable = ($this->getValue('visibility') == 'public') ? '_person' : 'person';
 
 		$sql = 'SELECT roster_role_id, assignment_date, rank, rra.personid,
 				IFNULL(CONCAT(publicassignee.first_name, " ", publicassignee.last_name), "'.self::hiddenPersonLabel.'") as assignee,
 				IF(privateassignee.id IS NULL, 1, 0) as assigneehidden,
 				privateassignee.email as email,
 				privateassignee.mobile_tel as mobile,
-				CONCAT(assigner.first_name, " ", assigner.last_name) as assigner, 
+				CONCAT(assigner.first_name, " ", assigner.last_name) as assigner,
 				rra.assignedon
 				FROM roster_role_assignment rra
 				LEFT JOIN person privateassignee ON rra.personid = privateassignee.id
@@ -502,6 +513,8 @@ class roster_view extends db_object
 		?>
 		</div>
 		<?php
+
+		return $asns;
 	}
 
 	function printSingleViewTable($service, $columns=2, $includeServiceFields=FALSE)
@@ -558,10 +571,17 @@ class roster_view extends db_object
 		if ($member['role_id']) {
 			if (empty($asn)) echo '--';
 			foreach ($asn as $rank => $asn) {
-				if ($withLinks) echo '<a href="?view=persons&personid='.$asn['personid'].'" class="med-popup">';
+				if ($withLinks) echo '<span class="nowrap"><a href="?view=persons&personid='.$asn['personid'].'" class="med-popup">';
 				echo ents($asn['name']);
 				if ($withLinks) {
 					echo '</a>';
+					if (('' === $asn['email'])) echo ' <img class="visible-desktop" src="'.BASE_URL.'resources/img/no_email.png" title="No Email Address" />';
+					if (('' === $asn['mobile']) && SMS_Sender::canSend()) {
+						echo ' <img class="visible-desktop" src="'.BASE_URL.'resources/img/no_phone.png" title="No Mobile" />';
+					}
+					echo '</span>';
+
+
 				} else {
 					echo '&nbsp;';
 				}
@@ -663,6 +683,10 @@ class roster_view extends db_object
 				</div>
 				<div class="modal-body">
 					<?php Person::printSingleFinder('personid', NULL); ?>
+					<label class="checkbox">
+						<input type="checkbox" name="add-to-group" value="1" />
+						Add this person to the volunteer group for this role
+					</label>
 				</div>
 				<div class="modal-footer">
 					<button class="btn" data-dismiss="modal" id="choose-assignee-save">Save</button>
@@ -671,7 +695,7 @@ class roster_view extends db_object
 			</div>
 			<?php
 		}
-		
+
 		?>
 		<table class="table roster" border="1" cellspacing="0" cellpadding="1">
 
@@ -681,7 +705,6 @@ class roster_view extends db_object
 			<?php
 
 			foreach ($to_print as $date => $ddetail) {
-				if ($public && empty($ddetail['assignments'])) continue;
 				$class_clause = ($date == $this_sunday) ? 'class="tblib-hover"' : '';
 				?>
 				<tr <?php echo $class_clause; ?>>
@@ -710,7 +733,7 @@ class roster_view extends db_object
 				                </span>
 								<?php
 							}
-							if (!empty($mobiles) && defined('SMS_HTTP_URL') && constant('SMS_HTTP_URL') && $GLOBALS['user_system']->havePerm(PERM_SENDSMS)) {
+							if (!empty($mobiles) && SMS_Sender::canSend()) {
 								?>
 								<span class="smallprint no-print">
 								  <a href="#send-sms-modal" data-personid="<?php echo implode(',', array_unique($personids)); ?>" data-toggle="sms-modal" data-name="People Rostered on <?php echo $date;?>" onclick="$(this).parents('tr:first').addClass('tblib-hover')">SMS All</a>
@@ -756,7 +779,7 @@ class roster_view extends db_object
 								if (!$public && !$vs['assigneehidden']) {
 									$n = '<span class="nowrap"><a data-personid="'.$personid . '" href="'.BASE_URL.'?view=persons&personid='.$personid.'" title="Assigned by '.ents($vs['assigner']).' on '.format_datetime($vs['assignedon']).'">'.ents($vs['name']).'</a>';
 									if (('' === $vs['email'])) $n .= ' <img class="visible-desktop" src="'.BASE_URL.'resources/img/no_email.png" title="No Email Address" />';
-									if (('' === $vs['mobile']) && ifdef('SMS_HTTP_URL')) {
+									if (('' === $vs['mobile']) && SMS_Sender::canSend()) {
 										$n .= ' <img class="visible-desktop" src="'.BASE_URL.'resources/img/no_phone.png" title="No Mobile" />';
 					                }
 									$n .= '</span>';
@@ -983,9 +1006,28 @@ class roster_view extends db_object
 			$role = $GLOBALS['system']->getDBObject('roster_role', $roleid);
 			$role->releaseLock('assignments');
 		}
+
+		if (!empty($_POST['new_volunteers'])) {
+			foreach ($_POST['new_volunteers'] as $roleID => $personIDs) {
+				$role = $GLOBALS['system']->getDBObject('roster_role', $roleid);
+				if (!$role) {
+					trigger_error("Could not find role #$roleID to add new volunteer");
+					continue;
+				}
+				$group = $GLOBALS['system']->getDBObject('person_group', $role->getValue('volunteer_group'));
+				if (!$group) {
+					trigger_error("Could not find volunteer group for role #$roleID");
+					continue;
+				}
+				foreach ($personIDs as $personID) {
+					$group->addMember($personID);
+				}
+			}
+		}
+
 		$GLOBALS['system']->doTransaction('COMMIT');
 		add_message("Role allocations saved");
-		redirect('rosters__display_roster_assignments');
+		redirect('rosters__display_roster_assignments', Array('editing' => NULL));
 	}
 
 	/**
@@ -1012,7 +1054,7 @@ class roster_view extends db_object
 		)';
 		$ids = $GLOBALS['db']->queryCol($SQL);
 		foreach ($ids as $id) {
-			$res[] = $GLOBALS['system']->getDBObject('roster_view', $id);
+			$res[$id] = $GLOBALS['system']->getDBObject('roster_view', $id);
 		}
 		return $res;
 	}

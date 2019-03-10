@@ -37,13 +37,13 @@ class View_Persons__Search extends View
 		}
 	}
 
-	
+
 	function getTitle()
 	{
 		return 'Person Search Results';
 	}
 
-	
+
 	function printView()
 	{
 		$persons =& $this->_person_data;
@@ -58,8 +58,7 @@ class View_Persons__Search extends View
 				foreach ($custom_fields as $f) $names[] = '"'.$f['name'].'"';
 				echo '<p class="smallprint">'.sprintf($msg, implode(', ', $names)).'</p>';
 			}
-
-			$special_fields = Array('congregation');
+			$include_special_fields = FALSE;
 			include dirname(dirname(__FILE__)).'/templates/person_list.template.php';
 		}
 	}

@@ -469,7 +469,7 @@ class service extends db_object
 		return $this->getPersonnelByRoleTitle($keyword);
 	}
 
-	function getPersonnelByRoleTitle($role_title, $first_name_only=FALSE)
+	function getPersonnelByRoleTitle($role_title, $first_name_only=FALSE, $index=NULL)
 	{
 		$sql = 'SELECT roster_role_id, first_name, last_name
 			FROM person
@@ -479,6 +479,11 @@ class service extends db_object
 				AND (rr.congregationid = '.$GLOBALS['db']->quote($this->getValue('congregationid')).'
 					OR (IFNULL(rr.congregationid, 0) = 0))
 				AND rra.assignment_date = '.$GLOBALS['db']->quote($this->getValue('date')).'
+		';
+		if ($index !== NULL) {
+			$sql .= 'AND rank = '.($index-1).' ';
+		}
+		$sql .= '
 				ORDER BY roster_role_id, rank';
 		$assignments =  $GLOBALS['db']->queryAll($sql, null, null, false);
 		$role_ids = Array();
@@ -488,6 +493,14 @@ class service extends db_object
 			$role_ids[$role_id] = 1;
 			$names[] = $assignment['first_name'].($first_name_only ? '' : (' '.$assignment['last_name']));
 		}
+		if ((count($role_ids) == 0) && preg_match('/_[0-9]+$/', $role_title)) {
+			// Try treating the last bit as rank
+			$bits = explode('_', $role_title);
+			$index = array_pop($bits);
+			$short_title = implode('_', $bits);
+			return $this->getPersonnelByRoleTitle($short_title, $first_name_only, $index);
+		}
+
 		if (count($role_ids) != 1) return ''; // either no role found or ambigious role title
 		return implode(', ', $names);
 	}
@@ -560,7 +573,7 @@ class service extends db_object
 
 					// only save personnel if it's been changed from the component's default
 					// so that if the roster changes, the run sheet will auto updated.
-					if ($item['personnel'] == $comps[$item['componentid']]['personnel']) {
+					if ($item['personnel'] == $this->replaceKeywords($comps[$item['componentid']]['personnel'])) {
 						$item['personnel'] = '';
 					}
 				} else {
@@ -719,14 +732,50 @@ class service extends db_object
 	{
 		$rosterViews = Roster_View::getForRunSheet($this->getValue('congregationid'));
 		if ($rosterViews) {
+			ob_start();
+			$emails = $personids = Array();
+			foreach ($rosterViews as $view) {
+				$asns = $view->printSingleViewFlexi($this);
+				foreach ($asns as $role => $roleAsns) {
+					foreach ($roleAsns as $asn) {
+						if (!empty($asn['personid'])) $personids[] = $asn['personid'];
+						if (!empty($asn['email'])) $emails[] = $asn['email'];
+					}
+				}
+			}
+			$assignments_output = ob_get_clean();
+			$email_href = get_email_href($GLOBALS['user_system']->getCurrentUser('email'), NULL, array_unique($emails), $this->toString());
+			if (SMS_Sender::canSend()) {
+				SMS_Sender::printModal();
+			}
+
 			?>
 			<div class="row-fluid">
 			<div id="service-personnel" class="span12 clearfix">
-				<h3>Personnel</h3>
+				<h3>
+					<span class="pull-right"><small>
+					<?php
+					if (count($rosterViews) == 1) {
+						?>
+						<a href="?view=rosters__edit_roster_assignments&viewid=<?php echo key($rosterViews); ?>&start_date=<?php echo $this->getValue('date'); ?>&end_date=<?php echo $this->getValue('date'); ?>"><i class="icon-wrench"></i>Edit</a>
+						&nbsp;
+						<?php
+					}
+					?>
+						<a href="<?php echo $email_href; ?>"><i class="icon-email">@</i>Email</a>
+					<?php
+					if (SMS_Sender::canSend()) {
+						?>
+						&nbsp;
+						<a href="#send-sms-modal" data-personid="<?php echo implode(',', array_unique($personids)); ?>" data-toggle="sms-modal" data-name="Personnel for <?php echo ents($this->toString());?>"><i class="icon-envelope"></i>SMS</a>
+						<?php
+					}
+					?>
+					</small></span>
+					Personnel
+				</h3>
 				<?php
-				foreach ($rosterViews as $view) {
-					$view->printSingleViewFlexi($this);
-				}
+				echo $assignments_output;
 				?>
 			</div>
 			</div>

@@ -10,6 +10,19 @@ $(document).ready(function() {
 
 	if ($('.stop-js').length) return; /* Classname flag for big pages that don't want JS to run */
 
+	// open mailto links in a new window (eg for gmail), but close the new window if it's unused (eg outlook desktop)
+	$('body').on('click', 'a[href^="mailto:"], a[href*="mail.google.com"]', function() {
+		var windowRef = window.open(this.href, '_email');
+
+		windowRef.focus();
+
+		setTimeout(function(){
+		  if(!windowRef.document.hasFocus()) {
+			  windowRef.close();
+		  }
+		}, 500);
+		return false;
+	})
 
 	var i = document.createElement('input');
 	if (!('autofocus' in i) || $('[autofocus]').length == 0) {
@@ -18,13 +31,11 @@ $(document).ready(function() {
 			setTimeout("$('.initial-focus, .autofocus, [autofocus]').get(0).focus()", 200);
 		} else {
 			// Focus the first visible input
-			setTimeout("try { $('body input[type!=checkbox]:visible, select:visible').not('.btn-link, [type=checkbox], [type=radio]').not('.no-autofocus *, .no-autofocus').get(0).focus(); } catch (e) {}", 200);
+			setTimeout("try { $('body input[type!=checkbox]:visible, select:visible').not('.btn-link, [type=checkbox], [type=radio], [type=submit]').not('.no-autofocus *, .no-autofocus').get(0).focus(); } catch (e) {}", 200);
 		}
 	}
 
 	//// VALIDATION ////
-	$(document.body).on('focus', 'input.int-box', TBLib.handleIntBoxFocus)
-			.on('keydown', 'input.int-box', TBLib.handleIntBoxKeyPress);
 	$('input.bible-ref').change(TBLib.handleBibleRefBlur);
 	$('input.valid-email').change(TBLib.handleEmailBlur);
 	$('input.day-box').change(TBLib.handleDayBoxBlur);
@@ -360,7 +371,7 @@ $(document).ready(function() {
 		}
 	});
 
-	$('a[data-method=post]').click(function(event) {
+	$('a[data-method=post]').each(function() {
 		var p = $(this).attr('href').split('?');
 		var action = p[0];
 		var params = p[1].split('&');
@@ -368,13 +379,16 @@ $(document).ready(function() {
 		$('body').append(pform);
 		pform.attr('action', action);
 		pform.attr('method', 'post');
-		for (var i=0; i < params.length; i++) {
-			var tmp= (""+params[i]).split('=');
+		pform.css('display', 'none');
+		for (var i = 0; i < params.length; i++) {
+			var tmp = ("" + params[i]).split('=');
 			var key = tmp[0], value = tmp[1];
-			pform.append('<input type="hidden" name="'+key+'" value="'+value+'" />');
+			pform.append('<input type="hidden" name="' + key + '" value="' + value + '" />');
 		}
-		pform.submit();
-		return false;
+		if (!window.postFormID) window.postFormID = 0;
+		pform.attr('id', 'postform'+(window.postFormID++));
+		$(document.body).append(pform);
+		this.href="javascript:document.getElementById('"+pform.attr('id')+"').submit()";
 	});
 
 	TBLib.anchorBottom('.anchor-bottom');
@@ -382,20 +396,20 @@ $(document).ready(function() {
 
 
 
-var DATA_CHANGED = false;
+window.DATA_CHANGED = false;
 function setupUnsavedWarnings()
 {
 	var warnForms = $('form.warn-unsaved');
 	if (warnForms.length) {
 		warnForms.submit(function() {
-			DATA_CHANGED = false;
+			window.DATA_CHANGED = false;
 		}).find('input, select, textarea').keypress(function() {
-			DATA_CHANGED = true;
+			window.DATA_CHANGED = true;
 		}).change(function() {
-			DATA_CHANGED = true;
+			window.DATA_CHANGED = true;
 		})
 		window.onbeforeunload = function() {
-			if (DATA_CHANGED) return 'You have unsaved changes which will be lost if you don\'t save first';
+			if (window.DATA_CHANGED) return 'You have unsaved changes which will be lost if you don\'t save first';
 		}
 	}
 }
@@ -804,28 +818,6 @@ TBLib.handleEmailBlur = function()
 		return false;
 	}
 	return true;
-}
-
-TBLib.handleIntBoxKeyPress = function(event)
-{
-	if (!event) event = window.event;
-	if (event.altKey || event.ctrlKey || event.metaKey) return true;
-	var keyCode = event.keyCode ? event.keyCode : event.which;
-	validKeys = new Array(8, 9, 13, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 97, 98, 99, 100, 101, 102, 103, 104, 105, 96, 46, 36, 35, 37, 39);
-	if (!validKeys.contains(keyCode)) {
-		return false;
-	}
-}
-
-TBLib.handleIntBoxFocus = function()
-{
-	// This complexity is to work around a problem in chrome where the event somehow fired twice
-	// resulting in the box being selected then unselected.
-	if (TBLib.intBoxFocuser) {
-		clearTimeout(TBLib.intBoxFocuser);
-	}
-	var w = this;
-	TBLib.intBoxFocuser = setTimeout(function() { w.select() }, 100);
 }
 
 TBLib.handleSelectAllClick = function()

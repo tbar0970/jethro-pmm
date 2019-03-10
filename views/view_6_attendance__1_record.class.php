@@ -42,9 +42,13 @@ class View_Attendance__Record extends View
 		if (empty($this->_attendance_date)) {
 			// Default to last Sunday, unless today is Sunday
 			$default_day = defined('ATTENDANCE_DEFAULT_DAY') ? ATTENDANCE_DEFAULT_DAY : 'Sunday';
-			$this->_attendance_date = date('Y-m-d', ((date('l') == $default_day) ? time() : strtotime('last '.$default_day)));
+			if ($default_day == '(Current day)') {
+				$this->_attendance_date = date('Y-m-d');
+			} else {
+				$this->_attendance_date = date('Y-m-d', ((date('l') == $default_day) ? time() : strtotime('last '.$default_day)));
+			}
 		}
-		
+
 		if (empty($_REQUEST['params_submitted']) && empty($_REQUEST['attendances_submitted'])) {
 			if (!empty($_SESSION['attendance'])) {
 				$this->_age_brackets = array_get($_SESSION['attendance'], 'age_brackets');
@@ -64,12 +68,12 @@ class View_Attendance__Record extends View
 			$this->_show_photos = $_SESSION['attendance']['show_photos'] = array_get($_REQUEST, 'show_photos', FALSE);
 			$this->_parallel_mode = $_SESSION['attendance']['parallel_mode'] = array_get($_REQUEST, 'parallel_mode', FALSE);
 		}
-		
+
 		foreach ($this->_cohortids as $id) {
 			$this->_record_sets[$id] = new Attendance_Record_set($this->_attendance_date, $id, $this->_age_brackets, $this->_statuses);
 			if ($this->_show_photos) $this->_record_sets[$id]->show_photos = TRUE;
 		}
-		
+
 		if (!empty($_REQUEST['release'])) {
 			foreach ($this->_record_sets as $set) {
 				$set->releaseLock();
@@ -94,7 +98,7 @@ class View_Attendance__Record extends View
 		if (!empty($_REQUEST['attendances_submitted'])) {
 			// Process step 2
 			if ($_SESSION['enter_attendance_token'] == $_REQUEST['enter_attendance_token']) {
-				
+
 				// Clear the token from the session on disk
 				$_SESSION['enter_attendance_token'] = NULL;
 				session_write_close();
@@ -125,9 +129,9 @@ class View_Attendance__Record extends View
 				$_SESSION['enter_attendance_token'] = md5(time());
 			}
 		}
-		
+
 	}
-	
+
 	function printView()
 	{
 		if (!empty($_POST['attendances_submitted'])) {
@@ -209,7 +213,7 @@ class View_Attendance__Record extends View
 		</form>
 		<?php
 	}
-	
+
 	private function printForm()
 	{
 		$_SESSION['enter_attendance_token'] = md5(time());
@@ -265,7 +269,7 @@ class View_Attendance__Record extends View
 		$totalPrinted = 0;
 		$cancelURL = build_url(Array('*' => NULL, 'view' => 'attendance__record', 'cohortids' => $this->_cohortids, 'attendance_date' => $this->_attendance_date, 'release' => 1));
 		$dummy = new Person();
-		
+
 		?>
 		<table class="table table-condensed table-auto-width valign-middle">
 			<thead>
@@ -376,7 +380,7 @@ class View_Attendance__Record extends View
 
 		return $totalPrinted;
 	}
-	
+
 	private function printFormSequential()
 	{
 		$cancelURL = build_url(Array('*' => NULL, 'view' => 'attendance__record', 'cohortids' => $this->_cohortids, 'attendance_date' => $this->_attendance_date, 'release' => 1));
