@@ -120,6 +120,10 @@ if (is_readable($confFile)) {
 	margin-bottom: 20px;
 	margin-top: 0px;
 }
+#login-box hr {
+	border-color: @jethroDarkText;
+	margin: 2ex 0;
+}
 .login-box-label {
 	width: 6em;
 	text-align: left;
