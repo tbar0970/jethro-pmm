@@ -286,6 +286,7 @@ class Person extends DB_Object
 
 	protected function _printSummaryRows() {
 		parent::_printSummaryRows();
+		$wrapwidth = SizeDetector::isNarrow() ? 23 : 35;
 
 		// care is needed here, because we don't print empty fields
 		// but we still want to (potentially) print their headings and dividers.
@@ -321,7 +322,7 @@ class Person extends DB_Object
 					if ($showDivider) echo 'class="divider-before"';
 					?>
 				>
-					<th><?php echo ents($fieldDetails['name']); ?></th>
+					<th><?php echo wordwrap(ents($fieldDetails['name']), $wrapwidth, '<br />'); ?></th>
 					<td>
 						<?php
 						foreach ((array)$this->_custom_values[$fieldid] as $j => $val) {
