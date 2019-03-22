@@ -95,8 +95,7 @@ class Abstract_View_Notes_List extends View
 				?>
 				<p class="pull-right">
 					<a href="<?php echo build_url(Array('reassigning' => 1)); ?>">
-						<i class="icon-wrench""></i>
-						<?php echo _('Edit the assignees for all these notes'); ?>
+						<i class="icon-wrench""></i><?php echo _('Edit the assignees for all these notes'); ?>
 					</a>
 				</p>
 				<?php

@@ -26,15 +26,22 @@
 				<div class="user-detail pull-right">
 					<div>
 						<input type="hidden" name="logout" value="1" />
-						<?php echo _('Logged in as')?> 
+						<?php echo _('Logged in as')?>
 						<span class="dropdown">
 							<a class="dropdown-toggle" id="user-menu" data-toggle="dropdown" href="#">
 								<?php echo $GLOBALS['user_system']->getCurrentUser('first_name').' '.$GLOBALS['user_system']->getCurrentUser('last_name'); ?>
-								<i class="caret"></i> 
+								<i class="caret"></i>
 							</a>
 							<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="user-menu">
 								<li><a href="?view=_edit_me"><?php echo _('Edit me')?></a></li>
 								<li><a href="./?logout=1" data-method="post"><?php echo _('Log out')?></a></li>
+							<?php
+							if (MEMBER_LOGIN_ENABLED) {
+								?>
+								<li><a href="./members"><?php echo _('Go to members area')?></a></li>
+								<?php
+							}
+							?>
 							</ul>
 						</span>
 
@@ -65,10 +72,7 @@
 							<ul class="dropdown-menu">
 								<li><a href="?view=_edit_me"><?php echo _('Edit me')?></a></li>
 								<li>
-									<a class="log-out" href="#"><form class="min" method="post" action="<?php echo BASE_URL; ?>">
-										<input type="hidden" name="logout" value="1" />
-										<button class="btn-link" type="submit"><?php echo _('Log ou')?>t</button>
-									</form></a>
+									<a href="./?logout=1" data-method="post"><?php echo _('Log out')?></a>
 								</li>
 							</ul>
 						</li>
@@ -79,8 +83,8 @@
 
 		</div>
 		<div id="body">
-			<?php 
-			
+			<?php
+
 			dump_messages();
 
 			if ($title = $GLOBALS['system']->getTitle()) {

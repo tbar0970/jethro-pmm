@@ -90,8 +90,10 @@ class Custom_Field extends db_object
 
 	public function populate($id, $details)
 	{
-		if (!empty($details['options'])) {
+		if (isset($details['options'])) {
 			$this->_tmp['options'] = $details['options'];
+		} else {
+			$this->_tmp['options'] = NULL;
 		}
 		unset($details['options']);
 		$res = parent::populate($id, $details);
@@ -217,6 +219,7 @@ class Custom_Field extends db_object
 					} else {
 						// Too many options, it was truncated
 						// That's OK, the options can get loaded on demand later
+						$res[$k]['options'] = NULL;
 					}
 				}
 			}
@@ -502,6 +505,7 @@ class Custom_Field extends db_object
 		if (($this->getValue('type') == 'select') && strlen($value) && !empty($this->values['params']['allow_other'])) {
 			if (!isset($widgetParams['options'][$value])) {
 				$otherValue = $value;
+				if (0 === strpos($otherValue, '0 ')) $otherValue = substr($otherValue, 2);
 				$value = 'other';
 			}
 		}
@@ -557,7 +561,7 @@ class Custom_Field extends db_object
 	{
 		if (is_array($val)) return implode(', ', array_map(Array($this, 'formatValue'), $val));
 		if (!strlen($val)) return '';
-		
+
 		switch ($this->getValue('type')) {
 			case 'date':
 				if (!preg_match('/(([-0-9]{4})?-([0-9]{2}-[0-9]{2}))( (.*))?/', $val, $matches)) {
@@ -637,12 +641,13 @@ class Custom_Field extends db_object
 
 	/**
 	 * Get SQL expression to retrieve a value suitable for use by formatValue() above.
-	 * @param string $tableAlias  Alias of the custom_field_value table in the SQL statement
+	 * @param string $valueTableAlias  Alias of the custom_field_value table in the SQL statement
+	 * @param string $fieldTableAlias Alias of the custom_field table in the SQL statement
 	 * @return string SQL
 	 */
-	public static function getRawValueSQLExpr($tableAlias)
+	public static function getRawValueSQLExpr($valueTableAlias, $fieldTableAlias)
 	{
-		return 'TRIM(CONCAT(COALESCE('.$tableAlias.'.value_optionid, CONCAT('.$tableAlias.'.value_date, " "), ""), COALESCE('.$tableAlias.'.value_text, "")))';
+		return 'TRIM(CONCAT(COALESCE('.$valueTableAlias.'.value_optionid, CONCAT('.$valueTableAlias.'.value_date, " "), ""), COALESCE(CONCAT(IF('.$fieldTableAlias.'.type="select", "0 ", ""), '.$valueTableAlias.'.value_text), "")))';
 	}
 
 	/**

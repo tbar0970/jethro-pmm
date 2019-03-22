@@ -210,26 +210,108 @@ class View_Groups extends View
 				?>
 				<form method="post" action="<?php echo build_url(Array('edit_statuses' => NULL)); ?>">
 				<?php
-				$callbacks = Array(
-					'membership_status' => Array($this, 'printMembershipStatusChooser')
-				);
-				$show_actions = FALSE;
-				// This is a bit ugly, but the 'membership status' column needs to show the membership status chooser,
-				// which needs the ID rather than the label
-				foreach ($persons as &$person) {
-					$person['membership_status'] = $person['membership_status_id'];
-				}
+			} else {
+				?>
+				<form method="post" enctype="multipart/form-data" action="" class="bulk-person-action">
+				<?php
 			}
-			include_once 'templates/person_list.template.php';
+			$tclasses = 'table table-hover table-striped table-auto-width';
+			if (empty($_REQUEST['edit_statuses'])) $tclasses .= ' clickable-rows';
+			?>
+			<table class="<?php echo $tclasses; ?>">
+				<thead>
+					<tr>
+						<th><?php echo _('Name'); ?></th>
+					<?php
+					if (count($status_options) <= 1) {
+						?>
+						<th><?php echo _('Congregation'); ?></th>
+						<th><?php echo _('Status'); ?></th>
+						<?php
+					} else {
+						?>
+						<th><?php echo _('Membership status'); ?></th>
+						<?php
+					}
+					if (SizeDetector::isWide()) {
+						?>
+						<th><?php echo _('Age'); ?></th>
+						<th><?php echo _('Gender'); ?></th>
+						<?php
+					}
+					if (!SizeDetector::isNarrow()) {
+						?>
+						<th><?php echo _('Joined Group'); ?></th>
+						<?php
+					}
+					?>
+						<th>&nbsp;</th>
+						<th class="narrow selector form-inline"><input type="checkbox" class="select-all" title=<?php echo _('"Select all"')?> /></th>
+					</tr>
+
+				</thead>
+				<tbody>
+			<?php
+			$dummy_person = new Person();
+			foreach ($persons as $id => $details) {
+				$dummy_person->populate($id, $details);
+				$tr_class = ($details['status'] === 'archived') ? ' class="archived"' : '';
+				?>
+				<tr data-personid="<?php echo $id; ?>" <?php echo $tr_class; ?>>
+					<td class="nowrap"><?php echo $dummy_person->printFieldvalue('name'); ?></td>
+				<?php
+				if (count($status_options) <= 1) {
+					?>
+					<td class="nowrap"><?php echo $dummy_person->printFieldvalue('congregationid'); ?></td>
+					<td class="nowrap"><?php echo $dummy_person->printFieldvalue('status'); ?></td>
+					<?php
+				} else if (!empty($_REQUEST['edit_statuses'])){
+					?>
+					<td><?php $this->printMembershipStatusChooser($id, $details['membership_status_id']); ?></td>
+					<?php
+				} else {
+					?>
+					<td><?php echo ents($details['membership_status']); ?></td>
+					<?php
+				}
+				if (SizeDetector::isWide()) {
+					?>
+					<td><?php $dummy_person->printFieldValue('age_bracketid'); ?></td>
+					<td><?php $dummy_person->printFieldValue('gender'); ?></td>
+					<?php
+				}
+
+				if (!SizeDetector::isNarrow()) {
+					?>
+					<td><?php echo format_date($details['joined_group']); ?></td>
+					<?php
+				}
+				?>
+					<td class="narrow"><a href="?view=persons&personid=<?php echo $id; ?>"><i class="icon-user"></i><?php echo _('View'); ?></td>
+					<td class="selector narrow"><input name="personid[]" type="checkbox" value="<?php echo $id; ?>" /></td>
+
+				</tr>
+				<?php
+			}
+			?>
+				</tbody>
+			</table>
+			<?php
+
 			if (!empty($_REQUEST['edit_statuses'])) {
 				?>
 				<div class="align-right">
 					<input type="submit" class="btn" value="<?php echo _('Save membership statuses');?>" />
 					<a class="btn" href="<?php echo build_url(Array('edit_statuses' => NULL)); ?>"><?php echo _('Cancel');?></a>
 				</div>
-				</form>
 				<?php
+			} else {
+				include 'templates/bulk_actions.template.php';
 			}
+			?>
+			</form>
+			<?php
+
 
 		} else {
 			?>

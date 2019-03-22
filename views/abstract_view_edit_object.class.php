@@ -90,7 +90,7 @@ class Abstract_View_Edit_Object extends View
 			// hasn't been submitted yet
 			if (!$this->_edited_object->acquireLock()) {
 				?>
-				<div class="failure">This <?php echo $this->getEditingTypeFriendly(); ?> cannot currently be edited because another user has the lock.  Wait some time for them to finish and then <a href="<?php echo $_SERVER['QUERY_STRING']; ?>">try again</a></div>
+				<div class="failure">This <?php echo $this->getEditingTypeFriendly(); ?> cannot currently be edited because another user has the lock.  Wait some time for them to finish and then <a href="?<?php echo $_SERVER['QUERY_STRING']; ?>">try again</a></div>
 				<?php
 				$show_form = false;
 			}

@@ -87,6 +87,7 @@ class db_object
 					break;
 				case 'html':
 					$type = 'text';
+					$default = FALSE; // text columns cannot have a default
 					break;
 				case 'text':
 					if (array_get($details, 'height', 1) != 1) {
@@ -320,8 +321,8 @@ class db_object
 			return FALSE;
 		}
 
-		// Set the history
-		if (isset($this->fields['history'])) {
+		// Add to the history, unless it's been explicly set as a value (see Person::archiveAndClean())
+		if (isset($this->fields['history']) && empty($this->_old_values['history'])) {
 			$changes = $this->_getChanges();
 			if ($changes) {
 				$user = $GLOBALS['user_system']->getCurrentPerson();
@@ -389,11 +390,16 @@ class db_object
 		foreach ($this->_old_values as $name => $old_val) {
 			if ($name == 'history') continue;
 			if ($name == 'password') continue;
+			if (!array_get($this->fields[$name], 'show_in_summary', TRUE)
+					&& !array_get($this->fields[$name], 'editable', TRUE)
+			) {
+				continue;
+			}
 			$changes[] = $this->getFieldLabel($name).' changed from "'.ents($this->getFormattedValue($name, $old_val)).'" to "'.ents($this->getFormattedValue($name)).'"';
 		}
 		return $changes;
 	}
-	
+
 	public function reset()
 	{
 		$this->values = $this->_old_values = Array();
@@ -455,7 +461,7 @@ class db_object
 			$value = ucfirst($value);
 		}
 		if (array_get($this->fields[$name], 'trim')) {
-			$value = trim($value, ",;. \t\n\r\0\x0B");
+			$value = hard_trim($value);
 		}
 		if ($this->fields[$name]['type'] == 'select') {
 			if (!isset($this->fields[$name]['options'][$value]) && !(array_get($this->fields[$name], 'allow_empty', 1) && empty($value))) {
@@ -472,6 +478,12 @@ class db_object
 		}
 		if (!empty($this->fields[$name]['maxlength']) && (strlen($value) > $this->fields[$name]['maxlength'])) {
 			$value = substr($value, 0, $this->fields[$name]['maxlength']);
+		}
+		if (($this->fields[$name]['type'] == 'email') && ($value != '')) {
+			if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+				trigger_error(ents($value).' is not a valid value for email field "'.$name.'" and has not been set', E_USER_NOTICE);
+				return;
+			}
 		}
 		if ($this->fields[$name]['type'] == 'int') {
 			if (!array_get($this->fields[$name], 'allow_empty', true) || ($value !== '')) {
@@ -594,7 +606,7 @@ class db_object
 			return NULL;
 		}
 		if (is_null($value)) $value = $this->getValue($name);
-		if (($name == 'history') && !empty($value)) {
+		if (($name == 'history')) {
 			?>
 			<table class="history table table-full-width table-striped">
 			<?php
@@ -890,8 +902,16 @@ class db_object
 				$operator = 'BETWEEN';
 				$field = substr($field, 1);
 			} else if ($field[0] == '(') {
-				$operator = 'IN';
-				$field = substr($field, 1);
+				if ($val === Array()) {
+					// We're checking if the value is a member of an empty set.
+					$prefix = '/* empty set check for '.$field.' */';
+					$field = '1';
+					$operator = '=';
+					$val = '2';
+				} else {
+					$operator = 'IN';
+					$field = substr($field, 1);
+				}
 			} else if ($field[0] == '_') {
 				// beginning-of-word match
 				$operator = 'WORDBEGIN';
@@ -1024,7 +1044,7 @@ class db_object
 		return null;
 	}
 
-	public function fromCsvRow($row)
+	public function fromCsvRow($row, $overwriteExistingValues=TRUE)
 	{
 		foreach ($this->fields as $fieldname => $field) {
 			if (isset($row[$fieldname])) {
@@ -1042,7 +1062,12 @@ class db_object
 						$val = array_get($field, 'default', key($field['options']));
 					}
 				}
-				if ($val !== '') $this->setValue($fieldname, $val);
+				if (($overwriteExistingValues && ($val !== ''))
+						|| ($this->getValue($fieldname) == '')
+						|| !$this->id
+				) {
+					$this->setValue($fieldname, $val);
+				}
 			}
 		}
 		$this->validateFields();

@@ -1,6 +1,39 @@
 <?php
 /* @var $persons */
 $GLOBALS['system']->includeDBClass('member');
+$dummy = new Member();
+foreach ($persons as $personid => $person) {
+	$dummy->populate($personid, $person);
+	?>
+	<div class="family-member">
+		<?php
+		if ($GLOBALS['system']->featureEnabled('PHOTOS')) {
+			?>
+			<img src="?call=photo&personid=<?php echo $personid; ?>" />
+			<?php
+		}
+		?>
+		<div>
+			<strong><?php echo ents($dummy->toString()); ?></strong>
+			<br />
+			<?php
+			echo ents($dummy->getFormattedValue('age_bracketid'));
+			echo ' &bull; ';
+			echo ents($dummy->getFormattedValue('gender'));
+			echo '<br />';
+			$dummy->printFieldValue('mobile_tel');
+			if ($dummy->getValue('mobile_tel') && $dummy->getValue('email')) {
+				echo ' &bull; ';
+			}
+			$dummy->printFieldValue('email');
+			?>
+		</div>
+
+	</div>
+	<?php
+}
+/*
+
 ?>
 
 <table class="table table-hover">
@@ -30,3 +63,4 @@ foreach ($persons as $id => $member) {
 }
 ?>
 </table>
+ * <?php */ ?>

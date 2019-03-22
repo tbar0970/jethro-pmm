@@ -40,7 +40,7 @@ class Member_User_System extends Abstract_User_System
 			}
 			$_SESSION['last_activity_time'] = time();
             $GLOBALS['db']->setCurrentUserID((int)$_SESSION['member']['id']);
-			
+
 
 			include JETHRO_ROOT.'/include/permission_levels.php';
 			foreach ($PERM_LEVELS as $i => $detail) {
@@ -69,8 +69,6 @@ class Member_User_System extends Abstract_User_System
 			} else {
 				// Log the member in
 				$this->_setAuthMember($user_details);
-				redirect('home');
-				exit;
 			}
 	}
 

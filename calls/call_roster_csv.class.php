@@ -23,7 +23,7 @@ class Call_Roster_CSV extends Call
 		$start_date = substr(array_get($_REQUEST, 'start_date', ''), 0, 10);
 		$end_date = substr(array_get($_REQUEST, 'end_date', ''), 0, 10);
 		header('Content-type: text/csv');
-		header('Content-disposition: attachment; filename='.preg_replace('[^a-zA-Z0-9]', '_', $view->getValue('name')).'.csv');
+		header('Content-disposition: attachment; filename="'.preg_replace('[^a-zA-Z0-9]', '_', $view->getValue('name')).'.csv"');
 		$view->printCSV($start_date, $end_date);
 		
 	}
