@@ -20,6 +20,17 @@ class roster_role_assignment extends db_object
 				) ENGINE=InnoDB ;';
 	}
 
+	static function getAssignmentsForDateAndCong($date, $congid)
+	{
+		$SQL = 'SELECT personid, GROUP_CONCAT(rr.title SEPARATOR ", ") as role
+				FROM roster_role_assignment rra
+					JOIN roster_role rr ON rr.id = rra.roster_role_id
+				WHERE assignment_date = '.$GLOBALS['db']->quote($date).'
+					AND ((rr.congregationid = '.(int)$congid.') OR (rr.congregationid IS NULL))
+				GROUP BY personid';
+		return $GLOBALS['db']->queryAll($SQL, NULL, NULL, TRUE);
+	}
+
 	static function getUpcomingAssignments($personid, $timeframe='4 weeks')
 	{
 		$end_date = date('Y-m-d', strtotime('+'.$timeframe));

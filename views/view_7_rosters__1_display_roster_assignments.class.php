@@ -13,6 +13,9 @@ class View_Rosters__Display_Roster_Assignments extends View
 
 	function processView()
 	{
+		if (!empty($_REQUEST['editing']) && $_REQUEST['view'] == 'rosters__display_roster_assignments') {
+			redirect('rosters__edit_roster_assignments');
+		}
 		$this->_start_date = process_widget('start_date', Array('type' => 'date'));
 		if (is_null($this->_start_date)) {
 			if (!empty($_SESSION['roster_start_date'])) {
@@ -28,7 +31,7 @@ class View_Rosters__Display_Roster_Assignments extends View
 			} else {
 				$this->_end_date = date('Y-m-d', strtotime('+'.ROSTER_WEEKS_DEFAULT.' weeks'));
 			}
-			
+
 		}
 		if (!empty($_REQUEST['viewid'])) {
 			$this->_view = $GLOBALS['system']->getDBObject('roster_view', (int)$_REQUEST['viewid']);
@@ -75,8 +78,15 @@ class View_Rosters__Display_Roster_Assignments extends View
 				<tr>
 					<th class="right">and</th>
 					<td>
-						<?php print_widget('end_date', Array('type' => 'date'), $this->_end_date); ?> &nbsp; 
-						<button type="submit" class="btn">Go</button>
+						<?php print_widget('end_date', Array('type' => 'date'), $this->_end_date); ?> &nbsp;
+						<button type="submit" name="viewing" value="1" class="btn">View Assignments</button>
+					<?php
+					if ($GLOBALS['user_system']->havePerm(PERM_EDITROSTER)) {
+						?>
+						<button type="submit" name="editing" value="1" class="btn">Edit Assignments</button>
+						<?php
+					}
+					?>
 					</td>
 				</tr>
 			</table>
@@ -86,15 +96,19 @@ class View_Rosters__Display_Roster_Assignments extends View
 				?>
 				<p class="no-print">
 				<?php
-				if ($this->_editing) {
-					echo '<a href="'.build_url(Array('view' => 'rosters__display_roster_assignments')).'"><i class="icon-th"></i>Show the read-only version</a>';
-				} else {
-					if ($GLOBALS['user_system']->havePerm(PERM_EDITROSTER)) {
-						echo '<a href="'.build_url(Array('view' => 'rosters__edit_roster_assignments')).'"><i class="icon-wrench"></i>Edit these assignments</a> &nbsp;  ';
+				if (!$this->_editing) {
+					echo '<a href="?call=email&roster_view='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'" class="hidden-frame"><i class="icon-email">@</i>Email all assignees</a> &nbsp; ';
+					echo '<a target="print-roster" class="med-newwin" href="'.BASE_URL.'?call=display_roster&viewid='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'"><i class="icon-print"></i>Show printable version</a> &nbsp; ';
+					if ($this->_view->getValue('visibility') != '') {
+						echo '<a target="_rosterview" href="'.BASE_URL.'members/?view=rosters&roster_view='.$this->_view->id.'"><i class="icon-share"></i>View in members area</a> &nbsp; ';
 					}
-					echo '<a target="print-roster" class="med-newwin" href="'.BASE_URL.'?call=display_roster&viewid='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'"><i class="icon-print"></i>Show the print/email version</a> &nbsp; ';
+					if ($this->_view->getValue('visibility') == 'public') {
+						$url = BASE_URL.'public/?view=display_roster&roster_view='.$this->_view->id;
+						if (PUBLIC_ROSTER_SECRET) $url .= '&secret='.PUBLIC_ROSTER_SECRET;
+						echo '<a target="_rosterview" href="'.$url.'"><i class="icon-share"></i>View in public site</a> &nbsp; ';
+					}
 					echo '<a href="?call=roster_csv&roster_view='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'" ><i class="icon-download-alt"></i>Download CSV</a> &nbsp; ';
-					echo '<a href="?call=email&roster_view='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'" class="hidden-frame"><i class="icon-email">@</i>Email all listed persons</a>';
+					echo '<br />';
 				}
 				?>
 				</p>

@@ -100,7 +100,9 @@ function format_date($d, $includeYear=NULL)
 
 function nbsp($x)
 {
-	return str_replace(' ', '&nbsp;', $x);
+	$x = str_replace(' ', '&nbsp;', $x);
+	$x = str_replace('-', '&#8209;', $x);
+	return $x;
 }
 
 /**

@@ -90,8 +90,10 @@ class Custom_Field extends db_object
 
 	public function populate($id, $details)
 	{
-		if (!empty($details['options'])) {
+		if (isset($details['options'])) {
 			$this->_tmp['options'] = $details['options'];
+		} else {
+			$this->_tmp['options'] = NULL;
 		}
 		unset($details['options']);
 		$res = parent::populate($id, $details);
@@ -217,6 +219,7 @@ class Custom_Field extends db_object
 					} else {
 						// Too many options, it was truncated
 						// That's OK, the options can get loaded on demand later
+						$res[$k]['options'] = NULL;
 					}
 				}
 			}

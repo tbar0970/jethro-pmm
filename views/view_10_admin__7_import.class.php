@@ -175,6 +175,7 @@ class View_Admin__Import extends View
 		$map = fgetcsv($fp, 0, ",", '"');
 		$sample_header = self::getSampleHeader();
 		foreach ($map as $k => $v) {
+			if ($v == '') continue;
 			$v = self::_stringToKey($v);
 			if (!in_array($v, $sample_header)) {
 				add_message("Unrecognised column \"".$v.'" will be ignored', 'warning');
@@ -184,6 +185,17 @@ class View_Admin__Import extends View
 				$this->_sess['used_custom_fields'][$cfid] = $v;
 			}
 		}
+		$has_required_cols = TRUE;
+		foreach (self::getSampleHeader(TRUE) as $hcol) {
+			if (!in_array($hcol, $map)) {
+				add_message("Your file must contain a $hcol column", 'error');
+				$has_required_cols = FALSE;
+			}
+		}
+		if (!$has_required_cols) {
+			$this->_stage = 'begin';
+			return;
+		}
 
 
 
@@ -191,9 +203,9 @@ class View_Admin__Import extends View
 		$current_new_family_data = Array();
 		$current_existing_family_data = NULL;
 
-		$i = 1;
+		$i = 0;
 		while ($rawrow = fgetcsv($fp, 0, ",", '"')) {
-
+			$i++;
 			$row = Array();
 			foreach ($map as $index => $fieldname) {
 				if ($fieldname == 'group') {
@@ -202,7 +214,7 @@ class View_Admin__Import extends View
 						$gk = self::_stringToKey($g);
 						if (!isset($this->_sess['matched_groups'][$gk])) {
 							if ($gp = Person_Group::findByName($g)) {
-								$this->_sess['matched_groups'][$gk] = $gp;
+								$this->_sess['matched_groups'][$gk] = $gp->id;
 							} else {
 								$this->_sess['new_groups'][$gk] = $g;
 							}
@@ -263,7 +275,7 @@ class View_Admin__Import extends View
 				$family_row['status'] = 'current';
 				$familyObj = $GLOBALS['system']->getDBObject('family', $existingPerson->getValue('familyid'));
 				$familyObj->fromCsvRow($family_row, $this->_sess['overwrite_existing']);
-				if (empty($current_existing_family_data)) {
+				if (empty($current_existing_family_data) || ($existingPerson->getValue('familyid') != $current_existing_family_data['id'])) {
 					$current_existing_family_data = $family_row + Array('id' => $familyObj->id);
 				} else {
 					$this->_pushIntoArray($family_row, $current_existing_family_data);
@@ -278,11 +290,11 @@ class View_Admin__Import extends View
 				// SCENARIO 2 - WE ARE CREATING A NEW PERSON,
 
 				// Try pulling details into person object - will throw errors on bad data
-				$this->_dummy_person->values = Array();
+				$this->_dummy_person->reset();
 				$this->_dummy_person->setValue('familyid', '-1');
 				$this->_dummy_person->fromCsvRow($person_row);
 
-				$this->_dummy_family->values = Array();
+				$this->_dummy_family->reset();
 				$this->_dummy_family->setValue('status', 'current');
 				if (!empty($current_existing_family_data)) {
 					// 2A) THE NEW PERSON IS TO BE ADDED TO AN EXISTING FAMILY
@@ -325,8 +337,6 @@ class View_Admin__Import extends View
 						$current_new_family_data['members'][] = $person_row;
 					}
 				}
-
-				$i++;
 			}
 		}
 
@@ -572,14 +582,15 @@ class View_Admin__Import extends View
 		foreach ($this->_sess['new_groups'] as $key => $name) {
 			$g = new Person_Group();
 			$g->setValue('name', $name);
+			$g->setValue('categoryid', NULL);
 			if (!$g->create()) {
 				trigger_error("Could not create group $name");
 				exit;
 			}
 			$this->_groups[$key] = $g;
 		}
-		foreach ($this->_sess['matched_groups'] as $key => $group) {
-			$this->_groups[$key] = $group;
+		foreach ($this->_sess['matched_groups'] as $key => $groupid) {
+			$this->_groups[$key] = new Person_Group($groupid);
 		}
 
 		$this->_captureErrors();
@@ -675,6 +686,7 @@ class View_Admin__Import extends View
 				<th>First Name</th>
 				<th>Last Name</th>
 				<th>Age</th>
+				<th>Gender</th>
 				<th>Congregation</th>
 				<th>Status</th>
 				<th>Email</th>
@@ -720,6 +732,7 @@ class View_Admin__Import extends View
 			<td><?php echo ents($person['first_name']); ?></td>
 			<td><?php echo ents($person['last_name']); ?></td>
 			<td><?php echo ents($person['age_bracket']); ?></td>
+			<td><?php echo ents($person['gender']); ?></td>
 			<td><?php echo ents($person['congregation']); ?></td>
 			<td><?php echo ents($person['status']); ?></td>
 			<td><?php echo ents($person['email']); ?></td>
@@ -912,7 +925,7 @@ class View_Admin__Import extends View
 		return !empty($this->_captured_errors[$i]);
 	}
 
-	public static function getSampleHeader()
+	public static function getSampleHeader($basic=FALSE)
 	{
 		$header = Array(
 			'family_name',
@@ -931,6 +944,7 @@ class View_Admin__Import extends View
 			'address_state',
 			'address_postcode',
 		);
+		if ($basic) return $header;
 		$custom_fields = Person::getCustomFields();
 		foreach ($custom_fields as $field) {
 			$header[] = self::_stringToKey($field['name']);

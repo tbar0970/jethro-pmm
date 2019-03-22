@@ -9,7 +9,7 @@ class View_Home extends View
 	function processView()
 	{
 	}
-	
+
 	function printView()
 	{
 		$GLOBALS['system']->includeDBClass('member');
@@ -39,7 +39,7 @@ class View_Home extends View
 				<img class="family-photo" src="?call=photo&familyid=<?php echo (int)$family->id; ?>" />
 				<?php
 			}
-			
+
 			$family->printSummary();
 			echo '<div class="member-family-members" style="clear: both">';
 			$persons = $family->getMemberData();
@@ -89,20 +89,18 @@ class View_Home extends View
 			</div>
 			<?php
 		}
-		
+
 		$GLOBALS['system']->includeDBClass('person_group');
 		$groups = Person_Group::getGroups($GLOBALS['user_system']->getCurrentMember('id'), FALSE, TRUE);
-		if (count($groups) > 1) {
-			echo '<div  class="member-homepage-box" >';
-			echo '<h3>My Groups</h3>';
-			echo '<ul>';
-			foreach ($groups as $id => $details) {
-				echo '<li><a href="?view=_groups&groupid='.(int)$id.'">'.ents($details['name']).'</a></li>';
-			}
-			echo '</ul>';
-			echo '</div>';
+		echo '<div  class="member-homepage-box" >';
+		echo '<h3>My Groups</h3>';
+		echo '<ul>';
+		foreach ($groups as $id => $details) {
+			echo '<li><a href="?view=_groups&groupid='.(int)$id.'">'.ents($details['name']).'</a></li>';
 		}
-		
+		echo '</ul>';
+		echo '</div>';
+
 		?>
 		<div class="member-homepage-box hidden-phone">
 			<h3>Search people</h3>
@@ -114,10 +112,10 @@ class View_Home extends View
 		</div>
 		<?php
 
-		
+
 
 	}
-	
+
 	function printFamilyMembers($persons) {
 		include 'templates/member_list.template.php';
 	}

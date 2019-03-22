@@ -76,7 +76,7 @@ class Congregation extends db_object
 			$oldwhere = $res['where'];
 			$res['where'] = 'congregation.id IN ('.implode(',', array_map(Array($GLOBALS['db'], 'quote'), $restrictions['congregation'])).')
 							';
-			if ($oldwhere) $res['where'] .= ' AND ('.$res['where'].')';
+			if ($oldwhere) $res['where'] .= ' AND ('.$oldwhere.')';
 		}
 		return $res;
 

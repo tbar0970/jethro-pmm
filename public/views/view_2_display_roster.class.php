@@ -16,7 +16,7 @@ class View_Display_Roster extends View
 			}
 		}
 	}
-	
+
 	function getTitle()
 	{
 		if ($this->_roster_view) {
@@ -40,11 +40,11 @@ class View_Display_Roster extends View
 			print_message("Please contact your church administrator to get the private URLs for viewing rosters");
 			exit;
 		} else {
-	
+
 			?>
 			<ul>
 			<?php
-			$views = $GLOBALS['system']->getDBObjectData('roster_view', Array('is_public' => TRUE), 'AND', 'name');
+			$views = $GLOBALS['system']->getDBObjectData('roster_view', Array('!visibility' => ''), 'AND', 'name');
 			foreach ($views as $id => $detail) {
 				?>
 				<li><a href="<?php echo build_url(Array('roster_view' => $id)); ?>"><?php echo ents($detail['name']); ?></a></li>

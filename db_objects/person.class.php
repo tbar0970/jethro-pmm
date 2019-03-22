@@ -286,6 +286,7 @@ class Person extends DB_Object
 
 	protected function _printSummaryRows() {
 		parent::_printSummaryRows();
+		$wrapwidth = SizeDetector::isNarrow() ? 23 : 35;
 
 		// care is needed here, because we don't print empty fields
 		// but we still want to (potentially) print their headings and dividers.
@@ -321,7 +322,7 @@ class Person extends DB_Object
 					if ($showDivider) echo 'class="divider-before"';
 					?>
 				>
-					<th><?php echo ents($fieldDetails['name']); ?></th>
+					<th><?php echo wordwrap(ents($fieldDetails['name']), $wrapwidth, '<br />'); ?></th>
 					<td>
 						<?php
 						foreach ((array)$this->_custom_values[$fieldid] as $j => $val) {
@@ -344,17 +345,11 @@ class Person extends DB_Object
 		$family_notes = $GLOBALS['system']->getDBObjectData('family_note', Array('familyid' => $this->getValue('familyid')));
 		$person_notes = $GLOBALS['system']->getDBObjectData('person_note', Array('personid' => $this->id));
 		$all_notes = $family_notes + $person_notes;
-		uasort($all_notes, Array($this, '_compareCreatedDates'));
-		return $all_notes;
-	}
-
-	function _compareCreatedDates($a, $b)
-	{
-		if (ifdef('NOTES_ORDER', 'ASC') == 'ASC') {
-			return $a['created'] > $b['created'];
-		} else {
-			return $a['created'] < $b['created'];
+		ksort($all_notes);
+		if (ifdef('NOTES_ORDER', 'ASC') != 'ASC') {
+			$all_notes = array_reverse($all_notes, TRUE);
 		}
+		return $all_notes;
 	}
 
 	function validateFields()
@@ -435,8 +430,10 @@ class Person extends DB_Object
 			if ($present == '' || $present == '?' || $present == 'unknown') continue;
 			$sets[] = '('.(int)$this->id.', '.(int)$groupid.', '.$db->quote($date).', '.(($present == 1 || $present == 'present') ? 1 : 0).')';
 		}
-		$SQL .= implode(",\n", $sets);
-		$res = $db->exec($SQL);
+		if ($sets) {
+			$SQL .= implode(",\n", $sets);
+			$res = $db->exec($SQL);
+		}
 
 	}
 
@@ -644,6 +641,13 @@ class Person extends DB_Object
 		return $res;
 	}
 
+	public function reset()
+	{
+		parent::reset();
+		$this->_custom_values = Array();
+		$this->_old_custom_values = Array();
+		$this->_photo_data = NULL;
+	}
 
 	function create()
 	{
@@ -915,10 +919,14 @@ class Person extends DB_Object
 		return $this->_custom_values;
 	}
 
+	/**
+	 * Set values (incl custom values) from an array of data from CSV
+	 * NB it should NOT assume that the input row contains ALL custom fields
+	 * Any existing data not mentioned in the import row should be retained.
+	 * @param array $row
+	 * @param bool $overwriteExistingValues	For fields that already have a value, whether to overwrite with new data from $row.
+	 */
 	public function fromCsvRow($row, $overwriteExistingValues=TRUE) {
-		$this->_custom_values = Array();
-		$this->_old_custom_values = Array();
-
 		static $customFields = NULL;
 		if ($customFields === NULL) {
 			$fields = $GLOBALS['system']->getDBObjectdata('custom_field');

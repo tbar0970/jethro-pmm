@@ -161,7 +161,7 @@ var $PDFVersion;         //PDF version number
 *                               Public methods                                 *
 *                                                                              *
 *******************************************************************************/
-function FPDF($orientation='P',$unit='mm',$format='A4')
+function __construct($orientation='P',$unit='mm',$format='A4')
 {
 	//Some checks
 	$this->_dochecks();
@@ -1721,9 +1721,9 @@ function _out($s)
 
 class Envelope_List extends FPDF
 {
-	function Envelope_List()
+	function __construct()
 	{
-		$this->FPDF('P', 'mm', Array(ENVELOPE_WIDTH_MM, ENVELOPE_HEIGHT_MM));
+		parent::__construct('P', 'mm', Array(ENVELOPE_WIDTH_MM, ENVELOPE_HEIGHT_MM));
 	}
 
 	function addAddress($x)
