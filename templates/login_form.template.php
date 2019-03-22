@@ -5,7 +5,7 @@
 </head>
 <body id="login">
 	<form method="post" id="login-box" class="well">
-		<?php 
+		<?php
 		require_once 'include/size_detector.class.php';
 		SizeDetector::printFormFields();
 		?>
@@ -21,21 +21,21 @@
 			if (!empty($this->_error)) {
 				echo '<div class="alert alert-error">'.$this->_error.'</div>';
 			} else {
-				echo ' <h3>Login</h3>';
+				echo ' <h3>Control Centre Login</h3>';
 			}
 			?>
 			<div class="control-group">
 				<label class="control-label" for="username"><?php echo _('Username')?></label>
 				<div class="controls">
 					<input type="text" name="username" id="username" placeholder="Username"
-					<?php if (defined('PREFILL_USERNAME')) echo 'value="'.PREFILL_USERNAME.'"'; ?>						   
+					<?php if (defined('PREFILL_USERNAME')) echo 'value="'.PREFILL_USERNAME.'"'; ?>
 					/>
 				</div>
 			</div>
 			<div class="control-group">
 				<label class="control-label" for="password"><?php echo _('Password')?></label>
 				<div class="controls">
-					<input type="password" name="password" id="password" 
+					<input type="password" name="password" id="password"
 		   			<?php if (defined('PREFILL_PASSWORD')) echo 'value="'.PREFILL_PASSWORD.'"'; ?>
 					placeholder="Password" />
 				</div>
@@ -56,7 +56,24 @@
 			</div>
 			<?php
 		}
+		if (ifdef('MEMBER_LOGIN_ENABLED') || ifdef('PUBLIC_AREA_ENABLED')) {
+			?>
+			<hr />
+			<?php
+		}
+		if (ifdef('PUBLIC_AREA_ENABLED')) {
+			?>
+			<a class="clickable pull-right" href="./public">Public area</a>
+			<?php
+		}
+		if (ifdef('MEMBER_LOGIN_ENABLED')) {
+			?>
+			<a class="clickable" href="./members">Members area</a>
+			<?php
+		}
+
 		?>
+
 		</div>
 	</form>
 </body>

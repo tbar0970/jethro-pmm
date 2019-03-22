@@ -35,6 +35,13 @@
 							<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="user-menu">
 								<li><a href="?view=_edit_me"><?php echo _('Edit me')?></a></li>
 								<li><a href="./?logout=1" data-method="post"><?php echo _('Log out')?></a></li>
+							<?php
+							if (MEMBER_LOGIN_ENABLED) {
+								?>
+								<li><a href="./members"><?php echo _('Go to members area')?></a></li>
+								<?php
+							}
+							?>
 							</ul>
 						</span>
 

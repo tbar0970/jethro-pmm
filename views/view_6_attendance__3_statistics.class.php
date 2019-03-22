@@ -26,7 +26,7 @@ class View_Attendance__Statistics extends View
 		}
 
 	}
-	
+
 	function printView()
 	{
 		$this->_printParams();
@@ -53,7 +53,7 @@ class View_Attendance__Statistics extends View
 	{
 		$dummy_person = new Person();
 		$this->status_map = $dummy_person->getStatusOptions();
-		
+
 		ob_start();
 		$printed = 0;
 		$congs = $GLOBALS['system']->getDBObjectData('congregation', Array('!attendance_recording_days' => 0), 'OR', 'meeting_time');
@@ -70,13 +70,13 @@ class View_Attendance__Statistics extends View
 			}
 		}
 		$cong_content = ob_get_clean();
-		
+
 		ob_start();
 		$printed = 0;
 		$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('!attendance_recording_days' => 0, 'is_archived' => 0), 'AND');
 		$catids = Array();
 		foreach ($groups as $id => $detail) {
-			$catids[$detail['categoryid']] = 1;
+			if (!empty($detail['categoryid'])) $catids[$detail['categoryid']] = 1;
 			if ($this->printSet('g-'.$id, $detail['name'])) {
 				$printed++;
 				if ($printed % 3 == 0) {
@@ -100,7 +100,7 @@ class View_Attendance__Statistics extends View
 				}
 		}
 		$group_content = ob_get_clean();
-	
+
 		if ($cong_content) {
 			?>
 			<h3><?php echo _('Congregations');?></h3>
@@ -109,7 +109,7 @@ class View_Attendance__Statistics extends View
 			</div>
 			<?php
 		}
-		
+
 		if ($group_content) {
 			?>
 			<h3><?php echo _('Groups');?></h3>
@@ -120,7 +120,7 @@ class View_Attendance__Statistics extends View
 		}
 
 	}
-	
+
 	private function printSet($cohortid, $cohortname)
 	{
 		$stats = Attendance_Record_Set::getStatsForPeriod($this->_start_date, $this->_end_date, $cohortid);
@@ -192,7 +192,7 @@ class View_Attendance__Statistics extends View
 						<?php echo _('Avg&nbsp;Headcount');?>
 					</th>
 					<td class="right">
-						<?php 
+						<?php
 						$hc = Headcount::fetchAverage($bits[0], $bits[1], $this->_start_date, $this->_end_date);
 						if ($hc) {
 							echo number_format($hc, 1);

@@ -11,7 +11,7 @@ $(document).ready(function() {
 	if ($('.stop-js').length) return; /* Classname flag for big pages that don't want JS to run */
 
 	// open mailto links in a new window (eg for gmail), but close the new window if it's unused (eg outlook desktop)
-	$('a[href^="mailto:"]').click(function() {
+	$('body').on('click', 'a[href^="mailto:"], a[href*="mail.google.com"]', function() {
 		var windowRef = window.open(this.href, '_email');
 
 		windowRef.focus();
@@ -396,20 +396,20 @@ $(document).ready(function() {
 
 
 
-var DATA_CHANGED = false;
+window.DATA_CHANGED = false;
 function setupUnsavedWarnings()
 {
 	var warnForms = $('form.warn-unsaved');
 	if (warnForms.length) {
 		warnForms.submit(function() {
-			DATA_CHANGED = false;
+			window.DATA_CHANGED = false;
 		}).find('input, select, textarea').keypress(function() {
-			DATA_CHANGED = true;
+			window.DATA_CHANGED = true;
 		}).change(function() {
-			DATA_CHANGED = true;
+			window.DATA_CHANGED = true;
 		})
 		window.onbeforeunload = function() {
-			if (DATA_CHANGED) return 'You have unsaved changes which will be lost if you don\'t save first';
+			if (window.DATA_CHANGED) return 'You have unsaved changes which will be lost if you don\'t save first';
 		}
 	}
 }

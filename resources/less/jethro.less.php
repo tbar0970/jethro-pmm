@@ -120,6 +120,10 @@ if (is_readable($confFile)) {
 	margin-bottom: 20px;
 	margin-top: 0px;
 }
+#login-box hr {
+	border-color: @jethroDarkText;
+	margin: 2ex 0;
+}
 .login-box-label {
 	width: 6em;
 	text-align: left;
@@ -1150,13 +1154,18 @@ img.person-photo {
 	width: 49%;
 	margin: 0 1% 5px 0;
 }
+.member-family-members .family-member div {
+	margin-left: 73px;
+	position: absolute;
+	overflow: visible;
+}
 #member-list h3 {
 	clear: both;
 	margin-bottom: 5px;
 	margin-top: 15px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 700px) {
 	.member-family-members .family-member {
 		width: 98%;
 	}

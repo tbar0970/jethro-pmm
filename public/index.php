@@ -44,4 +44,13 @@ $GLOBALS['user_system']->setPublic();
 
 require_once 'include/system_controller.class.php';
 $GLOBALS['system'] = System_Controller::get(THIS_DIR);
+
+// Check if member access is enabled
+if (!defined('PUBLIC_AREA_ENABLED') || !PUBLIC_AREA_ENABLED) {
+	?>
+	<p>The public area is not enabled for this Jethro System.  You may like to view the <a href="<?php echo BASE_URL; ?>members">members area<a>
+	<?php
+	exit;
+}
+
 $GLOBALS['system']->run();

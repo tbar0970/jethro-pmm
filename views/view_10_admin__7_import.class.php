@@ -185,6 +185,17 @@ class View_Admin__Import extends View
 				$this->_sess['used_custom_fields'][$cfid] = $v;
 			}
 		}
+		$has_required_cols = TRUE;
+		foreach (self::getSampleHeader(TRUE) as $hcol) {
+			if (!in_array($hcol, $map)) {
+				add_message("Your file must contain a $hcol column", 'error');
+				$has_required_cols = FALSE;
+			}
+		}
+		if (!$has_required_cols) {
+			$this->_stage = 'begin';
+			return;
+		}
 
 
 
@@ -914,7 +925,7 @@ class View_Admin__Import extends View
 		return !empty($this->_captured_errors[$i]);
 	}
 
-	public static function getSampleHeader()
+	public static function getSampleHeader($basic=FALSE)
 	{
 		$header = Array(
 			'family_name',
@@ -933,6 +944,7 @@ class View_Admin__Import extends View
 			'address_state',
 			'address_postcode',
 		);
+		if ($basic) return $header;
 		$custom_fields = Person::getCustomFields();
 		foreach ($custom_fields as $field) {
 			$header[] = self::_stringToKey($field['name']);

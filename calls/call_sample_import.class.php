@@ -150,7 +150,11 @@ class Call_Sample_Import extends Call
 			switch ($field['type']) {
 				case 'select':
 					foreach ($data as $k => &$row) {
-						$row[$field['name']] = $field['options'][array_rand($field['options'])];
+						if (!empty($field['options'])) {
+							$row[$field['name']] = $field['options'][array_rand($field['options'])];
+						} else {
+							$row[$field['name']] = '';
+						}
 					}
 					break;
 				case 'date':

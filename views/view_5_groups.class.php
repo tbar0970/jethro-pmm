@@ -248,7 +248,7 @@ class View_Groups extends View
 						<th>&nbsp;</th>
 						<th class="narrow selector form-inline"><input type="checkbox" class="select-all" title=<?php echo _('"Select all"')?> /></th>
 					</tr>
-						
+
 				</thead>
 				<tbody>
 			<?php
@@ -280,10 +280,10 @@ class View_Groups extends View
 					<td><?php $dummy_person->printFieldValue('gender'); ?></td>
 					<?php
 				}
-				
+
 				if (!SizeDetector::isNarrow()) {
 					?>
-					<td><?php echo format_date($v['joined_group']); ?></td>
+					<td><?php echo format_date($details['joined_group']); ?></td>
 					<?php
 				}
 				?>
@@ -296,7 +296,7 @@ class View_Groups extends View
 			?>
 				</tbody>
 			</table>
-			<?php		
+			<?php
 
 			if (!empty($_REQUEST['edit_statuses'])) {
 				?>

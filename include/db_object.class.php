@@ -479,6 +479,12 @@ class db_object
 		if (!empty($this->fields[$name]['maxlength']) && (strlen($value) > $this->fields[$name]['maxlength'])) {
 			$value = substr($value, 0, $this->fields[$name]['maxlength']);
 		}
+		if (($this->fields[$name]['type'] == 'email') && ($value != '')) {
+			if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+				trigger_error(ents($value).' is not a valid value for email field "'.$name.'" and has not been set', E_USER_NOTICE);
+				return;
+			}
+		}
 		if ($this->fields[$name]['type'] == 'int') {
 			if (!array_get($this->fields[$name], 'allow_empty', true) || ($value !== '')) {
 				$strval = (string)$value;
@@ -896,8 +902,16 @@ class db_object
 				$operator = 'BETWEEN';
 				$field = substr($field, 1);
 			} else if ($field[0] == '(') {
-				$operator = 'IN';
-				$field = substr($field, 1);
+				if ($val === Array()) {
+					// We're checking if the value is a member of an empty set.
+					$prefix = '/* empty set check for '.$field.' */';
+					$field = '1';
+					$operator = '=';
+					$val = '2';
+				} else {
+					$operator = 'IN';
+					$field = substr($field, 1);
+				}
 			} else if ($field[0] == '_') {
 				// beginning-of-word match
 				$operator = 'WORDBEGIN';

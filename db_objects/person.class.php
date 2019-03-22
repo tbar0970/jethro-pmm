@@ -286,6 +286,7 @@ class Person extends DB_Object
 
 	protected function _printSummaryRows() {
 		parent::_printSummaryRows();
+		$wrapwidth = SizeDetector::isNarrow() ? 23 : 35;
 
 		// care is needed here, because we don't print empty fields
 		// but we still want to (potentially) print their headings and dividers.
@@ -321,7 +322,7 @@ class Person extends DB_Object
 					if ($showDivider) echo 'class="divider-before"';
 					?>
 				>
-					<th><?php echo ents($fieldDetails['name']); ?></th>
+					<th><?php echo wordwrap(ents($fieldDetails['name']), $wrapwidth, '<br />'); ?></th>
 					<td>
 						<?php
 						foreach ((array)$this->_custom_values[$fieldid] as $j => $val) {
@@ -346,18 +347,9 @@ class Person extends DB_Object
 		$all_notes = $family_notes + $person_notes;
 		ksort($all_notes);
 		if (ifdef('NOTES_ORDER', 'ASC') != 'ASC') {
-			$all_notes = array_reverse($all_notes);
+			$all_notes = array_reverse($all_notes, TRUE);
 		}
 		return $all_notes;
-	}
-
-	function _compareCreatedDates($a, $b)
-	{
-		if (ifdef('NOTES_ORDER', 'ASC') == 'ASC') {
-			return $a['created'] > $b['created'];
-		} else {
-			return $a['created'] < $b['created'];
-		}
 	}
 
 	function validateFields()
@@ -438,8 +430,10 @@ class Person extends DB_Object
 			if ($present == '' || $present == '?' || $present == 'unknown') continue;
 			$sets[] = '('.(int)$this->id.', '.(int)$groupid.', '.$db->quote($date).', '.(($present == 1 || $present == 'present') ? 1 : 0).')';
 		}
-		$SQL .= implode(",\n", $sets);
-		$res = $db->exec($SQL);
+		if ($sets) {
+			$SQL .= implode(",\n", $sets);
+			$res = $db->exec($SQL);
+		}
 
 	}
 
