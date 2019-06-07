@@ -38,7 +38,7 @@ class roster_view extends db_object
 		// Enforce visibility
 		switch ($this->getValue('visibility')) {
 			case '':
-				if (!$GLOBALS['user_system']->getCurrentUser('id')) {
+				if (!$GLOBALS['user_system']->getCurrentUser('id') && (PHP_SAPI != 'cli')) {
 					header($_SERVER["SERVER_PROTOCOL"]." 401 Not Authorised");
 					print_message("Roster view #{$this->id} is only available to logged in operators", 'error');
 					exit;
@@ -46,7 +46,7 @@ class roster_view extends db_object
 				break;
 			case 'members':
 				// Make sure either a user or a member is logged in
-				if (!$GLOBALS['user_system']->getCurrentPerson('id')) {
+				 if (!$GLOBALS['user_system']->getCurrentPerson('id') && (PHP_SAPI != 'cli')) {
 					header($_SERVER["SERVER_PROTOCOL"]." 401 Not Authorised");
 					print_message("Roster view #{$this->id} is only available to logged in members", 'error');
 					exit;
