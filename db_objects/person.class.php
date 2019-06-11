@@ -343,7 +343,7 @@ class Person extends DB_Object
 	function getNotesHistory()
 	{
 		$family_notes = $GLOBALS['system']->getDBObjectData('family_note', Array('familyid' => $this->getValue('familyid')));
-		$person_notes = $GLOBALS['system']->getDBObjectData('person_note', Array('personid' => $this->id));
+		$person_notes = $GLOBALS['system']->getDBObjectData('person_note', Array('personid' => $this->id, '!subject' => 'SMS'), 'AND');
 		$all_notes = $family_notes + $person_notes;
 		ksort($all_notes);
 		if (ifdef('NOTES_ORDER', 'ASC') != 'ASC') {
@@ -351,6 +351,16 @@ class Person extends DB_Object
 		}
 		return $all_notes;
 	}
+
+	function getCommsHistory()
+  {
+		$person_comms = $GLOBALS['system']->getDBObjectData('person_note', Array('personid' => $this->id, 'subject' => 'SMS'), 'AND');
+		if (ifdef('NOTES_ORDER', 'ASC') != 'ASC') {
+			$person_comms = array_reverse($person_comms, TRUE);
+		}
+		return $person_comms;
+  }
+
 
 	function validateFields()
 	{
@@ -1044,4 +1054,3 @@ class Person extends DB_Object
 	}
 
 }
-
