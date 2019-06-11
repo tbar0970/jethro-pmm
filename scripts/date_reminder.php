@@ -156,7 +156,7 @@ function send_reminder($person)
 			$toNumber = $person['mobile_tel'];
 			if (!empty($ini['OVERRIDE_RECIPIENT_SMS'])) $toNumber = $ini['OVERRIDE_RECIPIENT_SMS'];
 			$message = replace_keywords($ini['SMS_MESSAGE'], $person);
-			$res = SMS_Sender::sendMessage($message, Array($person), FALSE);
+			$res = SMS_Sender::sendMessage($message, Array($person), TRUE);
 			if (count($res['successes']) != 1) {
 				echo "Failed to send SMS to ".$toNumber."\n";
 			} else {

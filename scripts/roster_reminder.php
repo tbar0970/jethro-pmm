@@ -161,7 +161,7 @@ if ($sendsms) { // make the sms message!
 		require_once JETHRO_ROOT.'/include/sms_sender.class.php';
 		$notification_sms = '';
 		if (!empty($assignees))  {
-			$sendResponse = SMS_Sender::sendMessage($sms_message, $assignees, FALSE);
+			$sendResponse = SMS_Sender::sendMessage($sms_message, $assignees, TRUE);
 			$successes = $failures = $rawresponse = Array();
 			$success = $sendResponse['success'];
 			$successes = array_values($sendResponse['successes']);
