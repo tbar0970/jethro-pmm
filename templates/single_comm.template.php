@@ -8,7 +8,8 @@
  */
 		
 $dummy->populate($id, $entry);
-$type = (!empty($entry['familyid']) ? 'family' : 'person');
+$type = 1;
+$icon = 'phone';
 ?>
 <a name="note_<?php echo $id; ?>"></a>
 <div class="notes-history-entry well <?php echo $type; ?>-note" id="note_<?php echo $id; ?>">
@@ -16,23 +17,21 @@ $type = (!empty($entry['familyid']) ? 'family' : 'person');
 
 	<?php
 	if (!empty($show_names)) {
-		if (!empty($entry['familyid'])) {
-			$type = 'family';
-			$icon = 'home';
-			$notee = $entry['family_name'].' Family';
-			$view_url = '?view=families&familyid='.$entry['familyid'].'#note_'.$id;
+		if ($entry['type'] === 1) {
+			$type = 'sms';
+			$icon = 'phone';
 		} else {
-			$type = 'person';
-			$icon = 'user';
-			$notee = $entry['person_fn'].' '.$entry['person_ln'];
-			$view_url = '?view=persons&personid='.$entry['personid'].'#note_'.$id;
+			$type = 'email';
+			$icon = 'envelope';
 		}
+		$notee = $entry['person_fn'].' '.$entry['person_ln'];
+		$view_url = '?view=persons&personid='.$entry['personid'].'#comm_'.$id;
 		?>
 		<h4><a href="<?php echo $view_url; ?>"><?php echo ents($notee); ?></a></h4>
 		<?php
 	}
 	?>
-	<i class="icon-<?php echo $type == 'family' ? 'home' : 'user'; ?>"></i>
+	<i class="icon-<?php echo $icon; ?>"></i>
 	<blockquote>
 		<p class="subject"><?php echo ents($entry['subject']); ?></p>
 	<?php
