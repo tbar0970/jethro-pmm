@@ -322,7 +322,7 @@ Class SMS_Sender
 			$comm->setvalue('details', $message);
 			$comm->setValue('personid', $id);
 			if (!$comm->create()) {
-				trigger_error('Failed to save SMS as a note.');
+				trigger_error('Failed to save SMS as a communications note.');
 			}
 		}
 	}
