@@ -13,11 +13,13 @@
               `personid` int(11) NOT NULL default '0',
               `id` int(11) NOT NULL default '0',
 	      `person_comm` INT NOT NULL DEFAULT '1',
-              PRIMARY KEY  (`personid`,`id`),
+              PRIMARY KEY  (`personid`,`id`)
+		   ) ENGINE=InnoDB;
+/* Not sure what to do with the constraints...
               CONSTRAINT `pc_personid` FOREIGN KEY (personid) REFERENCES _person(id) ON DELETE CASCADE,
               CONSTRAINT pc_id FOREIGN KEY (id) REFERENCES abstract_note(id) ON DELETE CASCADE
             ) ENGINE=InnoDB ;
-
+*/
 /* Move SMS Messages from person_note to person_comm */
 
 	INSERT INTO person_comm(personid,id)
