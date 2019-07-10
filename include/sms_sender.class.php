@@ -177,7 +177,7 @@ Class SMS_Sender
 		}
 
 		$header = "" . ifdef('SMS_HTTP_HEADER_TEMPLATE', '');
-		$header = $header . "Content-Length: " . strlen($content) . "\r\n" . "Content-Type: application/x-www-form-urlencoded\r\n";
+		$header = $header . "\r\n" . "Content-Length: " . strlen($content) . "\r\n" . "Content-Type: application/x-www-form-urlencoded\r\n";
 
 		$opts = Array(
 			'http' => Array(
@@ -204,7 +204,7 @@ Class SMS_Sender
 				fclose($fp);
 			}
 		} catch (Exception $e) {
-			$error = "ERROR: Unable to connect to SMS Server. " + $e->getMessage();
+			$error = "Exception ERROR: Unable to connect to SMS Server." . print_r($e, TRUE);
 			return array("success" => false, "successes" => array(), "failures" => array(), "rawresponse" => $error, "error" => $error);
 		}
 		restore_error_handler(); // Restore system error_handler
