@@ -44,7 +44,7 @@ class View_Display_Roster extends View
 			?>
 			<ul>
 			<?php
-			$views = $GLOBALS['system']->getDBObjectData('roster_view', Array('!visibility' => ''), 'AND', 'name');
+			$views = $GLOBALS['system']->getDBObjectData('roster_view', Array('visibility' => 'public'), 'AND', 'name');
 			foreach ($views as $id => $detail) {
 				?>
 				<li><a href="<?php echo build_url(Array('roster_view' => $id)); ?>"><?php echo ents($detail['name']); ?></a></li>

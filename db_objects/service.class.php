@@ -345,7 +345,7 @@ class service extends db_object
 					foreach ($this->getItems(FALSE, $compCatID) as $item) {
 						$res[] = ents($item['title']);
 					}
-					echo implode('<br />', $res);
+					echo implode('<br />', nbsp($res));
 				} else {
 					parent::printFieldvalue($fieldname);
 				}
