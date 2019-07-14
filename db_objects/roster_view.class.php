@@ -38,7 +38,7 @@ class roster_view extends db_object
 		// Enforce visibility
 		switch ($this->getValue('visibility')) {
 			case '':
-				if (!$GLOBALS['user_system']->getCurrentUser('id')) {
+				if (!$GLOBALS['user_system']->getCurrentUser('id') && (PHP_SAPI != 'cli')) {
 					header($_SERVER["SERVER_PROTOCOL"]." 401 Not Authorised");
 					print_message("Roster view #{$this->id} is only available to logged in operators", 'error');
 					exit;
@@ -46,7 +46,7 @@ class roster_view extends db_object
 				break;
 			case 'members':
 				// Make sure either a user or a member is logged in
-				if (!$GLOBALS['user_system']->getCurrentPerson('id')) {
+				 if (!$GLOBALS['user_system']->getCurrentPerson('id') && (PHP_SAPI != 'cli')) {
 					header($_SERVER["SERVER_PROTOCOL"]." 401 Not Authorised");
 					print_message("Roster view #{$this->id} is only available to logged in members", 'error');
 					exit;
@@ -726,17 +726,20 @@ class roster_view extends db_object
 									}
 								}
 							}
+							if (!empty($emails) || (!empty($mobiles) && SMS_Sender::canSend())) {
+								echo '<br />';
+							}
 							if (!empty($emails)) {
 								?>
 								<span class="smallprint no-print">
-									<a href="<?php echo get_email_href($my_email, NULL, $emails, date('jS F', strtotime($date))); ?>" <?php echo email_link_extras(); ?>>Email All</a>
+									<a href="<?php echo get_email_href($my_email, NULL, $emails, date('jS F', strtotime($date))); ?>" <?php echo email_link_extras(); ?>>Email&nbsp;All</a>
 				                </span>
 								<?php
 							}
 							if (!empty($mobiles) && SMS_Sender::canSend()) {
 								?>
 								<span class="smallprint no-print">
-								  <a href="#send-sms-modal" data-personid="<?php echo implode(',', array_unique($personids)); ?>" data-toggle="sms-modal" data-name="People Rostered on <?php echo $date;?>" onclick="$(this).parents('tr:first').addClass('tblib-hover')">SMS All</a>
+								  <a href="#send-sms-modal" data-personid="<?php echo implode(',', array_unique($personids)); ?>" data-toggle="sms-modal" data-name="People Rostered on <?php echo $date;?>" onclick="$(this).parents('tr:first').addClass('tblib-hover')">SMS&nbsp;All</a>
 								</span>
 								<?php
 							}
@@ -1020,7 +1023,7 @@ class roster_view extends db_object
 					continue;
 				}
 				foreach ($personIDs as $personID) {
-					$group->addMember($personID);
+					if ($personID) $group->addMember($personID);
 				}
 			}
 		}

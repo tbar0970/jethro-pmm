@@ -13,6 +13,7 @@ Download the latest version of Jethro from the [releases page](https://github.co
 System requirements are:
 * MySQL 5.1 or above
 * PHP 5.3.0 or above
+    * with gettext extension enabled
 * Some web server (apache suggested)
 
 The steps to install are:

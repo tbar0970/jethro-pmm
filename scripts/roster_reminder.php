@@ -67,7 +67,7 @@ $email_from=$ini['EMAIL_FROM'];
 $email_from_name=$ini['EMAIL_FROM_NAME'];
 $email_subject=$ini['EMAIL_SUBJECT'];
 $list_not_table=$ini['LIST_NOT_TABLE'];
-$include_roster_content=array_get($ini, 'INCLUDE_ROSTER_CONTENT');
+$include_roster_content=array_get($ini, 'INCLUDE_ROSTER_CONTENT', 1);
 //
 $debug=$ini['DEBUG'];
 $verbose=$ini['VERBOSE'];
@@ -164,8 +164,8 @@ if ($sendsms) { // make the sms message!
 			$sendResponse = SMS_Sender::sendMessage($sms_message, $assignees, FALSE);
 			$successes = $failures = $rawresponse = Array();
 			$success = $sendResponse['success'];
-			$successes = $sendResponse['successes'];
-			$failures = $sendResponse['failures'];
+			$successes = array_values($sendResponse['successes']);
+			$failures = array_values($sendResponse['failures']);
 			$rawresponse = $sendResponse['rawresponse'];
 			$error = $sendResponse['error'];
 			if (!$success) {
