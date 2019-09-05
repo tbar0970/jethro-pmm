@@ -164,7 +164,7 @@ class Person_Group extends db_object
 		}
 
 		$new_member = $GLOBALS['system']->getDBObject('person', $personid);
-		if ($new_member->id) {
+		if ($new_member && $new_member->id) {
 			$db =& $GLOBALS['db'];
 			if ($overwrite_existing) {
 				$sql = 'INSERT ';
