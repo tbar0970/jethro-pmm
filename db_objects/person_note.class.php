@@ -50,7 +50,7 @@ class Person_Note extends Abstract_Note
 	function getInstancesQueryComps($params, $logic, $order)
 	{
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
-		$res['from'] = '('.$res['from'].') LEFT OUTER JOIN person person ON person_note.personid = person.id';
+		$res['from'] = '('.$res['from'].') JOIN person person ON person_note.personid = person.id';
 		$res['select'][] = 'person.first_name as person_fn';
 		$res['select'][] = 'person.last_name as person_ln';
 		return $res;
