@@ -1009,10 +1009,11 @@ class roster_view extends db_object
 			$role = $GLOBALS['system']->getDBObject('roster_role', $roleid);
 			$role->releaseLock('assignments');
 		}
+		unset($roleid);
 
 		if (!empty($_POST['new_volunteers'])) {
 			foreach ($_POST['new_volunteers'] as $roleID => $personIDs) {
-				$role = $GLOBALS['system']->getDBObject('roster_role', $roleid);
+				$role = $GLOBALS['system']->getDBObject('roster_role', $roleID);
 				if (!$role) {
 					trigger_error("Could not find role #$roleID to add new volunteer");
 					continue;
