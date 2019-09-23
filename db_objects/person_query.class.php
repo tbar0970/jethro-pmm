@@ -361,8 +361,11 @@ class Person_Query extends DB_Object
 		}
 		?>
 
-		<h4>who <strong>are</strong> in one or more of these groups:</h4>
+		<h4>who <strong>are</strong> in one or more of these groups:
+			<i class="clickable icon-question-sign" data-toggle="visible" data-target="#grouptooltip"></i><div class="help-block custom-field-tooltip" id="grouptooltip" style="display: none; font-weight: normal">(This rule ignores any archived groups)</div>
+		</h4>
 		<div class="indent-left">
+
 
 			<?php
 			$gotGroups = Person_Group::printMultiChooser('include_groupids', array_get($params, 'include_groups', Array()), Array(), TRUE);
@@ -389,7 +392,10 @@ class Person_Query extends DB_Object
 		</div>
 
 
-		<h4>who are <strong>not</strong> in any of these groups:</h4>
+		<h4>
+			who are <strong>not</strong> in any of these groups:
+			<i class="clickable icon-question-sign" data-toggle="visible" data-target="#grouptooltip"></i><div class="help-block custom-field-tooltip" id="grouptooltip" style="display: none; font-weight: normal">(This rule ignores any archived groups)</div>
+		</h4>
 		<div class="indent-left">
 			<?php
 			Person_Group::printMultiChooser('exclude_groupids', array_get($params, 'exclude_groups', Array()), Array(), TRUE);
