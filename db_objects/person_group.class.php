@@ -230,7 +230,7 @@ class Person_Group extends db_object
 				WHERE gm.personid = '.$db->quote((int)$personid).'
 				'.($includeArchived ? '' : ' AND NOT g.is_archived').'
 				'.(is_null($whichShareMemberDetails) ? '' : ' AND g.share_member_details = '.(int)$whichShareMemberDetails).'
-				ORDER BY g.name';
+				ORDER BY g.is_archived ASC, g.name';
 		$res = $db->queryAll($sql, null, null, true);
 		return $res;
 	}
