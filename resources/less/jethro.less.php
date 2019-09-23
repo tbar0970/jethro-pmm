@@ -695,7 +695,7 @@ tr:last-child .insert-row-below {
 	margin-bottom: 10px;
 }
 .align-right {
-	text-align: right;
+	text-align: right !important;
 }
 .width-really-auto {
 	display: table-cell;
