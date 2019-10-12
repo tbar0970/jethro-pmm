@@ -1,11 +1,18 @@
 		<tr>
+		<?php if (SizeDetector::isWide()) {
+			?>
 			<th class="narrow">ID</th>
+			<?php
+		}
+		?>
 			<th><?php echo _('Name')?></th>
 		<?php
-		foreach ($special_fields as $field) {
-			?>
-			<th><?php echo _(ucwords(str_replace('_', ' ', $field))); ?></th>
-			<?php
+		if (!SizeDetector::isNarrow()) {
+			foreach ($special_fields as $field) {
+				?>
+				<th><?php echo _(ucwords(str_replace('_', ' ', $field))); ?></th>
+				<?php
+			}
 		}
 		?>
 			<th><?php echo _('Status')?></th>
@@ -16,7 +23,7 @@
 		if (!SizeDetector::isNarrow()) {
 		?>
 			<th><?php echo _('Mobile')?></th>
-		<?php 
+		<?php
 		}
 		if (defined('PERSON_LIST_SHOW_GROUPS') && PERSON_LIST_SHOW_GROUPS){
 			?>

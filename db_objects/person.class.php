@@ -424,6 +424,7 @@ class Person extends DB_Object
 				AND groupid = '.(int)$groupid;
 		$res = $db->exec($SQL);
 
+		$sets = Array();
 		$SQL = 'INSERT INTO attendance_record (personid, groupid, date, present)
 				VALUES ';
 		foreach ($attendances as $date => $present) {

@@ -28,7 +28,7 @@ if ($plan_chooser) {
 // -------ADD TO GROUP MODAL --------- //
 $can_add_group = FALSE;
 $GLOBALS['system']->includeDBClass('person_group');
-$groups = Person_Group::getGroups($person->id);
+$groups = Person_Group::getGroups($person->id, TRUE);
 if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
 	?>
 	<div id="add-group-modal" class="modal hide fade" role="dialog" aria-hidden="true">
@@ -158,8 +158,8 @@ printf($panel_header, 'basic', _('Basic Details'), 'active');
 
 			<h3><?php echo _('Person Details')?></h3>
 
-			<?php 
-			
+			<?php
+
 			$person->printSummary();
 
 			if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
@@ -215,7 +215,7 @@ printf($panel_header, 'basic', _('Basic Details'), 'active');
 	?>
 	<br class="clearfix" />
 
-<?php 
+<?php
 echo $panel_footer;
 
 /************** NOTES TAB **************/

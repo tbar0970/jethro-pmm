@@ -361,8 +361,11 @@ class Person_Query extends DB_Object
 		}
 		?>
 
-		<h4>who <strong>are</strong> in one or more of these groups:</h4>
+		<h4>who <strong>are</strong> in one or more of these groups:
+			<i class="clickable icon-question-sign" data-toggle="visible" data-target="#grouptooltip"></i><div class="help-block custom-field-tooltip" id="grouptooltip" style="display: none; font-weight: normal">(This rule ignores any archived groups)</div>
+		</h4>
 		<div class="indent-left">
+
 
 			<?php
 			$gotGroups = Person_Group::printMultiChooser('include_groupids', array_get($params, 'include_groups', Array()), Array(), TRUE);
@@ -389,7 +392,10 @@ class Person_Query extends DB_Object
 		</div>
 
 
-		<h4>who are <strong>not</strong> in any of these groups:</h4>
+		<h4>
+			who are <strong>not</strong> in any of these groups:
+			<i class="clickable icon-question-sign" data-toggle="visible" data-target="#grouptooltip"></i><div class="help-block custom-field-tooltip" id="grouptooltip" style="display: none; font-weight: normal">(This rule ignores any archived groups)</div>
+		</h4>
 		<div class="indent-left">
 			<?php
 			Person_Group::printMultiChooser('exclude_groupids', array_get($params, 'exclude_groups', Array()), Array(), TRUE);
@@ -1477,7 +1483,11 @@ class Person_Query extends DB_Object
 				if (isset($this->_field_details[$label])) {
 					$var = $label[0] == 'p' ? '_dummy_person' : '_dummy_family';
 					$fieldname = substr($label, 2);
-					$r[] = $this->$var->getFormattedValue($fieldname, $val);
+					if ($fieldname == 'id') {
+							$r[] = $val;
+					} else {
+							$r[] = $this->$var->getFormattedValue($fieldname, $val);
+					}
 				} else if (0 === strpos($label, self::CUSTOMFIELD_PREFIX)) {
 					$r[] = $this->_formatCustomFieldValue($val, substr($label, strlen(self::CUSTOMFIELD_PREFIX)));
 				} else {
