@@ -423,7 +423,7 @@ function print_widget($name, $params, $value)
 				}
 				$params['type'] = 'select';
 				if (empty($params['allow_empty']) && ($value === '')) $value = $default;
-				print_widget($name, $params, $value);
+				return print_widget($name, $params, $value);
 			}
 			break;
 		case 'bitmask':
