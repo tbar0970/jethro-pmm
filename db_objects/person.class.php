@@ -147,7 +147,7 @@ class Person extends DB_Object
 									'type' => 'text',
 									'editable'		=> false,
 									'show_in_summary'	=> false,
-									)
+									),
 
 		);
 		if (defined('PERSON_STATUS_DEFAULT')) {
@@ -367,6 +367,13 @@ class Person extends DB_Object
 		$SQL = 'SELECT count(*) FROM attendance_record
 				WHERE personid = '.(int)$this->id;
 		return $GLOBALS['db']->queryOne($SQL);
+	}
+
+	public function hasMemberAccount()
+	{
+		$SQL = 'SELECT LENGTH(member_password) FROM person
+				WHERE id = '.(int)$this->id;
+		return (boolean)$GLOBALS['db']->queryOne($SQL);
 	}
 
 
