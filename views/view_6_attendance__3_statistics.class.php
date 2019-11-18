@@ -89,6 +89,7 @@ class View_Attendance__Statistics extends View
 		}
 		$cats = $GLOBALS['system']->getDBObjectData('person_group_category');
 		foreach ($catids as $catid => $null) {
+			if (empty($catid)) continue;
 			$this->printSet('gc-'.$catid, 'Combined '.$cats[$catid]['name']);
 				$printed++;
 				if ($printed % 3 == 0) {

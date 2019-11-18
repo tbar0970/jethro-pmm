@@ -361,8 +361,11 @@ class Person_Query extends DB_Object
 		}
 		?>
 
-		<h4>who <strong>are</strong> in one or more of these groups:</h4>
+		<h4>who <strong>are</strong> in one or more of these groups:
+			<i class="clickable icon-question-sign" data-toggle="visible" data-target="#grouptooltip"></i><div class="help-block custom-field-tooltip" id="grouptooltip" style="display: none; font-weight: normal">(This rule ignores any archived groups)</div>
+		</h4>
 		<div class="indent-left">
+
 
 			<?php
 			$gotGroups = Person_Group::printMultiChooser('include_groupids', array_get($params, 'include_groups', Array()), Array(), TRUE);
@@ -389,7 +392,10 @@ class Person_Query extends DB_Object
 		</div>
 
 
-		<h4>who are <strong>not</strong> in any of these groups:</h4>
+		<h4>
+			who are <strong>not</strong> in any of these groups:
+			<i class="clickable icon-question-sign" data-toggle="visible" data-target="#grouptooltip"></i><div class="help-block custom-field-tooltip" id="grouptooltip" style="display: none; font-weight: normal">(This rule ignores any archived groups)</div>
+		</h4>
 		<div class="indent-left">
 			<?php
 			Person_Group::printMultiChooser('exclude_groupids', array_get($params, 'exclude_groups', Array()), Array(), TRUE);
@@ -876,7 +882,7 @@ class Person_Query extends DB_Object
 	}
 
 
-	function getSQL($select_fields=NULL)
+	function getSQL($custom_select_fields=NULL)
 	{
 		$db =& $GLOBALS['db'];
 
@@ -1117,7 +1123,9 @@ class Person_Query extends DB_Object
 
 		// DISPLAY FIELDS
 		$joined_groups = FALSE;
-		if (empty($select_fields)) {
+		if ($custom_select_fields) {
+			$select_fields = $custom_select_fields;
+		} else {
 			/*
 			 * If the user chose to sort by Attendance or Absences but didn't
 			 * include them in the list of required columns, just add them to the
@@ -1274,58 +1282,64 @@ class Person_Query extends DB_Object
 			}
 			$select_fields = $grouping_field.'p.id as ID, '.implode(', ', $query['select']);
 		}
+
 		// ORDER BY
-		$customOrder = NULL;
-		if (substr($params['sort_by'], 0, 7) == 'date---') {
-			// backwards compatibility
-			$customOrder = substr($params['sort_by'], 8);
-		} else if (0 === strpos($params['sort_by'], self::CUSTOMFIELD_PREFIX)) {
-			$customOrder = substr($params['sort_by'], 14);
-		}
 		$query['from'] .= '
 			JOIN age_bracket absort ON absort.id = p.age_bracketid ';
-		if ($customOrder) {
-			$query['from'] .= ' LEFT JOIN custom_field_value cfvorder ON cfvorder.personid = p.id AND cfvorder.fieldid = '.$db->quote($customOrder)."\n";
-			$query['from'] .= " LEFT JOIN custom_field_option cfoorder ON cfoorder.id = cfvorder.value_optionid \n";
-			$order = Array();
-			$order[] = 'IF(cfvorder.personid IS NULL, 1, 0)'; // put those without a value last
-			if ($this->_custom_fields[$customOrder]['type'] == 'date') {
-				$order[] = 'IF(cfvorder.value_date LIKE "-%", 1, 0)'; // put full dates before partial dates
-			}
-			$order[] = 'GROUP_CONCAT('.Custom_Field::getSortValueSQLExpr('cfvorder', 'cfoorder').')';
-			$query['order_by'] = implode(', ', $order);
-		} else if ($params['sort_by'] == 'p.congregationid') {
-			// Order by congregation meeting time then congregation name
-			$query['from'] .= '
-				LEFT JOIN congregation cord ON p.congregationid = cord.id ';
-			$query['order_by'] = 'IF(cord.id IS NULL, 1, 0), IF(LENGTH(cord.meeting_time)>0, 0, 1), cord.meeting_time, cord.name';
-		} else if ($params['sort_by'] == 'p.age_bracketid') {
-			$query['order_by'] = 'absort.rank';
+		if ($custom_select_fields) {
+			// Make sure the ORDER BY isn't relying on some fancy column from the original query (Issue #592)
+			$query['order_by'] = '1';
 		} else {
-			$query['order_by'] = $this->_quoteAliasAndColumn($params['sort_by']);
-		}
+			$customOrder = NULL;
+			if (substr($params['sort_by'], 0, 7) == 'date---') {
+				// backwards compatibility
+				$customOrder = substr($params['sort_by'], 8);
+			} else if (0 === strpos($params['sort_by'], self::CUSTOMFIELD_PREFIX)) {
+				$customOrder = substr($params['sort_by'], 14);
+			}
+			if ($customOrder) {
+				$query['from'] .= ' LEFT JOIN custom_field_value cfvorder ON cfvorder.personid = p.id AND cfvorder.fieldid = '.$db->quote($customOrder)."\n";
+				$query['from'] .= " LEFT JOIN custom_field_option cfoorder ON cfoorder.id = cfvorder.value_optionid \n";
+				$order = Array();
+				$order[] = 'IF(cfvorder.personid IS NULL, 1, 0)'; // put those without a value last
+				if ($this->_custom_fields[$customOrder]['type'] == 'date') {
+					$order[] = 'IF(cfvorder.value_date LIKE "-%", 1, 0)'; // put full dates before partial dates
+				}
+				$order[] = 'GROUP_CONCAT('.Custom_Field::getSortValueSQLExpr('cfvorder', 'cfoorder').')';
+				$query['order_by'] = implode(', ', $order);
+			} else if ($params['sort_by'] == 'p.congregationid') {
+				// Order by congregation meeting time then congregation name
+				$query['from'] .= '
+					LEFT JOIN congregation cord ON p.congregationid = cord.id ';
+				$query['order_by'] = 'IF(cord.id IS NULL, 1, 0), IF(LENGTH(cord.meeting_time)>0, 0, 1), cord.meeting_time, cord.name';
+			} else if ($params['sort_by'] == 'p.age_bracketid') {
+				$query['order_by'] = 'absort.rank';
+			} else {
+				$query['order_by'] = $this->_quoteAliasAndColumn($params['sort_by']);
+			}
 
-		if ($grouping_order) {
-			$query['order_by'] = $grouping_order.$query['order_by'];
-		}
+			if ($grouping_order) {
+				$query['order_by'] = $grouping_order.$query['order_by'];
+			}
 
-		if ($params['sort_by'] == 'f.family_name') {
-			// Stop members of identically-named families from being intermingled
-			$query['order_by'] .= ', f.id';
-		}
+			if ($params['sort_by'] == 'f.family_name') {
+				// Stop members of identically-named families from being intermingled
+				$query['order_by'] .= ', f.id';
+			}
 
-		/*
-		 * We can order by attendances or absences safely,
-		 * because we have already ensured they will appear
-		 * the select clause.
-		 */
-		$rewrites = Array(
-					'`attendance_percent`' => '`Attendance` ASC',
-					'`attendance_numabsences`' => '`Running Absences` DESC',
-					'`membershipstatus`' => 'pgms.rank',
-		);
-		$query['order_by'] = str_replace(array_keys($rewrites), array_values($rewrites), $query['order_by']);
-		if (!strlen(trim($query['order_by'], '`'))) $query['order_by'] = 1;
+			/*
+			 * We can order by attendances or absences safely,
+			 * because we have already ensured they will appear
+			 * the select clause.
+			 */
+			$rewrites = Array(
+						'`attendance_percent`' => '`Attendance` ASC',
+						'`attendance_numabsences`' => '`Running Absences` DESC',
+						'`membershipstatus`' => 'pgms.rank',
+			);
+			$query['order_by'] = str_replace(array_keys($rewrites), array_values($rewrites), $query['order_by']);
+			if (!strlen(trim($query['order_by'], '`'))) $query['order_by'] = 1;
+		}
 
 		// Build SQL
 		$sql = 'SELECT '.$select_fields.'
@@ -1469,7 +1483,11 @@ class Person_Query extends DB_Object
 				if (isset($this->_field_details[$label])) {
 					$var = $label[0] == 'p' ? '_dummy_person' : '_dummy_family';
 					$fieldname = substr($label, 2);
-					$r[] = $this->$var->getFormattedValue($fieldname, $val);
+					if ($fieldname == 'id') {
+							$r[] = $val;
+					} else {
+							$r[] = $this->$var->getFormattedValue($fieldname, $val);
+					}
 				} else if (0 === strpos($label, self::CUSTOMFIELD_PREFIX)) {
 					$r[] = $this->_formatCustomFieldValue($val, substr($label, strlen(self::CUSTOMFIELD_PREFIX)));
 				} else {

@@ -259,7 +259,12 @@ class Custom_Field extends db_object
 		<label>
 		Regex:
 		<?php
-		print_widget($prefix.'regex', Array('type' => 'text', 'attrs' => Array('placeholder' => '(Optional)')), array_get($params, 'regex'));
+		print_widget($prefix.'regex',
+				Array(
+					'type' => 'text',
+					'attrs' => Array('placeholder' => 'Optional, eg ^[0-9]+$',)),
+					array_get($params, 'regex')
+		);
 		?>
 		</label>
 		<?php

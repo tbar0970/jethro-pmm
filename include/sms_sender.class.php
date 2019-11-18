@@ -141,7 +141,7 @@ Class SMS_Sender
 		$me = $GLOBALS['system']->getDBObject('person', $GLOBALS['user_system']->getCurrentUser('id'));
 		if (FALSE !== strpos($content, '_USER_MOBILE_')) {
 			if (empty($me)) {
-				trigger_error("Your SMS config includes the _USER_MOBILE_ keyword but there is no current user!  Exiting.", U_USER_ERROR);
+				trigger_error("Your SMS config includes the _USER_MOBILE_ keyword but there is no current user!  Exiting.", E_USER_ERROR);
 			}
 			if (!strlen($me->getValue('mobile_tel'))) {
 				return Array('success' => FALSE, 'successes' => Array(), 'failures' => Array(), 'rawresponse' => '',
@@ -149,14 +149,14 @@ Class SMS_Sender
 			}
 			$content = str_replace('_USER_MOBILE_', urlencode($me->getValue('mobile_tel')), $content);
 		}
-		
+
 		if (FALSE !== strpos($content, '_USER_EMAIL_')) {
 			if (empty($me)) {
 				trigger_error("Your SMS config includes the _USER_EMAIL_ keyword but there is no current user!  Exiting.", E_USER_ERROR);
 			}
 			$content = str_replace('_USER_EMAIL_', urlencode($me->getValue('email')), $content);
 		}
-		
+
 		$content = str_replace('_MESSAGE_', urlencode($message), $content);
 		$content = str_replace('_RECIPIENTS_COMMAS_', urlencode(implode(',', $mobile_tels)), $content);
 		$content = str_replace('_RECIPIENTS_NEWLINES_', urlencode(implode("\n", $mobile_tels)), $content);

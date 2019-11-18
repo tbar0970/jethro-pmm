@@ -147,7 +147,7 @@ class Person extends DB_Object
 									'type' => 'text',
 									'editable'		=> false,
 									'show_in_summary'	=> false,
-									)
+									),
 
 		);
 		if (defined('PERSON_STATUS_DEFAULT')) {
@@ -286,6 +286,7 @@ class Person extends DB_Object
 
 	protected function _printSummaryRows() {
 		parent::_printSummaryRows();
+		$wrapwidth = SizeDetector::isNarrow() ? 23 : 35;
 
 		// care is needed here, because we don't print empty fields
 		// but we still want to (potentially) print their headings and dividers.
@@ -321,7 +322,7 @@ class Person extends DB_Object
 					if ($showDivider) echo 'class="divider-before"';
 					?>
 				>
-					<th><?php echo ents($fieldDetails['name']); ?></th>
+					<th><?php echo wordwrap(ents($fieldDetails['name']), $wrapwidth, '<br />'); ?></th>
 					<td>
 						<?php
 						foreach ((array)$this->_custom_values[$fieldid] as $j => $val) {
@@ -366,6 +367,13 @@ class Person extends DB_Object
 		$SQL = 'SELECT count(*) FROM attendance_record
 				WHERE personid = '.(int)$this->id;
 		return $GLOBALS['db']->queryOne($SQL);
+	}
+
+	public function hasMemberAccount()
+	{
+		$SQL = 'SELECT LENGTH(member_password) FROM person
+				WHERE id = '.(int)$this->id;
+		return (boolean)$GLOBALS['db']->queryOne($SQL);
 	}
 
 
@@ -423,6 +431,7 @@ class Person extends DB_Object
 				AND groupid = '.(int)$groupid;
 		$res = $db->exec($SQL);
 
+		$sets = Array();
 		$SQL = 'INSERT INTO attendance_record (personid, groupid, date, present)
 				VALUES ';
 		foreach ($attendances as $date => $present) {

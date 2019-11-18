@@ -9,6 +9,9 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 			<option><?php echo _('-- Choose Action --')?></option>
 				<?php
 				if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
+					?>
+					<option value="update-field"><?php echo _('Set field(s)')?></option>
+					<?php
 					if ($in_group) {
 						?>
 						<option value="remove-from-group"><?php echo _('Remove from this group')?></option>
@@ -20,9 +23,6 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 						<option value="add-to-group"><?php echo _('Add to a group')?></option>
 						<?php
 					}
-					?>
-					<option value="update-field"><?php echo _('Set field(s)')?></option>
-					<?php
 				}
 				if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
 					?>
@@ -38,9 +38,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 					<?php
 				}
 				?>
-					<option value="envelopes"><?php echo _('Print envelopes')?></option>
-					<option value="csv"><?php echo _('Export as CSV')?></option>
-					<option value="vcf"><?php echo _('Export as vCard')?></option>
+					<option value="export"><?php echo _('Export...')?></option>
 				<?php
 				if (version_compare(PHP_VERSION, '5.2', '>=')) {
 					?>
@@ -50,6 +48,9 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 				if (version_compare(PHP_VERSION, '5.0', '>=')) {
 					echo '<option value="spreadsheet-merge">'._('Mail merge a spreadsheet')."</option>\n";
 				}
+				?>
+				<option value="envelopes"><?php echo _('Print envelopes')?></option>
+				<?php
 				require_once 'db_objects/action_plan.class.php';
 				$plan_chooser = Action_Plan::getMultiChooser('planid', Array());
 				if ($plan_chooser) {
@@ -62,7 +63,6 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 					custom_bulk_action_options();
 				}
 				?>
-
 	</select>
 	<?php
 	if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
@@ -320,14 +320,12 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 		<?php
 	}
 	?>
-		<div class="bulk-action well" id="csv">
-			<p>Get a CSV file of:</p>
-			<label class="radio"><input class="compulsory" type="radio" name="merge_type" value="person" id="merge_type_person" checked="checked" /><?php echo _('the selected persons')?></label>
-			<?php if (isset($merge_type_person_attendance)) { ?>
-			<label class="radio"><input type="radio" name="merge_type" value="person_attendance" id="merge_type_person_attendance" /><?php echo _('the selected persons with attendance data')?></label>
-			<?php } ?>
-			<label class="radio"><input type="radio" name="merge_type" value="family" id="merge_type_family" /><?php echo _('the families the selected persons belong to')?></label></p>
-			<input type="submit" class="btn " value="Go" data-set-form-action="<?php echo BASE_URL; ?>?call=csv" />
+		<div class="bulk-action well" id="export">
+			Download Person data:
+			<input type="submit" class="btn " value="CSV" data-set-form-action="<?php echo BASE_URL; ?>?call=csv&merge_type=person" />
+			<input type="submit" class="btn" value="vCard" data-set-form-action="<?php echo BASE_URL; ?>?call=vcf" />
+			&nbsp;&nbsp;Download Family data:
+			<input type="submit" class="btn " value="CSV" data-set-form-action="<?php echo BASE_URL; ?>?call=csv&merge_type=family" />
 		</div>
     <?php
 	if (version_compare(PHP_VERSION, '5.0', '>=')) {
@@ -402,13 +400,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 		</div>
 		<?php
 	}
-	?>
 
-	<div class="bulk-action well" id="vcf">
-		<input type="submit" value="Go" class="btn" data-set-form-action="<?php echo BASE_URL; ?>?call=vcf" />
-	</div>
-
-	<?php
 	if (function_exists('custom_bulk_action_bodies')) {
 		custom_bulk_action_bodies();
 	}
