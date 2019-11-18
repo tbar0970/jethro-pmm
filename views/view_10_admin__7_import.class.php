@@ -905,7 +905,7 @@ class View_Admin__Import extends View
 
 	public function _handleError($errno, $errstr, $errfile, $errline)
 	{
-		if (in_array($errno, array(E_USER_NOTICE, E_USER_WARNING, E_NOTICE, E_WARNING))) {
+		if (in_array($errno, array(E_USER_NOTICE, E_USER_WARNING))) {
 			$this->_captured_errors[$this->_error_index][] = $errstr;
 		} else {
 			$GLOBALS['system']->_handleError($errno, $errstr, $errfile, $errline);
