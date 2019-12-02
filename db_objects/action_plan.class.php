@@ -498,7 +498,7 @@ class Action_Plan extends DB_Object
 			$status = array_get($membershipStatuses, $i);
 			if ($group) {
 				foreach ($personids as $personid) {
-					$group->addMember($personid, $status);
+					$group->addMember($personid, $status, TRUE);
 				}
 			} else {
 				add_message("Action plan # {$this->id} could not add people to group # $groupid because it does not exist.", 'error');
