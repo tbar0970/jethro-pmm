@@ -481,6 +481,7 @@ class Person extends DB_Object
 		}
 		$SQL .= '
 			GROUP BY pp.id
+			ORDER BY status
 			';
 		$res = $db->queryAll($SQL, null, null, true, true); // 5th param forces array even if one col
 		return $res;
