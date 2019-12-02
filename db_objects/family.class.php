@@ -519,22 +519,33 @@ class family extends db_object
 		$sql = '
 			SELECT f.*,
 			allmembers.names as members,
+			allmembers.full_names as members_full,
+			adultmembers.mobile_tels as mobile_tels,
+			adultmembers.emails as emails,
 			IFNULL(adultmembers.names, "") as adult_members,
+			IFNULL(adultmembers.full_names, "") as adult_members_full,
 			GROUP_CONCAT(p.first_name ORDER BY ab.rank ASC, p.gender, p.id DESC SEPARATOR ",") as selected_firstnames,
-			GROUP_CONCAT(p.last_name ORDER BY ab.rank ASC, p.gender, p.id DESC SEPARATOR ",") as selected_lastnames
+			GROUP_CONCAT(p.last_name ORDER BY ab.rank ASC, p.gender, p.id DESC SEPARATOR ",") as selected_lastnames,
+			GROUP_CONCAT(CONCAT_WS(" ",p.first_name,p.last_name) ORDER BY ab.rank ASC, p.gender, p.id DESC SEPARATOR ",") as selected_names
 			FROM family f
 			JOIN person p ON f.id= p.familyid
 		    JOIN age_bracket ab ON ab.id = p.age_bracketid
 			JOIN (
-			   select f.id as familyid, GROUP_CONCAT(p.first_name ORDER BY ab.rank ASC, p.gender DESC SEPARATOR ", ") as names
+			   select f.id as familyid, 
+			    GROUP_CONCAT(p.first_name ORDER BY ab.rank ASC, p.gender DESC SEPARATOR ", ") as names,
+			    GROUP_CONCAT(CONCAT_WS(" ",p.first_name,p.last_name) ORDER BY ab.rank ASC, p.gender DESC SEPARATOR ", ") as full_names
 			   FROM person p JOIN family f on p.familyid = f.id
 			   JOIN age_bracket ab ON ab.id = p.age_bracketid
 			   WHERE p.status <> "archived"
 			   GROUP BY f.id
 			) allmembers ON allmembers.familyid = f.id
 			LEFT JOIN (
-			   select f.id as familyid, GROUP_CONCAT(p.first_name ORDER BY ab.rank ASC, p.gender DESC SEPARATOR ", ") as names
-			   FROM person p
+			   select f.id as familyid, 
+			    GROUP_CONCAT(p.first_name ORDER BY ab.rank ASC, p.gender DESC SEPARATOR ", ") as names,
+			    GROUP_CONCAT(CONCAT_WS(" ",p.first_name,p.last_name) ORDER BY ab.rank ASC, p.gender DESC SEPARATOR ", ") as full_names,
+			    GROUP_CONCAT(p.mobile_tel ORDER BY ab.rank ASC, p.gender DESC SEPARATOR ", ") as mobile_tels,
+			    GROUP_CONCAT(p.email ORDER BY ab.rank ASC, p.gender DESC SEPARATOR ", ") as emails
+			   FROM person p 
 			   JOIN family f on p.familyid = f.id
 			   JOIN age_bracket ab ON ab.id = p.age_bracketid
 			   WHERE ab.is_adult and p.status <> "archived"
