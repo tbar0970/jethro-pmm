@@ -1,5 +1,5 @@
 <?php
-class Call_Opentbs_merge_help extends Call
+class Call_document_merge_help extends Call
 {
 	function run()
 	{
@@ -187,6 +187,11 @@ class Call_Opentbs_merge_help extends Call
 				<li><code>[people.name]</code> - the person's name</li>
 				<li><code>[roster.role1]</code>...<code>[roster.role20]</code> - the person(s) doing the role on that date</li>
 				</ul>
+				<p>
+				<b>Example Roster-specific Template</b>:<br />
+							<a href="./resources/merge_samples/example_roster_sign_in_out_sheet.ods">ODS</a> &nbsp;
+							<a href="./resources/merge_samples/example_roster_sign_in_out_sheet.xlsx">XLSX</a> &nbsp;
+				</p>
 
 				<h3>Controlling Spreadsheet Cell Formatting</h3>
 				<p>When merging a spreadsheet, cells may be formatted and also typed. For example, a cell value may be typed as String, Numerical, Boolean or Date.</p>
