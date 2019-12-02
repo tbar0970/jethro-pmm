@@ -485,6 +485,9 @@ hr, table.object-summary tr.divider-before > td, table.object-summary tr.divider
 	border-top-width: 1px;
 	border-top-color: @grayLighter !important;
 }
+abbr[title] {
+	border-bottom:0px !important;
+}
 input[type=image] {
 	height: auto !important;
 	padding: 0px !important;
