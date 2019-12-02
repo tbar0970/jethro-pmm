@@ -302,7 +302,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 						Legacy <small><i>(from Jethro ≤ v2.27)</i></small>
 					</label>
 					<label class="radio inline smallprint">
-						<a target="roster-merge-help" class="med-newwin" href="<?php echo BASE_URL; ?>index.php?call=opentbs_merge_help"><i class="icon-help"></i>Help and examples</a>
+						<a target="roster-merge-help" class="med-newwin" href="<?php echo BASE_URL; ?>index.php?call=document_merge_help"><i class="icon-help"></i>Help and examples</a>
 					</label>
 				</div>
 			</div>
