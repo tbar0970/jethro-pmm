@@ -961,7 +961,7 @@ class Person extends DB_Object
 			}
 		}
 
-		if (isset($row['age_bracket'])) {
+		if (isset($row['age_bracket']) && strlen($row['age_bracket'])) {
 			foreach (Age_Bracket::getMap() as $id => $label) {
 				if (trim(strtolower($label)) == trim(strtolower($row['age_bracket']))) {
 					$row['age_bracketid'] = $id;
