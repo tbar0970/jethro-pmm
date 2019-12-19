@@ -1073,7 +1073,7 @@ class db_object
 						} else {
 							$val = $newval;
 						}
-					} else {
+					} else if (!$this->id) {
 						$val = array_get($field, 'default', key($field['options']));
 					}
 				}
