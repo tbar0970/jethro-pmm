@@ -1140,7 +1140,7 @@ class Person_Query extends DB_Object
 
 					case 'groups':
 					case 'membershipstatus':
-						if (empty($params['include_groups'])) continue;
+						if (empty($params['include_groups'])) continue 2; // https://www.php.net/manual/en/migration73.incompatible.php
 
 						if ($params['group_by'] == 'groupid') {
 							/* pg and pgm already joined for grouping purposes */
