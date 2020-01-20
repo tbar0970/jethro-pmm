@@ -228,6 +228,7 @@ class bible_ref
 		'amos'=>29,
 		'am'=>29,
 		'obadiah'=>30,
+		'obad'=>30,
 		'obd'=>30,
 		'ob'=>30,
 		'jonah'=>31,
