@@ -72,41 +72,47 @@ class Member_User_System extends Abstract_User_System
 			}
 	}
 
-	private function handleAccountRequest()
+	public function sendActivationEmail($person)
 	{
-			$person = $this->_findCandidateMember($_REQUEST['email']);
-			require_once 'include/emailer.class.php';
-			$failureEmail = MEMBER_REGO_FAILURE_EMAIL;
+		$hash = generate_random_string(32);
+		$SQL = 'UPDATE _person
+				SET resethash='.$GLOBALS['db']->quote($hash).',
+				resetexpires = NOW() + INTERVAL 24 HOUR
+				WHERE id = '.(int)$person['id'];
+		$res = $GLOBALS['db']->exec($SQL);
 
-			if (is_array($person)) {
-				// Send them an email
+		$url = BASE_URL.'/members/?email='.rawurlencode($person['email']).'&verify='.rawurlencode($hash);
 
-				$hash = generate_random_string(32);
-				$SQL = 'UPDATE _person
-						SET resethash='.$GLOBALS['db']->quote($hash).',
-						resetexpires = NOW() + INTERVAL 24 HOUR
-						WHERE id = '.(int)$person['id'];
-				$res = $GLOBALS['db']->exec($SQL);
-
-				$url = BASE_URL.'/members/?email='.rawurlencode($person['email']).'&verify='.rawurlencode($hash);
-
-				$body = "Hi %s,
+		$body = "Hi %s,
 
 To activate your %s account, please %s
 
 If you didn't request an account, you can just ignore this email";
 
-				$text = sprintf($body, $person['first_name'], SYSTEM_NAME, 'go to '.$url);
-				$html = sprintf(nl2br($body), $person['first_name'], SYSTEM_NAME, '<a href="'.$url.'">click here</a>.');
+		$text = sprintf($body, $person['first_name'], SYSTEM_NAME, 'go to '.$url);
+		$html = sprintf(nl2br($body), $person['first_name'], SYSTEM_NAME, '<a href="'.$url.'">click here</a>.');
 
-				$message = Emailer::newMessage()
-				  ->setSubject(MEMBER_REGO_EMAIL_SUBJECT)
-				  ->setFrom(array(MEMBER_REGO_EMAIL_FROM_ADDRESS => MEMBER_REGO_EMAIL_FROM_NAME))
-				  ->setTo(array($person['email'] => $person['first_name'].' '.$person['last_name']))
-				  ->setBody($text)
-				  ->addPart($html, 'text/html');
+		$message = Emailer::newMessage()
+		  ->setSubject(MEMBER_REGO_EMAIL_SUBJECT)
+		  ->setFrom(array(MEMBER_REGO_EMAIL_FROM_ADDRESS => MEMBER_REGO_EMAIL_FROM_NAME))
+		  ->setTo(array($person['email'] => $person['first_name'].' '.$person['last_name']))
+		  ->setBody($text)
+		  ->addPart($html, 'text/html');
 
-				$res = Emailer::send($message);
+		$res = Emailer::send($message);
+
+		return $res;
+	}
+
+	private function handleAccountRequest()
+	{
+			$person = $this->findCandidateMember($_REQUEST['email']);
+			require_once 'include/emailer.class.php';
+			$failureEmail = MEMBER_REGO_FAILURE_EMAIL;
+
+			if (is_array($person)) {
+				// Send them an email
+				$res = $this->sendActivationEmail($person);
 
 				if (TRUE == $res) {
 					require_once 'templates/account_request_received.template.php';
@@ -280,7 +286,7 @@ If you didn't request an account, you can just ignore this email";
 	 * @param string $email	Email address for the account
 	 * @return mixed.
 	 */
-	private function _findCandidateMember($email)
+	public function findCandidateMember($email)
 	{
 		$db =& $GLOBALS['db'];
 		$sql = 'SELECT COUNT(DISTINCT familyid) '
@@ -323,6 +329,7 @@ If you didn't request an account, you can just ignore this email";
 
 	/**
 	 * Find a person record that matches the given email and password
+	 * (Matches member-area AND control-centre passwords).
 	 * @param string $email		Find a person with this record
 	 * @param string $password	Find a person with this member_password
 	 * @return array	Person details
@@ -330,12 +337,20 @@ If you didn't request an account, you can just ignore this email";
 	private function _findAuthMember($email, $password)
 	{
 		$db =& $GLOBALS['db'];
-		$sql = 'SELECT p.*
+		$sql = 'SELECT p.*, sm.password
 				FROM _person p
-				WHERE p.email  = '.$db->quote($email).' AND member_password IS NOT NULL';
+				LEFT JOIN staff_member sm ON sm.id = p.id
+				WHERE p.email  = '.$db->quote($email).'
+					AND ((member_password IS NOT NULL) OR (sm.password IS NOT NULL))';
 		$res = $db->queryAll($sql);
 		foreach ($res as $row) {
 			if (jethro_password_verify($password, $row['member_password'])) {
+				unset($row['member_password']);
+				unset($row['history']);
+				return $row;
+			}
+			// Auth using the control centre password if available
+			if (strlen($row['password']) && jethro_password_verify($password, $row['password'])) {
 				unset($row['member_password']);
 				unset($row['history']);
 				return $row;

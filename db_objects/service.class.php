@@ -345,7 +345,7 @@ class service extends db_object
 					foreach ($this->getItems(FALSE, $compCatID) as $item) {
 						$res[] = ents($item['title']);
 					}
-					echo implode('<br />', $res);
+					echo implode('<br />', nbsp($res));
 				} else {
 					parent::printFieldvalue($fieldname);
 				}
@@ -614,7 +614,7 @@ class service extends db_object
 					'.($withContent ? 'sc.content_html, sc.credits, ' : '').'
 					IFNULL(IF(LENGTH(sc.runsheet_title_format) = 0, scc.runsheet_title_format, sc.runsheet_title_format), "%title%") AS runsheet_title_format,
 					IFNULL(IF(LENGTH(sc.handout_title_format) = 0, scc.handout_title_format, sc.handout_title_format), "%title%") AS handout_title_format,
-					IF(LENGTH(si.personnel) = 0, sc.personnel, si.personnel) AS personnel,
+					IF(LENGTH(si.personnel) > 0, si.personnel, IF(LENGTH(sc.personnel) > 0, sc.personnel, scc.personnel_default)) as personnel,
 					sc.categoryid
 				FROM service_item si
 				LEFT JOIN service_component sc ON si.componentid = sc.id
@@ -756,6 +756,7 @@ class service extends db_object
 					<span class="pull-right"><small>
 					<?php
 					if (count($rosterViews) == 1) {
+						reset($rosterViews);
 						?>
 						<a href="?view=rosters__edit_roster_assignments&viewid=<?php echo key($rosterViews); ?>&start_date=<?php echo $this->getValue('date'); ?>&end_date=<?php echo $this->getValue('date'); ?>"><i class="icon-wrench"></i>Edit</a>
 						&nbsp;

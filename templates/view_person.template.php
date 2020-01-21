@@ -28,7 +28,7 @@ if ($plan_chooser) {
 // -------ADD TO GROUP MODAL --------- //
 $can_add_group = FALSE;
 $GLOBALS['system']->includeDBClass('person_group');
-$groups = Person_Group::getGroups($person->id);
+$groups = Person_Group::getGroups($person->id, TRUE);
 if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
 	?>
 	<div id="add-group-modal" class="modal hide fade" role="dialog" aria-hidden="true">
@@ -79,6 +79,13 @@ if ($GLOBALS['user_system']->havePerm(PERM_VIEWATTENDANCE)) {
 }
 if ($GLOBALS['user_system']->havePerm(PERM_VIEWROSTER)) {
 	$tabs['rosters'] = _('Rosters');
+}
+if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
+	$accountCount = 0;
+	$sm = $GLOBALS['system']->getDBOBject('staff_member', $person->id);
+	if ($sm) $accountCount++;
+	if ($person->hasMemberAccount()) $accountCount++;
+	$tabs['accounts'] = _('Accounts').' ('.$accountCount.')';
 }
 if (!$accordion
 	&& ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE) || !$GLOBALS['system']->featureEnabled('NOTES'))
@@ -158,8 +165,8 @@ printf($panel_header, 'basic', _('Basic Details'), 'active');
 
 			<h3><?php echo _('Person Details')?></h3>
 
-			<?php 
-			
+			<?php
+
 			$person->printSummary();
 
 			if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
@@ -215,7 +222,7 @@ printf($panel_header, 'basic', _('Basic Details'), 'active');
 	?>
 	<br class="clearfix" />
 
-<?php 
+<?php
 echo $panel_footer;
 
 /************** NOTES TAB **************/
@@ -310,6 +317,63 @@ if (isset($tabs['groups'])) {
 		<?php
 	}
 
+	echo $panel_footer;
+}
+
+if (isset($tabs['accounts'])) {
+	printf($panel_header, 'accounts', _('Accounts'), '');
+
+	echo '<h4>';
+	if ($sm) echo '<a class="pull-right" href="?view=_edit_user_account&staff_member_id='.$person->id.'"><i class="icon-wrench"></i>Edit</a>';
+	echo _('Control Centre Account');
+	echo '</h4>';
+
+	if ($sm) {
+		?>
+		<table class="table no-borders table-condensed table-auto-width indent-left">
+			<tr>
+				<th>Username</th>
+				<td><?php $sm->printFieldValue('username'); ?></td>
+			</tr>
+			<tr>
+				<th>Permissions</th>
+				<td><?php $sm->printFieldValue('permissions'); ?></td>
+			</tr>
+			<tr>
+				<th>Restrictions</th>
+				<td><?php $sm->printFieldValue('restrictions'); ?></td>
+			</tr>
+		</table>
+		<?php
+	} else {
+		echo '<p>'._('This person does not have a user account for the control centre.').'</p>';
+		echo '<p><a href="?view=_add_user_account&personid='.$person->id.'">Create account</a></p>';
+	}
+
+	echo '<h4>'._('Members Area Account').'</h4>';
+	if ($person->hasMemberAccount()) {
+		echo $person->toString().' has a members area account. &nbsp;';
+		?>
+		<form method="post" action="?view=_activate_member_account">
+			<input type="hidden" name="personid" value="<?php echo $person->id; ?>" />
+			<input type="submit" class="btn" value="Re-send activation email" />
+		</form>
+		<?php
+	} else {
+		if ($sm) {
+			echo '<i>'.$person->toString().' has not registered a members area account, but can log into the members area using their control centre password.</i>';
+		} else {
+			echo '<i>'.$person->toString().' has not yet registered a members area account. </i>';
+			if ($person->getValue('email')) {
+				?>
+				<form method="post" action="?view=_activate_member_account">
+					<input type="hidden" name="personid" value="<?php echo $person->id; ?>" />
+					<input type="submit" class="btn" value="Send activation email" />
+				</form>
+				<?php
+			}
+		}
+	}
 	echo $panel_footer;
 }
 

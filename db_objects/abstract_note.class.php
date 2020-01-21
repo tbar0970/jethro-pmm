@@ -45,7 +45,7 @@ class Abstract_Note extends DB_Object
 								'type'			=> 'reference',
 								'references'	=> 'staff_member',
 								'default'		=> $GLOBALS['user_system']->getCurrentUser('id'),
-								'note'			=> 'Choose the user responsible for acting on this note',
+								'tooltip'			=> 'Choose the user responsible for acting on this note',
 								'allow_empty'	=> true,
 								'filter'		=> function($x) {return $x->getValue("active") && (($x->getValue("permissions") & PERM_EDITNOTE) == PERM_EDITNOTE);},
 							   ),
@@ -58,7 +58,6 @@ class Abstract_Note extends DB_Object
 								   ),
 			'action_date'	=> Array(
 								'type'			=> 'date',
-								'note'			=> 'This note will appear in the assignee\'s "to-do" list from this date onwards',
 								'allow_empty'	=> false,
 								'default'		=> date('Y-m-d'),
 							   ),
@@ -116,9 +115,12 @@ class Abstract_Note extends DB_Object
 		if ($name == 'action_date') {
 			?>
 			<span class="nowrap smallprint">
+			<button style="font-size: 90%" type="button" class="btn btn-mini" onclick="setDateField('<?php echo $prefix; ?>action_date', '<?php echo date('Y-m-d', strtotime('+1 day')); ?>')">Tomorrow</button>
 			<button style="font-size: 90%" type="button" class="btn btn-mini" onclick="setDateField('<?php echo $prefix; ?>action_date', '<?php echo date('Y-m-d', strtotime('+1 week')); ?>')">1 week from now</button>
 			<button style="font-size: 90%" type="button" class="btn btn-mini" onclick="setDateField('<?php echo $prefix; ?>action_date', '<?php echo date('Y-m-d', strtotime('+1 month')); ?>')">1 month from now</button>
 			</span >
+			<i class="clickable icon-question-sign" data-toggle="visible" data-target="#tooltipactiondate"></i>
+			<div class="help-block custom-field-tooltip" id="tooltipactiondate" style="display: none;">This note will appear in the assignee's "to-do" list from this date onwards</div>
 			<?php
 		}
 	}

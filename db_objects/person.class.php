@@ -147,7 +147,7 @@ class Person extends DB_Object
 									'type' => 'text',
 									'editable'		=> false,
 									'show_in_summary'	=> false,
-									)
+									),
 
 		);
 		if (defined('PERSON_STATUS_DEFAULT')) {
@@ -369,6 +369,13 @@ class Person extends DB_Object
 		return $GLOBALS['db']->queryOne($SQL);
 	}
 
+	public function hasMemberAccount()
+	{
+		$SQL = 'SELECT LENGTH(member_password) FROM person
+				WHERE id = '.(int)$this->id;
+		return (boolean)$GLOBALS['db']->queryOne($SQL);
+	}
+
 
 	function getAttendance($from='1970-01-01', $to='2999-01-01', $groupid=-1)
 	{
@@ -424,6 +431,7 @@ class Person extends DB_Object
 				AND groupid = '.(int)$groupid;
 		$res = $db->exec($SQL);
 
+		$sets = Array();
 		$SQL = 'INSERT INTO attendance_record (personid, groupid, date, present)
 				VALUES ';
 		foreach ($attendances as $date => $present) {
@@ -473,6 +481,7 @@ class Person extends DB_Object
 		}
 		$SQL .= '
 			GROUP BY pp.id
+			ORDER BY status
 			';
 		$res = $db->queryAll($SQL, null, null, true, true); // 5th param forces array even if one col
 		return $res;
@@ -726,7 +735,7 @@ class Person extends DB_Object
 	 * @param type $personids
 	 * @return array
 	 */
-	static function getCustomMergeData($personids)
+	static function getCustomMergeData($personids,$formatted=TRUE)
 	{
 		$db = $GLOBALS['db'];
 		$SQL = 'SELECT '.Custom_Field::getRawValueSQLExpr('v', 'f').' AS value, f.name, v.personid, v.fieldid
@@ -743,7 +752,11 @@ class Person extends DB_Object
 		}
 		foreach ($qres as $row) {
 			$fname = strtoupper(str_replace(' ', '_', $row['name']));
-			$fVal = $customFields[$row['fieldid']]->formatValue($row['value']);
+			if ($formatted) {
+				$fVal = $customFields[$row['fieldid']]->formatValue($row['value']);
+			} else {
+				$fVal = $row['value'];
+			}
 			if (isset($res[$row['personid']][$fname])) {
 				$res[$row['personid']][$fname] .= ', '.$fVal;
 			} else {
@@ -948,7 +961,7 @@ class Person extends DB_Object
 			}
 		}
 
-		if (isset($row['age_bracket'])) {
+		if (isset($row['age_bracket']) && strlen($row['age_bracket'])) {
 			foreach (Age_Bracket::getMap() as $id => $label) {
 				if (trim(strtolower($label)) == trim(strtolower($row['age_bracket']))) {
 					$row['age_bracketid'] = $id;

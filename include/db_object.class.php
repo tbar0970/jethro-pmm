@@ -625,6 +625,10 @@ class db_object
 			$percol = false;
 			if (!empty($this->fields[$name]['cols']) && (int)$this->fields[$name]['cols'] > 1) {
 				$percol = ceil(count($this->fields[$name]['options']) / $this->fields[$name]['cols']);
+				?>
+				<div class="bitmask-boxes">
+					<div class="bitmask-column">
+				<?php
 			}
 			$i = 0;
 			foreach ($this->fields[$name]['options'] as $k => $v) {
@@ -635,6 +639,17 @@ class db_object
 					<input type="checkbox" disabled="disabled" name="<?php echo ents($name); ?>[]" value="<?php echo ents($k); ?>" id="<?php echo ents($name.'_'.$k); ?>" <?php echo $checked_exp; ?>>
 					<?php echo nbsp(ents($v)); ?>
 				</label>
+				<?php
+				if ($percol && (++$i % $percol == 0)) {
+					?>
+					</div>
+					<div>
+					<?php
+				}
+			}
+			if ($percol) {
+				?>
+				</div>
 				<?php
 			}
 		} else if (($this->fields[$name]['type'] == 'text')
@@ -1058,7 +1073,7 @@ class db_object
 						} else {
 							$val = $newval;
 						}
-					} else {
+					} else if (!$this->id) {
 						$val = array_get($field, 'default', key($field['options']));
 					}
 				}
