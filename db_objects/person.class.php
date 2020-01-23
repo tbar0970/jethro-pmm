@@ -697,7 +697,7 @@ class Person extends DB_Object
 	 */
 	static function printMultipleFinder($name, $val=Array())
 	{
-		$persons = $GLOBALS['system']->getDBObjectData('person', Array('id' => $val));
+		$persons = empty($val) ? Array() : $GLOBALS['system']->getDBObjectData('person', Array('id' => $val));
 		$selected = Array();
 		foreach ($persons as $id => $details) {
 			$selected[$id] = $details['first_name'].' '.$details['last_name'];
