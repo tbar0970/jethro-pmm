@@ -125,7 +125,6 @@ class db_object
 			switch ($default) {
 				case 'CURRENT_TIMESTAMP':
 				case 'NULL':
-				case '0':
 					break;
 				default:
 					$default = $GLOBALS['db']->quote($default);
