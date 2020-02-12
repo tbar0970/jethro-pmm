@@ -71,6 +71,12 @@ if (!empty($ini['SMS_MESSAGE'])) {
 		$ini['SMS_MESSAGE'] = '';
 	}
 }
+
+$save_sms_communication=1;
+if (!empty($init['SAVE_SMS_COMMUNICATION'])) {
+	$save_sms_communication=$ini['SAVE_SMS_COMMUNICATION'];
+}
+
 require_once JETHRO_ROOT.'/include/emailer.class.php';
 
 // Send individual reminders and collate summary info
@@ -156,7 +162,7 @@ function send_reminder($person)
 			$toNumber = $person['mobile_tel'];
 			if (!empty($ini['OVERRIDE_RECIPIENT_SMS'])) $toNumber = $ini['OVERRIDE_RECIPIENT_SMS'];
 			$message = replace_keywords($ini['SMS_MESSAGE'], $person);
-			$res = SMS_Sender::sendMessage($message, Array($person), TRUE);
+			$res = SMS_Sender::sendMessage($message, Array($person), ((int)$save_sms_communication==1));
 			if (count($res['successes']) != 1) {
 				echo "Failed to send SMS to ".$toNumber."\n";
 			} else {
