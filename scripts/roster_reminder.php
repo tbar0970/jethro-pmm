@@ -20,7 +20,7 @@ Use .ini file to set the following
  - email from name
  - email subject
  - debug (only send to roster coordinator)
- - save communication (store a copy of a message[sms] into the person's communication log
+ - save communication (store a copy of a message[sms] into the person's communication log)
  - email method (email_class or php mail())
 
 TWO MESSAGES WILL BE SENT
