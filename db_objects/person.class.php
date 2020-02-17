@@ -765,7 +765,7 @@ class Person extends DB_Object
 	static function getCustomMergeData($personids,$formatted=TRUE)
 	{
 		$db = $GLOBALS['db'];
-		$SQL = 'SELECT '.Custom_Field::getRawValueSQLExpr('v', 'f').' AS value, f.name, v.personid, v.fieldid
+		$SQL = 'SELECT '.Custom_Field::getRawValueSQLExpr('v', 'f').' AS value, f.name, v.personid, v.fieldid, f.type
 				FROM custom_field_value v
 				JOIN custom_field f ON v.fieldid = f.id
 				WHERE v.personid IN ('.implode(',', array_map(Array($db, 'quote'), $personids)).')';
@@ -779,7 +779,7 @@ class Person extends DB_Object
 		}
 		foreach ($qres as $row) {
 			$fname = strtoupper(str_replace(' ', '_', $row['name']));
-			if ($formatted) {
+			if ($formatted || ($row['type'] == 'select')) {
 				$fVal = $customFields[$row['fieldid']]->formatValue($row['value']);
 			} else {
 				$fVal = $row['value'];
