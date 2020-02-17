@@ -203,6 +203,33 @@ class Person extends DB_Object
 
 	/**
 	 *
+	 * @return The SQL to run to create any database views used by this class
+	 */
+	public function getViewSQL()
+	{
+		return "CREATE VIEW person AS
+			SELECT * from _person p
+			WHERE
+				getCurrentUserID() IS NOT NULL
+				AND (
+					(`p`.`id` = `getCurrentUserID`())
+					OR (`getCurrentUserID`() = -(1))
+					OR (
+						(
+						(not(exists(select 1 AS `Not_used` from `account_congregation_restriction` `cr` where (`cr`.`personid` = `getCurrentUserID`()))))
+						OR `p`.`congregationid` in (select `cr`.`congregationid` AS `congregationid` from `account_congregation_restriction` `cr` where (`cr`.`personid` = `getCurrentUserID`()))
+						)
+						AND
+						(
+						(not(exists(select 1 AS `Not_used` from `account_group_restriction` `gr` where (`gr`.`personid` = `getCurrentUserID`()))))
+						OR `p`.`id` in (select `m`.`personid` AS `personid` from (`person_group_membership` `m` join `account_group_restriction` `gr` on((`m`.`groupid` = `gr`.`groupid`))) where (`gr`.`personid` = `getCurrentUserID`()))
+						)
+					)
+				);";
+	}
+
+	/**
+	 *
 	 * @return Array (columnName => referenceExpression) eg 'tagid' => 'tagoption(id) ON DELETE CASCADE'
 	 */
 	public function getForeignKeys()

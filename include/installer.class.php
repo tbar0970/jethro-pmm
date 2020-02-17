@@ -96,6 +96,7 @@ class Installer
 		}
 
 		$fks  = Array();
+		$views = Array();
 
 		sort($filenames);
 		foreach ($filenames as $filename) {
@@ -113,6 +114,9 @@ class Installer
 
 				$f = $data_obj->getForeignKeys();
 				if ($f) $fks[$classname] = $f;
+
+				$v = $data_obj->getViewSQL();
+				if ($v) $views[$classname] = $v;
 			}
 		}
 
@@ -145,36 +149,6 @@ class Installer
 			   CONSTRAINT account_congregation_restriction_personid FOREIGN KEY (personid) REFERENCES staff_member(id),
 			   CONSTRAINT account_group_restriction_congregationid FOREIGN KEY (congregationid) REFERENCES congregation(id)
 			) engine=innodb;",
-
-			"CREATE VIEW person AS
-			SELECT * from _person p
-			WHERE
-				getCurrentUserID() IS NOT NULL
-				AND (
-					(`p`.`id` = `getCurrentUserID`())
-					OR (`getCurrentUserID`() = -(1))
-					OR (
-						(
-						(not(exists(select 1 AS `Not_used` from `account_congregation_restriction` `cr` where (`cr`.`personid` = `getCurrentUserID`()))))
-						OR `p`.`congregationid` in (select `cr`.`congregationid` AS `congregationid` from `account_congregation_restriction` `cr` where (`cr`.`personid` = `getCurrentUserID`()))
-						)
-						AND
-						(
-						(not(exists(select 1 AS `Not_used` from `account_group_restriction` `gr` where (`gr`.`personid` = `getCurrentUserID`()))))
-						OR `p`.`id` in (select `m`.`personid` AS `personid` from (`person_group_membership` `m` join `account_group_restriction` `gr` on((`m`.`groupid` = `gr`.`groupid`))) where (`gr`.`personid` = `getCurrentUserID`()))
-						)
-					)
-				);",
-
-			"CREATE VIEW person_group AS
-			SELECT * from _person_group g
-			WHERE
-			  getCurrentUserID() IS NOT NULL
-			  AND
-			  ((g.owner IS NULL) OR (g.owner = getCurrentUserID()))
-			  AND
-			  (NOT EXISTS (SELECT * FROM account_group_restriction gr WHERE gr.personid  = getCurrentUserID())
-			  OR g.id IN (SELECT groupid FROM account_group_restriction gr WHERE gr.personid = getCurrentUserID()))",
 
 			'CREATE VIEW member AS
 			SELECT mp.id, mp.first_name, mp.last_name, mp.gender, mp.age_bracketid, mp.congregationid,
@@ -218,7 +192,7 @@ class Installer
 			  );",
 
 			"SET @rank = 1;	",
-			
+
 			"INSERT INTO setting (rank, heading, symbol, note, type, value)
 			 VALUES
 			(@rank:=@rank+5, '','SYSTEM_NAME','Label displayed at the top of every page','text',''),
@@ -319,6 +293,10 @@ class Installer
 						FOREIGN KEY ('.$from.') REFERENCES '.$to;
 				$r = $GLOBALS['db']->query($SQL);
 			}
+		}
+
+		foreach (array_unique($views) as $v) {
+			$r = $GLOBALS['db']->query($v);
 		}
 
 		Config_Manager::saveSetting('SYSTEM_NAME', substr($_REQUEST['system_name'], 0, 30));

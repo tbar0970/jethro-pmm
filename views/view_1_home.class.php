@@ -40,7 +40,7 @@ class View_Home extends View
 		</div>
 
 		<?php
-		if ( $GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
+		if ( $GLOBALS['user_system']->havePerm(PERM_VIEWMYNOTES)) {
 			$user = $GLOBALS['system']->getDBObject('staff_member', $GLOBALS['user_system']->getCurrentUser('id'));
 			$tasks = $user->getTasks('now');
 			?>

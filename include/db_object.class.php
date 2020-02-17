@@ -161,6 +161,15 @@ class db_object
 		return Array();
 	}
 
+	/**
+	 *
+	 * @return The SQL to run to create any database views used by this class
+	 */
+	public function getViewSQL()
+	{
+		return NULL;
+	}
+
 	public function create()
 	{
 		if (!$this->checkPerm($this->_save_permission_level)) {

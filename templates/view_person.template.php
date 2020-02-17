@@ -67,7 +67,7 @@ $accordion = SizeDetector::getWidth() && SizeDetector::isNarrow();
 $tabs = Array(
 	'basic' => _('Basic Details')
 );
-if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
+if ($GLOBALS['user_system']->havePerm(PERM_VIEWMYNOTES)) {
 	$notes = $person->getNotesHistory();
 	$tabs['notes'] = _('Notes').' ('.count($notes).')';
 }
@@ -238,7 +238,7 @@ if (isset($tabs['notes'])) {
 	}
 	if (empty($notes)) {
 		?>
-		<p><i><?php echo _('There are no person or family notes for ')?><?php $person->printFieldValue('name'); ?></i></p>
+		<p><i><?php echo _('There are no person or family notes to show for ')?><?php $person->printFieldValue('name'); ?></i></p>
 		<?php
 	} else {
 		?>

@@ -22,11 +22,16 @@ class Family_Note extends Abstract_Note
 			CREATE TABLE `family_note` (
 			  `familyid` int(11) NOT NULL default '0',
 			  `id` int(11) NOT NULL default '0',
-			  PRIMARY KEY  (`familyid`,`id`),
-			  CONSTRAINT `fn_familyid` FOREIGN KEY (familyid) REFERENCES family(id) ON DELETE CASCADE,
-			  CONSTRAINT fn_id FOREIGN KEY (id) REFERENCES abstract_note(id) ON DELETE CASCADE
+			  PRIMARY KEY  (`familyid`,`id`)
 			) ENGINE=InnoDB;
 		";
+	}
+
+	function getForeignKeys() {
+		return Array(
+			'familyid' => 'family(id) ON DELETE CASCADE',
+			'id' => '_abstract_note(id) ON DELETE CASCADE',
+		);
 	}
 
 	function readyToCreate()
