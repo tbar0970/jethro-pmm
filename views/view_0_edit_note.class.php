@@ -156,12 +156,12 @@ class View__Edit_Note extends View
 			<?php
 
 		} else {
-
 			$show_edit_link = FALSE;
 			$d  = $GLOBALS['system']->getDBObjectData(get_class($this->_note), Array('id' => $this->_note->id));
-			list($id, $entry) = each($d);
-			$dummy =& $this->_note;
-			include 'templates/single_note.template.php';
+			foreach ($d as $id => $entry) {
+				$dummy =& $this->_note;
+				include 'templates/single_note.template.php';
+			}
 		}
 	}
 }
