@@ -51,7 +51,6 @@ require_once JETHRO_ROOT.'/include/system_controller.class.php';
 $GLOBALS['system'] = System_Controller::get();
 
 if ($fromDB) {
-		$api_key = ifdef('MAILCHIMP_API_KEY', '');
         $reports = $GLOBALS['system']->getDBObjectData('person_query', Array('!mailchimp_list_id' => ''));
         foreach ($reports as $id => $r) {
                 $syncs[$id] = $r['mailchimp_list_id'];
@@ -59,11 +58,11 @@ if ($fromDB) {
         if ($DEBUG > 0 && empty($syncs)) {
                 trigger_error("Found no saved reports with list IDs set", E_USER_ERROR);
         }
-		if (empty($syncs)) exit(0);
-		if (!strlen($api_key)) {
-				trigger_error("API KEY not set in Jethro config", E_USER_ERROR);
-		}
-}
+		if (empty($syncs)) exit;
+        $api_key = ifdef('MAILCHIMP_API_KEY', '');
+        if (!strlen($api_key)) {
+                trigger_error("API KEY not set in Jethro config", E_USER_ERROR);
+        }}
 
 if (empty($api_key)) {
         trigger_error("API key not specified" , E_USER_ERROR);

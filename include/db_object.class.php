@@ -125,7 +125,6 @@ class db_object
 			switch ($default) {
 				case 'CURRENT_TIMESTAMP':
 				case 'NULL':
-				case '0':
 					break;
 				default:
 					$default = $GLOBALS['db']->quote($default);
@@ -901,7 +900,7 @@ class db_object
 		$res['from'] = $this->_getTableNames();
 		$wheres = Array();
 		foreach ($params as $field => $val) {
-			$operator = is_array($val) ? 'IN' : ((FALSE === strpos($val, '%')) && (FALSE === strpos($val, '?'))) ? '=' : 'LIKE';
+			$operator = is_array($val) ? 'IN' : (((FALSE === strpos($val, '%')) && (FALSE === strpos($val, '?'))) ? '=' : 'LIKE');
 				$prefix = '';
 				$suffix = '';
 			if ($field[0] == '!') {
@@ -963,11 +962,15 @@ class db_object
 			}
 			if ($operator == 'IN') {
 				if (is_array($val)) {
-					if (in_array(NULL, $val)) {
-						$prefix  .= '((';
-						$suffix = ') OR ('.$field.' IS NULL))';
+					if (empty($val)) {
+					    $val = 'NULL';
+					} else {
+					    if (in_array(NULL, $val)) {
+						    $prefix  .= '((';
+						    $suffix = ') OR ('.$field.' IS NULL))';
+					    }
+					    $val = implode(',', array_map(Array($GLOBALS['db'], 'quote'), $val));
 					}
-					$val = implode(',', array_map(Array($GLOBALS['db'], 'quote'), $val));
 				}
 				$val = '('.$val.')'; // If val wasn't an array we dont quote it coz it's a subquery
 				$wheres[] = '('.$prefix.$field.' '.$operator.' '.$val.$suffix.')';
@@ -1082,7 +1085,7 @@ class db_object
 						} else {
 							$val = $newval;
 						}
-					} else {
+					} else if (!$this->id) {
 						$val = array_get($field, 'default', key($field['options']));
 					}
 				}
