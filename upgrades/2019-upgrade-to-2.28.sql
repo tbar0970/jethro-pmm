@@ -7,7 +7,7 @@ where permissions <> 2147483647
 AND permissions & 16 = 16;
 
 update staff_member
-set permissions = CONV(concat(left(bin(permissions), length(bin(permissions))-4),"1",right(bin(permissions),4)), 2, 10)
+set permissions = CONV(concat(left(bin(permissions), length(bin(permissions))-4),"0",right(bin(permissions),4)), 2, 10)
 where permissions <> 2147483647
 AND permissions & 16 = 0;
 
