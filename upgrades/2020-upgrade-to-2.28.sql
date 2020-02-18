@@ -64,3 +64,16 @@ ALTER TABLE abstract_note RENAME TO _abstract_note_old_backup;
 create view abstract_note as
 select an.* from _abstract_note an
 WHERE ((an.assignee = getCurrentUserID() AND an.status = 'pending') OR (48 = (SELECT permissions & 48 FROM staff_member WHERE id = getCurrentUserID())));
+
+/* Fix FKs on headcount table - ensure they have on-delete-cascade issue #613 */
+
+ALTER TABLE congregation_headcount RENAME TO _disused_cong_headcount;
+CREATE TABLE congregation_headcount SELECT * FROM _disused_cong_headcount;
+DROP TABLE _disused_cong_headcount;
+ALTER TABLE congregation_headcount ADD CONSTRAINT `congregation_headcountcongregationid` FOREIGN KEY (`congregationid`) REFERENCES `congregation` (`id`) ON DELETE CASCADE;
+
+ALTER TABLE person_group_headcount RENAME TO _disused_group_headcount;
+CREATE TABLE person_group_headcount SELECT * FROM _disused_group_headcount;
+DROP TABLE _disused_group_headcount;
+ALTER TABLE person_group_headcount ADD CONSTRAINT `person_group_headcountperson_groupid` FOREIGN KEY (`person_groupid`) REFERENCES `_person_group` (`id`) ON DELETE CASCADE;
+
