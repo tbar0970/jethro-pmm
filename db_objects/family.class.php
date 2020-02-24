@@ -394,6 +394,7 @@ class family extends db_object
 						$member = new Person();
 						$all_members_archived = TRUE;
 						foreach ($members as $id => $details) {
+							$member->reset();
 							$member->populate($id, $details);
 							if ($member->canAcquireLock()) {
 								$member->acquireLock();
@@ -531,7 +532,7 @@ class family extends db_object
 			JOIN person p ON f.id= p.familyid
 		    JOIN age_bracket ab ON ab.id = p.age_bracketid
 			JOIN (
-			   select f.id as familyid, 
+			   select f.id as familyid,
 			    GROUP_CONCAT(p.first_name ORDER BY ab.rank ASC, p.gender DESC SEPARATOR ", ") as names,
 			    GROUP_CONCAT(CONCAT_WS(" ",p.first_name,p.last_name) ORDER BY ab.rank ASC, p.gender DESC SEPARATOR ", ") as full_names
 			   FROM person p JOIN family f on p.familyid = f.id
@@ -540,12 +541,12 @@ class family extends db_object
 			   GROUP BY f.id
 			) allmembers ON allmembers.familyid = f.id
 			LEFT JOIN (
-			   select f.id as familyid, 
+			   select f.id as familyid,
 			    GROUP_CONCAT(p.first_name ORDER BY ab.rank ASC, p.gender DESC SEPARATOR ", ") as names,
 			    GROUP_CONCAT(CONCAT_WS(" ",p.first_name,p.last_name) ORDER BY ab.rank ASC, p.gender DESC SEPARATOR ", ") as full_names,
 			    GROUP_CONCAT(p.mobile_tel ORDER BY ab.rank ASC, p.gender DESC SEPARATOR ", ") as mobile_tels,
 			    GROUP_CONCAT(p.email ORDER BY ab.rank ASC, p.gender DESC SEPARATOR ", ") as emails
-			   FROM person p 
+			   FROM person p
 			   JOIN family f on p.familyid = f.id
 			   JOIN age_bracket ab ON ab.id = p.age_bracketid
 			   WHERE ab.is_adult and p.status <> "archived"
