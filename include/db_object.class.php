@@ -570,6 +570,22 @@ class db_object
 			if (array_get($details, 'divider_before')) {
 				$c = ' class="divider-before"';
 			}
+			if (array_get($details, 'heading_before')) {
+				?>
+				<tr
+					<?php
+					if ($c) {
+						echo $c;
+						$c = '';
+					}
+					?>
+				>
+					<th colspan="2" class="center">
+						<h4><?php echo ents(array_get($details, 'heading_before')); ?></h4>
+					</th>
+				</tr>
+				<?php
+			}
 			?>
 			<tr<?php echo $c; ?>>
 				<th>
@@ -662,7 +678,12 @@ class db_object
 			}
 		} else if (($this->fields[$name]['type'] == 'text')
 					&& (array_get($this->fields[$name], 'height', 1) > 1)) {
-			echo nl2br(ents($this->getFormattedValue($name, $value)));
+			$res = nl2br(ents($this->getFormattedValue($name, $value)));
+			if (!empty($this->fields[$name]['add_links'])) {
+				include_once 'urllinker.php';
+				$res = linkUrlsInTrustedHtml($res, 'componentlink');
+			}
+			echo $res;
 		} else if ($this->fields[$name]['type'] == 'phone') {
 			echo '<a href="tel:'.$value.'">'.ents($this->getFormattedValue($name, $value)).'</a>';
 		} else if (($this->fields[$name]['type'] == 'email')) {
@@ -693,6 +714,15 @@ class db_object
 			if (!array_get($details, 'editable', true)) continue;
 			?>
 <div class="control-group">
+
+			<?php
+			if (strlen(array_get($details, 'heading_before'))) {
+				?>
+					<h4><?php echo ents($details['heading_before']); ?></h4>
+				<?php
+			}
+			?>
+
 	<label class="control-label" for="<?php echo $name; ?>"><?php echo _($this->getFieldLabel($name)); ?></label>
 	<div class="controls">
 		<?php
