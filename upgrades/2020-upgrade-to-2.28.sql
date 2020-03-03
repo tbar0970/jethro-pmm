@@ -77,3 +77,4 @@ CREATE TABLE person_group_headcount SELECT * FROM _disused_group_headcount;
 DROP TABLE _disused_group_headcount;
 ALTER TABLE person_group_headcount ADD CONSTRAINT `person_group_headcountperson_groupid` FOREIGN KEY (`person_groupid`) REFERENCES `_person_group` (`id`) ON DELETE CASCADE;
 
+ALTER TABLE service_component ADD COLUMN comments TEXT DEFAULT '';
