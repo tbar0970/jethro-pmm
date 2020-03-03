@@ -285,9 +285,9 @@ class Person_Group extends db_object
 	{
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
 		$res['from'] .= "\n LEFT JOIN person_group_membership gm ON gm.groupid = person_group.id ";
+		$res['from'] .= "\n LEFT JOIN person aperson ON gm.personid = aperson.id AND aperson.status<>'archived'";
 		$res['from'] .= "\n LEFT JOIN person_group_category pgc ON person_group.categoryid = pgc.id ";
-
-		$res['select'][] = 'COUNT(gm.personid) as member_count';
+		$res['select'][] = 'COUNT(aperson.id) as member_count';
 		$res['select'][] = 'pgc.name as category';
 		$res['group_by'] = 'person_group.id';
 		return $res;
