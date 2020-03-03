@@ -302,7 +302,6 @@ class Staff_Member extends Person
 	function processForm($prefix='', $fields=NULL)
 	{
 		parent::processForm($prefix, $fields);
-
 		if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN) && !empty($_REQUEST['restrictions'])) {
 			$this->_old_restrictions = $this->_restrictions;
 			$this->_restrictions = Array();
@@ -371,9 +370,11 @@ class Staff_Member extends Person
 				foreach ($this->_restrictions[$type] as $id) {
 					$rows[] = '('.(int)$this->id.','.(int)$id.')';
 				}
-				$res = $GLOBALS['db']->query('INSERT IGNORE INTO account_'.$type.'_restriction (personid, '.$type.'id) VALUES '.implode(',', $rows));
+				$sql = 'REPLACE INTO account_'.$type.'_restriction (personid, '.$type.'id) VALUES '.implode(',', $rows);
+				$res = $GLOBALS['db']->query($sql);
 			}
 		}
+
 	}
 
 	public function checkUniqueUsername()
