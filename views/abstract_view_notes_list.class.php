@@ -11,9 +11,9 @@ class Abstract_View_Notes_List extends View
 
 	function processView()
 	{
-		$this->_notes = $this->_getNotesToShow(array_get($_REQUEST, 'assignee'), array_get($_REQUEST, 'search'));
 		$this->_reassigning = $GLOBALS['user_system']->havePerm(PERM_BULKNOTE) && !empty($_REQUEST['reassigning']);
 		if ($this->_reassigning && !empty($_POST['reassignments_submitted'])) {
+			$this->_notes = $this->_getNotesToShow(array_get($_REQUEST, 'assignee'), array_get($_REQUEST, 'search'));
 			$dummy_note = new Abstract_Note();
 			foreach ($this->_notes as $id => $note) {
 				$dummy_note->reset();
