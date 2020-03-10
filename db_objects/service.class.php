@@ -758,7 +758,7 @@ class service extends db_object
 					if (count($rosterViews) == 1) {
 						reset($rosterViews);
 						?>
-						<a href="?view=rosters__edit_roster_assignments&viewid=<?php echo key($rosterViews); ?>&start_date=<?php echo $this->getValue('date'); ?>&end_date=<?php echo $this->getValue('date'); ?>"><i class="icon-wrench"></i>Edit</a>
+						<a href="?view=rosters__edit_roster_assignments&viewid=<?php echo key($rosterViews); ?>&start_date=<?php echo $this->getValue('date'); ?>&end_date=<?php echo $this->getValue('date'); ?>&goback=1"><i class="icon-wrench"></i>Edit Personnel</a>
 						&nbsp;
 						<?php
 					}
