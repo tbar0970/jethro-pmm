@@ -78,3 +78,6 @@ DROP TABLE _disused_group_headcount;
 ALTER TABLE person_group_headcount ADD CONSTRAINT `person_group_headcountperson_groupid` FOREIGN KEY (`person_groupid`) REFERENCES `_person_group` (`id`) ON DELETE CASCADE;
 
 ALTER TABLE service_component ADD COLUMN comments TEXT DEFAULT '';
+
+alter table service_component modify column ccli_number int(11) default null;
+update service_component set ccli_number = null where ccli_number = 0;
