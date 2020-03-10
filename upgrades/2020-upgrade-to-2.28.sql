@@ -81,3 +81,9 @@ ALTER TABLE service_component ADD COLUMN comments TEXT DEFAULT '';
 
 alter table service_component modify column ccli_number int(11) default null;
 update service_component set ccli_number = null where ccli_number = 0;
+
+/* 2.28.1 - fix some stray foreign keys */
+alter table person_note drop foreign key pn_id;
+alter table family_note drop foreign key fn_id;
+alter table person_note add constraint `pn_id` foreign key (`id`) references _abstract_note(id);
+alter table family_note add constraint `fn_id` foreign key (`id`) references _abstract_note(id);
