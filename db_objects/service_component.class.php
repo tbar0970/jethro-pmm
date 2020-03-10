@@ -52,6 +52,10 @@ class Service_Component extends db_object
 									'label' => 'CCLI Number',
 									'type'		=> 'int',
 									'width'		=> 8,
+									'allow_empty'	=> TRUE,
+			    // TODO:
+			    // -- re run installer, check the empty/null value now saves OK
+			    // -- add to upgrade script, convert zeros to nulls.
 								   ),
 			'runsheet_title_format'	=> Array(
 									'type'		=> 'text',
