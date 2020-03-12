@@ -14,6 +14,15 @@
 @import "responsive.less";
 @import "../css/jquery-ui.min.css";
 
+/* Fix for less v2 and bootstrap 2 - see https://stackoverflow.com/questions/26628309/less-v2-does-not-compile-twitters-bootstrap-2-x */
+#grid {
+    .core  {
+        .span(@gridColumns) {
+            width: (@gridColumnWidth * @gridColumns) + (@gridGutterWidth * (@gridColumns - 1));
+        }
+    }
+};
+
 <?php
 /* Load any custom vars from conf.php */
 $confFile = dirname(dirname(dirname(__FILE__))).'/conf.php';

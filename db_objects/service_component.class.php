@@ -52,6 +52,7 @@ class Service_Component extends db_object
 									'label' => 'CCLI Number',
 									'type'		=> 'int',
 									'width'		=> 8,
+									'allow_empty'	=> TRUE,
 								   ),
 			'runsheet_title_format'	=> Array(
 									'type'		=> 'text',
