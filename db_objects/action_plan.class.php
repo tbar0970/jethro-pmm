@@ -528,7 +528,7 @@ class Action_Plan extends DB_Object
 				add_message("Action plan # {$this->id} could not add people to group # $groupid because it does not exist.", 'error');
 			}
 
-			if ($groupMarkPresent[$i]) {
+			if (!empty($groupMarkPresent[$i])) {
 				$date = Attendance_Record_Set::getMostRecentDate('g-'.$groupid);
 				foreach ($personids as $personid) {
 					$person = $GLOBALS['system']->getDBObject('person', $personid);
