@@ -19,6 +19,10 @@ class Action_Plan_Note extends Abstract_Note {
 		return '';
 	}
 
+	function getForeignKeys() {
+		return Array();
+	}
+
 	protected static function _getFields()
 	{
 

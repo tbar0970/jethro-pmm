@@ -171,7 +171,13 @@ class Staff_Member extends Person
 
 	function printForm($prefix='', $fields=NULL)
 	{
-		$this->fields['restrictions'] = Array('type' => 'custom');
+		$offset = array_search('permissions', array_keys($this->fields))+1;
+		$this->fields = array_merge(
+				array_slice($this->fields, 0, $offset),
+				array('restrictions' => Array('type' => 'custom')),
+				array_slice($this->fields, $offset, null)
+		);
+		$this->fields['first_name']['divider_before'] = true;
 		parent::printForm($prefix, $fields);
 		unset($this->fields['restrictions']);
 	}
@@ -221,7 +227,7 @@ class Staff_Member extends Person
 							</td>
 						</tr>
 					</table>
-					<p class="help-inline">If you select congregations or groups here, this user will only be able to see persons who belong to one of the selected congregations or groups.  It will look like those are the only congregations, groups and persons in the system.  
+					<p class="help-inline">If you select congregations or groups here, this user will only be able to see persons who belong to one of the selected congregations or groups.  It will look like those are the only congregations, groups and persons in the system.
 						Users with group <?php if (!ifdef('RESTRICTED_USERS_CAN_ADD')) echo 'or congregation'; ?> restrictions cannot add new persons or families.  Changes to restrictions take effect immediately.
 					</p>
 					<?php
@@ -296,7 +302,6 @@ class Staff_Member extends Person
 	function processForm($prefix='', $fields=NULL)
 	{
 		parent::processForm($prefix, $fields);
-
 		if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN) && !empty($_REQUEST['restrictions'])) {
 			$this->_old_restrictions = $this->_restrictions;
 			$this->_restrictions = Array();
@@ -365,9 +370,11 @@ class Staff_Member extends Person
 				foreach ($this->_restrictions[$type] as $id) {
 					$rows[] = '('.(int)$this->id.','.(int)$id.')';
 				}
-				$res = $GLOBALS['db']->query('INSERT IGNORE INTO account_'.$type.'_restriction (personid, '.$type.'id) VALUES '.implode(',', $rows));
+				$sql = 'REPLACE INTO account_'.$type.'_restriction (personid, '.$type.'id) VALUES '.implode(',', $rows);
+				$res = $GLOBALS['db']->query($sql);
 			}
 		}
+
 	}
 
 	public function checkUniqueUsername()

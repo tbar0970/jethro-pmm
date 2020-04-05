@@ -7,14 +7,20 @@ class View__Edit_Note extends View
 
 	static function getMenuPermissionLevel()
 	{
-		return PERM_EDITNOTE;
+		return PERM_VIEWMYNOTES;
 	}
 
 	function processView()
 	{
 		$this->_note = $GLOBALS['system']->getDBObject($_REQUEST['note_type'].'_note', (int)$_REQUEST['noteid']);
-		
-		if (!empty($_POST['delete_note']) && $this->_note->canBeDeleted()) {
+		if ((!$GLOBALS['user_system']->havePerm(PERM_EDITNOTE))
+				&& ($this->_note->getValue('assignee') != $GLOBALS['user_system']->getCurrentUser('id'))) {
+			trigger_error("Current user does not have permission to edit note #".$this->_note->id);
+			return;
+		}
+
+
+		if (!empty($_POST['delete_note']) && $this->_note->canBeDeleted() && $GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
 			if ($this->_note->delete()) {
 				add_message(_('Note deleted'), 'success');
 				$this->redirectAfterEdit();
@@ -72,7 +78,7 @@ class View__Edit_Note extends View
 			}
 		}
 	}
-	
+
 	private function redirectAfterEdit() {
 		$next_view = array_get($_REQUEST, 'back_to', '');
 		if (empty($next_view)) {
@@ -94,7 +100,7 @@ class View__Edit_Note extends View
 		redirect($next_view, $params + Array('*' => NULL), $hash); // exits
 
 	}
-	
+
 	function getTitle()
 	{
 		if ($this->_person) {
@@ -131,7 +137,7 @@ class View__Edit_Note extends View
 				$show_form = false;
 			}
 		}
-		
+
 		if ($show_form && !empty($_REQUEST['edit_original'])) {
 			print_message('NB: Notes are designed to accumulate as a historical record, so they should usually only be edited to correct a mistake', '');
 			?>
@@ -150,12 +156,12 @@ class View__Edit_Note extends View
 			<?php
 
 		} else {
-
 			$show_edit_link = FALSE;
 			$d  = $GLOBALS['system']->getDBObjectData(get_class($this->_note), Array('id' => $this->_note->id));
-			list($id, $entry) = each($d);
-			$dummy =& $this->_note;
-			include 'templates/single_note.template.php';
+			foreach ($d as $id => $entry) {
+				$dummy =& $this->_note;
+				include 'templates/single_note.template.php';
+			}
 		}
 	}
 }

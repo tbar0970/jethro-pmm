@@ -20,13 +20,6 @@ class Service_Component extends db_object
 	{
 
 		$fields = Array(
-			'categoryid'	=> Array(
-									'type'				=> 'reference',
-									'references'		=> 'service_component_category',
-									'label'				=> 'Category',
-									'show_id'			=> FALSE,
-									'allow_empty'		=> FALSE,
-								   ),
 			'title'		=> Array(
 									'type'		=> 'text',
 									'width'		=> 80,
@@ -40,18 +33,36 @@ class Service_Component extends db_object
 									'initial_cap'	=> TRUE,
 									'placeholder' => '(Optional)',
 								   ),
-			'length_mins'		=> Array(
-									'type'		=> 'int',
-									'label'		=> 'Length (mins)',
-									'divider_before' => true,
+			'categoryid'	=> Array(
+									'type'				=> 'reference',
+									'references'		=> 'service_component_category',
+									'label'				=> 'Category',
+									'show_id'			=> FALSE,
+									'allow_empty'		=> FALSE,
+									'divider_above'		=> TRUE,
 								   ),
-
+			'comments'			=> Array(
+									'type'		=> 'text',
+									'width'		=> 80,
+									'height'	=> 3,
+									'note'		=> 'Key, Tempo, Relevant URLs etc.',
+									'add_links'	=> TRUE,
+									),
+			'ccli_number'		=> Array(
+									'label' => 'CCLI Number',
+									'type'		=> 'int',
+									'width'		=> 8,
+									'allow_empty'	=> TRUE,
+								   ),
 			'runsheet_title_format'	=> Array(
 									'type'		=> 'text',
 									'width'		=> 80,
 									'initial_cap'	=> TRUE,
 									'placeholder' => '(Optional)',
 									'note' => 'How should this component be shown on the run sheet.  Can include replacements such as the component\'s %title%, %SERVICE_TOPIC% or %NAME_OF_SOMEROSTERROLE%.  Leave blank to use the category\'s default.',
+									'heading_before' => 'Run Sheet Appearance',
+									'divider_before' => TRUE,
+									'label' => 'Run sheet format'
 								   ),
 			'personnel'            => Array(
 									'type'		=> 'text',
@@ -59,17 +70,23 @@ class Service_Component extends db_object
 									'placeholder' => '(Optional)',
 									'note' => 'What to put in the run sheet\'s "personnel" column by default. Can include roster role keywords such as %SERVICE_LEADER%. Leave blank to use the category\'s default.',
 									),
+			'length_mins'		=> Array(
+									'type'		=> 'int',
+									'label'		=> 'Length (mins)',
+								   ),
 			'show_in_handout'		=> Array(
 									'type'		=> 'select',
 									'options'  => Array(
-													'0' => 'No',
-													'title' => 'Title only',
-													'full'  => 'Title and Content',
+													'0' => 'None',
+													'title' => 'Include Title only',
+													'full'  => 'Include Title and Content',
 													),
-									'label'    => 'Show on Handout?',
+									'label'    => 'Handout Visibility',
 									'editable' => true,
 									'show_in_summary' => true,
-									'note' => 'Items that are shown on the handout appear with numbers on the run sheet.',
+									'note' => 'Items that appear in the service handout are given numbers on the run sheet.',
+									'heading_before' => 'Service Handout Appearance',
+									'divider_before' => TRUE,
 								   ),
 
 			'handout_title_format'	=> Array(
@@ -77,7 +94,8 @@ class Service_Component extends db_object
 									'width'		=> 80,
 									'initial_cap'	=> TRUE,
 									'placeholder' => '(Optional)',
-									'note' => 'How should this component be shown on the handout.  Can include replacements such as the component\'s %title%, %SERVICE_TOPIC% or %NAME_OF_SOMEROSTERROLE%.  Leave blank to use the category\'s default.',
+									'note' => 'How should this component be listed in the service handout.  Can include replacements such as the component\'s %title%, %SERVICE_TOPIC% or %NAME_OF_SOMEROSTERROLE%.  Leave blank to use the category\'s default.',
+
 								   ),
 			'show_on_slide'		=> Array(
 									'type'		=> 'select',
@@ -87,7 +105,6 @@ class Service_Component extends db_object
 									'show_in_summary' => false,
 								   ),
 			'content_html'		=> Array(
-									'divider_before' => true,
 									'type'		=> 'html',
 									'label'     => 'Content',
 									'note' => 'When typing in lyrics, use Ctrl+Enter between lines and normal Enter between verses. Don\'t worry if pasted lyrics contain odd fonts etc; these will be stripped on save.'
@@ -97,11 +114,6 @@ class Service_Component extends db_object
 									'width'		=> 80,
 									'height'    => 3,
 									'initial_cap'	=> TRUE,
-								   ),
-			'ccli_number'		=> Array(
-									'label' => 'CCLI Number',
-									'type'		=> 'int',
-									'width'		=> 8,
 								   ),
 		);
 		return $fields;
@@ -194,8 +206,6 @@ class Service_Component extends db_object
 			$this->fields[$k] = $v;
 			if ($k == 'categoryid') {
 				$this->fields['congregationids'] = Array('label' => 'Congregations');
-			}
-			if ($k == 'alt_title') {
 				$this->fields['tags'] = Array();
 			}
 		}
@@ -235,7 +245,6 @@ class Service_Component extends db_object
 				}
 				break;
 
-
 			default:
 				return parent::printFieldValue($name);
 		}
@@ -269,6 +278,7 @@ class Service_Component extends db_object
 					'allow_multiple'	=> TRUE,
 					'note'				=> 'If a component is no longer used by any congregation, unselect all options',
 				);
+				$this->fields['tags'] = Array();
 				if (empty($this->id)) {
 					if (!empty($_REQUEST['congregationid'])) {
 						$this->setValue('congregationids', Array($_REQUEST['congregationid']));
@@ -276,9 +286,6 @@ class Service_Component extends db_object
 						$this->values['congregationids'] = array_keys($congs);
 					}
 				}
-			}
-			if ($k == 'alt_title') {
-				$this->fields['tags'] = Array();
 			}
 		}
 		parent::printForm($prefix, $fields);

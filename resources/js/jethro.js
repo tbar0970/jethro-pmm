@@ -1106,6 +1106,11 @@ JethroServicePlanner.onItemReorder = function() {
 }
 
 JethroServicePlanner.refreshNumbersAndTimes = function() {
+	if (JethroServicePlanner.timeRefreshTimer) clearTimeout(JethroServicePlanner.timeRefreshTimer);
+	JethroServicePlanner.timeRefreshTimer = setTimeout(JethroServicePlanner._refreshNumbersAndTimes, 200);
+}
+
+JethroServicePlanner._refreshNumbersAndTimes = function() {
 	var sp = $('#service-plan');
 	sp.find('td.number, td.start').html('');
 	var currentNumber = 1;
@@ -1134,13 +1139,16 @@ JethroServicePlanner._addTime = function(clockTime, addMins) {
 	addMins = parseInt(addMins, 10);
 	if (!isNaN(addMins)) {
 		mins += parseInt(addMins, 10);
-		if (mins > 60) {
+		if (mins >= 60) {
 			mins = mins % 60;
 			hours++;
 		}
 		if (hours < 10) hours = "0"+hours;
 		if (mins < 10) mins = "0"+mins;
 		return ""+hours+mins;
+	} else {
+		// It's hard to say how this happens but best to quietly continue
+		return clockTime;
 	}
 }
 

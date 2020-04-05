@@ -4,7 +4,7 @@ class View_Notes__For_Immediate_Action extends Abstract_View_Notes_List
 {
 	static function getMenuPermissionLevel()
 	{
-		return PERM_VIEWNOTE;
+		return PERM_VIEWMYNOTES;
 	}
 
 	function _getNotesToShow($assigneeID=NULL, $search=NULL)

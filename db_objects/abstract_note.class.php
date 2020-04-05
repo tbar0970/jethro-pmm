@@ -2,8 +2,8 @@
 include_once 'include/db_object.class.php';
 class Abstract_Note extends DB_Object
 {
-	protected $_load_permission_level = PERM_VIEWNOTE;
-	protected $_save_permission_level = PERM_EDITNOTE;
+	protected $_load_permission_level = PERM_VIEWMYNOTES;
+	protected $_save_permission_level = PERM_VIEWMYNOTES;
 
 	protected static function _getFields()
 	{
@@ -47,7 +47,7 @@ class Abstract_Note extends DB_Object
 								'default'		=> $GLOBALS['user_system']->getCurrentUser('id'),
 								'tooltip'			=> 'Choose the user responsible for acting on this note',
 								'allow_empty'	=> true,
-								'filter'		=> function($x) {return $x->getValue("active") && (($x->getValue("permissions") & PERM_EDITNOTE) == PERM_EDITNOTE);},
+								'filter'		=> function($x) {return $x->getValue("active") && (($x->getValue("permissions") & PERM_VIEWMYNOTES) == PERM_VIEWMYNOTES);},
 							   ),
 			'assignee_last_changed' => Array(
 									'type'				=> 'datetime',
@@ -94,6 +94,37 @@ class Abstract_Note extends DB_Object
 		return $fields;
 	}
 
+
+	function getInitSQL($table_name=NULL)
+	{
+		return parent::getInitSQL('_abstract_note');
+	}
+
+	/**
+	 *
+	 * @return Array (columnName => referenceExpression) eg 'tagid' => 'tagoption(id) ON DELETE CASCADE'
+	 */
+	public function getForeignKeys()
+	{
+		return Array(
+				'_abstract_note.assignee' => '`staff_member`(`id`) ON DELETE RESTRICT',
+				'_abstract_note.creator' => '`staff_member`(`id`) ON DELETE RESTRICT',
+				'_abstract_note.editor' => '`staff_member`(`id`) ON DELETE RESTRICT',
+		);
+	}
+
+	/**
+	 *
+	 * @return The SQL to run to create any database views used by this class
+	 */
+	public function getViewSQL()
+	{
+		return "
+			create view abstract_note as
+			select an.* from _abstract_note an
+			WHERE ((an.assignee = getCurrentUserID() AND an.status = 'pending') OR (".PERM_VIEWNOTE." = (SELECT permissions & ".PERM_VIEWNOTE." FROM staff_member WHERE id = getCurrentUserID())));
+			";
+	}
 
 	function toString()
 	{
@@ -150,6 +181,9 @@ class Abstract_Note extends DB_Object
 		$res['select'][] = 'creator.last_name as creator_ln';
 		$res['select'][] = 'assignee.first_name as assignee_fn';
 		$res['select'][] = 'assignee.last_name as assignee_ln';
+		if (!$GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
+		//	$res['where'] = '('.$res['where'].') AND abstract_note.assignee = '.$GLOBALS['user_system']->getCurrentUser('id');
+		}
 		return $res;
 
 	}
@@ -201,6 +235,25 @@ class Abstract_Note extends DB_Object
 	}
 
 	/**
+	 *
+	 * @return boolean True if current user is allowed to edit this note (change status, assignee etc)
+	 */
+	public function canEdit() {
+		if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) return TRUE;
+
+		if ($GLOBALS['user_system']->havePerm(PERM_VIEWMYNOTES)
+			&& ($this->getValue('assignee') == $GLOBALS['user_system']->getCurrentUser('id'))) {
+			return TRUE;
+		}
+
+		if ($GLOBALS['user_system']->havePerm(PERM_VIEWMYNOTES)
+			&& (array_get($this->_old_values, 'assignee') == $GLOBALS['user_system']->getCurrentUser('id'))) {
+			return TRUE;
+		}
+		return FALSE;
+	}
+
+	/**
 	 * @return boolean	True if the current user is allowed to edit the original content of this note
 	 */
 	public function canEditOriginal() {
@@ -223,6 +276,10 @@ class Abstract_Note extends DB_Object
 
 	function save()
 	{
+		if (!$this->canEdit()) {
+			trigger_error("Current user cannot save note #".$this->id);
+			return false;
+		}
 		// If the subject or details is updated, set the 'editor' and 'edited' fields
 		if (isset($this->_old_values['subject'])
 			|| isset($this->_old_values['details'])
@@ -265,7 +322,6 @@ class Abstract_Note extends DB_Object
 				<label class="control-label">Action Date</label>
 				<div class="controls">
 					<?php echo $this->printFieldInterface('action_date'); ?>
-					<div class="help-inline"><?php echo ents($this->fields['action_date']['note']); ?></div>
 				</div>
 			</div>
 			<div class="control-group">

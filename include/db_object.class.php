@@ -125,7 +125,6 @@ class db_object
 			switch ($default) {
 				case 'CURRENT_TIMESTAMP':
 				case 'NULL':
-				case '0':
 					break;
 				default:
 					$default = $GLOBALS['db']->quote($default);
@@ -159,6 +158,15 @@ class db_object
 	public function getForeignKeys()
 	{
 		return Array();
+	}
+
+	/**
+	 *
+	 * @return The SQL to run to create any database views used by this class
+	 */
+	public function getViewSQL()
+	{
+		return NULL;
 	}
 
 	public function create()
@@ -205,7 +213,7 @@ class db_object
 			if (array_get($details, 'readonly')) continue;
 			$flds[] = $name;
 			$v = array_get($this->values, $name, '');
-			if (($v === '') && (($details['type'] == 'date') || $details['type'] == 'datetime')) {
+			if (($v === '') && (in_array($details['type'], Array('date', 'datetime', 'int')))) {
 				// Mysql strict mode doesn't like blank strings being inserted into datetime cols
 				$v = NULL;
 			}
@@ -562,6 +570,22 @@ class db_object
 			if (array_get($details, 'divider_before')) {
 				$c = ' class="divider-before"';
 			}
+			if (array_get($details, 'heading_before')) {
+				?>
+				<tr
+					<?php
+					if ($c) {
+						echo $c;
+						$c = '';
+					}
+					?>
+				>
+					<th colspan="2" class="center">
+						<h4><?php echo ents(array_get($details, 'heading_before')); ?></h4>
+					</th>
+				</tr>
+				<?php
+			}
 			?>
 			<tr<?php echo $c; ?>>
 				<th>
@@ -625,6 +649,10 @@ class db_object
 			$percol = false;
 			if (!empty($this->fields[$name]['cols']) && (int)$this->fields[$name]['cols'] > 1) {
 				$percol = ceil(count($this->fields[$name]['options']) / $this->fields[$name]['cols']);
+				?>
+				<div class="bitmask-boxes">
+					<div class="bitmask-column">
+				<?php
 			}
 			$i = 0;
 			foreach ($this->fields[$name]['options'] as $k => $v) {
@@ -636,10 +664,26 @@ class db_object
 					<?php echo nbsp(ents($v)); ?>
 				</label>
 				<?php
+				if ($percol && (++$i % $percol == 0)) {
+					?>
+					</div>
+					<div>
+					<?php
+				}
+			}
+			if ($percol) {
+				?>
+				</div>
+				<?php
 			}
 		} else if (($this->fields[$name]['type'] == 'text')
 					&& (array_get($this->fields[$name], 'height', 1) > 1)) {
-			echo nl2br(ents($this->getFormattedValue($name, $value)));
+			$res = nl2br(ents($this->getFormattedValue($name, $value)));
+			if (!empty($this->fields[$name]['add_links'])) {
+				include_once 'urllinker.php';
+				$res = linkUrlsInTrustedHtml($res, 'componentlink');
+			}
+			echo $res;
 		} else if ($this->fields[$name]['type'] == 'phone') {
 			echo '<a href="tel:'.$value.'">'.ents($this->getFormattedValue($name, $value)).'</a>';
 		} else if (($this->fields[$name]['type'] == 'email')) {
@@ -670,6 +714,15 @@ class db_object
 			if (!array_get($details, 'editable', true)) continue;
 			?>
 <div class="control-group">
+
+			<?php
+			if (strlen(array_get($details, 'heading_before'))) {
+				?>
+					<h4><?php echo ents($details['heading_before']); ?></h4>
+				<?php
+			}
+			?>
+
 	<label class="control-label" for="<?php echo $name; ?>"><?php echo _($this->getFieldLabel($name)); ?></label>
 	<div class="controls">
 		<?php
@@ -877,7 +930,7 @@ class db_object
 		$res['from'] = $this->_getTableNames();
 		$wheres = Array();
 		foreach ($params as $field => $val) {
-			$operator = is_array($val) ? 'IN' : ((FALSE === strpos($val, '%')) && (FALSE === strpos($val, '?'))) ? '=' : 'LIKE';
+			$operator = is_array($val) ? 'IN' : (((FALSE === strpos($val, '%')) && (FALSE === strpos($val, '?'))) ? '=' : 'LIKE');
 				$prefix = '';
 				$suffix = '';
 			if ($field[0] == '!') {
@@ -939,11 +992,15 @@ class db_object
 			}
 			if ($operator == 'IN') {
 				if (is_array($val)) {
-					if (in_array(NULL, $val)) {
-						$prefix  .= '((';
-						$suffix = ') OR ('.$field.' IS NULL))';
+					if (empty($val)) {
+					    $val = 'NULL';
+					} else {
+					    if (in_array(NULL, $val)) {
+						    $prefix  .= '((';
+						    $suffix = ') OR ('.$field.' IS NULL))';
+					    }
+					    $val = implode(',', array_map(Array($GLOBALS['db'], 'quote'), $val));
 					}
-					$val = implode(',', array_map(Array($GLOBALS['db'], 'quote'), $val));
 				}
 				$val = '('.$val.')'; // If val wasn't an array we dont quote it coz it's a subquery
 				$wheres[] = '('.$prefix.$field.' '.$operator.' '.$val.$suffix.')';
@@ -1058,7 +1115,7 @@ class db_object
 						} else {
 							$val = $newval;
 						}
-					} else {
+					} else if (!$this->id) {
 						$val = array_get($field, 'default', key($field['options']));
 					}
 				}

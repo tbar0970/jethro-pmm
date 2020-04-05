@@ -48,6 +48,7 @@ class Person_Group extends db_object
 			'share_member_details' => Array(
 									'type' => 'select',
 									'options' => Array('No', 'Yes'),
+									'default' => 0,
 									'note' => 'Should members of this group be able to see each others\'s details in <a href="'.BASE_URL.'members">member portal</a>?',
 									'label' => 'Share member details?',
 								),
@@ -119,6 +120,24 @@ class Person_Group extends db_object
 				  CONSTRAINT `pgm_personid` FOREIGN KEY (personid) REFERENCES _person(id) ON DELETE CASCADE
 				) ENGINE=InnoDB",
 		);
+	}
+
+
+	/**
+	 *
+	 * @return The SQL to run to create any database views used by this class
+	 */
+	public function getViewSQL()
+	{
+		return "CREATE VIEW person_group AS
+			SELECT * from _person_group g
+			WHERE
+			  getCurrentUserID() IS NOT NULL
+			  AND
+			  ((g.owner IS NULL) OR (g.owner = getCurrentUserID()))
+			  AND
+			  (NOT EXISTS (SELECT * FROM account_group_restriction gr WHERE gr.personid  = getCurrentUserID())
+			  OR g.id IN (SELECT groupid FROM account_group_restriction gr WHERE gr.personid = getCurrentUserID()))";
 	}
 
 
@@ -266,9 +285,9 @@ class Person_Group extends db_object
 	{
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
 		$res['from'] .= "\n LEFT JOIN person_group_membership gm ON gm.groupid = person_group.id ";
+		$res['from'] .= "\n LEFT JOIN person aperson ON gm.personid = aperson.id AND aperson.status<>'archived'";
 		$res['from'] .= "\n LEFT JOIN person_group_category pgc ON person_group.categoryid = pgc.id ";
-
-		$res['select'][] = 'COUNT(gm.personid) as member_count';
+		$res['select'][] = 'COUNT(aperson.id) as member_count';
 		$res['select'][] = 'pgc.name as category';
 		$res['group_by'] = 'person_group.id';
 		return $res;

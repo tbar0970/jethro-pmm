@@ -36,8 +36,10 @@ class View_Rosters__Display_Roster_Assignments extends View
 		if (!empty($_REQUEST['viewid'])) {
 			$this->_view = $GLOBALS['system']->getDBObject('roster_view', (int)$_REQUEST['viewid']);
 		}
-		$_SESSION['roster_start_date'] = $this->_start_date;
-		$_SESSION['roster_end_date'] = $this->_end_date;
+		if (empty($_REQUEST['goback'])) {
+			$_SESSION['roster_start_date'] = $this->_start_date;
+			$_SESSION['roster_end_date'] = $this->_end_date;
+		}
 	}
 
 
@@ -46,6 +48,7 @@ class View_Rosters__Display_Roster_Assignments extends View
 		$this->_printParams();
 		if ($this->_view) {
 			$this->_view->printView($this->_start_date, $this->_end_date, $this->_editing);
+
 		}
 	}
 
@@ -108,14 +111,36 @@ class View_Rosters__Display_Roster_Assignments extends View
 						echo '<a target="_rosterview" href="'.$url.'"><i class="icon-share"></i>View in public site</a> &nbsp; ';
 					}
 					echo '<a href="?call=roster_csv&roster_view='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'" ><i class="icon-download-alt"></i>Download CSV</a> &nbsp; ';
-					echo '<br />';
-				}
-				?>
-				</p>
+
+					?>
+					<a href="#merge-modal" data-toggle="modal" data-target="#merge-modal" ><i class="icon-download-alt"></i>Merge a document...</a>
+
+					<div id="merge-modal" class="modal sms-modal hide fade" role="dialog" aria-hidden="true">
+						<form onsubmit="$('#merge-modal').modal('hide')" action="?call=document_merge_rosters" method="post" enctype="multipart/form-data">
+						<div class="modal-header">
+							<h4>Mail merge a document from this roster</h4>
+						</div>
+						<div class="modal-body">
+							<?php
+							echo _('Source Document').':';
+							print_hidden_field('roster_view', $viewid);
+							print_hidden_field('roster_view_name', $this->_view->getValue('name'));
+							print_hidden_field('start_date', $this->_start_date);
+							print_hidden_field('end_date', $this->_end_date);
+							?>
+							<input class="compulsory" type="file" name="source_document" />
+							<span class="smallprint"><a target="roster-merge-help" class="med-newwin" href="<?php echo BASE_URL; ?>index.php?call=document_merge_help"><i class="icon-print"></i>Help and examples</a><br></span>
+						</div>
+						<div class="modal-footer">
+							<input type="submit" class="btn" value="Go" />
+							<input type="button" class="btn" data-dismiss="modal" value="Cancel" />
+						</div>
+						</form>
+					</div>
 				<?php
 			}
-
 		}
+	}
 
 	function getTitle()
 	{
