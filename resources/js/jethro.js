@@ -499,7 +499,9 @@ JethroSMS.init = function() {
 	// SMS Character counting
 	$('.smscharactercount').parent().find('textarea, div.sms_editor').on('keyup propertychange paste', function() {
 		var maxlength = (this.tagName == 'DIV') ? $(this).attr("data-maxlength") : $(this).attr('maxlength');
-		var currentLength = (this.tagName == 'DIV') ? $(this).text().length : this.value.length;
+		var rawtext = (this.tagName == 'DIV') ? $(this).text() : this.value;
+	        var wideCharacterCount = rawtext.length - rawtext.replace (/\^|\||\{|\}|\�~B�|\[|\]|\~|\\/g,'').length; // These characters cost 2 characters in GSM 03.38
+        	var currentLength = rawtext.length + wideCharacterCount;
 		var chars = maxlength - currentLength;
 		if (chars <= 0 && this.tagName == 'DIV') {
 			$(this).val($(this).text().substring(0, maxlength));
