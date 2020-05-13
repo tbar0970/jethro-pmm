@@ -204,7 +204,7 @@ Class SMS_Sender
 				fclose($fp);
 			}
 		} catch (Exception $e) {
-			$error = "Exception ERROR: Unable to connect to SMS Server." . print_r($e, TRUE);
+			$error = "ERROR: Unable to connect to SMS Server. " . $e->getMessage();
 			return array("success" => false, "successes" => array(), "failures" => array(), "rawresponse" => $error, "error" => $error);
 		}
 		restore_error_handler(); // Restore system error_handler

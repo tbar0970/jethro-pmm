@@ -132,7 +132,7 @@ class View_Groups extends View
 				<!-- to be populated with ajax -->
 			</div>
 			<div class="modal-footer">
-				<input class="btn" type="button" value="Cancel" data-dismiss="modal" aria-hidden="true" />
+				<input class="btn" type="button" value="<?php echo _('Close'); ?>" data-dismiss="modal" aria-hidden="true" />
 			</div>
 		</div>
 

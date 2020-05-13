@@ -1,9 +1,10 @@
 <?php
 class View__Mixed_Search extends View
 {
-	var $_family_data = Array();
-	var $_person_data = Array();
-	var $_group_data = Array();
+	private $_family_data = Array();
+	private $_person_data = Array();
+	private $_group_data = Array();
+	private $_report_data = Array();
 
 	function processView()
 	{
@@ -11,7 +12,7 @@ class View__Mixed_Search extends View
 		$this->_search_params = Array();
 		$search = trim(array_get($_REQUEST, 'search', array_get($_REQUEST, 'tel', '')));
 		$tel = preg_replace('/[^0-9]/', '', $search);
-		
+
 		if ($search == '') return;
 
 		if (!empty($tel)) {
@@ -20,20 +21,24 @@ class View__Mixed_Search extends View
 			$this->_person_data = $GLOBALS['system']->getDBObjectData('person', Array('mobile_tel' => $tel, 'work_tel' => $tel));
 		}
 		if (empty($tel) || (empty($this->_family_data) && empty($this->_person_data))) {
-			// Look for family name, person name, group name or person email
+			// Look for family name, person name, group name, report name or person email
 			$this->_family_data = $GLOBALS['system']->getDBObjectData('family', Array('_family_name' => $search.'%'));
 			$this->_person_data = Person::getPersonsBySearch($search);
-
 			$this->_group_data = $GLOBALS['system']->getDBObjectData('person_group', Array('_name' => $search.'%'), 'OR', 'name');
-			
+			$this->_report_data = $GLOBALS['system']->getDBObjectData(
+									'person_query',
+									Array('_name' => $search.'%', '(owner' => Array(NULL, $GLOBALS['user_system']->getCurrentUser('id'))),
+									'AND',
+									'name'
+								  );
 			if (FALSE !== strpos($search, '@')) {
 				// Add email search
 				$this->_person_data += $GLOBALS['system']->getDBObjectData('person', Array('email' => $search));
 			}
 		}
-		
-		$numResults = count($this->_family_data) + count($this->_group_data) + count($this->_person_data);
-		
+
+		$numResults = count($this->_family_data) + count($this->_group_data) + count($this->_person_data) + count($this->_report_data);
+
 		if ($numResults == 1) {
 			// For a single result, just redirect to its detail view, don't show a list
 			if (!empty($this->_person_data)) {
@@ -45,9 +50,12 @@ class View__Mixed_Search extends View
 			} else if (!empty($this->_group_data)) {
 				add_message("One matching group found");
 				redirect('groups', Array('search' => NULL, 'groupid' => key($this->_group_data)));
+			} else if (!empty($this->_report_data)) {
+				add_message("One matching report found");
+				redirect('persons__reports', Array('queryid' => key($this->_report_data)));
 			}
 		}
-		
+
 		// Put all archived results at the end of the list
 		foreach (Array('_person_data', '_family_data', '_group_data') as $var) {
 			$archiveds = Array();
@@ -69,7 +77,7 @@ class View__Mixed_Search extends View
 		return 'Search results';
 	}
 
-	
+
 	function printView()
 	{
 		if (empty($this->_person_data) && empty($this->_family_data) && empty($this->_group_data)) {
@@ -79,7 +87,7 @@ class View__Mixed_Search extends View
 			echo '<button type="submit" class="btn">Search</button></form>';
 			return;
 		}
-		
+
 		?>
 		<table class="table table-hover table-striped table-min-width clickable-rows">
 		<?php
@@ -96,7 +104,7 @@ class View__Mixed_Search extends View
 				</tr>
 				<?php
 			}
-			
+
 		}
 		if (!empty($this->_person_data)) {
 			foreach ($this->_person_data as $id => $values) {
@@ -125,6 +133,20 @@ class View__Mixed_Search extends View
 				</tr>
 				<?php
 			}
+		}
+		if (!empty($this->_report_data)) {
+			foreach ($this->_report_data as $id => $values) {
+				?>
+				<tr <?php echo $class; ?>>
+					<td><?php echo ents($values['name']); ?></td>
+					<td class="narrow">
+						<a href="?view=persons__reports&queryid=<?php echo $id; ?>"><i class="icon-list"></i>View</a> &nbsp;
+						<a href="?view=persons__reports&configure=1&queryid=<?php echo $id; ?>"><i class="icon-wrench"></i>Configure</a> &nbsp;
+					</td>
+				</tr>
+				<?php
+			}
+
 		}
 		?>
 		</table>

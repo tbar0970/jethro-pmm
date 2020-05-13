@@ -403,7 +403,7 @@ class roster_view extends db_object
 		return $rows;
 	}
 
-	public function printCSV($start_date=NULL, $end_date=NULL)
+	public function printCSV($start_date=NULL, $end_date=NULL, $return=FALSE)
 	{
 		$GLOBALS['system']->includeDBClass('service');
 		$dummy_service = new Service();
@@ -473,6 +473,7 @@ class roster_view extends db_object
 			}
 			$csvData[] = $row;
 		}
+		if ($return) return $csvData;
 		print_csv($csvData);
 	}
 
@@ -1009,10 +1010,11 @@ class roster_view extends db_object
 			$role = $GLOBALS['system']->getDBObject('roster_role', $roleid);
 			$role->releaseLock('assignments');
 		}
+		unset($roleid);
 
 		if (!empty($_POST['new_volunteers'])) {
 			foreach ($_POST['new_volunteers'] as $roleID => $personIDs) {
-				$role = $GLOBALS['system']->getDBObject('roster_role', $roleid);
+				$role = $GLOBALS['system']->getDBObject('roster_role', $roleID);
 				if (!$role) {
 					trigger_error("Could not find role #$roleID to add new volunteer");
 					continue;

@@ -2,8 +2,8 @@
 include_once 'include/db_object.class.php';
 class Note_Comment extends DB_Object
 {
-	protected $_load_permission_level = PERM_VIEWNOTE;
-	protected $_save_permission_level = PERM_EDITNOTE;
+	protected $_load_permission_level = PERM_VIEWMYNOTES;
+	protected $_save_permission_level = PERM_VIEWMYNOTES;
 
 	protected static function _getFields()
 	{
@@ -59,4 +59,3 @@ class Note_Comment extends DB_Object
 	}
 
 }
-?>

@@ -147,7 +147,7 @@ class Person extends DB_Object
 									'type' => 'text',
 									'editable'		=> false,
 									'show_in_summary'	=> false,
-									)
+									),
 
 		);
 		if (defined('PERSON_STATUS_DEFAULT')) {
@@ -199,6 +199,33 @@ class Person extends DB_Object
 			   CONSTRAINT photo_personid FOREIGN KEY (`personid`) REFERENCES `_person` (`id`) ON DELETE CASCADE
 			) ENGINE=InnoDB",
 		);
+	}
+
+	/**
+	 *
+	 * @return The SQL to run to create any database views used by this class
+	 */
+	public function getViewSQL()
+	{
+		return "CREATE VIEW person AS
+			SELECT * from _person p
+			WHERE
+				getCurrentUserID() IS NOT NULL
+				AND (
+					(`p`.`id` = `getCurrentUserID`())
+					OR (`getCurrentUserID`() = -(1))
+					OR (
+						(
+						(not(exists(select 1 AS `Not_used` from `account_congregation_restriction` `cr` where (`cr`.`personid` = `getCurrentUserID`()))))
+						OR `p`.`congregationid` in (select `cr`.`congregationid` AS `congregationid` from `account_congregation_restriction` `cr` where (`cr`.`personid` = `getCurrentUserID`()))
+						)
+						AND
+						(
+						(not(exists(select 1 AS `Not_used` from `account_group_restriction` `gr` where (`gr`.`personid` = `getCurrentUserID`()))))
+						OR `p`.`id` in (select `m`.`personid` AS `personid` from (`person_group_membership` `m` join `account_group_restriction` `gr` on((`m`.`groupid` = `gr`.`groupid`))) where (`gr`.`personid` = `getCurrentUserID`()))
+						)
+					)
+				);";
 	}
 
 	/**
@@ -379,6 +406,13 @@ class Person extends DB_Object
 		return $GLOBALS['db']->queryOne($SQL);
 	}
 
+	public function hasMemberAccount()
+	{
+		$SQL = 'SELECT LENGTH(member_password) FROM person
+				WHERE id = '.(int)$this->id;
+		return (boolean)$GLOBALS['db']->queryOne($SQL);
+	}
+
 
 	function getAttendance($from='1970-01-01', $to='2999-01-01', $groupid=-1)
 	{
@@ -434,6 +468,7 @@ class Person extends DB_Object
 				AND groupid = '.(int)$groupid;
 		$res = $db->exec($SQL);
 
+		$sets = Array();
 		$SQL = 'INSERT INTO attendance_record (personid, groupid, date, present)
 				VALUES ';
 		foreach ($attendances as $date => $present) {
@@ -483,6 +518,7 @@ class Person extends DB_Object
 		}
 		$SQL .= '
 			GROUP BY pp.id
+			ORDER BY status
 			';
 		$res = $db->queryAll($SQL, null, null, true, true); // 5th param forces array even if one col
 		return $res;
@@ -698,7 +734,7 @@ class Person extends DB_Object
 	 */
 	static function printMultipleFinder($name, $val=Array())
 	{
-		$persons = $GLOBALS['system']->getDBObjectData('person', Array('id' => $val));
+		$persons = empty($val) ? Array() : $GLOBALS['system']->getDBObjectData('person', Array('id' => $val));
 		$selected = Array();
 		foreach ($persons as $id => $details) {
 			$selected[$id] = $details['first_name'].' '.$details['last_name'];
@@ -736,10 +772,10 @@ class Person extends DB_Object
 	 * @param type $personids
 	 * @return array
 	 */
-	static function getCustomMergeData($personids)
+	static function getCustomMergeData($personids,$formatted=TRUE)
 	{
 		$db = $GLOBALS['db'];
-		$SQL = 'SELECT '.Custom_Field::getRawValueSQLExpr('v', 'f').' AS value, f.name, v.personid, v.fieldid
+		$SQL = 'SELECT '.Custom_Field::getRawValueSQLExpr('v', 'f').' AS value, f.name, v.personid, v.fieldid, f.type
 				FROM custom_field_value v
 				JOIN custom_field f ON v.fieldid = f.id
 				WHERE v.personid IN ('.implode(',', array_map(Array($db, 'quote'), $personids)).')';
@@ -753,7 +789,11 @@ class Person extends DB_Object
 		}
 		foreach ($qres as $row) {
 			$fname = strtoupper(str_replace(' ', '_', $row['name']));
-			$fVal = $customFields[$row['fieldid']]->formatValue($row['value']);
+			if ($formatted || ($row['type'] == 'select')) {
+				$fVal = $customFields[$row['fieldid']]->formatValue($row['value']);
+			} else {
+				$fVal = $row['value'];
+			}
 			if (isset($res[$row['personid']][$fname])) {
 				$res[$row['personid']][$fname] .= ', '.$fVal;
 			} else {
@@ -958,7 +998,7 @@ class Person extends DB_Object
 			}
 		}
 
-		if (isset($row['age_bracket'])) {
+		if (isset($row['age_bracket']) && strlen($row['age_bracket'])) {
 			foreach (Age_Bracket::getMap() as $id => $label) {
 				if (trim(strtolower($label)) == trim(strtolower($row['age_bracket']))) {
 					$row['age_bracketid'] = $id;

@@ -361,42 +361,79 @@ class Person_Query extends DB_Object
 		}
 		?>
 
-		<h4>who <strong>are</strong> in one or more of these groups:</h4>
+		<h4>who <strong>are</strong> in one or more of these groups:
+			<i class="clickable icon-question-sign" data-toggle="visible" data-target="#grouptooltip"></i><div class="help-block custom-field-tooltip" id="grouptooltip" style="display: none; font-weight: normal">(This rule ignores any archived groups)</div>
+		</h4>
 		<div class="indent-left">
+
 
 			<?php
 			$gotGroups = Person_Group::printMultiChooser('include_groupids', array_get($params, 'include_groups', Array()), Array(), TRUE);
 
 			if ($gotGroups) {
 				?>
-				<label class="checkbox">
-					<input type="checkbox" name="enable_group_membership_status" data-toggle="enable" data-target="#group-membership-status *" value="1"	<?php if (!empty($params['group_membership_status'])) echo 'checked="checked"'; ?> />
-					with membership status of
-				</label>
-				<span id="group-membership-status"><?php Person_Group::printMembershipStatusChooser('group_membership_status', array_get($params, 'group_membership_status'), true); ?></span>
+				<div class="indent-left">
+					<label class="checkbox" style="margin-top: 1ex">
+						<input type="checkbox" name="enable_group_membership_status" value="1"
+							   data-toggle="visible" data-target="#group-membership-status"
+								<?php if (!empty($params['group_membership_status'])) echo 'checked="checked"'; ?>
+						/>
+						with membership status of...
+					</label>
+					<span id="group-membership-status"
+							<?php if (empty($params['group_membership_status'])) echo 'style="display:none"'; ?>
+					>
+						<?php Person_Group::printMembershipStatusChooser('group_membership_status', array_get($params, 'group_membership_status'), true); ?>
+					</span>
 
-				<label class="checkbox">
-					<input type="checkbox" name="enable_group_join_date" data-toggle="enable" data-target="#group-join-dates *" value="1"	<?php if (!empty($params['group_join_date_from'])) echo 'checked="checked"'; ?> />
-					and joined the group between
-				</label>
-				<span id="group-join-dates">
-				<?php print_widget('group_join_date_from', Array('type' => 'date'), array_get($params, 'group_join_date_from')); ?>
-				and <?php print_widget('group_join_date_to', Array('type' => 'date'), array_get($params, 'group_join_date_to')); ?>
-				</span>
+					<label class="checkbox" style="margin-top: 1ex">
+						<input type="checkbox" name="enable_group_join_date" value="1"
+							   data-toggle="visible" data-target="#group-join-dates"
+								<?php if (!empty($params['group_join_date_from'])) echo 'checked="checked"'; ?>
+						/>
+						and joined the group between...
+					</label>
+					<span id="group-join-dates"
+								<?php if (empty($params['group_join_date_from'])) echo 'style="display:none"'; ?>
+						  >
+					<?php print_widget('group_join_date_from', Array('type' => 'date'), array_get($params, 'group_join_date_from')); ?>
+					and <?php print_widget('group_join_date_to', Array('type' => 'date'), array_get($params, 'group_join_date_to')); ?>
+					</span>
+				</div>
 				<?php
 			}
 			?>
 		</div>
 
-
-		<h4>who are <strong>not</strong> in any of these groups:</h4>
+	<?php
+	if ($gotGroups) {
+		?>
+		<h4>
+			who are <strong>not</strong> in any of these groups:
+			<i class="clickable icon-question-sign" data-toggle="visible" data-target="#grouptooltip2"></i><div class="help-block custom-field-tooltip" id="grouptooltip2" style="display: none; font-weight: normal">(This rule ignores any archived groups)</div>
+		</h4>
 		<div class="indent-left">
 			<?php
 			Person_Group::printMultiChooser('exclude_groupids', array_get($params, 'exclude_groups', Array()), Array(), TRUE);
 			?>
+			<div class="indent-left">
+				<label class="checkbox" style="margin-top: 1ex">
+					<input type="checkbox" name="enable_exclude_group_membership_status" value="1"
+						   data-toggle="visible" data-target="#exclude-group-membership-status"
+							<?php if (!empty($params['exclude_group_membership_status'])) echo 'checked="checked"'; ?>
+					/>
+					with membership status of...
+				</label>
+				<span id="exclude-group-membership-status"
+						<?php if (empty($params['exclude_group_membership_status'])) echo 'style="display:none"'; ?>
+				>
+					<?php Person_Group::printMembershipStatusChooser('exclude_group_membership_status', array_get($params, 'exclude_group_membership_status'), true); ?>
+				</span>
+			</div>
 		</div>
+		<?php
+	}
 
-	<?php
 	if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
 		?>
 		<h4>who have a person note containing the phrase:</h4>
@@ -732,10 +769,21 @@ class Person_Query extends DB_Object
 
 		// GROUP RULES
 		$params['include_groups'] = array_remove_empties(array_get($_POST, 'include_groupids', Array()));
+		if (!empty($_REQUEST['enable_group_membership_status'])) {
+			$params['group_membership_status'] = array_get($_POST, 'group_membership_status');
+		} else {
+			$params['group_membership_status'] = Array();
+		}
 		$params['group_join_date_from'] = empty($_POST['enable_group_join_date']) ? NULL : process_widget('group_join_date_from', Array('type' => 'date'));
 		$params['group_join_date_to'] = empty($_POST['enable_group_join_date']) ? NULL : process_widget('group_join_date_to', Array('type' => 'date'));
+
 		$params['exclude_groups'] = array_remove_empties(array_get($_POST, 'exclude_groupids', Array()));
-		$params['group_membership_status'] = array_get($_POST, 'group_membership_status');
+		if (!empty($_REQUEST['enable_exclude_group_membership_status'])) {
+			$params['exclude_group_membership_status'] = array_get($_POST, 'exclude_group_membership_status');
+		} else {
+			$params['exclude_group_membership_status'] = Array();
+		}
+
 
 		// NOTE RULES
 		$params['note_phrase'] = array_get($_POST, 'note_phrase');
@@ -1041,7 +1089,10 @@ class Person_Query extends DB_Object
 
 		if (!empty($params['exclude_groups'])) {
 
-			$exclude_groupids_clause = $this->_getGroupAndCategoryRestrictionSQL($params['exclude_groups']);
+			$exclude_groupids_clause = $this->_getGroupAndCategoryRestrictionSQL(
+												$params['exclude_groups'],
+												NULL, NULL,
+												array_get($params, 'exclude_group_membership_status'));
 			$query['where'][] = 'p.id NOT IN (
 									SELECT personid
 									FROM person_group_membership pgm
@@ -1140,7 +1191,7 @@ class Person_Query extends DB_Object
 
 					case 'groups':
 					case 'membershipstatus':
-						if (empty($params['include_groups'])) continue;
+						if (empty($params['include_groups'])) continue 2; // https://www.php.net/manual/en/migration73.incompatible.php
 
 						if ($params['group_by'] == 'groupid') {
 							/* pg and pgm already joined for grouping purposes */
@@ -1477,7 +1528,11 @@ class Person_Query extends DB_Object
 				if (isset($this->_field_details[$label])) {
 					$var = $label[0] == 'p' ? '_dummy_person' : '_dummy_family';
 					$fieldname = substr($label, 2);
-					$r[] = $this->$var->getFormattedValue($fieldname, $val);
+					if ($fieldname == 'id') {
+							$r[] = $val;
+					} else {
+							$r[] = $this->$var->getFormattedValue($fieldname, $val);
+					}
 				} else if (0 === strpos($label, self::CUSTOMFIELD_PREFIX)) {
 					$r[] = $this->_formatCustomFieldValue($val, substr($label, strlen(self::CUSTOMFIELD_PREFIX)));
 				} else {

@@ -47,36 +47,44 @@ if ($show_actions) {
 		$tr_class = ($details['status'] === 'archived') ? ' class="archived"' : '';
 		?>
 		<tr data-personid="<?php echo $id; ?>" <?php echo $tr_class; ?>>
+		<?php if (SizeDetector::isWide()) {
+			?>
 			<td><?php echo $id; ?></td>
+			<?php
+		}
+		?>
 			<td class="nowrap"><?php echo $dummy_person->printFieldvalue('name'); ?></td>
 		<?php
-		foreach ($special_fields as $field) {
-			?>
-			<td>
-				<?php
-				if (isset($callbacks[$field])) {
-					call_user_func($callbacks[$field], $id, array_get($details, $field, ''));
-				} else {
-					echo array_get($details, $field, '');
-				}
+		if (!SizeDetector::isNarrow()) {
+			foreach ($special_fields as $field) {
 				?>
-				</td>
-			<?php
-		}?>
+				<td>
+					<?php
+					if (isset($callbacks[$field])) {
+						call_user_func($callbacks[$field], $id, array_get($details, $field, ''));
+					} else {
+						echo array_get($details, $field, '');
+					}
+					?>
+					</td>
+				<?php
+			}
+		}
+		?>
 			<td><?php $dummy_person->printFieldValue('status'); ?></td>
 			<td><?php $dummy_person->printFieldValue('age_bracketid'); ?></td>
 			<td><?php $dummy_person->printFieldValue('gender'); ?></td>
 			<?php
 				include_once 'include/size_detector.class.php';
 				if (!SizeDetector::isNarrow()) {
-			?>			
+			?>
 			<td><?php $dummy_person->printFieldvalue('mobile_tel'); ?></td>
 			<?php
 			}
 				if (defined('PERSON_LIST_SHOW_GROUPS') && PERSON_LIST_SHOW_GROUPS) {
 				?>
-					<td>  
-				  	  <?php 
+					<td>
+				  	  <?php
 				  	  	$gstr = '';
 				  	  	foreach (Person_Group::getGroups($id) as $gid => $gdetail) {
 				  	  		if (strlen($gstr)) $gstr .= ', ';
@@ -84,7 +92,7 @@ if ($show_actions) {
 				  	  	}
 						if (strlen($gstr)) {
 							?>
-							<a title="<?php echo ents($gstr); ?>" href="?view=persons&personid=<?php echo $id; ?>#groups">	
+							<a title="<?php echo ents($gstr); ?>" href="?view=persons&personid=<?php echo $id; ?>#groups">
 								<?php echo ents(substr($gstr, 0, 45)) . '...' ; ?>
 							</a>
 							<?php
@@ -101,12 +109,12 @@ if ($show_actions) {
 			<td class="narrow action-cell">
 				<a <?php echo $link_class; ?> href="?view=persons&personid=<?php echo $id; echo $view_tab ?>"><i class="icon-user"></i><?php echo _('View')?></a> &nbsp;
 			<?php
-			if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
+			if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON) && !SizeDetector::isNarrow()) {
 				?>
 				<a <?php echo $link_class; ?> href="?view=_edit_person&personid=<?php echo $id; ?>"><i class="icon-wrench"></i><?php echo _('Edit')?></a> &nbsp;
 				<?php
 			}
-			if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
+			if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE) && !SizeDetector::isNarrow()) {
 				?>
 				<a <?php echo $link_class; ?> href="?view=_add_note_to_person&personid=<?php echo $id; ?>"><i class="icon-pencil"></i><?php echo _('Add Note')?></a>
 				<?php
@@ -133,7 +141,7 @@ if (count($persons) > 30) {
 }
 ?>
 </table>
-		
+
 <?php
 if ($show_actions) {
 	include 'templates/bulk_actions.template.php';

@@ -22,11 +22,16 @@ class Family_Note extends Abstract_Note
 			CREATE TABLE `family_note` (
 			  `familyid` int(11) NOT NULL default '0',
 			  `id` int(11) NOT NULL default '0',
-			  PRIMARY KEY  (`familyid`,`id`),
-			  CONSTRAINT `fn_familyid` FOREIGN KEY (familyid) REFERENCES family(id) ON DELETE CASCADE,
-			  CONSTRAINT fn_id FOREIGN KEY (id) REFERENCES abstract_note(id) ON DELETE CASCADE
+			  PRIMARY KEY  (`familyid`,`id`)
 			) ENGINE=InnoDB;
 		";
+	}
+
+	function getForeignKeys() {
+		return Array(
+			'familyid' => 'family(id) ON DELETE CASCADE',
+			'id' => '_abstract_note(id) ON DELETE CASCADE',
+		);
 	}
 
 	function readyToCreate()
@@ -62,8 +67,12 @@ class Family_Note extends Abstract_Note
 	function getInstancesQueryComps($params, $logic, $order)
 	{
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
-		$res['from'] = '('.$res['from'].') LEFT OUTER JOIN family family ON family_note.familyid = family.id';
-		$res['select'][] = 'family.family_name as family_name';
+		$res['from'] = '('.$res['from'].') JOIN family subject ON family_note.familyid = subject.id ';
+
+		// eliminate any notes linked to families with no visible members
+		$res['from'] .= ' JOIN person fmember ON fmember.familyid = subject.id ';
+
+		$res['select'][] = 'subject.family_name as family_name';
 		return $res;
 	}
 
