@@ -20,6 +20,7 @@ Use .ini file to set the following
  - email from name
  - email subject
  - debug (only send to roster coordinator)
+ - save communication (store a copy of a message[sms] into the person's communication log)
  - email method (email_class or php mail())
 
 TWO MESSAGES WILL BE SENT
@@ -58,6 +59,7 @@ $ini = parse_ini_file($_SERVER['argv'][1]);
 $messagetype=$ini['MESSAGE_TYPE'];
 $sendemail=($messagetype==='email') || ($messagetype==='both');
 $sendsms=($messagetype==='sms') || ($messagetype==='both');
+$save_sms_communication=$ini['SAVE_SMS_COMMUNICATION'];
 $roster_coordinator=$ini['ROSTER_COORDINATOR'];
 $roster_coordinator_id=$ini['ROSTER_COORDINATOR_ID'];
 $roster_id=$ini['ROSTER_ID'];
@@ -161,7 +163,7 @@ if ($sendsms) { // make the sms message!
 		require_once JETHRO_ROOT.'/include/sms_sender.class.php';
 		$notification_sms = '';
 		if (!empty($assignees))  {
-			$sendResponse = SMS_Sender::sendMessage($sms_message, $assignees, TRUE);
+			$sendResponse = SMS_Sender::sendMessage($sms_message, $assignees, ((int)$save_sms_communication==1));
 			$successes = $failures = $rawresponse = Array();
 			$success = $sendResponse['success'];
 			$successes = array_values($sendResponse['successes']);
@@ -192,7 +194,7 @@ if ($sendsms) { // make the sms message!
 		}
 	}
 	// Notify about sending the notifications!
-	$sendResponse = SMS_Sender::sendMessage($sms_notification, $coordinator, FALSE);
+	$sendResponse = SMS_Sender::sendMessage($sms_notification, $coordinator, ((int)$save_sms_communication==1));
 	if (!empty($verbose)) {
 		echo "$sms_notification\n";
 		if (!$sendResponse['success']) {
