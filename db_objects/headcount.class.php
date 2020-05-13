@@ -33,6 +33,15 @@ class Headcount
 		);
 	}
 
+	/**
+	 *
+	 * @return The SQL to run to create any database views used by this class
+	 */
+	public function getViewSQL()
+	{
+		return NULL;
+	}
+
 	public function getForeignKeys()
 	{
 		return Array(

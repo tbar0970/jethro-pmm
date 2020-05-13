@@ -25,11 +25,16 @@ class Person_Note extends Abstract_Note
 			CREATE TABLE `person_note` (
 			  `personid` int(11) NOT NULL default '0',
 			  `id` int(11) NOT NULL default '0',
-			  PRIMARY KEY  (`personid`,`id`),
-			  CONSTRAINT `pn_personid` FOREIGN KEY (personid) REFERENCES _person(id) ON DELETE CASCADE,
-			  CONSTRAINT pn_id FOREIGN KEY (id) REFERENCES abstract_note(id) ON DELETE CASCADE
+			  PRIMARY KEY  (`personid`,`id`)
 			) ENGINE=InnoDB ;
 		";
+	}
+
+	function getForeignKeys() {
+		return Array(
+			'personid' => '_person(id) ON DELETE CASCADE',
+			'id' => '_abstract_note(id) ON DELETE CASCADE',
+		);
 	}
 
 	function printFieldValue($name, $value=NULL)
@@ -50,9 +55,9 @@ class Person_Note extends Abstract_Note
 	function getInstancesQueryComps($params, $logic, $order)
 	{
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
-		$res['from'] = '('.$res['from'].') JOIN person person ON person_note.personid = person.id';
-		$res['select'][] = 'person.first_name as person_fn';
-		$res['select'][] = 'person.last_name as person_ln';
+		$res['from'] = '('.$res['from'].') JOIN person subject ON person_note.personid = subject.id';
+		$res['select'][] = 'subject.first_name as person_fn';
+		$res['select'][] = 'subject.last_name as person_ln';
 		return $res;
 	}
 

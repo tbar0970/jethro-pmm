@@ -254,6 +254,8 @@ class View_Admin__Import extends View
 				// SCENARIO 1 - WE ARE UPDATING AN EXISTING PERSON (AND FAMILY)
 
 				// Try updating the person fields
+				$person_row['first_name'] = $existingPerson->getValue('first_name'); // avoid case munging
+				$person_row['last_name'] = $existingPerson->getValue('last_name'); // avoid case munging
 				$existingPerson->fromCsvRow($person_row, $this->_sess['overwrite_existing']);
 
 				// Update the family fields (looking out for family import data already in play)
@@ -274,6 +276,7 @@ class View_Admin__Import extends View
 				// Try updating the family fields
 				$family_row['status'] = 'current';
 				$familyObj = $GLOBALS['system']->getDBObject('family', $existingPerson->getValue('familyid'));
+				$family_row['family_name'] = $familyObj->getValue('family_name'); // avoid case munging
 				$familyObj->fromCsvRow($family_row, $this->_sess['overwrite_existing']);
 				if (empty($current_existing_family_data) || ($existingPerson->getValue('familyid') != $current_existing_family_data['id'])) {
 					$current_existing_family_data = $family_row + Array('id' => $familyObj->id);
@@ -905,7 +908,7 @@ class View_Admin__Import extends View
 
 	public function _handleError($errno, $errstr, $errfile, $errline)
 	{
-		if (in_array($errno, array(E_USER_NOTICE, E_USER_WARNING, E_NOTICE, E_WARNING))) {
+		if (in_array($errno, array(E_USER_NOTICE, E_USER_WARNING))) {
 			$this->_captured_errors[$this->_error_index][] = $errstr;
 		} else {
 			$GLOBALS['system']->_handleError($errno, $errstr, $errfile, $errline);

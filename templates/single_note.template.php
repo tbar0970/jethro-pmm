@@ -6,7 +6,7 @@
  * @var $show_form
  * @var $show_edit_link
  */
-		
+$dummy->reset();
 $dummy->populate($id, $entry);
 $type = (!empty($entry['familyid']) ? 'family' : 'person');
 ?>
@@ -90,7 +90,7 @@ $type = (!empty($entry['familyid']) ? 'family' : 'person');
 		?>
 		<div class="status">
 			<?php
-			if (!empty($show_edit_link) && $GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
+			if (!empty($show_edit_link) && $dummy->canEdit()) {
 				?>
 				<a class="pull-right link-collapse" href="?view=_edit_note&note_type=<?php echo $type; ?>&noteid=<?php echo $id; ?>"><i class="icon-wrench"></i><?php echo _('Edit / Comment')?></a>
 				<?php
@@ -109,7 +109,7 @@ $type = (!empty($entry['familyid']) ? 'family' : 'person');
 			if ($entry['status'] == 'pending') {
 				$str = 'Assigned to %s';
 				echo ' <span>'.sprintf(nbsp(_($str)), $entry['assignee_fn'].'&nbsp;'.$entry['assignee_ln'].' <span class="visible-desktop">(#'.$entry['assignee'].')</span></span>');
-				
+
 			}
 
 			?>

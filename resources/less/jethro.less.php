@@ -14,6 +14,15 @@
 @import "responsive.less";
 @import "../css/jquery-ui.min.css";
 
+/* Fix for less v2 and bootstrap 2 - see https://stackoverflow.com/questions/26628309/less-v2-does-not-compile-twitters-bootstrap-2-x */
+#grid {
+    .core  {
+        .span(@gridColumns) {
+            width: (@gridColumnWidth * @gridColumns) + (@gridGutterWidth * (@gridColumns - 1));
+        }
+    }
+};
+
 <?php
 /* Load any custom vars from conf.php */
 $confFile = dirname(dirname(dirname(__FILE__))).'/conf.php';
@@ -484,6 +493,9 @@ h3:first-child, h4:first-child, h5:first-child {
 hr, table.object-summary tr.divider-before > td, table.object-summary tr.divider-before > th {
 	border-top-width: 1px;
 	border-top-color: @grayLighter !important;
+}
+abbr[title] {
+	border-bottom:0px !important;
 }
 input[type=image] {
 	height: auto !important;

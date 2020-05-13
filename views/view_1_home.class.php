@@ -40,7 +40,7 @@ class View_Home extends View
 		</div>
 
 		<?php
-		if ( $GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
+		if ( $GLOBALS['user_system']->havePerm(PERM_VIEWMYNOTES)) {
 			$user = $GLOBALS['system']->getDBObject('staff_member', $GLOBALS['user_system']->getCurrentUser('id'));
 			$tasks = $user->getTasks('now');
 			?>
@@ -131,7 +131,8 @@ class View_Home extends View
 		if ($GLOBALS['user_system']->havePerm(PERM_RUNREPORT)) {
 			$reportVals[] = 'auth';
 		}
-		$frontpagereports = $GLOBALS['system']->getDBObjectData('person_query', Array('show_on_homepage' => $reportVals));
+		$owners = Array(NULL, $GLOBALS['user_system']->getCurrentUser('id'));
+		$frontpagereports = $GLOBALS['system']->getDBObjectData('person_query', Array('show_on_homepage' => $reportVals, 'owner' => $owners), 'AND');
 		foreach ($frontpagereports as $reportid => $reportparams) {
 			$report = $GLOBALS['system']->getDBObject('person_query', $reportid);
 			?>
