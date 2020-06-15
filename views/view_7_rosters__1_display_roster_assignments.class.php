@@ -14,7 +14,7 @@ class View_Rosters__Display_Roster_Assignments extends View
 	function processView()
 	{
 		if (!empty($_REQUEST['editing']) && $_REQUEST['view'] == 'rosters__display_roster_assignments') {
-			redirect('rosters__edit_roster_assignments');
+			redirect('rosters__edit_roster_assignments', Array('editing' => NULL));
 		}
 		$this->_start_date = process_widget('start_date', Array('type' => 'date'));
 		if (is_null($this->_start_date)) {
