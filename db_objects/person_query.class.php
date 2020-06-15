@@ -1468,17 +1468,28 @@ class Person_Query extends DB_Object
 				$this->$var->setValue($fieldname, $i);
 				$heading = $this->$var->getFormattedValue($fieldname);
 			}
-			$this->_printResultSet($v, $format, $heading);
+			// We need to get the person ID as the array keys before calling _printResultSet
+			$set = Array();
+			foreach ($v as $vv) {
+				$set[$vv['ID']] = $vv;
+				unset($set[$vv['ID']]['ID']);
+			}
+			$this->_printResultSet($set, $format, $heading);
 		}
 	}
 
 
-	function _printResultSet($x, $format, $heading=NULL)
+	/*
+	 * @param $dataset	Results keyed by personID
+	 * @param $format	csv or html
+	 * @param $heading
+	 */
+	function _printResultSet($dataset, $format, $heading=NULL)
 	{
 		if ($format == 'csv') {
-			$this->_printResultSetCsv($x, $heading);
+			$this->_printResultSetCsv($dataset, $heading);
 		} else {
-			$this->_printResultSetHtml($x, $heading);
+			$this->_printResultSetHtml($dataset, $heading);
 		}
 	}
 
