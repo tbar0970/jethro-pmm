@@ -499,7 +499,7 @@ function print_widget($name, $params, $value)
 function process_widget($name, $params, $index=NULL, $preserveEmpties=FALSE)
 {
 	$testVal = $rawVal = array_get($_REQUEST, $name);
-	if (empty($testVal) && $params['type'] == 'date') $testVal = array_get($_REQUEST, $name.'_d');
+	if (empty($testVal) && $params['type'] == 'date') $testVal = $rawVal = array_get($_REQUEST, $name.'_d');
 	if (is_array($testVal) && ($params['type'] != 'bitmask') && (array_get($params, 'allow_multiple', 0) == 0)) {
 		if (!is_null($index)) {
 			$rawVal = $rawVal[$index];
