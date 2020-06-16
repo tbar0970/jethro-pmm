@@ -220,7 +220,7 @@ class View_Attendance__Record extends View
 		// STEP 2 - enter attendances
 		ob_start();
 		?>
-		<form method="post" class="attendance warn-unsaved" data-lock-length="<?php echo db_object::getLockLength() ?>"> action="?view=attendance__record">
+		<form method="post" class="attendance warn-unsaved" data-lock-length="<?php echo db_object::getLockLength() ?>" action="?view=attendance__record">
 			<input type="hidden" name="attendance_date" value="<?php echo $this->_attendance_date; ?>" />
 			<input type="hidden" name="show_photos" value="<?php echo $this->_show_photos; ?>" />
 			<input type="hidden" name="parallel_mode" value="<?php echo $this->_parallel_mode; ?>" />
