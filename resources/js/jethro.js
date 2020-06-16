@@ -538,6 +538,18 @@ JethroSMS.init = function() {
 	});
 
 	$('.bulk-sms-submit').click(function(event) {
+		var checkboxes = document.getElementsByName('personid[]');
+		if ($("input[name='personid[]']:checked").length === 0) {
+			if (confirm('You have not selected any persons. Would you like to perform this action on every person listed?')) {
+			  for (var i = 0; i < checkboxes.length; i++) {
+				checkboxes[i].checked = true;
+			  }
+			} else {
+			  TBLib.cancelValidation();
+			  return false;
+			}
+		}
+
 		event.preventDefault();
 		var submitBtn = $("#smshttp .bulk-sms-submit");
 		submitBtn.prop('disabled', true);
