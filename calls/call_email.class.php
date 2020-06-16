@@ -48,24 +48,25 @@ class Call_email extends Call
 				}
 			}
 		}
-		
+
 		$emails = array();
 		foreach ($recips as $recip) {
 			$emails[$recip['email']] = 1;
 		}
 		$emails = array_keys($emails);
 
-		if (!empty($_REQUEST['show_modal'])) {
-			$this->printModal($emails, $archived, $blanks);
+		if (!empty($_REQUEST['print_modal'])) {
+			$this->printWholeModal($emails, $archived, $blanks);
 		} else if (!empty($_REQUEST['print_popup'])) {
 			$this->printPopup($emails, $archived, $blanks);
 		} else if ((count($emails) > EMAIL_CHUNK_SIZE) || !empty($blanks)) {
 			$this->launchPopupFromHiddenIframe($blanks);
 		} else if (count($emails) > 0) {
-			$public = array_get($_REQUEST, 'method') == 'public';
+			$public = array_get($_REQUEST, 'method') == 'public'; // ie, not BCC
+			include 'templates/head.template.php';
 			?>
 			<a id="mailto" href="<?php echo $this->getHref($emails, $public); ?>" target="_parent" <?php echo email_link_extras(); ?>>Send email</a>
-			<script>document.getElementById('mailto').click();</script>
+			<script>TBLib.handleMailtoClick.apply(document.getElementById('mailto'));</script>
 			<?php
 		} else {
 			?>
@@ -84,72 +85,68 @@ class Call_email extends Call
 		return $href;
 	}
 
-	private function printModal($emails, $archived, $blanks) {
-		$chunks = array_chunk($emails, EMAIL_CHUNK_SIZE);
-		$this->printArchivedWarning($archived);
-
-		if (count($chunks) == 1) {
-			?>
-			<p>
-			<a href="<?php echo $this->getHref($emails, FALSE); ?>" class="btn btn-primary" <?php echo email_link_extras(); ?>>Email privately</a>
-			&nbsp;
-			<a href="<?php echo $this->getHref($emails, TRUE); ?>" class="btn btn-danger" <?php echo email_link_extras(); ?> title="WARNING: this will let all group members see each other's addresses, and should be used with care">Email publicly</a>
-			</p>
-			<?php
-		} else {
-			?>
-			<p style="line-height: 50px">
-			<?php
-			foreach ($chunks as $i => $chunk) {
+	private function printWholeModal($emails, $archived, $blanks)
+	{
+		?>
+		<div class="modal fade autosize" data-show="true" id="email-modal" style="width: 70%; margin-left: -35%" role="dialog">
+			<div class="modal-header">
+				<h4>Email <?php echo count($emails); ?> persons
+					<?php //echo _('Email members of '); echo ents($this->_group->getValue('name'));
 				?>
-				<a href="<?php echo $this->getHref($chunk, FALSE); ?>" class="btn" onclick="this.style.textDecoration='line-through'" <?php echo email_link_extras(); ?>>Email Batch #<?php echo ($i+1); ?></a>
+			</h4>
+			</div>
+			<div class="modal-body">
 				<?php
-			}
-			?>
-			</p>
-			<?php
-		}
-		$this->printBlanks($blanks);
-
+				if (count($emails) == 0) {
+					print_message("There are no persons to email", 'error');
+				} else if (count($emails) < EMAIL_CHUNK_SIZE) {
+					?>
+					<p>
+					<a href="<?php echo $this->getHref($emails, FALSE); ?>" class="btn btn-primary" <?php echo email_link_extras(); ?>>Email privately</a>
+					&nbsp;
+					<a href="<?php echo $this->getHref($emails, TRUE); ?>" class="btn btn-danger" <?php echo email_link_extras(); ?> title="WARNING: this will let all group members see each other's addresses, and should be used with care">Email publicly</a>
+					</p>
+					<?php
+				} else {
+					$sep = defined('MULTI_EMAIL_SEPARATOR') ? MULTI_EMAIL_SEPARATOR : ',';
+					$set = implode($sep, $emails);
+					?>
+					<p>Copy the addresses below and paste into your email client. (There are too many for a link.)<br />Remember it's wise to use BCC for large group emails.</p>
+					<div class="input-append textbox-copier">
+						<input readonly="readonly" style="cursor: pointer; width: 60ex" type="text" value="<?php echo ents($set); ?>" />
+						<input class="btn" type="button" value="Copy" />
+					</div>
+					<?php
+				}
+				$this->printBlanks($blanks);
+				$this->printArchivedWarning($archived);
+				?>
+			</div>
+			<div class="modal-footer">
+				<input class="btn" type="button" value="<?php echo _('Close'); ?>" data-dismiss="modal" aria-hidden="true" />
+			</div>
+		</div>
+		<script>
+			$('#email-modal').modal('show').attr('id', '');
+		</script>
+		<?php
 	}
 
-	private function printPopup($emails, $archived, $blanks) {
+	private function printPopup($emails, $archived, $blanks)
+	{
 		$public = array_get($_REQUEST, 'method') == 'public';
 		?>
 		<html>
 			<head>
-				<title>Jethro PMM - selected emails</title>
 				<?php include 'templates/head.template.php'; ?>
 
 			</head>
 			<body>
 				<div id="body">
-				<?php
-
-				$chunks = array_chunk($emails, EMAIL_CHUNK_SIZE);
-				if (count($chunks) == 1) {
-					$this->printArchivedWarning($archived);
-					?>
-					<br />
-					<div class="align-center"><a class="btn btn-primary" href="<?php echo $this->getHref($emails, $public); ?>" <?php echo email_link_extras(); ?>>Email selected persons now</a></div>
-					<?php
-				} else {
-					?>
 					<h1>Send Email</h1>
-					<?php $this->printArchivedWarning($archived); ?>
-					<p style="line-height: 50px">
 					<?php
-					foreach ($chunks as $i => $chunk) {
-						?>
-						<a class="btn" href="<?php echo $this->getHref($chunk, $public); ?>" onclick="this.style.textDecoration='line-through'" <?php echo email_link_extras(); ?>>Email Batch #<?php echo ($i+1); ?></a>&nbsp;&nbsp;
-						<?php
-					}
+					$this->printModalContent($emails, $archived, $blanks);
 					?>
-					</p>
-					<?php
-				}
-				$this->printBlanks($blanks);
-				?>
 				</div>
 			</body>
 		</html>
@@ -161,11 +158,11 @@ class Call_email extends Call
 			<html>
 				<body>
 					<form id="emailpopupform" method="post" action="<?php echo build_url(Array('print_popup'=>1)); ?>" target="emailpopup">
-						<?php print_hidden_fields($_POST); ?> 
+						<?php print_hidden_fields($_POST); ?>
 					</form>
 
 					<script>
-						var w = <?php echo empty($blanks) ? '300' : 'Math.round(screen.width * 0.6, 10)'; ?>;
+						var w = Math.round(screen.width * 0.6, 10);
 						var h = <?php echo empty($blanks) ? '300' : '450'; ?>;
 						var left = Math.round(screen.width - w);
 						var top = Math.round((screen.height/2)-(h/2), 10);
@@ -207,7 +204,7 @@ class Call_email extends Call
 
 	private function printArchivedWarning(&$archived) {
 			if (!empty($archived)) {
-				print_message("Warning: ".count($archived).' of the intended recipients are archived and will not be sent this email', 'error');
+				print_message("Note: ".count($archived).' of the intended recipients are archived and will not be emailed', 'error');
 			}
 	}
 }

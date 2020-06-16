@@ -100,7 +100,7 @@ class View_Rosters__Display_Roster_Assignments extends View
 				<p class="no-print">
 				<?php
 				if (!$this->_editing) {
-					echo '<a href="?call=email&roster_view='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'" class="hidden-frame"><i class="icon-email">@</i>Email all assignees</a> &nbsp; ';
+					echo '<a href="?call=email&print_modal=1&roster_view='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'" target="_append"><i class="icon-email">@</i>Email all assignees</a> &nbsp; ';
 					echo '<a target="print-roster" class="med-newwin" href="'.BASE_URL.'?call=display_roster&viewid='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'"><i class="icon-print"></i>Show printable version</a> &nbsp; ';
 					if ($this->_view->getValue('visibility') != '') {
 						echo '<a target="_rosterview" href="'.BASE_URL.'members/?view=rosters&roster_view='.$this->_view->id.'"><i class="icon-share"></i>View in members area</a> &nbsp; ';
