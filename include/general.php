@@ -778,6 +778,8 @@ function get_email_href($to, $name=NULL, $bcc=NULL, $subject=NULL)
 	$sep = defined('MULTI_EMAIL_SEPARATOR') ? MULTI_EMAIL_SEPARATOR : ',';
 	if (!empty($to)) $to = implode($sep, (array)$to);
 	if (!empty($bcc)) $bcc = implode($sep, (array)$bcc);
+	if (empty($to)) $to = '';
+	if (empty($bcc)) $bcc = '';
 
 	if (function_exists('custom_email_href')) return custom_email_href($to, $name, $bcc, $subject);
 
