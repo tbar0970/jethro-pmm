@@ -60,8 +60,10 @@ class Call_email extends Call
 		} else if (!empty($_REQUEST['print_popup'])) {
 			$this->printPopup($emails, $archived, $blanks);
 		} else if ((count($emails) > EMAIL_CHUNK_SIZE) || !empty($blanks)) {
+			// We are inside the hidden frame but can't do a direct single link.
 			$this->launchPopupFromHiddenIframe($blanks);
 		} else if (count($emails) > 0) {
+			// We are inside the hidden frame. Open mail client/gmail directly.
 			$public = array_get($_REQUEST, 'method') == 'public'; // ie, not BCC
 			include 'templates/head.template.php';
 			?>
