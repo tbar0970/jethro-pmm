@@ -6,7 +6,8 @@ WHERE ((an.assignee = getCurrentUserID() AND an.status = 'pending')
 OR (`getCurrentUserID`() = -(1))
 OR (48 = (SELECT permissions & 48 FROM staff_member WHERE id = getCurrentUserID())));
 
-# Issue #613 - headcount tables missing its 2-part unique key */
+/* Issue #613 - headcount tables missing its 2-part unique key
+   Where there are multi headcounts due to the bug, keep the biggest ones */
 
 DROP TABLE IF EXISTS _disused_cong_headcount;
 ALTER TABLE congregation_headcount RENAME TO _disused_cong_headcount;
