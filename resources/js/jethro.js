@@ -1556,29 +1556,51 @@ function handleNewPersonCongregationChange()
 
 function handleNewFamilySubmit()
 {
-	var i = 0;
+	var rows = ($('#add-family table.expandable>tbody>tr'));
 	var haveMember = false;
-	while (document.getElementsByName('members_'+i+'_first_name').length != 0) {
-		var memberFirstNameField = document.getElementsByName('members_'+i+'_first_name')[0];
-		var memberLastNameField = document.getElementsByName('members_'+i+'_last_name')[0];
-		if (memberFirstNameField.value != '') {
-			if (memberLastNameField.value == '') {
-				alert('You must specify a last name for each family member');
-				memberLastNameField.focus();
-				TBLib.cancelValidation();
+	var haveErrors = false;
+	rows.each(function() {
+		if ($(this).find('input[name$=first_name]').val() != '') {
+			haveMember = true;
+			var ln = $(this).find('input[name$=last_name]');
+			if (ln.val() == '') {
+				ln.focus();
+				alert("Every family member must have a last name");
+				ln.focus();
+				haveErrors = true;
 				return false;
 			}
-			haveMember = true;
-		}
-		i++;
-	}
 
-	if (!haveMember) {
+			var ab = $(this).find('[name$=age_bracketid]');
+			if (ab.val() == null) {
+				ab.focus();
+				alert("Every family member must have an age bracket");
+				ab.focus();
+				haveErrors = true;
+				return false;
+			}
+
+			var st = $(this).find('[name$=status]');
+			if (st.val() != 'contact') {
+				var cg = $(this).find('[name$=congregationid]');
+				if (cg.val() == null) {
+					cg.focus();
+					alert("Every family member must have a congregation, unless they are a contact");
+					cg.focus();
+					haveErrors = true;
+					return false;
+				}
+			}
+		}
+	})
+
+	if (haveErrors) return false;
+
+	if ( !haveMember) {
 		document.getElementsByName('members_0_first_name')[0].focus();
 		alert('New family must have at least one member');
-		TBLib.markErroredInput(document.getElementsByName('members_0_first_name')[0]);
 		document.getElementsByName('members_0_first_name')[0].focus();
-		TBLib.cancelValidation();
+		//TBLib.cancelValidation();
 		return false;
 	}
 	return true;

@@ -527,7 +527,7 @@ TBLib.handleMedNewWinLinkClick = function()
 TBLib.setupExpandableTable = function(table)
 {
 	TBLib.expandTable(table);
-	$(table).find('input.compulsory').removeClass('compulsory');
+	$(table).find('.compulsory').removeClass('compulsory');
 }
 
 TBLib.expandTable = function(table)
@@ -639,7 +639,7 @@ TBLib.handleFormSubmit = function()
 	}
 	$('.control-group.error').removeClass('error');
 	// Process compulsory inputs
-	var compulsoryInputs = ($(this).find('input.compulsory'));
+	var compulsoryInputs = ($(this).find('input.compulsory, select.compulsory'));
 	for (var i=0; i < compulsoryInputs.size(); i++) {
 		if ((compulsoryInputs.get(i).value == '') && (!compulsoryInputs.get(i).disabled)) {
 			TBLib.markErroredInput(compulsoryInputs.get(i));
