@@ -149,6 +149,9 @@ if (!$accordion) {
 /**************** BASIC DETAILS TAB *************/
 
 printf($panel_header, 'basic', _('Basic Details'), 'active');
+if ($GLOBALS['system']->featureEnabled('PHOTOS')) {
+    
+}
 ?>
 	<div class="person-details">
 
@@ -206,18 +209,36 @@ printf($panel_header, 'basic', _('Basic Details'), 'active');
 
 		<?php
 		if ($accordion && $GLOBALS['system']->featureEnabled('PHOTOS')) {
-			?>
-			<img class="person-photo" src="?call=photo&personid=<?php echo (int)$person->id; ?>" />
-			<?php
+            if (Photo_Handler::hasPhotoData('person', $person->id)) {
+            ?>
+			<img class="person-photo" alt="has photo" src="?call=photo&personid=<?php echo (int)$person->id; ?>" />
+            <?php
+            } else {
+            ?>
+			<img class="person-photo" alt="no photo" src="?call=photo&personid=<?php echo (int)$person->id; ?>" />
+            <?php
+            }
 		}
 		?>
 	</div>
 
 	<?php
 	if (!$accordion && $GLOBALS['system']->featureEnabled('PHOTOS')) {
-		?>
+        if (Photo_Handler::hasPhotoData('person', $person->id)) {
+        ?>
 		<img class="person-photo" width="<?php echo Photo_Handler::MAX_PHOTO_WIDTH; ?>" src="?call=photo&personid=<?php echo (int)$person->id; ?>" />
-		<?php
+        <?php
+        } else {
+            $gravatarURL = "https://www.gravatar.com/avatar/" .
+                md5( strtolower( trim( $person->getValue('email') ) ) ) .
+                "?d=blank" . "&s=" . Photo_Handler::MAX_PHOTO_WIDTH;
+		    ?>
+            <div class="person-photo-with-gravatar-div">
+		    <img class="person-photo" width="<?php echo Photo_Handler::MAX_PHOTO_WIDTH; ?>" height="<?php echo Photo_Handler::MAX_PHOTO_WIDTH; ?>" src="?call=photo&personid=<?php echo (int)$person->id; ?>"/>
+		    <img class="person-photo-gravatar" width="<?php echo Photo_Handler::MAX_PHOTO_WIDTH; ?>" src="<?php echo $gravatarURL ?>"/>
+            </div>
+		    <?php
+        }
 	}
 	?>
 	<br class="clearfix" />
