@@ -73,7 +73,7 @@ class View_services extends View
 							$newItem = Array(
 								'componentid' => $compid,
 								'title' => $_POST['title'][$rank],
-								'personnel' => $_POST['personnel'][$rank],
+								'personnel' => array_get($_POST['personnel'], $rank),
 								'show_in_handout' => $_POST['show_in_handout'][$rank],
 								'length_mins' => $_POST['length_mins'][$rank],
 								'note'        => trim($_POST['note'][$rank]),
