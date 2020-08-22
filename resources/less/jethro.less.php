@@ -14,6 +14,15 @@
 @import "responsive.less";
 @import "../css/jquery-ui.min.css";
 
+/* Fix for less v2 and bootstrap 2 - see https://stackoverflow.com/questions/26628309/less-v2-does-not-compile-twitters-bootstrap-2-x */
+#grid {
+    .core  {
+        .span(@gridColumns) {
+            width: (@gridColumnWidth * @gridColumns) + (@gridGutterWidth * (@gridColumns - 1));
+        }
+    }
+};
+
 <?php
 /* Load any custom vars from conf.php */
 $confFile = dirname(dirname(dirname(__FILE__))).'/conf.php';
@@ -119,6 +128,10 @@ if (is_readable($confFile)) {
 #login-box h3 {
 	margin-bottom: 20px;
 	margin-top: 0px;
+}
+#login-box hr {
+	border-color: @jethroDarkText;
+	margin: 2ex 0;
 }
 .login-box-label {
 	width: 6em;
@@ -481,6 +494,9 @@ hr, table.object-summary tr.divider-before > td, table.object-summary tr.divider
 	border-top-width: 1px;
 	border-top-color: @grayLighter !important;
 }
+abbr[title] {
+	border-bottom:0px !important;
+}
 input[type=image] {
 	height: auto !important;
 	padding: 0px !important;
@@ -691,7 +707,7 @@ tr:last-child .insert-row-below {
 	margin-bottom: 10px;
 }
 .align-right {
-	text-align: right;
+	text-align: right !important;
 }
 .width-really-auto {
 	display: table-cell;
@@ -1150,13 +1166,18 @@ img.person-photo {
 	width: 49%;
 	margin: 0 1% 5px 0;
 }
+.member-family-members .family-member div {
+	margin-left: 73px;
+	position: absolute;
+	overflow: visible;
+}
 #member-list h3 {
 	clear: both;
 	margin-bottom: 5px;
 	margin-top: 15px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 700px) {
 	.member-family-members .family-member {
 		width: 98%;
 	}

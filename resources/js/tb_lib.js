@@ -5,25 +5,12 @@ var TBLib = {};
  * Event handlers
  ************************************/
 
-
 $(document).ready(function() {
 
 	if ($('.stop-js').length) return; /* Classname flag for big pages that don't want JS to run */
 
-	// open mailto links in a new window (eg for gmail), but close the new window if it's unused (eg outlook desktop)
-	$('a[href^="mailto:"]').click(function() {
-		var windowRef = window.open(this.href, '_email');
-
-		windowRef.focus();
-
-		setTimeout(function(){
-		  if(!windowRef.document.hasFocus()) {
-			  windowRef.close();
-		  }
-		}, 500);
-		return false;
-	})
-
+	$('body').on('click', 'a[href^="mailto:"], a[href*="mail.google.com"]', TBLib.handleMailtoClick);
+	
 	var i = document.createElement('input');
 	if (!('autofocus' in i) || $('[autofocus]').length == 0) {
 		// native autofocus is not supported, or no element is using it
@@ -31,7 +18,7 @@ $(document).ready(function() {
 			setTimeout("$('.initial-focus, .autofocus, [autofocus]').get(0).focus()", 200);
 		} else {
 			// Focus the first visible input
-			setTimeout("try { $('body input[type!=checkbox]:visible, select:visible').not('.btn-link, [type=checkbox], [type=radio]').not('.no-autofocus *, .no-autofocus').get(0).focus(); } catch (e) {}", 200);
+			setTimeout("try { $('body input[type!=checkbox]:visible, select:visible').not('.btn-link, [type=checkbox], [type=radio], [type=submit]').not('.no-autofocus *, .no-autofocus').get(0).focus(); } catch (e) {}", 200);
 		}
 	}
 
@@ -392,24 +379,40 @@ $(document).ready(function() {
 	});
 
 	TBLib.anchorBottom('.anchor-bottom');
+
+	$(document).on('click', '.textbox-copier', function() {
+		var box = $(this).find('input[type=text]');
+		box.select();
+		document.execCommand("copy");
+		$('#copy-success').remove();
+		$(this).after('&nbsp;<span id="copy-success" class="label label-success">✔ Copied</span>');
+
+	});
+
+	$('a[target="_append"').click(function() {
+		 $.get(this.href, function(data) {
+            $('#body').append(data);
+        });
+		return false;
+	});
 });
 
 
 
-var DATA_CHANGED = false;
+window.DATA_CHANGED = false;
 function setupUnsavedWarnings()
 {
 	var warnForms = $('form.warn-unsaved');
 	if (warnForms.length) {
 		warnForms.submit(function() {
-			DATA_CHANGED = false;
+			window.DATA_CHANGED = false;
 		}).find('input, select, textarea').keypress(function() {
-			DATA_CHANGED = true;
+			window.DATA_CHANGED = true;
 		}).change(function() {
-			DATA_CHANGED = true;
+			window.DATA_CHANGED = true;
 		})
 		window.onbeforeunload = function() {
-			if (DATA_CHANGED) return 'You have unsaved changes which will be lost if you don\'t save first';
+			if (window.DATA_CHANGED) return 'You have unsaved changes which will be lost if you don\'t save first';
 		}
 	}
 }
@@ -447,7 +450,7 @@ TBLib.handleRegexInputBlur = function()
 TBLib.invalidBibleBox = null;
 TBLib.handleBibleRefBlur = function()
 {
-	var re=/^(genesis|gen|genes|exodus|exod|ex|leviticus|levit|lev|numbers|nums|num|deuteronomy|deut|joshua|josh|judges|judg|ruth|1samuel|1sam|1sam|2samuel|2sam|2sam|1kings|1ki|1ki|2kings|2ki|2ki|1chronicles|1chron|1chr|1chron|1chr|2chronicles|2chron|2chr|2chr|2chron|ezra|nehemiah|nehem|neh|esther|esth|est|job|psalms|psalm|pss|ps|proverbs|prov|pr|ecclesiastes|eccles|eccl|ecc|sg|song|songs|sng|songofsolomon|songofsongs|songofsong|sos|songofsol|isaiah|isa|jeremiah|jerem|jer|lamentations|lam|ezekiel|ezek|daniel|dan|hosea|hos|joel|jl|jo|amos|am|obadiah|obd|ob|jonah|jon|micah|mic|nahum|nah|habakkuk|hab|zephaniah|zeph|haggai|hag|zechariah|zech|zec|malachi|mal|matthew|mathew|matt|mat|mark|mk|luke|lk|john|jn|actsoftheapostles|acts|ac|romans|rom|1corinthians|1cor|1cor|2corinthians|2cor|2cor|galatians|gal|ephesians|eph|philippians|phil|colossians|col|1thessalonians|1thess|1thes|1thes|2thessalonians|2thess|2thes|2thes|1timothy|1tim|1tim|2timothy|2tim|2tim|titus|tit|ti|philemon|hebrews|heb|james|jam|1peter|1pet|1pet|2peter|2pet|2pet|1john|1jn|1jn|2john|2jn|2jn|3john|3jn|3jn|jude|revelation|rev)(([0-9]+)([\-\:.])){0,1}(([0-9]+)([\-\:.])){0,1}(([0-9]+)([\-\:.])){0,1}([0-9]+)$/gi;
+	var re=/^(genesis|gen|genes|exodus|exod|ex|leviticus|levit|lev|numbers|nums|num|deuteronomy|deut|joshua|josh|judges|judg|ruth|1samuel|1sam|1sam|2samuel|2sam|2sam|1kings|1ki|1ki|2kings|2ki|2ki|1chronicles|1chron|1chr|1chron|1chr|2chronicles|2chron|2chr|2chr|2chron|ezra|nehemiah|nehem|neh|esther|esth|est|job|psalms|psalm|pss|ps|proverbs|prov|pr|ecclesiastes|eccles|eccl|ecc|sg|song|songs|sng|songofsolomon|songofsongs|songofsong|sos|songofsol|isaiah|isa|jeremiah|jerem|jer|lamentations|lam|ezekiel|ezek|daniel|dan|hosea|hos|joel|jl|jo|amos|am|obadiah|obd|obad|ob|jonah|jon|micah|mic|nahum|nah|habakkuk|hab|zephaniah|zeph|haggai|hag|zechariah|zech|zec|malachi|mal|matthew|mathew|matt|mat|mark|mk|luke|lk|john|jn|actsoftheapostles|acts|ac|romans|rom|1corinthians|1cor|1cor|2corinthians|2cor|2cor|galatians|gal|ephesians|eph|philippians|phil|colossians|col|1thessalonians|1thess|1thes|1thes|2thessalonians|2thess|2thes|2thes|1timothy|1tim|1tim|2timothy|2tim|2tim|titus|tit|ti|philemon|hebrews|heb|james|jam|1peter|1pet|1pet|2peter|2pet|2pet|1john|1jn|1jn|2john|2jn|2jn|3john|3jn|3jn|jude|revelation|rev)(([0-9]+)([\-\:.])){0,1}(([0-9]+)([\-\:.])){0,1}(([0-9]+)([\-\:.])){0,1}([0-9]+)$/gi;
 	this.value = this.value.trim();
 	if (this.value == '') return true;
 	if (!this.value.replace(/ /g, '').match(re)) {
@@ -524,7 +527,7 @@ TBLib.handleMedNewWinLinkClick = function()
 TBLib.setupExpandableTable = function(table)
 {
 	TBLib.expandTable(table);
-	$(table).find('input.compulsory').removeClass('compulsory');
+	$(table).find('.compulsory').removeClass('compulsory');
 }
 
 TBLib.expandTable = function(table)
@@ -636,7 +639,7 @@ TBLib.handleFormSubmit = function()
 	}
 	$('.control-group.error').removeClass('error');
 	// Process compulsory inputs
-	var compulsoryInputs = ($(this).find('input.compulsory'));
+	var compulsoryInputs = ($(this).find('input.compulsory, select.compulsory'));
 	for (var i=0; i < compulsoryInputs.size(); i++) {
 		if ((compulsoryInputs.get(i).value == '') && (!compulsoryInputs.get(i).disabled)) {
 			TBLib.markErroredInput(compulsoryInputs.get(i));
@@ -956,4 +959,18 @@ TBLib.downloadText = function(content, filename) {
 	pom.style.display = 'none';
 	document.body.appendChild(pom);
 	pom.click();
+}
+
+// open mailto links in a new window (eg for gmail), but close the new window if it's unused (eg outlook desktop)
+TBLib.handleMailtoClick = function() {
+	var windowRef = window.open(this.href, '_email');
+	windowRef.focus();
+	setTimeout(function(){
+		try {
+			if(!windowRef.document.hasFocus()) {
+				windowRef.close();
+			}
+		} catch (e) {} // if it's naviated to gmail.com we don't have permission to close it, and that's ok
+	}, 500);
+	return false;
 }

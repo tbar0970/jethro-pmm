@@ -147,7 +147,7 @@ class Person extends DB_Object
 									'type' => 'text',
 									'editable'		=> false,
 									'show_in_summary'	=> false,
-									)
+									),
 
 		);
 		if (defined('PERSON_STATUS_DEFAULT')) {
@@ -199,6 +199,33 @@ class Person extends DB_Object
 			   CONSTRAINT photo_personid FOREIGN KEY (`personid`) REFERENCES `_person` (`id`) ON DELETE CASCADE
 			) ENGINE=InnoDB",
 		);
+	}
+
+	/**
+	 *
+	 * @return The SQL to run to create any database views used by this class
+	 */
+	public function getViewSQL()
+	{
+		return "CREATE VIEW person AS
+			SELECT * from _person p
+			WHERE
+				getCurrentUserID() IS NOT NULL
+				AND (
+					(`p`.`id` = `getCurrentUserID`())
+					OR (`getCurrentUserID`() = -(1))
+					OR (
+						(
+						(not(exists(select 1 AS `Not_used` from `account_congregation_restriction` `cr` where (`cr`.`personid` = `getCurrentUserID`()))))
+						OR `p`.`congregationid` in (select `cr`.`congregationid` AS `congregationid` from `account_congregation_restriction` `cr` where (`cr`.`personid` = `getCurrentUserID`()))
+						)
+						AND
+						(
+						(not(exists(select 1 AS `Not_used` from `account_group_restriction` `gr` where (`gr`.`personid` = `getCurrentUserID`()))))
+						OR `p`.`id` in (select `m`.`personid` AS `personid` from (`person_group_membership` `m` join `account_group_restriction` `gr` on((`m`.`groupid` = `gr`.`groupid`))) where (`gr`.`personid` = `getCurrentUserID`()))
+						)
+					)
+				);";
 	}
 
 	/**
@@ -286,6 +313,7 @@ class Person extends DB_Object
 
 	protected function _printSummaryRows() {
 		parent::_printSummaryRows();
+		$wrapwidth = SizeDetector::isNarrow() ? 23 : 35;
 
 		// care is needed here, because we don't print empty fields
 		// but we still want to (potentially) print their headings and dividers.
@@ -321,10 +349,10 @@ class Person extends DB_Object
 					if ($showDivider) echo 'class="divider-before"';
 					?>
 				>
-					<th><?php echo ents($fieldDetails['name']); ?></th>
+					<th><?php echo wordwrap(ents($fieldDetails['name']), $wrapwidth, '<br />'); ?></th>
 					<td>
 						<?php
-						foreach ($this->_custom_values[$fieldid] as $j => $val) {
+						foreach ((array)$this->_custom_values[$fieldid] as $j => $val) {
 							if ($j > 0) echo '<br />';
 							$dummyField->printFormattedValue($val);
 						}
@@ -344,17 +372,11 @@ class Person extends DB_Object
 		$family_notes = $GLOBALS['system']->getDBObjectData('family_note', Array('familyid' => $this->getValue('familyid')));
 		$person_notes = $GLOBALS['system']->getDBObjectData('person_note', Array('personid' => $this->id));
 		$all_notes = $family_notes + $person_notes;
-		uasort($all_notes, Array($this, '_compareCreatedDates'));
-		return $all_notes;
-	}
-
-	function _compareCreatedDates($a, $b)
-	{
-		if (ifdef('NOTES_ORDER', 'ASC') == 'ASC') {
-			return $a['created'] > $b['created'];
-		} else {
-			return $a['created'] < $b['created'];
+		ksort($all_notes);
+		if (ifdef('NOTES_ORDER', 'ASC') != 'ASC') {
+			$all_notes = array_reverse($all_notes, TRUE);
 		}
+		return $all_notes;
 	}
 
 	function validateFields()
@@ -372,6 +394,13 @@ class Person extends DB_Object
 		$SQL = 'SELECT count(*) FROM attendance_record
 				WHERE personid = '.(int)$this->id;
 		return $GLOBALS['db']->queryOne($SQL);
+	}
+
+	public function hasMemberAccount()
+	{
+		$SQL = 'SELECT LENGTH(member_password) FROM person
+				WHERE id = '.(int)$this->id;
+		return (boolean)$GLOBALS['db']->queryOne($SQL);
 	}
 
 
@@ -429,14 +458,17 @@ class Person extends DB_Object
 				AND groupid = '.(int)$groupid;
 		$res = $db->exec($SQL);
 
+		$sets = Array();
 		$SQL = 'INSERT INTO attendance_record (personid, groupid, date, present)
 				VALUES ';
 		foreach ($attendances as $date => $present) {
 			if ($present == '' || $present == '?' || $present == 'unknown') continue;
 			$sets[] = '('.(int)$this->id.', '.(int)$groupid.', '.$db->quote($date).', '.(($present == 1 || $present == 'present') ? 1 : 0).')';
 		}
-		$SQL .= implode(",\n", $sets);
-		$res = $db->exec($SQL);
+		if ($sets) {
+			$SQL .= implode(",\n", $sets);
+			$res = $db->exec($SQL);
+		}
 
 	}
 
@@ -476,6 +508,7 @@ class Person extends DB_Object
 		}
 		$SQL .= '
 			GROUP BY pp.id
+			ORDER BY status
 			';
 		$res = $db->queryAll($SQL, null, null, true, true); // 5th param forces array even if one col
 		return $res;
@@ -644,6 +677,13 @@ class Person extends DB_Object
 		return $res;
 	}
 
+	public function reset()
+	{
+		parent::reset();
+		$this->_custom_values = Array();
+		$this->_old_custom_values = Array();
+		$this->_photo_data = NULL;
+	}
 
 	function create()
 	{
@@ -684,7 +724,7 @@ class Person extends DB_Object
 	 */
 	static function printMultipleFinder($name, $val=Array())
 	{
-		$persons = $GLOBALS['system']->getDBObjectData('person', Array('id' => $val));
+		$persons = empty($val) ? Array() : $GLOBALS['system']->getDBObjectData('person', Array('id' => $val));
 		$selected = Array();
 		foreach ($persons as $id => $details) {
 			$selected[$id] = $details['first_name'].' '.$details['last_name'];
@@ -722,10 +762,10 @@ class Person extends DB_Object
 	 * @param type $personids
 	 * @return array
 	 */
-	static function getCustomMergeData($personids)
+	static function getCustomMergeData($personids,$formatted=TRUE)
 	{
 		$db = $GLOBALS['db'];
-		$SQL = 'SELECT '.Custom_Field::getRawValueSQLExpr('v', 'f').' AS value, f.name, v.personid, v.fieldid
+		$SQL = 'SELECT '.Custom_Field::getRawValueSQLExpr('v', 'f').' AS value, f.name, v.personid, v.fieldid, f.type
 				FROM custom_field_value v
 				JOIN custom_field f ON v.fieldid = f.id
 				WHERE v.personid IN ('.implode(',', array_map(Array($db, 'quote'), $personids)).')';
@@ -739,7 +779,11 @@ class Person extends DB_Object
 		}
 		foreach ($qres as $row) {
 			$fname = strtoupper(str_replace(' ', '_', $row['name']));
-			$fVal = $customFields[$row['fieldid']]->formatValue($row['value']);
+			if ($formatted || ($row['type'] == 'select')) {
+				$fVal = $customFields[$row['fieldid']]->formatValue($row['value']);
+			} else {
+				$fVal = $row['value'];
+			}
 			if (isset($res[$row['personid']][$fname])) {
 				$res[$row['personid']][$fname] .= ', '.$fVal;
 			} else {
@@ -915,10 +959,14 @@ class Person extends DB_Object
 		return $this->_custom_values;
 	}
 
-	public function fromCsvRow($row) {
-		$this->_custom_values = Array();
-		$this->_old_custom_values = Array();
-
+	/**
+	 * Set values (incl custom values) from an array of data from CSV
+	 * NB it should NOT assume that the input row contains ALL custom fields
+	 * Any existing data not mentioned in the import row should be retained.
+	 * @param array $row
+	 * @param bool $overwriteExistingValues	For fields that already have a value, whether to overwrite with new data from $row.
+	 */
+	public function fromCsvRow($row, $overwriteExistingValues=TRUE) {
 		static $customFields = NULL;
 		if ($customFields === NULL) {
 			$fields = $GLOBALS['system']->getDBObjectdata('custom_field');
@@ -928,14 +976,19 @@ class Person extends DB_Object
 			}
 		}
 		foreach ($row as $k => $v) {
-			$k = strtolower($k);
+			$k = str_replace(' ', '_', strtolower($k));
 			if (isset($customFields[$k]) && strlen($v)) {
-				$this->setCustomValue($customFields[$k]->id, $customFields[$k]->parseValue($v));
+				if (empty($this->id)
+						|| $overwriteExistingValues
+						|| ($this->_custom_values[$customFields[$k]->id] == '')
+				) {
+					$this->setCustomValue($customFields[$k]->id, $customFields[$k]->parseValue($v));
+				}
 				unset($row[$k]); // so it doesn't upset db_object::fromCsvRow
 			}
 		}
 
-		if (isset($row['age_bracket'])) {
+		if (isset($row['age_bracket']) && strlen($row['age_bracket'])) {
 			foreach (Age_Bracket::getMap() as $id => $label) {
 				if (trim(strtolower($label)) == trim(strtolower($row['age_bracket']))) {
 					$row['age_bracketid'] = $id;
@@ -950,7 +1003,7 @@ class Person extends DB_Object
 			unset($row['age_bracket']);
 		}
 
-		parent::fromCsvRow($row);
+		parent::fromCsvRow($row, $overwriteExistingValues);
 	}
 
 	public function populate($id, $values)

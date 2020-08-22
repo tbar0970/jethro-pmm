@@ -133,17 +133,26 @@ class Action_Plan extends DB_Object
 					<th>Groups</th>
 					<td>
 						<strong>When this plan is executed, <b>add</b> the persons to these groups:</strong>
-						<table class="expandable">
+						<table class="expandable valign-middle">
 						<?php
 						$groups = array_get($actions, 'groups', Array());
 						if (empty($groups)) $groups = Array(0);
 						$mstatuses = array_get($actions, 'group_membership_statuses', Array());
+						$group_mark_present = array_get($actions, 'group_mark_present', Array());
 						foreach ($groups as $i => $groupid) {
 							$statusid = array_get($mstatuses, $i, NULL);
+							$mark_present = array_get($group_mark_present, $i, FALSE);
 							?>
 							<tr>
 								<td><?php Person_Group::printChooser('groups[]', $groupid); ?></td>
 								<td>as &nbsp;<?php Person_Group::printMembershipStatusChooser('group_membership_statuses[]', $statusid); ?></td>
+								<td>
+									<label>&nbsp;
+										<input type="checkbox" class="toggle-next-hidden">
+										<input type="hidden" name="group_mark_present[]" value="<?php echo (int)$mark_present; ?>" />
+										and mark as present, on the <abbr title="the date on which attendance has most recently been marked for the group">last attendance date</abbr>
+									</label>
+								</td>
 							</tr>
 							<?php
 						}
@@ -237,8 +246,9 @@ class Action_Plan extends DB_Object
 						<label class="checkbox">
 							<input type="checkbox" id="mark_present" name="mark_present" value="1" <?php if (array_get($actions, 'attendance')) echo 'checked="checked"'; ?>>
 							<strong>When this plan is executed, mark the persons as present at their congregation</strong>
+							on the <abbr title="the date on which attendance has most recently been marked for the congregation">last attendance date</abbr>
 						</label>
-						<p><small>This will only have effect if they are in a congregation. They will be marked present for the most recent date on which attendance has been recorded for that congregation.</small></p>
+						<p><small><i>(This has no effect on persons not in a congregation)</i></small></p>
 						<br />
 					</td>
 				</tr>
@@ -317,7 +327,7 @@ class Action_Plan extends DB_Object
 	private function saveAgeBracketRestrictions()
 	{
 		if (!isset($this->_tmp['abs'])) return;
-		
+
 		$age_bracket_ids = $this->_tmp['abs'];
 		$SQL = 'DELETE FROM action_plan_age_bracket WHERE action_planid = '.(int)$this->id;
 		$r = $GLOBALS['db']->exec($SQL);
@@ -346,6 +356,7 @@ class Action_Plan extends DB_Object
 					'notes' => Array(),
 					'groups' => Array(),
 					'group_membership_statuses' => Array(),
+					'group_mark_present' => Array(),
 					'groups_remove' => Array(),
 					'dates' => Array(),
 					'attendance' => NULL,
@@ -360,9 +371,21 @@ class Action_Plan extends DB_Object
 			if ($groupid = (int)$_POST['groups'][$i]) {
 				$actions['groups'][] = $groupid;
 				$actions['group_membership_statuses'][] = array_get($_POST['group_membership_statuses'], $i);
+				$actions['group_mark_present'][] = array_get($_POST['group_mark_present'], $i);
 			}
 			$i++;
 		}
+
+		foreach ($actions['groups'] as $i => $groupid) {
+			if ($actions['group_mark_present'][$i]) {
+				$group = $GLOBALS['system']->getDBObject('person_group', $groupid);
+				if ($group->getValue('attendance_recording_days') == 0) {
+					add_message('The group "'.$group->getValue('name').'" does not support attendance. This option has not been saved.', 'warning');
+					$actions['group_mark_present'][$i] = 0;
+				}
+			}
+		}
+
 		$i = 0;
 		while (isset($_POST['groups_remove'][$i])) {
 			if ($groupid = (int)$_POST['groups_remove'][$i]) {
@@ -463,12 +486,12 @@ class Action_Plan extends DB_Object
 			trigger_error("Cannot execute plan against a $subject_type");
 			return FALSE;
 		}
-		
+
 		if (empty($personids)) {
 			trigger_error("Could not find persons on which to execute action plan");
 			return FALSE;
 		}
-		
+
 		if ($abs = $this->getAgeBracketRestrictions()) {
 			$personids = array_keys($GLOBALS['system']->getDBObjectData(
 				'person',
@@ -489,15 +512,28 @@ class Action_Plan extends DB_Object
 				return FALSE;
 			}
 		}
-		
+
 
 		$actions = $this->getValue('actions');
 		$membershipStatuses = array_get($actions, 'group_membership_statuses', Array());
+		$groupMarkPresent = array_get($actions, 'group_mark_present', Array());
 		foreach (array_get($actions, 'groups', Array()) as $i => $groupid) {
 			$group = $GLOBALS['system']->getDBObject('person_group', $groupid);
 			$status = array_get($membershipStatuses, $i);
-			foreach ($personids as $personid) {
-				$group->addMember($personid, $status);
+			if ($group) {
+				foreach ($personids as $personid) {
+					$group->addMember($personid, $status, TRUE);
+				}
+			} else {
+				add_message("Action plan # {$this->id} could not add people to group # $groupid because it does not exist.", 'error');
+			}
+
+			if (!empty($groupMarkPresent[$i])) {
+				$date = Attendance_Record_Set::getMostRecentDate('g-'.$groupid);
+				foreach ($personids as $personid) {
+					$person = $GLOBALS['system']->getDBObject('person', $personid);
+					$person->saveAttendance(Array($date => 1), $groupid);
+				}
 			}
 		}
 		foreach (array_get($actions, 'groups_remove', Array()) as $groupid) {
@@ -517,7 +553,7 @@ class Action_Plan extends DB_Object
 			} else {
 				$notedata['details'] = $footnote;
 			}
-
+			unset($notedata['editor']); // avoid any bad data getting in
 			$note->populate(0, $notedata);
 			$note->setValue($subject_type.'id', $subject_id);
 			$note->create();
@@ -551,7 +587,7 @@ class Action_Plan extends DB_Object
 				}
 			}
 		}
-		
+
 		return TRUE;
 	}
 

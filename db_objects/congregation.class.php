@@ -52,6 +52,7 @@ class Congregation extends db_object
 									'type'		=> 'int',
 									'hidden'	=> true,
 									'editable' => false,
+									'default'	=> 0,
 								   ),
 		);
 	}
@@ -76,7 +77,7 @@ class Congregation extends db_object
 			$oldwhere = $res['where'];
 			$res['where'] = 'congregation.id IN ('.implode(',', array_map(Array($GLOBALS['db'], 'quote'), $restrictions['congregation'])).')
 							';
-			if ($oldwhere) $res['where'] .= ' AND ('.$res['where'].')';
+			if ($oldwhere) $res['where'] .= ' AND ('.$oldwhere.')';
 		}
 		return $res;
 
@@ -91,7 +92,7 @@ class Congregation extends db_object
 				$congs[$name] = key($matches);
 			}
 		}
-		if (!isset($congs[$name])) trigger_error('No unique congregation with name "'.$name.'"');
+		if (!isset($congs[$name])) trigger_error('Could not find a unique congregation with name "'.$name.'"');
 		return array_get($congs, $name);
 	}
 

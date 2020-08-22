@@ -63,7 +63,9 @@ class User_System extends Abstract_User_System
 			}
 			$_SESSION['last_activity_time'] = time();
 
-            $GLOBALS['db']->setCurrentUserID((int)$_SESSION['user']['id']);
+			if (!empty($_SESSION['user'])) {
+				$GLOBALS['db']->setCurrentUserID((int)$_SESSION['user']['id']);
+			}
 		}
 
 	}//end constructor

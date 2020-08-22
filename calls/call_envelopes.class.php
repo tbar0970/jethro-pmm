@@ -161,7 +161,7 @@ var $PDFVersion;         //PDF version number
 *                               Public methods                                 *
 *                                                                              *
 *******************************************************************************/
-function FPDF($orientation='P',$unit='mm',$format='A4')
+function __construct($orientation='P',$unit='mm',$format='A4')
 {
 	//Some checks
 	$this->_dochecks();
@@ -1354,8 +1354,7 @@ function _putimages()
 {
 	$filter=($this->compress) ? '/Filter /FlateDecode ' : '';
 	reset($this->images);
-	while(list($file,$info)=each($this->images))
-	{
+	foreach ($this->images as $file => $info) {
 		$this->_newobj();
 		$this->images[$file]['n']=$this->n;
 		$this->_out('<</Type /XObject');
@@ -1721,9 +1720,9 @@ function _out($s)
 
 class Envelope_List extends FPDF
 {
-	function Envelope_List()
+	function __construct()
 	{
-		$this->FPDF('P', 'mm', Array(ENVELOPE_WIDTH_MM, ENVELOPE_HEIGHT_MM));
+		parent::__construct('P', 'mm', Array(ENVELOPE_WIDTH_MM, ENVELOPE_HEIGHT_MM));
 	}
 
 	function addAddress($x)

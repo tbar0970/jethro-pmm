@@ -100,7 +100,9 @@ function format_date($d, $includeYear=NULL)
 
 function nbsp($x)
 {
-	return str_replace(' ', '&nbsp;', $x);
+	$x = str_replace(' ', '&nbsp;', $x);
+	$x = str_replace('-', '&#8209;', $x);
+	return $x;
 }
 
 /**
@@ -383,7 +385,7 @@ function print_widget($name, $params, $value)
 			list($year_val, $month_val, $day_val) = explode('-', substr($value, 0, 10));
 			?>
 			<span class="nowrap" <?php echo $attrs; ?> >
-			<input type="number" name="<?php printf($name_template, '_d'); ?>" class="day-box <?php echo $day_year_classes; ?>" size="2" maxlength="2" value="<?php echo $day_val; ?>" placeholder="DD" /><select name="<?php printf($name_template, '_m'); ?>" class="month-box <?php echo $classes; ?>">
+			<input type="number" min="1" max="31" name="<?php printf($name_template, '_d'); ?>" class="day-box <?php echo $day_year_classes; ?>" size="2" maxlength="2" value="<?php echo $day_val; ?>" placeholder="DD" /><select name="<?php printf($name_template, '_m'); ?>" class="month-box <?php echo $classes; ?>">
 				<?php
 				foreach ($months as $i => $month_name) {
 					$selected = (($i) == $month_val) ? ' selected="selected"' : '';
@@ -392,7 +394,7 @@ function print_widget($name, $params, $value)
 					<?php
 				}
 				?>
-			</select><input type="number" name="<?php printf($name_template, '_y'); ?>" class="year-box <?php echo $year_classes; ?>" size="4" maxlength="4" value="<?php echo $year_val; ?>" placeholder="YYYY"/>
+			</select><input type="number" min="1900" max="2100" name="<?php printf($name_template, '_y'); ?>" class="year-box <?php echo $year_classes; ?>" size="4" maxlength="4" value="<?php echo $year_val; ?>" placeholder="YYYY"/>
 			</span>
 			<?php
 			break;
@@ -421,7 +423,7 @@ function print_widget($name, $params, $value)
 				}
 				$params['type'] = 'select';
 				if (empty($params['allow_empty']) && ($value === '')) $value = $default;
-				print_widget($name, $params, $value);
+				return print_widget($name, $params, $value);
 			}
 			break;
 		case 'bitmask':
@@ -497,7 +499,7 @@ function print_widget($name, $params, $value)
 function process_widget($name, $params, $index=NULL, $preserveEmpties=FALSE)
 {
 	$testVal = $rawVal = array_get($_REQUEST, $name);
-	if (empty($testVal) && $params['type'] == 'date') $testVal = array_get($_REQUEST, $name.'_d');
+	if (empty($testVal) && $params['type'] == 'date') $testVal = $rawVal = array_get($_REQUEST, $name.'_d');
 	if (is_array($testVal) && ($params['type'] != 'bitmask') && (array_get($params, 'allow_multiple', 0) == 0)) {
 		if (!is_null($index)) {
 			$rawVal = $rawVal[$index];
@@ -776,6 +778,8 @@ function get_email_href($to, $name=NULL, $bcc=NULL, $subject=NULL)
 	$sep = defined('MULTI_EMAIL_SEPARATOR') ? MULTI_EMAIL_SEPARATOR : ',';
 	if (!empty($to)) $to = implode($sep, (array)$to);
 	if (!empty($bcc)) $bcc = implode($sep, (array)$bcc);
+	if (empty($to)) $to = '';
+	if (empty($bcc)) $bcc = '';
 
 	if (function_exists('custom_email_href')) return custom_email_href($to, $name, $bcc, $subject);
 

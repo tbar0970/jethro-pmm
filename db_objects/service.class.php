@@ -345,7 +345,7 @@ class service extends db_object
 					foreach ($this->getItems(FALSE, $compCatID) as $item) {
 						$res[] = ents($item['title']);
 					}
-					echo implode('<br />', $res);
+					echo implode('<br />', nbsp($res));
 				} else {
 					parent::printFieldvalue($fieldname);
 				}
@@ -573,7 +573,7 @@ class service extends db_object
 
 					// only save personnel if it's been changed from the component's default
 					// so that if the roster changes, the run sheet will auto updated.
-					if ($item['personnel'] == $comps[$item['componentid']]['personnel']) {
+					if ($item['personnel'] == $this->replaceKeywords($comps[$item['componentid']]['personnel'])) {
 						$item['personnel'] = '';
 					}
 				} else {
@@ -614,7 +614,7 @@ class service extends db_object
 					'.($withContent ? 'sc.content_html, sc.credits, ' : '').'
 					IFNULL(IF(LENGTH(sc.runsheet_title_format) = 0, scc.runsheet_title_format, sc.runsheet_title_format), "%title%") AS runsheet_title_format,
 					IFNULL(IF(LENGTH(sc.handout_title_format) = 0, scc.handout_title_format, sc.handout_title_format), "%title%") AS handout_title_format,
-					IF(LENGTH(si.personnel) = 0, sc.personnel, si.personnel) AS personnel,
+					IF(LENGTH(si.personnel) > 0, si.personnel, IF(LENGTH(sc.personnel) > 0, sc.personnel, scc.personnel_default)) as personnel,
 					sc.categoryid
 				FROM service_item si
 				LEFT JOIN service_component sc ON si.componentid = sc.id
@@ -728,6 +728,30 @@ class service extends db_object
 		}
 	}
 
+	public function getServiceContent()
+	{
+		$serviceContent = array();
+		$items = $this->getItems(TRUE);
+		$num = 1;
+		foreach ($items as $k => $i) {
+			if ($i['show_in_handout'] == '0') continue;
+				$title = $i['handout_title_format'];
+				$title = str_replace('%title%', $i['title'], $title);
+				$title = $this->replaceKeywords($title);
+				//$serviceContent[] = ents($title);
+			if ($i['show_in_handout'] == 'full') {
+				$itemContent = $i['content_html'];
+				$itemCredit = nl2br(ents($i['credits']));
+			}
+			else {
+				$itemContent ='';
+				$itemCredit = '';
+				}
+				$serviceContent[] = array(ents($title),$itemContent,$itemCredit);
+			}
+	return $serviceContent;
+	}
+	
 	public function printRunSheetPersonnelFlexi()
 	{
 		$rosterViews = Roster_View::getForRunSheet($this->getValue('congregationid'));
@@ -754,6 +778,15 @@ class service extends db_object
 			<div id="service-personnel" class="span12 clearfix">
 				<h3>
 					<span class="pull-right"><small>
+					<?php
+					if (count($rosterViews) == 1) {
+						reset($rosterViews);
+						?>
+						<a href="?view=rosters__edit_roster_assignments&viewid=<?php echo key($rosterViews); ?>&start_date=<?php echo $this->getValue('date'); ?>&end_date=<?php echo $this->getValue('date'); ?>&goback=1"><i class="icon-wrench"></i>Edit Personnel</a>
+						&nbsp;
+						<?php
+					}
+					?>
 						<a href="<?php echo $email_href; ?>"><i class="icon-email">@</i>Email</a>
 					<?php
 					if (SMS_Sender::canSend()) {

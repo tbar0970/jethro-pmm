@@ -18,7 +18,16 @@ class Headcount
 				) Engine=InnoDB;'
 		);
 	}
-	
+
+	/**
+	 *
+	 * @return The SQL to run to create any database views used by this class
+	 */
+	public function getViewSQL()
+	{
+		return NULL;
+	}
+
 	public function getForeignKeys()
 	{
 		return Array(
@@ -71,7 +80,7 @@ class Headcount
 		$res = $db->queryAll($SQL, null, null, true);
 		return $res;
 	}
-	
+
 	public static function fetchAverage($entitytype, $entityid, $fromDate, $toDate)
 	{
 		self::checkEntityType($entitytype);
@@ -81,7 +90,7 @@ class Headcount
 				AND '.$entitytype.'id = '.$db->quote($entityid);
 		$res = $db->queryOne($SQL);
 		return $res;
-		
+
 	}
 
 

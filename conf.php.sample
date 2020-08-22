@@ -1,7 +1,7 @@
 <?php
 /**
  * JETHRO PMM
- * 
+ *
  * conf.php - edit this file to configure jethro
  *
  * @author Tom Barrett <tom@tombarrett.id.au>
@@ -160,7 +160,7 @@ define('DB_TYPE', 'mysql');
 
 // To use the "generate service documents" feature, add folder paths here.
 // They can be absolute paths, or relative within the documents root above.
-// Separate multiple entries with pipe (|).  
+// Separate multiple entries with pipe (|).
 //define('SERVICE_DOCS_TO_POPULATE_DIRS', 'Templates/To_Populate');
 //define('SERVICE_DOCS_TO_EXPAND_DIRS', 'Templates/To_Expand');
 

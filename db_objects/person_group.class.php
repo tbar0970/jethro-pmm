@@ -44,10 +44,12 @@ class Person_Group extends db_object
 									'label' => 'Show on add-family page?',
 									'note' => 'Should this group be shown as an option when <a href="?view=families__add">adding a new family</a>?',
 									'divider_before' => true,
+									'heading_before' => 'Advanced Options:',
 									),
 			'share_member_details' => Array(
 									'type' => 'select',
 									'options' => Array('No', 'Yes'),
+									'default' => 0,
 									'note' => 'Should members of this group be able to see each others\'s details in <a href="'.BASE_URL.'members">member portal</a>?',
 									'label' => 'Share member details?',
 								),
@@ -122,6 +124,24 @@ class Person_Group extends db_object
 	}
 
 
+	/**
+	 *
+	 * @return The SQL to run to create any database views used by this class
+	 */
+	public function getViewSQL()
+	{
+		return "CREATE VIEW person_group AS
+			SELECT * from _person_group g
+			WHERE
+			  getCurrentUserID() IS NOT NULL
+			  AND
+			  ((g.owner IS NULL) OR (g.owner = getCurrentUserID()))
+			  AND
+			  (NOT EXISTS (SELECT * FROM account_group_restriction gr WHERE gr.personid  = getCurrentUserID())
+			  OR g.id IN (SELECT groupid FROM account_group_restriction gr WHERE gr.personid = getCurrentUserID()))";
+	}
+
+
 	function toString()
 	{
 		return $this->values['name'];
@@ -164,7 +184,7 @@ class Person_Group extends db_object
 		}
 
 		$new_member = $GLOBALS['system']->getDBObject('person', $personid);
-		if ($new_member->id) {
+		if ($new_member && $new_member->id) {
 			$db =& $GLOBALS['db'];
 			if ($overwrite_existing) {
 				$sql = 'INSERT ';
@@ -230,7 +250,7 @@ class Person_Group extends db_object
 				WHERE gm.personid = '.$db->quote((int)$personid).'
 				'.($includeArchived ? '' : ' AND NOT g.is_archived').'
 				'.(is_null($whichShareMemberDetails) ? '' : ' AND g.share_member_details = '.(int)$whichShareMemberDetails).'
-				ORDER BY g.name';
+				ORDER BY g.is_archived ASC, g.name';
 		$res = $db->queryAll($sql, null, null, true);
 		return $res;
 	}
@@ -266,9 +286,9 @@ class Person_Group extends db_object
 	{
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
 		$res['from'] .= "\n LEFT JOIN person_group_membership gm ON gm.groupid = person_group.id ";
+		$res['from'] .= "\n LEFT JOIN person aperson ON gm.personid = aperson.id AND aperson.status<>'archived'";
 		$res['from'] .= "\n LEFT JOIN person_group_category pgc ON person_group.categoryid = pgc.id ";
-
-		$res['select'][] = 'COUNT(gm.personid) as member_count';
+		$res['select'][] = 'COUNT(aperson.id) as member_count';
 		$res['select'][] = 'pgc.name as category';
 		$res['group_by'] = 'person_group.id';
 		return $res;
@@ -512,6 +532,31 @@ class Person_Group extends db_object
 		$testIndex = array_search(date('l', strtotime($date)), $this->fields['attendance_recording_days']['options']);
 		return $testIndex & $this->getValue('attendance_recording_days');
 
+	}
+
+	/**
+	 * If there is exactly one group whose name matches, return the group object.
+	 * Matching is done case-insensitively, and considering spaces and underscores as the same.
+	 * @param string $name
+	 */
+	public static function findByName($name)
+	{
+		static $warnings = Array();
+		$name = str_replace(' ', '_', strtolower($name));
+		$SQL = 'SELECT * from person_group WHERE REPLACE(LOWER(name), " ", "_") = '.$GLOBALS['db']->quote($name);
+		$res = $GLOBALS['db']->queryAll($SQL, NULL, NULL, TRUE);
+		if (count($res) > 1) {
+			if (empty($warnings[$name])) {
+				add_message("Could not match a single group called \"".$name.'" - there are several groups with that name', 'warning');
+				$warnings[$name] = TRUE;
+			}
+		}
+		if (count($res) == 1) {
+			$g = new Person_Group();
+			$g->populate(key($res), reset($res));
+			return $g;
+		}
+		return NULL;
 	}
 
 

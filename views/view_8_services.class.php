@@ -13,7 +13,7 @@ class View_services extends View
 	{
 		return PERM_VIEWSERVICE;
 	}
-	
+
 	function processView()
 	{
 		$this->editing = !empty($_REQUEST['editing']) && $GLOBALS['user_system']->havePerm(PERM_EDITSERVICE);
@@ -73,7 +73,7 @@ class View_services extends View
 							$newItem = Array(
 								'componentid' => $compid,
 								'title' => $_POST['title'][$rank],
-								'personnel' => $_POST['personnel'][$rank],
+								'personnel' => array_get($_POST['personnel'], $rank),
 								'show_in_handout' => $_POST['show_in_handout'][$rank],
 								'length_mins' => $_POST['length_mins'][$rank],
 								'note'        => trim($_POST['note'][$rank]),
@@ -92,7 +92,7 @@ class View_services extends View
 			$this->date = date('Y-m-d', strtotime('Sunday'));
 		}
 	}
-	
+
 	function getTitle()
 	{
 		return NULL;
@@ -164,9 +164,10 @@ class View_services extends View
 							<span class="pull-right">
 									<small>
 										<a class="med-popup" href="?call=service_content&serviceid=<?php echo $this->service->id; ?>"><i class="icon-print"></i>Printable</a>
+										<a class="" href="?call=service_slides&serviceid=<?php echo $this->service->id; ?>"><i class="icon-film"></i>Slides</a>
 									</small>
 							</span>
-							Full content
+							Service Handout
 						</h3>
 						<div class="service-content">
 							<?php
@@ -181,7 +182,7 @@ class View_services extends View
 			}
 
 		}
-	
+
 	}
 
 	private function printRunSheetEditor()
@@ -287,7 +288,7 @@ class View_services extends View
 									<?php
 								}
 								?>
-								<textarea name="note[]" class="unfocused" 
+								<textarea name="note[]" class="unfocused"
 									<?php
 									if (!strlen($item['note'])) {
 										echo 'style="display:none" ';
@@ -434,7 +435,7 @@ class View_services extends View
 							'allow_multiple' => TRUE
 						);
 						print_widget('copy_category_ids[]', $params, '*');
-						?>						
+						?>
 					</div>
 				</div>
 			</div>

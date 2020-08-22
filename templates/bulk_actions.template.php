@@ -5,10 +5,13 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 
 <div class="form-horizontal bulk-actions">
 	<?php echo _('With selected persons:')?>
-		<select id="bulk-action-chooser">
+		<select id="bulk-action-chooser" class="no-autofocus">
 			<option><?php echo _('-- Choose Action --')?></option>
 				<?php
 				if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
+					?>
+					<option value="update-field"><?php echo _('Set field(s)')?></option>
+					<?php
 					if ($in_group) {
 						?>
 						<option value="remove-from-group"><?php echo _('Remove from this group')?></option>
@@ -20,9 +23,6 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 						<option value="add-to-group"><?php echo _('Add to a group')?></option>
 						<?php
 					}
-					?>
-					<option value="update-field"><?php echo _('Set field(s)')?></option>
-					<?php
 				}
 				if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
 					?>
@@ -38,15 +38,14 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 					<?php
 				}
 				?>
-					<option value="envelopes"><?php echo _('Print envelopes')?></option>
-					<option value="csv"><?php echo _('Export as CSV')?></option>
-					<option value="vcf"><?php echo _('Export as vCard')?></option>
+					<option value="export"><?php echo _('Export...')?></option>
 				<?php
-				if (version_compare(PHP_VERSION, '5.2', '>=')) {
-					?>
-					<option value="mail-merge"><?php echo _('Mail merge a document')?></option>
-					<?php
+				if (version_compare(PHP_VERSION, '5.2', '>=') && !SizeDetector::isNarrow()) {
+					echo '<option value="document-merge">'._('Mail merge a document')."</option>\n";
 				}
+				?>
+				<option value="envelopes"><?php echo _('Print envelopes')?></option>
+				<?php
 				require_once 'db_objects/action_plan.class.php';
 				$plan_chooser = Action_Plan::getMultiChooser('planid', Array());
 				if ($plan_chooser) {
@@ -59,7 +58,6 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 					custom_bulk_action_options();
 				}
 				?>
-
 	</select>
 	<?php
 	if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
@@ -216,49 +214,6 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 		</div>
 		<?php
 	}
-	if (version_compare(PHP_VERSION, '5.2', '>=')) {
-		?>
-		<div class="bulk-action well" id="mail-merge">
-			<div class="control-group">
-				<label class="control-label"><?php echo _('Source Document')?></label>
-				<div class="controls">
-					<input class="compulsory" type="file" name="source_document" />
-					<p class="help-inline">(ODT or DOCX format)</p>
-				</div>
-			</div>
-			<div class="control-group">
-				<label class="control-label"><?php echo _('Merge for')?></label>
-				<div class="controls">
-						<label class="radio">
-							<input class="compulsory" type="radio" name="merge_type" value="person" id="merge_type_person" checked="checked" />
-							<?php echo _('each of the selected persons')?>
-							<span class="smallprint">
-								<?php echo _('(Sample file: ')?>
-								<a href="<?php echo BASE_URL; ?>/resources/sample_mail_merge.odt">ODT</a>,
-								<a href="<?php echo BASE_URL; ?>/resources/sample_mail_merge.docx">DOCX</a>)
-							</span>
-						</label>
-						<label class="radio">
-							<input type="radio" name="merge_type" value="family" id="merge_type_family" />
-							<?php echo _('each of the families that the selected persons belong to')?>
-							<span class="smallprint">
-								(Sample file:
-								<a href="<?php echo BASE_URL; ?>/resources/sample_mail_merge_family.odt">ODT</a>,
-								<a href="<?php echo BASE_URL; ?>/resources/sample_mail_merge_family.docx">DOCX</a>)
-							</span>
-						</label>
-				</div>
-			</div>
-			<div class="control-group">
-				<div class="controls">
-					<input type="submit" class="btn " value="Go" data-set-form-action="<?php echo BASE_URL; ?>?call=odf_merge" />
-				</div>
-			</div>
-
-
-		</div>
- 		<?php
-	}
 	?>
 		<div class="bulk-action well" id="email">
 			<p><?php echo _('Send an email to')?></p>
@@ -317,13 +272,72 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 		<?php
 	}
 	?>
-		<div class="bulk-action well" id="csv">
-			<p>Get a CSV file of:</p>
-			<label class="radio"><input class="compulsory" type="radio" name="merge_type" value="person" id="merge_type_person" checked="checked" /><?php echo _('the selected persons')?></label>
-			<label class="radio"><input type="radio" name="merge_type" value="family" id="merge_type_family" /><?php echo _('the families the selected persons belong to')?></label></p>
-			<input type="submit" class="btn " value="Go" data-set-form-action="<?php echo BASE_URL; ?>?call=csv" />
+		<div class="bulk-action well" id="export">
+			Download Person data:
+			<input type="submit" class="btn " value="CSV" data-set-form-action="<?php echo BASE_URL; ?>?call=csv&merge_type=person" />
+			<input type="submit" class="btn" value="vCard" data-set-form-action="<?php echo BASE_URL; ?>?call=vcf" />
+			&nbsp;&nbsp;Download Family data:
+			<input type="submit" class="btn " value="CSV" data-set-form-action="<?php echo BASE_URL; ?>?call=csv&merge_type=family" />
 		</div>
+    <?php
+	if (version_compare(PHP_VERSION, '5.2', '>=') && !SizeDetector::isNarrow()) {
+		?>
+		<div class="bulk-action well" id="document-merge">
+			<div class="control-group">
+				<label class="control-label"><?php echo _('Source Document')?></label>
+				<div class="controls">
+					<input class="compulsory" type="file" name="source_document" />
+					<p class="help-inline">(docx/xlsx/pptx/odt/ods/odp)</p>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label"><?php echo _('Template type')?></label>
+				<div class="controls">
+					<label class="radio inline">
+						<input type="radio" name="template_format" value="tbs" checked="checked" />
+						Default
+					</label>
+					<label class="radio inline">
+						<input type="radio" name="template_format" value="legacy" />
+						Legacy <small><i>(from Jethro ≤ v2.27)</i></small>
+					</label>
+					<label class="radio inline smallprint">
+						<a target="roster-merge-help" class="med-newwin" href="<?php echo BASE_URL; ?>index.php?call=document_merge_help"><i class="icon-help"></i>Help and examples</a>
+					</label>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label"><?php echo _('Merge for')?></label>
+				<div class="controls">
+						<label class="radio">
+						<?php
+							if (isset($merge_type_person_attendance)) {
+								echo '<input class="compulsory" type="radio" name="merge_type" value="person_data" id="merge_type_person_attendance" checked="checked" />';
+							} else {
+								echo '<input class="compulsory" type="radio" name="merge_type" value="person" id="merge_type_person" checked="checked" />';
+							}
+							echo _('each selected person');
+							?>
 
+						</label>
+						<label class="radio">
+							<input type="radio" name="merge_type" value="family" id="merge_type_family" />
+							<?php echo _('each family that contains a selected person')?>
+							<span class="smallprint">
+						</label>
+				</div>
+			</div>
+			<div class="control-group">
+				<div class="controls">
+					<input type="submit" class="btn " value="Go" data-set-form-action="<?php echo BASE_URL; ?>index.php?call=document_merge" />
+				</div>
+			</div>
+
+
+		</div>
+ 		<?php
+	}
+	?>
 		<div class="bulk-action well" id="envelopes">
 			<p><?php echo _('Print envelopes addressed to ')?></p>
 			<label class="radio">
@@ -351,13 +365,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 		</div>
 		<?php
 	}
-	?>
 
-	<div class="bulk-action well" id="vcf">
-		<input type="submit" value="Go" class="btn" data-set-form-action="<?php echo BASE_URL; ?>?call=vcf" />
-	</div>
-
-	<?php
 	if (function_exists('custom_bulk_action_bodies')) {
 		custom_bulk_action_bodies();
 	}

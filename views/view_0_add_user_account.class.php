@@ -46,8 +46,17 @@ class View__Add_User_Account extends View
 			<div class="control-group">
 				<label class="control-label">Person Record</label>
 				<div class="controls">
-					<?php Person::printSingleFinder('personid', NULL) ?>
-					<p class="help-inline">If the user does not yet exist in the system as a person, you must <a href="?view=families__add">add them first</a></p>
+					<?php
+					if (!empty($_REQUEST['personid'])) {
+						$person = new Person((int)$_REQUEST['personid']);
+						echo ents($person->toString().' (#'.$person->id.')');
+					} else {
+						Person::printSingleFinder('personid', NULL)
+						?>
+						<p class="help-inline">If the user does not yet exist in the system as a person, you must <a href="?view=families__add">add them first</a></p>
+						<?php
+					}
+					?>
 				</div>
 			</div>
 		<?php

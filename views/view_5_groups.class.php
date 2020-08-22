@@ -122,22 +122,7 @@ class View_Groups extends View
 			</div>
 			<?php
 		}
-		?>
 
-		<div class="modal hide fade autosize" id="email-modal" role="dialog" aria-hidden="true">
-			<div class="modal-header">
-				<h4><?php echo _('Email members of ');?><?php echo ents($this->_group->getValue('name')); ?></h4>
-			</div>
-			<div class="modal-body">
-				<!-- to be populated with ajax -->
-			</div>
-			<div class="modal-footer">
-				<input class="btn" type="button" value="Cancel" data-dismiss="modal" aria-hidden="true" />
-			</div>
-		</div>
-
-
-		<?php
 		$mParams = Array();
 		if (!array_get($_SESSION, 'show_archived_group_members', FALSE)) {
 			$mParams['!status'] = 'archived';
@@ -173,7 +158,7 @@ class View_Groups extends View
 			if (!empty($persons)) {
 				?>
 				<div class="email-link">
-					<a href="<?php echo build_url(Array('view' => NULL, 'call' => 'email', 'groupid' => $this->_group->id, 'show_modal' => 1)); ?>" data-target="#email-modal" data-toggle="modal"><i class="icon-email">@</i><?php echo _('Email members');?></a>
+					<a href="<?php echo build_url(Array('view' => NULL, 'call' => 'email', 'groupid' => $this->_group->id, 'print_modal' => 1)); ?>" target="_append"><i class="icon-email">@</i><?php echo _('Email members');?></a>
 				</div>
 				<?php
 			}
@@ -248,7 +233,7 @@ class View_Groups extends View
 						<th>&nbsp;</th>
 						<th class="narrow selector form-inline"><input type="checkbox" class="select-all" title=<?php echo _('"Select all"')?> /></th>
 					</tr>
-						
+
 				</thead>
 				<tbody>
 			<?php
@@ -280,10 +265,10 @@ class View_Groups extends View
 					<td><?php $dummy_person->printFieldValue('gender'); ?></td>
 					<?php
 				}
-				
+
 				if (!SizeDetector::isNarrow()) {
 					?>
-					<td><?php echo format_date($v['joined_group']); ?></td>
+					<td><?php echo format_date($details['joined_group']); ?></td>
 					<?php
 				}
 				?>
@@ -296,7 +281,7 @@ class View_Groups extends View
 			?>
 				</tbody>
 			</table>
-			<?php		
+			<?php
 
 			if (!empty($_REQUEST['edit_statuses'])) {
 				?>

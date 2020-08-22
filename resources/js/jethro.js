@@ -5,19 +5,19 @@ $(document).ready(function() {
 	// Make standalone safari stay standalone
 	if (("standalone" in window.navigator) && window.navigator.standalone) {
 		// http://www.andymercer.net/blog/2016/02/full-screen-web-apps-on-ios/
-		var insideApp = sessionStorage.getItem('insideApp'), location = window.location, stop = /^(a|html)$/i;
+		var insideApp = sessionStorage.getItem('insideApp'), location = window.location.href, stop = /^(a|html)$/i;
 		if (insideApp) {
 			localStorage.setItem('returnToPage', location);
 		} else {
 			var returnToPage = localStorage.getItem('returnToPage');
-			if (returnToPage) {
-				window.location = returnToPage;
+			if (returnToPage && (returnToPage != location) && ($('.login-box').length == 0)) {
+				window.location.href = returnToPage;
 			}
 			sessionStorage.setItem('insideApp', true);
 		}
 
 		// add a back button
-		$('a.brand').parent().prepend('<i class="icon-white icon-chevron-left" onclick="history.go(-1); "></i>')
+		$('a.brand').parent().prepend('<ei class="icon-white icon-chevron-left" onclick="history.go(-1); "></i>')
 
 		// stay inside the app, avoid linking out to mobile safari
 		$("a").click(function (event) {
@@ -499,7 +499,9 @@ JethroSMS.init = function() {
 	// SMS Character counting
 	$('.smscharactercount').parent().find('textarea, div.sms_editor').on('keyup propertychange paste', function() {
 		var maxlength = (this.tagName == 'DIV') ? $(this).attr("data-maxlength") : $(this).attr('maxlength');
-		var currentLength = (this.tagName == 'DIV') ? $(this).text().length : this.value.length;
+		var rawtext = (this.tagName == 'DIV') ? $(this).text() : this.value;
+	        var wideCharacterCount = rawtext.length - rawtext.replace (/\^|\||\{|\}|\�~B�|\[|\]|\~|\\/g,'').length; // These characters cost 2 characters in GSM 03.38
+        	var currentLength = rawtext.length + wideCharacterCount;
 		var chars = maxlength - currentLength;
 		if (chars <= 0 && this.tagName == 'DIV') {
 			$(this).val($(this).text().substring(0, maxlength));
@@ -536,6 +538,18 @@ JethroSMS.init = function() {
 	});
 
 	$('.bulk-sms-submit').click(function(event) {
+		var checkboxes = document.getElementsByName('personid[]');
+		if ($("input[name='personid[]']:checked").length === 0) {
+			if (confirm('You have not selected any persons. Would you like to perform this action on every person listed?')) {
+			  for (var i = 0; i < checkboxes.length; i++) {
+				checkboxes[i].checked = true;
+			  }
+			} else {
+			  TBLib.cancelValidation();
+			  return false;
+			}
+		}
+
 		event.preventDefault();
 		var submitBtn = $("#smshttp .bulk-sms-submit");
 		submitBtn.prop('disabled', true);
@@ -1106,6 +1120,11 @@ JethroServicePlanner.onItemReorder = function() {
 }
 
 JethroServicePlanner.refreshNumbersAndTimes = function() {
+	if (JethroServicePlanner.timeRefreshTimer) clearTimeout(JethroServicePlanner.timeRefreshTimer);
+	JethroServicePlanner.timeRefreshTimer = setTimeout(JethroServicePlanner._refreshNumbersAndTimes, 200);
+}
+
+JethroServicePlanner._refreshNumbersAndTimes = function() {
 	var sp = $('#service-plan');
 	sp.find('td.number, td.start').html('');
 	var currentNumber = 1;
@@ -1134,13 +1153,16 @@ JethroServicePlanner._addTime = function(clockTime, addMins) {
 	addMins = parseInt(addMins, 10);
 	if (!isNaN(addMins)) {
 		mins += parseInt(addMins, 10);
-		if (mins > 60) {
+		if (mins >= 60) {
 			mins = mins % 60;
 			hours++;
 		}
 		if (hours < 10) hours = "0"+hours;
 		if (mins < 10) mins = "0"+mins;
 		return ""+hours+mins;
+	} else {
+		// It's hard to say how this happens but best to quietly continue
+		return clockTime;
 	}
 }
 
@@ -1180,6 +1202,13 @@ JethroRoster.init = function() {
 		$('#choose-assignee-modal input').val('');
 		$target.change(); //bubbles the props up so it looks orange
 		setTimeout(function() { $target.effect("pulsate", {times: 2}, 700) }, 600);
+
+		if ($('#choose-assignee-modal input[name=add-to-group]').attr('checked')) {
+			var matches = JethroRoster.CUSTOM_ASSIGNEE_TARGET.name.match(/assignees\[([0-9]+)\]/);
+			var roleID = matches[1];
+			$(JethroRoster.CUSTOM_ASSIGNEE_TARGET.form).append('<input type="hidden" name="new_volunteers['+roleID+'][]" value="'+newID+'" />');
+		}
+
 	});
 	$('#choose-assignee-cancel').click(function() {
 		$(JethroRoster.CUSTOM_ASSIGNEE_TARGET).val('');
@@ -1393,7 +1422,7 @@ function showLockExpiredWarning()
 	$('.reload').click(function() {
 		document.location.href = document.location;
 	});
-
+	window.DATA_CHANGED = false; // see setupUnsavedWarnings() in tb_lib.js
 }
 
 // Allow certain submit buttons to target their form to an envelope-sized popup or hidden frame.
@@ -1449,7 +1478,7 @@ $(document).ready(function() {
 
 function handleNoteStatusChange(elt) {
 	var prefix = elt.name.replace('status', '');
-	var newDisplay = (elt.value == 'no_action') ? 'none' : '';
+	var newDisplay = (elt.value != 'pending') ? 'none' : '';
 	$('input[name='+prefix+'action_date_d]').parents('.control-group:first').css('display', newDisplay);
 	$('select[name='+prefix+'assignee]').parents('.control-group:first').css('display', newDisplay);
 	// the 'none' assignee should be removed when action is required
@@ -1527,29 +1556,51 @@ function handleNewPersonCongregationChange()
 
 function handleNewFamilySubmit()
 {
-	var i = 0;
+	var rows = ($('#add-family table.expandable>tbody>tr'));
 	var haveMember = false;
-	while (document.getElementsByName('members_'+i+'_first_name').length != 0) {
-		var memberFirstNameField = document.getElementsByName('members_'+i+'_first_name')[0];
-		var memberLastNameField = document.getElementsByName('members_'+i+'_last_name')[0];
-		if (memberFirstNameField.value != '') {
-			if (memberLastNameField.value == '') {
-				alert('You must specify a last name for each family member');
-				memberLastNameField.focus();
-				TBLib.cancelValidation();
+	var haveErrors = false;
+	rows.each(function() {
+		if ($(this).find('input[name$=first_name]').val() != '') {
+			haveMember = true;
+			var ln = $(this).find('input[name$=last_name]');
+			if (ln.val() == '') {
+				ln.focus();
+				alert("Every family member must have a last name");
+				ln.focus();
+				haveErrors = true;
 				return false;
 			}
-			haveMember = true;
-		}
-		i++;
-	}
 
-	if (!haveMember) {
+			var ab = $(this).find('[name$=age_bracketid]');
+			if (ab.val() == null) {
+				ab.focus();
+				alert("Every family member must have an age bracket");
+				ab.focus();
+				haveErrors = true;
+				return false;
+			}
+
+			var st = $(this).find('[name$=status]');
+			if (st.val() != 'contact') {
+				var cg = $(this).find('[name$=congregationid]');
+				if (cg.val() == null) {
+					cg.focus();
+					alert("Every family member must have a congregation, unless they are a contact");
+					cg.focus();
+					haveErrors = true;
+					return false;
+				}
+			}
+		}
+	})
+
+	if (haveErrors) return false;
+
+	if ( !haveMember) {
 		document.getElementsByName('members_0_first_name')[0].focus();
 		alert('New family must have at least one member');
-		TBLib.markErroredInput(document.getElementsByName('members_0_first_name')[0]);
 		document.getElementsByName('members_0_first_name')[0].focus();
-		TBLib.cancelValidation();
+		//TBLib.cancelValidation();
 		return false;
 	}
 	return true;

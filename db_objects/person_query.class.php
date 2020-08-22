@@ -8,7 +8,7 @@ class Person_Query extends DB_Object
 		'p.first_name', 'p.last_name', 'f.family_name', 'p.age_bracketid', 'p.gender', 'p.status', 'p.congregationid', NULL,
 		'p.email', 'p.mobile_tel', 'p.work_tel', 'f.home_tel', 'p.remarks',
 		'f.address_street', 'f.address_suburb', 'f.address_state', 'f.address_postcode', NULL,
-		'p.creator', 'p.created', 'f.created', 'p.status_last_changed', );
+		'p.id', 'f.id', 'p.creator', 'p.created', 'f.created', 'p.status_last_changed', );
 	private $_dummy_family = NULL;
 	private $_dummy_person = NULL;
 	private $_dummy_custom_field = NULL;
@@ -52,6 +52,8 @@ class Person_Query extends DB_Object
 				$this->_field_details['f.'.$i] = $v;
 				$this->_field_details['f.'.$i]['allow_empty'] = true;
 			}
+			$this->_field_details['p.id'] = Array('label' => 'Person ID');
+			$this->_field_details['f.id'] = Array('label' => 'Family ID');
 
 			$this->_custom_fields = $GLOBALS['system']->getDBObjectData('custom_field', Array(), 'OR', 'rank');
 			$this->_dummy_custom_field = new Custom_Field();
@@ -147,6 +149,11 @@ class Person_Query extends DB_Object
 	{
 		$GLOBALS['system']->includeDBClass('person_group');
 		$params = $this->_convertParams($this->getValue('params'));
+		if (!$GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS) && ($this->getValue('owner') == NULL)) {
+			// we are editing a shared report, but don't have permission to save a shared report
+			// so we treat this as if it's a new private report
+			$this->id = 0;
+		}
 		?>
 		<h3>Find me people...</h3>
 
@@ -359,42 +366,79 @@ class Person_Query extends DB_Object
 		}
 		?>
 
-		<h4>who <strong>are</strong> in one or more of these groups:</h4>
+		<h4>who <strong>are</strong> in one or more of these groups:
+			<i class="clickable icon-question-sign" data-toggle="visible" data-target="#grouptooltip"></i><div class="help-block custom-field-tooltip" id="grouptooltip" style="display: none; font-weight: normal">(This rule ignores any archived groups)</div>
+		</h4>
 		<div class="indent-left">
+
 
 			<?php
 			$gotGroups = Person_Group::printMultiChooser('include_groupids', array_get($params, 'include_groups', Array()), Array(), TRUE);
 
 			if ($gotGroups) {
 				?>
-				<label class="checkbox">
-					<input type="checkbox" name="enable_group_membership_status" data-toggle="enable" data-target="#group-membership-status *" value="1"	<?php if (!empty($params['group_membership_status'])) echo 'checked="checked"'; ?> />
-					with membership status of
-				</label>
-				<span id="group-membership-status"><?php Person_Group::printMembershipStatusChooser('group_membership_status', array_get($params, 'group_membership_status'), true); ?></span>
+				<div class="indent-left">
+					<label class="checkbox" style="margin-top: 1ex">
+						<input type="checkbox" name="enable_group_membership_status" value="1"
+							   data-toggle="visible" data-target="#group-membership-status"
+								<?php if (!empty($params['group_membership_status'])) echo 'checked="checked"'; ?>
+						/>
+						with membership status of...
+					</label>
+					<span id="group-membership-status"
+							<?php if (empty($params['group_membership_status'])) echo 'style="display:none"'; ?>
+					>
+						<?php Person_Group::printMembershipStatusChooser('group_membership_status', array_get($params, 'group_membership_status'), true); ?>
+					</span>
 
-				<label class="checkbox">
-					<input type="checkbox" name="enable_group_join_date" data-toggle="enable" data-target="#group-join-dates *" value="1"	<?php if (!empty($params['group_join_date_from'])) echo 'checked="checked"'; ?> />
-					and joined the group between
-				</label>
-				<span id="group-join-dates">
-				<?php print_widget('group_join_date_from', Array('type' => 'date'), array_get($params, 'group_join_date_from')); ?>
-				and <?php print_widget('group_join_date_to', Array('type' => 'date'), array_get($params, 'group_join_date_to')); ?>
-				</span>
+					<label class="checkbox" style="margin-top: 1ex">
+						<input type="checkbox" name="enable_group_join_date" value="1"
+							   data-toggle="visible" data-target="#group-join-dates"
+								<?php if (!empty($params['group_join_date_from'])) echo 'checked="checked"'; ?>
+						/>
+						and joined the group between...
+					</label>
+					<span id="group-join-dates"
+								<?php if (empty($params['group_join_date_from'])) echo 'style="display:none"'; ?>
+						  >
+					<?php print_widget('group_join_date_from', Array('type' => 'date'), array_get($params, 'group_join_date_from')); ?>
+					and <?php print_widget('group_join_date_to', Array('type' => 'date'), array_get($params, 'group_join_date_to')); ?>
+					</span>
+				</div>
 				<?php
 			}
 			?>
 		</div>
 
-
-		<h4>who are <strong>not</strong> in any of these groups:</h4>
+	<?php
+	if ($gotGroups) {
+		?>
+		<h4>
+			who are <strong>not</strong> in any of these groups:
+			<i class="clickable icon-question-sign" data-toggle="visible" data-target="#grouptooltip2"></i><div class="help-block custom-field-tooltip" id="grouptooltip2" style="display: none; font-weight: normal">(This rule ignores any archived groups)</div>
+		</h4>
 		<div class="indent-left">
 			<?php
 			Person_Group::printMultiChooser('exclude_groupids', array_get($params, 'exclude_groups', Array()), Array(), TRUE);
 			?>
+			<div class="indent-left">
+				<label class="checkbox" style="margin-top: 1ex">
+					<input type="checkbox" name="enable_exclude_group_membership_status" value="1"
+						   data-toggle="visible" data-target="#exclude-group-membership-status"
+							<?php if (!empty($params['exclude_group_membership_status'])) echo 'checked="checked"'; ?>
+					/>
+					with membership status of...
+				</label>
+				<span id="exclude-group-membership-status"
+						<?php if (empty($params['exclude_group_membership_status'])) echo 'style="display:none"'; ?>
+				>
+					<?php Person_Group::printMembershipStatusChooser('exclude_group_membership_status', array_get($params, 'exclude_group_membership_status'), true); ?>
+				</span>
+			</div>
 		</div>
+		<?php
+	}
 
-	<?php
 	if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
 		?>
 		<h4>who have a person note containing the phrase:</h4>
@@ -412,7 +456,7 @@ class Person_Query extends DB_Object
 			<?php
 			$groupid_params = Array(
 				'type' => 'select',
-				'options' => Array(null => '(Nothing)', '__cong__' => 'their congregation'),
+				'options' => Array(null => '(Nothing)', '__cong__' => 'any congregation'),
 				'attrs' => Array('data-toggle' => 'enable', 'data-target' => '.attendance-input'),
 			);
 			$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('!attendance_recording_days' => 0, 'is_archived' => 0), 'AND');
@@ -577,84 +621,87 @@ class Person_Query extends DB_Object
 
 		?>
 		</select>
+
+		<h3>I want to save this report...</h3>
+		<div class="indent-left">
+			<p>
+			<label type="radio">
+				<input type="radio" name="save_option" value="new" id="save_option_new"
+					 data-toggle="enable"
+				/>
+				as a new report
+			</label>
 		<?php
-		if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
-			$visibilityParams = Array(
-				'type' => 'select',
-				'options' => Array('visible to everyone', 'visible only to me')
-			);
+		if (($this->id != 0) && ($this->canSave())) {
 			?>
-			<h3>I want to save this report...</h3>
-			<div class="indent-left">
-				<p>
-				<label type="radio">
-					<input type="radio" name="save_option" value="new" id="save_option_new"
-						 data-toggle="enable"
-					/>
-					as a new report
-				</label>
+			<label type="radio">
+				<input type="radio" name="save_option" value="replace" id="save_option_replace" <?php if ($this->id && ($this->id != 'TEMP')) echo 'checked="checked"'; ?>
+					 data-toggle="enable"
+					 />
+				in place of its previous version
+			</label>
 			<?php
-			if ($this->id != 0) {
+		}
+		?>
+
+			<label type="radio">
+				<input type="radio" name="save_option"
+					   value="temp"
+					   id="save_option_temp"
+						  <?php if (empty($this->id) || $this->id == 'TEMP') echo ' checked="checked"'; ?>
+					   data-toggle="disable"
+					   data-target="#save-options input, #save-options select"
+				/>
+				only temporarily as an ad-hoc report
+			</label>
+			</p>
+
+			<table id="save-options">
+				<tr>
+					<td>Report title &nbsp;</td>
+					<td>
+						<?php $this->printFieldInterface('name'); ?>
+					</td>
+				</tr>
+				<tr>
+					<td>Visibility</td>
+					<td>
+						<?php
+						if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
+							$visibilityParams = Array(
+								'type' => 'select',
+								'options' => Array(0 => 'Visible to everyone', 1 => 'visible only to me'),
+							);
+							print_widget('is_private', $visibilityParams, $this->getValue('owner') !== NULL);
+						} else {
+							echo _('Only visible to me');
+						}
+						?>
+					</td>
+				</tr>
+				<tr>
+					<td></td>
+					<td>Show on home page?
+						<?php
+						$this->printFieldInterface('show_on_homepage');
+						?>
+					</td>
+				</tr>
+			<?php
+			if (strlen(ifdef('MAILCHIMP_API_KEY')) && $GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 				?>
-				<label type="radio">
-					<input type="radio" name="save_option" value="replace" id="save_option_replace" <?php if ($this->id && ($this->id != 'TEMP')) echo 'checked="checked"'; ?>
-						 data-toggle="enable"
-						 />
-					in place of its previous version
-				</label>
+				<tr>
+					<td>Mailchimp List ID</td>
+					<td><?php $this->printFieldInterface('mailchimp_list_id'); ?></td>
+				</tr>
 				<?php
 			}
 			?>
+			</table>
+		</div>
+		<?php
 
-				<label type="radio">
-					<input type="radio" name="save_option"
-						   value="temp"
-						   id="save_option_temp"
-							  <?php if (empty($this->id) || $this->id == 'TEMP') echo ' checked="checked"'; ?>
-						   data-toggle="disable"
-						   data-target="#save-options input, #save-options select"
-					/>
-					only temporarily as an ad-hoc report
-				</label>
-				</p>
 
-				<table id="save-options">
-					<tr>
-						<td>Report title &nbsp;</td>
-						<td>
-							<?php $this->printFieldInterface('name'); ?>
-						</td>
-					</tr>
-					<tr>
-						<td>Visibility</td>
-						<td>
-							<?php
-							print_widget('is_private', $visibilityParams, $this->getValue('owner') !== NULL);
-							?>
-						</td>
-					</tr>
-					<tr>
-						<td></td>
-						<td>Show on home page?
-							<?php
-							$this->printFieldInterface('show_on_homepage');
-							?>
-						</td>
-					</tr>
-				<?php
-				if (strlen(ifdef('MAILCHIMP_API_KEY')) && $GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
-					?>
-					<tr>
-						<td>Mailchimp List ID</td>
-						<td><?php $this->printFieldInterface('mailchimp_list_id'); ?></td>
-					</tr>
-					<?php
-				}
-				?>
-				</table>
-			</div>
-			<?php
-		}
 	}
 
 	function processForm($prefix='', $fields=NULL)
@@ -667,7 +714,13 @@ class Person_Query extends DB_Object
 					if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 						$this->processFieldInterface('mailchimp_list_id');
 					}
-					$this->setValue('owner', $_POST['is_private'] ? $GLOBALS['user_system']->getCurrentUser('id') : NULL);
+					$this->setValue('owner', $GLOBALS['user_system']->getCurrentUser('id'));
+					if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
+						// Only those with mange-reports permission can save shared reports.
+						if (empty($_POST['is_private'])) {
+							$this->setValue('owner', NULL);
+						}
+					}
 					$this->processFieldInterface('show_on_homepage');
 					break;
 				case 'replace':
@@ -675,7 +728,13 @@ class Person_Query extends DB_Object
 					if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 						$this->processFieldInterface('mailchimp_list_id');
 					}
-					$this->setValue('owner', $_POST['is_private'] ? $GLOBALS['user_system']->getCurrentUser('id') : NULL);
+					$this->setValue('owner', $GLOBALS['user_system']->getCurrentUser('id'));
+					if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
+						// Only those with mange-reports permission can save shared reports.
+						if (empty($_POST['is_private'])) {
+							$this->setValue('owner', NULL);
+						}
+					}
 					$this->processFieldInterface('show_on_homepage');
 					break;
 				case 'temp':
@@ -730,10 +789,21 @@ class Person_Query extends DB_Object
 
 		// GROUP RULES
 		$params['include_groups'] = array_remove_empties(array_get($_POST, 'include_groupids', Array()));
+		if (!empty($_REQUEST['enable_group_membership_status'])) {
+			$params['group_membership_status'] = array_get($_POST, 'group_membership_status');
+		} else {
+			$params['group_membership_status'] = Array();
+		}
 		$params['group_join_date_from'] = empty($_POST['enable_group_join_date']) ? NULL : process_widget('group_join_date_from', Array('type' => 'date'));
 		$params['group_join_date_to'] = empty($_POST['enable_group_join_date']) ? NULL : process_widget('group_join_date_to', Array('type' => 'date'));
+
 		$params['exclude_groups'] = array_remove_empties(array_get($_POST, 'exclude_groupids', Array()));
-		$params['group_membership_status'] = array_get($_POST, 'group_membership_status');
+		if (!empty($_REQUEST['enable_exclude_group_membership_status'])) {
+			$params['exclude_group_membership_status'] = array_get($_POST, 'exclude_group_membership_status');
+		} else {
+			$params['exclude_group_membership_status'] = Array();
+		}
+
 
 		// NOTE RULES
 		$params['note_phrase'] = array_get($_POST, 'note_phrase');
@@ -823,6 +893,19 @@ class Person_Query extends DB_Object
 		}
 	}
 
+	function _getAttendanceTableAndCond($params)
+	{
+		if ($params['attendance_groupid'] == '__cong__') {
+			$attendance_table = 'congregation_attendance';
+			$attendance_cond = '1=1';
+		} else {
+			$attendance_table = 'person_group_attendance';
+			$attendance_cond = 'ar.groupid = '.(int)$params['attendance_groupid'];
+		}
+		return Array($attendance_table, $attendance_cond);
+
+	}
+
 	function _getGroupAndCategoryRestrictionSQL($submitted_groupids, $from_date=NULL, $to_date=NULL, $membership_status=NULL)
 	{
 		global $db;
@@ -858,7 +941,7 @@ class Person_Query extends DB_Object
 			$groupid_comps[] = '(pg.categoryid IN ('.implode(',', $int_categoryids).') AND pg.is_archived = 0)';
 		}
 
-		$res = implode(' OR ', $groupid_comps);
+		$res = '('.implode(' OR ', $groupid_comps).')';
 
 
 		if (!empty($from_date)) {
@@ -874,7 +957,7 @@ class Person_Query extends DB_Object
 	}
 
 
-	function getSQL($select_fields=NULL)
+	function getSQL($custom_select_fields=NULL)
 	{
 		$db =& $GLOBALS['db'];
 
@@ -1039,7 +1122,10 @@ class Person_Query extends DB_Object
 
 		if (!empty($params['exclude_groups'])) {
 
-			$exclude_groupids_clause = $this->_getGroupAndCategoryRestrictionSQL($params['exclude_groups']);
+			$exclude_groupids_clause = $this->_getGroupAndCategoryRestrictionSQL(
+												$params['exclude_groups'],
+												NULL, NULL,
+												array_get($params, 'exclude_group_membership_status'));
 			$query['where'][] = 'p.id NOT IN (
 									SELECT personid
 									FROM person_group_membership pgm
@@ -1061,13 +1147,13 @@ class Person_Query extends DB_Object
 
 		// ATTENDANCE FILTERS
 		if (!empty($params['attendance_groupid'])) {
-			$groupid = $params['attendance_groupid'] == '__cong__' ? 0 : $params['attendance_groupid'];
+			list($attendance_table, $attendance_cond) = $this->_getAttendanceTableAndCond($params);
 			$min_date = date('Y-m-d', strtotime('-'.(int)$params['attendance_weeks'].' weeks'));
 			$operator = ($params['attendance_operator'] == '>') ? '>' : '<'; // nb whitelist because it will be used in the query directly
-			$query['where'][] = '(SELECT SUM(present)/COUNT(*)*100
-									FROM attendance_record
+			$query['where'][] = '(SELECT SUM(present)/COUNT(distinct ar.`date`)*100
+									FROM '.$attendance_table.' ar
 									WHERE date >= '.$GLOBALS['db']->quote($min_date).'
-									AND groupid = '.(int)$groupid.'
+									AND '.$attendance_cond.'
 									AND personid = p.id) '.$operator.' '.(int)$params['attendance_percent'];
 		}
 
@@ -1115,7 +1201,9 @@ class Person_Query extends DB_Object
 
 		// DISPLAY FIELDS
 		$joined_groups = FALSE;
-		if (empty($select_fields)) {
+		if ($custom_select_fields) {
+			$select_fields = $custom_select_fields;
+		} else {
 			/*
 			 * If the user chose to sort by Attendance or Absences but didn't
 			 * include them in the list of required columns, just add them to the
@@ -1136,7 +1224,7 @@ class Person_Query extends DB_Object
 
 					case 'groups':
 					case 'membershipstatus':
-						if (empty($params['include_groups'])) continue;
+						if (empty($params['include_groups'])) continue 2; // https://www.php.net/manual/en/migration73.incompatible.php
 
 						if ($params['group_by'] == 'groupid') {
 							/* pg and pgm already joined for grouping purposes */
@@ -1216,22 +1304,28 @@ class Person_Query extends DB_Object
 						$query['select'][] = '_family_adults'.$this->id.'.names as `Adult Family Members`';
 						break;
 					case 'attendance_percent':
-							$groupid = $params['attendance_groupid'] == '__cong__' ? 0 : $params['attendance_groupid'];
-							$min_date = date('Y-m-d', strtotime('-'.(int)$params['attendance_weeks'].' weeks'));
-							$query['select'][] = '(SELECT ROUND(SUM(present)/COUNT(*)*100)
-													FROM attendance_record
-													WHERE date >= '.$GLOBALS['db']->quote($min_date).'
-													AND groupid = '.(int)$groupid.'
-													AND personid = p.id) AS `Attendance`';
+						list($attendance_table, $attendance_cond) = $this->_getAttendanceTableAndCond($params);
+						$min_date = date('Y-m-d', strtotime('-'.(int)$params['attendance_weeks'].' weeks'));
+						$query['select'][] = '(SELECT ROUND(SUM(present)/COUNT(distinct ar.`date`)*100)
+												FROM '.$attendance_table.' ar
+												WHERE date >= '.$GLOBALS['db']->quote($min_date).'
+												AND '.$attendance_cond.'
+												AND personid = p.id) AS `Attendance`';
 						break;
 					case 'attendance_numabsences':
 						/* The number of "absents" recorded since the last "present".*/
-							$groupid = $params['attendance_groupid'] == '__cong__' ? 0 : $params['attendance_groupid'];
-							$query['select'][] = '(SELECT COUNT(*)
-													FROM attendance_record ar
-													WHERE groupid = '.(int)$groupid.'
-													AND personid = p.id
-													AND date > (SELECT COALESCE(MAX(date), "2000-01-01") FROM attendance_record ar2 WHERE ar2.personid = ar.personid AND present = 1)) AS `Running Absences`';
+						list($attendance_table, $attendance_cond) = $this->_getAttendanceTableAndCond($params);
+						$query['select'][] = '(SELECT COUNT(distinct ar.`date`)
+												FROM '.$attendance_table.' ar
+												WHERE '.$attendance_cond.'
+												AND personid = p.id
+												AND date > (
+														SELECT COALESCE(MAX(date), "2000-01-01")
+														FROM '.$attendance_table.' ar2
+														WHERE ar2.personid = ar.personid
+														AND '.$attendance_cond.'
+														AND present = 1)
+												) AS `Running Absences`';
 						break;
 					case 'actionnotes.subjects':
 						$query['select'][] = '(SELECT GROUP_CONCAT(subject SEPARATOR ", ")
@@ -1272,54 +1366,65 @@ class Person_Query extends DB_Object
 			}
 			$select_fields = $grouping_field.'p.id as ID, '.implode(', ', $query['select']);
 		}
+
 		// ORDER BY
-		$customOrder = NULL;
-		if (substr($params['sort_by'], 0, 7) == 'date---') {
-			// backwards compatibility
-			$customOrder = substr($params['sort_by'], 8);
-		} else if (0 === strpos($params['sort_by'], self::CUSTOMFIELD_PREFIX)) {
-			$customOrder = substr($params['sort_by'], 14);
-		}
-		if ($customOrder) {
-			$query['from'] .= ' LEFT JOIN custom_field_value cfvorder ON cfvorder.personid = p.id AND cfvorder.fieldid = '.$db->quote($customOrder)."\n";
-			$query['from'] .= " LEFT JOIN custom_field_option cfoorder ON cfoorder.id = cfvorder.value_optionid \n";
-			$order = Array();
-			$order[] = 'IF(cfvorder.personid IS NULL, 1, 0)'; // put those without a value last
-			if ($this->_custom_fields[$customOrder]['type'] == 'date') {
-				$order[] = 'IF(cfvorder.value_date LIKE "-%", 1, 0)'; // put full dates before partial dates
-			}
-			$order[] = 'GROUP_CONCAT('.Custom_Field::getSortValueSQLExpr('cfvorder', 'cfoorder').')';
-			$query['order_by'] = implode(', ', $order);
-		} else if ($params['sort_by'] == 'p.congregationid') {
-			// Order by congregation meeting time then congregation name
-			$query['from'] .= '
-				LEFT JOIN congregation cord ON p.congregationid = cord.id ';
-			$query['order_by'] = 'IF(cord.id IS NULL, 1, 0), IF(LENGTH(cord.meeting_time)>0, 0, 1), cord.meeting_time, cord.name';
+		$query['from'] .= '
+			JOIN age_bracket absort ON absort.id = p.age_bracketid ';
+		if ($custom_select_fields) {
+			// Make sure the ORDER BY isn't relying on some fancy column from the original query (Issue #592)
+			$query['order_by'] = '1';
 		} else {
-			$query['order_by'] = $this->_quoteAliasAndColumn($params['sort_by']);
-		}
+			$customOrder = NULL;
+			if (substr($params['sort_by'], 0, 7) == 'date---') {
+				// backwards compatibility
+				$customOrder = substr($params['sort_by'], 8);
+			} else if (0 === strpos($params['sort_by'], self::CUSTOMFIELD_PREFIX)) {
+				$customOrder = substr($params['sort_by'], 14);
+			}
+			if ($customOrder) {
+				$query['from'] .= ' LEFT JOIN custom_field_value cfvorder ON cfvorder.personid = p.id AND cfvorder.fieldid = '.$db->quote($customOrder)."\n";
+				$query['from'] .= " LEFT JOIN custom_field_option cfoorder ON cfoorder.id = cfvorder.value_optionid \n";
+				$order = Array();
+				$order[] = 'IF(cfvorder.personid IS NULL, 1, 0)'; // put those without a value last
+				if ($this->_custom_fields[$customOrder]['type'] == 'date') {
+					$order[] = 'IF(cfvorder.value_date LIKE "-%", 1, 0)'; // put full dates before partial dates
+				}
+				$order[] = 'GROUP_CONCAT('.Custom_Field::getSortValueSQLExpr('cfvorder', 'cfoorder').')';
+				$query['order_by'] = implode(', ', $order);
+			} else if ($params['sort_by'] == 'p.congregationid') {
+				// Order by congregation meeting time then congregation name
+				$query['from'] .= '
+					LEFT JOIN congregation cord ON p.congregationid = cord.id ';
+				$query['order_by'] = 'IF(cord.id IS NULL, 1, 0), IF(LENGTH(cord.meeting_time)>0, 0, 1), cord.meeting_time, cord.name';
+			} else if ($params['sort_by'] == 'p.age_bracketid') {
+				$query['order_by'] = 'absort.rank';
+			} else {
+				$query['order_by'] = $this->_quoteAliasAndColumn($params['sort_by']);
+			}
 
-		if ($grouping_order) {
-			$query['order_by'] = $grouping_order.$query['order_by'];
-		}
+			if ($grouping_order) {
+				$query['order_by'] = $grouping_order.$query['order_by'];
+			}
 
-		if ($params['sort_by'] == 'f.family_name') {
-			// Stop members of identically-named families from being intermingled
-			$query['order_by'] .= ', f.id';
-		}
+			if ($params['sort_by'] == 'f.family_name') {
+				// Stop members of identically-named families from being intermingled
+				// and make sure kids follow adults even if their last names are earlier
+				$query['order_by'] .= ', f.id,  absort.rank';
+			}
 
-		/*
-		 * We can order by attendances or absences safely,
-		 * because we have already ensured they will appear
-		 * the select clause.
-		 */
-		$rewrites = Array(
-					'`attendance_percent`' => '`Attendance` ASC',
-					'`attendance_numabsences`' => '`Running Absences` DESC',
-					'`membershipstatus`' => 'pgms.rank',
-		);
-		$query['order_by'] = str_replace(array_keys($rewrites), array_values($rewrites), $query['order_by']);
-		if (!strlen(trim($query['order_by'], '`'))) $query['order_by'] = 1;
+			/*
+			 * We can order by attendances or absences safely,
+			 * because we have already ensured they will appear
+			 * the select clause.
+			 */
+			$rewrites = Array(
+						'`attendance_percent`' => '`Attendance` ASC',
+						'`attendance_numabsences`' => '`Running Absences` DESC',
+						'`membershipstatus`' => 'pgms.rank',
+			);
+			$query['order_by'] = str_replace(array_keys($rewrites), array_values($rewrites), $query['order_by']);
+			if (!strlen(trim($query['order_by'], '`'))) $query['order_by'] = 1;
+		}
 
 		// Build SQL
 		$sql = 'SELECT '.$select_fields.'
@@ -1331,7 +1436,7 @@ class Person_Query extends DB_Object
 				';
 		}
 		$sql .= "\nGROUP BY ".implode(', ', $query['group_by']);
-		$sql .= "\nORDER BY ".$query['order_by'].', p.last_name, p.first_name';
+		$sql .= "\nORDER BY ".$query['order_by'].', p.last_name, p.familyid, absort.rank, IF (absort.is_adult, p.gender, 1) DESC, p.first_name';
 
 		return $sql;
 	}
@@ -1403,17 +1508,28 @@ class Person_Query extends DB_Object
 				$this->$var->setValue($fieldname, $i);
 				$heading = $this->$var->getFormattedValue($fieldname);
 			}
-			$this->_printResultSet($v, $format, $heading);
+			// We need to get the person ID as the array keys before calling _printResultSet
+			$set = Array();
+			foreach ($v as $vv) {
+				$set[$vv['ID']] = $vv;
+				unset($set[$vv['ID']]['ID']);
+			}
+			$this->_printResultSet($set, $format, $heading);
 		}
 	}
 
 
-	function _printResultSet($x, $format, $heading=NULL)
+	/*
+	 * @param $dataset	Results keyed by personID
+	 * @param $format	csv or html
+	 * @param $heading
+	 */
+	function _printResultSet($dataset, $format, $heading=NULL)
 	{
 		if ($format == 'csv') {
-			$this->_printResultSetCsv($x, $heading);
+			$this->_printResultSetCsv($dataset, $heading);
 		} else {
-			$this->_printResultSetHtml($x, $heading);
+			$this->_printResultSetHtml($dataset, $heading);
 		}
 	}
 
@@ -1424,7 +1540,14 @@ class Person_Query extends DB_Object
 		static $headerprinted = false;
 		if (!$headerprinted) {
 			$hr = Array();
-			foreach (array_keys(reset($x)) as $heading) {
+			$headers = array_keys(reset($x));
+			if (reset($headers) == 'ID') {
+				// https://superuser.com/questions/210027/why-does-excel-think-csv-files-are-sylk
+				fputs($fp, '"ID",');
+				array_shift($headers);
+			}
+
+			foreach ($headers as $heading) {
 				if (in_array($heading, Array('view_link', 'edit_link', 'checkbox'))) continue;
 				switch($heading) {
 					case 'person_groups':
@@ -1445,6 +1568,7 @@ class Person_Query extends DB_Object
 				}
 			}
 			if ($groupingname) $hr[] = 'GROUPING';
+
 			fputcsv($fp, $hr);
 			$headerprinted = TRUE;
 		}
@@ -1455,7 +1579,11 @@ class Person_Query extends DB_Object
 				if (isset($this->_field_details[$label])) {
 					$var = $label[0] == 'p' ? '_dummy_person' : '_dummy_family';
 					$fieldname = substr($label, 2);
-					$r[] = $this->$var->getFormattedValue($fieldname, $val);
+					if ($fieldname == 'id') {
+							$r[] = $val;
+					} else {
+							$r[] = $this->$var->getFormattedValue($fieldname, $val);
+					}
 				} else if (0 === strpos($label, self::CUSTOMFIELD_PREFIX)) {
 					$r[] = $this->_formatCustomFieldValue($val, substr($label, strlen(self::CUSTOMFIELD_PREFIX)));
 				} else {
@@ -1554,6 +1682,10 @@ class Person_Query extends DB_Object
 							case 'Attendance':
 								echo $val.'%';
 								break;
+							case 'p.id':
+							case 'f.id':
+								echo $val;
+								break;
 							default:
 								if (isset($this->_field_details[$label])) {
 									$this->_dummy_person->id = $personid;
@@ -1591,11 +1723,30 @@ class Person_Query extends DB_Object
 	}
 
 
+	private function canSave($throwErrors=FALSE)
+	{
+		if (!($this->getValue('owner'))
+			&& (!$GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS))
+		) {
+			if ($throwErrors) trigger_error('You do not have permission to save shared reports', E_USER_ERROR);
+			return FALSE;
+		} else if (($this->getValue('owner') != $GLOBALS['user_system']->getCurrentUser('id'))
+		) {
+			if ($throwErrors) trigger_error('Cannot save report that belongs to another user!', E_USER_ERROR);
+			return FALSE;
+		} else {
+			return TRUE;
+		}
+	}
+
+
 	function save()
 	{
 		if ($this->id == 'TEMP') {
 			$_SESSION['saved_query'] = serialize($this);
 			return TRUE;
+		} else if (!$this->canSave(TRUE)) {
+			exit;
 		} else {
 			return parent::save();
 		}
@@ -1610,7 +1761,12 @@ class Person_Query extends DB_Object
 			}
 			return TRUE;
 		} else {
-			return parent::load($id);
+			$res = parent::load($id);
+			if ($this->getValue('owner') && ($this->getValue('owner') != $GLOBALS['user_system']->getCurrentUser('id'))) {
+				trigger_error("Cannot load report that belongs to another user!", E_USER_ERROR);
+				exit;
+			}
+			return $res;
 		}
 	}
 

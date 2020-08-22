@@ -11,9 +11,9 @@ class Abstract_View_Notes_List extends View
 
 	function processView()
 	{
-		$this->_notes = $this->_getNotesToShow(array_get($_REQUEST, 'assignee'), array_get($_REQUEST, 'search'));
 		$this->_reassigning = $GLOBALS['user_system']->havePerm(PERM_BULKNOTE) && !empty($_REQUEST['reassigning']);
 		if ($this->_reassigning && !empty($_POST['reassignments_submitted'])) {
+			$this->_notes = $this->_getNotesToShow(array_get($_REQUEST, 'assignee'), array_get($_REQUEST, 'search'));
 			$dummy_note = new Abstract_Note();
 			foreach ($this->_notes as $id => $note) {
 				$dummy_note->reset();
@@ -39,20 +39,31 @@ class Abstract_View_Notes_List extends View
 
 	function printView()
 	{
+		if (!$GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
+			print_message('You only have access to view notes assigned to you', 'info');
+		}
 		?>
 		<form class="well well-small form-inline">
 		<input type="hidden" name="view" value="<?php echo $_REQUEST['view']; ?>" />
 		<?php
 		$string = "Show %s of notes assigned to %s with subject containing %s";
+
+		if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
+			$filterfunc = function($x) {return $x->getValue("active") && (($x->getValue("permissions") & PERM_VIEWMYNOTES) == PERM_VIEWMYNOTES);};
+			$allowempty = TRUE;
+		} else {
+			$filterfunc = function($x) {return $x->id == $GLOBALS['user_system']->getCurrentUser('id');};
+			$allowempty = FALSE;
+		}
 		ob_start();
 		print_widget(
 			'assignee',
 			Array(
 				'type' => 'reference',
 				'references' => 'staff_member',
-				'allow_empty' => true,
+				'allow_empty' => $allowempty,
 				'empty_text' => 'Anyone',
-				'filter'		=> function($x) {return $x->getValue("active") && (($x->getValue("permissions") & PERM_EDITNOTE) == PERM_EDITNOTE);},
+				'filter'		=> $filterfunc,
 			),
 			array_get($_REQUEST, 'assignee')
 		);
