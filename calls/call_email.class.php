@@ -99,29 +99,7 @@ class Call_email extends Call
 			</div>
 			<div class="modal-body">
 				<?php
-				if (count($emails) == 0) {
-					print_message("There are no persons to email", 'error');
-				} else if (count($emails) < EMAIL_CHUNK_SIZE) {
-					?>
-					<p>
-					<a href="<?php echo $this->getHref($emails, FALSE); ?>" class="btn btn-primary" <?php echo email_link_extras(); ?>>Email privately</a>
-					&nbsp;
-					<a href="<?php echo $this->getHref($emails, TRUE); ?>" class="btn btn-danger" <?php echo email_link_extras(); ?> title="WARNING: this will let all group members see each other's addresses, and should be used with care">Email publicly</a>
-					</p>
-					<?php
-				} else {
-					$sep = defined('MULTI_EMAIL_SEPARATOR') ? MULTI_EMAIL_SEPARATOR : ',';
-					$set = implode($sep, $emails);
-					?>
-					<p>Copy the addresses below and paste into your email client. (There are too many for a link.)<br />Remember it's wise to use BCC for large group emails.</p>
-					<div class="input-append textbox-copier">
-						<input readonly="readonly" style="cursor: pointer; width: 60ex" type="text" value="<?php echo ents($set); ?>" />
-						<input class="btn" type="button" value="Copy" />
-					</div>
-					<?php
-				}
-				$this->printBlanks($blanks);
-				$this->printArchivedWarning($archived);
+				$this->printModalContent($emails, $archived, $blanks);
 				?>
 			</div>
 			<div class="modal-footer">
@@ -132,6 +110,33 @@ class Call_email extends Call
 			$('#email-modal').modal('show').attr('id', '');
 		</script>
 		<?php
+	}
+
+	private function printModalContent($emails, $archived, $blanks)
+	{
+		if (count($emails) == 0) {
+			print_message("There are no persons to email", 'error');
+		} else if (count($emails) < EMAIL_CHUNK_SIZE) {
+			?>
+			<p>
+			<a href="<?php echo $this->getHref($emails, FALSE); ?>" class="btn btn-primary" <?php echo email_link_extras(); ?>>Email privately</a>
+			&nbsp;
+			<a href="<?php echo $this->getHref($emails, TRUE); ?>" class="btn btn-danger" <?php echo email_link_extras(); ?> title="WARNING: this will let all group members see each other's addresses, and should be used with care">Email publicly</a>
+			</p>
+			<?php
+		} else {
+			$sep = defined('MULTI_EMAIL_SEPARATOR') ? MULTI_EMAIL_SEPARATOR : ',';
+			$set = implode($sep, $emails);
+			?>
+			<p>Copy the addresses below and paste into your email client. (There are too many for a link.)<br />Remember it's wise to use BCC for large group emails.</p>
+			<div class="input-append textbox-copier">
+				<input readonly="readonly" style="cursor: pointer; width: 60ex" type="text" value="<?php echo ents($set); ?>" />
+				<input class="btn" type="button" value="Copy" />
+			</div>
+			<?php
+		}
+		$this->printBlanks($blanks);
+		$this->printArchivedWarning($archived);
 	}
 
 	private function printPopup($emails, $archived, $blanks)
