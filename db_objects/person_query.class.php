@@ -1742,7 +1742,9 @@ class Person_Query extends DB_Object
 			return TRUE;
 		} else {
 			$res = parent::load($id);
-			if ($this->getValue('owner') && ($this->getValue('owner') != $GLOBALS['user_system']->getCurrentUser('id'))) {
+			$user = $GLOBALS['user_system']->getCurrentUser('id');
+			$owner = $this->getValue('owner');
+			if (!empty($user) && !empty($owner) && ($owner != $user)) {
 				trigger_error("Cannot load report that belongs to another user!", E_USER_ERROR);
 				exit;
 			}
