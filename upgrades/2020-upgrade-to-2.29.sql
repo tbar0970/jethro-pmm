@@ -21,7 +21,9 @@ CREATE TABLE `congregation_headcount` (
 ) ENGINE=InnoDB;
 INSERT INTO congregation_headcount
 SELECT `date`, congregationid, MAX(number)
-FROM _disused_cong_headcount
+FROM _disused_cong_headcount dch
+join congregation c on c.id = dch.congregationid
+group by `date`, congregationid
 having max(number) > 0;
 
 DROP TABLE IF EXISTS _disused_group_headcount;
@@ -36,5 +38,7 @@ CREATE TABLE `person_group_headcount` (
 ) ENGINE=InnoDB;
 INSERT INTO person_group_headcount
 SELECT `date`, person_groupid, MAX(number)
-FROM _disused_group_headcount
+FROM _disused_group_headcount dgh
+join _person_group pg on pg.id = dgh.person_groupid
+group by `date`, person_groupid
 having max(number) > 0;
