@@ -456,7 +456,7 @@ class Person_Query extends DB_Object
 			<?php
 			$groupid_params = Array(
 				'type' => 'select',
-				'options' => Array(null => '(Nothing)', '__cong__' => 'any congregation'),
+				'options' => Array(null => '(Nothing)', '__cong__' => 'their congregation'),
 				'attrs' => Array('data-toggle' => 'enable', 'data-target' => '.attendance-input'),
 			);
 			$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('!attendance_recording_days' => 0, 'is_archived' => 0), 'AND');
@@ -893,19 +893,6 @@ class Person_Query extends DB_Object
 		}
 	}
 
-	function _getAttendanceTableAndCond($params)
-	{
-		if ($params['attendance_groupid'] == '__cong__') {
-			$attendance_table = 'congregation_attendance';
-			$attendance_cond = '1=1';
-		} else {
-			$attendance_table = 'person_group_attendance';
-			$attendance_cond = 'ar.groupid = '.(int)$params['attendance_groupid'];
-		}
-		return Array($attendance_table, $attendance_cond);
-
-	}
-
 	function _getGroupAndCategoryRestrictionSQL($submitted_groupids, $from_date=NULL, $to_date=NULL, $membership_status=NULL)
 	{
 		global $db;
@@ -1147,16 +1134,15 @@ class Person_Query extends DB_Object
 
 		// ATTENDANCE FILTERS
 		if (!empty($params['attendance_groupid'])) {
-			list($attendance_table, $attendance_cond) = $this->_getAttendanceTableAndCond($params);
+			$groupid = $params['attendance_groupid'] == '__cong__' ? 0 : $params['attendance_groupid'];
 			$min_date = date('Y-m-d', strtotime('-'.(int)$params['attendance_weeks'].' weeks'));
 			$operator = ($params['attendance_operator'] == '>') ? '>' : '<'; // nb whitelist because it will be used in the query directly
-			$query['where'][] = '(SELECT SUM(present)/COUNT(distinct ar.`date`)*100
-									FROM '.$attendance_table.' ar
+			$query['where'][] = '(SELECT SUM(present)/COUNT(*)*100
+									FROM attendance_record
 									WHERE date >= '.$GLOBALS['db']->quote($min_date).'
-									AND '.$attendance_cond.'
+									AND groupid = '.(int)$groupid.'
 									AND personid = p.id) '.$operator.' '.(int)$params['attendance_percent'];
 		}
-
 
 		// GROUPING
 		$grouping_order = '';
@@ -1304,28 +1290,22 @@ class Person_Query extends DB_Object
 						$query['select'][] = '_family_adults'.$this->id.'.names as `Adult Family Members`';
 						break;
 					case 'attendance_percent':
-						list($attendance_table, $attendance_cond) = $this->_getAttendanceTableAndCond($params);
+						$groupid = $params['attendance_groupid'] == '__cong__' ? 0 : $params['attendance_groupid'];
 						$min_date = date('Y-m-d', strtotime('-'.(int)$params['attendance_weeks'].' weeks'));
-						$query['select'][] = '(SELECT ROUND(SUM(present)/COUNT(distinct ar.`date`)*100)
-												FROM '.$attendance_table.' ar
+						$query['select'][] = '(SELECT ROUND(SUM(present)/COUNT(*)*100)
+												FROM attendance_record ar
 												WHERE date >= '.$GLOBALS['db']->quote($min_date).'
-												AND '.$attendance_cond.'
+												AND groupid = '.(int)$groupid.'
 												AND personid = p.id) AS `Attendance`';
 						break;
 					case 'attendance_numabsences':
 						/* The number of "absents" recorded since the last "present".*/
-						list($attendance_table, $attendance_cond) = $this->_getAttendanceTableAndCond($params);
-						$query['select'][] = '(SELECT COUNT(distinct ar.`date`)
-												FROM '.$attendance_table.' ar
-												WHERE '.$attendance_cond.'
+						$groupid = $params['attendance_groupid'] == '__cong__' ? 0 : $params['attendance_groupid'];
+						$query['select'][] = '(SELECT COUNT(*)
+												FROM attendance_record ar
+												WHERE  groupid = '.(int)$groupid.'
 												AND personid = p.id
-												AND date > (
-														SELECT COALESCE(MAX(date), "2000-01-01")
-														FROM '.$attendance_table.' ar2
-														WHERE ar2.personid = ar.personid
-														AND '.$attendance_cond.'
-														AND present = 1)
-												) AS `Running Absences`';
+												AND date > (SELECT COALESCE(MAX(date), "2000-01-01") FROM attendance_record ar2 WHERE ar2.personid = ar.personid AND present = 1)) AS `Running Absences`';
 						break;
 					case 'actionnotes.subjects':
 						$query['select'][] = '(SELECT GROUP_CONCAT(subject SEPARATOR ", ")
@@ -1730,7 +1710,7 @@ class Person_Query extends DB_Object
 		) {
 			if ($throwErrors) trigger_error('You do not have permission to save shared reports', E_USER_ERROR);
 			return FALSE;
-		} else if (($this->getValue('owner') != $GLOBALS['user_system']->getCurrentUser('id'))
+		} else if (($this->getValue('owner')) && ($this->getValue('owner') != $GLOBALS['user_system']->getCurrentUser('id'))
 		) {
 			if ($throwErrors) trigger_error('Cannot save report that belongs to another user!', E_USER_ERROR);
 			return FALSE;
