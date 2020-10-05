@@ -135,8 +135,9 @@ class Call_email extends Call
 			</div>
 			<?php
 		}
-		$this->printBlanks($blanks);
+		if (count($archived) || count($blanks)) echo '<hr />';
 		$this->printArchivedWarning($archived);
+		$this->printBlanks($blanks);
 	}
 
 	private function printPopup($emails, $archived, $blanks)
@@ -188,21 +189,7 @@ class Call_email extends Call
 
 	private function printBlanks($blanks) {
 		if (!empty($blanks)) {
-			?>
-			<br />
-			<h4>Note: The following recipients have no email address:</h4>
-			<script>
-				var targetWin = window.opener.parent;
-				$(document).ready(function() {
-					$('table.person-list td a').click(function() {
-						if (targetWin) {
-							targetWin.document.location.href = this.href;
-							return false;
-						}
-					});
-				});
-			</script>
-			<?php
+			print_message("Note: The following ".count($blanks)." persons have no email address, and will not be emailed:", "warning");
 			$persons = $blanks;
 			$special_fields = Array();
 			include 'templates/person_list.template.php';
@@ -211,7 +198,7 @@ class Call_email extends Call
 
 	private function printArchivedWarning(&$archived) {
 			if (!empty($archived)) {
-				print_message("Note: ".count($archived).' of the intended recipients are archived and will not be emailed', 'error');
+				print_message("Note: ".count($archived).' of the intended recipients are archived and will not be emailed.', 'warning');
 			}
 	}
 }
