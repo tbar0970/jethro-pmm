@@ -83,8 +83,8 @@ require_once JETHRO_ROOT.'/db_objects/roster_view.class.php';
 //get the roster information using the roster view id
 //
 $view = $GLOBALS['system']->getDBObject('roster_view', $roster_id);
-				$start_date = date("Ymd");
-				$end_date = date('Ymd', strtotime("+6 day"));
+$start_date = date("Y-m-d");
+$end_date = date('Y-m-d', strtotime("+6 day"));
 
 
 //
@@ -109,11 +109,16 @@ $roster_array = array();
 foreach ($roster_lines as $line) {
 	$roster_array[] = str_getcsv($line);
 }
-
 $roster_date = '';
 if (count($roster_array) > 2) {
+	$rds = Array();
 	$roster_date_index = array_search('Date', $roster_array[1]);
-	$roster_date = " (" . $roster_array[2][$roster_date_index] . ")";
+	if ($roster_date_index !== FALSE) {
+		for ($i=2; $i < count($roster_array); $i++) {
+			$rds[] = $roster_array[$i][$roster_date_index];
+		}
+	}
+	if ($rds) $roster_date = ' ('.implode(', ', $rds).')';
 }
 
 $assignees=$view->getAssignees($start_date, $end_date);
@@ -132,15 +137,19 @@ if ($sendsms) { // make the sms message!
 			//now turn the array into a list of roster assignments
 			$smsroster=$roster_array[0][1]."\n";
 			$fields=count($roster_array[1]);
-			$x=0;
-			while ($x < $fields) {
-				$smsroster.= "\n" . $roster_array[1][$x].": ";
-				if ($roster_array[2][$x]=="") {
-					$smsroster.= "-";
-				} else {
-					$smsroster.= preg_replace("/\\n/m", ", ",$roster_array[2][$x]);
+			for ($i=2; $i < count($roster_array); $i++) {
+				$x=0;
+				while ($x < $fields) {
+					$smsroster.= "\n" . $roster_array[1][$x].": ";
+					if ($roster_array[$i][$x]=="") {
+						$smsroster.= "-";
+					} else {
+						$smsroster.= preg_replace("/\\n/m", ", ",$roster_array[$i][$x]);
+					}
+				  $x++;
 				}
-			  $x++;
+				if ($i+1 < count($roster_array)) $smsroster .= "\n---\n";
+
 			}
 			$smsroster .= "\n";
 			if ((int)$debug==1){
@@ -154,6 +163,12 @@ if ($sendsms) { // make the sms message!
 		$sms_message = str_replace('<br>', "\n", $sms_message);
 		$sms_message = str_replace('<BR>', "\n", $sms_message);
 		$sms_message = strip_tags($sms_message);
+
+		if ($debug) {
+			bam($sms_message);
+			bam("Debug mode - no messages sent");
+			exit;
+		}
 		if (strlen($sms_message) > SMS_MAX_LENGTH) {
 			$assignees = $coordinator;
 			$sms_message = 'Roster email is too long for SMS. Increase SMS size limit.';
@@ -208,9 +223,6 @@ if ($sendemail) {
 	$no_emails=array();
 	$eol = PHP_EOL;
 	$uid = md5(uniqid(time()));
-	$email_notification = "Sent roster reminder for $roster_name $roster_date";
-	$email_notification_subject="Roster notifications for $roster_name";
-	$no_email_address_message = "";
 
 	if (count($assignees) > 0) {
 		// build the roster list to be included in the stream_context_set_params
@@ -218,16 +230,19 @@ if ($sendemail) {
 			//now turn the array into a list of roster assignments
 			$roster=$roster_array[0][1].'<br>';
 			$fields=count($roster_array[1]);
-			$x=0;
-			while ($x < $fields) {
-				$roster.= '<b>'.$roster_array[1][$x].'</b><br>';
-				if ($roster_array[2][$x]=="") {
-					$roster.= '<i>-</i><br><br>';
-				} else {
-					$roster.= preg_replace("/\\n/m", "<br />",$roster_array[2][$x]).'<br><br>';
+			for ($i=2; $i<count($roster_array); $i++) {
+				$x=0;
+				while ($x < $fields) {
+					$roster.= '<b>'.$roster_array[1][$x].'</b><br>';
+					if ($roster_array[$i][$x]=="") {
+						$roster.= '<i>-</i><br><br>';
+					} else {
+						$roster.= preg_replace("/\\n/m", "<br />",$roster_array[$i][$x]).'<br><br>';
+					}
+					$x++;
 				}
-		  	$x++;
-	 		}
+				if ($i+1 < count($roster_array)) $roster .= '<br />-----<br />';
+			}
 		} else {
 			// otherwise include as a table
 			ob_start();
@@ -256,17 +271,12 @@ if ($sendemail) {
 	 	}
 		//strip any duplicates
 		$emails = array_unique($emails);
-		$emails_string = (implode(',',$emails));
-		// if DEBUG then only send an email to the specified roster coordinator
 		if ((int)$debug==1){
-		 $emails_string=$roster_coordinator;
+			// in debug mode send to co-ordinator only
+			$emails = explode(',',$roster_coordinator);
 		}
 		$no_emails = array_unique($no_emails);
-		$no_emails_string = (implode('<br>', $no_emails));
-		//
 		//send the emails
-		//
-		$no_email_address_message="Jethro has just sent a roster reminder email regarding this roster - <b>".$roster_name."</b><br><br> However, the following people do not have an email address recorded. As such, they have not been sent the reminder:<br><span style='padding-left: 1.5em;'>$no_emails_string</span>";
 
 		//if DEBUG then echo the email content
 		if ((int)$debug==1){
@@ -284,7 +294,7 @@ if ($sendemail) {
 			  ->setBody("Roster reminder email")
 			  ->addPart($longstring, 'text/html')
 			  ->setTo(explode(',',$roster_coordinator))
-			  ->setBcc(explode(',',$emails_string));
+			  ->setBcc($emails);
 			$res = Emailer::send($message);
 		  if (!$res) {
 				echo "Failed to send roster reminder (".$roster_name.")\n";
@@ -311,23 +321,36 @@ if ($sendemail) {
 		   	echo "Mail send roster reminder - ".$roster_name." send ERROR!";
 		   }
 		}
-	} else {
-        $email_notification = "No email notification was sent for " . $roster_name . ". There were no people assigned.\n";
     }
-	if (!empty($no_emails)) {
-		$email_notification = $no_email_address_message;
+
+
+	// SEND SUMMARY MESSAGE TO CO-ORDINATOR
+	$summary = '';
+	if (empty($assignees)) {
+		$summary = 'No roster reminders were sent for '.$roster_name.' because nobody was assigned to the roster';
+	} else if (empty($emails)) {
+		$summary = 'No roster reminders were sent for '.$roster_name.', because none of the assignees have email addresses';
+	} else if (empty($no_emails)) {
+		$summary = 'Roster reminders for '.$roster_name.' were sent to all '.count($emails).' assignees: <br /><br /> ';
+		$summary .= implode(', ', $emails);
+	} else {
+		// Mixed results
+		$summary = 'Roster reminders for '.$roster_name.' were sent to '.count($emails).' assignees, but '.count($no_emails).' assignees had no email address.<br /><br />';
+		$summary .= 'Assignees with no email:';
+		$summary .= '<ul><li>'.implode('</li><li>', $no_emails).'</li></ul>';
+		$summary .= '<br /><br />Reminders were successfully sent to '.implode(', ', $emails);
 	}
-	// send an email to the roster coordinator if anyone does not have an email address
+	$summary_notification_subject = "Roster notification summary for $roster_name $roster_date";
 	if ((int)$phpMail==0) {
 		$message2 = Emailer::newMessage()
-			->setSubject($email_notification_subject . "$roster_date")
+			->setSubject($summary_notification_subject)
 			->setFrom(array($email_from => $email_from_name))
-			->setBody("Roster notification for $roster_name")
-			->addPart($email_notification, 'text/html')
+			->setBody($summary_notification_subject)
+			->addPart($summary, 'text/html')
 			->setTo(explode(',',$roster_coordinator));
 		$res = Emailer::send($message2);
 		if (!$res) {
-			echo "Failed to send roster ($roster_name) reminder notification to coordinator\n";
+			echo "Failed to send roster ($roster_name) reminder summary to coordinator\n";
 			exit(1);
 		} else {
 			if (!empty($verbose)) {
@@ -342,9 +365,9 @@ if ($sendemail) {
 		$message = "--".$uid.$eol;
 		$message .= "Content-type:text/html; charset=iso-8859-1".$eol;
 		$message .= "Content-Transfer-Encoding: 8bit".$eol.$eol;
-		$message .= $email_notification.$eol;
+		$message .= $summary.$eol;
 		$message .= "--".$uid."--";
-		if (mail($email_to,$email_notification_subject . "$roster_date","$message",$header)) {
+		if (mail($email_to,$summary_notification_subject . "$roster_date","$message",$header)) {
 			if (!empty($verbose)) {
 				echo "Sent roster ($roster_name) reminder notification to coordinator.\n";
 			}

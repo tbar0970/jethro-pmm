@@ -79,7 +79,7 @@ class Call_document_merge_help extends Call
 				<p>When creating a template, you include special markers (<em>TBS tags</em>) which will be replaced with the relevant person/family details.<p>
 				<p>A <em>TBS block</em> is defined by one or more <em>TBS fields</em>.  When the merge is performed, the TBS block will be repeated for each person/family.</p>
 
-				The available fields are:
+				The available fields for merging <b>per person</b> are:
 				<ul>
 					<li><code>[person.id]</code> - the unique internal identifier number</li>
 					<li><code>[person.first_name]</code></li>
@@ -109,7 +109,9 @@ class Call_document_merge_help extends Call
 							<?php
 						}
 						?>
-
+				</ul>
+				<br />The available fields for merging <b>per family</b> are:
+				<ul>
 					<li><code>[family.id]</code> - the unique internal identifier number</li>
 					<li><code>[family.family_name]</code></li>
 					<li><code>[family.street_address]</code></li>

@@ -8,7 +8,7 @@ $PERM_LEVELS = Array(
 2 =>		Array('SENDSMS',			'SMS/Mailchimp - send',							''),
 
 4 =>		Array('RUNREPORT',			'Reports - run reports & view stats',	''),
-12 =>		Array('MANAGEREPORTS',		'Reports - save reports',				''),
+12 =>		Array('MANAGEREPORTS',		'Reports - save shared reports',''),
 
 16 =>		Array('VIEWMYNOTES',		'Notes - view&edit notes assigned to me','NOTES'),
 48 =>		Array('VIEWNOTE',			'Notes - view all',						'NOTES'),
