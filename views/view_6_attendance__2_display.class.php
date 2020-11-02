@@ -632,6 +632,7 @@ class View_Attendance__Display extends View
 						//							echo '<input type="hidden" name="extra[]" value="'.$count.'"></td>';
 ?>
 						</td>
+<?php
 					}
 				}
 				?>
