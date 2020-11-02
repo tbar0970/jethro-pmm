@@ -162,7 +162,7 @@ class View_Persons__Reports extends View
 								<?php
 							} else {
 								?>
-								<a href="?call=email&queryid=<?php echo $id; ?>" class="hidden-frame"><i class="icon-email">@</i><?php echo _('Email');?></a>
+								<a target="_append" href="?call=email&print_modal=1&queryid=<?php echo $id; ?>"><i class="icon-email">@</i><?php echo _('Email');?></a>
 								<?php
 							}
 							?>

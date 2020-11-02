@@ -1031,8 +1031,7 @@ class roster_view extends db_object
 		}
 
 		$GLOBALS['system']->doTransaction('COMMIT');
-		add_message("Role allocations saved");
-		redirect('rosters__display_roster_assignments', Array('editing' => NULL));
+		return TRUE;
 	}
 
 	/**

@@ -179,7 +179,7 @@ function run_mc_sync($mc, $report_id, $list_id)
                 if (empty($mc_members[$loweremail])) {
                         // Add them to the list
                         $postdata = Array(
-                                'status' => 'subscribed',
+                                'status_if_new' => 'subscribed',
                                 'email_address' => $persondata['EMAIL'],
                                 'merge_fields' => $persondata,
                         );

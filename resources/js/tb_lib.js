@@ -5,25 +5,12 @@ var TBLib = {};
  * Event handlers
  ************************************/
 
-
 $(document).ready(function() {
 
 	if ($('.stop-js').length) return; /* Classname flag for big pages that don't want JS to run */
 
-	// open mailto links in a new window (eg for gmail), but close the new window if it's unused (eg outlook desktop)
-	$('body').on('click', 'a[href^="mailto:"], a[href*="mail.google.com"]', function() {
-		var windowRef = window.open(this.href, '_email');
-
-		windowRef.focus();
-
-		setTimeout(function(){
-		  if(!windowRef.document.hasFocus()) {
-			  windowRef.close();
-		  }
-		}, 500);
-		return false;
-	})
-
+	$('body').on('click', 'a[href^="mailto:"], a[href*="mail.google.com"]', TBLib.handleMailtoClick);
+	
 	var i = document.createElement('input');
 	if (!('autofocus' in i) || $('[autofocus]').length == 0) {
 		// native autofocus is not supported, or no element is using it
@@ -392,6 +379,22 @@ $(document).ready(function() {
 	});
 
 	TBLib.anchorBottom('.anchor-bottom');
+
+	$(document).on('click', '.textbox-copier', function() {
+		var box = $(this).find('input[type=text]');
+		box.select();
+		document.execCommand("copy");
+		$('#copy-success').remove();
+		$(this).after('&nbsp;<span id="copy-success" class="label label-success">✔ Copied</span>');
+
+	});
+
+	$('a[target="_append"').click(function() {
+		 $.get(this.href, function(data) {
+            $('#body').append(data);
+        });
+		return false;
+	});
 });
 
 
@@ -524,7 +527,7 @@ TBLib.handleMedNewWinLinkClick = function()
 TBLib.setupExpandableTable = function(table)
 {
 	TBLib.expandTable(table);
-	$(table).find('input.compulsory').removeClass('compulsory');
+	$(table).find('.compulsory').removeClass('compulsory');
 }
 
 TBLib.expandTable = function(table)
@@ -636,7 +639,7 @@ TBLib.handleFormSubmit = function()
 	}
 	$('.control-group.error').removeClass('error');
 	// Process compulsory inputs
-	var compulsoryInputs = ($(this).find('input.compulsory'));
+	var compulsoryInputs = ($(this).find('input.compulsory, select.compulsory'));
 	for (var i=0; i < compulsoryInputs.size(); i++) {
 		if ((compulsoryInputs.get(i).value == '') && (!compulsoryInputs.get(i).disabled)) {
 			TBLib.markErroredInput(compulsoryInputs.get(i));
@@ -956,4 +959,18 @@ TBLib.downloadText = function(content, filename) {
 	pom.style.display = 'none';
 	document.body.appendChild(pom);
 	pom.click();
+}
+
+// open mailto links in a new window (eg for gmail), but close the new window if it's unused (eg outlook desktop)
+TBLib.handleMailtoClick = function() {
+	var windowRef = window.open(this.href, '_email');
+	windowRef.focus();
+	setTimeout(function(){
+		try {
+			if(!windowRef.document.hasFocus()) {
+				windowRef.close();
+			}
+		} catch (e) {} // if it's naviated to gmail.com we don't have permission to close it, and that's ok
+	}, 500);
+	return false;
 }
