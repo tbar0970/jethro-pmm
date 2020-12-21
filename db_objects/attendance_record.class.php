@@ -13,6 +13,7 @@ class Attendance_Record extends db_object
 			  `personid` int(11) NOT NULL,
 			  `groupid` int(11) NOT NULL,
 			  `present` tinyint(1) unsigned NOT NULL,
+			  `checkinid` int(11) default null,
 			  PRIMARY KEY  (`date`,`personid`,`groupid`)
 			) ENGINE=InnoDB ;
 		";
@@ -20,7 +21,9 @@ class Attendance_Record extends db_object
 
 	public function getForeignKeys()
 	{
-		return Array('personid' => '`_person` (`id`) ON DELETE CASCADE');
+		return Array(
+			'personid' => '`_person` (`id`) ON DELETE CASCADE',
+			'checkid'  => '`checkin` (`id`) ON DELETE SET NULL',
+		);
 	}
 }
-?>
