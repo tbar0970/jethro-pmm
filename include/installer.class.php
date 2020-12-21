@@ -108,6 +108,7 @@ class Installer
 				if (!empty($sql)) {
 					if (!is_array($sql)) $sql = Array($sql);
 					foreach ($sql as $s) {
+						if (ifdef('VERBOSE_INSTALL', FALSE)) bam($s);
 						$r = $GLOBALS['db']->query($s);
 					}
 				}
@@ -126,7 +127,7 @@ class Installer
 			  `userid` int(11) NOT NULL default '0',
 			  `lock_type` VARCHAR( 16 ) NOT NULL,
 			  `object_type` varchar(255) NOT NULL default '',
-			  `expires` datetime NOT NULL default '0000-00-00 00:00:00',
+			  `expires` datetime NOT NULL,
 			  KEY `objectid` (`objectid`),
 			  KEY `userid` (`userid`),
 			  KEY `object_type` (`object_type`)
