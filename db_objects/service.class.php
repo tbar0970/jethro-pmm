@@ -26,7 +26,6 @@ class service extends db_object
 			'date'				=> Array(
 									'type'		=> 'date',
 									'allow_empty'	=> FALSE,
-									'default' => '0000-00-00',
 								   ),
 			'congregationid'	=> Array(
 									'type'				=> 'reference',
@@ -751,7 +750,7 @@ class service extends db_object
 			}
 	return $serviceContent;
 	}
-	
+
 	public function printRunSheetPersonnelFlexi()
 	{
 		$rosterViews = Roster_View::getForRunSheet($this->getValue('congregationid'));
