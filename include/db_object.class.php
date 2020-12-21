@@ -72,7 +72,7 @@ class db_object
 				";
 		foreach (call_user_func(Array(get_class($this), '_getFields')) as $name => $details) {
 			$type = 'varchar(255)';
-			$default = array_get($details, 'default', '');
+			$default = array_get($details, 'default', FALSE);
 			$null_exp = array_get($details, 'allow_empty', 0) ? 'NULL' : 'NOT NULL';
 			switch ($details['type']) {
 				case 'date':
@@ -127,7 +127,7 @@ class db_object
 				case 'NULL':
 					break;
 				default:
-					$default = $GLOBALS['db']->quote($default);
+					if ($default !== FALSE) $default = $GLOBALS['db']->quote($default);
 					break;
 			}
 
@@ -687,7 +687,8 @@ class db_object
 		} else if ($this->fields[$name]['type'] == 'phone') {
 			echo '<a href="tel:'.$value.'">'.ents($this->getFormattedValue($name, $value)).'</a>';
 		} else if (($this->fields[$name]['type'] == 'email')) {
-			$personName = ($this->values[$name] == $value) ? $this->values['first_name'].' '.$this->values['last_name'] : '';
+			$personName = NULL;
+			if (isset($this->_fields['first_name'])) $personName = ($this->values[$name] == $value) ? $this->values['first_name'].' '.$this->values['last_name'] : '';
 			echo '<a href="'.get_email_href($value, $personName).'" '.email_link_extras().'>'.ents($value).'</a>';
 		} else if (($this->fields[$name]['type'] == 'html')) {
 			echo $this->getFormattedValue($name, $value);
