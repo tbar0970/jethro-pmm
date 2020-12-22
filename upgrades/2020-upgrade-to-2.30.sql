@@ -21,3 +21,9 @@ ALTER TABLE attendance_record
 ADD COLUMN checkinid INT(11) DEFAULT NULL;
 
 ALTER TABLE attendance_record ADD CONSTRAINT FOREIGN KEY (`checkinid`) REFERENCES `checkin`(`id`) ON DELETE SET NULL;
+
+INSERT INTO setting
+(rank, symbol, note, type, value)
+SELECT rank+1, 'QR_CODE_GENERATOR_URL', 'URL template for generating QR codes, containing the placeholder __URL__', 'text', 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=__URL__'
+FROM setting
+WHERE symbol = 'MAP_LOOKUP_URL';

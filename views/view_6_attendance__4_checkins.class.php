@@ -39,8 +39,7 @@ class View_Attendance__Checkins extends View
 			$venue->populate($venueID, $vData);
 			$class = $venue->getValue('is_archived') ? 'class="archived"' : '';
 			$publicURL = BASE_URL.'public/?view=check_in&venueid='.$venueID;
-			// TODO: make this a setting
-			$QRURL = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='.urlencode($publicURL);
+			$QRURL = str_replace('__URL__', urlencode($publicURL), QR_CODE_GENERATOR_URL);
 			?>
 			<tr <?php echo $class; ?>>
 				<td>
@@ -49,16 +48,27 @@ class View_Attendance__Checkins extends View
 					if ($venue->getValue('is_archived')) echo ' [Archived]';
 					?>
 				</td>
-				<td class="narrow"><a href="?view=_edit_venue&venueid=<?php echo $venueID; ?>">Edit details</a></td>
 				<td class="narrow"><a href="<?php echo $publicURL; ?>" target="checkin">Go to check-in page</a></td>
 				<td class="narrow"><a href="<?php echo $QRURL; ?>" class="med-popup">Get QR code</a></td>
 				<td class="narrow"><a href="?view=_export_checkins&venueid=<?php echo $venueID; ?>">Export check-ins</a></td>
+			<?php
+			if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
+				?>
+				<td class="narrow"><a href="?view=_edit_venue&venueid=<?php echo $venueID; ?>">Edit details</a></td>
+				<?php
+			}
+			?>
 			</tr>
 			<?php
 		}
 		?>
 		</table>
-		<p><a href="?view=_add_venue"><i class="icon-plus-sign"></i>Add venue</a></p>
+
 		<?php
+		if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
+			?>
+			<p><a href="?view=_add_venue"><i class="icon-plus-sign"></i>Add venue</a></p>
+			<?php
+		}
 	}
 }
