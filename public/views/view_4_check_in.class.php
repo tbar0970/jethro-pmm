@@ -53,7 +53,7 @@ class View_Check_In extends View
 		}
 		if (!empty($this->checkinObj)) {
 			if ($this->checkinObj->id) {
-				print_message('<i class="icon-ok"></i> Thanks for checking in!', 'success', true);
+				print_message('<table border="0"><tr><td><i class="icon-ok"></i>&nbsp;</td><td>'.$this->venue->getValue('thanks_message').'</table>', 'success', true);
 				?>
 				<p class="center"><a href="<?php echo build_url(Array()); ?>">Return to check-in page</a></p>
 				<?php

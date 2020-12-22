@@ -21,6 +21,11 @@ class Venue extends db_object
 									'label'	=> 'Set attendance?',
 									'note' => 'Whether to attempt to set congregational attendance based on checkins to this venue. Persons will be matched on email and/or mobile, work or home phone (not name).',
 								   ),
+			'thanks_message'		=> Array(
+									'type'	=> 'html',
+									'default' => 'Thank you for checking in!',
+									'note'	=> 'Message to show after a successful check in',
+									),
 			'is_archived'	=> Array(
 									'type' => 'select',
 									'options'	=> Array('Active', 'Archived'),
