@@ -23,7 +23,7 @@ class Attendance_Record extends db_object
 	{
 		return Array(
 			'personid' => '`_person` (`id`) ON DELETE CASCADE',
-			'checkid'  => '`checkin` (`id`) ON DELETE SET NULL',
+			'checkinid'  => '`checkin` (`id`) ON DELETE SET NULL',
 		);
 	}
 }
