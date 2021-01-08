@@ -61,11 +61,11 @@ class View_Rosters__Display_Roster_Assignments extends View
 			}
 			$viewid = ($this->_view) ? $this->_view->id : null;
 			?>
-			<form method="get" class="well well-small no-print">
+			<form method="get" class="form-horizontal well well-small no-print">
 			<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
 			<table>
 				<tr>
-					<th>Roster view</th>
+					<th class="valign-middle">Roster view</th>
 					<td>
 						<?php
 						print_widget('viewid', Array('type' => 'reference', 'references' => 'roster_view', 'order_by' => 'name'), $viewid);
@@ -74,12 +74,12 @@ class View_Rosters__Display_Roster_Assignments extends View
 					<td></td>
 				</tr>
 				<tr>
-					<th class="right">between</th>
+					<th class="valign-middle right">between</th>
 					<td><?php print_widget('start_date', Array('type' => 'date'), $this->_start_date); ?></td>
 					<td></td>
 				</tr>
 				<tr>
-					<th class="right">and</th>
+					<th class="valign-middle right">and</th>
 					<td>
 						<?php print_widget('end_date', Array('type' => 'date'), $this->_end_date); ?> &nbsp;
 						<button type="submit" name="viewing" value="1" class="btn">View Assignments</button>
