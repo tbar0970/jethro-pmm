@@ -71,6 +71,10 @@ if ($GLOBALS['user_system']->havePerm(PERM_VIEWMYNOTES)) {
 	$notes = $person->getNotesHistory();
 	$tabs['notes'] = _('Notes').' ('.count($notes).')';
 }
+if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
+	$comms = $person->getCommsHistory();
+	$tabs['comms'] = _('Communication').' ('.count($comms).')';
+}
 if ($can_add_group || (count($groups) > 1)) {
 	$tabs['groups'] = _('Groups').' ('.count($groups).')';
 }
@@ -251,6 +255,25 @@ if (isset($tabs['notes'])) {
 	echo $panel_footer;
 }
 
+
+/************** COMMS TAB *****************/
+if (isset($tabs['comms'])) {
+	printf($panel_header, 'comms', _('Communications').' ('.count($comms).')', "");
+
+	if (empty($comms)) {
+		?>
+		<p><i><?php echo _('No communication history recorded for ')?><?php $person->printFieldValue('name'); ?></i></p>
+		<?php
+	} else {
+		?>
+			<p><i><?php echo _('Communication notes for ')?><?php $person->printFieldValue('name'); ?>:</i></p>
+		<?php
+	}
+	$show_edit_link = false;
+	include 'list_comms.template.php';
+
+	echo $panel_footer;
+}
 
 /************** GROUPS TAB *****************/
 if (isset($tabs['groups'])) {
@@ -490,6 +513,3 @@ if (isset($tabs['rosters'])) {
 ?>
 </div>
 <?php
-
-
-

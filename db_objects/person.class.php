@@ -379,6 +379,16 @@ class Person extends DB_Object
 		return $all_notes;
 	}
 
+        function getCommsHistory()
+        {
+                $person_comms = $GLOBALS['system']->getDBObjectData('person_comm', Array('personid' => $this->id));
+                if (ifdef('NOTES_ORDER', 'ASC') != 'ASC') {
+                        $person_comms = array_reverse($person_comms, TRUE);
+                }
+                return $person_comms;
+        }
+
+
 	function validateFields()
 	{
 		if (!parent::validateFields()) return FALSE;
@@ -1084,4 +1094,3 @@ class Person extends DB_Object
 	}
 
 }
-
