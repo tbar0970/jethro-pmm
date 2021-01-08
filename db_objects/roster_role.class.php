@@ -51,10 +51,12 @@ class Roster_Role extends db_object
 									'type'			=> 'select',
 									'options'		=> Array(1 => 'Yes', 0 => 'No'),
 									'default'		=> 0,
+									'note'			=> 'Whether multiple people can be assigned to this role on a given date'
 							   ),
 			'details'		=> Array(
 									'type'		=> 'html',
-									'note' => 'These details will be shown when a public user clicks the role name in the public roster'
+									'label'		=> 'Role description',
+									'note'		=> 'These details are shown when somebody clicks the role title in a published roster'
 								   ),
 			'active'		=> Array(
 									'type'			=> 'select',
