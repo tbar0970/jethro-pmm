@@ -173,7 +173,7 @@ function print_widget($name, $params, $value)
 			$lengths = get_valid_phone_number_lengths($params['formats']);
 			$width = max(get_phone_format_lengths($params['formats']));
 			?>
-			<input name="<?php echo $name; ?>" type="tel" size="<?php echo $width; ?>" value="<?php echo format_phone_number($value, $params['formats']); ?>" class="phone-number" validlengths="<?php echo implode(',', $lengths); ?>" <?php echo $attrs; ?> />
+			<input name="<?php echo $name; ?>" type="tel" size="<?php echo $width+3; ?>" value="<?php echo format_phone_number($value, $params['formats']); ?>" class="phone-number" validlengths="<?php echo implode(',', $lengths); ?>" <?php echo $attrs; ?> />
 			<?php
 			break;
 		case 'bibleref':
@@ -252,12 +252,13 @@ function print_widget($name, $params, $value)
 		case 'int':
 			$width_exp = '';
 			if (!empty($params['width'])) {
-				$width_exp = 'size="'.$params['width'].'" ';
+				$width_exp = 'size="'.($params['width']+2).'" ';
 			} else {
-				$width_exp = 'size="3" ';
+				$width_exp = 'size="5" ';
 			}
+			$intType = (FALSE !== strpos($_SERVER['HTTP_USER_AGENT'], 'iPhone')) ? 'tel' : 'number';
 			?>
-			<input type="number" name="<?php echo $name; ?>" value="<?php echo $value; ?>" class="<?php echo trim($classes); ?>" <?php echo $width_exp; ?> <?php echo $attrs; ?> />
+			<input pattern="[0-9]*" inputmode="numeric" type="<?php echo $intType; ?>" name="<?php echo $name; ?>" value="<?php echo $value; ?>" class="<?php echo trim($classes); ?>" <?php echo $width_exp; ?> <?php echo $attrs; ?> />
 			<?php
 			break;
 		case 'boolean':
@@ -499,7 +500,7 @@ function print_widget($name, $params, $value)
 function process_widget($name, $params, $index=NULL, $preserveEmpties=FALSE)
 {
 	$testVal = $rawVal = array_get($_REQUEST, $name);
-	if (empty($testVal) && $params['type'] == 'date') $testVal = array_get($_REQUEST, $name.'_d');
+	if (empty($testVal) && $params['type'] == 'date') $testVal = $rawVal = array_get($_REQUEST, $name.'_d');
 	if (is_array($testVal) && ($params['type'] != 'bitmask') && (array_get($params, 'allow_multiple', 0) == 0)) {
 		if (!is_null($index)) {
 			$rawVal = $rawVal[$index];
@@ -743,7 +744,8 @@ function format_phone_number($x, $formats)
 {
 	$x = preg_replace('/[^0-9]/', '', $x); // strip punctuation
 	foreach (explode("\n", $formats) as $format) {
-		$lengths[substr_count($format, 'X')] = $format;
+		// Use the *first* matching format of the correct length
+		if (!isset($lengths[substr_count($format, 'X')])) $lengths[substr_count($format, 'X')] = $format;
 	}
 	$format = array_get($lengths, strlen($x));
 	if ($format) {
@@ -778,6 +780,8 @@ function get_email_href($to, $name=NULL, $bcc=NULL, $subject=NULL)
 	$sep = defined('MULTI_EMAIL_SEPARATOR') ? MULTI_EMAIL_SEPARATOR : ',';
 	if (!empty($to)) $to = implode($sep, (array)$to);
 	if (!empty($bcc)) $bcc = implode($sep, (array)$bcc);
+	if (empty($to)) $to = '';
+	if (empty($bcc)) $bcc = '';
 
 	if (function_exists('custom_email_href')) return custom_email_href($to, $name, $bcc, $subject);
 

@@ -13,7 +13,7 @@ class View_Rosters__Edit_Roster_Assignments extends View_Rosters__Display_Roster
 	{
 		if (!empty($_REQUEST['goback']) && empty($_SESSION['roster_backto'])) {
 			// Save where we came from in order to go back there afterwards
-			$_SESSION['roster_backto'] = $_SERVER['HTTP_REFERER'];
+			$_SESSION['roster_backto'] = urlencode($_SERVER['HTTP_REFERER']);
 		}
 
 		parent::processView();

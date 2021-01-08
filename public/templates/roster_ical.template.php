@@ -24,6 +24,12 @@ X-WR-CALNAME:<?php echo SYSTEM_NAME; ?> Roster
                 // Guess end time as start time + 1 day (86400 seconds)
                 $endtime += 86400;
             }
+			if ($alloc['assignedon'] != NULL) {
+				$assignedon = (new DateTime($alloc['assignedon']))->getTimestamp();
+			} else {
+				// Use now if we don't know when it was assigned
+				$assignedon = time();
+			}
             ?>
 BEGIN:VEVENT
 UID:<?php echo $uid ?>@jethro_roster
@@ -45,16 +51,18 @@ ORGANIZER;CN=<?php echo $fromName; ?>:MAILTO:<?php echo MEMBER_REGO_EMAIL_FROM_A
 DTSTART:<?php echo gmdate('Ymd\THis\Z', $starttime); ?>
 
 DTEND:<?php echo gmdate('Ymd\THis\Z', $endtime); ?>
-                
+
 <?php        } else {
                 // Use local time, with date only
 ?>
 DTSTART;VALUE=DATE:<?php echo date('Ymd', $starttime); ?>
 
 DTEND;VALUE=DATE:<?php echo date('Ymd', $endtime); ?>
-                
+
 <?php        }
 ?>
+DTSTAMP:<?php echo gmdate('Ymd\THis\Z', $assignedon); ?>
+
 SUMMARY:<?php echo $alloc['title']; ?>
 
 DESCRIPTION:Roster assignment: <?php
