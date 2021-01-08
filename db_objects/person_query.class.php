@@ -21,7 +21,7 @@ class Person_Query extends DB_Object
 
 	function __construct($id=0)
 	{
-		if (!empty($GLOBALS['system'])) {
+		if (empty($GLOBALS['JETHRO_INSTALLING']) && !empty($GLOBALS['system'])) {
 			$GLOBALS['system']->includeDBClass('person');
 			$GLOBALS['system']->includeDBClass('family');
  			$this->_dummy_person = new Person();

@@ -86,8 +86,9 @@ class Installer
 
 
 
-	function initDB()
+	function initDB($printOnly=FALSE)
 	{
+		$allSQL = Array();
 		ini_set('max_execution_time', 120);
 		$dh = opendir(dirname(dirname(__FILE__)).'/db_objects');
 		while (FALSE !== ($filename = readdir($dh))) {
@@ -108,7 +109,7 @@ class Installer
 				if (!empty($sql)) {
 					if (!is_array($sql)) $sql = Array($sql);
 					foreach ($sql as $s) {
-						$r = $GLOBALS['db']->query($s);
+						$allSQL[] = $s;
 					}
 				}
 
@@ -280,7 +281,7 @@ class Installer
 			(@rank:=@rank+5, '',                         'SMS_SEND_LOGFILE','File on the server to save a log of sent SMS messages','text','');"
 		);
 		foreach ($sql as $s) {
-			$r = $GLOBALS['db']->query($s);
+			$allSQL[] = $s;
 		}
 
 		foreach ($fks as $table => $keys) {
@@ -292,13 +293,29 @@ class Installer
 				$SQL = 'ALTER TABLE '.$table.'
 						ADD CONSTRAINT `'.$name.'`
 						FOREIGN KEY ('.$from.') REFERENCES '.$to;
-				$r = $GLOBALS['db']->query($SQL);
+				$allSQL[] = $SQL;
 			}
 		}
 
 		foreach (array_unique($views) as $v) {
-			$r = $GLOBALS['db']->query($v);
+			$allSQL[] = $v;
 		}
+
+		// RUN ALL THE SQL WE'VE ACCUMULATED
+		if ($printOnly) {
+			foreach ($allSQL as $s) bam(str_replace("\t", "  ", trim($s)));
+			return;
+		}
+		$sql_so_far = Array();
+		foreach ($allSQL as $sql) {
+			$sql_so_far[] = $sql;
+			if (!$GLOBALS['db']->query($sql)) {
+				trigger_error("Error during install, SQL so far show below");
+				bam($sql_so_far);
+			}
+		}
+
+		// NOW SAVE SOME SOME FINAL SETTINGS
 
 		Config_Manager::saveSetting('SYSTEM_NAME', substr($_REQUEST['system_name'], 0, 30));
 

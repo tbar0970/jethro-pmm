@@ -47,6 +47,17 @@ class View_Admin__System_Configuration extends View {
 
 	public function printView()
 	{
+		if (JETHRO_VERSION == 'DEV') {
+			if (!empty($_REQUEST['dump_sql'])) {
+				$installer = new Installer();
+				$installer->initDB(TRUE);
+				return;
+			} else {
+				?>
+				<a class="btn" href="<?php echo build_url(Array('dump_sql' => 1)) ?>">Show init SQL</a>
+				<?php
+			}
+		}
 		?>
 		<form method="post">
 			<div class="form-horizontal">
