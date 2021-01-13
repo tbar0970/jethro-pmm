@@ -62,7 +62,7 @@ class Abstract_Note extends DB_Object
 								'default'		=> date('Y-m-d'),
 							   ),
 			'creator'		=> Array(
-								'type'			=> 'int',
+								'type'			=> 'reference',
 								'editable'		=> false,
 								'references'	=> 'person',
 							   ),
@@ -71,7 +71,7 @@ class Abstract_Note extends DB_Object
 								'readonly'		=> true,
 							   ),
 			'editor'		=> Array(
-								'type'			=> 'int',
+								'type'			=> 'reference',
 								'editable'		=> false,
 								'references'	=> 'person',
 								'visible'		=> false,
