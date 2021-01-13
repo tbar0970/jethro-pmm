@@ -763,7 +763,7 @@ class View_Admin__Import extends View
 			$note->setValue('subject', 'Import note');
 			$note->setValue('details', $text);
 			$note->setValue('personid', $person->id);
-			$note->create();
+			$note->createIfNew();
 		}
 
 		if (!empty($row['_groups'])) {
