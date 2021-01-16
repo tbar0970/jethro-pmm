@@ -389,7 +389,7 @@ $(document).ready(function() {
 
 	});
 
-	$('a[target="_append"').click(function() {
+	$('a[target="_append"]').click(function() {
 		 $.get(this.href, function(data) {
             $('#body').append(data);
         });
