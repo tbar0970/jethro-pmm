@@ -132,7 +132,11 @@ function redirect($view, $params=Array(), $hash='')
 
 function add_message($msg, $class='success', $html=FALSE)
 {
-	$_SESSION['messages'][] = Array('message' => $msg, 'class' => $class, 'html' => $html);
+	if (php_sapi_name() == 'cli') {
+		echo strtoupper($class).': '.$msg."\n";
+	} else {
+		$_SESSION['messages'][] = Array('message' => $msg, 'class' => $class, 'html' => $html);
+	}
 }
 
 function dump_messages()
