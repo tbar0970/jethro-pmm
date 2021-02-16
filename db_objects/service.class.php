@@ -621,7 +621,7 @@ class service extends db_object
 				WHERE si.serviceid = '.(int)$this->id.'
 				';
 		if (!empty($ofCategoryID)) $SQL .= ' AND sc.categoryid = '.(int)$ofCategoryID."\n";
-		$SQL .= ' ORDER BY rank';
+		$SQL .= ' ORDER BY `rank`';
 		$res = $GLOBALS['db']->queryAll($SQL);
 
 		foreach ($res as $k => &$item) {
