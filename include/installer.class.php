@@ -110,7 +110,6 @@ class Installer
 					if (!is_array($sql)) $sql = Array($sql);
 					foreach ($sql as $s) {
 						$allSQL[] = $s;
-						$r = $GLOBALS['db']->query($s);
 					}
 				}
 
@@ -283,17 +282,7 @@ class Installer
 			(@rank:=@rank+5, '',                         'SMS_SEND_LOGFILE','File on the server to save a log of sent SMS messages','text','');"
 		);
 		foreach ($sql as $s) {
-<<<<<<< HEAD
 			$allSQL[] = $s;
-=======
-			try {
-				$r = $GLOBALS['db']->query($s);
-			} catch (Exception $e) {
-				trigger_error("DATABASE ERROR ON INSTALL:");
-				bam($s);
-				exit;
-			}
->>>>>>> c23be947b52e47694749ecdf658a90c0d4d30bad
 		}
 
 		foreach ($fks as $table => $keys) {
