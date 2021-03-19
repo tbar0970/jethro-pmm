@@ -456,6 +456,7 @@ class Installer
 			<table>
 			<?php
 			$sm = new Staff_Member();
+			$sm->setValue('username', ifdef('PREFILL_USERNAME'));
 			foreach ($this->initial_person_fields as $fieldname) {
 				?>
 				<tr>
