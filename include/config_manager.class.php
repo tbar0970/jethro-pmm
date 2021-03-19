@@ -42,7 +42,8 @@ class Config_Manager {
 		try {
 			$res = $GLOBALS['db']->queryAll($SQL, NULL, NULL, TRUE);
 		} catch (PDOException $e) {
-			if (empty($GLOBALS['JETHRO_INSTALLING'])) {
+			if (FALSE === strpos($e->getMessage(), "Base table or view not found")) {
+				// We ignore "table not found" because that's expected during install
 				throw $e;
 			}
 		}
