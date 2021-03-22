@@ -112,9 +112,17 @@ class View_Attendance__Record extends View
 						if ($set->processForm($i)) {
 							$set->save();
 							if ((int)$set->congregationid) {
-								Headcount::save('congregation', $this->_attendance_date, $set->congregationid, $_REQUEST['headcount']['congregation'][$set->congregationid]);
+								Headcount::save('congregation', $this->_attendance_date, $set->congregationid, $_REQUEST['headcount']['congregation'][$set->congregationid]['total']);
+								unset($_REQUEST['headcount']['congregation'][$set->congregationid]['total']);
+								foreach ($_REQUEST['headcount']['congregation'][$set->congregationid] as $attendance_category => $attendance_value) {
+									Headcount::save('congregation', $this->_attendance_date, $set->congregationid, $attendance_value, $attendance_category);
+								}
 							} else {
-								Headcount::save('person_group', $this->_attendance_date, $set->groupid, $_REQUEST['headcount']['group'][$set->groupid]);
+								Headcount::save('person_group', $this->_attendance_date, $set->groupid, $_REQUEST['headcount']['group'][$set->groupid]['total']);
+								unset($_REQUEST['headcount']['group'][$set->groupid]['total']);
+								foreach ($_REQUEST['headcount']['group'][$set->groupid] as $attendance_category => $attendance_value) {
+									Headcount::save('person_group', $this->_attendance_date, $set->groupid, $attendance_value, $attendance_category);
+								}
 							}
 							$set->releaseLock();
 						}
@@ -359,6 +367,34 @@ class View_Attendance__Record extends View
 				</tr>
 				<?php
 			}
+			$categories = ifdef('EXTRA_ATTENDANCE_CATEGORIES', '');
+			if ($categories !== '') {
+				$categories = explode(',', $categories);
+				print "<pre>";
+				var_dump($categories);
+				print "</pre>";
+				// Get other categories that might exist from the past
+				foreach ($this->_record_sets as $prefix => $set) {
+                    $usedCategories = $set->getCategoriesUsed();
+                    print "<pre>";
+                    var_dump($usedCategories);
+                    print "</pre>";
+				}
+				foreach ($categories as $category) { ?>
+					<tr class="headcount">
+						<th class="right" colspan="<?php echo 1+(2*(int)SizeDetector::isWide())+(int)$this->_show_photos; ?>"><?php echo $category; ?></th>
+						<?php
+						foreach ($this->_record_sets as $prefix => $set) {
+							?>
+							<td class="center parallel-attendance"><?php $set->printCategoryHeadcountField($category); ?></td>
+							<?php
+						}
+							?>
+							<td>&nbsp;</td>
+					</tr>
+					<?php
+				}
+			}
 			?>
 				<tr class="headcount">
 					<th class="right" colspan="<?php echo 1+(2*(int)SizeDetector::isWide())+(int)$this->_show_photos; ?>"><?php echo _('Total Headcount:');?> &nbsp;</th>
@@ -418,6 +454,24 @@ class View_Attendance__Record extends View
 				$setPrinted = $set->printForm($i);
 				if ($setPrinted > 0) {
 					$totalPrinted += $setPrinted;
+					$categories = ifdef('EXTRA_ATTENDANCE_CATEGORIES', '');
+					if ($categories !== '') {
+                        $categories = explode(',', $categories);
+                    ?>
+                    <h3><?php echo _('Extras'); ?></h3>
+                    <table class="table table-condensed valign-middle">
+					<?php
+                        foreach ($categories as $category) {
+                        ?>
+                    	<tr>
+                            <td><?php echo $category; ?></td>
+                            <td><?php $set->printCategoryHeadcountField($category); ?></td>
+                        </tr><?php
+                        }
+                        ?>
+                        </table>
+                        <?php
+					}
 					?>
 					<div class="container row-fluid control-group">
 						<p class="span6">

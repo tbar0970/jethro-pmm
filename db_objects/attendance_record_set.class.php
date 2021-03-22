@@ -332,18 +332,49 @@ class Attendance_Record_Set
 		<?php
 		return count($this->_persons);
 	}
+	
+	function getCategoriesUsed() {
+        $categories = Array();
+        if ((int)$this->congregationid) {
+            $categories = Headcount::categoriesInUse('congregation', $this->date, $this->congregationid);
+        } else {
+            $categories = Headcount::categoriesInUse('person_group', $this->date, $this->groupid);
+        }
+        return $categories;
+	}
+	
+    function printCategoryHeadcountField($category)
+    {
+    if ((int)$this->congregationid) {
+			$headcountID = 'headcount-total-c-' . $this->congregationid;
+			$headcountFieldName = 'headcount[congregation]['.$this->congregationid.']['.$category.']';
+			$headcountValue = Headcount::fetch('congregation', $this->date, $this->congregationid, $category);
+		} else {
+			$headcountID = 'headcount-total-g-' . $this->groupid;
+			$headcountFieldName = 'headcount[group]['.$this->groupid.']['.$category.']';
+			$headcountValue = Headcount::fetch('person_group', $this->date, $this->groupid, $category);
+		}
+
+		?>
+		<input type="text" data-headcountTotal="<?php echo $headcountID; ?>" data-oldvalue="<?php echo ($headcountValue == '')? "0":$headcountValue; ?>" class="int-box categoryHeadcount" name="<?php echo $headcountFieldName; ?>" value="<?php echo $headcountValue; ?>" size="5" />
+		<input type="button" class="btn" onclick="var x = $(this).siblings('input').get(0); x.value = x.value == '' ? 1 : parseInt(x.value, 10)+1;$(x).trigger('change');" value="+" />
+		<?php
+    }
 
 	function printHeadcountField()
 	{
 		if ((int)$this->congregationid) {
-			$headcountFieldName = 'headcount[congregation]['.$this->congregationid.']';
+			$headcountID = 'headcount-total-c-' . $this->congregationid;
+			$headcountFieldName = 'headcount[congregation]['.$this->congregationid.'][total]';
 			$headcountValue = Headcount::fetch('congregation', $this->date, $this->congregationid);
 		} else {
-			$headcountFieldName = 'headcount[group]['.$this->groupid.']';
+			$headcountID = 'headcount-total-g-' . $this->groupid;
+			$headcountFieldName = 'headcount[group]['.$this->groupid.'][total]';
 			$headcountValue = Headcount::fetch('person_group', $this->date, $this->groupid);
 		}
 		?>
 		<input type="tel" name="<?php echo $headcountFieldName; ?>" value="<?php echo $headcountValue; ?>" style="width: 60px" />
+		<input type="button" class="btn" onclick="var x = $(this).siblings('input').get(0); x.value = x.value == '' ? 1 : parseInt(x.value, 10)+1" value="+" />
 		<?php
 	}
 
@@ -397,8 +428,10 @@ class Attendance_Record_Set
 		list($totals, $breakdowns) = $this->getStats();
 		if ((int)$this->congregationid) {
 			$headcount = Headcount::fetch('congregation', $this->date, $this->congregationid);
+			$category_headcounts = Headcount::fetchAllCategories('congregation', $this->date, $this->congregationid);
 		} else {
 			$headcount = Headcount::fetch('person_group', $this->date, $this->groupid);
+			$category_headcounts = Headcount::fetchAllCategories('person_group', $this->date, $this->groupid);
 		}
 
 		?>
@@ -421,8 +454,9 @@ class Attendance_Record_Set
 		foreach (Array(1 => 'Present', 0 => 'Absent') as $present => $label) {
 			?>
 			<tr class="<?php echo strtolower($label); ?>">
-				<th rowspan="<?php echo count($breakdowns[$present]); ?>">Marked <?php echo $label; ?></th>
-				<td rowspan="<?php echo count($breakdowns[$present]); ?>">
+				<?php $rowspan= max(1,count($breakdowns[$present])); //Fix firefox collapsing the table when nobody is marked present or absent ?>
+				<th rowspan="<?php echo $rowspan ?>">Marked <?php echo $label; ?></th>
+				<td rowspan="<?php echo $rowspan; ?>">
 					<b><?php echo $totals[$present]; ?></b>
 				</td>
 			<?php
@@ -450,6 +484,15 @@ class Attendance_Record_Set
 			}
 		}
 		if ($headcount) {
+			foreach ($category_headcounts as $category_headcount) {
+				$headcount = $headcount - $category_headcount['number'];
+				?>
+				<tr class="extras">
+					<th><?php echo $category_headcount['category']; ?></th>
+					<td colspan="3"><b><?php echo $category_headcount['number'] ?></b></td>
+				</tr>
+				<?php
+			}
 			?>
 			<tr class="extras">
 				<th>Extras</th>
