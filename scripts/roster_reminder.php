@@ -305,7 +305,7 @@ if ($sendemail) {
 			}
 		} else { // using php mail()
 		  $email_to=$roster_coordinator;
-		  $header = "From: ".$email_from.$eol;
+		  $header = "From: \"".addslashes($email_from_name)."\" <".$email_from.">".$eol;
 		  $header .= "MIME-Version: 1.0".$eol;
 		  $header .= "Bcc: ".$emails_string.$eol;
 		  $header .= "Content-Type: multipart/mixed; boundary=\"".$uid."\"";
@@ -358,7 +358,7 @@ if ($sendemail) {
 		}
 	} else {
 		$email_to=$roster_coordinator;
-		$header = "From: ".$email_from.$eol;
+		$header = "From: \"".addslashes($email_from_name)."\" <".$email_from.">".$eol;
 		$header .= "MIME-Version: 1.0".$eol;
 		$header .= "Content-Type: multipart/mixed; boundary=\"".$uid."\"";
 		$message = "--".$uid.$eol;
