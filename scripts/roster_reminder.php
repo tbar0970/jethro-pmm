@@ -314,7 +314,7 @@ if ($sendemail) {
 		  $message .= "Content-Transfer-Encoding: 8bit".$eol.$eol;
 		  $message .= $longstring.$eol;
 		  $message .= "--".$uid."--";
-		   if (mail($email_to, $email_subject . "$roster_date", "$message", $header)) {
+		   if (mail($email_to, $email_subject . "$roster_date", "$message", $header, "-f ".$email_from)) {
 		   	echo "Mail send roster reminder - ".$roster_name." sent OK <br>";
 		   } else {
 		   	echo "Mail send roster reminder - ".$roster_name." send ERROR!";
@@ -366,7 +366,7 @@ if ($sendemail) {
 		$message .= "Content-Transfer-Encoding: 8bit".$eol.$eol;
 		$message .= $summary.$eol;
 		$message .= "--".$uid."--";
-		if (mail($email_to,$summary_notification_subject . "$roster_date","$message",$header)) {
+		if (mail($email_to,$summary_notification_subject . "$roster_date","$message",$header, "-f ".$email_from)) {
 			if (!empty($verbose)) {
 				echo "Sent roster ($roster_name) reminder notification to coordinator.\n";
 			}
