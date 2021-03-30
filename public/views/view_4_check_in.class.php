@@ -93,7 +93,7 @@ class View_Check_In extends View
 			<label class="control-label" >How many people are you checking in today?</label>
 			<div class="controls">
 				<div class="input-append">
-					<?php print_widget('pax', Array('type' => 'int', 'attrs' => Array('min' => 1, 'style' => 'width: 4em !important'), 'width' => 2), 1); ?>
+					<?php print_widget('pax', Array('type' => 'int', 'allow_empty' => FALSE, 'attrs' => Array('min' => 1, 'style' => 'width: 4em !important'), 'width' => 2), 1); ?>
 					<span class="add-on"> including me</span>
 				</div>
 			</div>

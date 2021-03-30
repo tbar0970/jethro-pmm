@@ -36,6 +36,7 @@ class checkin extends db_object
 			'pax'		=> Array(
 									'type'		=> 'int',
 									'width'		=> 6,
+									'allow_empty' => FALSE,
 								   ),
 		);
 		return $fields;
