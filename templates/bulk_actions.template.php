@@ -281,13 +281,32 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 		</div>
     <?php
 	if (version_compare(PHP_VERSION, '5.2', '>=') && !SizeDetector::isNarrow()) {
+		include_once 'calls/call_document_merge.class.php';
+		$templates = @glob(Call_Document_Merge::getSavedTemplatesDir().'/*.*');
 		?>
 		<div class="bulk-action well" id="document-merge">
 			<div class="control-group">
-				<label class="control-label"><?php echo _('Source Document')?></label>
+				<label class="control-label"><?php echo _('Template Document')?></label>
 				<div class="controls">
+				<?php
+				if (!empty($templates)) {
+					$tOptions = Array('' => '', '__NEW__' => 'Upload a new file...');
+					foreach ($templates as $t) $tOptions[basename($t)] = basename($t);
+					print_widget('source_doc_select', Array('type' => 'select', 'options' => $tOptions, 'class' => 'merge-template'), '');
+					?>
+					<div id="merge-template-upload" class="indent-left" style="display:none">
+						<input type="file" name="source_document" />
+						<label class="checkbox"><input type="checkbox" name="save_template" value="1" />Save template for next time</label>
+					</div>
+					<?php
+				} else {
+					?>
 					<input class="compulsory" type="file" name="source_document" />
 					<p class="help-inline">(docx/xlsx/pptx/odt/ods/odp)</p>
+					<label class="checkbox"><input type="checkbox" name="save_template" value="1" />Save template for next time</label>
+					<?php
+				}
+				?>
 				</div>
 			</div>
 			<div class="control-group">
@@ -297,9 +316,9 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 						<input type="radio" name="template_format" value="tbs" checked="checked" />
 						Default
 					</label>
-					<label class="radio inline">
+					<label class="radio inline" style="color:#888">
 						<input type="radio" name="template_format" value="legacy" />
-						Legacy <small><i>(from Jethro ≤ v2.27)</i></small>
+						Legacy <small><i>(Jethro ≤ v2.27)</i></small>
 					</label>
 					<label class="radio inline smallprint">
 						<a target="roster-merge-help" class="med-newwin" href="<?php echo BASE_URL; ?>index.php?call=document_merge_help"><i class="icon-help"></i>Help and examples</a>

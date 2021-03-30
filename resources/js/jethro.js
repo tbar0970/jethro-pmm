@@ -490,6 +490,11 @@ $(document).ready(function() {
 	}
 
 	JethroSMS.init();
+
+	$('select.merge-template').change(function() {
+		$('#merge-template-upload')[(this.value == '__NEW__') ? 'show' : 'hide']();
+		if (this.value == '__NEW__') $('#merge-template-upload input[type=file]').click();
+	})
 });
 
 var JethroSMS = {};
