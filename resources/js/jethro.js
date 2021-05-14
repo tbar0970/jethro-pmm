@@ -831,6 +831,13 @@ JethroServicePlanner._getTRDragHelper = function(event, tr) {
 	return helper;
 }
 
+JethroServicePlanner.setDroppable = function(elt) {
+	elt.droppable({
+        drop: JethroServicePlanner.onItemDrop,
+		hoverClass: 'drop-hover',
+    });
+}
+
 JethroServicePlanner.init = function() {
 
 	if (!document.getElementById('service-planner')) return;
@@ -877,16 +884,7 @@ JethroServicePlanner.init = function() {
 	})
 
 	// SERVICE PLAN TABLE:
-
-	$("#service-plan tbody tr").droppable({
-        drop: JethroServicePlanner.onItemDrop,
-		hoverClass: 'drop-hover',
-    });
-
-	$("#service-plan tfoot tr").droppable({
-        drop: JethroServicePlanner.onItemDrop,
-		hoverClass: 'drop-hover',
-    });
+	JethroServicePlanner.setDroppable($("#service-plan tbody tr"));
 
     $("#service-plan tbody").sortable(	{
 		cursor: "move",
@@ -1110,11 +1108,7 @@ JethroServicePlanner.addItem = function(title, attrVals, beforeItem) {
 	}
 	$(beforeItem).before(newTR);
 	$('#service-plan-placeholder').remove();
-
-	newTR.droppable({
-		drop: JethroServicePlanner.onItemDrop,
-		hoverClass: 'drop-hover',
-	});
+	JethroServicePlanner.setDroppable(newTR);
 	JethroServicePlanner.refreshNumbersAndTimes();
 	JethroServicePlanner.isChanged = true;
 }
@@ -1147,8 +1141,7 @@ JethroServicePlanner._refreshNumbersAndTimes = function() {
 	$('#service-plan tbody').append(spacer); // make sure it's at the end
 	var spacerHeight = Math.max(0, (5 - $('tr.service-item').length)*30);
 	$('#service-plan-spacer td').height(spacerHeight);
-
-
+	JethroServicePlanner.setDroppable(spacer);
 }
 
 
