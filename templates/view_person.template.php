@@ -181,7 +181,7 @@ printf($panel_header, 'basic', _('Basic Details'), 'active');
 			}
 			if ($plan_chooser) {
 				?>
-				<a class="hidden-phone" href="#action-plan-modal" data-toggle="modal"><i class="icon-forward"></i><?php echo _('Execute Action Plan')?></a>
+				<a href="#action-plan-modal" data-toggle="modal"><i class="icon-forward"></i><?php echo _('Execute Action Plan')?></a>
 				<?php
 			}
 			?>
