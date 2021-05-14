@@ -14,7 +14,7 @@ class View_Rosters__Display_Roster_Assignments extends View
 	function processView()
 	{
 		if (!empty($_REQUEST['editing']) && $_REQUEST['view'] == 'rosters__display_roster_assignments') {
-			redirect('rosters__edit_roster_assignments');
+			redirect('rosters__edit_roster_assignments', Array('editing' => NULL));
 		}
 		$this->_start_date = process_widget('start_date', Array('type' => 'date'));
 		if (is_null($this->_start_date)) {
@@ -61,11 +61,11 @@ class View_Rosters__Display_Roster_Assignments extends View
 			}
 			$viewid = ($this->_view) ? $this->_view->id : null;
 			?>
-			<form method="get" class="well well-small no-print">
+			<form method="get" class="form-horizontal well well-small no-print">
 			<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
 			<table>
 				<tr>
-					<th>Roster view</th>
+					<th class="valign-middle">Roster view</th>
 					<td>
 						<?php
 						print_widget('viewid', Array('type' => 'reference', 'references' => 'roster_view', 'order_by' => 'name'), $viewid);
@@ -74,12 +74,12 @@ class View_Rosters__Display_Roster_Assignments extends View
 					<td></td>
 				</tr>
 				<tr>
-					<th class="right">between</th>
+					<th class="valign-middle right">between</th>
 					<td><?php print_widget('start_date', Array('type' => 'date'), $this->_start_date); ?></td>
 					<td></td>
 				</tr>
 				<tr>
-					<th class="right">and</th>
+					<th class="valign-middle right">and</th>
 					<td>
 						<?php print_widget('end_date', Array('type' => 'date'), $this->_end_date); ?> &nbsp;
 						<button type="submit" name="viewing" value="1" class="btn">View Assignments</button>
@@ -100,7 +100,7 @@ class View_Rosters__Display_Roster_Assignments extends View
 				<p class="no-print">
 				<?php
 				if (!$this->_editing) {
-					echo '<a href="?call=email&roster_view='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'" class="hidden-frame"><i class="icon-email">@</i>Email all assignees</a> &nbsp; ';
+					echo '<a href="?call=email&print_modal=1&roster_view='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'" target="_append"><i class="icon-email">@</i>Email all assignees</a> &nbsp; ';
 					echo '<a target="print-roster" class="med-newwin" href="'.BASE_URL.'?call=display_roster&viewid='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'"><i class="icon-print"></i>Show printable version</a> &nbsp; ';
 					if ($this->_view->getValue('visibility') != '') {
 						echo '<a target="_rosterview" href="'.BASE_URL.'members/?view=rosters&roster_view='.$this->_view->id.'"><i class="icon-share"></i>View in members area</a> &nbsp; ';

@@ -44,6 +44,7 @@ class Person_Group extends db_object
 									'label' => 'Show on add-family page?',
 									'note' => 'Should this group be shown as an option when <a href="?view=families__add">adding a new family</a>?',
 									'divider_before' => true,
+									'heading_before' => 'Advanced Options:',
 									),
 			'share_member_details' => Array(
 									'type' => 'select',

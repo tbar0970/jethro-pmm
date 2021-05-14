@@ -47,6 +47,17 @@ class View_Admin__System_Configuration extends View {
 
 	public function printView()
 	{
+		if (JETHRO_VERSION == 'DEV') {
+			if (!empty($_REQUEST['dump_sql'])) {
+				$installer = new Installer();
+				$installer->initDB(TRUE);
+				return;
+			} else {
+				?>
+				<a class="btn" href="<?php echo build_url(Array('dump_sql' => 1)) ?>">Show init SQL</a>
+				<?php
+			}
+		}
 		?>
 		<form method="post">
 			<div class="form-horizontal">
@@ -300,14 +311,14 @@ class View_Admin__System_Configuration extends View {
 				$is_default = (int)($_POST['membership_status_default_rank'] == $i);
 				if (empty($_POST['membership_status_'.$i.'_id'])) {
 					if (!empty($_POST['membership_status_'.$i.'_label'])) {
-						$sql = 'INSERT INTO person_group_membership_status (label, rank, is_default)
+						$sql = 'INSERT INTO person_group_membership_status (label, `rank`, is_default)
 								VALUES ('.$db->quote($_POST['membership_status_'.$i.'_label']).', '.(int)$ranks[$i].','.$is_default.')';
 					}
 				} else if (!in_array($_POST['membership_status_'.$i.'_id'], array_get($_POST, 'membership_status_delete', Array()))) {
 					$sql = 'UPDATE person_group_membership_status
 							SET label = '.$db->quote($_POST['membership_status_'.$i.'_label']).',
 							is_default = '.$is_default.',
-							rank = '.(int)$ranks[$i].'
+							`rank` = '.(int)$ranks[$i].'
 							WHERE id = '.(int)$_POST['membership_status_'.$i.'_id'];
 				}
 				if ($sql) {
@@ -434,7 +445,7 @@ class View_Admin__System_Configuration extends View {
 				$i++;
 			}
 			if (!$saved_default) {
-				$db->query('UPDATE age_bracket SET is_default = 1 ORDER BY rank LIMIT 1');
+				$db->query('UPDATE age_bracket SET is_default = 1 ORDER BY `rank` LIMIT 1');
 			}
 			if (!empty($_POST['age_bracket_delete'])) {
 				$idSet = implode(',', array_map(Array($db, 'quote'), $_POST['age_bracket_delete']));

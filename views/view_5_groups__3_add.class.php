@@ -29,6 +29,7 @@ class View_Groups__Add extends Abstract_View_Add_Object
 			<?php
 			$this->_new_object->printForm();
 			?>
+			<hr />
 			<div class="controls">
 				<input class="btn" type="submit" value="<?php echo _('Save and view group');?>" />
 				<input class="btn" name="create_another" type="submit" value="<?php echo _('Save group and create another');?>" />

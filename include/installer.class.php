@@ -86,8 +86,9 @@ class Installer
 
 
 
-	function initDB()
+	function initDB($printOnly=FALSE)
 	{
+		$allSQL = Array();
 		ini_set('max_execution_time', 120);
 		$filenames = glob(dirname(dirname(__FILE__)).'/db_objects/*.class.php');
 
@@ -105,7 +106,7 @@ class Installer
 				if (!empty($sql)) {
 					if (!is_array($sql)) $sql = Array($sql);
 					foreach ($sql as $s) {
-						$r = $GLOBALS['db']->query($s);
+						$allSQL[] = $s;
 					}
 				}
 
@@ -248,6 +249,7 @@ class Installer
 			(@rank:=@rank+5, '',                         'CCLI_DETAIL_URL','URL Template for CCLI song details by song number, with the keyword __NUMBER__','text','https://au.songselect.com/songs/__NUMBER__'),
 			(@rank:=@rank+5, '',                         'POSTCODE_LOOKUP_URL','URL template for looking up postcodes, with the keyword __SUBURB__','text','https://m.auspost.com.au/view/findpostcode/__SUBURB__'),
 			(@rank:=@rank+5, '',                         'MAP_LOOKUP_URL','URL template for map links, with the keywords __ADDRESS_STREET__, __ADDRESS_SUBURB__, __ADDRESS_POSTCODE__, __ADDRESS_STATE__','text','http://maps.google.com.au?q=__ADDRESS_STREET__,%20__ADDRESS_SUBURB__,%20__ADDRESS_STATE__,%20__ADDRESS_POSTCODE__'),
+			(@rank:=@rank+5, '',                         'QR_CODE_GENERATOR_URL', 'URL template for generating QR codes, containing the placeholder __URL__', 'text', 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=__URL__'),
 			(@rank:=@rank+5, '',                         'EMAIL_CHUNK_SIZE','When displaying mailto links for emails, divide into batches of this size','int','25'),
 			(@rank:=@rank+5, '',                         'MULTI_EMAIL_SEPARATOR','When displaying mailto links for emails, separate addresses using this character','text',','),
 
@@ -277,7 +279,7 @@ class Installer
 			(@rank:=@rank+5, '',                         'SMS_SEND_LOGFILE','File on the server to save a log of sent SMS messages','text','');"
 		);
 		foreach ($sql as $s) {
-			$r = $GLOBALS['db']->query($s);
+			$allSQL[] = $s;
 		}
 
 		foreach ($fks as $table => $keys) {
@@ -289,13 +291,29 @@ class Installer
 				$SQL = 'ALTER TABLE '.$table.'
 						ADD CONSTRAINT `'.$name.'`
 						FOREIGN KEY ('.$from.') REFERENCES '.$to;
-				$r = $GLOBALS['db']->query($SQL);
+				$allSQL[] = $SQL;
 			}
 		}
 
 		foreach (array_unique($views) as $v) {
-			$r = $GLOBALS['db']->query($v);
+			$allSQL[] = $v;
 		}
+
+		// RUN ALL THE SQL WE'VE ACCUMULATED
+		if ($printOnly) {
+			foreach ($allSQL as $s) bam(str_replace("\t", "  ", trim($s)));
+			return;
+		}
+		$sql_so_far = Array();
+		foreach ($allSQL as $sql) {
+			$sql_so_far[] = $sql;
+			if (!$GLOBALS['db']->query($sql)) {
+				trigger_error("Error during install, SQL so far show below");
+				bam($sql_so_far);
+			}
+		}
+
+		// NOW SAVE SOME SOME FINAL SETTINGS
 
 		Config_Manager::saveSetting('SYSTEM_NAME', substr($_REQUEST['system_name'], 0, 30));
 
@@ -436,6 +454,7 @@ class Installer
 			<table>
 			<?php
 			$sm = new Staff_Member();
+			$sm->setValue('username', ifdef('PREFILL_USERNAME'));
 			foreach ($this->initial_person_fields as $fieldname) {
 				?>
 				<tr>

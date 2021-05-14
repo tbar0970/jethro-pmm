@@ -16,12 +16,15 @@ if (empty($_REQUEST['raw'])) {
 
 			<div id="jethro-nav-toprow">
 
+			<?php
+			if ($GLOBALS['system']->shouldShowNavigation()) {
+				?>
 				<div class="user-detail pull-right">
 					<div>
 						<a href="<?php echo build_url(Array('raw' => 1)); ?>">Raw View</a>
 					</div>
 				</div>
-
+				
 				<!-- narrow-style nav dropdown -->
 				<span class="navbar">
 				<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
@@ -30,6 +33,9 @@ if (empty($_REQUEST['raw'])) {
 					<span class="icon-bar"></span>
 				</a>
 				</span>
+				<?php
+			}
+			?>
 
 				<!-- logo and system name -->
 				<h1>
@@ -48,7 +54,7 @@ if (empty($_REQUEST['raw'])) {
 
 		</div>
 		<div id="body">
-			<?php 
+			<?php
 			dump_messages();
 
 			if ($title = $GLOBALS['system']->getTitle()) {

@@ -37,12 +37,15 @@ class Config_Manager {
 
 	public static function getSettings()
 	{
-		$SQL = 'SELECT symbol, s.* from setting s ORDER BY rank';
+		$SQL = 'SELECT symbol, s.* from setting s ORDER BY `rank`';
 		$res = Array();
 		try {
 			$res = $GLOBALS['db']->queryAll($SQL, NULL, NULL, TRUE);
 		} catch (PDOException $e) {
-			 // no fatal error because we might be in the installer
+			if (FALSE === strpos($e->getMessage(), "Base table or view not found")) {
+				// We ignore "table not found" because that's expected during install
+				throw $e;
+			}
 		}
 		return $res;
 	}

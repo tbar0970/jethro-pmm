@@ -621,7 +621,7 @@ class service extends db_object
 				WHERE si.serviceid = '.(int)$this->id.'
 				';
 		if (!empty($ofCategoryID)) $SQL .= ' AND sc.categoryid = '.(int)$ofCategoryID."\n";
-		$SQL .= ' ORDER BY rank';
+		$SQL .= ' ORDER BY `rank`';
 		$res = $GLOBALS['db']->queryAll($SQL);
 
 		foreach ($res as $k => &$item) {
@@ -725,6 +725,30 @@ class service extends db_object
 				<?php
 			}
 		}
+	}
+
+	public function getServiceContent()
+	{
+		$serviceContent = array();
+		$items = $this->getItems(TRUE);
+		$num = 1;
+		foreach ($items as $k => $i) {
+			if ($i['show_in_handout'] == '0') continue;
+				$title = $i['handout_title_format'];
+				$title = str_replace('%title%', $i['title'], $title);
+				$title = $this->replaceKeywords($title);
+				//$serviceContent[] = ents($title);
+			if ($i['show_in_handout'] == 'full') {
+				$itemContent = $i['content_html'];
+				$itemCredit = nl2br(ents($i['credits']));
+			}
+			else {
+				$itemContent ='';
+				$itemCredit = '';
+				}
+				$serviceContent[] = array(ents($title),$itemContent,$itemCredit);
+			}
+	return $serviceContent;
 	}
 
 	public function printRunSheetPersonnelFlexi()

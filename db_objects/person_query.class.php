@@ -21,7 +21,7 @@ class Person_Query extends DB_Object
 
 	function __construct($id=0)
 	{
-		if (!empty($GLOBALS['system'])) {
+		if (empty($GLOBALS['JETHRO_INSTALLING']) && !empty($GLOBALS['system'])) {
 			$GLOBALS['system']->includeDBClass('person');
 			$GLOBALS['system']->includeDBClass('family');
  			$this->_dummy_person = new Person();
@@ -149,6 +149,11 @@ class Person_Query extends DB_Object
 	{
 		$GLOBALS['system']->includeDBClass('person_group');
 		$params = $this->_convertParams($this->getValue('params'));
+		if (!$GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS) && ($this->getValue('owner') == NULL)) {
+			// we are editing a shared report, but don't have permission to save a shared report
+			// so we treat this as if it's a new private report
+			$this->id = 0;
+		}
 		?>
 		<h3>Find me people...</h3>
 
@@ -616,84 +621,87 @@ class Person_Query extends DB_Object
 
 		?>
 		</select>
+
+		<h3>I want to save this report...</h3>
+		<div class="indent-left">
+			<p>
+			<label type="radio">
+				<input type="radio" name="save_option" value="new" id="save_option_new"
+					 data-toggle="enable"
+				/>
+				as a new report
+			</label>
 		<?php
-		if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
-			$visibilityParams = Array(
-				'type' => 'select',
-				'options' => Array('visible to everyone', 'visible only to me')
-			);
+		if (($this->id != 0) && ($this->canSave())) {
 			?>
-			<h3>I want to save this report...</h3>
-			<div class="indent-left">
-				<p>
-				<label type="radio">
-					<input type="radio" name="save_option" value="new" id="save_option_new"
-						 data-toggle="enable"
-					/>
-					as a new report
-				</label>
+			<label type="radio">
+				<input type="radio" name="save_option" value="replace" id="save_option_replace" <?php if ($this->id && ($this->id != 'TEMP')) echo 'checked="checked"'; ?>
+					 data-toggle="enable"
+					 />
+				in place of its previous version
+			</label>
 			<?php
-			if ($this->id != 0) {
+		}
+		?>
+
+			<label type="radio">
+				<input type="radio" name="save_option"
+					   value="temp"
+					   id="save_option_temp"
+						  <?php if (empty($this->id) || $this->id == 'TEMP') echo ' checked="checked"'; ?>
+					   data-toggle="disable"
+					   data-target="#save-options input, #save-options select"
+				/>
+				only temporarily as an ad-hoc report
+			</label>
+			</p>
+
+			<table id="save-options">
+				<tr>
+					<td>Report title &nbsp;</td>
+					<td>
+						<?php $this->printFieldInterface('name'); ?>
+					</td>
+				</tr>
+				<tr>
+					<td>Visibility</td>
+					<td>
+						<?php
+						if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
+							$visibilityParams = Array(
+								'type' => 'select',
+								'options' => Array(0 => 'Visible to everyone', 1 => 'visible only to me'),
+							);
+							print_widget('is_private', $visibilityParams, $this->getValue('owner') !== NULL);
+						} else {
+							echo _('Only visible to me');
+						}
+						?>
+					</td>
+				</tr>
+				<tr>
+					<td></td>
+					<td>Show on home page?
+						<?php
+						$this->printFieldInterface('show_on_homepage');
+						?>
+					</td>
+				</tr>
+			<?php
+			if (strlen(ifdef('MAILCHIMP_API_KEY')) && $GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 				?>
-				<label type="radio">
-					<input type="radio" name="save_option" value="replace" id="save_option_replace" <?php if ($this->id && ($this->id != 'TEMP')) echo 'checked="checked"'; ?>
-						 data-toggle="enable"
-						 />
-					in place of its previous version
-				</label>
+				<tr>
+					<td>Mailchimp List ID</td>
+					<td><?php $this->printFieldInterface('mailchimp_list_id'); ?></td>
+				</tr>
 				<?php
 			}
 			?>
+			</table>
+		</div>
+		<?php
 
-				<label type="radio">
-					<input type="radio" name="save_option"
-						   value="temp"
-						   id="save_option_temp"
-							  <?php if (empty($this->id) || $this->id == 'TEMP') echo ' checked="checked"'; ?>
-						   data-toggle="disable"
-						   data-target="#save-options input, #save-options select"
-					/>
-					only temporarily as an ad-hoc report
-				</label>
-				</p>
 
-				<table id="save-options">
-					<tr>
-						<td>Report title &nbsp;</td>
-						<td>
-							<?php $this->printFieldInterface('name'); ?>
-						</td>
-					</tr>
-					<tr>
-						<td>Visibility</td>
-						<td>
-							<?php
-							print_widget('is_private', $visibilityParams, $this->getValue('owner') !== NULL);
-							?>
-						</td>
-					</tr>
-					<tr>
-						<td></td>
-						<td>Show on home page?
-							<?php
-							$this->printFieldInterface('show_on_homepage');
-							?>
-						</td>
-					</tr>
-				<?php
-				if (strlen(ifdef('MAILCHIMP_API_KEY')) && $GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
-					?>
-					<tr>
-						<td>Mailchimp List ID</td>
-						<td><?php $this->printFieldInterface('mailchimp_list_id'); ?></td>
-					</tr>
-					<?php
-				}
-				?>
-				</table>
-			</div>
-			<?php
-		}
 	}
 
 	function processForm($prefix='', $fields=NULL)
@@ -706,7 +714,13 @@ class Person_Query extends DB_Object
 					if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 						$this->processFieldInterface('mailchimp_list_id');
 					}
-					$this->setValue('owner', $_POST['is_private'] ? $GLOBALS['user_system']->getCurrentUser('id') : NULL);
+					$this->setValue('owner', $GLOBALS['user_system']->getCurrentUser('id'));
+					if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
+						// Only those with mange-reports permission can save shared reports.
+						if (empty($_POST['is_private'])) {
+							$this->setValue('owner', NULL);
+						}
+					}
 					$this->processFieldInterface('show_on_homepage');
 					break;
 				case 'replace':
@@ -714,7 +728,13 @@ class Person_Query extends DB_Object
 					if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 						$this->processFieldInterface('mailchimp_list_id');
 					}
-					$this->setValue('owner', $_POST['is_private'] ? $GLOBALS['user_system']->getCurrentUser('id') : NULL);
+					$this->setValue('owner', $GLOBALS['user_system']->getCurrentUser('id'));
+					if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
+						// Only those with mange-reports permission can save shared reports.
+						if (empty($_POST['is_private'])) {
+							$this->setValue('owner', NULL);
+						}
+					}
 					$this->processFieldInterface('show_on_homepage');
 					break;
 				case 'temp':
@@ -1124,7 +1144,6 @@ class Person_Query extends DB_Object
 									AND personid = p.id) '.$operator.' '.(int)$params['attendance_percent'];
 		}
 
-
 		// GROUPING
 		$grouping_order = '';
 		$grouping_field = '';
@@ -1271,22 +1290,22 @@ class Person_Query extends DB_Object
 						$query['select'][] = '_family_adults'.$this->id.'.names as `Adult Family Members`';
 						break;
 					case 'attendance_percent':
-							$groupid = $params['attendance_groupid'] == '__cong__' ? 0 : $params['attendance_groupid'];
-							$min_date = date('Y-m-d', strtotime('-'.(int)$params['attendance_weeks'].' weeks'));
-							$query['select'][] = '(SELECT ROUND(SUM(present)/COUNT(*)*100)
-													FROM attendance_record
-													WHERE date >= '.$GLOBALS['db']->quote($min_date).'
-													AND groupid = '.(int)$groupid.'
-													AND personid = p.id) AS `Attendance`';
+						$groupid = $params['attendance_groupid'] == '__cong__' ? 0 : $params['attendance_groupid'];
+						$min_date = date('Y-m-d', strtotime('-'.(int)$params['attendance_weeks'].' weeks'));
+						$query['select'][] = '(SELECT ROUND(SUM(present)/COUNT(*)*100)
+												FROM attendance_record ar
+												WHERE date >= '.$GLOBALS['db']->quote($min_date).'
+												AND groupid = '.(int)$groupid.'
+												AND personid = p.id) AS `Attendance`';
 						break;
 					case 'attendance_numabsences':
 						/* The number of "absents" recorded since the last "present".*/
-							$groupid = $params['attendance_groupid'] == '__cong__' ? 0 : $params['attendance_groupid'];
-							$query['select'][] = '(SELECT COUNT(*)
-													FROM attendance_record ar
-													WHERE groupid = '.(int)$groupid.'
-													AND personid = p.id
-													AND date > (SELECT COALESCE(MAX(date), "2000-01-01") FROM attendance_record ar2 WHERE ar2.personid = ar.personid AND present = 1)) AS `Running Absences`';
+						$groupid = $params['attendance_groupid'] == '__cong__' ? 0 : $params['attendance_groupid'];
+						$query['select'][] = '(SELECT COUNT(*)
+												FROM attendance_record ar
+												WHERE  groupid = '.(int)$groupid.'
+												AND personid = p.id
+												AND date > (SELECT COALESCE(MAX(date), "2000-01-01") FROM attendance_record ar2 WHERE ar2.personid = ar.personid AND present = 1)) AS `Running Absences`';
 						break;
 					case 'actionnotes.subjects':
 						$query['select'][] = '(SELECT GROUP_CONCAT(subject SEPARATOR ", ")
@@ -1369,7 +1388,8 @@ class Person_Query extends DB_Object
 
 			if ($params['sort_by'] == 'f.family_name') {
 				// Stop members of identically-named families from being intermingled
-				$query['order_by'] .= ', f.id';
+				// and make sure kids follow adults even if their last names are earlier
+				$query['order_by'] .= ', f.id,  absort.rank';
 			}
 
 			/*
@@ -1468,17 +1488,28 @@ class Person_Query extends DB_Object
 				$this->$var->setValue($fieldname, $i);
 				$heading = $this->$var->getFormattedValue($fieldname);
 			}
-			$this->_printResultSet($v, $format, $heading);
+			// We need to get the person ID as the array keys before calling _printResultSet
+			$set = Array();
+			foreach ($v as $vv) {
+				$set[$vv['ID']] = $vv;
+				unset($set[$vv['ID']]['ID']);
+			}
+			$this->_printResultSet($set, $format, $heading);
 		}
 	}
 
 
-	function _printResultSet($x, $format, $heading=NULL)
+	/*
+	 * @param $dataset	Results keyed by personID
+	 * @param $format	csv or html
+	 * @param $heading
+	 */
+	function _printResultSet($dataset, $format, $heading=NULL)
 	{
 		if ($format == 'csv') {
-			$this->_printResultSetCsv($x, $heading);
+			$this->_printResultSetCsv($dataset, $heading);
 		} else {
-			$this->_printResultSetHtml($x, $heading);
+			$this->_printResultSetHtml($dataset, $heading);
 		}
 	}
 
@@ -1672,11 +1703,30 @@ class Person_Query extends DB_Object
 	}
 
 
+	private function canSave($throwErrors=FALSE)
+	{
+		if (!($this->getValue('owner'))
+			&& (!$GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS))
+		) {
+			if ($throwErrors) trigger_error('You do not have permission to save shared reports', E_USER_ERROR);
+			return FALSE;
+		} else if (($this->getValue('owner')) && ($this->getValue('owner') != $GLOBALS['user_system']->getCurrentUser('id'))
+		) {
+			if ($throwErrors) trigger_error('Cannot save report that belongs to another user!', E_USER_ERROR);
+			return FALSE;
+		} else {
+			return TRUE;
+		}
+	}
+
+
 	function save()
 	{
 		if ($this->id == 'TEMP') {
 			$_SESSION['saved_query'] = serialize($this);
 			return TRUE;
+		} else if (!$this->canSave(TRUE)) {
+			exit;
 		} else {
 			return parent::save();
 		}
@@ -1691,7 +1741,14 @@ class Person_Query extends DB_Object
 			}
 			return TRUE;
 		} else {
-			return parent::load($id);
+			$res = parent::load($id);
+			$user = $GLOBALS['user_system']->getCurrentUser('id');
+			$owner = $this->getValue('owner');
+			if (!empty($user) && !empty($owner) && ($owner != $user)) {
+				trigger_error("Cannot load report that belongs to another user!", E_USER_ERROR);
+				exit;
+			}
+			return $res;
 		}
 	}
 

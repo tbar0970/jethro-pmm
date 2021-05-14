@@ -62,7 +62,7 @@ class Abstract_Note extends DB_Object
 								'default'		=> date('Y-m-d'),
 							   ),
 			'creator'		=> Array(
-								'type'			=> 'int',
+								'type'			=> 'reference',
 								'editable'		=> false,
 								'references'	=> 'person',
 							   ),
@@ -71,7 +71,7 @@ class Abstract_Note extends DB_Object
 								'readonly'		=> true,
 							   ),
 			'editor'		=> Array(
-								'type'			=> 'int',
+								'type'			=> 'reference',
 								'editable'		=> false,
 								'references'	=> 'person',
 								'visible'		=> false,
@@ -122,7 +122,11 @@ class Abstract_Note extends DB_Object
 		return "
 			create view abstract_note as
 			select an.* from _abstract_note an
-			WHERE ((an.assignee = getCurrentUserID() AND an.status = 'pending') OR (".PERM_VIEWNOTE." = (SELECT permissions & ".PERM_VIEWNOTE." FROM staff_member WHERE id = getCurrentUserID())));
+			WHERE (
+				(an.assignee = getCurrentUserID() AND an.status = 'pending')
+				OR (`getCurrentUserID`() = -(1))
+				OR (".PERM_VIEWNOTE." = (SELECT permissions & ".PERM_VIEWNOTE." FROM staff_member WHERE id = getCurrentUserID()))
+			);
 			";
 	}
 

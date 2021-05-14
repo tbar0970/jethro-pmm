@@ -41,7 +41,7 @@ class View_Families__Add extends View
 			// Create the family record itself
 			$this->_family->processForm();
 			$success = $this->_family->create();
-			
+
 			if ($success) {
 				// Add members
 				$i = 0;
@@ -114,7 +114,7 @@ class View_Families__Add extends View
 			}
 		}
 	}
-	
+
 	function getTitle()
 	{
 		return _('Add Family');
@@ -137,7 +137,7 @@ class View_Families__Add extends View
 			: _('A family similar to the one you are creating already exists');
 		?>
 		<p class="alert alert-error"><b>Warning: <?php echo $msg; ?>.</b></p>
-		<?php 
+		<?php
 		foreach ($this->_similar_families as $family) {
 			?>
 			<h4><a href="<?php echo build_url(array('view' => 'families', 'familyid' => $family->id)); ?>"><?php echo _('Family'); ?>#<?php echo $family->id; ?></a></h4>
@@ -173,7 +173,7 @@ class View_Families__Add extends View
 
 			<label><?php echo _('Family Name'); ?></label>
 			<?php $this->_family->printFieldInterface('family_name'); ?>
-			
+
 			</div>
 
 			<div>
@@ -202,7 +202,7 @@ class View_Families__Add extends View
 							<label><?php echo _('Status');?></label>
 							<div class="congregation"><?php $person->printFieldInterface('congregationid', 'members_0_'); ?></div>
 							<div class="person-status preserve-value"><?php $person->printFieldInterface('status', 'members_0_'); ?></div>
-							
+
 						<?php
 						if (!empty($group_options)) {
 							foreach ($group_options as $id => $g) {
@@ -246,7 +246,7 @@ class View_Families__Add extends View
 							<?php
 						}
 						?>
-							
+
 						</div>
 					</td>
 				</tr>
@@ -285,9 +285,7 @@ class View_Families__Add extends View
 
 			<h3><?php echo _('Family Details');?> <small><?php echo _('(optional)');?></small></h3>
 			<?php
-			$this->_family->fields['family_name']['readonly'] = 1;
-			$this->_family->printForm();
-			$this->_family->fields['family_name']['readonly'] = 0;
+			$this->_family->printForm('', Array('home_tel', 'address_street', 'address_suburb', 'address_state', 'address_postcode'));
 			?>
 
 		<?php

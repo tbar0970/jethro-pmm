@@ -944,7 +944,7 @@ class roster_view extends db_object
 
 	function processAllocations($start_date, $end_date)
 	{
-		if (!isset($_POST['assignees'])) return;
+		if (!isset($_POST['assignees'])) return FALSE;
 
 		// Exclude roles that we couldn't get the lock for
 		$roles = $this->getRoleIds();
@@ -960,7 +960,7 @@ class roster_view extends db_object
 
 		if (empty($roles)) {
 			trigger_error('Couldn\'t process allocations - do not have the lock on any role');
-			return;
+			return FALSE;
 		}
 
 		$to_add = Array();
@@ -1031,8 +1031,7 @@ class roster_view extends db_object
 		}
 
 		$GLOBALS['system']->doTransaction('COMMIT');
-		add_message("Role allocations saved");
-		redirect('rosters__display_roster_assignments', Array('editing' => NULL));
+		return TRUE;
 	}
 
 	/**

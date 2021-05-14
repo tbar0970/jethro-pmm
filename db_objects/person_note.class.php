@@ -88,5 +88,24 @@ class Person_Note extends Abstract_Note
 		parent::printForm($prefix, $fields);
 	}
 
+
+	/**
+	 * Save this (new) note to the database IF there isn't already a note with the same subject and body.
+	 */
+	public function createIfNew()
+	{
+		$db = $GLOBALS['db'];
+		$SQL = 'SELECT an.id
+			FROM abstract_note an
+			JOIN person_note pn ON pn.id = an.id
+			WHERE subject = '.$db->quote($this->getValue('subject')).'
+			AND details = '.$db->quote($this->getValue('details')).'
+			AND pn.personid = '.(int)$this->getValue('personid');
+		if (!(int)$db->queryOne($SQL)) {
+			return $this->create();
+		} else {
+			return FALSE;
+		}
+	}
+
 }
-?>

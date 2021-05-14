@@ -449,7 +449,7 @@ class Person extends DB_Object
 		return $attendances;
 	}
 
-	function saveAttendance($attendances, $groupid) {
+	function saveAttendance($attendances, $groupid, $checkinid=NULL) {
 		$db =& $GLOBALS['db'];
 
 		$SQL = 'DELETE FROM attendance_record
@@ -459,11 +459,11 @@ class Person extends DB_Object
 		$res = $db->exec($SQL);
 
 		$sets = Array();
-		$SQL = 'INSERT INTO attendance_record (personid, groupid, date, present)
+		$SQL = 'INSERT INTO attendance_record (personid, groupid, date, present, checkinid)
 				VALUES ';
 		foreach ($attendances as $date => $present) {
 			if ($present == '' || $present == '?' || $present == 'unknown') continue;
-			$sets[] = '('.(int)$this->id.', '.(int)$groupid.', '.$db->quote($date).', '.(($present == 1 || $present == 'present') ? 1 : 0).')';
+			$sets[] = '('.(int)$this->id.', '.(int)$groupid.', '.$db->quote($date).', '.(($present == 1 || $present == 'present') ? 1 : 0).', '.$db->quote($checkinid).')';
 		}
 		if ($sets) {
 			$SQL .= implode(",\n", $sets);

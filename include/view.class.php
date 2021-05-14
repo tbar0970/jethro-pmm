@@ -5,7 +5,7 @@ abstract class View
 	{
 		return 0;
 	}
-	
+
 	public static function getMenuRequiredFeature()
 	{
 		return NULL;
@@ -14,10 +14,20 @@ abstract class View
 	public function processView()
 	{
 	}
-	
+
 	public function getTitle()
 	{
 		return '';
+	}
+
+	/**
+	 * Whether the main nav should be shown when this is the current view.
+	 * (Allows some public views to appear as a standalone page)
+	 * @return boolean
+	 */
+	public function shouldShowNavigation()
+	{
+		return TRUE;
 	}
 
 	abstract public function printView();

@@ -138,9 +138,15 @@ class System_Controller
 		}
 	}
 
+	public function shouldShowNavigation()
+	{
+		if ($this->_view) return $this->_view->shouldShowNavigation();
+	}
 
 	public function printNavigation()
 	{
+		if ($this->_view && !$this->_view->shouldShowNavigation()) return;
+
 		$current_view = array_get($_REQUEST, 'view', 'home');
 		foreach ($_SESSION['views'][$this->_base_dir] as $name => $data) {
 			if ($name[0] == '_') continue;
