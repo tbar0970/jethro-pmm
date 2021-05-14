@@ -132,6 +132,7 @@ class User_System extends Abstract_User_System
 
 	public function havePerm($permission)
 	{
+		if (!is_int($permission)) trigger_error("Non-numeric permission level is invalid", E_USER_ERROR);
 		if ($permission == 0) return true;
 		if (!empty($GLOBALS['JETHRO_INSTALLING'])) return true;
 		if (!array_key_exists($permission, $this->_permission_levels)) return false; // disabled feature
