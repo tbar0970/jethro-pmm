@@ -77,6 +77,7 @@ class db_object
 			switch ($details['type']) {
 				case 'date':
 					$type = 'date';
+					if (empty($default)) $default = FALSE;
 					break;
 				case 'datetime':
 					$type = 'datetime';
@@ -122,16 +123,17 @@ class db_object
 					$default = array_get($details, 'default', 0);
 			}
 
-			switch ($default) {
-				case 'CURRENT_TIMESTAMP':
-				case 'NULL':
-					break;
-				default:
-					$default = $GLOBALS['db']->quote($default);
-					break;
+			if ($default !== FALSE) {
+				switch ($default) {
+					case 'CURRENT_TIMESTAMP':
+					case 'NULL':
+						break;
+					default:
+						$default = $GLOBALS['db']->quote($default);
+						break;
+				}
+				$default = ' DEFAULT '.$default;
 			}
-
-			if ($default !== FALSE) $default = ' DEFAULT '.$default;
 
 			$res .= "`".$name."` ".$type." ".$null_exp.$default.",
 				";
