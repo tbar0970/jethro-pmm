@@ -41,6 +41,7 @@ class System_Controller
 			$raw_filenames = glob($this->_base_dir.'/views/*.class.php');
 			natsort($raw_filenames);
 			foreach ($raw_filenames as $filename) {
+				$filename = basename($filename);
 				$classname = null;
 				if (preg_match('/^view_([0-9]*)_(.*)__([0-9]*)_(.*)\.class\.php/', $filename, $matches)) {
 					$classname = 'View_'.$matches[2].'__'.$matches[4];
