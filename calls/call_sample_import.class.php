@@ -28,9 +28,9 @@ class Call_Sample_Import extends Call
 			if ($details['is_default']) $default_age_bracket = $details['label'];
 			if (!$details['is_adult']) $child_age_bracket = $details['label'];
 		}
-		$mobile_length = @reset(get_valid_phone_number_lengths(MOBILE_TEL_FORMATS));
-		$home_length = @reset(get_valid_phone_number_lengths(HOME_TEL_FORMATS));
-		$work_length = @reset(get_valid_phone_number_lengths(WORK_TEL_FORMATS));
+		$mobile_length = jreset(get_valid_phone_number_lengths(MOBILE_TEL_FORMATS));
+		$home_length = jreset(get_valid_phone_number_lengths(HOME_TEL_FORMATS));
+		$work_length = jreset(get_valid_phone_number_lengths(WORK_TEL_FORMATS));
 
 
 		$data = Array(

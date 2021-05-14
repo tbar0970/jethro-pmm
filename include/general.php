@@ -8,6 +8,14 @@ function array_get($array, $index, $alt=NULL)
 	}
 }
 
+/**
+ * A workaround when you want to call reset(some_function()) and get 'only vars can be passed by reference'
+ */
+function jreset($x)
+{
+	return reset($x);
+}
+
 function hard_trim($value)
 {
 	return trim($value, ",;. \t\n\r\0\x0B");
