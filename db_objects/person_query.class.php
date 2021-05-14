@@ -1305,7 +1305,7 @@ class Person_Query extends DB_Object
 												FROM attendance_record ar
 												WHERE  groupid = '.(int)$groupid.'
 												AND personid = p.id
-												AND date > (SELECT COALESCE(MAX(date), "2000-01-01") FROM attendance_record ar2 WHERE ar2.personid = ar.personid AND present = 1)) AS `Running Absences`';
+												AND date > (SELECT COALESCE(MAX(date), "2000-01-01") FROM attendance_record ar2 WHERE ar2.personid = ar.personid AND present = 1 AND groupid='.(int)$groupid.')) AS `Running Absences`';
 						break;
 					case 'actionnotes.subjects':
 						$query['select'][] = '(SELECT GROUP_CONCAT(subject SEPARATOR ", ")
