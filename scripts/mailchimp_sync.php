@@ -56,9 +56,9 @@ if ($fromDB) {
                 $syncs[$id] = $r['mailchimp_list_id'];
         }
         if ($DEBUG > 0 && empty($syncs)) {
-                trigger_error("Found no saved reports with list IDs set", E_USER_ERROR);
+                echo "Found no saved reports with list IDs set. Quitting. \n";
         }
-		if (empty($syncs)) exit;
+	if (empty($syncs)) exit;
         $api_key = ifdef('MAILCHIMP_API_KEY', '');
         if (!strlen($api_key)) {
                 trigger_error("API KEY not set in Jethro config", E_USER_ERROR);
@@ -180,6 +180,7 @@ function run_mc_sync($mc, $report_id, $list_id)
                         // Add them to the list
                         $postdata = Array(
                                 'status_if_new' => 'subscribed',
+								'status' => 'subscribed',
                                 'email_address' => $persondata['EMAIL'],
                                 'merge_fields' => $persondata,
                         );
@@ -255,23 +256,53 @@ function run_mc_sync($mc, $report_id, $list_id)
                 } else if ($batch_res_summary['status'] != 'finished') {
                         trigger_error("[Syncing report $report_id to list $list_id] Batch did not finish", E_USER_ERROR);
                 } else {
-                        if (($DEBUG > 1) || ($batch_res_summary['errored_operations'] > 0)) {
-                                $fp = fopen($batch_res_summary['response_body_url'], 'r');
-                                $batch_results = stream_get_contents($fp);
-                                fclose($fp);
-                                $filename = sys_get_temp_dir().'/jethro-mc-'.time().'.tgz';
-                                file_put_contents($filename, $batch_results);
-                                if ($DEBUG > 1) echo "SEE API RESULTS IN $filename \n";
+						$all_failures = Array();
+						if (($DEBUG > 1) || ($batch_res_summary['errored_operations'] > 0)) {
+							// Fetch the results from mailchimp and unpack them
+							$fp = fopen($batch_res_summary['response_body_url'], 'r');
+							$batch_results = stream_get_contents($fp);
+							fclose($fp);
+							$dir = sys_get_temp_dir().'/jethro-mc-'.time();
+							$tgzfile = $dir.'/response.tgz';
+							@mkdir($dir);
+							file_put_contents($tgzfile, $batch_results);
+							$p = new PharData($tgzfile);
+							$p2 = $p->decompress();
+							$p2->extractTo($dir, NULL, TRUE);
+							foreach (glob($dir.'/*.json') as $jsonfile) {
+								$resps = json_decode(file_get_contents($jsonfile));
+								foreach ($resps as $resp) {
+									$resp->response = json_decode($resp->response);
+									// Special handling for 'member in compliance state' unavoidable error
+									// See https://github.com/tbar0970/jethro-pmm/issues/656
+									if (($resp->response->status == 400) && ($resp->response->title == 'Member In Compliance State')) {
+										$pemail = substr($resp->operation_id, 4); // chop of 'add-'
+										$bpersons = $GLOBALS['system']->getDBObjectData('person', Array('email' => $pemail));
+										foreach ($bpersons as $pid => $pdetail) {
+											$n = new Person_Note();
+											$n->setValue('personid', $pid);
+											$n->setValue('subject', 'Mailchimp sync error');
+											$n->setValue('details', '[SYSTEM NOTE] Email address '.$pemail.' could not be synced to Mailchimp. Mailchimp said: '.$resp->response->detail);
+											$n->setValue('creator', $pid);
+											$n->createIfNew();
+										}
+									} else {
+										// Unknown error - report it to the console
+										$all_failures[] = $resp;
+									}
+								}
+							}
                         }
-                        if ($batch_res_summary['errored_operations'] > 0) {
-                                trigger_error("[Syncing report $report_id to list $list_id] ".$batch_res_summary['errored_operations']." mailchimp operations failed.  See details of failures in $filename");
-                        } else if ($DEBUG > 0) {
+                        if ($all_failures) {
+                                trigger_error("[Syncing report $report_id to list $list_id] ".$batch_res_summary['errored_operations']." mailchimp operations failed.");
+								bam($all_failures);
+	                    } else if ($DEBUG > 0) {
                                 bam($batch_res_summary['total_operations'].' mailchimp operations completed succesfully.');
                         }
                 }
         } else {
                 if ($DEBUG > 0) {
-                        echo "Nothing to do. Seeya. \n";
+                        echo "[Syncing report $report_id to list $list_id] Nothing to do. Seeya. \n";
                 }
         }
 }
