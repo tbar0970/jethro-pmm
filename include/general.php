@@ -43,7 +43,6 @@ function stripslashes_array(&$array, $strip_keys=false) {
 			$keys_to_replace[$key] = $stripped_key;
 		}
 	}
-	# now replace any of the keys that needed strip slashing
 	foreach($keys_to_replace as $from => $to) {
 		$array[$to]   = &$array[$from];
 		unset($array[$from]);
@@ -52,7 +51,7 @@ function stripslashes_array(&$array, $strip_keys=false) {
 }
 
 function strip_all_slashes() {
-	if (get_magic_quotes_gpc()) {
+	if (function_exists('get_magic_quotes_gpc') && get_magic_quotes_gpc()) {
 		stripslashes_array($_GET, true);
 		stripslashes_array($_POST, true);
 		stripslashes_array($_COOKIE, true);
