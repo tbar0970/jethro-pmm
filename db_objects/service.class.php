@@ -212,11 +212,25 @@ class service extends db_object
 
 	static function shiftServices($congids, $after_date, $shift_by)
 	{
+		$cong_set = '('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congids)).')';
+		if ($shift_by < 0) {
+			// check that we won't make trouble
+			$sql = 'SELECT ABS(DATEDIFF('.$GLOBALS['db']->quote($after_date).', MIN(`date`)))
+					FROM service
+					WHERE congregationid IN '.$cong_set.' 
+					AND `date` >= '.$GLOBALS['db']->quote($after_date);
+			$gap = $GLOBALS['db']->queryOne($sql);
+			if ($gap < 7) {
+				add_message("Could not shift services back because the next service is less than a week after the deleted service", 'error');
+				return;
+			}
+		}
+		
 		$sql = 'UPDATE service
-				SET date = DATE_ADD(date, INTERVAL '.(int)$shift_by.' DAY)
-				WHERE date >= '.$GLOBALS['db']->quote($after_date).'
-				AND congregationid IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congids)).')
-				ORDER BY date '.(($shift_by > 0) ? 'DESC' : 'ASC');
+				SET `date` = DATE_ADD(date, INTERVAL '.(int)$shift_by.' DAY)
+				WHERE `date` >= '.$GLOBALS['db']->quote($after_date).'
+				AND congregationid IN '.$cong_set.' 
+				ORDER BY `date` '.(($shift_by > 0) ? 'DESC' : 'ASC');
 		$res = $GLOBALS['db']->query($sql);
 	}
 

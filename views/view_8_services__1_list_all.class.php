@@ -90,7 +90,7 @@ class View_Services__List_All extends View
 						'>date'			 => date('Y-m-d', strtotime($this->_start_date.'-1 day')),
 						'<date'			 => date('Y-m-d', strtotime($this->_end_date.'+1 day')),
 					  );
-			$services = $GLOBALS['system']->getDBObjectData('service', $params, 'AND', 'date');
+			$services = $GLOBALS['system']->getDBObjectData('service', $params, 'AND', 'date', TRUE);
 			foreach ($services as $id => $details) {
 				$details['id'] = $id;
 				$this->_grouped_services[$details['date']][$details['congregationid']] = $details;
@@ -157,7 +157,7 @@ class View_Services__List_All extends View
 			}
 		}
 		if (!empty($_POST['delete_all_date'])) {
-			$services = $GLOBALS['system']->getDBObjectData('service', Array('date' => $_POST['delete_all_date'], 'congregationid' => $this->_congregations), 'AND');
+			$services = $GLOBALS['system']->getDBObjectData('service', Array('date' => $_POST['delete_all_date'], 'congregationid' => $this->_congregations), 'AND', 'date', TRUE);
 			$dummy = new Service();
 			foreach ($services as $id => $details) {
 				$dummy->populate($id, $details);
