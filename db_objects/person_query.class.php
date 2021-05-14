@@ -706,7 +706,7 @@ class Person_Query extends DB_Object
 
 	function processForm($prefix='', $fields=NULL)
 	{
-		if ($GLOBALS['user_system']->havePerm('PERM_MANAGEREPORTS')) {
+		if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
 			switch ($_POST['save_option']) {
 				case 'new':
 					$this->populate(0, Array());
@@ -1745,8 +1745,9 @@ class Person_Query extends DB_Object
 			$user = $GLOBALS['user_system']->getCurrentUser('id');
 			$owner = $this->getValue('owner');
 			if (!empty($user) && !empty($owner) && ($owner != $user)) {
-				trigger_error("Cannot load report that belongs to another user!", E_USER_ERROR);
-				exit;
+				// Somebody trying to open a report that belongs to another
+				$this->reset();
+				return FALSE;
 			}
 			return $res;
 		}
