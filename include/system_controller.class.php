@@ -38,12 +38,7 @@ class System_Controller
 
 		if (!isset($_SESSION['views'][$base_dir]) || isset($_REQUEST['regen'])) {
 			$_SESSION['views'][$base_dir] = Array();
-			$dh = opendir($this->_base_dir.'/views');
-			while (FALSE !== ($filename = readdir($dh))) {
-				if (is_file($this->_base_dir.'/views/'.$filename)) {
-					$raw_filenames[] = $filename;
-				}
-			}
+			$raw_filenames = glob($this->_base_dir.'/views/*.class.php');
 			natsort($raw_filenames);
 			foreach ($raw_filenames as $filename) {
 				$classname = null;
