@@ -89,17 +89,14 @@ class Installer
 	function initDB()
 	{
 		ini_set('max_execution_time', 120);
-		$dh = opendir(dirname(dirname(__FILE__)).'/db_objects');
-		while (FALSE !== ($filename = readdir($dh))) {
-			if (($filename[0] == '.') || is_dir($filename)) continue;
-			$filenames[] = $filename;
-		}
+		$filenames = glob(dirname(dirname(__FILE__)).'/db_objects/*.class.php');
 
 		$fks  = Array();
 		$views = Array();
 
 		sort($filenames);
 		foreach ($filenames as $filename) {
+			$filename = basename($filename);
 			$classname = str_replace('.class.php', '', $filename);
 			require_once dirname(dirname(__FILE__)).'/db_objects/'.$filename;
 			$data_obj = new $classname;
@@ -126,7 +123,7 @@ class Installer
 			  `userid` int(11) NOT NULL default '0',
 			  `lock_type` VARCHAR( 16 ) NOT NULL,
 			  `object_type` varchar(255) NOT NULL default '',
-			  `expires` datetime NOT NULL default '0000-00-00 00:00:00',
+			  `expires` datetime NOT NULL,
 			  KEY `objectid` (`objectid`),
 			  KEY `userid` (`userid`),
 			  KEY `object_type` (`object_type`)
@@ -339,6 +336,7 @@ class Installer
 		}
 		$this->user->setValue('status', 0);
 		$this->user->setValue('age_bracketid', 1);
+		$this->user->setValue('congregationid', 1); // will be overwritten with a real one later
 		$this->user->setValue('permissions', PERM_SYSADMIN);
 		if (!$this->user->validateFields()) return FALSE;
 
