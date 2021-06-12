@@ -133,7 +133,6 @@ class View_Persons__Reports extends View
 							<th><?php echo _('Visible To');?></th>
 							<th><?php echo _('Actions');?></th>
 							<th></th>
-							<th></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -176,12 +175,12 @@ class View_Persons__Reports extends View
 							}
 							?>
 							</td>
-							<td>
+							<td class="narrow">
 								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>&configure=1"><i class="icon-wrench"></i><?php echo _('Configure');?></a> &nbsp;
 							<?php
 							if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
 								?>
-								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>&delete=1" data-method="post" class="double-confirm-title" title="Delete this report"><i class="icon-trash"></i><?php echo _('Delete');?></a>
+								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>&delete=1" data-method="post" class=" double-confirm-title" title="Delete this report"><i class="icon-trash"></i><?php echo _('Delete');?></a>
 								<?php
 							}
 							?>
