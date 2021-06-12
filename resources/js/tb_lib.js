@@ -395,6 +395,15 @@ $(document).ready(function() {
         });
 		return false;
 	});
+	
+	($("[data-action=copy-tsv]").click(function() {
+		var link = this;
+		TBLib.copyTSV($(this).parents('table:first').get(0)).then(function() {
+			link.oldHTML = link.innerHTML;
+			link.innerHTML = '✔ Copied';
+			setTimeout(function() { link.innerHTML = link.oldHTML }, 3000);
+		})
+	}))
 });
 
 
@@ -973,4 +982,19 @@ TBLib.handleMailtoClick = function() {
 		} catch (e) {} // if it's naviated to gmail.com we don't have permission to close it, and that's ok
 	}, 500);
 	return false;
+}
+
+TBLib.copyTSV = function(table) {
+  var h = '';
+  var rows = table.getElementsByTagName ('TR');
+  for (let r of rows) {
+    var cells = r.getElementsByTagName ('*');
+    for (let c of cells) {
+		if (!c.classList.contains('no-print')) {
+			h += c.innerText + '\t';
+		}
+    }
+    h += "\n";
+  }
+  return navigator.clipboard.writeText(h);
 }

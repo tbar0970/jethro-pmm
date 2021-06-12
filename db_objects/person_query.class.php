@@ -1587,12 +1587,13 @@ class Person_Query extends DB_Object
 			<?php
 			return;
 		}
+		$headers = array_keys(reset($x));
 		?>
 		<table class="table table-striped table-condensed table-hover table-min-width clickable-rows query-results">
 			<thead>
 				<tr>
 				<?php
-				foreach (array_keys(reset($x)) as $heading) {
+				foreach ($headers as $heading) {
 					?>
 					<th<?php echo $this->_getColClasses($heading); ?>>
 						<?php
@@ -1689,8 +1690,15 @@ class Person_Query extends DB_Object
 			}
 			?>
 			</tbody>
+			<tfoot>
+				<tr>
+					<td class="report-summary no-tsv" colspan="<?php echo count($headers); ?>">
+						<span title="Copy to clipboard as tab-separated text" class="pull-right clickable no-print" data-action="copy-tsv">Copy as TSV</span>
+						<i><?php echo count($x); ?> persons listed</i>
+					</td>
+				</tr>
+			</tfoot>
 		</table>
-		<p class="report-summary"><?php echo count($x); ?> persons listed</p>
 		<?php
 	}
 

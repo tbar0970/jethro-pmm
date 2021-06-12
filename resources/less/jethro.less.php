@@ -817,11 +817,13 @@ input.btn-link, button.btn-link {
 
 /************* REPORTS **************/
 table.query-results {
-	margin-bottom: 2px; /*  so the X persons listed text can snuggle underneath */
+	margin-bottom: 5px; /*  so the X persons listed text can snuggle underneath */
 }
-p.report-summary {
-	font-weight: bold;
-	color: @grayLight;
+table.query-results tfoot * {
+	border-bottom: 0px !important;
+}
+.report-summary, .report-summary * {
+	color: @grayLight !important;
 }
 
 
