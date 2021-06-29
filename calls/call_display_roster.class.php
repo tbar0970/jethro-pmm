@@ -38,11 +38,11 @@ class Call_Display_Roster extends Call
 						padding: 3px 1ex;
 						font-size: 0.8em;
 					}
-					th {
+					thead th {
 						background-color: #555;
 						color: white;
 					}
-					th * {
+					thead th * {
 						color: white !important;
 					}
 					table {
@@ -51,6 +51,9 @@ class Call_Display_Roster extends Call
 					.smallprint {
 						margin-top: 1ex;
 						font-size: 75%;
+					}
+					tbody .roster-date {
+						text-align: right;
 					}
 				</style>
 			</head>

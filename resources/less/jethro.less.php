@@ -1264,29 +1264,61 @@ ul.nav-tabs {
 
 
 /*********** ROSTERS ***********/
-#body table.roster td {
-	background: @jethroLightest !important; /* lighter yellow */
+#body table.roster {
+	border-style: solid;
+	border-color: @jethroDarkest;
+	-webkit-box-shadow: 3px 3px 10px rgba(0,0,0,.2);
+	-moz-box-shadow: 3px 3px 10px rgba(0,0,0,.2);
+	box-shadow: 3px 3px 10px rgba(0,0,0,.2);
+	width: auto;
+	border-collapse: separate !important; /* need this for stick header's borders to show correctly */
+	border-spacing: 0;
+	border-width:  2px 1px 1px 2px /*top left borders on table; bottom right borders on cells. */ 
+}  
+#body table.roster td, #body table.roster th {
+	border-color: @jethroDarkest;
+	border-width:  0px 1px 1px 0px;
+	padding: 4px;
 }
-#body table.roster th {
+#body table.roster thead  {
+	position: sticky;
+	top: 0;
+	box-shadow: 0 3px 3px -1px rgba(0, 0, 0, 0.4);
+	z-index: 99;
+}
+#body table.roster thead th {
+	z-index: 99;
 	background-image: none;
 	filter: none;
 	background-color: @jethroDarkish;
-	/*border: 1px solid !important;*/
 }
+#body table.roster tbody tr:first-child td, #body table.roster tbody tr:first-child th {
+	padding-top: 7px !important; /* so the drop shadow doesn't make the row look too skinny */
+}
+#body table.roster td, #body table.roster tbody th {
+	background: @jethroLightest; /* lighter yellow */
+}
+#body table.roster tr.roster-next td, #body table.roster tr.roster-next th {
+	background: @tableBackgroundHover !important;
+}
+
 .thick-left-border {
-	border-left-width: 2px !important;
+	border-left: 2px solid @jethroDarkest !important;
 }
-#body table.roster td, #body table.roster th {
-	padding: 4px;
-	border: 1px solid @jethroDarkest;
+#body table.roster thead th.roster-date {
+	text-align: center;
+	position: sticky;
+	left: 0;
 }
-#body table.roster {
-	border-collapse: collapse;
-	border: 2px solid @jethroDarkest;
-  -webkit-box-shadow: 3px 3px 10px rgba(0,0,0,.2);
-  -moz-box-shadow: 3px 3px 10px rgba(0,0,0,.2);
-  box-shadow: 3px 3px 10px rgba(0,0,0,.2);
-	width: auto;
+#body table.roster tbody th.roster-date {
+	text-align: right;
+	position: sticky;
+	left: 0;
+	z-index: 1;
+}
+#body table.roster th.roster-date .smallprint {
+	font-weight: normal !important;
+	text-align: center;
 }
 #body table.roster a {
 	white-space: nowrap;

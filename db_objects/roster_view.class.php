@@ -698,7 +698,7 @@ class roster_view extends db_object
 		}
 
 		?>
-		<table class="table roster" border="1" cellspacing="0" cellpadding="1">
+		<table class="table roster table-hover" border="1" cellspacing="0" cellpadding="1">
 
 			<?php $this->_printTableHeader($editing, $public); ?>
 
@@ -706,10 +706,10 @@ class roster_view extends db_object
 			<?php
 
 			foreach ($to_print as $date => $ddetail) {
-				$class_clause = ($date == $this_sunday) ? 'class="tblib-hover"' : '';
+				$class_clause = ($date <= $this_sunday) ? 'class="roster-next"' : '';
 				?>
 				<tr <?php echo $class_clause; ?>>
-					<td class="nowrap">
+					<th class="roster-date nowrap">
 						<?php
 						echo '<strong>'.str_replace(' ', '&nbsp;', date('j M y', strtotime($date))).'</strong>';
 						if (!$editing && !$public) {
@@ -732,21 +732,21 @@ class roster_view extends db_object
 							}
 							if (!empty($emails)) {
 								?>
-								<span class="smallprint no-print">
+								<div class="smallprint no-print">
 									<a href="<?php echo get_email_href($my_email, NULL, $emails, date('jS F', strtotime($date))); ?>" <?php echo email_link_extras(); ?>>Email&nbsp;All</a>
-				                </span>
+				                </div>
 								<?php
 							}
 							if (!empty($mobiles) && SMS_Sender::canSend()) {
 								?>
-								<span class="smallprint no-print">
+								<div class="smallprint no-print">
 								  <a href="#send-sms-modal" data-personid="<?php echo implode(',', array_unique($personids)); ?>" data-toggle="sms-modal" data-name="People Rostered on <?php echo $date;?>" onclick="$(this).parents('tr:first').addClass('tblib-hover')">SMS&nbsp;All</a>
-								</span>
+								</div>
 								<?php
 							}
 						}
 						?>
-					</td>
+					</th>
 				<?php
 				$last_congid = NULL;
 				foreach ($this->_members as $id => $mdetail) {
@@ -808,23 +808,12 @@ class roster_view extends db_object
 					</td>
 					<?php
 				}
-				if (!$public && (count($this->_members) > REPEAT_DATE_THRESHOLD)) {
-					?>
-					<td class="nowrap thick-left-border">
-						<strong><?php echo str_replace(' ', '&nbsp;', date('j M y', strtotime($date))); ?></strong>
-					</td>
-					<?php
-				}
 				?>
 				</tr>
 				<?php
 			}
 		?>
 		</tbody>
-
-		<?php
-		if (!$public && (count($to_print) > 6)) $this->_printTableFooter($editing, $public);
-		?>
 
 		</table>
 
@@ -842,41 +831,15 @@ class roster_view extends db_object
 		?>
 		<thead>
 			<tr>
-				<th rowspan="2">Date</th>
+				<th rowspan="2" class="roster-date">Date</th>
 				<?php
 				$this->_printCongHeaders();
-				if (!$public && (count($this->_members) > REPEAT_DATE_THRESHOLD)) {
-					?>
-					<th rowspan="2" class="thick-left-border">Date</th>
-					<?php
-				}
 				?>
 			</tr>
 			<tr>
 				<?php $this->_printRoleHeaders($editing, $public); ?>
 			</tr>
 		</thead>
-		<?php
-	}
-
-	function _printTableFooter($editing, $public)
-	{
-		?>
-		<tfoot>
-			<tr>
-				<th rowspan="2">Date</th>
-				<?php $this->_printRoleHeaders($editing, $public);
-				if (!$public && (count($this->_members) > REPEAT_DATE_THRESHOLD)) {
-					?>
-					<th rowspan="2">Date</th>
-					<?php
-				}
-				?>
-			</tr>
-			<tr>
-				<?php $this->_printCongHeaders(); ?>
-			</tr>
-		</tfoot>
 		<?php
 	}
 
