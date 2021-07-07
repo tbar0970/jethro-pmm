@@ -160,8 +160,15 @@ function print_message($msg, $class='success', $html=FALSE)
 		echo strtoupper($class).': '.$msg."\n";
 	} else {
 		if ($class == 'failure') $class='error';
+		$chars = Array(
+					'success' => '<i class="icon-ok"></i> ',
+					'warning' => '<i class="icon-info-sign"></i> ',
+					'error' => '<i class="icon-exclamation-sign"></i> ',
+				);
+		$char = '';
+		if (!$html) $char = array_get($chars, $class);
 		?>
-		<div class="alert alert-<?php echo $class; ?>"><?php echo $html ? $msg : ents($msg); ?></div>
+		<div class="alert alert-<?php echo $class; ?>"><?php echo $char; echo $html ? $msg : ents($msg); ?></div>
 		<?php
 	}
 }
