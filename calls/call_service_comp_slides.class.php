@@ -119,7 +119,7 @@ class Call_Service_Comp_Slides extends Call
 
 										//populate text elements							
 										for ($z = 0; $z < ($numlines); $z++) {
-											$textlines->item($z)->nodeValue = htmlspecialchars(strip_tags(html_entity_decode($lines[$z], ENT_XML1, 'UTF-8')), ENT_QUOTES, 'UTF-8', false);
+											$textlines->item($z)->nodeValue = htmlspecialchars(strip_tags(html_entity_decode($lines[$z], ENT_QUOTES, 'UTF-8')), ENT_QUOTES, 'UTF-8', false);
 										}
 									}
 								} 
