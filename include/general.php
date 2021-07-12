@@ -122,6 +122,33 @@ function ents($str)
 	return htmlspecialchars($str, ENT_QUOTES, "UTF-8", false);
 }
 
+/**
+ * Take a string, which may include HTML tags or entities, and prepare it to be XML-safe.
+ * @param type $x
+ */
+function xml_safe_string($x)
+{
+	$res = strip_tags(html_entity_decode($x, ENT_QUOTES, 'UTF-8'));
+	
+	// decode some entities that are missed by html_entity_decode in PHP5.3
+	$res = str_replace("&rsquo;", "’", $res);
+	$res = str_replace("&lsquo;", "‘", $res);
+	$res = str_replace("&ldquo;", "“", $res);
+	$res = str_replace("&ldquo;", "”", $res);
+	$res = str_replace("&ndash;", "–", $res);
+	$res = str_replace("&hellip;", "…", $res);
+	$res = str_replace("", "'", $res);
+	$res = str_replace("", "'", $res);
+	
+	// now encode the small list of XML entities
+	$res = str_replace("&", '&amp;', $res);
+	$res = str_replace("'", '&apos;', $res);
+	$res = str_replace('"', '&quot;', $res);
+	$res = str_replace('>', '&gt;', $res);
+	$res = str_replace('<', '&lt;', $res);
+	return $res;
+}
+
 function redirect($view, $params=Array(), $hash='')
 {
 	session_write_close();
