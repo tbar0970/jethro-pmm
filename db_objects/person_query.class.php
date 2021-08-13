@@ -1252,8 +1252,8 @@ class Person_Query extends DB_Object
 										JOIN (
 											SELECT familyid, IF (
 												GROUP_CONCAT(DISTINCT last_name) = ff.family_name,
-												GROUP_CONCAT(first_name ORDER BY ab.rank, gender DESC SEPARATOR ", "),
-												GROUP_CONCAT(CONCAT(first_name, " ", last_name) ORDER BY ab.rank, gender DESC SEPARATOR ", ")
+												GROUP_CONCAT(first_name ORDER BY ab.`rank`, gender DESC SEPARATOR ", "),
+												GROUP_CONCAT(CONCAT(first_name, " ", last_name) ORDER BY ab.`rank`, gender DESC SEPARATOR ", ")
 											  ) AS `names`
 											FROM person pp
 											JOIN age_bracket ab ON ab.id = pp.age_bracketid
@@ -1277,8 +1277,8 @@ class Person_Query extends DB_Object
 						$r2 = $GLOBALS['db']->query('INSERT INTO _family_adults'.$this->id.' (familyid, names)
 											SELECT familyid, IF (
 												GROUP_CONCAT(DISTINCT last_name) = ff.family_name,
-												GROUP_CONCAT(first_name ORDER BY ab.rank, gender DESC SEPARATOR ", "),
-												GROUP_CONCAT(CONCAT(first_name, " ", last_name) ORDER BY ab.rank, gender DESC SEPARATOR ", ")
+												GROUP_CONCAT(first_name ORDER BY ab.`rank`, gender DESC SEPARATOR ", "),
+												GROUP_CONCAT(CONCAT(first_name, " ", last_name) ORDER BY ab.`rank`, gender DESC SEPARATOR ", ")
 											  )
 											FROM person pp
 											JOIN age_bracket ab ON pp.age_bracketid = ab.id
@@ -1377,7 +1377,7 @@ class Person_Query extends DB_Object
 					LEFT JOIN congregation cord ON p.congregationid = cord.id ';
 				$query['order_by'] = 'IF(cord.id IS NULL, 1, 0), IF(LENGTH(cord.meeting_time)>0, 0, 1), cord.meeting_time, cord.name';
 			} else if ($params['sort_by'] == 'p.age_bracketid') {
-				$query['order_by'] = 'absort.rank';
+				$query['order_by'] = 'absort.`rank`';
 			} else {
 				$query['order_by'] = $this->_quoteAliasAndColumn($params['sort_by']);
 			}
@@ -1389,7 +1389,7 @@ class Person_Query extends DB_Object
 			if ($params['sort_by'] == 'f.family_name') {
 				// Stop members of identically-named families from being intermingled
 				// and make sure kids follow adults even if their last names are earlier
-				$query['order_by'] .= ', f.id,  absort.rank';
+				$query['order_by'] .= ', f.id,  absort.`rank`';
 			}
 
 			/*
@@ -1400,7 +1400,7 @@ class Person_Query extends DB_Object
 			$rewrites = Array(
 						'`attendance_percent`' => '`Attendance` ASC',
 						'`attendance_numabsences`' => '`Running Absences` DESC',
-						'`membershipstatus`' => 'pgms.rank',
+						'`membershipstatus`' => 'pgms.`rank`',
 			);
 			$query['order_by'] = str_replace(array_keys($rewrites), array_values($rewrites), $query['order_by']);
 			if (!strlen(trim($query['order_by'], '`'))) $query['order_by'] = 1;
@@ -1416,7 +1416,7 @@ class Person_Query extends DB_Object
 				';
 		}
 		$sql .= "\nGROUP BY ".implode(', ', $query['group_by']);
-		$sql .= "\nORDER BY ".$query['order_by'].', p.last_name, p.familyid, absort.rank, IF (absort.is_adult, p.gender, 1) DESC, p.first_name';
+		$sql .= "\nORDER BY ".$query['order_by'].', p.last_name, p.familyid, absort.`rank`, IF (absort.is_adult, p.gender, 1) DESC, p.first_name';
 
 		return $sql;
 	}

@@ -86,7 +86,7 @@ class Config_Manager {
 		$SQL = 'DELETE FROM age_bracket where 1';
 		$res = $db->exec($SQL);
 
-		$SQL = 'REPLACE INTO age_bracket (id, label, rank, is_adult, is_default)
+		$SQL = 'REPLACE INTO age_bracket (id, label, `rank`, is_adult, is_default)
 				VALUES ';
 		foreach(explode(',', AGE_BRACKET_OPTIONS) as $id => $label) {
 			$is_adult = strtolower($label) == 'adult' ? 1 : 0;
@@ -98,7 +98,7 @@ class Config_Manager {
 		// Now we need to convert the zero-based to 1-based numbers
 		$SQL = 'UPDATE _person p
 				JOIN _disused_person_age_brackets dab ON p.id = dab.id
-				JOIN age_bracket ab ON ab.rank = dab.age_bracket
+				JOIN age_bracket ab ON ab.`rank` = dab.age_bracket
 				SET p.age_bracketid = ab.id';
 		$res = $db->exec($SQL);
 

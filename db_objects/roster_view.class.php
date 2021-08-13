@@ -359,7 +359,7 @@ class roster_view extends db_object
 		// which assignments involve 'hidden' persons so we treat them as read-only.
 		$visiblePersonTable = ($this->getValue('visibility') == 'public') ? '_person' : 'person';
 
-		$sql = 'SELECT roster_role_id, assignment_date, rank, rra.personid,
+		$sql = 'SELECT roster_role_id, assignment_date, `rank`, rra.personid,
 				IFNULL(CONCAT(publicassignee.first_name, " ", publicassignee.last_name), "'.self::hiddenPersonLabel.'") as assignee,
 				IF(privateassignee.id IS NULL, 1, 0) as assigneehidden,
 				privateassignee.email as email,
@@ -372,7 +372,7 @@ class roster_view extends db_object
 				LEFT JOIN person assigner ON rra.assigner = assigner.id
 				WHERE roster_role_id IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $roleids)).')
 				AND assignment_date BETWEEN '.$GLOBALS['db']->quote($start_date).' AND '.$GLOBALS['db']->quote($end_date).'
-				ORDER BY assignment_date, roster_role_id, rank, privateassignee.last_name, privateassignee.first_name';
+				ORDER BY assignment_date, roster_role_id, `rank`, privateassignee.last_name, privateassignee.first_name';
 		$rows = $GLOBALS['db']->queryAll($sql);
 		$res = Array();
 		foreach ($rows as $row) {
@@ -952,7 +952,7 @@ class roster_view extends db_object
 				if (in_array($roleid, $roles)) { // don't delete any allocations for read-only roles!!
 					foreach ($role_allocs as $rank => $person_details) {
 						if ($person_details['assigneehidden']) continue;
-						$del_clauses[] = '(roster_role_id = '.(int)$roleid.' AND assignment_date = '.$GLOBALS['db']->quote($date).' AND rank = '.(int)$rank.')';
+						$del_clauses[] = '(roster_role_id = '.(int)$roleid.' AND assignment_date = '.$GLOBALS['db']->quote($date).' AND `rank` = '.(int)$rank.')';
 					}
 				}
 			}
@@ -965,7 +965,7 @@ class roster_view extends db_object
 		}
 		if (!empty($to_add)) {
 			$to_add = array_unique($to_add);
-			$sql = 'REPLACE INTO roster_role_assignment (roster_role_id, assignment_date, personid, rank, assigner)
+			$sql = 'REPLACE INTO roster_role_assignment (roster_role_id, assignment_date, personid, `rank`, assigner)
 					VALUES '.implode(",\n", $to_add);
 			$res = $GLOBALS['db']->query($sql);
 		}

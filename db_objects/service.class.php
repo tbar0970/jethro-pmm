@@ -422,7 +422,7 @@ class service extends db_object
 		$res['select'][] = 'GROUP_CONCAT(CONCAT(sbr.bible_ref, "=", sbr.to_read, "=", sbr.to_preach) ORDER BY sbr.order_num SEPARATOR ";") as readings';
 		$res['from'] .= ' LEFT JOIN service_bible_reading sbr ON service.id = sbr.service_id';
 		$res['select'][] = 'IF (si.id IS NULL, 0, 1) as has_items';
-		$res['from'] .= ' LEFT JOIN service_item si ON si.serviceid = service.id AND si.rank = 0 ';
+		$res['from'] .= ' LEFT JOIN service_item si ON si.serviceid = service.id AND si.`rank` = 0 ';
 		$res['group_by'] = 'service.id';
 		return $res;
 	}
@@ -494,10 +494,10 @@ class service extends db_object
 				AND rra.assignment_date = '.$GLOBALS['db']->quote($this->getValue('date')).'
 		';
 		if ($index !== NULL) {
-			$sql .= 'AND rank = '.($index-1).' ';
+			$sql .= 'AND `rank` = '.($index-1).' ';
 		}
 		$sql .= '
-				ORDER BY roster_role_id, rank';
+				ORDER BY roster_role_id, `rank`';
 		$assignments =  $GLOBALS['db']->queryAll($sql, null, null, false);
 		$role_ids = Array();
 		$names = Array();
@@ -576,7 +576,7 @@ class service extends db_object
 
 		if (!empty($itemList)) {
 			$SQL = 'INSERT INTO service_item
-					(serviceid, rank, componentid, title, personnel, show_in_handout, length_mins, note, heading_text)
+					(serviceid, `rank`, componentid, title, personnel, show_in_handout, length_mins, note, heading_text)
 					VALUES
 					';
 			$sets = Array();

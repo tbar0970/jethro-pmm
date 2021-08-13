@@ -269,7 +269,7 @@ class family extends db_object
 
 	function getAdultMemberNames()
 	{
-		$adults = $GLOBALS['system']->getDBObjectData('person', Array('familyid' => $this->id, '(age_bracketid' => Age_Bracket::getAdults(), '!status' => 'archived'), 'AND', 'ab.rank, gender DESC');
+		$adults = $GLOBALS['system']->getDBObjectData('person', Array('familyid' => $this->id, '(age_bracketid' => Age_Bracket::getAdults(), '!status' => 'archived'), 'AND', 'ab.`rank`, gender DESC');
 		if (count($adults) == 1) {
 			$adult = reset($adults);
 			return $adult['first_name'].' '.$adult['last_name'];
@@ -310,7 +310,7 @@ class family extends db_object
 	function getInstancesQueryComps($params, $logic, $order)
 	{
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
-		$res['select'][] = 'GROUP_CONCAT(p.first_name ORDER BY ab.rank ASC, p.gender DESC SEPARATOR \', \') as members';
+		$res['select'][] = 'GROUP_CONCAT(p.first_name ORDER BY ab.`rank` ASC, p.gender DESC SEPARATOR \', \') as members';
 		if (array_get($params, '!status') == 'archived') {
 			// If we are excluding archived families, exclude archived members too
 			$res['from'] .= ' JOIN person p ON family.id = p.familyid AND p.status <> "archived"'; // Families with no visible members will be excluded
@@ -348,7 +348,7 @@ class family extends db_object
 		//$objectType = $GLOBALS['user_system']->getCurrentUser() ? 'person' : 'member';
 		$restriction = $GLOBALS['user_system']->getCurrentUser() ? Array() : Array('!status' => 'archived');
 		if (!isset($this->_tmp['members'])) {
-			$this->_tmp['members'] = $GLOBALS['system']->getDBObjectData('person', Array('familyid' => $this->id)+$restriction, 'AND', 'ab.rank, gender DESC');
+			$this->_tmp['members'] = $GLOBALS['system']->getDBObjectData('person', Array('familyid' => $this->id)+$restriction, 'AND', 'ab.`rank`, gender DESC');
 		}
 		return $this->_tmp['members'];
 	}
@@ -525,16 +525,16 @@ class family extends db_object
 			adultmembers.emails as emails,
 			IFNULL(adultmembers.names, "") as adult_members,
 			IFNULL(adultmembers.full_names, "") as adult_members_full,
-			GROUP_CONCAT(p.first_name ORDER BY ab.rank ASC, p.gender, p.id DESC SEPARATOR ",") as selected_firstnames,
-			GROUP_CONCAT(p.last_name ORDER BY ab.rank ASC, p.gender, p.id DESC SEPARATOR ",") as selected_lastnames,
-			GROUP_CONCAT(CONCAT_WS(" ",p.first_name,p.last_name) ORDER BY ab.rank ASC, p.gender, p.id DESC SEPARATOR ",") as selected_names
+			GROUP_CONCAT(p.first_name ORDER BY ab.`rank` ASC, p.gender, p.id DESC SEPARATOR ",") as selected_firstnames,
+			GROUP_CONCAT(p.last_name ORDER BY ab.`rank` ASC, p.gender, p.id DESC SEPARATOR ",") as selected_lastnames,
+			GROUP_CONCAT(CONCAT_WS(" ",p.first_name,p.last_name) ORDER BY ab.`rank` ASC, p.gender, p.id DESC SEPARATOR ",") as selected_names
 			FROM family f
 			JOIN person p ON f.id= p.familyid
 		    JOIN age_bracket ab ON ab.id = p.age_bracketid
 			JOIN (
 			   select f.id as familyid,
-			    GROUP_CONCAT(p.first_name ORDER BY ab.rank ASC, p.gender DESC SEPARATOR ", ") as names,
-			    GROUP_CONCAT(CONCAT_WS(" ",p.first_name,p.last_name) ORDER BY ab.rank ASC, p.gender DESC SEPARATOR ", ") as full_names
+			    GROUP_CONCAT(p.first_name ORDER BY ab.`rank` ASC, p.gender DESC SEPARATOR ", ") as names,
+			    GROUP_CONCAT(CONCAT_WS(" ",p.first_name,p.last_name) ORDER BY ab.`rank` ASC, p.gender DESC SEPARATOR ", ") as full_names
 			   FROM person p JOIN family f on p.familyid = f.id
 			   JOIN age_bracket ab ON ab.id = p.age_bracketid
 			   WHERE p.status <> "archived"
@@ -542,10 +542,10 @@ class family extends db_object
 			) allmembers ON allmembers.familyid = f.id
 			LEFT JOIN (
 			   select f.id as familyid,
-			    GROUP_CONCAT(p.first_name ORDER BY ab.rank ASC, p.gender DESC SEPARATOR ", ") as names,
-			    GROUP_CONCAT(CONCAT_WS(" ",p.first_name,p.last_name) ORDER BY ab.rank ASC, p.gender DESC SEPARATOR ", ") as full_names,
-			    GROUP_CONCAT(p.mobile_tel ORDER BY ab.rank ASC, p.gender DESC SEPARATOR ", ") as mobile_tels,
-			    GROUP_CONCAT(p.email ORDER BY ab.rank ASC, p.gender DESC SEPARATOR ", ") as emails
+			    GROUP_CONCAT(p.first_name ORDER BY ab.`rank` ASC, p.gender DESC SEPARATOR ", ") as names,
+			    GROUP_CONCAT(CONCAT_WS(" ",p.first_name,p.last_name) ORDER BY ab.`rank` ASC, p.gender DESC SEPARATOR ", ") as full_names,
+			    GROUP_CONCAT(p.mobile_tel ORDER BY ab.`rank` ASC, p.gender DESC SEPARATOR ", ") as mobile_tels,
+			    GROUP_CONCAT(p.email ORDER BY ab.`rank` ASC, p.gender DESC SEPARATOR ", ") as emails
 			   FROM person p
 			   JOIN family f on p.familyid = f.id
 			   JOIN age_bracket ab ON ab.id = p.age_bracketid

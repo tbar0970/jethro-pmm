@@ -39,7 +39,7 @@ class Member extends DB_Object
 	static function getList($search=NULL, $congregationid=NULL)
 	{
 		$t = new Member();
-		$order = 'family_name, familyid, ab.rank ASC, gender DESC';
+		$order = 'family_name, familyid, ab.`rank` ASC, gender DESC';
 		$conds = Array();
 		if (!empty($search)) {
 			$conds['first_name'] = $search.'%';

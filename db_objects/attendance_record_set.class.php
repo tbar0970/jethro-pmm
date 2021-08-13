@@ -14,7 +14,7 @@ class Attendance_Record_Set
 	private $_attendance_records = Array();
 	private $_cohort_object = NULL;
 
-	const LIST_ORDER_DEFAULT = 'status ASC, family_name ASC, familyid, ab.rank ASC, gender DESC';
+	const LIST_ORDER_DEFAULT = 'status ASC, family_name ASC, familyid, ab.`rank` ASC, gender DESC';
 //--        CREATING, LOADING AND SAVING        --//
 
 	function __construct($date=NULL, $cohort=NULL, $age_brackets=NULL, $statuses=NULL)
@@ -131,7 +131,7 @@ class Attendance_Record_Set
 
 		// NOW FETCH THE APPLICABLE PERSON RECORDS
 		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
-		$order = str_replace('age_bracket', 'ab.rank', $order);
+		$order = str_replace('age_bracket', 'ab.`rank`', $order);
 
 		$conds = Array();
 		if ($this->age_brackets) {
@@ -498,7 +498,7 @@ class Attendance_Record_Set
 
 		foreach (Array('age_bracketid', 'status') as $groupingField) {
 			$stats[NULL]['rate'] = $stats[NULL]['avg_present'] = $stats[NULL]['avg_absent'] = 0.0;
-			$rank = ($groupingField == 'status' && $type == 'g') ? 'rank, ' : '';
+			$rank = ($groupingField == 'status' && $type == 'g') ? '`rank`, ' : '';
 			$selectCol = ($groupingField == 'status') ? $status_col : $groupingField;
 
 			// SELECT THE RATES
@@ -628,7 +628,7 @@ class Attendance_Record_Set
 		}
 
 		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
-		$order = str_replace('age_bracket', 'ab.rank', $order);
+		$order = str_replace('age_bracket', 'ab.`rank`', $order);
 		// Since we are getting persons for multiple cohorts, "status" has to mean person status here.
 		$order = preg_replace("/(^|[^.])status($| |,)/", '\\1person.status\\2', $order);
 		$SQL .=  "GROUP BY person.id \n";
@@ -727,11 +727,11 @@ class Attendance_Record_Set
 		if ($statusClauses) $SQL .= 'AND (('.implode(') OR (', $statusClauses).'))';
 
 		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
-		$order = str_replace('age_bracket', 'ab.rank', $order);
+		$order = str_replace('age_bracket', 'ab.`rank`', $order);
 		if ($congregationids) {
 			$order = preg_replace("/(^|[^.])status($| |,)/", '\\1person.status\\2', $order);
 		} else {
-			$order = preg_replace("/(^|[^.])status($| |,)/", '\\1pgms.rank\\2', $order);
+			$order = preg_replace("/(^|[^.])status($| |,)/", '\\1pgms.`rank`\\2', $order);
 		}
 		$SQL .= '
 				ORDER BY '.$order;

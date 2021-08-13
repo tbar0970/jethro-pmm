@@ -184,8 +184,8 @@ class Custom_Field extends db_object
 	{
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
 		$res['from'] .= ' LEFT JOIN custom_field_option cfo ON cfo.fieldid = custom_field.id';
-		$res['select'][] = 'GROUP_CONCAT(CONCAT(cfo.id, "__:__", cfo.value) ORDER BY cfo.rank ASC SEPARATOR ";;;") as options';
-		$res['select'][] = 'GROUP_CONCAT(CONCAT(cfo.id, "__:__", cfo.value) ORDER BY cfo.rank DESC SEPARATOR ";;;") as reverseoptions';
+		$res['select'][] = 'GROUP_CONCAT(CONCAT(cfo.id, "__:__", cfo.value) ORDER BY cfo.`rank` ASC SEPARATOR ";;;") as options';
+		$res['select'][] = 'GROUP_CONCAT(CONCAT(cfo.id, "__:__", cfo.value) ORDER BY cfo.`rank` DESC SEPARATOR ";;;") as reverseoptions';
 		$res['select'][] = 'params';
 		$res['group_by'] = 'custom_field.id';
 		return $res;
@@ -663,6 +663,6 @@ class Custom_Field extends db_object
 	 */
 	public static function getSortValueSQLExpr($dataTableAlias, $optionTableAlias)
 	{
-		return 'COALESCE('.$optionTableAlias.'.rank, '.$dataTableAlias.'.value_date, '.$dataTableAlias.'.value_text)';
+		return 'COALESCE('.$optionTableAlias.'.`rank`, '.$dataTableAlias.'.value_date, '.$dataTableAlias.'.value_text)';
 	}
 }

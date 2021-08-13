@@ -1052,7 +1052,7 @@ class db_object
 
 		if (!empty($order)) {
 			if (isset($this->fields[$order])) {
-				$res['order_by'] = $this->fields[$order]['table_name'].'.'.$order;
+				$res['order_by'] = $this->fields[$order]['table_name'].'.`'.$order.'`';
 			} else {
 				$res['order_by'] = $order; // good luck...
 			}

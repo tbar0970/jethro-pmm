@@ -180,7 +180,7 @@ class Installer
 			;',
 
 			"CREATE TABLE setting (
-				rank  int(11) unsigned,
+				`rank`  int(11) unsigned,
 				heading VARCHAR(255) DEFAULT NULL,
 				symbol VARCHAR(255) NOT NULL,
 				note VARCHAR(255) NOT NULL,
@@ -191,7 +191,7 @@ class Installer
 
 			"SET @rank = 1;	",
 
-			"INSERT INTO setting (rank, heading, symbol, note, type, value)
+			"INSERT INTO setting (`rank`, heading, symbol, note, type, value)
 			 VALUES
 			(@rank:=@rank+5, '','SYSTEM_NAME','Label displayed at the top of every page','text',''),
 
