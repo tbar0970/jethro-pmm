@@ -11,7 +11,7 @@ class Call_Document_merge_rosters extends Call
 			trigger_error('Template file does not seem to have been uploaded');
 			return;
 		}
-		$extension = @strtolower(end(explode('.', $file_info['name'])));
+		$extension = strtolower(pathinfo($file_info['name'], PATHINFO_EXTENSION));
 		$source_file = $file_info['tmp_name'];
 		rename ($source_file, $source_file.'.'.$extension);
 		$source_file = $source_file.'.'.$extension;
@@ -57,6 +57,13 @@ class Call_Document_merge_rosters extends Call
 						$persons = array();
 						foreach ($row as $item) {
 							$roster_row['role'.$itemno] = str_replace("\n", ', ', $item);
+                                                        if ($extension == 'ods') {
+								$roster_row['role_cr'.$itemno] = str_replace("\n", '</text:p><text:p>', trim($item));
+                                                        } elseif ($extension == 'odt'){
+                                                                $roster_row['role_cr'.$itemno] = str_replace("\n", '<text:line-break/>', trim($item));
+                                                        } else {
+                                                                $roster_row['role_cr'.$itemno] = trim($item);
+                                                        }
 							if ($itemno == 0) {
 								$roster_row['date'] = $item;
 								$date = $item;
@@ -75,7 +82,9 @@ class Call_Document_merge_rosters extends Call
 						$roster[] = $roster_row;
 						$peoples = array();
 						foreach ($persons as $key => $value) {
-							$peoples[] = $key;
+							if (trim($key) <> '') {
+								$peoples[] = trim($key);
+							}
 						}
 						asort($peoples);
 						foreach ($peoples as $value) {

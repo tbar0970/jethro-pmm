@@ -113,7 +113,7 @@ class Roster_Role extends db_object
 	{
 		$person = $GLOBALS['system']->getDBObject('person', $personid);
 		?>
-		<option value="<?php echo (int)$personid; ?>" class="unlisted-allocee" selected="selected" title="This person is not in the volunteer group for this role"><?php echo ents($person->toString()); ?></option>
+		<option value="<?php echo (int)$personid; ?>" class="unlisted-allocee" selected="selected" title="This person is not in the volunteer group for this role or not available on this day"><?php echo ents($person->toString()); ?></option>
 		<?php
 	}
 
@@ -123,7 +123,23 @@ class Roster_Role extends db_object
 	function printChooser($date, $currentval=Array(''))
 	{
 		if ($groupid = $this->getValue('volunteer_group')) {
-			$volunteers = $this->_getVolunteers();
+			// Exclude those absent that day
+			$volunteers = Array();
+			$vols = Array();
+			$vols = $this->_getVolunteers();
+			foreach ($vols as $vol => $vname) {
+				$SQL = 'SELECT present '.
+						' FROM attendance_record ar '.
+						' WHERE ar.date = '.$GLOBALS['db']->quote($date).
+						' AND ar.groupid = '.(int)$groupid.
+						' AND ar.personid = '.(int)$vol;
+				$attendance = -1;	
+				$res = $GLOBALS['db']->query($SQL);
+				while ($row = $res->fetch()) {
+					$attendance = $row['present'];
+				}
+				if ($attendance <> 0) $volunteers[$vol] = $vname;
+			}
 			if ($this->getValue('assign_multiple')) {
 				if (empty($currentval)) $currentval = Array('');
 				?>
