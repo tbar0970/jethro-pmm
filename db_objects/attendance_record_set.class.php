@@ -674,20 +674,17 @@ class Attendance_Record_Set
 		$SQL = 'SELECT person.id, person.last_name, person.first_name, '.($groupid ? 'pgms.label AS membership_status, ' : '').' person.status, ar.date, ar.present
 				FROM person person
 				JOIN age_bracket ab ON ab.id = person.age_bracketid
-				JOIN family f ON person.familyid = f.id
-				';
+				JOIN family f ON person.familyid = f.id  ';
 		if ($groupid) {
 			$SQL .= '
 				JOIN person_group_membership pgm ON pgm.personid = person.id AND pgm.groupid = '.(int)$groupid;
 		}
-		// restricting the attendance dates within a subquery improves performance significantly.
 		$SQL .= '
-				LEFT JOIN (
-					SELECT personid, date, present
-					FROM attendance_record ar
-					WHERE ar.date BETWEEN '.$GLOBALS['db']->quote($start_date).' AND '.$GLOBALS['db']->quote($end_date).'
+				LEFT JOIN attendance_record ar ON (
+					ar.personid = person.id
+					AND ar.date BETWEEN '.$GLOBALS['db']->quote($start_date).' AND '.$GLOBALS['db']->quote($end_date).'
 					AND ar.groupid = '.(int)$groupid.'
-				) ar ON ar.personid = person.id';
+				)';
 		if ($groupid) {
 			$SQL .= '
 				LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status';
