@@ -4,6 +4,7 @@ class View_Rosters__Display_Roster_Assignments extends View
 	var $_start_date = '';
 	var $_end_date = '';
 	var $_view = null;
+	var $_categoryid = null;
 	var $_editing = FALSE;
 
 	static function getMenuPermissionLevel()
@@ -35,6 +36,7 @@ class View_Rosters__Display_Roster_Assignments extends View
 		}
 		if (!empty($_REQUEST['viewid'])) {
 			$this->_view = $GLOBALS['system']->getDBObject('roster_view', (int)$_REQUEST['viewid']);
+			$this->_categoryid = $this->_view->getValue('categoryid');
 		}
 		if (empty($_REQUEST['goback'])) {
 			$_SESSION['roster_start_date'] = $this->_start_date;
@@ -47,7 +49,7 @@ class View_Rosters__Display_Roster_Assignments extends View
 	{
 		$this->_printParams();
 		if ($this->_view) {
-			$this->_view->printView($this->_start_date, $this->_end_date, $this->_editing);
+			$this->_view->printViewforCategory($this->_start_date, $this->_end_date, $this->_categoryid, $this->_editing);
 
 		}
 	}

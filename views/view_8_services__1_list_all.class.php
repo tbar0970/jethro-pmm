@@ -7,6 +7,7 @@ class View_Services__List_All extends View
 {
 	private $_start_date = NULL;
 	private $_end_date = NULL;
+	private $_category_filter = NULL;
 	private $_congregations = Array();
 	private $_grouped_services = Array();
 	private $_dummy_service = NULL;
@@ -47,6 +48,7 @@ class View_Services__List_All extends View
 		}
 		if (empty($this->_start_date)) $this->_start_date = date('Y-m-d');
 		if (empty($this->_end_date)) $this->_end_date = date('Y-m-d', strtotime('+2 months'));
+		if (!empty($_REQUEST['category_filter'])) $this->_category_filter = $_REQUEST['category_filter'];
 
 		$GLOBALS['system']->includeDBClass('service');
 		$this->_dummy_service = new Service();
@@ -93,6 +95,7 @@ class View_Services__List_All extends View
 			$services = $GLOBALS['system']->getDBObjectData('service', $params, 'AND', 'date', TRUE);
 			foreach ($services as $id => $details) {
 				$details['id'] = $id;
+				if ($this->_category_filter && ($details['categoryid'] <> $this->_category_filter)) continue;
 				$this->_grouped_services[$details['date']][$details['congregationid']] = $details;
 				if ($details['has_items']) $this->_have_run_sheets = TRUE;
 			}
@@ -199,6 +202,7 @@ class View_Services__List_All extends View
 	{
 		if (!isset($_POST['topic_title'][$congid][$date])) return;
 		$service->setValue('topic_title', $_POST['topic_title'][$congid][$date]);
+		$service->setValue('categoryid', $_POST['categoryid'][$congid][$date]);
 		$service->setValue('format_title', $_POST['format_title'][$congid][$date]);
 		$service->setValue('notes', $_POST['notes'][$congid][$date]);
 		$service->clearReadings();
@@ -390,7 +394,12 @@ class View_Services__List_All extends View
 						</label>
 						<?php
 					}
-					?>
+					
+                print 'Category ';
+				$GLOBALS['system']->includeDBClass('person_group_category');
+				Person_Group_Category::printChooser('category_filter', $this->_category_filter);
+			?>			
+
 				</td>
 				<td><b>From</b>&nbsp;</td>
 				<td class="nowrap"><?php print_widget('start_date', Array('type' => 'date'), $this->_start_date); ?></td>
@@ -609,6 +618,15 @@ class View_Services__List_All extends View
 				<th>Topic</th>
 				<td class="topic">
 					<input type="text" name="topic_title[<?php echo $congid; ?>][<?php echo $date; ?>]" value="<?php echo ents(array_get($data, 'topic_title')); ?>" />
+				</td>
+			</tr>
+			<tr>
+				<th>Category</th>
+				<td class="category">
+			<?php
+				$GLOBALS['system']->includeDBClass('person_group_category');
+				Person_Group_Category::printChooser('categoryid['.$congid.']['.$date.']', array_get($data, 'categoryid'));
+			?>			
 				</td>
 			</tr>
 			<tr>

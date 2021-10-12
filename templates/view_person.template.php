@@ -60,6 +60,40 @@ if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
 	<?php
 }
 
+// -------ADD TO UNAVAILABILITY MODAL --------- //
+$GLOBALS['system']->includeDBClass('person_unavailable');
+$dates = Person_Unavailable::getDates($person->id);
+if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
+	?>
+	<div id="add-dates-modal" class="modal hide fade" role="dialog" aria-hidden="true">
+		<form method="post">
+			<input type="hidden" name="view" value="_add_unavailability" />
+			<input type="hidden" name="personid" value="<?php echo $person->id; ?>" />
+			<input type="hidden" name="action" value="add_dates" />
+			<input type="hidden" name="back_to" value="persons" />
+			<input type="hidden" name="id" value="0" />
+
+			<div class="modal-header">
+				<h4><?php echo _('Add a period when ')?> <?php $person->printFieldValue('name'); ?><?php echo _(' will be unavailable');?></h4>
+			</div>
+			<div class="modal-body">
+				<strong>Between </strong>
+				<?php
+				$value = Array('from' => date('Y-m-d'), 'to' => date('Y-m-d'));
+				print_widget('params_from', Array('type' => 'date'), $value['from']);
+				echo ' and  ';
+				print_widget('params_to', Array('type' => 'date'), $value['to']);
+				?>
+			</div>
+			<div class="modal-footer">
+				<input type="submit" class="btn" value="Go" accesskey="s" onclick="return true; " />
+				<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+			</div>
+		</form>
+	</div>
+	<?php
+}
+
 // -------- CHECK PERMISSIONS AND ASSEMBLE DATA ------------- //
 
 $accordion = SizeDetector::getWidth() && SizeDetector::isNarrow();
@@ -79,6 +113,7 @@ if ($GLOBALS['user_system']->havePerm(PERM_VIEWATTENDANCE)) {
 }
 if ($GLOBALS['user_system']->havePerm(PERM_VIEWROSTER)) {
 	$tabs['rosters'] = _('Rosters');
+	$tabs['availability'] = _('Availability');
 }
 if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 	$accountCount = 0;
@@ -320,6 +355,7 @@ if (isset($tabs['groups'])) {
 	echo $panel_footer;
 }
 
+/************** ACCOUNTS TAB *****************/
 if (isset($tabs['accounts'])) {
 	printf($panel_header, 'accounts', _('Accounts'), '');
 
@@ -374,6 +410,56 @@ if (isset($tabs['accounts'])) {
 			}
 		}
 	}
+	echo $panel_footer;
+}
+
+/************** AVAILABILITY TAB *****************/
+if (isset($tabs['availability'])) {
+	printf($panel_header, 'availability', _('Availability').' ('.count($dates).')', '');
+
+	?>
+	<div class="pull-right"><a href="#add-dates-modal" data-toggle="modal"><i class="icon-plus-sign"></i><?php echo _('Add a period of unavailability')?></a></div>
+	<?php
+
+	if (empty($dates)) {
+		?>
+		<p><i><?php echo _('There are no dates when ') ?><?php $person->printFieldValue('name'); ?><?php echo _(' will be unavailable')?></i></p>
+		<?php
+	} else {
+		?>
+		<p><i><?php $person->printFieldValue('name'); ?><?php echo _(' is unavailable on these dates:')?></i></p>
+		<table class="table table-condensed table-auto-width table-striped table-hover clickable-rows">
+			<thead>
+				<tr>
+					<th><?php echo _('From')?></th>
+					<th><?php echo _('To ')?></th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+			<?php
+			foreach ($dates as $id => $details) {
+				?>
+				<tr>
+					<td><?php echo date('D d M Y ', strtotime($details['from_date'])); ?></td>
+					<td><?php echo date('D d M Y ', strtotime($details['to_date'])); ?></td>
+					<td>
+						<a data-method="post" class="link-collapse confirm-title"
+						   href="?view=_edit_unavailability&action=remove_dates&from=<?php echo $details['from_date'].'&id='.$id; ?>&back_to=persons&personid=<?php echo $person->id; ?>"
+						   title="Make <?php echo $person->printFieldValue('name'); ?> available from 
+						   <?php echo date('D d M Y ', strtotime($details['from_date'])).' to '.date('D d M Y ', strtotime($details['to_date'])) ?>">
+							<i class="icon-remove-sign"></i><?php echo _('Remove')?>
+						</a>
+					</td>
+				</tr>
+				<?php
+			}
+			?>
+			</tbody>
+		</table>
+		<?php
+	}
+
 	echo $panel_footer;
 }
 

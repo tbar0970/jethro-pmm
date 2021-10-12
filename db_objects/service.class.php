@@ -59,6 +59,13 @@ class service extends db_object
 									'toolbarLocation'  => 'bottom',
 									'enterMode' => 'BR',
 								   ),
+			'categoryid'	=> Array(
+									'type'	=> 'reference',
+									'references' => 'person_group_category',
+									'label' => 'Category',
+									'allow_empty' => TRUE,
+									'order_by' => 'name',
+								),
 
 		);
 		return $fields;
@@ -67,7 +74,7 @@ class service extends db_object
 	function _getUniqueKeys()
 	{
 		return Array(
-				'datecong' => Array('date', 'congregationid'),
+				'datecong' => Array('date', 'congregationid', 'categoryid'),
 			   );
 	}
 

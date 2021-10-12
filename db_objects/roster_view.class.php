@@ -114,6 +114,13 @@ class roster_view extends db_object
 									'default' => 0,
 									'note' => 'Whether to display this view\'s allocations at the top of applicable service run sheets',
 									),
+			'categoryid'	=> Array(
+									'type'	=> 'reference',
+									'references' => 'person_group_category',
+									'label' => 'Category',
+									'allow_empty' => TRUE,
+									'order_by' => 'name',
+								),
 		);
 		return $fields;
 	}
@@ -403,7 +410,7 @@ class roster_view extends db_object
 		return $rows;
 	}
 
-	public function printCSV($start_date=NULL, $end_date=NULL, $return=FALSE)
+	public function printCSV($start_date=NULL, $end_date=NULL, $return_data=FALSE)
 	{
 		$GLOBALS['system']->includeDBClass('service');
 		$dummy_service = new Service();
@@ -473,8 +480,11 @@ class roster_view extends db_object
 			}
 			$csvData[] = $row;
 		}
-		if ($return) return $csvData;
-		print_csv($csvData);
+		if ($return_data) {
+			return $csvData;
+		} else {
+			print_csv($csvData);
+		}
 	}
 
 	function printSingleViewFlexi($service, $includeServiceFields=FALSE)
@@ -594,7 +604,12 @@ class roster_view extends db_object
 	}
 
 
-	function printView($start_date=NULL, $end_date=NULL, $editing=FALSE, $public=FALSE)
+	function printViewforCategory($start_date=NULL, $end_date=NULL, $categoryid=NULL, $editing=FALSE, $public=FALSE)
+	{
+		$this->printView($start_date, $end_date, $editing, $public, $categoryid);
+    }
+    			
+	function printView($start_date=NULL, $end_date=NULL, $editing=FALSE, $public=FALSE, $categoryid=NULL)
 	{
 		if (empty($this->_members)) return;
 		if (!$editing && !$public) {
@@ -606,6 +621,7 @@ class roster_view extends db_object
 		if (is_null($start_date)) $start_date = date('Y-m-d');
 		$service_params = Array('congregationid' => $this->getCongregations(), '>date' => date('Y-m-d', strtotime($start_date.' -1 day')));
 		if (!is_null($end_date)) $service_params['<date'] = date('Y-m-d', strtotime($end_date.' +1 day'));
+		if (!is_null($categoryid)) $service_params['categoryid'] = $categoryid;
 		$services = $GLOBALS['system']->getDBObjectData('service', $service_params, 'AND', 'date');
 
 		$to_print = Array();

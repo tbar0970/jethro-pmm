@@ -22,7 +22,7 @@ class Roster_Role extends db_object
 
 	protected static function _getFields()
 	{
-		
+
 		$fields = Array(
 			'congregationid'	=> Array(
 									'type'				=> 'reference',
@@ -103,7 +103,7 @@ class Roster_Role extends db_object
 	{
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
 		$res['select'][] = 'g.name as volunteer_group_name, c.name as congregation_name';
-		$res['from'] = '('.$res['from'].') 
+		$res['from'] = '('.$res['from'].')
 							LEFT OUTER JOIN person_group g ON roster_role.volunteer_group = g.id
 							LEFT OUTER JOIN congregation c ON roster_role.congregationid = c.id';
 		return $res;
@@ -122,23 +122,15 @@ class Roster_Role extends db_object
 	*/
 	function printChooser($date, $currentval=Array(''))
 	{
+		$GLOBALS['system']->includeDBClass('person_unavailable');
+		$availability = new Person_Unavailable;
 		if ($groupid = $this->getValue('volunteer_group')) {
 			// Exclude those absent that day
 			$volunteers = Array();
 			$vols = Array();
 			$vols = $this->_getVolunteers();
 			foreach ($vols as $vol => $vname) {
-				$SQL = 'SELECT present '.
-						' FROM attendance_record ar '.
-						' WHERE ar.date = '.$GLOBALS['db']->quote($date).
-						' AND ar.groupid = '.(int)$groupid.
-						' AND ar.personid = '.(int)$vol;
-				$attendance = -1;	
-				$res = $GLOBALS['db']->query($SQL);
-				while ($row = $res->fetch()) {
-					$attendance = $row['present'];
-				}
-				if ($attendance <> 0) $volunteers[$vol] = $vname;
+				if ($availability->isAvailable($vol, $date, $groupid)) $volunteers[$vol] = $vname;
 			}
 			if ($this->getValue('assign_multiple')) {
 				if (empty($currentval)) $currentval = Array('');
@@ -193,7 +185,7 @@ class Roster_Role extends db_object
 			}
 		}
 	}
-	
+
 	public function canEditAssignments() {
 		if ($this->getValue('volunteer_group')) {
 			$group = $GLOBALS['system']->getDBObject('person_group', $this->getValue('volunteer_group'));
