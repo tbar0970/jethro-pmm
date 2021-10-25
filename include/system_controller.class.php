@@ -263,8 +263,8 @@ class System_Controller
 				$title = 'SYSTEM ERROR (NOTICE)';
 				break;
 			case E_USER_NOTICE:
-				$send_email = false;
 				if ($this->_friendly_errors) {
+					$send_email = false;
 					add_message('Error: '.$errstr, 'failure');
 					return;
 				}
