@@ -276,7 +276,7 @@ class View_Services__List_All extends View
 		}
 		
 		?>
-		<table class="table roster service-program table-auto-width">
+		<table class="table roster service-program table-hover">
 			<thead>
 				<tr>
 					<th>Date</th>
