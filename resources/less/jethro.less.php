@@ -1265,19 +1265,21 @@ ul.nav-tabs {
 
 /*********** ROSTERS ***********/
 #body table.roster {
-	border-style: solid;
-	border-color: @jethroDarkest;
 	-webkit-box-shadow: 3px 3px 10px rgba(0,0,0,.2);
 	-moz-box-shadow: 3px 3px 10px rgba(0,0,0,.2);
 	box-shadow: 3px 3px 10px rgba(0,0,0,.2);
 	width: auto;
 	border-collapse: separate !important; /* need this for stick header's borders to show correctly */
 	border-spacing: 0;
-	border-width:  2px 1px 1px 2px /*top left borders on table; bottom right borders on cells. */ 
+	border-width:  2px 1px 1px 2px !important; /*top left borders on table; bottom right borders on cells. */ 
+	border-style: solid !important;
+	border-color: @jethroDarkest;
 }  
 #body table.roster td, #body table.roster th {
 	border-color: @jethroDarkest;
-	border-width:  0px 1px 1px 0px;
+	border-width:  0px 1px 1px 0px !important;
+	border-style: solid !important;
+	border-color: @jethroDarkest;
 	padding: 4px;
 }
 #body table.roster thead  {
