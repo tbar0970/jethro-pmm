@@ -58,10 +58,12 @@ class db_object
 		if (is_null($table_name)) $table_name = strtolower(get_class($this));
 		$indexes = '';
 		foreach ($this->_getUniqueKeys() as $name => $fields) {
+			foreach ($fields as $k => $v) $fields[$k] = "`$v`";
 			$indexes .= ',
 				UNIQUE KEY `'.$name.'` ('.implode(', ', $fields).')';
 		}
 		foreach ($this->_getIndexes() as $name => $fields) {
+			foreach ($fields as $k => $v) $fields[$k] = "`$v`";
 			$indexes .= '
 				INDEX `'.$name.'` ('.implode(', ', $fields).')';
 		}
@@ -213,7 +215,7 @@ class db_object
 		$our_fields = call_user_func(Array(get_class($this), '_getFields'));
 		foreach ($our_fields as $name => $details) {
 			if (array_get($details, 'readonly')) continue;
-			$flds[] = $name;
+			$flds[] = "`$name`";
 			$v = array_get($this->values, $name, '');
 			if (($v === '') && (in_array($details['type'], Array('date', 'datetime', 'int')))) {
 				// Mysql strict mode doesn't like blank strings being inserted into datetime cols
