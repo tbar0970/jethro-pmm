@@ -177,9 +177,10 @@ define('DB_TYPE', 'mysql');
 // Where to email errors to
 // define('ERRORS_EMAIL_ADDRESS', '');
 
-// Whether to explicity turn of MySQL's strict mode.
-// Enable this if you experience strict-mode-related database errors and can't adjust your central Mysql config.
-// define('STRICT_MODE_FIX', TRUE);
+// Set the SQL_MODE variable in Mysql if necessary. 
+// If Mysql8 throws errors related to ONLY_FULL_GROUP_BY, turn it off by enabling the line below.
+// define('SQL_MODE', 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION');
+
 
 // HTML to add to the <head> of every page such as additional CSS
 // For example <link rel="stylesheet" type="text/css" href="/extrastuff/jethro-extra.css" >

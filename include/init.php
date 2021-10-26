@@ -39,9 +39,9 @@ if (php_sapi_name() != 'cli') {
 require_once JETHRO_ROOT .'/include/jethrodb.php';
 JethroDB::init(ifdef('DB_MODE', 'PRIVATE'));
 
-//SET MySQL session variables to account for strict mode
-if (defined('STRICT_MODE_FIX') && STRICT_MODE_FIX) {
-	$GLOBALS['db']->query('SET SESSION sql_mode="NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"');
+// Apply Mysql mode if applicable
+if ($sqlMode = ifdef('SQL_MODE')) {
+	$GLOBALS['db']->query('SET SESSION sql_mode="'.$sqlMode.'"');
 }
 
 @ini_set('default_charset', 'UTF-8');
