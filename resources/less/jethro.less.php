@@ -509,6 +509,12 @@ p.text {
 		max-width: 100%;
 	}
 }
+#jethro-public p, #jethro-public #body li { 
+	max-width: 45em; 
+	margin-top: 0.75ex; 
+	margin-bottom: 0.75ex; 
+	line-height: 1.4
+}
 ul {
 	margin-bottom: 2px;
 }
@@ -519,7 +525,7 @@ ul {
 	z-index: 8888;
 	opacity: 0.4;
 }
-#body a, .modal a, .clickable, button.btn-link, input.btn-link {
+#body a:not(.label), .modal a, .clickable, button.btn-link, input.btn-link {
 	text-decoration: underline;
 	color: @linkColor;
 }
@@ -2208,18 +2214,21 @@ div#send-sms-modal div.results {
 		display: block;
 		margin: 0px;
 		padding: 0px;
-		line-height: 40px;
-		font-size: 25px;
+		line-height: 32px;
+		font-size: 22px;
+		height: 32px;
 		white-space: nowrap;
 		text-indent: 0px;
-		color: black;
+		color: #444;
 	}
 	#jethro-nav, #jethro-nav-toprow, #jethro-nav-toprow h1 {
 		width: 100% !important;
+		padding: 0px !important;
 	}
 	#jethro-nav h1 span {
 		display: block !important;
 		float: right !important;
+		padding-right: 5px;
 	}
 	#jethro-nav .navbar {
 		display: none;
