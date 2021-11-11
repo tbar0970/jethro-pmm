@@ -154,11 +154,11 @@ function redirect($view, $params=Array(), $hash='')
 	session_write_close();
 	if ($view == -1) {
 		// go back
-		header('Location: '.$_SERVER['HTTP_REFERER']);
-		exit;
+		$url = $_SERVER['HTTP_REFERER'];
+	} else {
+		$params['view'] = $view;
+		$url = build_url($params);
 	}
-	$params['view'] = $view;
-	$url = build_url($params);
 	if ($hash) $url .= '#'.$hash;
 	header('Location: '.urldecode(html_entity_decode($url)));
 	exit;
