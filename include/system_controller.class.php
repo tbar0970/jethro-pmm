@@ -243,6 +243,7 @@ class System_Controller
 	{
 		if (error_reporting() == 0) return; // the "@" shutup-operator was used
 		$send_email = true;
+		$showTechDetails = ifdef('SHOW_ERROR_DETAILS', (JETHRO_VERSION == 'DEV'));	
 		$exit = false;
 		switch ($errno) {
 			case E_ERROR:
@@ -258,17 +259,20 @@ class System_Controller
 				$title = 'SYSTEM ERROR (WARNING)';
 				break;
 			case E_NOTICE:
-				$showTechDetails = ifdef('SHOW_ERROR_DETAILS', (JETHRO_VERSION == 'DEV'));
 				$bg = $showTechDetails ? 'info' : NULL; // on prod, send emails but show nothing in browser
 				$title = 'SYSTEM ERROR (NOTICE)';
 				break;
 			case E_USER_NOTICE:
-				if ($this->_friendly_errors) {
-					$send_email = false;
+				$send_email = false; // never send emails for E_USER_NOTICE
+				if ($this->_friendly_errors || (!headers_sent() && !$showTechDetails)) {
 					add_message('Error: '.$errstr, 'failure');
 					return;
+				} else if (!$showTechDetails) {
+					// if headers are sent, print it now - we don't want it on the next page load
+					print_message('Error: '.$errstr, 'failure');
+					return;
 				}
-				$bg = 'info';
+				$bg = 'warning';
 				$title = 'NOTICE';
 				break;
 			default:
@@ -301,7 +305,7 @@ class System_Controller
 			?>
 			<div class="alert<?php if(isset($bg)){ echo" alert-".$bg;} ?>">
 			<?php
-			if ($showTechDetails) {
+			if ($showTechDetails || !$send_email) {
 				?>
 				<h4><?php echo $title; ?></h4>
 				<p><?php echo $errstr; ?></p>
