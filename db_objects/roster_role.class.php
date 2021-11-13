@@ -116,11 +116,30 @@ class Roster_Role extends db_object
 		<option value="<?php echo (int)$personid; ?>" class="unlisted-allocee" selected="selected" title="This person is not in the volunteer group for this role"><?php echo ents($person->toString()); ?></option>
 		<?php
 	}
+	
+	private function _printChooserOption($vid, $name, $selectedid, &$absentees)
+	{
+		$sel = $dis = $note = '';
+		if ($vid == $selectedid) {
+			$sel = ' selected="selected" ';
+			if (in_array($vid, $absentees)) {
+				$note = ' !! ABSENT !!';
+			}
+		} else {
+			if (in_array($vid, $absentees)) {
+				$note = ' (absent)';
+				$dis = ' disabled="disabled" ';
+			}
+		}
+		?>
+		<option value="<?php echo $vid; ?>"<?php echo $sel.$dis;?>><?php echo ents($name).$note; ?></option>
+		<?php
+	}
 
 	/**
 	* Print a widget for choosing people to fulfill this role, using the volunteer group if applicable
 	*/
-	function printChooser($date, $currentval=Array(''))
+	function printChooser($date, $currentval=Array(''), $absentees=Array())
 	{
 		if ($groupid = $this->getValue('volunteer_group')) {
 			$volunteers = $this->_getVolunteers();
@@ -137,9 +156,7 @@ class Roster_Role extends db_object
 					<?php
 					if (!empty($id) && !isset($volunteers[$id])) $this->_printUnlistedAlloceeOption($id);
 					foreach ($volunteers as $vid => $name) {
-						?>
-						<option value="<?php echo $vid; ?>"<?php if ($vid == $id) echo ' selected="selected"'; ?>><?php echo ents($name); ?></option>
-						<?php
+						$this->_printChooserOption($vid, $name, $id, $absentees);
 					}
 					?>
 						<option class="other">Other...</option>
@@ -158,9 +175,7 @@ class Roster_Role extends db_object
 				<?php
 				if (!empty($currentID) && !isset($volunteers[$currentID])) $this->_printUnlistedAlloceeOption($currentID);
 				foreach ($volunteers as $id => $name) {
-					?>
-					<option value="<?php echo $id; ?>"<?php if ($currentID == $id) echo ' selected="selected"'; ?>><?php echo ents($name); ?></option>
-					<?php
+					$this->_printChooserOption($id, $name, $currentID, $absentees);
 				}
 				?>
 					<option class="other">Other...</option>
@@ -170,10 +185,10 @@ class Roster_Role extends db_object
 		} else {
 			$GLOBALS['system']->includeDBClass('person');
 			if ($this->getValue('assign_multiple')) {
-				Person::printMultipleFinder('assignees['.$this->id.']['.$date.']', $currentval);
+				Person::printMultipleFinder('assignees['.$this->id.']['.$date.']', $currentval, $date);
 			} else {
 				$currentID = (int)reset($currentval);
-				Person::printSingleFinder('assignees['.$this->id.']['.$date.']', $currentID);
+				Person::printSingleFinder('assignees['.$this->id.']['.$date.']', $currentID, $date);
 			}
 		}
 	}

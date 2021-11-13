@@ -365,11 +365,16 @@ class roster_view extends db_object
 				privateassignee.email as email,
 				privateassignee.mobile_tel as mobile,
 				CONCAT(assigner.first_name, " ", assigner.last_name) as assigner,
-				rra.assignedon
+				rra.assignedon,
+				pa.id as absenceid,
+				pa.comment as absence_comment
 				FROM roster_role_assignment rra
 				LEFT JOIN person privateassignee ON rra.personid = privateassignee.id
 				LEFT JOIN '.$visiblePersonTable.' publicassignee ON rra.personid = publicassignee.id
 				LEFT JOIN person assigner ON rra.assigner = assigner.id
+				LEFT JOIN planned_absence pa 
+					ON ((pa.personid = rra.personid)
+						AND (rra.assignment_date BETWEEN pa.start_date and pa.end_date))
 				WHERE roster_role_id IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $roleids)).')
 				AND assignment_date BETWEEN '.$GLOBALS['db']->quote($start_date).' AND '.$GLOBALS['db']->quote($end_date).'
 				ORDER BY assignment_date, roster_role_id, `rank`, privateassignee.last_name, privateassignee.first_name';
@@ -384,6 +389,8 @@ class roster_view extends db_object
 				'assigner' => $row['assigner'],
 				'assignedon' => $row['assignedon'],
 				'assigneehidden' => $row['assigneehidden'],
+				'absence_comment' => $row['absence_comment'],
+				'absenceid' => $row['absenceid'],
 			);
 		}
 		return $res;
@@ -569,6 +576,7 @@ class roster_view extends db_object
 
 	private function _printOutputValue($member, $service, $asn, $withLinks=TRUE)
 	{
+		// This is only used in run sheets
 		if ($member['role_id']) {
 			if (empty($asn)) echo '--';
 			foreach ($asn as $rank => $asn) {
@@ -576,6 +584,9 @@ class roster_view extends db_object
 				echo ents($asn['name']);
 				if ($withLinks) {
 					echo '</a>';
+					if ($asn['absenceid']) {
+						echo ' <span class="label label-important" title="Planned absence: '.ents($asn['absence_comment']).'">!</i></span>';
+					}
 					if (('' === $asn['email'])) echo ' <img class="visible-desktop" src="'.BASE_URL.'resources/img/no_email.png" title="No Email Address" />';
 					if (('' === $asn['mobile']) && SMS_Sender::canSend()) {
 						echo ' <img class="visible-desktop" src="'.BASE_URL.'resources/img/no_phone.png" title="No Mobile" />';
@@ -597,17 +608,26 @@ class roster_view extends db_object
 	function printView($start_date=NULL, $end_date=NULL, $editing=FALSE, $public=FALSE)
 	{
 		if (empty($this->_members)) return;
-		if (!$editing && !$public) {
-			$my_email = $GLOBALS['user_system']->getCurrentUser('email');
-		}
 		$GLOBALS['system']->includeDBClass('service');
 		$dummy_service = new Service();
-
+	
 		if (is_null($start_date)) $start_date = date('Y-m-d');
 		$service_params = Array('congregationid' => $this->getCongregations(), '>date' => date('Y-m-d', strtotime($start_date.' -1 day')));
 		if (!is_null($end_date)) $service_params['<date'] = date('Y-m-d', strtotime($end_date.' +1 day'));
 		$services = $GLOBALS['system']->getDBObjectData('service', $service_params, 'AND', 'date');
 
+		if (!$editing && !$public) {
+			$my_email = $GLOBALS['user_system']->getCurrentUser('email');
+		}
+		if ($editing) {
+			$absences = $GLOBALS['system']->getDBObjectData('planned_absence',
+																Array(
+																	'>end_date' => $start_date,
+																	'<start_date' => $end_date,
+																),
+																'AND');
+		}
+		
 		$to_print = Array();
 		foreach ($services as $id => $service_details) {
 			$service_details['id'] = $id;
@@ -698,7 +718,7 @@ class roster_view extends db_object
 		}
 
 		?>
-		<table class="table roster table-hover" border="1" cellspacing="0" cellpadding="1">
+		<table class="table roster table-hover">
 
 			<?php $this->_printTableHeader($editing, $public); ?>
 
@@ -706,8 +726,17 @@ class roster_view extends db_object
 			<?php
 
 			foreach ($to_print as $date => $ddetail) {
-				$class_clause = ($date <= $this_sunday) ? 'class="roster-next"' : '';
+				if ($editing) {
+					$date_absences = Array();
+					foreach ($absences as $ab) {
+						if (($ab['start_date'] <= $date) && ($ab['end_date'] >= $date)) {
+							$date_absences[] = $ab['personid'];
+						}
+					}
+				}
+				$class_clause = ($date == $this_sunday) ? 'class="roster-next"' : '';
 				?>
+				
 				<tr <?php echo $class_clause; ?>>
 					<th class="roster-date nowrap">
 						<?php
@@ -775,13 +804,17 @@ class roster_view extends db_object
 								// must've been a problem
 								continue;
 							}
-							$role_objects[$mdetail['role_id']]->printChooser($date, $currentval);
+							$role_objects[$mdetail['role_id']]->printChooser($date, $currentval, $date_absences);
 						} else {
 							$names = Array();
 							foreach (array_get($ddetail['assignments'], $mdetail['role_id'], Array()) as $rank => $vs) {
 								$personid = $vs['personid'];
 								if (!$public && !$vs['assigneehidden']) {
-									$n = '<span class="nowrap"><a data-personid="'.$personid . '" href="'.BASE_URL.'?view=persons&personid='.$personid.'" title="Assigned by '.ents($vs['assigner']).' on '.format_datetime($vs['assignedon']).'">'.ents($vs['name']).'</a>';
+									$href = '?view=persons&personid='.$personid;
+									$n = '<span class="nowrap"><a data-personid="'.$personid . '" href="'.$href.'" title="Assigned by '.ents($vs['assigner']).' on '.format_datetime($vs['assignedon']).'">'.ents($vs['name']).'</a>';
+									if (strlen($vs['absenceid'])) {
+										$n .= ' <a href="'.$href.'#rosters" class="label label-important" title="Planned absence: '.ents($vs['absence_comment']).'">!</i></a>';
+									}
 									if (('' === $vs['email'])) $n .= ' <img class="visible-desktop" src="'.BASE_URL.'resources/img/no_email.png" title="No Email Address" />';
 									if (('' === $vs['mobile']) && SMS_Sender::canSend()) {
 										$n .= ' <img class="visible-desktop" src="'.BASE_URL.'resources/img/no_phone.png" title="No Mobile" />';

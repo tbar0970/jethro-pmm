@@ -1283,7 +1283,7 @@ ul.nav-tabs {
 }  
 #body table.roster td, #body table.roster th {
 	border-color: @jethroDarkest;
-	border-width:  0px 1px 1px 0px !important;
+	border-width:  0px 1px 1px 0px ;
 	border-style: solid !important;
 	border-color: @jethroDarkest;
 	padding: 4px;
@@ -1300,7 +1300,7 @@ ul.nav-tabs {
 	filter: none;
 	background-color: @jethroDarkish;
 }
-#body table.roster tbody tr:first-child td, #body table.roster tbody tr:first-child th {
+#body table.roster>tbody>tr:first-child>td, #body table.roster>tbody>tr:first-child>th {
 	padding-top: 7px !important; /* so the drop shadow doesn't make the row look too skinny */
 }
 #body table.roster td, #body table.roster tbody th {
@@ -1325,7 +1325,7 @@ ul.nav-tabs {
 	z-index: 1;
 }
 #body table.roster th.roster-date .smallprint {
-	font-weight: normal !important;
+	font-weight: normal;
 	text-align: center;
 }
 #body table.roster a {
@@ -1348,7 +1348,7 @@ ul.nav-tabs {
 	height: 18px;
 	line-height: 18px
 }
-#body table.roster *.clash {
+#body table.roster *.clash, #body table.roster *.error {
 	border: 1px solid red;
 }
 
@@ -1357,9 +1357,6 @@ ul.nav-tabs {
 	height: 22px;
 	margin-bottom: 4px;
 	margin-top: 0px;
-}
-#body table.roster tr:last-child select {
-	margin-bottom: 0px;
 }
 table.roster select.unlisted-allocee, #body table.roster select option.unlisted-allocee {
 	color: #e68a00;

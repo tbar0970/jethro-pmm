@@ -700,7 +700,13 @@ class Person extends DB_Object
 		return FALSE;
 	}
 
-	static function printSingleFinder($name, $currentval)
+	/**
+	 * Print a widget for choosing a person by name search
+	 * @param string	$name				Form element name
+	 * @param int		$currentval			PersonID
+	 * @param string	$plannedAbsenceDate	(optional) - if specified, planned absences on this date should be displayed in results
+	 */
+	static function printSingleFinder($name, $currentval, $plannedAbsenceDate=NULL)
 	{
 		$currentid = 0;
 		$currentname = '';
@@ -717,22 +723,25 @@ class Person extends DB_Object
 		}
 		$displayname = $currentid ? $currentname.' (#'.$currentid.')' : '';
 		?>
-		<input type="text" placeholder="Search persons" id="<?php echo $name; ?>-input" class="person-search-single" value="<?php echo ents($displayname); ?>" />
+		<input type="text" placeholder="Search persons" id="<?php echo $name; ?>-input" class="person-search-single" data-show-absence-date="<?php echo $plannedAbsenceDate; ?>" value="<?php echo ents($displayname); ?>" />
 		<input type="hidden" name="<?php echo $name; ?>" value="<?php echo $currentid; ?>" />
 		<?php
 	}
 
 	/**
 	 * Print a widget for choosing multiple persons by name search
-	 * @param string $name
-	 * @param array $val	Array of IDs
+	 * @param string	$name
+	 * @param array		$val				Array of IDs
+	 * @param string	$plannedAbsenceDate	(optional) - if specified, planned absences on this date should be displayed in results
 	 */
-	static function printMultipleFinder($name, $val=Array())
+	static function printMultipleFinder($name, $val=Array(), $plannedAbsenceDate=NULL)
 	{
 		$persons = empty($val) ? Array() : $GLOBALS['system']->getDBObjectData('person', Array('id' => $val));
+		$absences = Planned_Absence::getForPersonsAndDate($val, $plannedAbsenceDate);
 		$selected = Array();
 		foreach ($persons as $id => $details) {
 			$selected[$id] = $details['first_name'].' '.$details['last_name'];
+			if (isset($absences[$id])) $selected[$id] .= ' !! ABSENT !!';
 		}
 		?>
 		<ul class="multi-person-finder" id="<?php echo $name; ?>-list">
@@ -743,7 +752,7 @@ class Person extends DB_Object
 		}
 		?>
 		</ul>
-		<input type="text" placeholder="Search persons" id="<?php echo $name; ?>-input" class="person-search-multiple" />
+		<input type="text" placeholder="Search persons" id="<?php echo $name; ?>-input" data-show-absence-date="<?php echo $plannedAbsenceDate; ?>" class="person-search-multiple" />
 		<?php
 	}
 

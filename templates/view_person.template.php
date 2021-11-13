@@ -464,23 +464,103 @@ if (isset($tabs['rosters'])) {
 	printf($panel_header, 'rosters', _('Rosters'), '');
 
 	$GLOBALS['system']->includeDBClass('roster_role_assignment');
-	$assignments = Roster_Role_Assignment::getUpcomingAssignments($person->id, NULL);
+	$assignments = Roster_Role_Assignment::getUpcomingAssignments($person->id, '99 weeks');
+	$absences = $GLOBALS['system']->getDBObjectData(
+											'planned_absence', 
+											Array('personid' => $person->id, '>=end_date' => date('Y-m-d')),
+											'start_date'
+									);
+	
+	?>
+	<h4>Upcoming roster assignments</h4>
+	<?php
 	if (empty($assignments)) {
 		?>
 		<p><i><?php $person->printFieldValue('name'); ?> has no upcoming roster assignments</i></p>
 		<?php
 	} else {
 		?>
-		<p><i>Upcoming roster assignments for <?php $person->printFieldValue('name'); ?>:</i></p>
-		<?php
-		foreach ($assignments as $date => $allocs) {
-			?>
-			<h5><?php echo date('j M', strtotime($date)); ?></h5>
+		<table class="table table-bordered table-condensed table-auto-width">
+			<thead>
+				<tr>
+					<th>Date</th>
+					<th>Roles</th>
+				</tr>
+			</thead>
+			<tbody>
 			<?php
-			foreach ($allocs as $alloc) {
-				echo ents($alloc['cong'].' '.$alloc['title']).'<br />';
+			foreach ($assignments as $date => $allocs) {
+				$warning = '';
+				foreach ($absences as $ab) {
+					if (($ab['start_date'] <= $date) && ($date <= $ab['end_date'])) {
+						$warning = '<br /><span class="label label-important">! Planned absence</span>';
+					}
+				}
+				?>
+				<tr>
+					<td class="nowrap"><?php echo format_date($date).'&nbsp;'.$warning; ?></td>
+					<td>
+						<?php
+						foreach ($allocs as $alloc) {
+							echo ents($alloc['cong'].' '.$alloc['title']).'<br />';
+						}
+						?>
+					</td>
+				</tr>
+				<?php
 			}
+			?>
+			</tbody>
+		</table>
+		<?php
+	}
+	
+	?>
+	<h4>
+		<?php
+		if ($GLOBALS['user_system']->havePerm(PERM_EDITROSTER)) {
+			?>
+			<a class="pull-right" href="?view=_add_planned_absence&personid=<?php echo $person->id; ?>"><i class="icon-plus-sign"></i>Add</a>
+			<?php
 		}
+		?>
+		Planned absences</h4>
+	<?php
+	if ($absences) {
+		?>
+		<table class="table table-condensed table-bordered table-auto-width">
+			<thead>
+				<tr>
+					<th>From</th>
+					<th>To</th>
+					<th>Comment</th>
+					<th>&nbsp;</th>
+				</tr>
+			</thead>
+			<tbody>
+			<?php
+			foreach ($absences as $id => $row) {
+				$tooltip = 'Saved by '.$row['creator_name'].' on '.format_datetime($row['created']);
+				?>
+				<tr>
+					<td><?php echo format_date($row['start_date']); ?></td>
+					<td><?php echo format_date($row['end_date']); ?></td>
+					<td><?php echo ents($row['comment']); ?></td>
+					<td>
+						<i class="icon-info-sign" title="<?php echo ents($tooltip); ?>"></i>
+						<a class="confirm-title" href="?view=_delete_planned_absence&id=<?php echo $id; ?>" title="Delete this planned absence" data-method="post"><i class="icon-trash"></i></a>
+					</td>
+				</tr>
+				<?php
+			}
+			?>
+			</tbody>	
+		</table>
+		<?php
+	} else {
+		?>
+		<p><i><?php $person->printFieldValue('name'); ?> has no upcoming planned absences</i></p>
+		<?php	
 	}
 
 	echo $panel_footer;
@@ -489,7 +569,3 @@ if (isset($tabs['rosters'])) {
 
 ?>
 </div>
-<?php
-
-
-

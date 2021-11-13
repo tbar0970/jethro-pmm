@@ -17,6 +17,7 @@ class Abstract_View_Add_Object extends View
 
 		if (array_get($_REQUEST, 'new_'.$this->_create_type.'_submitted')) {
 			$this->_new_object->processForm();
+			$this->_beforeCreate();
 			if ($this->_new_object->create()) {
 				$this->_afterCreate();
 				add_message(_($this->_success_message));
@@ -33,6 +34,11 @@ class Abstract_View_Add_Object extends View
 		redirect($this->_on_success_view, Array($this->_create_type.'id' => $this->_new_object->id));
 	}
 
+	
+	function _beforeCreate()
+	{
+		
+	}
 
 	function _afterCreate()
 	{
