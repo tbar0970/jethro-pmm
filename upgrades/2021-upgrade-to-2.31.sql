@@ -34,4 +34,8 @@ CREATE TABLE `planned_absence` (
         `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
         `creator` int(11) NOT NULL DEFAULT '0',
         PRIMARY KEY (`id`)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/* adjust setting label */
+UPDATE setting SET note = "This feature sends you an email when somebody else assigns a note to you. (NB the task_reminder.php script must be called ever 5 minutes by cron)"
+WHERE symbol = "TASK_NOTIFICATION_ENABLED";
