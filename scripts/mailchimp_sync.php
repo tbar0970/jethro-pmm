@@ -275,7 +275,7 @@ function run_mc_sync($mc, $report_id, $list_id)
                                                                         $resp->response = json_decode($resp->response);
                                                                         // Special handling for 'member in compliance state' unavoidable error
                                                                         // See https://github.com/tbar0970/jethro-pmm/issues/656
-                                                                        if (($resp->response->status == 400) && ($resp->response->title == 'Member In Compliance State')) {
+                                                                        if (is_object($resp->response) && ($resp->response->status == 400) && ($resp->response->title == 'Member In Compliance State')) {
                                                                                 $pemail = substr($resp->operation_id, 4); // chop of 'add-'
                                                                                 $bpersons = $GLOBALS['system']->getDBObjectData('person', Array('email' => $pemail));
                                                                                 foreach ($bpersons as $pid => $pdetail) {
