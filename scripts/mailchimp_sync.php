@@ -294,10 +294,10 @@ function run_mc_sync($mc, $report_id, $list_id)
                                                         }
                         }
                         if ($all_failures) {
-                                trigger_error("[Syncing report $report_id to list $list_id] ".$batch_res_summary['errored_operations']." mailchimp operations failed.");
-                                                                bam($all_failures);
-                            } else if ($DEBUG > 0) {
-                                bam($batch_res_summary['total_operations'].' mailchimp operations completed succesfully.');
+							trigger_error("[Syncing report $report_id to list $list_id] ".$batch_res_summary['errored_operations']." mailchimp operations failed.");
+							bam($all_failures);
+						} else if ($DEBUG > 0) {
+							bam($batch_res_summary['total_operations'].' mailchimp operations completed succesfully.');
                         }
                 }
         } else {
