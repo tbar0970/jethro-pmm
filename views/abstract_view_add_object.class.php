@@ -61,7 +61,7 @@ class Abstract_View_Add_Object extends View
 			<div class="form-horizontal"><div class="controls">
 				<button type="submit" class="btn"><?php echo _($this->_submit_label); ?></button>
 				<button type="button" class="btn back"><?php echo _('Cancel');?></button>
-			</div>
+			</div></div>
 		</form>
 		<?php
 	}
