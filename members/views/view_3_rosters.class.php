@@ -41,6 +41,14 @@ class View_Rosters extends View
 			?>
 			</ul>
 			<?php
+			if (empty($views)) {
+				?>
+				<i>This system does not yet have any rosters configured.</i>
+				<?php
+			}
+			?>
+				<p><i class="icon-plus-sign"></i> <a href="?view=_add_planned_absence">Add a planned absence</a></p>
+			<?php
 		}
 
 
