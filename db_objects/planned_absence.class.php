@@ -79,7 +79,7 @@ class Planned_Absence extends db_object
 	{
 		if (empty($order)) $order = 'start_date';
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
-		$res['from'] .= ' JOIN person creator ON planned_absence.creator = planned_absence.personid ';
+		$res['from'] .= ' JOIN person creator ON planned_absence.creator = creator.id ';
 		$res['select'][] = 'CONCAT(creator.first_name, " ", creator.last_name) as creator_name';
 		return $res;
 	}
