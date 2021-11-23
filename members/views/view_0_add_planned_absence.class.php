@@ -13,8 +13,7 @@ class View__Add_Planned_Absence extends View
 	private function _getUsersFamilyMembers()
 	{
 		$person = new Person($GLOBALS['user_system']->getCurrentPerson('id'));
-		$family = new Family($person->getValue('familyid'));
-		return $family->getMemberData();
+		return $person->getFamily()->getMemberData();
 	}
 
 	function processView()
