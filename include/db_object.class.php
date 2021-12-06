@@ -536,6 +536,30 @@ class db_object
 		return array_get($this->values, $name);
 	}
 
+	public function __call($name, $arguments)
+	{
+		if (0 === strpos($name, 'get')) {
+			// If there is a reference field called "family" or "familyid", allow a call to ->getFamily()
+			// which returns the referenced object.
+			$propName = strtolower(substr($name, 3));
+			foreach ($this->fields as $fn => $f) {
+				if ($f['type'] == 'reference') {
+					$fnb = $fn;
+					if (substr($fnb, -2) == 'id') $fnb = substr($fnb, 0, -2);
+					if ($fnb == $propName) {
+						if ($idVal = $this->getValue($fn)) {
+							$classname = $f['references'];
+							return $GLOBALS['system']->getDBObject($classname, $idVal);
+						}
+					}
+				}
+			}
+			trigger_error('Object has no property called '.$propName, E_USER_ERROR); exit;
+		} else {
+			trigger_error('Call to undefined method '.$name, E_USER_ERROR); exit;
+		}
+	}
+
 	public function validateFields()
 	{
 		$res = TRUE;
