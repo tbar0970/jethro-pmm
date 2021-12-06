@@ -723,6 +723,9 @@ class Person_Query extends DB_Object
 				$this->processFieldInterface('show_on_homepage');
 				break;
 			case 'replace':
+				if (($this->getValue('owner') === NULL) && !$GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
+					trigger_error("You do not have permission to overwrite saved reports", E_USER_ERROR); exit;
+				}
 				$this->processFieldInterface('name');
 				if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 					$this->processFieldInterface('mailchimp_list_id');
