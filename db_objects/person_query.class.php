@@ -706,43 +706,39 @@ class Person_Query extends DB_Object
 
 	function processForm($prefix='', $fields=NULL)
 	{
-		if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
-			switch ($_POST['save_option']) {
-				case 'new':
-					$this->populate(0, Array());
-					$this->processFieldInterface('name');
-					if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
-						$this->processFieldInterface('mailchimp_list_id');
+		switch ($_POST['save_option']) {
+			case 'new':
+				$this->populate(0, Array());
+				$this->processFieldInterface('name');
+				if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
+					$this->processFieldInterface('mailchimp_list_id');
+				}
+				$this->setValue('owner', $GLOBALS['user_system']->getCurrentUser('id'));
+				if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
+					// Only those with mange-reports permission can save shared reports.
+					if (empty($_POST['is_private'])) {
+						$this->setValue('owner', NULL);
 					}
-					$this->setValue('owner', $GLOBALS['user_system']->getCurrentUser('id'));
-					if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
-						// Only those with mange-reports permission can save shared reports.
-						if (empty($_POST['is_private'])) {
-							$this->setValue('owner', NULL);
-						}
-					}
-					$this->processFieldInterface('show_on_homepage');
-					break;
-				case 'replace':
-					$this->processFieldInterface('name');
-					if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
-						$this->processFieldInterface('mailchimp_list_id');
-					}
-					$this->setValue('owner', $GLOBALS['user_system']->getCurrentUser('id'));
-					if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
-						// Only those with mange-reports permission can save shared reports.
-						if (empty($_POST['is_private'])) {
-							$this->setValue('owner', NULL);
-						}
-					}
-					$this->processFieldInterface('show_on_homepage');
-					break;
-				case 'temp':
-					$this->id = 'TEMP';
+				}
+				$this->processFieldInterface('show_on_homepage');
 				break;
-			}
-		} else {
-			$this->id = 'TEMP';
+			case 'replace':
+				$this->processFieldInterface('name');
+				if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
+					$this->processFieldInterface('mailchimp_list_id');
+				}
+				$this->setValue('owner', $GLOBALS['user_system']->getCurrentUser('id'));
+				if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
+					// Only those with mange-reports permission can save shared reports.
+					if (empty($_POST['is_private'])) {
+						$this->setValue('owner', NULL);
+					}
+				}
+				$this->processFieldInterface('show_on_homepage');
+				break;
+			case 'temp':
+				$this->id = 'TEMP';
+			break;
 		}
 
 
