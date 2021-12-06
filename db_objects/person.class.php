@@ -232,6 +232,15 @@ class Person extends DB_Object
 				)
 		";
 	}
+	
+	/*
+	 * Get the name of the table that objects should be INSERTed into.
+	 * This can be overridden if the normal table is actually a view.
+	 */
+	protected function _getInsertTableName()
+	{
+		return '_person';
+	}	
 
 	/**
 	 *

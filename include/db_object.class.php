@@ -235,7 +235,7 @@ class db_object
 			array_unshift($vals, $db->quote((int)$this->id));
 		}
 
-		$sql = 'INSERT INTO '.strtolower(get_class($this)).' ('.implode(', ', $flds).')
+		$sql = 'INSERT INTO '.$this->_getInsertTableName().' ('.implode(', ', $flds).')
 				 VALUES ('.implode(', ', $vals).')';
 		$res = $db->query($sql);
 		if (empty($this->id)) $this->id = $db->lastInsertId();
@@ -263,6 +263,15 @@ class db_object
 			$parent_class = strtolower(get_parent_class($parent_class));
 		}
 		return $res;
+	}
+	
+	/*
+	 * Get the name of the table that objects should be INSERTed into.
+	 * This can be overridden if the normal table is actually a view.
+	 */
+	protected function _getInsertTableName()
+	{
+		return strtolower(get_class($this));
 	}
 
 	/**
