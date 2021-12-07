@@ -1,7 +1,7 @@
 <?php
 class Planned_Absence extends db_object
 {
-	protected $_load_permission_level = PERM_EDITROSTER;
+	protected $_load_permission_level = PERM_VIEWROSTER;
 	protected $_save_permission_level = PERM_EDITROSTER;
 
 	function __construct($id=0)
