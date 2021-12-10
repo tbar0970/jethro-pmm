@@ -5,12 +5,21 @@ $(document).ready(function() {
 	// Make standalone safari stay standalone
 	if (("standalone" in window.navigator) && window.navigator.standalone) {
 		// http://www.andymercer.net/blog/2016/02/full-screen-web-apps-on-ios/
-		var insideApp = sessionStorage.getItem('insideApp'), location = window.location.href, stop = /^(a|html)$/i;
+		var insideApp = sessionStorage.getItem('insideApp');
+		var location = window.location.href
+		var stop = /^(a|html)$/i;
 		if (insideApp) {
+			// record what page we're on, to come back to it after app loses focus
 			localStorage.setItem('returnToPage', location);
+		} else if ($('#login-body').length) {
+			// login session has timed out, so clear the page memory
+			// because we want to start afresh
+			localStorage.setItem('returnToPage', '');
 		} else {
+			// the app has just regaind focus, and we're still logged in,
+			// so go to the last page we were on.
 			var returnToPage = localStorage.getItem('returnToPage');
-			if (returnToPage && (returnToPage != location) && ($('.login-box').length == 0)) {
+			if (returnToPage && (returnToPage != location)) {
 				window.location.href = returnToPage;
 			}
 			sessionStorage.setItem('insideApp', true);
