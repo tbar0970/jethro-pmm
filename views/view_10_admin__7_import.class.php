@@ -880,10 +880,11 @@ class View_Admin__Import extends View
 					'last_name' => $row['last_name'],
 				);
 		$matches = $GLOBALS['system']->getDBObjectData('person', $params, 'AND');
+		$row['mobile_tel'] = preg_replace('/[^0-9]/', '', $row['mobile_tel']);
 		foreach (Array('email', 'mobile_tel') as $fieldName) {
 			if (!empty($_REQUEST['match_'.$fieldName]) && strlen(array_get($row, $fieldName, ''))) {
 				foreach ($matches as $id => $details) {
-					if (strlen($details[$fieldName]) && $row[$fieldName] != $details[$fieldName]) {
+					if (strlen($details[$fieldName]) && strtolower($row[$fieldName]) != strtolower($details[$fieldName])) {
 						// existing and imported values are both non-blank and are different
 						unset($matches[$id]);
 					}
