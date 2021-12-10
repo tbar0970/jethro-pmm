@@ -797,6 +797,19 @@ JethroServiceProgram.init = function() {
 			$('#shift-confirm-popup').modal('show');
 			return false;
 		});
+		$('.insert-space button').click(function() {
+			setDateField('insert_service_date', $(this).attr('data-insert-date'));
+			var insertCong = $(this).attr('data-insert-congregation');
+			if (insertCong) {
+				$('#insert-congs input').each(function() {
+					this.checked = (insertCong == this.value);
+				});
+			} else {
+				$('#insert-congs input').attr('checked', true);
+			}
+			$('#insert-confirm-popup').modal('show');
+			return false;
+		});
 		$('.confirm-delete').click(function() {
 			return confirm("Really delete service?");
 		});
@@ -1450,6 +1463,14 @@ function showLockExpiredWarning()
 		document.location.href = document.location;
 	});
 	window.DATA_CHANGED = false; // see setupUnsavedWarnings() in tb_lib.js
+}
+
+function setDateField(prefix, value)
+{
+	valueBits = value.split('-');
+	document.getElementsByName(prefix+'_y')[0].value = valueBits[0];
+	document.getElementsByName(prefix+'_m')[0].value = parseInt(valueBits[1], 10);
+	document.getElementsByName(prefix+'_d')[0].value = parseInt(valueBits[2], 10);
 }
 
 // Allow certain submit buttons to target their form to an envelope-sized popup or hidden frame.

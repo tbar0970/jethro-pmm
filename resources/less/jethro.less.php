@@ -1456,13 +1456,13 @@ table.service-details td table td label {
 table.service-details td table td input {
 	margin: 0px 3px 0px 0px !important;
 }
-#body table.service-program tr.copy-details td {
+#body table.service-program tr.insert-space td {
 	text-align: center;
 	padding: 0px !important;
 	height: 12px !important;
 	line-height: 12px !important;
 }
-#body table.service-program tr.copy-details td button {
+#body table.service-program tr.insert-space td button {
 	height: 10px !important;
 	width: 16px !important;
 	background-image: url(../img/expand_up_down_green_small.png);
@@ -1652,8 +1652,8 @@ table.service-details td table td input {
 		border: 1px solid @grayMid;
 		box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset;
 		border-radius: 4px 4px 4px 4px;
-		padding: 4px 6px;
-		/*margin-bottom: 10px;*/
+		padding: 4px 6px 0px 6px;
+		margin-bottom: 10px;
 		color: @jethroDarkText;
 		width: auto;
 		max-width: 300px;

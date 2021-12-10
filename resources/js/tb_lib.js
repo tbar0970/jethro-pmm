@@ -874,15 +874,6 @@ function parseQueryString(qs)
 	return params;
 }
 
-
-function setDateField(prefix, value)
-{
-	valueBits = value.split('-');
-	document.getElementsByName(prefix+'_y')[0].value = valueBits[0];
-	document.getElementsByName(prefix+'_m')[0].value = parseInt(valueBits[1], 10);
-	document.getElementsByName(prefix+'_d')[0].value = parseInt(valueBits[2], 10);
-}
-
 function getKeyCode(e)
 {
 	if (!e) e = window.event;
