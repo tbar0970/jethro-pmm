@@ -112,7 +112,7 @@ class View_services extends View
 			<h1>
 				<small class="pull-right">
 					<a href="?view=services__list_all">
-						<i class="icon-chevron-left"></i>Back to service list
+						<i class="icon-chevron-left"></i>Back to service schedule
 					</a>
 				</small>
 				<?php echo ents($this->service->toString()); ?>
