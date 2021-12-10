@@ -27,7 +27,7 @@
 			<div class="control-group">
 				<label class="control-label" for="username"><?php echo _('Username')?></label>
 				<div class="controls">
-					<input type="text" name="username" id="username" placeholder="Username"
+					<input type="text" autofocus="autofocus" name="username" id="username" placeholder="Username"
 					<?php if (defined('PREFILL_USERNAME')) echo 'value="'.PREFILL_USERNAME.'"'; ?>
 					/>
 				</div>
@@ -75,6 +75,7 @@
 		?>
 
 		</div>
+		<div class="a2hs-prompt"><p><b>You can install Jethro on your mobile device!</b></p><p>Click the &nbsp;<img src="resources/img/safari-share.png" />&nbsp; icon below<br />and scroll down to "add to home screen"</p><i class="icon-arrow-down icon-white"></i></div>
 	</form>
 </body>
 </html>

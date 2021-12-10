@@ -140,6 +140,18 @@ if (is_readable($confFile)) {
 .login-box .controls {
 	margin-left: 6em;
 }
+.a2hs-prompt {
+	display: none; /* jethro.js will show it as appropriate */
+	text-align: center;
+	background: @jethroDarkest;
+	color: white;
+	margin: 20px;
+	padding: 10px;
+	border-radius: 5px;
+	font-size: 85%;
+	position: sticky; /* https://css-tricks.com/a-clever-sticky-footer-technique/ */
+	top: 100vh;
+}
 @media (max-width: 640px) {
 	body#login {
 		overflow: hidden;

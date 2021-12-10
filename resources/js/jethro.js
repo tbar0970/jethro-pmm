@@ -44,7 +44,7 @@ $(document).ready(function() {
 		});
 	}
 	if (("standalone" in window.navigator) && !window.navigator.standalone) {
-		// Opportunity to tell them to save to home screen
+		$('.a2hs-prompt').show();
 	}
 
 	// This needs to be first!
