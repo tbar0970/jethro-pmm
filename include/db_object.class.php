@@ -392,10 +392,10 @@ class db_object
 			}
 			if (($this->fields[$i]['type'] == 'datetime') && ($new_val == 'CURRENT_TIMESTAMP')) {
 				// CURRENT_TIMESTAMP should not be quoted
-				$sets[] = ''.$i.' = '.$new_val;
+				$sets[] = ''.$db->quoteIdentifier($i).' = '.$new_val;
 			} else {
 				// quote everything else
-				$sets[] = ''.$i.' = '.$db->quote($new_val);
+				$sets[] = ''.$db->quoteIdentifier($i).' = '.$db->quote($new_val);
 			}
 		}
 		if (!empty($sets)) {
