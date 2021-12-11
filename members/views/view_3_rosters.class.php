@@ -47,7 +47,8 @@ class View_Rosters extends View
 				<?php
 			}
 			$person = new Person($GLOBALS['user_system']->getCurrentPerson('id'));
-			$fmembers = $person->getFamily()->getMemberData();
+			$family = $person->getFamily();
+			$fmembers = $family->getMemberData();
 
 			?>
 			<h3>Planned absences for <?php $family->printFieldValue('family_name'); ?> family</h3>
