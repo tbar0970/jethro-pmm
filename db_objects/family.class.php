@@ -343,12 +343,12 @@ class family extends db_object
 		unset($this->fields['members']);
 	}
 
-	function getMemberData()
+	function getMemberData($refreshCache=FALSE)
 	{
 		//$objectType = $GLOBALS['user_system']->getCurrentUser() ? 'person' : 'member';
 		$restriction = $GLOBALS['user_system']->getCurrentUser() ? Array() : Array('!status' => 'archived');
-		if (!isset($this->_tmp['members'])) {
-			$this->_tmp['members'] = $GLOBALS['system']->getDBObjectData('person', Array('familyid' => $this->id)+$restriction, 'AND', 'ab.`rank`, gender DESC');
+		if ($refreshCache || !isset($this->_tmp['members'])) {
+			$this->_tmp['members'] = $GLOBALS['system']->getDBObjectData('person', Array('familyid' => $this->id)+$restriction, 'AND', 'ab.`rank`, gender DESC', $refreshCache);
 		}
 		return $this->_tmp['members'];
 	}
