@@ -15,7 +15,7 @@ class family extends db_object
 									'width'		=> 40,
 									'maxlength'	=> 128,
 									'allow_empty'	=> FALSE,
-									'initial_cap'	=> TRUE,
+									'initial_cap_singleword'	=> TRUE,
 									'class'			=> 'family-name autofocus',
 									'trim'			=> TRUE,
 								   ),

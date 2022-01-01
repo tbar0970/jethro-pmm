@@ -488,6 +488,10 @@ class db_object
 		if (array_get($this->fields[$name], 'initial_cap')) {
 			$value = ucfirst($value);
 		}
+		// Force initial cap only if value is a single world
+		if (array_get($this->fields[$name], 'initial_cap_singleword') && (false === strpos($value, ' '))) {
+			$value = ucfirst($value);
+		}
 		if (array_get($this->fields[$name], 'trim')) {
 			$value = hard_trim($value);
 		}

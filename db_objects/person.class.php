@@ -45,7 +45,7 @@ class Person extends DB_Object
 									'width'		=> 30,
 									'maxlength'	=> 128,
 									'allow_empty'	=> false,
-									'initial_cap'	=> true,
+									'initial_cap_singleword'	=> true,
 									'trim'			=> TRUE,
 								   ),
 			'last_name'		=> Array(
@@ -53,7 +53,7 @@ class Person extends DB_Object
 									'width'		=> 30,
 									'maxlength'	=> 128,
 									'allow_empty'	=> false,
-									'initial_cap'	=> true,
+									'initial_cap_singleword'	=> true,
 									'trim'			=> TRUE,
 								   ),
 			'gender'		=> Array(
