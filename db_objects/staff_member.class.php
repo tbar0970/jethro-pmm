@@ -386,5 +386,14 @@ class Staff_Member extends Person
 		}
 		return TRUE;
 	}
+
+	public static function getUsernamesByCongregationRestriction($congregationid)
+	{
+		$SQL = 'SELECT distinct sm.username
+				FROM account_congregation_restriction acr
+					JOIN staff_member sm ON sm.id = acr.personid
+				WHERE congregationid = '.(int)$congregationid;
+		return $GLOBALS['db']->queryCol($SQL);
+	}
 }
 ?>
