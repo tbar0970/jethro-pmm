@@ -16,6 +16,11 @@ class View__Mixed_Search extends View
 		if ($search == '') return;
 
 		if (!empty($tel)) {
+			if ($prefix = preg_replace('[^0-9]', '', ifdef('SMS_INTERNATIONAL_PREFIX'))) {
+				if (strpos($tel, $prefix) === 0) {
+					$tel = SMS_LOCAL_PREFIX.substr($tel, strlen($prefix));
+				}
+			}
 			// Look for phone number matches
 			$this->_family_data = $GLOBALS['system']->getDBObjectData('family', Array('home_tel' => $tel));
 			$this->_person_data = $GLOBALS['system']->getDBObjectData('person', Array('mobile_tel' => $tel, 'work_tel' => $tel));

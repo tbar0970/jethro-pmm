@@ -349,6 +349,7 @@ function print_widget($name, $params, $value)
 				<?php
 			} else if (array_get($params, 'allow_multiple')) {
 				$height = array_get($params, 'height', min(count($params['options']), 4));
+				if (count($params['options']) < 4) $height = 0;
 				if (substr($name, -2) != '[]') $name .= '[]';
 				$style = '';
 				if ($height > 0) $style = 'height: '.($height*1.7).'em';

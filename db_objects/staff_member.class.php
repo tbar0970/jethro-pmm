@@ -77,8 +77,13 @@ class Staff_Member extends Person
 		);
 
 	}
-
-
+	
+	// Undo the override in person class
+	protected function _getInsertTableName()
+	{
+		return 'staff_member';
+	}
+	
 	// We need this to override person::getInitSQL
 	public function getInitSQL($table_name=NULL)
 	{

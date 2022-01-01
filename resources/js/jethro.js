@@ -5,12 +5,21 @@ $(document).ready(function() {
 	// Make standalone safari stay standalone
 	if (("standalone" in window.navigator) && window.navigator.standalone) {
 		// http://www.andymercer.net/blog/2016/02/full-screen-web-apps-on-ios/
-		var insideApp = sessionStorage.getItem('insideApp'), location = window.location.href, stop = /^(a|html)$/i;
+		var insideApp = sessionStorage.getItem('insideApp');
+		var location = window.location.href
+		var stop = /^(a|html)$/i;
 		if (insideApp) {
+			// record what page we're on, to come back to it after app loses focus
 			localStorage.setItem('returnToPage', location);
+		} else if ($('#login-body').length) {
+			// login session has timed out, so clear the page memory
+			// because we want to start afresh
+			localStorage.setItem('returnToPage', '');
 		} else {
+			// the app has just regaind focus, and we're still logged in,
+			// so go to the last page we were on.
 			var returnToPage = localStorage.getItem('returnToPage');
-			if (returnToPage && (returnToPage != location) && ($('.login-box').length == 0)) {
+			if (returnToPage && (returnToPage != location)) {
 				window.location.href = returnToPage;
 			}
 			sessionStorage.setItem('insideApp', true);
@@ -35,7 +44,7 @@ $(document).ready(function() {
 		});
 	}
 	if (("standalone" in window.navigator) && !window.navigator.standalone) {
-		// Opportunity to tell them to save to home screen
+		$('.a2hs-prompt').show();
 	}
 
 	// This needs to be first!
@@ -797,6 +806,19 @@ JethroServiceProgram.init = function() {
 			$('#shift-confirm-popup').modal('show');
 			return false;
 		});
+		$('.insert-space button').click(function() {
+			setDateField('insert_service_date', $(this).attr('data-insert-date'));
+			var insertCong = $(this).attr('data-insert-congregation');
+			if (insertCong) {
+				$('#insert-congs input').each(function() {
+					this.checked = (insertCong == this.value);
+				});
+			} else {
+				$('#insert-congs input').attr('checked', true);
+			}
+			$('#insert-confirm-popup').modal('show');
+			return false;
+		});
 		$('.confirm-delete').click(function() {
 			return confirm("Really delete service?");
 		});
@@ -1450,6 +1472,14 @@ function showLockExpiredWarning()
 		document.location.href = document.location;
 	});
 	window.DATA_CHANGED = false; // see setupUnsavedWarnings() in tb_lib.js
+}
+
+function setDateField(prefix, value)
+{
+	valueBits = value.split('-');
+	document.getElementsByName(prefix+'_y')[0].value = valueBits[0];
+	document.getElementsByName(prefix+'_m')[0].value = parseInt(valueBits[1], 10);
+	document.getElementsByName(prefix+'_d')[0].value = parseInt(valueBits[2], 10);
 }
 
 // Allow certain submit buttons to target their form to an envelope-sized popup or hidden frame.

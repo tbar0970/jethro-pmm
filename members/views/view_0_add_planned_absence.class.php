@@ -83,7 +83,7 @@ class View__Add_Planned_Absence extends View
 				</div>
 				<?php
 			} else {
-				print_hidden_field('personid', $person->id);
+				print_hidden_field('personid[]', key($members));
 			}
 			
 			$this->_new_object->printForm();

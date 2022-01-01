@@ -717,8 +717,9 @@ class roster_view extends db_object
 			<?php
 		}
 
+		// HTML attrs for border/cellspacing etc are for the printable version
 		?>
-		<table class="table roster table-hover">
+		<table class="table roster table-hover" border="1" cellspacing="0" cellpadding="1">
 
 			<?php $this->_printTableHeader($editing, $public); ?>
 

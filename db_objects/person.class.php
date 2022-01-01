@@ -232,6 +232,15 @@ class Person extends DB_Object
 				)
 		";
 	}
+	
+	/*
+	 * Get the name of the table that objects should be INSERTed into.
+	 * This can be overridden if the normal table is actually a view.
+	 */
+	protected function _getInsertTableName()
+	{
+		return '_person';
+	}	
 
 	/**
 	 *
@@ -787,18 +796,24 @@ class Person extends DB_Object
 		$res = Array();
 
 		$customFields = self::getCustomFields();
+		$resTemplate = Array();
 		foreach ($customFields as $fieldid => $fieldDetails) {
 			$customFields[$fieldid] = new Custom_Field();
 			$customFields[$fieldid]->populate($fieldid, $fieldDetails);
+			$resTemplate[strtoupper(str_replace(' ', '_', $fieldDetails['name']))] = '';
 		}
 		foreach ($qres as $row) {
+			if (!isset($res[$row['personid']])) {
+				// Make sure we have something for every field in the result
+				$res[$row['personid']] = $resTemplate;
+			}
 			$fname = strtoupper(str_replace(' ', '_', $row['name']));
 			if ($formatted || ($row['type'] == 'select')) {
 				$fVal = $customFields[$row['fieldid']]->formatValue($row['value']);
 			} else {
 				$fVal = $row['value'];
 			}
-			if (isset($res[$row['personid']][$fname])) {
+			if (strlen($res[$row['personid']][$fname])) {
 				$res[$row['personid']][$fname] .= ', '.$fVal;
 			} else {
 				$res[$row['personid']][$fname] = $fVal;
