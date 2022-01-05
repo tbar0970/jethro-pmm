@@ -973,7 +973,8 @@ class Person_Query extends DB_Object
 				$values = (array)$values;
 				switch (count($values)) {
 					case 0:
-						$query['where'][] = $field.' = 0';
+						$query['where'][] = '(('.$field.' = 0) OR ('.$field.' IS NULL))';
+						break;
 					case 1:
 						$query['where'][] = $field.' = '.$db->quote(reset($values));
 						break;
@@ -1448,6 +1449,8 @@ class Person_Query extends DB_Object
 		$params = $this->_convertParams($this->getValue('params'));
 
 		$sql = $this->getSQL();
+		bam($params);
+		bam($sql);
 		if (is_null($sql)) return;
 
 		if ($format == 'html' && in_array('checkbox', $params['show_fields'])) {
