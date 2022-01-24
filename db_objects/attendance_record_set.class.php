@@ -506,7 +506,7 @@ class Attendance_Record_Set
 			$sql = '
 					SELECT '.$groupingField.', '.$rank.' AVG(percent_present) as avg_attendance FROM
 					(
-						SELECT ar.personid, '.$selectCol.' AS '.$groupingField.', '.$rank.' CONCAT(ROUND(SUM(ar.present) * 100 / COUNT(ar.date)), '.$db->quote('%').') as percent_present
+						SELECT ar.personid, '.$selectCol.' AS '.$groupingField.', '.$rank.' ROUND(SUM(ar.present) * 100 / COUNT(ar.date)) as percent_present
 						FROM
 							person p
 							JOIN attendance_record ar ON p.id = ar.personid

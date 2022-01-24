@@ -136,9 +136,9 @@ class View_Attendance__Statistics extends View
 				</tr>
 				<tr>
 					<th><?php echo _('Segment');?></th>
-					<th title=<?php echo _('"Percentage of dates marked present rather than absent"');?>><?php echo _('Rate');?></th>
-					<th class="present" title=<?php echo _('"Average number marked present per date"');?>><?php echo _('Avg&nbsp;P');?></th>
-					<th class="absent" title="<?php echo _('Average number marked absent per date"');?>><?php echo _('Avg&nbsp;A');?></th>
+					<th title=<?php echo _('"Ratio of present to absent per person, averaged across all persons in segment"');?>><?php echo _('Rate');?></th>
+					<th class="present" title=<?php echo _('"Total number marked present, averaged across all dates in the range');?>><?php echo _('Avg&nbsp;P');?></th>
+					<th class="absent" title="<?php echo _('Total number marked absent, averaged across all dates in the range"');?>><?php echo _('Avg&nbsp;A');?></th>
 			</thead>
 			<tbody>
 		<?php
