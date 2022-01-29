@@ -141,7 +141,7 @@ class db_object
 				";
 		}
 		$res .= "PRIMARY KEY (`id`)".$indexes."
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8";
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
 		return $res;
 	}
 
