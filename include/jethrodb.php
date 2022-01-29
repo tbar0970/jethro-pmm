@@ -50,7 +50,7 @@ class JethroDB extends PDO
 		$port = ifdef('DB_PORT', '');
 		$type = ifdef('DB_TYPE', 'mysql');
 		$host = ifdef('DB_HOST', 'localhost');
-		$dsn = $type . ':host=' . $host . (strlen($port) ? (';port=' . $port) : '') . ';dbname=' . DB_DATABASE . ';charset=utf8';
+		$dsn = $type . ':host=' . $host . (strlen($port) ? (';port=' . $port) : '') . ';dbname=' . DB_DATABASE . ';charset=utf8mb4';
 		$GLOBALS['db'] = new JethroDB($dsn, $username, $password);
 	}
 
