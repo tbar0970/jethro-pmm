@@ -1449,8 +1449,6 @@ class Person_Query extends DB_Object
 		$params = $this->_convertParams($this->getValue('params'));
 
 		$sql = $this->getSQL();
-		bam($params);
-		bam($sql);
 		if (is_null($sql)) return;
 
 		if ($format == 'html' && in_array('checkbox', $params['show_fields'])) {
