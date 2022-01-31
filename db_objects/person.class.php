@@ -45,7 +45,7 @@ class Person extends DB_Object
 									'width'		=> 30,
 									'maxlength'	=> 128,
 									'allow_empty'	=> false,
-									'initial_cap'	=> true,
+									'initial_cap_singleword'	=> true,
 									'trim'			=> TRUE,
 								   ),
 			'last_name'		=> Array(
@@ -53,7 +53,7 @@ class Person extends DB_Object
 									'width'		=> 30,
 									'maxlength'	=> 128,
 									'allow_empty'	=> false,
-									'initial_cap'	=> true,
+									'initial_cap_singleword'	=> true,
 									'trim'			=> TRUE,
 								   ),
 			'gender'		=> Array(
@@ -540,7 +540,7 @@ class Person extends DB_Object
 
 			if (!empty($this->_old_values['status']) || !empty($this->_old_values['last_name'])) {
 				$family = $GLOBALS['system']->getDBObject('family', $this->getValue('familyid'));
-				$members = $family->getMemberData();
+				$members = $family->getMemberData(TRUE);
 
 				if (!empty($this->_old_values['status']) && ($this->getValue('status') == 'archived')) {
 					// status has just been changed to 'archived' so archive family if no live members

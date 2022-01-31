@@ -16,7 +16,7 @@ class View__Export_Checkins extends View
 			$to = process_widget('to', Array('type' => 'date')).' 23:59:59';
 			$params['-timestamp'] = Array($from, $to);
 			$params['venueid'] = $_REQUEST['venueid'];
-			$this->data = $GLOBALS['system']->getDBObjectData('checkin', $params);
+			$this->data = $GLOBALS['system']->getDBObjectData('checkin', $params, 'AND');
 			if ($this->data) {
 				header("Content-type: text/csv");
 				header("Content-Disposition: attachment; filename=checkins.csv");
@@ -45,7 +45,7 @@ class View__Export_Checkins extends View
 		Please select the date range to export:
 		<form method="post" class="form-horizontal well">
 		From <?php print_widget('from', Array('type' => 'date'), date('Y-m-d', strtotime('-1 month'))); ?>
-		to <?php print_widget('from', Array('type' => 'date'), date('Y-m-d')); ?>
+		to <?php print_widget('to', Array('type' => 'date'), date('Y-m-d')); ?>
 		<?php
 		?>
 		<input type="submit" class="btn" />

@@ -488,6 +488,10 @@ class db_object
 		if (array_get($this->fields[$name], 'initial_cap')) {
 			$value = ucfirst($value);
 		}
+		// Force initial cap only if value is a single world
+		if (array_get($this->fields[$name], 'initial_cap_singleword') && (false === strpos($value, ' '))) {
+			$value = ucfirst($value);
+		}
 		if (array_get($this->fields[$name], 'trim')) {
 			$value = hard_trim($value);
 		}
@@ -900,7 +904,7 @@ class db_object
 
 	public function acquireLock($type='')
 	{
-		if (!$this->id) return TRUE;
+		if (!intval($this->id)) return TRUE;
 		if ($this->haveLock($type)) return TRUE;
 		if (!$this->canAcquireLock($type)) return FALSE;
 		$bits = explode(' ', self::getLockLength());

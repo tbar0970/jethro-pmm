@@ -15,7 +15,7 @@ class family extends db_object
 									'width'		=> 40,
 									'maxlength'	=> 128,
 									'allow_empty'	=> FALSE,
-									'initial_cap'	=> TRUE,
+									'initial_cap_singleword'	=> TRUE,
 									'class'			=> 'family-name autofocus',
 									'trim'			=> TRUE,
 								   ),
@@ -343,12 +343,12 @@ class family extends db_object
 		unset($this->fields['members']);
 	}
 
-	function getMemberData()
+	function getMemberData($refreshCache=FALSE)
 	{
 		//$objectType = $GLOBALS['user_system']->getCurrentUser() ? 'person' : 'member';
 		$restriction = $GLOBALS['user_system']->getCurrentUser() ? Array() : Array('!status' => 'archived');
-		if (!isset($this->_tmp['members'])) {
-			$this->_tmp['members'] = $GLOBALS['system']->getDBObjectData('person', Array('familyid' => $this->id)+$restriction, 'AND', 'ab.`rank`, gender DESC');
+		if ($refreshCache || !isset($this->_tmp['members'])) {
+			$this->_tmp['members'] = $GLOBALS['system']->getDBObjectData('person', Array('familyid' => $this->id)+$restriction, 'AND', 'ab.`rank`, gender DESC', $refreshCache);
 		}
 		return $this->_tmp['members'];
 	}

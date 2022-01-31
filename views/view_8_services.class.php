@@ -541,7 +541,8 @@ class View_services extends View
 									$runsheetTitle = $this->service->replaceKeywords($runsheetTitle);
 								}
 								$comp['personnel'] = $this->service->replaceKeywords($comp['personnel']);
-								$lastUse = $lastUseSort = '';
+								$lastUse = '';
+								$lastUseSort = 0;
 								if ($comp['lastused']) {
 									$lastTS = strtotime($comp['lastused']);
 									$lastUseSort = (int)$lastTS;
