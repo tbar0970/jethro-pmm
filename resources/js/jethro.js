@@ -54,15 +54,6 @@ $(document).ready(function() {
 		$(this).find('input:first, select:first').select();
 	});
 
-	$('.modal.autosize').on('shown', function() {
-		$(this).css({
-			width: 'auto',
-			'margin-left': function () {
-				return -($(this).width() / 2);
-			}
-		});
-	});
-
   	// Attach the quick-search handlers
 	$('.nav a').each(function() {
 		if (this.innerHTML && (this.innerHTML.toLowerCase() == 'search')) {

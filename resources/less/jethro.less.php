@@ -533,6 +533,13 @@ ul {
 .modal {
 	z-index: 9999;
 }
+@media (min-width: 500px) {
+	.modal-wide {
+		width: 70% !important;
+		margin-left: -35%;
+	}
+}
+
 .modal-backdrop {
 	z-index: 8888;
 	opacity: 0.4;
