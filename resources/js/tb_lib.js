@@ -396,14 +396,18 @@ $(document).ready(function() {
 		return false;
 	});
 	
-	($("[data-action=copy-tsv]").click(function() {
+	$("[data-action=copy-tsv]").click(function() {
 		var link = this;
 		TBLib.copyTSV($(this).parents('table:first').get(0)).then(function() {
-			link.oldHTML = link.innerHTML;
 			link.innerHTML = '✔ Copied';
-			setTimeout(function() { link.innerHTML = link.oldHTML }, 3000);
-		})
-	}))
+		});
+	});
+	$("[data-action=copy-table]").click(function() {
+		var link = this;
+		TBLib.copyTable($(this).parents('table:first').get(0)).then(function() {
+			link.innerHTML = '✔ Copied';
+		});
+	});
 });
 
 
@@ -976,16 +980,28 @@ TBLib.handleMailtoClick = function() {
 }
 
 TBLib.copyTSV = function(table) {
-  var h = '';
-  var rows = table.getElementsByTagName ('TR');
-  for (let r of rows) {
-    var cells = r.getElementsByTagName ('*');
-    for (let c of cells) {
-		if (!c.classList.contains('no-print')) {
-			h += c.innerText + '\t';
-		}
-    }
-    h += "\n";
-  }
-  return navigator.clipboard.writeText(h);
+	var h = '';
+	for (let r of table.rows) {
+		$(r).find('>td,>th').not('.no-print, .no-tsv').each(function() {
+			h += this.innerText.replace("\n", " ").replace("\t", " ") + '\t';
+		});
+		h += "\n";
+	}
+	return navigator.clipboard.writeText(h);
+}
+
+TBLib.copyTable = function(table) {
+	var h = '<table border="1" cellspacing="0" cellpadding="3">';
+	for (let r of table.rows) {
+		h += '<tr>';
+		$(r).find('>td,>th').not('.no-print, .no-tsv').each(function() {
+			h += "<td>"+this.innerText.replace("\n", " ").replace("\t", " ") + '</td>';
+		});
+		h += "</tr>";
+	}
+	h += '</table>';
+	var type = "text/html";
+    var blob = new Blob([h], { type });
+    var data = [new ClipboardItem({ [type]: blob })];
+    return navigator.clipboard.write(data);
 }

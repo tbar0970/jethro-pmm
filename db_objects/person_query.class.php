@@ -1449,8 +1449,6 @@ class Person_Query extends DB_Object
 		$params = $this->_convertParams($this->getValue('params'));
 
 		$sql = $this->getSQL();
-		bam($params);
-		bam($sql);
 		if (is_null($sql)) return;
 
 		if ($format == 'html' && in_array('checkbox', $params['show_fields'])) {
@@ -1695,7 +1693,11 @@ class Person_Query extends DB_Object
 			<tfoot>
 				<tr>
 					<td class="report-summary no-tsv" colspan="<?php echo count($headers); ?>">
-						<span title="Copy to clipboard as tab-separated text" class="pull-right clickable no-print" data-action="copy-tsv">Copy as TSV</span>
+						<span class="pull-right no-print">
+							Copy: 
+							<span class="clickable" title="plain table to paste elsewhere" data-action="copy-table">Table</span> 
+							<span class="clickable" title="tab-separated for spreadsheet" data-action="copy-tsv">TSV</span>
+						</span>
 						<i><?php echo count($x); ?> persons listed</i>
 					</td>
 				</tr>
