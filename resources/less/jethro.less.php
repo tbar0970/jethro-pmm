@@ -1702,9 +1702,6 @@ div.multi-select:focus, div.radio-button-group:focus {
 
 /******** CHOOSER *************/
 
-ul.multi-person-finder {
-	width: 250px;
-}
 li div.delete-list-item, li div.delete-chosen-person {
 	float: right;
 	background-image: url(../img/cross_red.png);
