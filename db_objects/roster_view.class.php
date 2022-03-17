@@ -135,7 +135,7 @@ class roster_view extends db_object
 	{
 		switch ($name) {
 			case 'members':
-				$all_roles = $GLOBALS['system']->getDbObjectData('roster_role', Array(), 'OR', 'roster_role.congregationid, roster_role.title');
+				$all_roles = $GLOBALS['system']->getDbObjectData('roster_role', Array('active' => 1), 'OR', 'roster_role.congregationid, roster_role.title');
 				?>
 				<script>
 					$(window).load(function() {

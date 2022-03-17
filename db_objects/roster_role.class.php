@@ -77,6 +77,14 @@ class Roster_Role extends db_object
 			$value = array_get($this->values, $name);
 			Person_Group::printChooser($prefix.$name, $value, array(), null, '(None)');
 		} else {
+			if ($name == 'active') {
+				$memberships = $this->getViewMemberships();
+				if ($memberships && $this->getValue('active')) {
+					echo 'Yes<br />';
+					$this->fields['active']['note'] = 'This role cannot be deactvated because it is used in '.count($memberships).' roster views.';
+					return;
+				}
+			}
 			parent::printFieldInterface($name, $prefix);
 		}
 	}
@@ -107,6 +115,16 @@ class Roster_Role extends db_object
 							LEFT OUTER JOIN person_group g ON roster_role.volunteer_group = g.id
 							LEFT OUTER JOIN congregation c ON roster_role.congregationid = c.id';
 		return $res;
+	}
+	
+	/**
+	 * Get the roster views in which this role is used
+	 */
+	function getViewMemberships()
+	{
+		$SQL = 'SELECT * from roster_view_role_membership
+				WHERE roster_role_id = '.(int)$this->id;
+		return $GLOBALS['db']->queryAll($SQL);
 	}
 
 	function _printUnlistedAlloceeOption($personid)
