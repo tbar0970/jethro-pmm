@@ -308,33 +308,6 @@ $(document).ready(function() {
 
 	setTimeout('setupUnsavedWarnings()', 400);
 
-
-	$('.input-prepend input[type=text], .input-append input[type=text]').css('min-width', '0px');
-	$('.input-prepend, .input-append').width('99%').each(function() {
-		var t = $(this);
-		var box = t.find('input[type=text]');
-		box.width('0px');
-		var childWidths = 0;
-		t.children().each(function() {
-			if ($(this).offset()['top'] == box.offset()['top']) {
-				childWidths += $(this).outerWidth();
-			}
-		});
-		box.width(t.width() - childWidths);
-	}).each(function() {
-		// yes we do it all again to work around a stupid webkit bug
-		var t = $(this);
-		var box = t.find('input[type=text]');
-		box.width('0px');
-		var childWidths = 0;
-		t.children().each(function() {
-			if ($(this).offset()['top'] == box.offset()['top']) {
-				childWidths += $(this).outerWidth();
-			}
-		});
-		box.width(t.width() - childWidths);
-	});
-
 	/** used to show/hide service notes */
 	$('.toggle-next-tr').click(function() {
 		$(this).parents('tr:first').next('tr').toggle();

@@ -98,7 +98,7 @@ printf($panel_header, 'basic', 'Basic Details & Members', 'active');
 			?>
 			<h3><?php echo _('Members'); ?></h3>
 			<form method="post" enctype="multipart/form-data" action="" class="bulk-person-action">
-
+			<div class="family-members-container">
 			<?php
 			$dummy = new Person();
 			foreach ($family->getMemberData() as $personid => $person) {
@@ -135,16 +135,16 @@ printf($panel_header, 'basic', 'Basic Details & Members', 'active');
 				</a>
 				<?php
 			}
+			?>
+			</div>
+			<?php
 
 			$all_emails = $family->getAllEmailAddrs();
 			if (!empty($all_emails)) {
 				echo '<a class="pull-right" href="'.get_email_href($all_emails).'" '.email_link_extras().'><i class="icon-email">@</i>Email All</a>';
 			}
 			?>
-			<br class="clearfix" />
-
 			<?php include 'templates/bulk_actions.template.php'; ?>
-
 			</form>
 
 		</div>

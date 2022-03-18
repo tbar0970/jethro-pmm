@@ -831,7 +831,15 @@ input.btn-link, button.btn-link {
 	margin-left: 1px; /* work around a bug where the left margin gets cut off on homepage */
 }
 
-#body h1 small, #body h2 sminsll {
+.input-append {
+	display: inline-grid;
+	grid-template-columns: 1fr min-content; 
+	width: 100%;
+}
+.input-append input {
+	min-width: 10px !important;
+}
+#body h1 small, #body h2 small {
 	font-size: 14px;
 }
 
@@ -905,7 +913,7 @@ img.person-photo {
 	-webkit-box-sizing: border-box;
 	-moz-box-sizing: border-box;
 	border: 1px solid @jethroDarkest;
-	padding: 15px;
+	padding: 15px 10px 10px 10px;
 	position: relative;
 	z-index: 50;
 	overflow: hidden;
@@ -944,14 +952,12 @@ img.person-photo {
 	}
 }
 
-
-
 .details-box table {
 	width: 100%;
 }
 
 .details-box h3 {
-	margin: -15px -15px 15px -15px;
+	margin: -15px -15px 10px -15px;
 	padding-left: 15px;
 	white-space: nowrap;
 	text-shadow: 0 1px 0 @jethroDarkText;
@@ -1016,18 +1022,21 @@ img.person-photo {
 .family-details .details-box {
 	width: 630px;
 }
+.family-members-container {
+	display: grid;
+	grid-template-columns: 1fr 1fr; 
+	column-gap: 10px;
+	row-gap: 10px;
+	box-sizing: border-box;
+	margin-bottom: 10px;
+ }
 .family-member {
 	box-sizing: border-box;
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
 	border: 1px solid @jethroDarkest;
 	background-color: @jethroLightest;
 	padding: 5px;
 	border-radius: 5px;
-	width: 47.1%;
-	margin: 0 15px 15px 0;
 	height: 72px;
-	float: left;
 	overflow: hidden;
 	color: @jethroDarkText;
 }
@@ -1045,7 +1054,7 @@ img.person-photo {
 	height: 20px;
 	width: 20px;
 }
-.family-member * {
+.family-members-container a, .family-members-container a * {
 	text-decoration: none !important;
 }
 .family-member img {
@@ -1059,9 +1068,8 @@ img.person-photo {
 	.family-details .details-box {
 		width: 100%;
 	}
-	.family-member {
-		width: 100%;
-		margin: 0 0 15px 0;
+	.family-members-container {
+		grid-template-columns: 1fr;
 	}
 }
 
@@ -1125,40 +1133,61 @@ img.person-photo {
 }
 
 /*************** MEMBERS HOME PAGE ******************/
-
 .member-homepage-box {
 	float: left;
-	margin-right: 30px;
-	margin-bottom: 15px;
+	box-sizing: border-box;
+	width: 100%;
 }
 
-@media (max-width: 640px) {
-	/* reduce homepage to 1 col for landscape phone and below */
-	#body .member-homepage-box {
+@media (min-width: 650px) {
+	.member-homepage-box {
+		width: 31%;
+		margin-right: 2%;
+	}
+	.member-homepage-box.family {
 		width: 100%;
-		margin: 0px;
-		float: none !important;
 	}
 }
+
+@media (min-width: 800px) {
+	.member-homepage-container {
+		display: grid;
+		grid-template-columns: 1fr 2fr; 
+		grid-template-rows: auto auto auto;
+		column-gap: 25px;
+	}
+	.member-homepage-smalls .member-homepage-box {
+		width: 100%;
+		float: none;
+		position: relative;
+	}
+	.member-homepage-box {
+		position: relative;  /* to constrain the floating photo */
+	}
+}
+
 .member-homepage-box img.family-photo {
 	float: right !important;
-	width: 150px;
+	position: absolute;
+	width: 200px;
 	right: 5px;
 	margin-bottom: 5px;
 	border-radius: 5px;
 	border: 1px solid @jethroDarkest;
 }
-.member-homepage-box table {
-	width: auto !important;
-}
 @media (max-width: 440px) {
 	.member-homepage-box img.family-photo {
-		float: none;
-		width: 100%;
+		float: none !important;
+		position: static;
+		width: auto;
+		max-height: 230px;
 	}
 }
 
 /*************** PERSON LIST IN MEMBER INTERFACE *************/
+.member-homepage-box table {
+	margin-bottom: 5px !important;
+}
 #member-list {
 	max-width: 110ex;
 	margin-left: 0px;
@@ -1189,12 +1218,16 @@ img.person-photo {
 #member-list div.member-family-contents {
 	margin-right: 152px;
 }
+
+
 .member-family-members {
-	overflow: auto; /* clearfix */
+	display: grid;
+	grid-template-columns: 1fr 1fr; 
+	column-gap: 10px;
+	row-gap: 10px;
 }
 .member-family-members .family-member {
-	width: 49%;
-	margin: 0 1% 5px 0;
+
 }
 .member-family-members .family-member div {
 	margin-left: 73px;
@@ -1208,8 +1241,8 @@ img.person-photo {
 }
 
 @media (max-width: 700px) {
-	.member-family-members .family-member {
-		width: 98%;
+	.member-family-members {
+		grid-template-columns: 1fr;
 	}
 }
 @media (max-width: 440px) {
