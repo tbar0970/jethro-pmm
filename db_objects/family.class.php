@@ -345,10 +345,10 @@ class family extends db_object
 
 	function getMemberData($refreshCache=FALSE)
 	{
-		//$objectType = $GLOBALS['user_system']->getCurrentUser() ? 'person' : 'member';
-		$restriction = $GLOBALS['user_system']->getCurrentUser() ? Array() : Array('!status' => 'archived');
+		// In the members area, only show members (excludes archived people, for example)
+		$objectType = $GLOBALS['user_system']->getCurrentUser() ? 'person' : 'member';
 		if ($refreshCache || !isset($this->_tmp['members'])) {
-			$this->_tmp['members'] = $GLOBALS['system']->getDBObjectData('person', Array('familyid' => $this->id)+$restriction, 'AND', 'ab.`rank`, gender DESC', $refreshCache);
+			$this->_tmp['members'] = $GLOBALS['system']->getDBObjectData($objectType, Array('familyid' => $this->id), 'AND', 'ab.`rank`, gender DESC', $refreshCache);
 		}
 		return $this->_tmp['members'];
 	}

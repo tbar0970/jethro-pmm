@@ -47,9 +47,6 @@ class Member extends DB_Object
 			$conds['family_name'] = $search.'%';
 		}
 		$query_bits = $t->getInstancesQueryComps($conds, 'OR', $order);
-		$query_bits['from'] .= "
-								JOIN age_bracket ab ON ab.id = member.age_bracketid
-								";
 		if (!empty($congregationid)) {
 			if (strlen(trim($query_bits['where']))) {
 				$query_bits['where'] = "(\n".$query_bits['where'].")\n AND congregationid = ".(int)$congregationid;
@@ -59,6 +56,15 @@ class Member extends DB_Object
 		}
 		return $t->_getInstancesData($query_bits);
 	}
+	
+	function getInstancesQueryComps($params, $logic, $order)
+	{
+		$res = parent::getInstancesQueryComps($params, $logic, $order);
+		$res['select'][] = 'c.name as congregation, ab.label as age_bracket';
+		$res['from'] = '('.$res['from'].')
+						LEFT JOIN congregation c ON member.congregationid = c.id
+						JOIN age_bracket ab on ab.id = member.age_bracketid ';
+		return $res;
+	}	
 
 }
-?>
