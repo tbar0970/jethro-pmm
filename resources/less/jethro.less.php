@@ -1031,6 +1031,9 @@ img.person-photo {
 	overflow: hidden;
 	color: @jethroDarkText;
 }
+.family-member.archived {
+	color: @grayLight;
+}
 .family-member:hover {
 	background-color: @jethroGrayish;
 }
