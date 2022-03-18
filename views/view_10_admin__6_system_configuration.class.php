@@ -439,7 +439,12 @@ class View_Admin__System_Configuration extends View {
 				if ($ab->id) {
 					$ab->save();
 				} else if ($ab->getValue('label')) {
-					$ab->create();
+					$dupes = $GLOBALS['system']->getDBObjectData('age_bracket', Array('label' => $ab->getValue('label')), 'AND', '', TRUE);
+					if ($dupes) {
+						add_message("Did not save new age bracket '".$ab->getValue('label')."' because there is already an age bracket with that name", "warning");
+					} else {
+						$ab->create();
+					}
 				}
 				$ab->releaseLock();
 				$i++;
