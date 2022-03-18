@@ -119,6 +119,13 @@ class Service_Component extends db_object
 		return $fields;
 	}
 
+	public function getForeignKeys()
+	{
+		return Array(
+			'categoryid' => "`service_component_category` (`id`) ON DELETE RESTRICT",
+		);
+	}
+	
 	public static function search($keyword, $tagid, $congregationid, $categoryid=NULL)
 	{
 		$conds = Array();
@@ -142,6 +149,7 @@ class Service_Component extends db_object
 	 */
 	function getInstancesQueryComps($params, $logic, $order)
 	{
+		if ($logic != 'OR') $logic = 'AND';
 		$congid = array_get($params, 'congregationid');
 		unset($params['congregationid']);
 
@@ -152,7 +160,7 @@ class Service_Component extends db_object
 		unset($params['keyword']);
 
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
-
+	
 		foreach ($res['select'] as $k => $v) {
 			if (substr($v, -12) == 'content_html') unset($res['select'][$k]);
 		}
