@@ -1248,7 +1248,8 @@ img.person-photo {
 @media (max-width: 440px) {
 	#member-list img.family {
 		float: none;
-		width: 100%;
+		max-height: 330px;
+		margin: 0px 0px 5px 0px;
 	}
 	#member-list div.member-family-contents {
 		margin-right: 0;

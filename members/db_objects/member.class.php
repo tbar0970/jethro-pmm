@@ -39,7 +39,7 @@ class Member extends DB_Object
 	static function getList($search=NULL, $congregationid=NULL)
 	{
 		$t = new Member();
-		$order = 'family_name, familyid, ab.`rank` ASC, gender DESC';
+		$order = 'family_name, member.familyid, ab.`rank` ASC, gender DESC';
 		$conds = Array();
 		if (!empty($search)) {
 			$conds['first_name'] = $search.'%';
@@ -54,6 +54,8 @@ class Member extends DB_Object
 				$query_bits['where'] = "congregationid = ".(int)$congregationid;
 			}
 		}
+		$query_bits['from'] .= "\n  LEFT JOIN family_photo fp ON fp.familyid = member.familyid";
+		$query_bits['select'][] = 'IF(fp.familyid IS NULL, 0, 1) as has_family_photo';
 		return $t->_getInstancesData($query_bits);
 	}
 	
