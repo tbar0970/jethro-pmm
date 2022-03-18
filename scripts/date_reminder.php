@@ -36,13 +36,13 @@ $GLOBALS['system'] = System_Controller::get();
 //error_reporting(E_ALL);
 
 $SQL = 'SELECT p.*, cfv.value_date AS expirydate ';
-if ($ini['SUMMARY_RECIPIENT_STATUS']) {
+if (!empty($ini['SUMMARY_RECIPIENT_STATUS'])) {
 	$SQL .= ', GROUP_CONCAT(supervisor.email SEPARATOR ";") as supervisor, GROUP_CONCAT(CONCAT(supervisor.first_name, " ", supervisor.last_name) SEPARATOR ", ") as supervisor_name ';
 }
 $SQL .= '
 		FROM _person p
 		JOIN custom_field_value cfv ON cfv.personid = p.id AND cfv.fieldid = '.(int)$ini['CUSTOM_FIELD_ID'];
-if ($ini['SUMMARY_RECIPIENT_STATUS']) {
+if (!empty($ini['SUMMARY_RECIPIENT_STATUS'])) {
 	$map = array_flip(Person::getStatusOptions());
 	if (!isset($map[$ini['SUMMARY_RECIPIENT_STATUS']])) {
 		trigger_error($ini['SUMMARY_RECIPIENT_STATUS'].' is not a valid status in this system', E_USER_ERROR);
@@ -150,7 +150,7 @@ function send_reminder($person)
 			if (!empty($ini['VERBOSE'])) echo $person['first_name'].' '.$person['last_name']." has no email address and will not be sent an email \n";
 		}
 	}
-	if ($ini['SMS_MESSAGE']) {
+	if (!empty($ini['SMS_MESSAGE'])) {
 
 		if (strlen($person['mobile_tel'])) {
 			$toNumber = $person['mobile_tel'];

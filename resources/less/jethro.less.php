@@ -533,6 +533,13 @@ ul {
 .modal {
 	z-index: 9999;
 }
+@media (min-width: 500px) {
+	.modal-wide {
+		width: 70% !important;
+		margin-left: -35%;
+	}
+}
+
 .modal-backdrop {
 	z-index: 8888;
 	opacity: 0.4;
@@ -1702,9 +1709,6 @@ div.multi-select:focus, div.radio-button-group:focus {
 
 /******** CHOOSER *************/
 
-ul.multi-person-finder {
-	width: 250px;
-}
 li div.delete-list-item, li div.delete-chosen-person {
 	float: right;
 	background-image: url(../img/cross_red.png);

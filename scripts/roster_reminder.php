@@ -307,7 +307,7 @@ if ($sendemail) {
 		  $email_to=$roster_coordinator;
 		  $header = "From: \"".addslashes($email_from_name)."\" <".$email_from.">".$eol;
 		  $header .= "MIME-Version: 1.0".$eol;
-		  $header .= "Bcc: ".$emails_string.$eol;
+		  $header .= "Bcc: ".implode(',',$emails).$eol;
 		  $header .= "Content-Type: multipart/mixed; boundary=\"".$uid."\"";
 		  $message = "--".$uid.$eol;
 		  $message .= "Content-type:text/html; charset=iso-8859-1".$eol;
