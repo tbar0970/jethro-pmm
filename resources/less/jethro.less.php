@@ -1211,6 +1211,7 @@ img.person-photo {
 	width: 150px;
 	border-radius: 5px;
 	border: 1px solid @jethroDarkest;
+	margin-left: 10px;
 }
 #member-list div.member-family-details {
 	margin: 5px 0px;
@@ -1218,7 +1219,6 @@ img.person-photo {
 #member-list div.member-family-contents {
 	margin-right: 152px;
 }
-
 
 .member-family-members {
 	display: grid;
