@@ -122,6 +122,13 @@ class Person_Group extends db_object
 				) ENGINE=InnoDB",
 		);
 	}
+	
+	public function getForeignKeys()
+	{
+		return Array(
+			'categoryid' => "`person_group_category` (`id`) ON DELETE SET NULL",
+		);
+	}	
 
 
 	/**
