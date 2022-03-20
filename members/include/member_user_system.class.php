@@ -59,7 +59,7 @@ class Member_User_System extends Abstract_User_System
 	{
 			// process the login form
 			if (array_get($_SESSION, 'login_key', NULL) != $_POST['login_key']) {
-				$this->_error = 'Login Key Incorrect.  Please try again.';
+				$this->_error = 'Login form expired.  Please try again.';
 				return;
 			}
 			$user_details = $this->_findAuthMember($_POST['email'], $_POST['password']);
