@@ -61,6 +61,14 @@ $(document).ready(function() {
 			this.accessKey = $(this).parents('ul').parents('li').find('a.dropdown-toggle').html().toLowerCase()[0];
 		}
 	});
+	
+	$('form.global-search').submit(function(e) {
+		if ($(this).find('input[type=text]').val() == '') {
+			event.preventDefault();
+			event.stopPropagation();			
+			$(this).find('input[type=text]').focus();
+		}
+	});
 
 
 	// Popups etc

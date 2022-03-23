@@ -289,22 +289,12 @@ body {
 #user-detail-in-nav a.log-out {
 	padding: 0px;
 }
-#user-detail-in-nav  .btn-link {
-	background-color: transparent;
-	color: inherit;
-	font-weight: inherit;
-	text-decoration: inherit;
-	display: block;
-	width: 100%;
-	padding: 9px 15px;
-	border-radius: 3px;
-	text-align: left;
-}
-
 @media (max-width: 900px) {
 	/* When there is not enough width for the full nav */
 	#jethro-nav .btn-navbar {
 		display: inline-block;
+		height: 15px; /* makes it match the search box */
+		margin-left: 0px;
 	}
 	.user-detail {
 		display: none;
@@ -319,15 +309,6 @@ body {
 		z-index: 9999;
 	}
 }
-@media (max-width:480px) {
-	/* When not enough width for the "logged in as" bit, show user detail in the nav instead */
-	.user-detail {
-		display: none !important;
-	}
-	#user-detail-in-nav {
-		display: inherit !important;
-	}
-}
 
 @media (max-width:480px) {
 	/* hide the church name when there is no room */
@@ -337,6 +318,12 @@ body {
 	/* but not in the public site */
 	#jethro-public #jethro-nav h1 span {
 		display: inline;
+	}
+	#jethro-nav-toprow .brand {
+		position: absolute;
+		top: 7px;
+		z-index: 888;
+		margin: 0px;
 	}
 }
 
@@ -429,34 +416,53 @@ body {
 	float: right;
 	margin-right: 5px;
 }
-
 .user-detail .dropdown-menu {
 	min-width: 80px !important;
+	margin-top: 8px;
+	border-radius: 5px 0 5px 5px;
 }
-.user-detail a, .user-detail .btn-link, #body .dropdown-menu li a {
-	color: @jethroLightText !important;
+.user-detail li, .user-detail .btn-link, #body .dropdown-menu li a {
 	text-decoration: none !important;
-}
-.user-detail .caret {
-	border-bottom-color: @jethroLightText !important;
-	border-top-color: @jethroLightText !important;
-}
-.user-detail li .btn-link {
-	border: 0px !important;
 }
 .user-detail li a:hover .btn-link, .user-detail li a:hover, #body .dropdown-menu li a:hover  {
 	color: @grayDark !important;
 }
-.user-detail .restrictions {
-	text-align: center;
-	color: #888;
-	background-color: #bbb;
-	font-weight: normal;
-	border-radius: 3px;
-	margin: 0px;
-	padding: 0px;
+li.user-header {
+	line-height: 1.1;
+	padding: 0px 20px 6px 20px;
+	color: white;
 }
-
+li.user-header b {
+	text-shadow: 0 1.5px 0 @jethroDarkText;
+}
+.user-detail .restrictions {
+	color: #eee;
+	background-color: @grayMid;
+	font-weight: normal;
+	margin: 0px;
+	padding: 0px 20px;
+	font-size: 80%;
+}
+.user-detail small {
+	font-size: 80%;
+	color: #ccc;
+	padding-left: 1px;
+}
+form.global-search {
+	margin: 0px 5px 0px 0px;
+	line-height: 38px;
+}
+form.global-search span.input-append {
+	margin: 0px;
+}
+form.global-search input[type=text] {
+	width: 8ex;
+	transition: width 0.7s ease-in-out;	
+}
+form.global-search input[type=text]:focus {
+	z-index: 999;
+	width: 25ex;
+}
 
 /**************** HEADINGS ********************/
 h1 {
@@ -834,8 +840,15 @@ input.btn-link, button.btn-link {
 .input-append {
 	display: inline-grid;
 	grid-template-columns: 1fr min-content; 
-	width: 100%;
+	width: 99%;
+	box-sizing: border-box;
 }
+.input-append.input-prepend {
+	display: inline-grid;
+	grid-template-columns: min-content 1fr min-content; 
+	width: 99%;
+}
+
 .input-append input {
 	min-width: 10px !important;
 }
