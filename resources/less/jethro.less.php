@@ -970,7 +970,7 @@ img.person-photo {
 }
 
 .details-box h3 {
-	margin: -15px -15px 10px -15px;
+	margin: -15px -10px 10px -10px;
 	padding-left: 15px;
 	white-space: nowrap;
 	text-shadow: 0 1px 0 @jethroDarkText;
