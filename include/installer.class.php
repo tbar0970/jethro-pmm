@@ -307,9 +307,13 @@ class Installer
 		$sql_so_far = Array();
 		foreach ($allSQL as $sql) {
 			$sql_so_far[] = $sql;
-			if (!$GLOBALS['db']->query($sql)) {
-				trigger_error("Error during install, SQL so far show below");
+			try {
+				$GLOBALS['db']->query($sql);
+			} catch (Exception $e) {
+				trigger_error("Error during install.  Bad query is at the bottom of the list below.");
+				bam($e->getMessage());
 				bam($sql_so_far);
+				exit;
 			}
 		}
 
