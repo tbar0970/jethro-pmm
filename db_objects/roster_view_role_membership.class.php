@@ -17,8 +17,8 @@ class roster_view_role_membership extends db_object
 	public function getForeignKeys()
 	{
 		return Array(
-			'roster_role_id' => "roster_role.id ON DELETE RESTRICT", // don't allow deletion of a role that's still in use
-			'roster_view_id' => "roster_view.id ON DELETE CASCADE" // when you delete the view, members get deleted too
+			'roster_role_id' => "roster_role(`id`) ON DELETE RESTRICT", // don't allow deletion of a role that's still in use
+			'roster_view_id' => "roster_view(`id`) ON DELETE CASCADE" // when you delete the view, members get deleted too
 		);
 	}
 }
