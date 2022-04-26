@@ -525,8 +525,8 @@ class family extends db_object
 			adultmembers.emails as emails,
 			IFNULL(adultmembers.names, "") as adult_members,
 			IFNULL(adultmembers.full_names, "") as adult_members_full,
-			GROUP_CONCAT(p.first_name ORDER BY ab.`rank` ASC, p.gender, p.id DESC SEPARATOR ",") as selected_firstnames,
-			GROUP_CONCAT(p.last_name ORDER BY ab.`rank` ASC, p.gender, p.id DESC SEPARATOR ",") as selected_lastnames,
+			GROUP_CONCAT(p.first_name ORDER BY ab.`rank` ASC, p.gender, p.id DESC SEPARATOR ", ") as selected_firstnames,
+			GROUP_CONCAT(p.last_name ORDER BY ab.`rank` ASC, p.gender, p.id DESC SEPARATOR ", ") as selected_lastnames,
 			GROUP_CONCAT(CONCAT_WS(" ",p.first_name,p.last_name) ORDER BY ab.`rank` ASC, p.gender, p.id DESC SEPARATOR ",") as selected_names
 			FROM family f
 			JOIN person p ON f.id= p.familyid
