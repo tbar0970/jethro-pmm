@@ -27,8 +27,8 @@ class Call_Document_Merge extends Call
 
 			}
 			
-
-			$extension = @strtolower(end(explode('.', $file_info['name'])));
+			$bits = explode('.', $file_info['name']);
+			$extension = strtolower(end($bits));
 			$template_filename = basename($file_info['name']);
 			$source_file = $file_info['tmp_name'];
 			rename ($source_file, $source_file.'.'.$extension);
@@ -209,6 +209,7 @@ class Call_Document_Merge extends Call
 					$outputrow[$headerrow[$k]] = $outputrow[$k] = $dummy_family->getFormattedValue($k, $v);
 				} else if ($k == 'selected_firstnames') {
 					$outputrow['selected_members'] = $v;
+					$outputrow[$k] = $v;
 				} else {
 					$outputrow[$k] = $v;
 				}
