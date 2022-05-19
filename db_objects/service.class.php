@@ -342,9 +342,9 @@ class service extends db_object
 				if (!empty($this->values['notes'])) {
 					$x = '<small>';
 					if ($fieldname == 'summary_inline') {
-						$x .= str_replace("\n", ' / ', ents($this->values['notes']));
+						$x .= str_replace("\n", ' / ', ents($this->values['notes']??''));
 					} else {
-						$x .= nl2br(ents($this->values['notes']));
+						$x .= nl2br(ents(trim(strval($this->values['notes']))));
 					}
 					$x .= '</small>';
 					$bits[] = $x;

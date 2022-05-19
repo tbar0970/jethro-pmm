@@ -119,9 +119,13 @@ function nbsp($x)
  */
 function ents($str)
 {
-	return htmlspecialchars($str, ENT_QUOTES, "UTF-8", false);
-}
+	if (trim(strval($str)) == '') {
+		return '';
+	}
+	return htmlspecialchars(strval($str), ENT_QUOTES, "UTF-8", false);
 
+}
+	
 /**
  * Take a string, which may include HTML tags or entities, and prepare it to be XML-safe.
  * @param type $x

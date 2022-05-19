@@ -122,20 +122,59 @@ class View_Rosters__Display_Roster_Assignments extends View
 						</div>
 						<div class="modal-body">
 							<?php
-							echo _('Source Document').':';
-							print_hidden_field('roster_view', $viewid);
+							include_once 'calls/call_document_merge_rosters.class.php';
+							$templates = @glob(Call_Document_Merge_Rosters::getSavedTemplatesDir().'/*.*');
+							?>
+							<div class="control-group">
+							<label class="control-label"><?php echo _('Template Document')?></label>
+							<div class="controls">
+							<?php
+							if (!empty($templates)) {
+								$tOptions = Array('' => '', '__NEW__' => 'Upload a new file...');
+								foreach ($templates as $t) $tOptions[basename($t)] = basename($t);
+								print_widget('source_doc_select', Array('type' => 'select', 'options' => $tOptions, 'class' => 'merge-template'), '');
+							?>
+							<div id="merge-template-upload" class="indent-left" style="display:none">
+								<input type="file" name="source_document" />
+								<label class="checkbox"><input type="checkbox" name="save_template" value="1" />Save template for next time</label>
+							</div>
+							<?php
+						} else {
+							?>
+							<input class="compulsory" type="file" name="source_document" />
+							<p class="help-inline">(docx/xlsx/pptx/odt/ods/odp)</p>
+							<label class="checkbox"><input type="checkbox" name="save_template" value="1" />Save template for next time</label>
+							<?php
+						}
+						?>
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label"><?php echo _('Type')?></label>
+						<div class="controls">
+							<label class="radio inline">
+								<input type="radio" name="template_format" value="tbs" checked="checked" />Template</label>
+							<label class="radio inline" style="color:#888">
+								<input type="radio" name="template_format" value="dump" />
+								Dump <small><i>(<a target="roster-merge-help" class="med-newwin" href="<?php echo BASE_URL; ?>index.php?call=document_merge_help#dump">help</a>)</i></small>
+							</label>
+							<label class="radio inline smallprint">
+								<a target="roster-merge-help" class="med-newwin" href="<?php echo BASE_URL; ?>index.php?call=document_merge_help"><i class="icon-help"></i>Help and examples</a>
+							</label>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<input type="hidden" name="roster_view" value="<?php echo $viewid; ?>" />
+						<?php
 							print_hidden_field('roster_view_name', $this->_view->getValue('name'));
 							print_hidden_field('start_date', $this->_start_date);
 							print_hidden_field('end_date', $this->_end_date);
 							?>
-							<input class="compulsory" type="file" name="source_document" />
-							<span class="smallprint"><a target="roster-merge-help" class="med-newwin" href="<?php echo BASE_URL; ?>index.php?call=document_merge_help"><i class="icon-print"></i>Help and examples</a><br></span>
-						</div>
-						<div class="modal-footer">
 							<input type="submit" class="btn" value="Go" />
 							<input type="button" class="btn" data-dismiss="modal" value="Cancel" />
 						</div>
 						</form>
+					</div>
 					</div>
 				<?php
 			}

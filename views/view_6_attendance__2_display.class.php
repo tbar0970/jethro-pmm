@@ -453,6 +453,7 @@ class View_Attendance__Display extends View
 
 			foreach ($all_persons as $personid => $details) {
 				if (!isset($all_attendances[$personid])) continue;
+                                $letters = '';
 				?>
 				<tr <?php if ($details['status'] == 'archived') echo 'class="archived"'; ?>>
 					<td class="nowrap">
@@ -490,10 +491,12 @@ class View_Attendance__Display extends View
 							if ($first) $class .= ' new-cohort';
 							echo '<td class="'.$class.'">'.$letter;
 							$first = FALSE;
-							echo '<input type="hidden" name="data['.$personid.'][]" value="'.$letter.'"></td>';
+//							echo '<input type="hidden" name="data['.$personid.'][]" value="'.$letter.'"></td>';
+                                                        $letters .= $letter.',';
 						}
 					}
 				}
+                                echo "\n".'<input type="hidden" name="data2['.$personid.'][]" value="'.$letters.'">';
 				$this->_printActionsAndSelector($personid);
 				?>	
 				</tr>
