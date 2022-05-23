@@ -91,7 +91,11 @@ class JethroDB extends PDO
 		if ($string === NULL) {
 			return 'NULL';
 		} else {
-			return parent::quote($string, $paramtype);
+			if ($paramtype === NULL) {
+				return parent::quote($string);
+			} else {
+				return parent::quote($string, $paramtype);
+			}
 		}
 	}
 
