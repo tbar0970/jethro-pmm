@@ -199,8 +199,11 @@ define('DB_TYPE', 'mysql');
 //	@jethroDarkText: #008791;
 //");
 
-// Note to display beneath the log-in button, eg a link to T&Cs.  Can contain HTML.
+// Note to display beneath the Control Centre log-in button, eg a link to T&Cs.  Can contain HTML.
 //define('LOGIN_NOTE', '');
+
+// Note to display beneath the Mmebers Area login form, eg a link to T&Cs.  Can contain HTML.
+//define('MEMBER_LOGIN_NOTE', '');
 
 // Custom function for building email URLs.
 // Write your own, or use the sample below to go direct to gmail.
