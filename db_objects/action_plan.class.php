@@ -545,6 +545,7 @@ class Action_Plan extends DB_Object
 		$GLOBALS['system']->includeDBClass($note_type);
 		foreach (array_get($actions, 'notes', Array()) as $notedata) {
 			$note = new $note_type();
+            if ($notedata['assignee']=="") { $notedata['assignee']=null; }  // Workaround for #807
 			$notedata = Action_Plan_Note::getAbstractNoteData($notedata, $reference_date);
 
 			$footnote = '[Added automatically by action plan "'.$this->getValue('name').'" (#'.$this->id.')]';
