@@ -376,13 +376,16 @@ body {
 	.nav-collapse .nav > li > a,
 	.nav-collapse .dropdown-menu a {
 		background-color: @jethroDarkish;
+		font-weight: normal !important;		
 	}
 
 }
 
 /* current submenu  item */
 .dropdown-menu > .active > a, .dropdown-menu > .active > a:hover, .dropdown-menu > .active > a:focus,
-.navbar .nav li.dropdown a:hover {
+.navbar .nav li.dropdown a:hover,
+.user-header
+{
 		color: @navbarLinkColorActive;
 		text-decoration: none;
 		background: @navbarLinkBackgroundActive;
@@ -414,12 +417,14 @@ body {
 
 .user-detail {
 	float: right;
-	margin-right: 5px;
+	white-space: nowrap;
 }
 .user-detail .dropdown-menu {
-	min-width: 80px !important;
+	min-width: 90px !important;
 	margin-top: 8px;
 	border-radius: 5px 0 5px 5px;
+	padding-top: 0px;
+	border-top-width: 0px;
 }
 .user-detail li, .user-detail .btn-link, #body .dropdown-menu li a {
 	text-decoration: none !important;
@@ -429,23 +434,21 @@ body {
 }
 li.user-header {
 	line-height: 1.1;
-	padding: 0px 20px 6px 20px;
-	color: white;
-}
-li.user-header b {
-	text-shadow: 0 1.5px 0 @jethroDarkText;
+	padding: 6px 20px 6px 20px;
+	margin-bottom: 4px;
 }
 .user-detail .restrictions {
 	color: #eee;
 	background-color: @grayMid;
 	font-weight: normal;
-	margin: 0px;
+	margin-top: -4px;
+	margin-bottom: 4px;
 	padding: 0px 20px;
 	font-size: 80%;
 }
 .user-detail small {
 	font-size: 80%;
-	color: #ccc;
+	color: #999;
 	padding-left: 1px;
 }
 form.global-search {
@@ -457,12 +460,13 @@ form.global-search span.input-append {
 }
 form.global-search input[type=text] {
 	width: 8ex;
-	transition: width 0.7s ease-in-out;	
+	transition: width 0.3s ease-in-out;	
 }
 form.global-search input[type=text]:focus {
 	z-index: 999;
 	width: 25ex;
 }
+	
 
 /**************** HEADINGS ********************/
 h1 {
@@ -484,6 +488,8 @@ h3 {
 }
 h4 {
   font-size: 14px;
+  margin-bottom: 6px;
+  margin-top: 14px;
 }
 h4 strong {
 	text-decoration: underline; /* ?? */
@@ -492,11 +498,11 @@ h5,h6 {
   font-size: 14px;
   margin-bottom: 0px;
 }
-/*
-h3:first-child, h4:first-child, h5:first-child {
+
+#body h4:first-child, #body h5:first-child {
 	margin-top: 0;
 }
-*/
+
 @media (max-width: 480px) {
 	h1, h1 {
 		font-size: 20px;
@@ -563,6 +569,10 @@ ul {
 }
 #body .pagination a {
 	text-decoration: none;
+}
+#body .pagination {
+	margin-top: 5px;
+	margin-bottom: 5px;
 }
 form.min {
 	display: inline;
@@ -693,6 +703,14 @@ tr:last-child .insert-row-below {
 	padding: 0;
 	font-style: italic;
 	color: @gray;
+}
+#body .soft { /* low-key links */
+	font-size: 90%;
+	padding-top: 1px;
+	color: #aaa !important;
+}
+#body a.pull-right {
+	padding-right: 5px;
 }
 .custom-field-tooltip {
 	background: @jethroGrayish !important;
@@ -832,21 +850,37 @@ input.btn-link, button.btn-link {
 	.indent-left {
 		margin-left: 15px;
 	}
+	.fullwidth-phone {
+		width: 99%;
+		float: none !important;
+		margin-left: 0px !important;
+	}
+	.fullwidth-phone .input-prepend, .fullwidth-phone .input-append {
+		width: 99%;
+		box-sizing: border-box;
+		display: inline-grid !important;
+	}
+	.fullwidth-phone .input-append {
+		grid-template-columns: 1fr min-content;
+	}
 }
 .input-prepend .add-on {
 	margin-left: 1px; /* work around a bug where the left margin gets cut off on homepage */
 }
 
-.input-append {
-	display: inline-grid;
-	grid-template-columns: 1fr min-content; 
+.input-prepend.fullwidth, .input-append.fullwidth {
 	width: 99%;
 	box-sizing: border-box;
+	display: inline-grid !important;
 }
-.input-append.input-prepend {
-	display: inline-grid;
-	grid-template-columns: min-content 1fr min-content; 
-	width: 99%;
+.input-append *, .input-prepend * {
+	grid-row: 1;
+}
+.input-append.fullwidth {
+	grid-template-columns: 1fr min-content;
+}
+.input-prepend.fullwidth {
+	grid-template-columns: min-content 1fr;
 }
 
 .input-append input {
@@ -1144,6 +1178,16 @@ img.person-photo {
 		min-width: 1300px;
 	}
 }
+form.homepage-search {
+	max-width: 400px;
+}
+.homepage-search span.input-append {
+	margin-bottom: 3px;
+}
+.homepage-search-options,.homepage-search-options *  {
+	font-size: 12px;
+	margin: 0px;
+}
 
 /*************** MEMBERS HOME PAGE ******************/
 .member-homepage-box {
@@ -1309,6 +1353,17 @@ img.person-photo {
 	}
 }
 
+/* widgets at the top of "list all" pages */
+.list-all-controls {
+	line-height: 30px; 
+	min-height: 30px
+}
+.list-all-controls form.pull-right {
+	margin-left: 8px;
+}
+.list-all-controls p {
+	margin-bottom: 0px;
+}
 
 /* TAB AND ACCORION OVERRIDES */
 ul.nav-tabs {
