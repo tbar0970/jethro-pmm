@@ -9,7 +9,14 @@ $path_sep = defined('PATH_SEPARATOR') ? PATH_SEPARATOR : ((FALSE === strpos($_EN
 set_include_path(ini_get('include_path').$path_sep.JETHRO_ROOT.$path_sep.JETHRO_ROOT.'/include/'.$path_sep.JETHRO_ROOT.'/db_objects/');
 
 spl_autoload_register(function ($class_name) {
-	 @include_once strtolower($class_name) . '.class.php';
+	// If this autoloader fails, we want it to quietly continue on to other autoloaders
+	// (eg the Composer one). But the @(shutup) operator does not supress include-once 
+	// errors in PHP8+.  And file_exists does not take include_path into account.
+	// So this ugly approach to supressing 'file not found' errors is necessary.
+	$old_er = error_reporting();
+	error_reporting(0);
+	@include_once strtolower($class_name) . '.class.php';
+	error_reporting($old_er);
 });
 
 // set error level such that we cope with PHP versions before and after 5.3 when E_DEPRECATED was introduced.
