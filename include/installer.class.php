@@ -173,8 +173,7 @@ class Installer
 			JOIN _person self ON self.familyid = mp.familyid
 			WHERE
 				self.id = getCurrentUserID()
-				AND mp.status <> "archived"
-				AND mf.status <> "archived"
+				AND ((mp.status <> "archived") OR (mp.id = self.id))
 				AND ((self.status <> "archived") OR (mp.id = self.id))
 				/* archived persons can only see themselves, not any family members */
 			;',
