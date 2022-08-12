@@ -410,11 +410,17 @@ class Person extends DB_Object
 		return $GLOBALS['db']->queryOne($SQL);
 	}
 
+	/**
+	 * Returns TRUE if this person has a registered member account,
+	 * FALSE if no account at all,
+	 * or a datetime string (expiry date) if they are part way through the rego process
+	 */
 	public function hasMemberAccount()
 	{
-		$SQL = 'SELECT LENGTH(member_password) FROM person
+		$SQL = 'SELECT LENGTH(member_password) as gotpassword, IF(resetexpires > NOW(), resetexpires, NULL) as resetexpires FROM person
 				WHERE id = '.(int)$this->id;
-		return (boolean)$GLOBALS['db']->queryOne($SQL);
+		$row = $GLOBALS['db']->queryRow($SQL);
+		return $row['gotpassword'] ? TRUE : ($row['resetexpires'] ? $row['resetexpires'] : FALSE);
 	}
 
 

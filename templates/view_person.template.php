@@ -346,13 +346,18 @@ if (isset($tabs['accounts'])) {
 		</table>
 		<?php
 	} else {
-		echo '<p>'._('This person does not have a user account for the control centre.').'</p>';
+		echo '<i>'.ents($person->toString()).' '._('does not have a user account for the control centre.').'</i>';
 		echo '<p><a href="?view=_add_user_account&personid='.$person->id.'">Create account</a></p>';
 	}
 
 	echo '<h4>'._('Members Area Account').'</h4>';
-	if ($person->hasMemberAccount()) {
-		echo $person->toString().' has a members area account. &nbsp;';
+	$ma = $person->hasMemberAccount();
+	if ($ma) {
+		if ($ma === TRUE) {
+			echo '<i class="icon-check"></i>'.ents($person->toString()).' has a members area account. &nbsp;';
+		} else {
+			echo '<i>'.ents($person->toString()).' has been sent the registration email but not yet completed the rego process. &nbsp;</i>';
+		}
 		?>
 		<form method="post" action="?view=_activate_member_account">
 			<input type="hidden" name="personid" value="<?php echo $person->id; ?>" />
