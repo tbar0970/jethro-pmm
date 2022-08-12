@@ -21,6 +21,9 @@ $(document).ready(function() {
 			setTimeout("try { $('body input[type!=checkbox]:visible, select:visible').not('.btn-link, [type=checkbox], [type=radio], [type=submit]').not('.no-autofocus *, .no-autofocus').get(0).focus(); } catch (e) {}", 200);
 		}
 	}
+	$('input[autoselect]').each(function() {
+		this.select();
+	});
 
 	//// VALIDATION ////
 	$('input.bible-ref').change(TBLib.handleBibleRefBlur);
@@ -93,9 +96,7 @@ $(document).ready(function() {
 		var myLinks = t.find('a, input');
 		if (!myLinks.length) {
 			childLinks = $(this).parent('tr').find('a');
-			if (childLinks.length == 1) {
-				self.location = childLinks[0].href;
-			}
+			self.location = childLinks[0].href;
 		} else if (myLinks.filter('a').length == 1) {
 			self.location = myLinks[0].href;
 		}
