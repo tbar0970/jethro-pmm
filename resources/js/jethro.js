@@ -54,14 +54,6 @@ $(document).ready(function() {
 		$(this).find('input:first, select:first').select();
 	});
 
-  	// Attach the quick-search handlers
-	$('.nav a').each(function() {
-		if (this.innerHTML && (this.innerHTML.toLowerCase() == 'search')) {
-			$(this).click(handleSearchLinkClick);
-			this.accessKey = $(this).parents('ul').parents('li').find('a.dropdown-toggle').html().toLowerCase()[0];
-		}
-	});
-	
 	$('form.global-search').submit(function(e) {
 		if ($(this).find('input[type=text]').val() == '') {
 			event.preventDefault();
@@ -1362,6 +1354,7 @@ var applyNarrowColumns = function(root) {
 /**
 * Lay out a pair of matching boxes.
 * If they can fit next to each other, make them the same height
+* (Used in view-person page. Try to use css grid instead)
 */
 function layOutMatchBoxes()
 {
@@ -1376,40 +1369,6 @@ function layOutMatchBoxes()
 	});
 	if (sameTop) $('.match-height').height(maxHeight);
 }
-
-/* handle clicks on 'search' links in the top nav by building a modal */
-function handleSearchLinkClick()
-{
-	$(this).parents('ul').parents('li').find('a.dropdown-toggle').dropdown('toggle');
-	var heading = $(this).parents('ul').parents('li').find('a.dropdown-toggle').text().toLowerCase();
-	if ($('#search-modal').length == 0) {
-		$('#jethro-overall-width').append(
-			'<div id="search-modal" class="modal hide fade" role="dialog" aria-hidden="true">'+
-			'	<form method="get">'+
-			'		<div class="modal-header"><h4>Search <span></span></h4></div>'+
-			'		<div class="modal-body">Search <span></span> for: <input id="search-name" type="text" name="name" /></div>'+
-			'		<div class="modal-footer">'+
-			'			<button type="button" class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>'+
-			'			<button type="submit" class="btn" accesskey="s">Go</button>'+
-			'		</div>'+
-			'	</form>'+
-			'</div>'
-		);
-	}
-	$('#search-modal').find('span').html(heading);
-
-	// Convert query string to hidden vars, since query strings in a GET form's action are ignored
-	$('#search-modal form').find('input[type=hidden]').remove();
-	var queryVars = parseQueryString(this.href.substr(this.href.indexOf('?')+1));
-	for (varName in queryVars) {
-		$('#search-modal form').prepend('<input type="hidden" name="'+varName+'" value="'+queryVars[varName]+'" />');
-	}
-	$('#search-modal').modal('show').on('shown', function() { $('#search-modal input:visible:first').select(); });
-	return false;
-}
-
-
-
 
 /************************** LOCKING ********************************/
 
