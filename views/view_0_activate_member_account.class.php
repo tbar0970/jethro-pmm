@@ -23,6 +23,9 @@ class View__Activate_Member_Account extends View
 				add_message('An error occurred sending email to '.$person->toString(), 'error');
 				// stay on this page to get more details.
 			}
+		} else {
+			add_message($person->toString(). " not qualified to register a member account.");
+			redirect(-1);
 		}
 	}
 

@@ -367,16 +367,18 @@ if (isset($tabs['accounts'])) {
 	} else {
 		if ($sm) {
 			echo '<i>'.$person->toString().' has not registered a members area account, but can log into the members area using their control centre password.</i>';
+		} else if ($person->getValue('status') == 'archived') {
+			echo '<i>'.$person->toString().' has not yet registered a members area account, and cannot register because they are archived. </i>';
+		} else if (!strlen($person->getValue('email'))) {
+			echo '<i>'.$person->toString().' must have an email address recorded to register for a member account. </i>';
 		} else {
 			echo '<i>'.$person->toString().' has not yet registered a members area account. </i>';
-			if ($person->getValue('email')) {
-				?>
-				<form method="post" action="?view=_activate_member_account">
-					<input type="hidden" name="personid" value="<?php echo $person->id; ?>" />
-					<input type="submit" class="btn" value="Send activation email" />
-				</form>
-				<?php
-			}
+			?>
+			<form method="post" action="?view=_activate_member_account">
+				<input type="hidden" name="personid" value="<?php echo $person->id; ?>" />
+				<input type="submit" class="btn" value="Send activation email" />
+			</form>
+			<?php
 		}
 	}
 	echo $panel_footer;
