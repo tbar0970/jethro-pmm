@@ -6,7 +6,7 @@ class Emailer
 	
 	static function newMessage()
 	{
-		return Swift_Message::newInstance();
+		return new Swift_Message();
 	}
 	
 	/**
@@ -19,15 +19,15 @@ class Emailer
 		try {
 			if (defined('SMTP_SERVER')) {
 				$port = defined('SMTP_PORT') ? SMTP_PORT : 25;
-				$transport = Swift_SmtpTransport::newInstance(SMTP_SERVER, $port);
+				$transport = new Swift_SmtpTransport(SMTP_SERVER, $port);
 				if (defined('SMTP_USERNAME') && SMTP_USERNAME) $transport->setUsername(SMTP_USERNAME);
 				if (defined('SMTP_PASSWORD') && SMTP_PASSWORD) $transport->setPassword(SMTP_PASSWORD);
 				if (defined('SMTP_ENCRYPTION') && SMTP_ENCRYPTION) $transport->setEncryption(SMTP_ENCRYPTION);
 			} else {
-				$transport = Swift_MailTransport::newInstance();
+				$transport = new Swift_MailTransport();
 			}
 
-			$mailer = Swift_Mailer::newInstance($transport);
+			$mailer = new Swift_Mailer($transport);
 
 			$failures = Array();
 			$numSent = $mailer->send($message, $failures);
