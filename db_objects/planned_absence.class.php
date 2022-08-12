@@ -62,7 +62,7 @@ class Planned_Absence extends db_object
 	{
 		return Array(
 				'planned_absence.personid' => '`_person`(`id`) ON DELETE CASCADE',
-				'planned_absence.creator' => '`staff_member`(`id`) ON DELETE RESTRICT',
+				'planned_absence.creator' => '`_person`(`id`) ON DELETE RESTRICT',
 		);
 	}
 	
