@@ -61,6 +61,7 @@ session_set_cookie_params($expiryTime, parse_url(BASE_URL, PHP_URL_PATH));
 if (session_id() == '') {
 	session_name('JethroSession');
 	session_start();
+	upgrade_session_cookie();
 }
 
 if (defined('TIMEZONE') && constant('TIMEZONE')) {

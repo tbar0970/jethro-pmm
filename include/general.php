@@ -164,6 +164,25 @@ function redirect($view, $params=Array(), $hash='')
 	exit;
 }
 
+/**
+ * If a session cookie HTTP header is to be sent, alter it to make sure it includes the right details
+ * Specifically, this is to make sure we have SameSite=Lax even under PHP5.
+ */
+function upgrade_session_cookie()
+{
+	foreach (headers_list() as $header) {
+		if (FALSE !== strpos($header, 'JethroSession')) {
+			// There is a session cookie header waiting to be sent. Remove it, and add a better one.
+			$path = parse_url(BASE_URL, PHP_URL_PATH);
+			$domain = parse_url(BASE_URL, PHP_URL_HOST);
+			header_remove('Set-Cookie');
+			header("Set-Cookie: JethroSession=".session_id()."; path=".$path."; domain=".$domain."; HttpOnly; SameSite=Lax");
+			return;
+		}
+	}	
+}
+
+
 function add_message($msg, $class='success', $html=FALSE)
 {
 	if (php_sapi_name() == 'cli') {
