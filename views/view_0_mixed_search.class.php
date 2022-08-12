@@ -12,6 +12,13 @@ class View__Mixed_Search extends View
 		$this->_search_params = Array();
 		$search = trim(array_get($_REQUEST, 'search', array_get($_REQUEST, 'tel', '')));
 		$tel = preg_replace('/[^0-9]/', '', $search);
+		$types = Array('p' => TRUE, 'f' => TRUE, 'g' => TRUE, 'r' => TRUE);
+		$st = array_get($_REQUEST, 'searchtype');
+		if ($st && $st !== '*') {
+			foreach ($types as $k => $v) {
+				$types[$k] = ($st == $k);
+			}
+		}
 
 		if ($search == '') return;
 
@@ -22,23 +29,35 @@ class View__Mixed_Search extends View
 				}
 			}
 			// Look for phone number matches
-			$this->_family_data = $GLOBALS['system']->getDBObjectData('family', Array('home_tel' => $tel));
-			$this->_person_data = $GLOBALS['system']->getDBObjectData('person', Array('mobile_tel' => $tel, 'work_tel' => $tel));
+			if ($types['f']) {
+				$this->_family_data = $GLOBALS['system']->getDBObjectData('family', Array('home_tel' => $tel));
+			}
+			if ($types['p']) {
+				$this->_person_data = $GLOBALS['system']->getDBObjectData('person', Array('mobile_tel' => $tel, 'work_tel' => $tel));
+			}
 		}
 		if (empty($tel) || (empty($this->_family_data) && empty($this->_person_data))) {
 			// Look for family name, person name, group name, report name or person email
-			$this->_family_data = $GLOBALS['system']->getDBObjectData('family', Array('_family_name' => $search.'%'));
-			$this->_person_data = Person::getPersonsBySearch($search);
-			$this->_group_data = $GLOBALS['system']->getDBObjectData('person_group', Array('_name' => $search.'%'), 'OR', 'name');
-			$this->_report_data = $GLOBALS['system']->getDBObjectData(
+			if ($types['f']) {
+				$this->_family_data = $GLOBALS['system']->getDBObjectData('family', Array('_family_name' => $search.'%'));
+			}
+			if ($types['p']) {
+				$this->_person_data = Person::getPersonsBySearch($search);
+				if (FALSE !== strpos($search, '@')) {
+					// Add email search
+					$this->_person_data += $GLOBALS['system']->getDBObjectData('person', Array('email' => $search));
+				}
+			}
+			if ($types ['g']) {
+				$this->_group_data = $GLOBALS['system']->getDBObjectData('person_group', Array('_name' => $search.'%'), 'OR', 'name');
+			}
+			if ($types['r']) {
+				$this->_report_data = $GLOBALS['system']->getDBObjectData(
 									'person_query',
 									Array('_name' => $search.'%', '(owner' => Array(NULL, $GLOBALS['user_system']->getCurrentUser('id'))),
 									'AND',
 									'name'
 								  );
-			if (FALSE !== strpos($search, '@')) {
-				// Add email search
-				$this->_person_data += $GLOBALS['system']->getDBObjectData('person', Array('email' => $search));
 			}
 		}
 
@@ -60,21 +79,6 @@ class View__Mixed_Search extends View
 				redirect('persons__reports', Array('queryid' => key($this->_report_data)));
 			}
 		}
-
-		// Put all archived results at the end of the list
-		foreach (Array('_person_data', '_family_data', '_group_data') as $var) {
-			$archiveds = Array();
-			$ref = &$this->$var;
-			foreach ($ref as $k => $v) {
-				if ((array_get($v, 'status') == 'archived') || array_get($v, 'is_archived')) {
-					$archiveds[$k] = $v;
-					unset($ref[$k]);
-				}
-			}
-			foreach ($archiveds as $k => $v) {
-				$ref[$k] = $v;
-			}
-		}
 	}
 
 	function getTitle()
@@ -85,74 +89,17 @@ class View__Mixed_Search extends View
 
 	function printView()
 	{
-		if (empty($this->_person_data) && empty($this->_family_data) && empty($this->_group_data)) {
-			echo '<p><i>No matching persons or families were found.  Try searching again.</i></p>';
-			echo '<form class="form form-horizontal"><input type="hidden" name="view" value="_mixed_search">';
-			echo '<input type="text" name="search" placeholder="Name, Phone or Email" />';
-			echo '<button type="submit" class="btn">Search</button></form>';
+		if (empty($this->_person_data) && empty($this->_family_data) && empty($this->_group_data) && empty($this->_report_data)) {
+			echo '<p><i>No results were found.  Try searching again.</i></p>';
+			self::printSearchForm();
 			return;
 		}
 
 		?>
-		<table class="table table-hover table-striped table-min-width clickable-rows">
+		<table class="table table-hover table-min-width table-condensed clickable-rows">
 		<?php
-		if (!empty($this->_group_data)) {
-			foreach ($this->_group_data as $id => $values) {
-				$class = ($values['is_archived'])  ? 'class="archived"' : '';
-				?>
-				<tr <?php echo $class; ?>>
-					<td><?php echo ents($values['name']); ?></td>
-					<td class="narrow">
-						<a href="?view=groups&groupid=<?php echo $id; ?>"><i class="icon-list"></i>View</a> &nbsp;
-						<a href="?view=_edit_group&groupid=<?php echo $id; ?>"><i class="icon-wrench"></i>Edit</a>
-					</td>
-				</tr>
-				<?php
-			}
-
-		}
-		if (!empty($this->_person_data)) {
-			foreach ($this->_person_data as $id => $values) {
-				$class = ($values['status'] == 'archived') ? 'class="archived"' : '';
-				?>
-				<tr <?php echo $class; ?>>
-					<td><?php echo ents($values['first_name']).' '.ents($values['last_name']); ?></td>
-					<td class="narrow">
-						<a href="?view=persons&personid=<?php echo $id; ?>"><i class="icon-user"></i>View</a> &nbsp;
-						<a href="?view=_edit_person&personid=<?php echo $id; ?>"><i class="icon-wrench"></i>Edit</a>
-					</td>
-				</tr>
-				<?php
-			}
-		}
-		if (!empty($this->_family_data)) {
-			foreach ($this->_family_data as $id => $values) {
-				$class = ($values['status'] == 'archived') ? 'class="archived"' : '';
-				?>
-				<tr <?php echo $class; ?>>
-					<td><?php echo ents($values['family_name']); ?> Family</td>
-					<td class="narrow">
-						<a href="?view=families&familyid=<?php echo $id; ?>"><i class="icon-home"></i>View</a> &nbsp;
-						<a href="?view=_edit_family&familyid=<?php echo $id; ?>"><i class="icon-wrench"></i>Edit</a>
-					</td>
-				</tr>
-				<?php
-			}
-		}
-		if (!empty($this->_report_data)) {
-			foreach ($this->_report_data as $id => $values) {
-				?>
-				<tr <?php echo $class; ?>>
-					<td><?php echo ents($values['name']); ?></td>
-					<td class="narrow">
-						<a href="?view=persons__reports&queryid=<?php echo $id; ?>"><i class="icon-list"></i>View</a> &nbsp;
-						<a href="?view=persons__reports&configure=1&queryid=<?php echo $id; ?>"><i class="icon-wrench"></i>Configure</a> &nbsp;
-					</td>
-				</tr>
-				<?php
-			}
-
-		}
+		$this->printResultRows(FALSE);
+		$this->printResultRows(TRUE);	
 		?>
 		</table>
 
@@ -163,5 +110,127 @@ class View__Mixed_Search extends View
 			foreach ($custom_fields as $f) $names[] = '"'.$f['name'].'"';
 			echo '<p class="smallprint">'.sprintf($msg, implode(', ', $names)).'</p>';
 		}
+	}
+	
+	private function printResultRows($archivedStatus)
+	{
+		if (!empty($this->_group_data)) {
+			foreach ($this->_group_data as $id => $values) {
+				if ($values['is_archived'] != $archivedStatus) continue;
+				$class = ($values['is_archived'])  ? 'class="archived"' : '';
+				?>
+				<tr <?php echo $class; ?>>
+					<td><i class="icon-th"></i> <?php echo ents($values['name']); ?></td>
+					<td class="narrow">
+						<a href="?view=groups&groupid=<?php echo $id; ?>">View</a> &nbsp;
+						<a class="hidden-phone" href="?view=_edit_group&groupid=<?php echo $id; ?>">Edit</a>
+					</td>
+				</tr>
+				<?php
+			}
+		}
+		
+		// There's no such thing as achived reports
+		if (!empty($this->_report_data) && ($archivedStatus == FALSE)) {
+			foreach ($this->_report_data as $id => $values) {
+				?>
+				<tr>
+					<td><i class="icon-list-alt"></i> <?php echo ents($values['name']); ?></td>
+					<td class="narrow">
+						<a href="?view=persons__reports&queryid=<?php echo $id; ?>">View</a> &nbsp;
+						<a class="hidden-phone" href="?view=persons__reports&configure=1&queryid=<?php echo $id; ?>">Configure</a> &nbsp;
+					</td>
+				</tr>
+				<?php
+			}
+
+		}
+		if (!empty($this->_person_data)) {
+			$lastFamilyID = 0;
+			$indent = '';
+			foreach ($this->_person_data as $id => $values) {
+				if (($values['status'] == 'archived') !== $archivedStatus) continue;
+				if ($lastFamilyID != $values['familyid']) $indent = '';
+				if (isset($this->_family_data[$values['familyid']])) {
+					$this->_printFamilyRow($values['familyid'], $this->_family_data[$values['familyid']]);
+					unset($this->_family_data[$values['familyid']]);
+					$indent = '&nbsp;&nbsp;&nbsp;&nbsp;';
+				}
+				
+				$class = ($values['status'] == 'archived') ? 'class="archived"' : '';
+				?>
+				<tr <?php echo $class; ?>>
+					<td>
+						<?php 
+						echo $indent;
+						echo '<i class="icon-user"></i> ';
+						echo ents($values['first_name']).' '.ents($values['last_name']); 
+						?>
+					</td>
+					<td class="narrow">
+						<a href="?view=persons&personid=<?php echo $id; ?>">View</a> &nbsp;
+						<a class="hidden-phone" href="?view=_edit_person&personid=<?php echo $id; ?>">Edit</a>
+					</td>
+				</tr>
+				<?php
+				$lastFamilyID = $values['familyid'];
+			}
+		}
+		if (!empty($this->_family_data)) {
+			foreach ($this->_family_data as $id => $values) {
+				if (($values['status'] == 'archived') !== $archivedStatus) continue;		
+				$this->_printFamilyRow($id, $values);
+			}
+		}
+	}		
+	
+	
+	private function _printFamilyRow($id, $values)
+	{
+		$class = ($values['status'] == 'archived') ? 'class="archived"' : '';
+		?>
+		<tr <?php echo $class; ?>>
+			<td><i class="icon-home"></i> <?php echo ents($values['family_name']); ?> Family</td>
+			<td class="narrow">
+				<a href="?view=families&familyid=<?php echo $id; ?>">View</a> &nbsp;
+				<a class="hidden-phone" href="?view=_edit_family&familyid=<?php echo $id; ?>">Edit</a>
+			</td>
+		</tr>
+		<?php		
+	}
+	
+	
+	public static function printSearchForm()
+	{
+		$type = array_get($_GET, 'searchtype', '*');
+		$checked = Array($type => 'checked="checked"');
+		$autoselect = array_get($_GET, 'search')
+		?>
+		<form method="get" class="homepage-search">
+			<input type="hidden" name="view" value="_mixed_search" />
+			<span class="input-append fullwidth">
+				<input type="text" 
+					   name="search" 
+					   value="<?php echo ents(array_get($_GET, 'search')); ?>" 
+					   placeholder=<?php echo _('"Name, phone or email"');?> 
+					   <?php if (array_get($_GET, 'search')) echo 'autoselect="autoselect"'; ?>
+				/>
+				<button type="submit" class="btn"><i class="icon-search"></i></button>
+			</span>
+			<div class="homepage-search-options soft">
+				<div class="pull-left">Search for:</div>
+				<div class="pull-left">
+				<label class="checkbox"><input type="radio" name="searchtype" <?php echo array_get($checked, '*'); ?> value="*" /> everything</label>
+				<label class="checkbox"><input type="radio" name="searchtype" <?php echo array_get($checked, 'f'); ?> value="f" /> families</label>
+				<label class="checkbox"><input type="radio" name="searchtype" <?php echo array_get($checked, 'p'); ?> value="p" /> persons</label>
+				</div>
+				<div class="pull-left">
+				<br />
+				<label class="checkbox"><input type="radio" name="searchtype" <?php echo array_get($checked, 'g'); ?> value="g" /> groups</label>
+				<label class="checkbox"><input type="radio" name="searchtype" <?php echo array_get($checked, 'r'); ?> value="r" /> reports</label>
+				</div>
+			</div>
+		</form>
+		<?php
 	}
 }
