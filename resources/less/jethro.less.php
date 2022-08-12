@@ -283,6 +283,10 @@ body {
 	color: black;
 	text-align: left;
 }
+/* members area only */
+a#user-menu {
+	color: @jethroLightText;
+}
 #user-detail-in-nav {
 	display: none;
 }
@@ -1198,8 +1202,8 @@ form.homepage-search {
 
 @media (min-width: 650px) {
 	.member-homepage-box {
-		width: 31%;
-		margin-right: 2%;
+		width: 30%;
+		margin-right: 3%;
 	}
 	.member-homepage-box.family {
 		width: 100%;
@@ -1211,7 +1215,7 @@ form.homepage-search {
 		display: grid;
 		grid-template-columns: 1fr 2fr; 
 		grid-template-rows: auto auto auto;
-		column-gap: 25px;
+		column-gap: 30px;
 	}
 	.member-homepage-smalls .member-homepage-box {
 		width: 100%;
@@ -1219,6 +1223,7 @@ form.homepage-search {
 		position: relative;
 	}
 	.member-homepage-box {
+		margin-bottom: 30px;
 		position: relative;  /* to constrain the floating photo */
 	}
 }
