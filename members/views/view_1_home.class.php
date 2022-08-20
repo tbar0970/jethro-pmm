@@ -19,7 +19,7 @@ class View_Home extends View
 		<div class="member-homepage-smalls">
 		<div class="member-homepage-box">
 			<h3>Search people</h3>
-			<form method="get" class="form-inline input-append">
+			<form method="get" class="form-inline input-append fullwidth">
 				<input type="hidden" name="view" value="people" />
 				<input name="search" type="text" placeholder="Enter name" value="<?php echo ents(array_get($_REQUEST, 'search')); ?>">
 				<button data-action="search" class="btn" type="submit">Search</button>
