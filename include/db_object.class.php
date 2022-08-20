@@ -217,7 +217,7 @@ class db_object
 			if (array_get($details, 'readonly')) continue;
 			$flds[] = "`$name`";
 			$v = array_get($this->values, $name, '');
-			if (($v === '') && (in_array($details['type'], Array('date', 'datetime', 'int')))) {
+			if (($v === '') && (in_array($details['type'], Array('date', 'datetime', 'int', 'reference')))) {
 				// Mysql strict mode doesn't like blank strings being inserted into datetime cols
 				$v = NULL;
 			}
