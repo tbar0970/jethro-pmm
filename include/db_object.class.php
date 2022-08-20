@@ -244,7 +244,7 @@ class db_object
 	}
 
 
-	public function createFromChild(&$child)
+	public function createFromChild($child)
 	{
 		if (!$this->checkPerm($this->_save_permission_level)) {
 			trigger_error('Current user has insufficient permission level to create a '.get_class($this).' object', E_USER_ERROR);

@@ -32,7 +32,7 @@ class View__Add_User_Account extends View
 					add_message('User account Added');
 					redirect('admin__user_accounts');
 				} else {
-					trigger_error('Failed to create user account');
+					add_message('Failed to create user account', 'error');
 				}
 			}
 		}
@@ -76,7 +76,9 @@ class View__Add_User_Account extends View
 			</div>
 			<?php
 		}
+		$this->_sm->printPasswordVerifyBox();
 		?>
+			<hr />
 			<div class="controls">
 				<input type="submit" class="btn" value="Create user account" />
 				<input type="button" class="btn back" value="Cancel" />

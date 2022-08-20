@@ -196,6 +196,17 @@ class User_System extends Abstract_User_System
 			return FALSE;
 		}
 	}
+	
+	/**
+	 * Return true if the supplied password is correct for the current user
+	 * @param string $password
+	 * @return bool
+	 */
+	public function reverifyCurrentUser($password)
+	{
+		$res = $this->_findUser($this->getCurrentUser('username'), $password);
+		return ($res) && ($res['id'] == $this->getCurrentUser('id'));
+	}
 
 
 }//end class

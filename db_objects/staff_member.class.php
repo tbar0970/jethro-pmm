@@ -176,15 +176,31 @@ class Staff_Member extends Person
 
 	function printForm($prefix='', $fields=NULL)
 	{
+		if ($fields === NULL) {
+			$fields = Array('username', 'password', 'active', 'permissions', 'restrictions');
+		}
 		$offset = array_search('permissions', array_keys($this->fields))+1;
-		$this->fields = array_merge(
-				array_slice($this->fields, 0, $offset),
-				array('restrictions' => Array('type' => 'custom')),
-				array_slice($this->fields, $offset, null)
-		);
-		$this->fields['first_name']['divider_before'] = true;
+		$this->fields['restrictions'] = Array('type' => 'custom');
 		parent::printForm($prefix, $fields);
 		unset($this->fields['restrictions']);
+		$this->printPasswordVerifyBox();
+		?>
+
+		<?php
+	}
+	
+	function printPasswordVerifyBox()
+	{
+		?>
+		<hr />
+		<div class="form-horizontal control-group">
+			<label class="control-label"><b>Your current password</b></label>
+			<div class="controls">
+				<input type="password" name="my_current_password" required="required" /><br />
+				<p class="help-inline">For security, you must enter the <b>current</b> password for user <b><?php echo ents($GLOBALS['user_system']->getCurrentUser('username')); ?></b> before saving these account details</p>
+			</div>
+		</div>
+		<?php
 	}
 
 	function printFieldInterface($name, $prefix='')
@@ -194,12 +210,28 @@ class Staff_Member extends Person
 				print_widget($prefix.'user_un', $this->fields['username'], $this->getValue('username'));
 				break;
 			case 'password':
+				?>
+				<?php
 				if (($GLOBALS['user_system']->getCurrentUser('id') == $this->id) || $GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
+					if ($this->id) {
+						?>
+						<label class="checkbox">
+							<input type="checkbox" data-toggle="visible" data-target="#new-password-fields" />
+							Change password...
+						</label>
+						<div style="display:none" id="new-password-fields">
+						<?php
+					}
 					?>
-					<input type="password" data-minlength="<?php echo (int)$this->getMinPasswordLength(); ?>" autocomplete="new-password" name="<?php echo $prefix.'user_pw1'; ?>" /><br />
-					<input type="password" data-minlength="<?php echo (int)$this->getMinPasswordLength(); ?>" autocomplete="new-password" name="<?php echo $prefix.'user_pw2'; ?>" /><br />
-					<p class="help-inline">Enter once, then again to confirm. Passwords must be at least <?php echo (int)$this->getMinPasswordLength(); ?> characters and contain 2 letters and 2 numbers</p>
+						<input type="password" data-minlength="<?php echo (int)$this->getMinPasswordLength(); ?>" autocomplete="new-password" name="<?php echo $prefix.'user_pw1'; ?>" placeholder="New password" /><br />
+						<input type="password" data-minlength="<?php echo (int)$this->getMinPasswordLength(); ?>" autocomplete="new-password" name="<?php echo $prefix.'user_pw2'; ?>" placeholder="Again to confirm" /><br />
+						<p class="help-inline">Passwords must be at least <?php echo (int)$this->getMinPasswordLength(); ?> characters and contain 2 letters and 2 numbers</p>
 					<?php
+					if ($this->id) {
+						?>
+						</div>
+						<?php
+					}
 				} else {
 					?>
 					<p class="small">A user's password can only be edited by system administrators or the user themselves</p>
@@ -326,6 +358,25 @@ class Staff_Member extends Person
 		if ($name == 'restrictions') return $this->_restrictions;
 		return parent::getValue($name);
 	}
+	
+	
+	function create()
+	{
+		if (!($GLOBALS['user_system']->reverifyCurrentUser($_POST['my_current_password']))) {
+			add_message("Password for current user was incorrect.  Account details not saved", 'error');
+			return FALSE;
+		}	
+		return parent::create();
+	}
+	
+	function createFromChild($person)
+	{
+		if (!($GLOBALS['user_system']->reverifyCurrentUser($_POST['my_current_password']))) {
+			add_message("Password for current user was incorrect.  Account details not saved", 'error');
+			return FALSE;
+		}	
+		return parent::createFromChild($person);
+	}	
 
 
 	function _createFinal()
@@ -340,6 +391,11 @@ class Staff_Member extends Person
 
 	function save($update_family = true)
 	{
+		if (!($GLOBALS['user_system']->reverifyCurrentUser($_POST['my_current_password']))) {
+			add_message("Password for current user was incorrect.  Account details not saved", 'error');
+			return FALSE;
+		}
+		
 		// Only admins can edit staff other than themselves
 		if (!empty($GLOBALS['JETHRO_INSTALLING']) || ($GLOBALS['user_system']->getCurrentUser('id') == $this->id) || $GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 
