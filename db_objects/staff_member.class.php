@@ -216,14 +216,14 @@ class Staff_Member extends Person
 					if ($this->id) {
 						?>
 						<label class="checkbox">
-							<input type="checkbox" data-toggle="visible" data-target="#new-password-fields" />
+							<input type="checkbox" id="password-toggle" data-toggle="visible" data-target="#new-password-fields" />
 							Change password...
 						</label>
 						<div style="display:none" id="new-password-fields">
 						<?php
 					}
 					?>
-						<input type="password" data-minlength="<?php echo (int)$this->getMinPasswordLength(); ?>" autocomplete="new-password" name="<?php echo $prefix.'user_pw1'; ?>" placeholder="New password" /><br />
+						<input type="password" data-minlength="<?php echo (int)$this->getMinPasswordLength(); ?>" autocomplete="new-password" name="<?php echo $prefix.'user_pw1'; ?>" id="<?php echo $prefix.'user_pw1'; ?>" placeholder="New password" /><br />
 						<input type="password" data-minlength="<?php echo (int)$this->getMinPasswordLength(); ?>" autocomplete="new-password" name="<?php echo $prefix.'user_pw2'; ?>" placeholder="Again to confirm" /><br />
 						<p class="help-inline">Passwords must be at least <?php echo (int)$this->getMinPasswordLength(); ?> characters and contain 2 letters and 2 numbers</p>
 					<?php

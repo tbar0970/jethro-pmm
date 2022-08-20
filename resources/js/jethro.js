@@ -61,6 +61,15 @@ $(document).ready(function() {
 			$(this).find('input[type=text]').focus();
 		}
 	});
+	
+	$('#password-toggle').click(function() {
+		if (this.checked) {
+			$('#new-password-fields input[type=password]').focus();
+		} else {
+			$('#new-password-fields input[type=password]').val('');
+		}
+	});
+			
 
 
 	// Popups etc
