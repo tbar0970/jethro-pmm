@@ -1,6 +1,5 @@
 /.php_cs.cache
 /.phpunit
-/.phpunit.result.cache
 /build/*
 /composer.lock
 /phpunit.xml
