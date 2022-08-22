@@ -5,7 +5,7 @@
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => 'a34d4c06db74dda68432565b539ac91c2a8b1b21',
+        'reference' => 'c94f0e8f51c7f9c1d7bacabc0b8e1b2831b87311',
         'name' => '__root__',
         'dev' => true,
     ),
@@ -16,7 +16,7 @@
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => 'a34d4c06db74dda68432565b539ac91c2a8b1b21',
+            'reference' => 'c94f0e8f51c7f9c1d7bacabc0b8e1b2831b87311',
             'dev_requirement' => false,
         ),
         'drewm/mailchimp-api' => array(

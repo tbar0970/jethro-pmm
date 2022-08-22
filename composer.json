@@ -3,5 +3,11 @@
        "phpoffice/phpword": "v0.13.*",
        "swiftmailer/swiftmailer" : "@stable",
        "drewm/mailchimp-api" : "@stable"
-    }
+    },
+	"config": {
+		"platform-check" : false,
+		"platform": {
+			"php" : "5.3.23"
+		}
+	}
 }
