@@ -33,5 +33,5 @@ CREATE VIEW member AS
 
 /* ordering of group membership statuses */
 alter table person_group_membership_status
-add column rank int not null default 0;
+add column `rank` int not null default 0;
 

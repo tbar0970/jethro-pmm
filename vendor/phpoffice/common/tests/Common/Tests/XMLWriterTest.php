@@ -23,7 +23,7 @@ use PhpOffice\Common\XMLWriter;
  *
  * @coversDefaultClass PhpOffice\Common\XMLWriter
  */
-class XMLWriterTest extends \PHPUnit_Framework_TestCase
+class XMLWriterTest extends \PHPUnit\Framework\TestCase
 {
     /**
      */
@@ -42,5 +42,30 @@ class XMLWriterTest extends \PHPUnit_Framework_TestCase
             $object->text('BBB');
         $object->endElement();
         $this->assertEquals('<element>BBB</element>'.chr(10), $object->getData());
+    }
+
+    public function testWriteAttribute()
+    {
+        $xmlWriter = new XMLWriter();
+        $xmlWriter->startElement('element');
+        $xmlWriter->writeAttribute('name', 'value');
+        $xmlWriter->endElement();
+
+        $this->assertSame('<element name="value"/>' . chr(10), $xmlWriter->getData());
+    }
+
+    public function testWriteAttributeShouldWriteFloatValueLocaleIndependent()
+    {
+        $value = 1.2;
+
+        $xmlWriter = new XMLWriter();
+        $xmlWriter->startElement('element');
+        $xmlWriter->writeAttribute('name', $value);
+        $xmlWriter->endElement();
+
+        setlocale(LC_NUMERIC, 'de_DE.UTF-8', 'de');
+
+        $this->assertSame('1,2', (string)$value);
+        $this->assertSame('<element name="1.2"/>' . chr(10), $xmlWriter->getData());
     }
 }

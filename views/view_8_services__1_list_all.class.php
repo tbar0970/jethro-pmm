@@ -7,7 +7,9 @@ class View_Services__List_All extends View
 {
 	private $_start_date = NULL;
 	private $_end_date = NULL;
+	private $_insert_date = NULL;
 	private $_congregations = Array();
+	private $_cong_options = Array();
 	private $_grouped_services = Array();
 	private $_dummy_service = NULL;
 	private $_editing = FALSE;
@@ -21,9 +23,14 @@ class View_Services__List_All extends View
 
 	function processView()
 	{
+		$cs = $GLOBALS['system']->getDBObjectData('congregation', Array('!meeting_time' => ''), 'OR', 'meeting_time');
+		foreach ($cs as $id => $details) {
+			$this->_cong_options[$id] = $details['name'];
+		}		
+		
 		// Get the congregations and make sure they're in order
 		if (!empty($_REQUEST['congregations'])) {
-			$this->_congregations = array_keys($GLOBALS['system']->getDBObjectData('congregation', Array('!meeting_time' => ''), 'OR', 'meeting_time'));
+			$this->_congregations = array_keys($this->_cong_options);
 			foreach ($this->_congregations as $i => $v) {
 				if (!in_array($v, $_REQUEST['congregations'])) {
 					unset($this->_congregations[$i]);
@@ -90,7 +97,7 @@ class View_Services__List_All extends View
 						'>date'			 => date('Y-m-d', strtotime($this->_start_date.'-1 day')),
 						'<date'			 => date('Y-m-d', strtotime($this->_end_date.'+1 day')),
 					  );
-			$services = $GLOBALS['system']->getDBObjectData('service', $params, 'AND', 'date');
+			$services = $GLOBALS['system']->getDBObjectData('service', $params, 'AND', 'date', TRUE);
 			foreach ($services as $id => $details) {
 				$details['id'] = $id;
 				$this->_grouped_services[$details['date']][$details['congregationid']] = $details;
@@ -143,7 +150,7 @@ class View_Services__List_All extends View
 			$i++;
 		}
 
-		$shifted = FALSE;
+		$continue_editing = FALSE;
 
 		// Process the "delete" commands if necessary
 		if (!empty($_POST['delete_single'])) {
@@ -152,37 +159,44 @@ class View_Services__List_All extends View
 				$service->delete();
 				if (!empty($_POST['shift_after_delete'])) {
 					Service::shiftServices(Array($service->getValue('congregationid')), $service->getValue('date'), '-7');
-					$shifted = TRUE;
+					$continue_editing = TRUE;
 				}
 			}
 		}
 		if (!empty($_POST['delete_all_date'])) {
-			$services = $GLOBALS['system']->getDBObjectData('service', Array('date' => $_POST['delete_all_date'], 'congregationid' => $this->_congregations), 'AND');
+			$services = $GLOBALS['system']->getDBObjectData('service', Array('date' => $_POST['delete_all_date'], 'congregationid' => $this->_congregations), 'AND', 'date', TRUE);
 			$dummy = new Service();
 			foreach ($services as $id => $details) {
 				$dummy->populate($id, $details);
 				$dummy->delete();
-				$shifted = TRUE;
+				$continue_editing = TRUE;
 			}
 			if (!empty($_POST['shift_after_delete'])) {
 				Service::shiftServices($this->_congregations, $_POST['delete_all_date'], '-7');
-				$shifted = TRUE;
+				$continue_editing = TRUE;
 			}
 		}
 
 		// Process the "insert" commands if necessary
-		if (!empty($_POST['insert_all_date'])) {
-			Service::shiftServices($this->_congregations, $_POST['insert_all_date'], '7');
-			$shifted = TRUE;
-		}
-		if (!empty($_POST['insert_single_date'])) {
-			foreach ($_POST['insert_single_date'] as $congid => $date) {
-				Service::shiftServices(Array($congid), $date, '7');
-				$shifted = TRUE;
+		if (!empty($_POST['insert_service_trigger']) && !empty($_POST['insert_service_congregationids'])) {
+			$insert_congs = Array();
+			foreach ($_POST['insert_service_congregationids'] as $cid) $insert_congs[] = (int)$cid;
+			$this->_insert_date = process_widget('insert_service_date', Array('type' => 'date'));
+			if ($this->_insert_date) {
+				$continue_editing = TRUE;
+				if (!empty($_POST['insert_service_shift_enable']) && ($_POST['insert_service_shift_days'] > 0)) {
+					Service::shiftServices($insert_congs, $this->_insert_date, (int)$_POST['insert_service_shift_days']);
+				} else {
+					$clashes = $GLOBALS['system']->getDBObjectData('service', Array('date' => $this->_insert_date, '(congregationid' => $insert_congs), 'AND');
+					if ($clashes) {
+						add_message("Cannot insert new service on ".format_date($this->_insert_date).' - there is already a service on that date', 'error');
+						$this->_insert_date = NULL;
+					}
+				}
 			}
 		}
 
-		if (!$shifted) {
+		if (!$continue_editing) {
 			foreach ($this->_congregations as $id) {
 				$cong = $GLOBALS['system']->getDBObject('congregation', $id);
 				$cong->releaseLock('services');
@@ -265,18 +279,18 @@ class View_Services__List_All extends View
 			$message .= _('Click a service below to view its run sheet');
 		}
 		if ($GLOBALS['user_system']->havePerm(PERM_BULKSERVICE)) {
-			$message .= ', '._('or click the "edit" button above to edit the service schedule including bible readings and titles.');
+			$message .= ', '._('or click the "Edit Schedule" button to edit the service details below.');
 		}
-		if ($message) {
+		if ($message && empty($_POST)) {
 			?>
-			<p class="text alert alert-info">
+			<div class="text alert alert-info">
 				<?php echo ents($message); ?>
-			</p>
+			</div>
 			<?php
 		}
 		
 		?>
-		<table class="table roster service-program table-auto-width">
+		<table class="table roster service-program table-hover">
 			<thead>
 				<tr>
 					<th>Date</th>
@@ -366,8 +380,7 @@ class View_Services__List_All extends View
 
 	function _printParamsForm()
 	{
-		$congs = $GLOBALS['system']->getDBObjectData('congregation', Array('!meeting_time' => ''), 'OR', 'meeting_time');
-		if (empty($congs)) {
+		if (empty($this->_cong_options)) {
 			print_message("To edit services you must first go to admin > congregations and set the 'code name' for the relevant congregations", 'failure');
 			return;
 		}
@@ -380,13 +393,13 @@ class View_Services__List_All extends View
 					<b>For congregations</b><br />
 					<?php
 
-					foreach ($congs as $id => $details) {
+					foreach ($this->_cong_options as $id => $name) {
 						?>
 						<label class="checkbox">
 							<input type="checkbox" name="congregations[]" 
 								<?php if (in_array($id, $this->_congregations)) echo 'checked="checked" '; ?>
 								value="<?php echo $id; ?>" id="congregations_<?php echo $id; ?>" />
-							<?php echo ents($details['name']); ?>
+							<?php echo ents($name); ?>
 						</label>
 						<?php
 					}
@@ -445,7 +458,7 @@ class View_Services__List_All extends View
 
 		?>
 		<p class="text alert alert-info">
-			<?php echo _("Use the fields below to enter a topic, format and/or Bible readings for each service. For each Bible reading, use the checkboxes to indicate if it is to be read, to be preached on, or both."); ?>
+			<?php echo _("Use the fields below to enter a topic, format and/or Bible readings for each service. <br />For each Bible reading, use the checkboxes to indicate if it is to be read, to be preached on, or both."); ?>
 		</p>
 		<form method="post" class="warn-unsaved" data-lock-length="<?php echo db_object::getLockLength(); ?>">
 		<input type="hidden" name="program_submitted" value="1" />
@@ -485,26 +498,31 @@ class View_Services__List_All extends View
 			$new_service_i = 0;
 			foreach ($this->_grouped_services as $date => $services) {
 				// first, print a blank one if necessary
-				$last_date_plus_week = date('Y-m-d', strtotime($last_date.' +1 week'));
-				while ($last_date_plus_week < $date) {
-					// it's been more than a week since the last service
-					// so print a blank one in between
-					$this->_printNewServiceRow($new_service_i++, $last_date_plus_week);
-					$last_date_plus_week = date('Y-m-d', strtotime($last_date_plus_week.' +1 week'));
+				if (($this->_insert_date) && ($last_date < $this->_insert_date) && ($this->_insert_date < $date)) {
+					// They have explicitly asked for a new service on a certain date
+					$this->_printNewServiceRow($new_service_i++, $this->_insert_date);
+				} else {					
+					$last_date_plus_week = date('Y-m-d', strtotime($last_date.' +1 week'));
+					while ($last_date_plus_week < $date) {
+						// it's been more than a week since the last service
+						// so print a blank one in between
+						$this->_printNewServiceRow($new_service_i++, $last_date_plus_week);
+						$last_date_plus_week = date('Y-m-d', strtotime($last_date_plus_week.' +1 week'));
+					}
 				}
 
 				// Now print the service we actually have
 				$class_clause = ($date == $this_sunday) ? 'class="hovered"' : '';
 				?>
-				<tr class="copy-details">
+				<tr class="insert-space">
 					<td>
-						<button type="submit" name="insert_all_date" value="<?php echo $date; ?>" class="confirm-title" title="Create a blank week here for ALL CONGREGATIONS by moving all the following services down"></button>
+						<button type="button" data-insert-date="<?php echo $date; ?>" title="Insert new services here"></button>
 					</td>
 				<?php
 				foreach ($this->_congregations as $congid) {
 					?>
 					<td colspan="3">
-						<button type="submit" name="insert_single_date[<?php echo $congid; ?>]" value="<?php echo $date; ?>" class="confirm-title" title="Create a blank week here for this congregation by moving all the following services down"></button>
+						<button type="button" data-insert-congregation="<?php echo $congid; ?>" data-insert-date="<?php echo $date; ?>" title="Insert new service here"></button>
 					</td>
 					<?php
 				}
@@ -568,6 +586,44 @@ class View_Services__List_All extends View
 				<input type="button" class="btn" value="Cancel" data-dismiss="modal" aria-hidden="true" />
 			</div>
 		</div>
+		
+		<div id="insert-confirm-popup" class="modal hide" role="dialog" aria-hidden="true">
+			<div class="modal-header">
+				<h4>Insert service(s)</h4>
+			</div>
+			<div class="modal-body">
+				<table>
+					<tr>
+						<td>Insert a new service on&nbsp;</td>
+						<td><?php print_widget('insert_service_date', Array('type' => 'date'), ''); ?></td>
+					</tr>
+					<tr>
+						<td>for congregations</td>
+						<td id="insert-congs">
+							<?php
+							print_widget(
+									"insert_service_congregationids", 
+									Array('type' => 'select', 'allow_multiple' => true, 'options' => $this->_cong_options),
+									$this->_congregations
+							);
+							?>
+						</td>
+					<tr>
+						<td colspan="2">
+							<label class="checkbox inline">
+								<input type="checkbox" checked="checked" name="insert_service_shift_enable" value="1" data-toggle="enable" data-target="#insert-shift-days" />
+								Shift following services down by </label>
+								<input id="insert-shift-days" name="insert_service_shift_days" type="number" value="7" min="0" max="21" /> days
+							
+						</td>
+					</tr>
+				</table>
+			</div>
+			<div class="modal-footer">
+				<input type="submit" class="btn" name="insert_service_trigger" value="Go" />
+				<input type="button" class="btn" value="Cancel" data-dismiss="modal" aria-hidden="true" />
+			</div>
+		</div>		
 
 		</form>
 		<?php
@@ -576,9 +632,10 @@ class View_Services__List_All extends View
 
 	function _printNewServiceRow($i, $running_date)
 	{
+			$class = ($running_date == $this->_insert_date) ? 'autofocus' : '';
 			?>
 			<tr>
-				<td class="service-date"><?php print_widget('new_service_date['.$i.']', Array('type' => 'date', 'month_format' => 'M'), $running_date); ?></td>
+				<td class="service-date"><?php print_widget('new_service_date['.$i.']', Array('type' => 'date', 'month_format' => 'M', 'class' => $class), $running_date); ?></td>
 			<?php
 			$j = 0;
 			foreach ($this->_congregations as $congid) {

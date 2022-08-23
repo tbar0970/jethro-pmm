@@ -181,7 +181,7 @@ printf($panel_header, 'basic', _('Basic Details'), 'active');
 			}
 			if ($plan_chooser) {
 				?>
-				<a class="hidden-phone" href="#action-plan-modal" data-toggle="modal"><i class="icon-forward"></i><?php echo _('Execute Action Plan')?></a>
+				<a href="#action-plan-modal" data-toggle="modal"><i class="icon-forward"></i><?php echo _('Execute Action Plan')?></a>
 				<?php
 			}
 			?>
@@ -346,13 +346,18 @@ if (isset($tabs['accounts'])) {
 		</table>
 		<?php
 	} else {
-		echo '<p>'._('This person does not have a user account for the control centre.').'</p>';
+		echo '<i>'.ents($person->toString()).' '._('does not have a user account for the control centre.').'</i>';
 		echo '<p><a href="?view=_add_user_account&personid='.$person->id.'">Create account</a></p>';
 	}
 
 	echo '<h4>'._('Members Area Account').'</h4>';
-	if ($person->hasMemberAccount()) {
-		echo $person->toString().' has a members area account. &nbsp;';
+	$ma = $person->hasMemberAccount();
+	if ($ma) {
+		if ($ma === TRUE) {
+			echo '<i class="icon-check"></i>'.ents($person->toString()).' has a members area account. &nbsp;';
+		} else {
+			echo '<i>'.ents($person->toString()).' has been sent the registration email but not yet completed the rego process. &nbsp;</i>';
+		}
 		?>
 		<form method="post" action="?view=_activate_member_account">
 			<input type="hidden" name="personid" value="<?php echo $person->id; ?>" />
@@ -362,16 +367,18 @@ if (isset($tabs['accounts'])) {
 	} else {
 		if ($sm) {
 			echo '<i>'.$person->toString().' has not registered a members area account, but can log into the members area using their control centre password.</i>';
+		} else if ($person->getValue('status') == 'archived') {
+			echo '<i>'.$person->toString().' has not yet registered a members area account, and cannot register because they are archived. </i>';
+		} else if (!strlen($person->getValue('email'))) {
+			echo '<i>'.$person->toString().' must have an email address recorded to register for a member account. </i>';
 		} else {
 			echo '<i>'.$person->toString().' has not yet registered a members area account. </i>';
-			if ($person->getValue('email')) {
-				?>
-				<form method="post" action="?view=_activate_member_account">
-					<input type="hidden" name="personid" value="<?php echo $person->id; ?>" />
-					<input type="submit" class="btn" value="Send activation email" />
-				</form>
-				<?php
-			}
+			?>
+			<form method="post" action="?view=_activate_member_account">
+				<input type="hidden" name="personid" value="<?php echo $person->id; ?>" />
+				<input type="submit" class="btn" value="Send activation email" />
+			</form>
+			<?php
 		}
 	}
 	echo $panel_footer;
@@ -464,23 +471,103 @@ if (isset($tabs['rosters'])) {
 	printf($panel_header, 'rosters', _('Rosters'), '');
 
 	$GLOBALS['system']->includeDBClass('roster_role_assignment');
-	$assignments = Roster_Role_Assignment::getUpcomingAssignments($person->id, NULL);
+	$assignments = Roster_Role_Assignment::getUpcomingAssignments($person->id, '99 weeks');
+	$absences = $GLOBALS['system']->getDBObjectData(
+											'planned_absence', 
+											Array('personid' => $person->id, '>=end_date' => date('Y-m-d')),
+											'start_date'
+									);
+	
+	?>
+	<h4>Upcoming roster assignments</h4>
+	<?php
 	if (empty($assignments)) {
 		?>
 		<p><i><?php $person->printFieldValue('name'); ?> has no upcoming roster assignments</i></p>
 		<?php
 	} else {
 		?>
-		<p><i>Upcoming roster assignments for <?php $person->printFieldValue('name'); ?>:</i></p>
-		<?php
-		foreach ($assignments as $date => $allocs) {
-			?>
-			<h5><?php echo date('j M', strtotime($date)); ?></h5>
+		<table class="table table-bordered table-condensed table-auto-width">
+			<thead>
+				<tr>
+					<th>Date</th>
+					<th>Roles</th>
+				</tr>
+			</thead>
+			<tbody>
 			<?php
-			foreach ($allocs as $alloc) {
-				echo ents($alloc['cong'].' '.$alloc['title']).'<br />';
+			foreach ($assignments as $date => $allocs) {
+				$warning = '';
+				foreach ($absences as $ab) {
+					if (($ab['start_date'] <= $date) && ($date <= $ab['end_date'])) {
+						$warning = '<br /><span class="label label-important">! Planned absence</span>';
+					}
+				}
+				?>
+				<tr>
+					<td class="nowrap"><?php echo format_date($date).'&nbsp;'.$warning; ?></td>
+					<td>
+						<?php
+						foreach ($allocs as $alloc) {
+							echo ents($alloc['cong'].' '.$alloc['title']).'<br />';
+						}
+						?>
+					</td>
+				</tr>
+				<?php
 			}
+			?>
+			</tbody>
+		</table>
+		<?php
+	}
+	
+	?>
+	<h4>
+		<?php
+		if ($GLOBALS['user_system']->havePerm(PERM_EDITROSTER)) {
+			?>
+			<a class="pull-right" href="?view=_add_planned_absence&personid=<?php echo $person->id; ?>"><i class="icon-plus-sign"></i>Add</a>
+			<?php
 		}
+		?>
+		Planned absences</h4>
+	<?php
+	if ($absences) {
+		?>
+		<table class="table table-condensed table-bordered table-auto-width">
+			<thead>
+				<tr>
+					<th>From</th>
+					<th>To</th>
+					<th>Comment</th>
+					<th>&nbsp;</th>
+				</tr>
+			</thead>
+			<tbody>
+			<?php
+			foreach ($absences as $id => $row) {
+				$tooltip = 'Saved by '.$row['creator_name'].' on '.format_datetime($row['created']);
+				?>
+				<tr>
+					<td><?php echo format_date($row['start_date']); ?></td>
+					<td><?php echo format_date($row['end_date']); ?></td>
+					<td><?php echo ents($row['comment']); ?></td>
+					<td>
+						<i class="icon-info-sign" title="<?php echo ents($tooltip); ?>"></i>
+						<a class="confirm-title" href="?view=_delete_planned_absence&id=<?php echo $id; ?>" title="Delete this planned absence" data-method="post"><i class="icon-trash"></i></a>
+					</td>
+				</tr>
+				<?php
+			}
+			?>
+			</tbody>	
+		</table>
+		<?php
+	} else {
+		?>
+		<p><i><?php $person->printFieldValue('name'); ?> has no upcoming planned absences</i></p>
+		<?php	
 	}
 
 	echo $panel_footer;
@@ -489,7 +576,3 @@ if (isset($tabs['rosters'])) {
 
 ?>
 </div>
-<?php
-
-
-

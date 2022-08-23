@@ -29,7 +29,7 @@ class User_System extends Abstract_User_System
 		} else if (empty($_SESSION['user']) && !empty($_POST['username'])) {
 			// process the login form
 			if (array_get($_SESSION, 'login_key', NULL) != $_POST['login_key']) {
-				$this->_error = 'Login Key Incorrect.  Please try again.';
+				$this->_error = 'Login form expired.  Please try again.';
 				return;
 			}
 			$user_details = $this->_findUser($_POST['username'], $_POST['password']);
@@ -39,6 +39,7 @@ class User_System extends Abstract_User_System
 				// Log the user in
 				// Recreate session when logging in
 				session_regenerate_id();
+				upgrade_session_cookie();
 				$_SESSION = Array();
 				$_SESSION['user'] = $user_details;
 				$_SESSION['login_time'] = time();
@@ -132,6 +133,7 @@ class User_System extends Abstract_User_System
 
 	public function havePerm($permission)
 	{
+		if (!is_int($permission)) trigger_error("Non-numeric permission level is invalid", E_USER_ERROR);
 		if ($permission == 0) return true;
 		if (!empty($GLOBALS['JETHRO_INSTALLING'])) return true;
 		if (!array_key_exists($permission, $this->_permission_levels)) return false; // disabled feature
@@ -193,6 +195,17 @@ class User_System extends Abstract_User_System
 		} catch (Exception $ex) {
 			return FALSE;
 		}
+	}
+	
+	/**
+	 * Return true if the supplied password is correct for the current user
+	 * @param string $password
+	 * @return bool
+	 */
+	public function reverifyCurrentUser($password)
+	{
+		$res = $this->_findUser($this->getCurrentUser('username'), $password);
+		return ($res) && ($res['id'] == $this->getCurrentUser('id'));
 	}
 
 

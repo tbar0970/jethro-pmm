@@ -55,7 +55,7 @@ class View_Rosters__Define_Roster_Views extends View
 				<td><?php echo ents($details['members']); ?></td>
 				<td class="nowrap">
 					<a href="?view=_edit_roster_view&roster_viewid=<?php echo $id; ?>"><i class="icon-wrench"></i>Edit</a> &nbsp;
-					<a href="<?php echo build_url(Array('delete_viewid'=>$id)); ?>"><i class="icon-trash"></i>Delete</a>
+					<a href="<?php echo build_url(Array('delete_viewid'=>$id)); ?>" class="confirm-title" title="Delete this roster view altogether"><i class="icon-trash"></i>Delete</a>
 				</td>
 			</tr>
 			<?php

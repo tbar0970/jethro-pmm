@@ -36,7 +36,7 @@ if ($show_actions) {
 	<?php
 }
 ?>
-<table class="table table-hover table-striped <?php if (empty($callbacks)) echo 'clickable-rows'; ?>">
+<table class="table table-hover table-striped table-condensed <?php if (empty($callbacks)) echo 'clickable-rows'; ?>">
 	<thead>
 		<?php include 'person_list_header_footer.template.php'; ?>
 	</thead>

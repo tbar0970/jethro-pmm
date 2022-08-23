@@ -40,12 +40,30 @@ class View_Groups extends View
 		if (!SizeDetector::isNarrow()) {
 			?>
 			<h3><?php echo _('Group Details');?></h3>
-			<table class="table table-full-width no-borders">
+			<table class="table table-full-width no-borders table-condensed">
 				<tr>
 					<th class="narrow"><?php echo _('Category');?></th>
 					<td><?php $this->_group->printFieldValue('categoryid'); ?>&nbsp;&nbsp;</td>
 					<th class="narrow hidden-phone"><?php echo _('Record Attendance?');?></th>
 					<td class="hidden-phone"><?php $this->_group->printFieldValue('attendance_recording_days'); ?></td>
+					<td class="align-right">
+						<?php
+						if ($GLOBALS['user_system']->havePerm(PERM_EDITATTENDANCE)) {
+							?>
+							<a class="link-collapse"
+							   href="?view=attendance__record&cohortids[]=g-<?php echo $this->_group->id; ?>">
+								<i class="icon-check"></i><?php echo _('Record attendance');?>
+							</a>
+							<?php
+						}
+						?>
+					</td>
+				</tr>
+				<tr>
+					<th class="narrow"><?php echo _('Status');?></th>
+					<td><?php $this->_group->printFieldValue('is_archived'); ?></td>
+					<th class="narrow hidden-phone"><?php echo _('Share Member Details?');?></th>
+					<td class="hidden-phone"><?php $this->_group->printFieldValue('share_member_details'); ?></td>
 					<td class="align-right">
 					<?php
 					if ($GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
@@ -57,10 +75,10 @@ class View_Groups extends View
 					</td>
 				</tr>
 				<tr>
-					<th class="narrow"><?php echo _('Status');?></th>
-					<td><?php $this->_group->printFieldValue('is_archived'); ?></td>
-					<th class="narrow hidden-phone"><?php echo _('Share Member Details?');?></th>
-					<td class="hidden-phone"><?php $this->_group->printFieldValue('share_member_details'); ?></td>
+					<th class="narrow"><?php echo _('Visibility');?></th>
+					<td><?php $this->_group->printFieldValue('owner'); ?></td>
+					<th class="narrow hidden-phone"><?php echo _('Show on add-family page?');?></th>
+					<td class="hidden-phone"><?php $this->_group->printFieldValue('show_add_family'); ?></td>
 					<td class="align-right">
 						<?php
 						if ($GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
@@ -73,13 +91,6 @@ class View_Groups extends View
 						}
 						?>
 					</td>
-				</tr>
-				<tr>
-					<th class="narrow"><?php echo _('Visibility');?></th>
-					<td><?php $this->_group->printFieldValue('owner'); ?></td>
-					<th class="narrow hidden-phone"><?php echo _('Show on add-family page?');?></th>
-					<td class="hidden-phone"><?php $this->_group->printFieldValue('show_add_family'); ?></td>
-					<td></td>
 				</tr>
 			</table>
 			<?php

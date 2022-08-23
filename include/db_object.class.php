@@ -58,10 +58,12 @@ class db_object
 		if (is_null($table_name)) $table_name = strtolower(get_class($this));
 		$indexes = '';
 		foreach ($this->_getUniqueKeys() as $name => $fields) {
+			foreach ($fields as $k => $v) $fields[$k] = "`$v`";
 			$indexes .= ',
 				UNIQUE KEY `'.$name.'` ('.implode(', ', $fields).')';
 		}
 		foreach ($this->_getIndexes() as $name => $fields) {
+			foreach ($fields as $k => $v) $fields[$k] = "`$v`";
 			$indexes .= '
 				INDEX `'.$name.'` ('.implode(', ', $fields).')';
 		}
@@ -72,11 +74,12 @@ class db_object
 				";
 		foreach (call_user_func(Array(get_class($this), '_getFields')) as $name => $details) {
 			$type = 'varchar(255)';
-			$default = array_get($details, 'default', '');
+			$default = array_get($details, 'default', FALSE);
 			$null_exp = array_get($details, 'allow_empty', 0) ? 'NULL' : 'NOT NULL';
 			switch ($details['type']) {
 				case 'date':
 					$type = 'date';
+					if (empty($default)) $default = FALSE;
 					break;
 				case 'datetime':
 					$type = 'datetime';
@@ -122,16 +125,17 @@ class db_object
 					$default = array_get($details, 'default', 0);
 			}
 
-			switch ($default) {
-				case 'CURRENT_TIMESTAMP':
-				case 'NULL':
-					break;
-				default:
-					$default = $GLOBALS['db']->quote($default);
-					break;
+			if ($default !== FALSE) {
+				switch ($default) {
+					case 'CURRENT_TIMESTAMP':
+					case 'NULL':
+						break;
+					default:
+						$default = $GLOBALS['db']->quote($default);
+						break;
+				}
+				$default = ' DEFAULT '.$default;
 			}
-
-			if ($default !== FALSE) $default = ' DEFAULT '.$default;
 
 			$res .= "`".$name."` ".$type." ".$null_exp.$default.",
 				";
@@ -211,9 +215,9 @@ class db_object
 		$our_fields = call_user_func(Array(get_class($this), '_getFields'));
 		foreach ($our_fields as $name => $details) {
 			if (array_get($details, 'readonly')) continue;
-			$flds[] = $name;
+			$flds[] = "`$name`";
 			$v = array_get($this->values, $name, '');
-			if (($v === '') && (in_array($details['type'], Array('date', 'datetime', 'int')))) {
+			if (($v === '') && (in_array($details['type'], Array('date', 'datetime', 'int', 'reference')))) {
 				// Mysql strict mode doesn't like blank strings being inserted into datetime cols
 				$v = NULL;
 			}
@@ -231,7 +235,7 @@ class db_object
 			array_unshift($vals, $db->quote((int)$this->id));
 		}
 
-		$sql = 'INSERT INTO '.strtolower(get_class($this)).' ('.implode(', ', $flds).')
+		$sql = 'INSERT INTO '.$this->_getInsertTableName().' ('.implode(', ', $flds).')
 				 VALUES ('.implode(', ', $vals).')';
 		$res = $db->query($sql);
 		if (empty($this->id)) $this->id = $db->lastInsertId();
@@ -240,7 +244,7 @@ class db_object
 	}
 
 
-	public function createFromChild(&$child)
+	public function createFromChild($child)
 	{
 		if (!$this->checkPerm($this->_save_permission_level)) {
 			trigger_error('Current user has insufficient permission level to create a '.get_class($this).' object', E_USER_ERROR);
@@ -259,6 +263,15 @@ class db_object
 			$parent_class = strtolower(get_parent_class($parent_class));
 		}
 		return $res;
+	}
+	
+	/*
+	 * Get the name of the table that objects should be INSERTed into.
+	 * This can be overridden if the normal table is actually a view.
+	 */
+	protected function _getInsertTableName()
+	{
+		return strtolower(get_class($this));
 	}
 
 	/**
@@ -300,8 +313,15 @@ class db_object
 	{
 		foreach ($this->fields as $id => $details) {
 			$this->values[$id] = array_get($details, 'default', '');
-			if (($details['type'] == 'reference') && empty($this->values[$id])) {
-				$this->values[$id] = NULL;
+			if (empty($this->values[$id])) {
+				switch ($details['type']) {
+					case 'boolean':
+					case 'int':
+						$this->values[$id] = 0;
+						break;
+					case 'reference':
+						$this->values[$id] = NULL;
+				}
 			}
 		}
 	}
@@ -372,10 +392,10 @@ class db_object
 			}
 			if (($this->fields[$i]['type'] == 'datetime') && ($new_val == 'CURRENT_TIMESTAMP')) {
 				// CURRENT_TIMESTAMP should not be quoted
-				$sets[] = ''.$i.' = '.$new_val;
+				$sets[] = ''.$db->quoteIdentifier($i).' = '.$new_val;
 			} else {
 				// quote everything else
-				$sets[] = ''.$i.' = '.$db->quote($new_val);
+				$sets[] = ''.$db->quoteIdentifier($i).' = '.$db->quote($new_val);
 			}
 		}
 		if (!empty($sets)) {
@@ -468,6 +488,10 @@ class db_object
 		if (array_get($this->fields[$name], 'initial_cap')) {
 			$value = ucfirst($value);
 		}
+		// Force initial cap only if value is a single world
+		if (array_get($this->fields[$name], 'initial_cap_singleword') && (false === strpos($value, ' '))) {
+			$value = ucfirst($value);
+		}
 		if (array_get($this->fields[$name], 'trim')) {
 			$value = hard_trim($value);
 		}
@@ -514,6 +538,30 @@ class db_object
 	public function getValue($name)
 	{
 		return array_get($this->values, $name);
+	}
+
+	public function __call($name, $arguments)
+	{
+		if (0 === strpos($name, 'get')) {
+			// If there is a reference field called "family" or "familyid", allow a call to ->getFamily()
+			// which returns the referenced object.
+			$propName = strtolower(substr($name, 3));
+			foreach ($this->fields as $fn => $f) {
+				if ($f['type'] == 'reference') {
+					$fnb = $fn;
+					if (substr($fnb, -2) == 'id') $fnb = substr($fnb, 0, -2);
+					if ($fnb == $propName) {
+						if ($idVal = $this->getValue($fn)) {
+							$classname = $f['references'];
+							return $GLOBALS['system']->getDBObject($classname, $idVal);
+						}
+					}
+				}
+			}
+			trigger_error('Object has no property called '.$propName, E_USER_ERROR); exit;
+		} else {
+			trigger_error('Call to undefined method '.$name, E_USER_ERROR); exit;
+		}
 	}
 
 	public function validateFields()
@@ -687,7 +735,8 @@ class db_object
 		} else if ($this->fields[$name]['type'] == 'phone') {
 			echo '<a href="tel:'.$value.'">'.ents($this->getFormattedValue($name, $value)).'</a>';
 		} else if (($this->fields[$name]['type'] == 'email')) {
-			$personName = ($this->values[$name] == $value) ? $this->values['first_name'].' '.$this->values['last_name'] : '';
+			$personName = NULL;
+			if (isset($this->_fields['first_name'])) $personName = ($this->values[$name] == $value) ? $this->values['first_name'].' '.$this->values['last_name'] : '';
 			echo '<a href="'.get_email_href($value, $personName).'" '.email_link_extras().'>'.ents($value).'</a>';
 		} else if (($this->fields[$name]['type'] == 'html')) {
 			echo $this->getFormattedValue($name, $value);
@@ -855,7 +904,7 @@ class db_object
 
 	public function acquireLock($type='')
 	{
-		if (!$this->id) return TRUE;
+		if (!intval($this->id)) return TRUE;
 		if ($this->haveLock($type)) return TRUE;
 		if (!$this->canAcquireLock($type)) return FALSE;
 		$bits = explode(' ', self::getLockLength());
@@ -1042,7 +1091,7 @@ class db_object
 
 		if (!empty($order)) {
 			if (isset($this->fields[$order])) {
-				$res['order_by'] = $this->fields[$order]['table_name'].'.'.$order;
+				$res['order_by'] = $this->fields[$order]['table_name'].'.`'.$order.'`';
 			} else {
 				$res['order_by'] = $order; // good luck...
 			}

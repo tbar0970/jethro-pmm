@@ -101,7 +101,7 @@ class Person_Group extends db_object
 				"CREATE TABLE person_group_membership_status (
 					id INT AUTO_INCREMENT PRIMARY KEY,
 					label VARCHAR(255) NOT NULL,
-					rank int not null default 0,
+					`rank` int not null default 0,
 					is_default TINYINT(1) UNSIGNED DEFAULT 0,
 					CONSTRAINT UNIQUE INDEX (label)
 				) ENGINE=InnoDB;",
@@ -122,6 +122,13 @@ class Person_Group extends db_object
 				) ENGINE=InnoDB",
 		);
 	}
+	
+	public function getForeignKeys()
+	{
+		return Array(
+			'_person_group.categoryid' => "`person_group_category` (`id`) ON DELETE SET NULL",
+		);
+	}	
 
 
 	/**
@@ -150,11 +157,11 @@ class Person_Group extends db_object
 	function getMembers($params=Array(), $order_by=NULL)
 	{
 		if ($order_by == NULL) {
-			$order_by = 'pgms.rank, person.last_name, person.first_name';
+			$order_by = 'pgms.`rank`, person.last_name, person.first_name';
 		} else {
 			// replace 'status' with membership status rank.
 			// but retain 'person.status' unchanged.
-			$order_by = preg_replace("/(^|[^.])status($| |,)/", '\\1pgms.rank\\2', $order_by);
+			$order_by = preg_replace("/(^|[^.])status($| |,)/", '\\1pgms.`rank`\\2', $order_by);
 		}
 		$person = new Person();
 		$comps = $person->getInstancesQueryComps($params, 'AND', $order_by);
@@ -378,11 +385,11 @@ class Person_Group extends db_object
 			$sql = 'SELECT s.*, COUNT(pgm.personid) as usages
 					FROM person_group_membership_status s
 					LEFT JOIN person_group_membership pgm ON pgm.membership_status = s.id
-					ORDER BY s.rank';
+					ORDER BY s.`rank`';
 		} else {
 			$sql = 'SELECT s.*
 					FROM person_group_membership_status s
-					ORDER BY s.rank';
+					ORDER BY s.`rank`';
 		}
 		$res = $GLOBALS['db']->queryAll($sql, null, null, true);
 		$options = Array();

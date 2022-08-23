@@ -38,6 +38,7 @@ class View_Persons__Reports extends View
 			} else {
 				$this->_query->create();
 			}
+
 			redirect($_REQUEST['view'], Array('queryid' => !empty($_REQUEST['return']) ? NULL : $this->_query->id));
 		}
 	}
@@ -45,7 +46,7 @@ class View_Persons__Reports extends View
 	function getTitle()
 	{
 		if ($this->_query) {
-			if ($this->_query->id) {
+			if ($this->_query) {
 				if (!empty($_REQUEST['configure'])) {
 					return _('Configure Person Report');
 				} else {
@@ -66,6 +67,7 @@ class View_Persons__Reports extends View
 	function printView()
 	{
 		if (!empty($_REQUEST['configure'])) {
+			// PRINT THE FORM TO CONFIGURE THE REPORT
 			?>
 			<form method="post" class="form-horizontal" action="<?php echo build_url(Array('configure' => NULL)); ?>">
 				<input type="hidden" name="query_submitted" value="1" />
@@ -81,7 +83,8 @@ class View_Persons__Reports extends View
 			</form>
 			<?php
 
-		} else if (!empty($this->_query)) {
+		} else if (!empty($this->_query->id)) {
+			// SHOW QUERY RESULTS
 			?>
 			<?php
 
@@ -100,8 +103,14 @@ class View_Persons__Reports extends View
 				</div>
 			</div>
 			<?php
-
+			
+		} else if (!empty($_REQUEST['queryid']) && is_numeric($_REQUEST['queryid'])) {
+			// THEY ASKED FOR A QUERY BUT THEY CAN'T HAVE IT
+			print_message('The requested report does not exist, or you do not have permission to view it', 'error');
+			return;
+			
 		} else {
+			// PRINT THE LIST OF SAVED REPORTS
 			?>
 			<p>
 				<a href="<?php echo build_url(Array('*' => NULL, 'view' => $_REQUEST['view'], 'queryid' => 0, 'configure' => 1)); ?>"><i class="icon-plus-sign"></i><?php echo _('Create a new report');?></a>
@@ -123,7 +132,6 @@ class View_Persons__Reports extends View
 							<th><?php echo _('Report Name');?></th>
 							<th><?php echo _('Visible To');?></th>
 							<th><?php echo _('Actions');?></th>
-							<th></th>
 							<th></th>
 						</tr>
 					</thead>
@@ -167,12 +175,12 @@ class View_Persons__Reports extends View
 							}
 							?>
 							</td>
-							<td>
+							<td class="narrow">
 								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>&configure=1"><i class="icon-wrench"></i><?php echo _('Configure');?></a> &nbsp;
 							<?php
 							if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
 								?>
-								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>&delete=1" data-method="post" class="double-confirm-title" title="Delete this report"><i class="icon-trash"></i><?php echo _('Delete');?></a>
+								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>&delete=1" data-method="post" class=" double-confirm-title" title="Delete this report"><i class="icon-trash"></i><?php echo _('Delete');?></a>
 								<?php
 							}
 							?>

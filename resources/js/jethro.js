@@ -5,12 +5,21 @@ $(document).ready(function() {
 	// Make standalone safari stay standalone
 	if (("standalone" in window.navigator) && window.navigator.standalone) {
 		// http://www.andymercer.net/blog/2016/02/full-screen-web-apps-on-ios/
-		var insideApp = sessionStorage.getItem('insideApp'), location = window.location.href, stop = /^(a|html)$/i;
+		var insideApp = sessionStorage.getItem('insideApp');
+		var location = window.location.href
+		var stop = /^(a|html)$/i;
 		if (insideApp) {
+			// record what page we're on, to come back to it after app loses focus
 			localStorage.setItem('returnToPage', location);
+		} else if ($('#login-body').length) {
+			// login session has timed out, so clear the page memory
+			// because we want to start afresh
+			localStorage.setItem('returnToPage', '');
 		} else {
+			// the app has just regaind focus, and we're still logged in,
+			// so go to the last page we were on.
 			var returnToPage = localStorage.getItem('returnToPage');
-			if (returnToPage && (returnToPage != location) && ($('.login-box').length == 0)) {
+			if (returnToPage && (returnToPage != location)) {
 				window.location.href = returnToPage;
 			}
 			sessionStorage.setItem('insideApp', true);
@@ -35,7 +44,7 @@ $(document).ready(function() {
 		});
 	}
 	if (("standalone" in window.navigator) && !window.navigator.standalone) {
-		// Opportunity to tell them to save to home screen
+		$('.a2hs-prompt').show();
 	}
 
 	// This needs to be first!
@@ -45,22 +54,22 @@ $(document).ready(function() {
 		$(this).find('input:first, select:first').select();
 	});
 
-	$('.modal.autosize').on('shown', function() {
-		$(this).css({
-			width: 'auto',
-			'margin-left': function () {
-				return -($(this).width() / 2);
-			}
-		});
-	});
-
-  	// Attach the quick-search handlers
-	$('.nav a').each(function() {
-		if (this.innerHTML && (this.innerHTML.toLowerCase() == 'search')) {
-			$(this).click(handleSearchLinkClick);
-			this.accessKey = $(this).parents('ul').parents('li').find('a.dropdown-toggle').html().toLowerCase()[0];
+	$('form.global-search').submit(function(e) {
+		if ($(this).find('input[type=text]').val() == '') {
+			event.preventDefault();
+			event.stopPropagation();			
+			$(this).find('input[type=text]').focus();
 		}
 	});
+	
+	$('#password-toggle').click(function() {
+		if (this.checked) {
+			$('#new-password-fields input[type=password]').focus();
+		} else {
+			$('#new-password-fields input[type=password]').val('');
+		}
+	});
+			
 
 
 	// Popups etc
@@ -139,49 +148,78 @@ $(document).ready(function() {
 
 	$('input.person-search-multiple').each(function() {
 		var stem = this.id.substr(0, this.id.length-6);
+		var baseScript = '?call=find_person_json';
+		for (var j=0; j < this.attributes.length; j++) {
+			if (this.attributes[j].nodeName.substr(0,5) == 'data-') {
+				baseScript += '&'+this.attributes[j].nodeName.substr(5)+'='+this.attributes[j].nodeValue
+			}
+		}
 		var options = {
-			script: "?call=find_person_json&",
+			script: baseScript+'&',
 			varname: "search",
 			json: true,
 			maxresults: 10,
 			delay: 300,
 			cache: false,
 			timeout: -1,
-			callback: new Function("item",
-							"$(document.getElementById('"+stem+"-list')).append('<li><div class=\"delete-list-item\" title=\"Remove this item\" onclick=\"deletePersonChooserListItem(this);\" />'+item.value+'<input type=\"hidden\" name=\""+stem+"[]\" value=\"'+item.id+'\" /></li>');" +
-							"with (document.getElementById('"+stem+"-input')) {"+
-								"if (typeof onchange == 'function') onchange(); " +
-								"value = '';" +
-								"focus();" +
-							"}"
-					  )
+			callback: function(item) {
+						var myInput = document.getElementById(stem+'-input');
+						if (item.id != 0) {
+							$(document.getElementById(stem+'-list')).append('<li><div class=\"delete-list-item\" title=\"Remove this item\" onclick=\"deletePersonChooserListItem(this);\" />'+item.value+'<input type=\"hidden\" name=\"'+stem+'[]\" value=\"'+item.id+'\" /></li>');
+						} else {
+							$(myInput).addClass('error');
+							setTimeout(function() { $(myInput).removeClass('error'); }, 1000);
+						}
+						if (typeof myInput.onchange == 'function') myInput.onchange();
+						myInput.value = '';
+						myInput.focus();			
+					  }
+			
 		};
 		var as = new bsn.AutoSuggest(this.id, options);
 	});
 
 	$('input.person-search-single, input.family-search-single').each(function() {
 		var stem = this.id.substr(0, this.id.length-6);
+		var baseScript = $(this).hasClass('person-search-single') ? "?call=find_person_json" : "?call=find_family_json";
+		for (var j=0; j < this.attributes.length; j++) {
+			if (this.attributes[j].nodeName.substr(0,5) == 'data-') {
+				baseScript += '&'+this.attributes[j].nodeName.substr(5)+'='+this.attributes[j].nodeValue
+			}
+		}
 		var options = {
+			script: baseScript+'&',
 			varname: "search",
 			json: true,
 			maxresults: 10,
 			delay: 300,
 			cache: false,
 			timeout: -1,
-			callback: new Function("item",
-							"document.getElementsByName('"+stem+"')[0].value = item.id;" +
-							"with (document.getElementById('"+stem+"-input')) {"+
-								"if (typeof onchange == 'function') onchange(); " +
-								"value = item.value+' (#'+item.id+')';" +
-								"select();" +
-								"oldValue = value;" +
-							"}"
-					  )
+			callback: function(item) {
+							var myInput = document.getElementById(stem+'-input');
+							myInput.transition = true;
+							if (item.id != 0) {
+								document.getElementsByName(stem)[0].value = item.id;
+								if (typeof myInput.onchange == 'function') myInput.onchange();
+								myInput.value = item.value+' (#'+item.id+')';
+								myInput.select();
+								myInput.oldValue = myInput.value;
+							} else {
+								$(myInput).addClass('error');
+								setTimeout(function() { $(myInput).removeClass('error'); }, 1000);								
+								myInput.select();
+								myInput.value = myInput.oldValue;
+							}
+							return false;
+						}
 		};
-		options.script = $(this).hasClass('person-search-single') ? "?call=find_person_json&" : "?call=find_family_json&";
 		var as = new bsn.AutoSuggest(this.id, options);
 	}).focus(function() {
 		this.select();
+		// Yuck: Because BSN autosugest puts the person's name in the textbox
+		// itself, independely of the callback function above, we need to 
+		// only save values that include hashes (as in T Barrett (#01)).
+		if (this.value.indexOf('#') != -1) this.oldValue = this.value;
 	}).blur(function() {
 		if (this.value == '') {
 			document.getElementsByName(this.id.substr(0, this.id.length-6))[0].value = 0;
@@ -514,6 +552,11 @@ $(document).ready(function() {
 	}
 
 	JethroSMS.init();
+
+	$('select.merge-template').change(function() {
+		$('#merge-template-upload')[(this.value == '__NEW__') ? 'show' : 'hide']();
+		if (this.value == '__NEW__') $('#merge-template-upload input[type=file]').click();
+	})
 });
 
 var JethroSMS = {};
@@ -787,6 +830,19 @@ JethroServiceProgram.init = function() {
 			$('#shift-confirm-popup').modal('show');
 			return false;
 		});
+		$('.insert-space button').click(function() {
+			setDateField('insert_service_date', $(this).attr('data-insert-date'));
+			var insertCong = $(this).attr('data-insert-congregation');
+			if (insertCong) {
+				$('#insert-congs input').each(function() {
+					this.checked = (insertCong == this.value);
+				});
+			} else {
+				$('#insert-congs input').attr('checked', true);
+			}
+			$('#insert-confirm-popup').modal('show');
+			return false;
+		});
 		$('.confirm-delete').click(function() {
 			return confirm("Really delete service?");
 		});
@@ -850,6 +906,13 @@ JethroServicePlanner._getTRDragHelper = function(event, tr) {
 	return helper;
 }
 
+JethroServicePlanner.setDroppable = function(elt) {
+	elt.droppable({
+        drop: JethroServicePlanner.onItemDrop,
+		hoverClass: 'drop-hover',
+    });
+}
+
 JethroServicePlanner.init = function() {
 
 	if (!document.getElementById('service-planner')) return;
@@ -896,16 +959,7 @@ JethroServicePlanner.init = function() {
 	})
 
 	// SERVICE PLAN TABLE:
-
-	$("#service-plan tbody tr").droppable({
-        drop: JethroServicePlanner.onItemDrop,
-		hoverClass: 'drop-hover',
-    });
-
-	$("#service-plan tfoot tr").droppable({
-        drop: JethroServicePlanner.onItemDrop,
-		hoverClass: 'drop-hover',
-    });
+	JethroServicePlanner.setDroppable($("#service-plan tbody tr"));
 
     $("#service-plan tbody").sortable(	{
 		cursor: "move",
@@ -1129,11 +1183,7 @@ JethroServicePlanner.addItem = function(title, attrVals, beforeItem) {
 	}
 	$(beforeItem).before(newTR);
 	$('#service-plan-placeholder').remove();
-
-	newTR.droppable({
-		drop: JethroServicePlanner.onItemDrop,
-		hoverClass: 'drop-hover',
-	});
+	JethroServicePlanner.setDroppable(newTR);
 	JethroServicePlanner.refreshNumbersAndTimes();
 	JethroServicePlanner.isChanged = true;
 }
@@ -1166,8 +1216,7 @@ JethroServicePlanner._refreshNumbersAndTimes = function() {
 	$('#service-plan tbody').append(spacer); // make sure it's at the end
 	var spacerHeight = Math.max(0, (5 - $('tr.service-item').length)*30);
 	$('#service-plan-spacer td').height(spacerHeight);
-
-
+	JethroServicePlanner.setDroppable(spacer);
 }
 
 
@@ -1338,6 +1387,7 @@ var applyNarrowColumns = function(root) {
 /**
 * Lay out a pair of matching boxes.
 * If they can fit next to each other, make them the same height
+* (Used in view-person page. Try to use css grid instead)
 */
 function layOutMatchBoxes()
 {
@@ -1352,40 +1402,6 @@ function layOutMatchBoxes()
 	});
 	if (sameTop) $('.match-height').height(maxHeight);
 }
-
-/* handle clicks on 'search' links in the top nav by building a modal */
-function handleSearchLinkClick()
-{
-	$(this).parents('ul').parents('li').find('a.dropdown-toggle').dropdown('toggle');
-	var heading = $(this).parents('ul').parents('li').find('a.dropdown-toggle').text().toLowerCase();
-	if ($('#search-modal').length == 0) {
-		$('#jethro-overall-width').append(
-			'<div id="search-modal" class="modal hide fade" role="dialog" aria-hidden="true">'+
-			'	<form method="get">'+
-			'		<div class="modal-header"><h4>Search <span></span></h4></div>'+
-			'		<div class="modal-body">Search <span></span> for: <input id="search-name" type="text" name="name" /></div>'+
-			'		<div class="modal-footer">'+
-			'			<button type="button" class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>'+
-			'			<button type="submit" class="btn" accesskey="s">Go</button>'+
-			'		</div>'+
-			'	</form>'+
-			'</div>'
-		);
-	}
-	$('#search-modal').find('span').html(heading);
-
-	// Convert query string to hidden vars, since query strings in a GET form's action are ignored
-	$('#search-modal form').find('input[type=hidden]').remove();
-	var queryVars = parseQueryString(this.href.substr(this.href.indexOf('?')+1));
-	for (varName in queryVars) {
-		$('#search-modal form').prepend('<input type="hidden" name="'+varName+'" value="'+queryVars[varName]+'" />');
-	}
-	$('#search-modal').modal('show').on('shown', function() { $('#search-modal input:visible:first').select(); });
-	return false;
-}
-
-
-
 
 /************************** LOCKING ********************************/
 
@@ -1447,6 +1463,14 @@ function showLockExpiredWarning()
 		document.location.href = document.location;
 	});
 	window.DATA_CHANGED = false; // see setupUnsavedWarnings() in tb_lib.js
+}
+
+function setDateField(prefix, value)
+{
+	valueBits = value.split('-');
+	document.getElementsByName(prefix+'_y')[0].value = valueBits[0];
+	document.getElementsByName(prefix+'_m')[0].value = parseInt(valueBits[1], 10);
+	document.getElementsByName(prefix+'_d')[0].value = parseInt(valueBits[2], 10);
 }
 
 // Allow certain submit buttons to target their form to an envelope-sized popup or hidden frame.

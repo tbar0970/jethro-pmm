@@ -49,10 +49,11 @@
 			</label>
 				</li>
 			</ul>
-
-
-
-
+		<?php
+		if (defined('MEMBER_LOGIN_NOTE') && MEMBER_LOGIN_NOTE) {
+			echo '<p>'.MEMBER_LOGIN_NOTE.'</p>';
+		}
+		?>
 		</div>
 	</form>
 </body>

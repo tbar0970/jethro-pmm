@@ -45,7 +45,7 @@ class Person extends DB_Object
 									'width'		=> 30,
 									'maxlength'	=> 128,
 									'allow_empty'	=> false,
-									'initial_cap'	=> true,
+									'initial_cap_singleword'	=> true,
 									'trim'			=> TRUE,
 								   ),
 			'last_name'		=> Array(
@@ -53,7 +53,7 @@ class Person extends DB_Object
 									'width'		=> 30,
 									'maxlength'	=> 128,
 									'allow_empty'	=> false,
-									'initial_cap'	=> true,
+									'initial_cap_singleword'	=> true,
 									'trim'			=> TRUE,
 								   ),
 			'gender'		=> Array(
@@ -207,26 +207,40 @@ class Person extends DB_Object
 	 */
 	public function getViewSQL()
 	{
-		return "CREATE VIEW person AS
+		return "
+			CREATE VIEW person AS
 			SELECT * from _person p
 			WHERE
 				getCurrentUserID() IS NOT NULL
 				AND (
-					(`p`.`id` = `getCurrentUserID`())
-					OR (`getCurrentUserID`() = -(1))
-					OR (
-						(
-						(not(exists(select 1 AS `Not_used` from `account_congregation_restriction` `cr` where (`cr`.`personid` = `getCurrentUserID`()))))
-						OR `p`.`congregationid` in (select `cr`.`congregationid` AS `congregationid` from `account_congregation_restriction` `cr` where (`cr`.`personid` = `getCurrentUserID`()))
-						)
-						AND
-						(
-						(not(exists(select 1 AS `Not_used` from `account_group_restriction` `gr` where (`gr`.`personid` = `getCurrentUserID`()))))
-						OR `p`.`id` in (select `m`.`personid` AS `personid` from (`person_group_membership` `m` join `account_group_restriction` `gr` on((`m`.`groupid` = `gr`.`groupid`))) where (`gr`.`personid` = `getCurrentUserID`()))
-						)
-					)
-				);";
+					/* the person in question IS the current user */
+					(`p`.`id` = `getCurrentUserID`()) 
+
+					OR /* we've been set to public mode */					
+					(`getCurrentUserID`() = -(1))  
+
+					OR /* current user has no group/cong restrictions */
+					((0 = (select count(congregationid) from account_congregation_restriction cr WHERE cr.personid = getCurrentUserID()))
+					   AND (0 = (select count(congregationid) from account_group_restriction cr WHERE cr.personid = getCurrentUserID())))
+
+					OR /* person is within a permitted cong */
+					(`p`.`congregationid` in (select `cr`.`congregationid` AS `congregationid` from `account_congregation_restriction` `cr` where (`cr`.`personid` = `getCurrentUserID`())))
+
+					OR
+					/* person is within a permitted group */
+					(`p`.`id` in (select `m`.`personid` AS `personid` from (`person_group_membership` `m` join `account_group_restriction` `gr` on((`m`.`groupid` = `gr`.`groupid`))) where (`gr`.`personid` = `getCurrentUserID`())))
+				)
+		";
 	}
+	
+	/*
+	 * Get the name of the table that objects should be INSERTed into.
+	 * This can be overridden if the normal table is actually a view.
+	 */
+	protected function _getInsertTableName()
+	{
+		return '_person';
+	}	
 
 	/**
 	 *
@@ -396,11 +410,17 @@ class Person extends DB_Object
 		return $GLOBALS['db']->queryOne($SQL);
 	}
 
+	/**
+	 * Returns TRUE if this person has a registered member account,
+	 * FALSE if no account at all,
+	 * or a datetime string (expiry date) if they are part way through the rego process
+	 */
 	public function hasMemberAccount()
 	{
-		$SQL = 'SELECT LENGTH(member_password) FROM person
+		$SQL = 'SELECT LENGTH(member_password) as gotpassword, IF(resetexpires > NOW(), resetexpires, NULL) as resetexpires FROM person
 				WHERE id = '.(int)$this->id;
-		return (boolean)$GLOBALS['db']->queryOne($SQL);
+		$row = $GLOBALS['db']->queryRow($SQL);
+		return $row['gotpassword'] ? TRUE : ($row['resetexpires'] ? $row['resetexpires'] : FALSE);
 	}
 
 
@@ -449,7 +469,7 @@ class Person extends DB_Object
 		return $attendances;
 	}
 
-	function saveAttendance($attendances, $groupid) {
+	function saveAttendance($attendances, $groupid, $checkinid=NULL) {
 		$db =& $GLOBALS['db'];
 
 		$SQL = 'DELETE FROM attendance_record
@@ -459,11 +479,11 @@ class Person extends DB_Object
 		$res = $db->exec($SQL);
 
 		$sets = Array();
-		$SQL = 'INSERT INTO attendance_record (personid, groupid, date, present)
+		$SQL = 'INSERT INTO attendance_record (personid, groupid, date, present, checkinid)
 				VALUES ';
 		foreach ($attendances as $date => $present) {
 			if ($present == '' || $present == '?' || $present == 'unknown') continue;
-			$sets[] = '('.(int)$this->id.', '.(int)$groupid.', '.$db->quote($date).', '.(($present == 1 || $present == 'present') ? 1 : 0).')';
+			$sets[] = '('.(int)$this->id.', '.(int)$groupid.', '.$db->quote($date).', '.(($present == 1 || $present == 'present') ? 1 : 0).', '.$db->quote($checkinid).')';
 		}
 		if ($sets) {
 			$SQL .= implode(",\n", $sets);
@@ -526,7 +546,7 @@ class Person extends DB_Object
 
 			if (!empty($this->_old_values['status']) || !empty($this->_old_values['last_name'])) {
 				$family = $GLOBALS['system']->getDBObject('family', $this->getValue('familyid'));
-				$members = $family->getMemberData();
+				$members = $family->getMemberData(TRUE);
 
 				if (!empty($this->_old_values['status']) && ($this->getValue('status') == 'archived')) {
 					// status has just been changed to 'archived' so archive family if no live members
@@ -695,7 +715,13 @@ class Person extends DB_Object
 		return FALSE;
 	}
 
-	static function printSingleFinder($name, $currentval)
+	/**
+	 * Print a widget for choosing a person by name search
+	 * @param string	$name				Form element name
+	 * @param int		$currentval			PersonID
+	 * @param string	$plannedAbsenceDate	(optional) - if specified, planned absences on this date should be displayed in results
+	 */
+	static function printSingleFinder($name, $currentval, $plannedAbsenceDate=NULL)
 	{
 		$currentid = 0;
 		$currentname = '';
@@ -712,22 +738,25 @@ class Person extends DB_Object
 		}
 		$displayname = $currentid ? $currentname.' (#'.$currentid.')' : '';
 		?>
-		<input type="text" placeholder="Search persons" id="<?php echo $name; ?>-input" class="person-search-single" value="<?php echo ents($displayname); ?>" />
+		<input type="text" placeholder="Search persons" id="<?php echo $name; ?>-input" class="person-search-single" data-show-absence-date="<?php echo $plannedAbsenceDate; ?>" value="<?php echo ents($displayname); ?>" />
 		<input type="hidden" name="<?php echo $name; ?>" value="<?php echo $currentid; ?>" />
 		<?php
 	}
 
 	/**
 	 * Print a widget for choosing multiple persons by name search
-	 * @param string $name
-	 * @param array $val	Array of IDs
+	 * @param string	$name
+	 * @param array		$val				Array of IDs
+	 * @param string	$plannedAbsenceDate	(optional) - if specified, planned absences on this date should be displayed in results
 	 */
-	static function printMultipleFinder($name, $val=Array())
+	static function printMultipleFinder($name, $val=Array(), $plannedAbsenceDate=NULL)
 	{
 		$persons = empty($val) ? Array() : $GLOBALS['system']->getDBObjectData('person', Array('id' => $val));
+		$absences = Planned_Absence::getForPersonsAndDate($val, $plannedAbsenceDate);
 		$selected = Array();
 		foreach ($persons as $id => $details) {
 			$selected[$id] = $details['first_name'].' '.$details['last_name'];
+			if (isset($absences[$id])) $selected[$id] .= ' !! ABSENT !!';
 		}
 		?>
 		<ul class="multi-person-finder" id="<?php echo $name; ?>-list">
@@ -738,7 +767,7 @@ class Person extends DB_Object
 		}
 		?>
 		</ul>
-		<input type="text" placeholder="Search persons" id="<?php echo $name; ?>-input" class="person-search-multiple" />
+		<input type="text" placeholder="Search persons" id="<?php echo $name; ?>-input" data-show-absence-date="<?php echo $plannedAbsenceDate; ?>" class="person-search-multiple" />
 		<?php
 	}
 
@@ -773,18 +802,24 @@ class Person extends DB_Object
 		$res = Array();
 
 		$customFields = self::getCustomFields();
+		$resTemplate = Array();
 		foreach ($customFields as $fieldid => $fieldDetails) {
 			$customFields[$fieldid] = new Custom_Field();
 			$customFields[$fieldid]->populate($fieldid, $fieldDetails);
+			$resTemplate[strtoupper(str_replace(' ', '_', $fieldDetails['name']))] = '';
 		}
 		foreach ($qres as $row) {
+			if (!isset($res[$row['personid']])) {
+				// Make sure we have something for every field in the result
+				$res[$row['personid']] = $resTemplate;
+			}
 			$fname = strtoupper(str_replace(' ', '_', $row['name']));
 			if ($formatted || ($row['type'] == 'select')) {
 				$fVal = $customFields[$row['fieldid']]->formatValue($row['value']);
 			} else {
 				$fVal = $row['value'];
 			}
-			if (isset($res[$row['personid']][$fname])) {
+			if (strlen($res[$row['personid']][$fname])) {
 				$res[$row['personid']][$fname] .= ', '.$fVal;
 			} else {
 				$res[$row['personid']][$fname] = $fVal;

@@ -51,7 +51,7 @@ class View_People extends View
 				?>
 				<h3><?php echo ents($member['family_name']); ?></h3>
 				<?php
-				if ($GLOBALS['system']->featureEnabled('PHOTOS')) {
+				if ($GLOBALS['system']->featureEnabled('PHOTOS') && $member['has_family_photo']) {
 					?>
 					<img class="family" src="?call=photo&familyid=<?php echo $member['familyid']; ?>" />
 					<?php

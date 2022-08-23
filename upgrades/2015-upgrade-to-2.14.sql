@@ -34,7 +34,7 @@ CREATE TABLE `custom_field_value` (
 SET @rank = -1;
 
 INSERT INTO custom_field
-(id, name, rank, type, allow_multiple, params)
+(id, name, `rank`, type, allow_multiple, params)
 SELECT id, name, @rank:=@rank+1, 'date', 1, 'a:2:{s:10:"allow_note";i:1;s:16:"allow_blank_year";i:1;}'
 from date_type
 order by name;

@@ -7,14 +7,29 @@ class View_Groups__List_All extends View
 
 	function getTitle()
 	{
-		return _('All Groups');
+		if (empty($_REQUEST['search'])) {
+			return _('All Groups');
+		} else {
+			return _('Group search results');
+		}
 	}
 
 	function processView()
 	{
-		$conds = empty($_REQUEST['show_archived'])? Array('is_archived' => 0) : Array();
-		$this->_group_data = $GLOBALS['system']->getDBObjectData('person_group', $conds, 'OR', 'categoryid, name');
 		$this->_category_data = $GLOBALS['system']->getDBObjectData('person_group_category', Array(), 'OR', 'name');
+		if (!empty($_REQUEST['search'])) {
+			$this->_group_data = $GLOBALS['system']->getDBObjectData('person_group', Array('name' => array_get($_REQUEST, 'search', '')), 'OR', 'name');
+			if (empty($this->_group_data)) {
+				$this->_group_data = $GLOBALS['system']->getDBObjectData('person_group', Array('name' => '%'.array_get($_REQUEST, 'search', '').'%'), 'OR', 'name');
+			}
+			if (count($this->_group_data) == 1) {
+				add_message("One group found");
+				redirect('groups', Array('groupid' => key($this->_group_data), 'name' => NULL)); // exits
+			}
+		} else {
+			$conds = empty($_REQUEST['show_archived'])? Array('is_archived' => 0) : Array();
+			$this->_group_data = $GLOBALS['system']->getDBObjectData('person_group', $conds, 'OR', 'categoryid, name');
+		}
 	}
 
 	function _printCats($parentid=0)
@@ -96,16 +111,35 @@ class View_Groups__List_All extends View
 	
 	function printView()
 	{
+		// Search form - show top right if not yet searching
+		$formclass = empty($_REQUEST['search']) ? 'pull-right' : '';
 		?>
-		<div>
+		<div class="list-all-controls">
+		<form method="get" class="<?php echo $formclass; ?> form-horizontal min fullwidth-phone">
+			<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>">
+			<span class="input-append">
+				<input type="text" name="search" enterkeyhint="Search" placeholder="Search groups..." value="<?php echo ents(array_get($_REQUEST, 'search', '')); ?>">
+				<button type="submit" class="btn"><i class="icon-search"></i></button>
+			<?php
+			if (!empty($_REQUEST['search'])) {
+				?>
+				<a class="btn" href="<?php echo build_url(Array('search'=>NULL));?>"><i class="icon-remove"></i></a>
+				<?php
+			}
+			?>
+			</span>
+		</form>
+		<?php
+		if (empty($_REQUEST['search'])) {
+			?>
 			<?php
 			if (empty($_REQUEST['show_archived'])) {
 				?>
-				<a class="pull-right hidden-phone" href="<?php echo build_url(Array('show_archived' => 1)); ?>"><i class="icon-eye-open"></i><?php echo _('Include Archived Groups');?></a>
+				<a class="soft pull-right hidden-phone" href="<?php echo build_url(Array('show_archived' => 1)); ?>"><i class="icon-eye-open"></i><?php echo _('Include Archived')?></a>
 				<?php
 			} else {
 				?>
-				<a class="pull-right hidden-phone" href="<?php echo build_url(Array('show_archived' => 0)); ?>"><i class="icon-eye-close"></i><?php echo _('Exclude Archived Groups');?></a>
+				<a class="soft pull-right hidden-phone" href="<?php echo build_url(Array('show_archived' => 0)); ?>"><i class="icon-eye-close"></i><?php echo _('Exclude Archived')?>;</a>
 				<?php
 			}
 
@@ -115,14 +149,32 @@ class View_Groups__List_All extends View
 				<?php
 			}
 			?>
+			<?php
+		} else if (empty($this->_group_data)) {
+			?>
+			<p><strong>No matching groups were found</strong></p>
+			<?php
+		} else {
+			?>
+			<p><strong><?php echo count($this->_group_data); ?> matching groups found:</strong></p>
+			<?php
+		}
+		?>
 		</div>
 		<div>
 			<?php
 			$cats = $this->_category_data; // + Array(0 => Array('name' => 'Uncategorised Groups'));
 			$this->_printCats();
+			foreach ($this->_group_data as $g) {
+				if ($g['categoryid'] == 0) {
+					?>
+					<h3><?php echo _('Uncategorised Groups');?></h3>
+					<?php 
+					$this->_printGroupsForCategory(0);
+					break;
+				}
+			}
 			?>
-			<h3><?php echo _('Uncategorised Groups');?></h3>
-			<?php $this->_printGroupsForCategory(0); ?>
 		</div>
 		<?php
 

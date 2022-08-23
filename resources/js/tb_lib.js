@@ -21,6 +21,9 @@ $(document).ready(function() {
 			setTimeout("try { $('body input[type!=checkbox]:visible, select:visible').not('.btn-link, [type=checkbox], [type=radio], [type=submit]').not('.no-autofocus *, .no-autofocus').get(0).focus(); } catch (e) {}", 200);
 		}
 	}
+	$('input[autoselect]').each(function() {
+		this.select();
+	});
 
 	//// VALIDATION ////
 	$('input.bible-ref').change(TBLib.handleBibleRefBlur);
@@ -93,9 +96,7 @@ $(document).ready(function() {
 		var myLinks = t.find('a, input');
 		if (!myLinks.length) {
 			childLinks = $(this).parent('tr').find('a');
-			if (childLinks.length == 1) {
-				self.location = childLinks[0].href;
-			}
+			self.location = childLinks[0].href;
 		} else if (myLinks.filter('a').length == 1) {
 			self.location = myLinks[0].href;
 		}
@@ -308,33 +309,6 @@ $(document).ready(function() {
 
 	setTimeout('setupUnsavedWarnings()', 400);
 
-
-	$('.input-prepend input[type=text], .input-append input[type=text]').css('min-width', '0px');
-	$('.input-prepend, .input-append').width('99%').each(function() {
-		var t = $(this);
-		var box = t.find('input[type=text]');
-		box.width('0px');
-		var childWidths = 0;
-		t.children().each(function() {
-			if ($(this).offset()['top'] == box.offset()['top']) {
-				childWidths += $(this).outerWidth();
-			}
-		});
-		box.width(t.width() - childWidths);
-	}).each(function() {
-		// yes we do it all again to work around a stupid webkit bug
-		var t = $(this);
-		var box = t.find('input[type=text]');
-		box.width('0px');
-		var childWidths = 0;
-		t.children().each(function() {
-			if ($(this).offset()['top'] == box.offset()['top']) {
-				childWidths += $(this).outerWidth();
-			}
-		});
-		box.width(t.width() - childWidths);
-	});
-
 	/** used to show/hide service notes */
 	$('.toggle-next-tr').click(function() {
 		$(this).parents('tr:first').next('tr').toggle();
@@ -389,11 +363,24 @@ $(document).ready(function() {
 
 	});
 
-	$('a[target="_append"').click(function() {
+	$('a[target="_append"]').click(function() {
 		 $.get(this.href, function(data) {
             $('#body').append(data);
         });
 		return false;
+	});
+	
+	$("[data-action=copy-tsv]").click(function() {
+		var link = this;
+		TBLib.copyTSV($(this).parents('table:first').get(0)).then(function() {
+			link.innerHTML = '✔ Copied';
+		});
+	});
+	$("[data-action=copy-table]").click(function() {
+		var link = this;
+		TBLib.copyTable($(this).parents('table:first').get(0)).then(function() {
+			link.innerHTML = '✔ Copied';
+		});
 	});
 });
 
@@ -865,15 +852,6 @@ function parseQueryString(qs)
 	return params;
 }
 
-
-function setDateField(prefix, value)
-{
-	valueBits = value.split('-');
-	document.getElementsByName(prefix+'_y')[0].value = valueBits[0];
-	document.getElementsByName(prefix+'_m')[0].value = parseInt(valueBits[1], 10);
-	document.getElementsByName(prefix+'_d')[0].value = parseInt(valueBits[2], 10);
-}
-
 function getKeyCode(e)
 {
 	if (!e) e = window.event;
@@ -973,4 +951,31 @@ TBLib.handleMailtoClick = function() {
 		} catch (e) {} // if it's naviated to gmail.com we don't have permission to close it, and that's ok
 	}, 500);
 	return false;
+}
+
+TBLib.copyTSV = function(table) {
+	var h = '';
+	for (let r of table.rows) {
+		$(r).find('>td,>th').not('.no-print, .no-tsv').each(function() {
+			h += this.innerText.replace("\n", " ").replace("\t", " ") + '\t';
+		});
+		h += "\n";
+	}
+	return navigator.clipboard.writeText(h);
+}
+
+TBLib.copyTable = function(table) {
+	var h = '<table border="1" cellspacing="0" cellpadding="3">';
+	for (let r of table.rows) {
+		h += '<tr>';
+		$(r).find('>td,>th').not('.no-print, .no-tsv').each(function() {
+			h += "<td>"+this.innerText.replace("\n", " ").replace("\t", " ") + '</td>';
+		});
+		h += "</tr>";
+	}
+	h += '</table>';
+	var type = "text/html";
+    var blob = new Blob([h], { type });
+    var data = [new ClipboardItem({ [type]: blob })];
+    return navigator.clipboard.write(data);
 }

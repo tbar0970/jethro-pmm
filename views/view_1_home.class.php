@@ -27,16 +27,12 @@ class View_Home extends View
 				>
 					<i class="icon-bookmark"></i><small class="hidden-phone">Bookmark</small>
 				</a>
-				<?php echo _('System-Wide Search');?></h3>
-			<label class="msie-only">Enter a person, family or group name, or phone number or email:</label>
-			<form method="get">
-				<input type="hidden" name="view" value="_mixed_search" />
-				<span class="input-prepend input-append">
-					<span class="add-on"><i class="icon-search"></i></span>
-					<input type="text" name="search" class="" placeholder=<?php echo _('"Name, Phone or Email"');?> />
-					<button type="submit" class="btn">Go</button>
-				</span>
-			</form>
+				<?php echo _('System-Wide Search');?>
+			</h3>
+			<?php
+			require_once 'views/view_0_mixed_search.class.php';
+			View__mixed_search::printSearchForm();
+			?>
 		</div>
 
 		<?php

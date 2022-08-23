@@ -7,6 +7,7 @@
 	</title>
 	<meta name="robots" content="noindex, nofollow">
 	<meta name="apple-mobile-web-app-capable" content="yes">
+	<link rel="apple-touch-icon" href="resources/img/iphone-icon.png"/>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0<?php
 		if (FALSE === strpos(array_get($_SERVER, 'HTTP_USER_AGENT', ''), 'iPad')) echo ', user-scalable=no';
 		?>">
@@ -59,6 +60,7 @@ if (JETHRO_VERSION == 'DEV') {
 	<script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/jethro.js?t=<?php echo time(); ?>"></script>
 	<script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/bsn_autosuggest.js?t=<?php echo time(); ?>"></script>
 	<script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/jquery-ui.js?t=<?php echo time(); ?>"></script>
+	<script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/jquery.ui.touch-punch.min.js?t=<?php echo time(); ?>"></script>
 	<script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/stupidtable.min.js?t=<?php echo time(); ?>"></script>
 	<?php
 } else {

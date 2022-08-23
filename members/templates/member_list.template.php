@@ -20,12 +20,14 @@ foreach ($persons as $personid => $person) {
 			echo ents($dummy->getFormattedValue('age_bracketid'));
 			echo ' &bull; ';
 			echo ents($dummy->getFormattedValue('gender'));
-			echo '<br />';
-			$dummy->printFieldValue('mobile_tel');
-			if ($dummy->getValue('mobile_tel') && $dummy->getValue('email')) {
-				echo ' &bull; ';
+			if ($dummy->getValue('mobile_tel')) {
+				echo ' &bull; ';	
+				$dummy->printFieldValue('mobile_tel');
 			}
-			$dummy->printFieldValue('email');
+			if ($dummy->getValue('email')) {
+				echo '<br />';
+				$dummy->printFieldValue('email');
+			}
 			?>
 		</div>
 
