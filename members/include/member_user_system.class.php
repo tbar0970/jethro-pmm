@@ -59,7 +59,7 @@ class Member_User_System extends Abstract_User_System
 	{
 			// process the login form
 			if (array_get($_SESSION, 'login_key', NULL) != $_POST['login_key']) {
-				$this->_error = 'Login Key Incorrect.  Please try again.';
+				$this->_error = 'Login form expired.  Please try again.';
 				return;
 			}
 			$user_details = $this->_findAuthMember($_POST['email'], $_POST['password']);
@@ -303,7 +303,7 @@ If you didn't request an account, you can just ignore this email";
 				JOIN age_bracket ab ON ab.id = p.age_bracketid
 				WHERE p.email  = '.$db->quote($email).'
 				AND status <> "archived"
-				ORDER BY (IF(p.member_password IS NOT NULL, 0, 1)), ab.rank ASC, p.gender DESC';
+				ORDER BY (IF(p.member_password IS NOT NULL, 0, 1)), ab.`rank` ASC, p.gender DESC';
 		$res = $db->queryRow($sql);
 
 		return $res;

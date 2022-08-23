@@ -17,8 +17,11 @@ class View_Admin__Congregations extends View
 			$cong = $GLOBALS['system']->getDBObject('congregation', (int)$_REQUEST['congregationid']);
 			if ($cong) {
 				$members = $GLOBALS['system']->getDBObjectData('person', Array('congregationid' => $cong->id));
+				$usernames = Staff_Member::getUsernamesByCongregationRestriction($cong->id);
 				if (count($members)) {
 					add_message(_("Cannot delete congregation because it is not empty"), "error");
+				} else if (count($usernames)) {
+					add_message(_("Cannot delete congregation because there are user accounts restricted to it: ").implode(',', $usernames), 'error');
 				} else {
 					$cong->delete();
 					add_message(_("Congregation deleted"));

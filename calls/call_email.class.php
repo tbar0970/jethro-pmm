@@ -90,7 +90,7 @@ class Call_email extends Call
 	private function printWholeModal($emails, $archived, $blanks)
 	{
 		?>
-		<div class="modal fade autosize" data-show="true" id="email-modal" style="width: 70%; margin-left: -35%" role="dialog">
+		<div class="modal fade modal-wide" data-show="true" id="email-modal" role="dialog">
 			<div class="modal-header">
 				<h4>Email <?php echo count($emails); ?> persons
 					<?php //echo _('Email members of '); echo ents($this->_group->getValue('name'));
@@ -189,7 +189,7 @@ class Call_email extends Call
 
 	private function printBlanks($blanks) {
 		if (!empty($blanks)) {
-			print_message("Note: The following ".count($blanks)." persons have no email address, and will not be emailed:", "warning");
+			echo "<i>The following ".count($blanks)." persons have no email address, and will not be emailed:</i>";
 			$persons = $blanks;
 			$special_fields = Array();
 			include 'templates/person_list.template.php';

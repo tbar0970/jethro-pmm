@@ -67,7 +67,7 @@ class Congregation extends db_object
 	{
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
 		$res['select'][] = 'COUNT(p.id) AS member_count';
-		$res['from'] .= ' LEFT JOIN person p ON p.status <> "archived" AND p.congregationid = congregation.id ';
+		$res['from'] .= ' LEFT JOIN person p ON p.congregationid = congregation.id ';
 		$res['group_by'] = 'congregation.id';
 		$restrictions = Array();
 		if (!empty($GLOBALS['user_system'])) {

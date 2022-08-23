@@ -78,6 +78,13 @@ class service_item extends db_object
 			   );
 	}
 	
+	public function getForeignKeys()
+	{
+		return Array(
+			'serviceid' => "`service` (`id`) ON DELETE CASCADE",
+			'componentid' => "`service_component` (`id`) ON DELETE RESTRICT",
+		);
+	}
 
 	function toString()
 	{

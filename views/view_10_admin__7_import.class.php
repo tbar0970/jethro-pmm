@@ -763,7 +763,7 @@ class View_Admin__Import extends View
 			$note->setValue('subject', 'Import note');
 			$note->setValue('details', $text);
 			$note->setValue('personid', $person->id);
-			$note->create();
+			$note->createIfNew();
 		}
 
 		if (!empty($row['_groups'])) {
@@ -852,10 +852,14 @@ class View_Admin__Import extends View
 	{
 		foreach (Array('family_name', 'address_street', 'address_suburb', 'address_state', 'home_tel') as $field) {
 			if (!empty($row[$field]) && !empty($current_family[$field])) {
-				$newVal = strtolower($row[$field]);
-				if ($field == 'home_tel') $newVal = preg_replace('/[^0-9]/', '', $newVal);
-				if ($newVal != strtolower($current_family[$field])) {
-					return TRUE;
+				if ($field == 'home_tel') {
+					if (preg_replace('/[^0-9]/', '', $row[$field]) != preg_replace('/[^0-9]/', '',$current_family[$field])) {
+						return TRUE;
+					}
+				} else {
+					if (strtolower($row[$field]) != strtolower($current_family[$field])) {
+						return TRUE;
+					}
 				}
 			}
 		}
@@ -876,10 +880,11 @@ class View_Admin__Import extends View
 					'last_name' => $row['last_name'],
 				);
 		$matches = $GLOBALS['system']->getDBObjectData('person', $params, 'AND');
+		$row['mobile_tel'] = preg_replace('/[^0-9]/', '', $row['mobile_tel']);
 		foreach (Array('email', 'mobile_tel') as $fieldName) {
 			if (!empty($_REQUEST['match_'.$fieldName]) && strlen(array_get($row, $fieldName, ''))) {
 				foreach ($matches as $id => $details) {
-					if (strlen($details[$fieldName]) && $row[$fieldName] != $details[$fieldName]) {
+					if (strlen($details[$fieldName]) && strtolower($row[$fieldName]) != strtolower($details[$fieldName])) {
 						// existing and imported values are both non-blank and are different
 						unset($matches[$id]);
 					}

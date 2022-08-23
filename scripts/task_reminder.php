@@ -51,6 +51,7 @@ $subject = ifdef('TASK_NOTIFICATION_SUBJECT', 'New notes assigned to you');
 require_once JETHRO_ROOT.'/include/emailer.class.php';
 
 foreach ($reminders as $reminder) {
+	if ($reminder['email'] == '') continue;
 	$content = sprintf($introText, $reminder['first_name']);
 	if ($reminder['new_notes'] == 1) {
 		$content .= $newNotesSingularText;

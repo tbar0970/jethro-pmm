@@ -181,7 +181,7 @@ class View_Families__Add extends View
 			<table class="expandable">
 			<?php
 			include_once 'include/size_detector.class.php';
-			$group_options = $GLOBALS['system']->getDBObjectData('person_group', Array('!show_add_family' => 'no'));
+			$group_options = $GLOBALS['system']->getDBObjectData('person_group', Array('!show_add_family' => 'no', 'is_archived' => 0), 'AND');
 			if (SizeDetector::isNarrow() || count($customFields) > 0 || count($group_options) > 0) {
 				// horizontal view would get too wide if we added custom fields to it
 				?>

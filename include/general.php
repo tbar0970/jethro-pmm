@@ -8,6 +8,14 @@ function array_get($array, $index, $alt=NULL)
 	}
 }
 
+/**
+ * A workaround when you want to call reset(some_function()) and get 'only vars can be passed by reference'
+ */
+function jreset($x)
+{
+	return reset($x);
+}
+
 function hard_trim($value)
 {
 	return trim($value, ",;. \t\n\r\0\x0B");
@@ -43,7 +51,6 @@ function stripslashes_array(&$array, $strip_keys=false) {
 			$keys_to_replace[$key] = $stripped_key;
 		}
 	}
-	# now replace any of the keys that needed strip slashing
 	foreach($keys_to_replace as $from => $to) {
 		$array[$to]   = &$array[$from];
 		unset($array[$from]);
@@ -52,7 +59,7 @@ function stripslashes_array(&$array, $strip_keys=false) {
 }
 
 function strip_all_slashes() {
-	if (get_magic_quotes_gpc()) {
+	if (function_exists('get_magic_quotes_gpc') && get_magic_quotes_gpc()) {
 		stripslashes_array($_GET, true);
 		stripslashes_array($_POST, true);
 		stripslashes_array($_COOKIE, true);
@@ -115,24 +122,74 @@ function ents($str)
 	return htmlspecialchars($str, ENT_QUOTES, "UTF-8", false);
 }
 
+/**
+ * Take a string, which may include HTML tags or entities, and prepare it to be XML-safe.
+ * @param type $x
+ */
+function xml_safe_string($x)
+{
+	$res = strip_tags(html_entity_decode($x, ENT_QUOTES, 'UTF-8'));
+	
+	// decode some entities that are missed by html_entity_decode in PHP5.3
+	$res = str_replace("&rsquo;", "’", $res);
+	$res = str_replace("&lsquo;", "‘", $res);
+	$res = str_replace("&ldquo;", "“", $res);
+	$res = str_replace("&ldquo;", "”", $res);
+	$res = str_replace("&ndash;", "–", $res);
+	$res = str_replace("&hellip;", "…", $res);
+	$res = str_replace("", "'", $res);
+	$res = str_replace("", "'", $res);
+	
+	// now encode the small list of XML entities
+	$res = str_replace("&", '&amp;', $res);
+	$res = str_replace("'", '&apos;', $res);
+	$res = str_replace('"', '&quot;', $res);
+	$res = str_replace('>', '&gt;', $res);
+	$res = str_replace('<', '&lt;', $res);
+	return $res;
+}
+
 function redirect($view, $params=Array(), $hash='')
 {
 	session_write_close();
 	if ($view == -1) {
 		// go back
-		header('Location: '.$_SERVER['HTTP_REFERER']);
-		exit;
+		$url = $_SERVER['HTTP_REFERER'];
+	} else {
+		$params['view'] = $view;
+		$url = build_url($params);
 	}
-	$params['view'] = $view;
-	$url = build_url($params);
 	if ($hash) $url .= '#'.$hash;
 	header('Location: '.urldecode(html_entity_decode($url)));
 	exit;
 }
 
+/**
+ * If a session cookie HTTP header is to be sent, alter it to make sure it includes the right details
+ * Specifically, this is to make sure we have SameSite=Lax even under PHP5.
+ */
+function upgrade_session_cookie()
+{
+	foreach (headers_list() as $header) {
+		if (FALSE !== strpos($header, 'JethroSession')) {
+			// There is a session cookie header waiting to be sent. Remove it, and add a better one.
+			$path = parse_url(BASE_URL, PHP_URL_PATH);
+			$domain = parse_url(BASE_URL, PHP_URL_HOST);
+			header_remove('Set-Cookie');
+			header("Set-Cookie: JethroSession=".session_id()."; path=".$path."; domain=".$domain."; HttpOnly; SameSite=Lax");
+			return;
+		}
+	}	
+}
+
+
 function add_message($msg, $class='success', $html=FALSE)
 {
-	$_SESSION['messages'][] = Array('message' => $msg, 'class' => $class, 'html' => $html);
+	if (php_sapi_name() == 'cli') {
+		echo strtoupper($class).': '.$msg."\n";
+	} else {
+		$_SESSION['messages'][] = Array('message' => $msg, 'class' => $class, 'html' => $html);
+	}
 }
 
 function dump_messages()
@@ -149,8 +206,15 @@ function print_message($msg, $class='success', $html=FALSE)
 		echo strtoupper($class).': '.$msg."\n";
 	} else {
 		if ($class == 'failure') $class='error';
+		$chars = Array(
+					'success' => '<i class="icon-ok"></i> ',
+					'warning' => '<i class="icon-info-sign"></i> ',
+					'error' => '<i class="icon-exclamation-sign"></i> ',
+				);
+		$char = '';
+		if (!$html) $char = array_get($chars, $class);
 		?>
-		<div class="alert alert-<?php echo $class; ?>"><?php echo $html ? $msg : ents($msg); ?></div>
+		<div class="alert alert-<?php echo $class; ?>"><?php echo $char; echo $html ? $msg : ents($msg); ?></div>
 		<?php
 	}
 }
@@ -173,7 +237,7 @@ function print_widget($name, $params, $value)
 			$lengths = get_valid_phone_number_lengths($params['formats']);
 			$width = max(get_phone_format_lengths($params['formats']));
 			?>
-			<input name="<?php echo $name; ?>" type="tel" size="<?php echo $width; ?>" value="<?php echo format_phone_number($value, $params['formats']); ?>" class="phone-number" validlengths="<?php echo implode(',', $lengths); ?>" <?php echo $attrs; ?> />
+			<input name="<?php echo $name; ?>" type="tel" size="<?php echo $width+3; ?>" value="<?php echo format_phone_number($value, $params['formats']); ?>" class="phone-number" validlengths="<?php echo implode(',', $lengths); ?>" <?php echo $attrs; ?> />
 			<?php
 			break;
 		case 'bibleref':
@@ -199,7 +263,7 @@ function print_widget($name, $params, $value)
 				$width_exp = empty($params['width']) ? '' : 'size="'.$params['width'].'"';
 				$regex_exp = empty($params['regex']) ? '' : 'regex="'.ents(trim($params['regex'], '/ ')).'"';
 				$placeholder_exp = empty($params['placeholder']) ? '' : 'placeholder="'.ents($params['placeholder']).'"';
-				$autocomplete_exp = isset($params['autocomplete']) ? 'autocomplete='.($params['autocomplete'] ? 'on' : 'off').'"' : '';
+				$autocomplete_exp = isset($params['autocomplete']) ? 'autocomplete='.($params['autocomplete'] ? 'on' : 'new-password').'"' : '';
 				?>
 				<input type="<?php echo $params['type']; ?>" name="<?php echo $name; ?>" value="<?php echo ents($value); ?>" class="<?php echo trim($classes); ?>" <?php echo implode(' ', Array($maxlength_exp, $width_exp, $regex_exp, $autocomplete_exp, $placeholder_exp)); ?> <?php echo $attrs; ?> />
 				<?php
@@ -252,12 +316,13 @@ function print_widget($name, $params, $value)
 		case 'int':
 			$width_exp = '';
 			if (!empty($params['width'])) {
-				$width_exp = 'size="'.$params['width'].'" ';
+				$width_exp = 'size="'.($params['width']+2).'" ';
 			} else {
-				$width_exp = 'size="3" ';
+				$width_exp = 'size="5" ';
 			}
+			$intType = (FALSE !== strpos($_SERVER['HTTP_USER_AGENT'], 'iPhone')) ? 'tel' : 'number';
 			?>
-			<input type="number" name="<?php echo $name; ?>" value="<?php echo $value; ?>" class="<?php echo trim($classes); ?>" <?php echo $width_exp; ?> <?php echo $attrs; ?> />
+			<input pattern="[0-9]*" inputmode="numeric" type="<?php echo $intType; ?>" name="<?php echo $name; ?>" value="<?php echo $value; ?>" class="<?php echo trim($classes); ?>" <?php echo $width_exp; ?> <?php echo $attrs; ?> />
 			<?php
 			break;
 		case 'boolean':
@@ -303,6 +368,7 @@ function print_widget($name, $params, $value)
 				<?php
 			} else if (array_get($params, 'allow_multiple')) {
 				$height = array_get($params, 'height', min(count($params['options']), 4));
+				if (count($params['options']) < 4) $height = 0;
 				if (substr($name, -2) != '[]') $name .= '[]';
 				$style = '';
 				if ($height > 0) $style = 'height: '.($height*1.7).'em';
@@ -743,7 +809,8 @@ function format_phone_number($x, $formats)
 {
 	$x = preg_replace('/[^0-9]/', '', $x); // strip punctuation
 	foreach (explode("\n", $formats) as $format) {
-		$lengths[substr_count($format, 'X')] = $format;
+		// Use the *first* matching format of the correct length
+		if (!isset($lengths[substr_count($format, 'X')])) $lengths[substr_count($format, 'X')] = $format;
 	}
 	$format = array_get($lengths, strlen($x));
 	if ($format) {

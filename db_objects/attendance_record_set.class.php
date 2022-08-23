@@ -14,7 +14,7 @@ class Attendance_Record_Set
 	private $_attendance_records = Array();
 	private $_cohort_object = NULL;
 
-	const LIST_ORDER_DEFAULT = 'status ASC, family_name ASC, familyid, ab.rank ASC, gender DESC';
+	const LIST_ORDER_DEFAULT = 'status ASC, family_name ASC, familyid, ab.`rank` ASC, gender DESC';
 //--        CREATING, LOADING AND SAVING        --//
 
 	function __construct($date=NULL, $cohort=NULL, $age_brackets=NULL, $statuses=NULL)
@@ -131,7 +131,7 @@ class Attendance_Record_Set
 
 		// NOW FETCH THE APPLICABLE PERSON RECORDS
 		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
-		$order = str_replace('age_bracket', 'ab.rank', $order);
+		$order = str_replace('age_bracket', 'ab.`rank`', $order);
 
 		$conds = Array();
 		if ($this->age_brackets) {
@@ -498,7 +498,7 @@ class Attendance_Record_Set
 
 		foreach (Array('age_bracketid', 'status') as $groupingField) {
 			$stats[NULL]['rate'] = $stats[NULL]['avg_present'] = $stats[NULL]['avg_absent'] = 0.0;
-			$rank = ($groupingField == 'status' && $type == 'g') ? 'rank, ' : '';
+			$rank = ($groupingField == 'status' && $type == 'g') ? '`rank`, ' : '';
 			$selectCol = ($groupingField == 'status') ? $status_col : $groupingField;
 
 			// SELECT THE RATES
@@ -506,7 +506,7 @@ class Attendance_Record_Set
 			$sql = '
 					SELECT '.$groupingField.', '.$rank.' AVG(percent_present) as avg_attendance FROM
 					(
-						SELECT ar.personid, '.$selectCol.' AS '.$groupingField.', '.$rank.' CONCAT(ROUND(SUM(ar.present) * 100 / COUNT(ar.date)), '.$db->quote('%').') as percent_present
+						SELECT ar.personid, '.$selectCol.' AS '.$groupingField.', '.$rank.' ROUND(SUM(ar.present) * 100 / COUNT(ar.date)) as percent_present
 						FROM
 							person p
 							JOIN attendance_record ar ON p.id = ar.personid
@@ -628,7 +628,7 @@ class Attendance_Record_Set
 		}
 
 		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
-		$order = str_replace('age_bracket', 'ab.rank', $order);
+		$order = str_replace('age_bracket', 'ab.`rank`', $order);
 		// Since we are getting persons for multiple cohorts, "status" has to mean person status here.
 		$order = preg_replace("/(^|[^.])status($| |,)/", '\\1person.status\\2', $order);
 		$SQL .=  "GROUP BY person.id \n";
@@ -674,20 +674,17 @@ class Attendance_Record_Set
 		$SQL = 'SELECT person.id, person.last_name, person.first_name, '.($groupid ? 'pgms.label AS membership_status, ' : '').' person.status, ar.date, ar.present
 				FROM person person
 				JOIN age_bracket ab ON ab.id = person.age_bracketid
-				JOIN family f ON person.familyid = f.id
-				';
+				JOIN family f ON person.familyid = f.id  ';
 		if ($groupid) {
 			$SQL .= '
 				JOIN person_group_membership pgm ON pgm.personid = person.id AND pgm.groupid = '.(int)$groupid;
 		}
-		// restricting the attendance dates within a subquery improves performance significantly.
 		$SQL .= '
-				LEFT JOIN (
-					SELECT personid, date, present
-					FROM attendance_record ar
-					WHERE ar.date BETWEEN '.$GLOBALS['db']->quote($start_date).' AND '.$GLOBALS['db']->quote($end_date).'
+				LEFT JOIN attendance_record ar ON (
+					ar.personid = person.id
+					AND ar.date BETWEEN '.$GLOBALS['db']->quote($start_date).' AND '.$GLOBALS['db']->quote($end_date).'
 					AND ar.groupid = '.(int)$groupid.'
-				) ar ON ar.personid = person.id';
+				)';
 		if ($groupid) {
 			$SQL .= '
 				LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status';
@@ -727,11 +724,11 @@ class Attendance_Record_Set
 		if ($statusClauses) $SQL .= 'AND (('.implode(') OR (', $statusClauses).'))';
 
 		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
-		$order = str_replace('age_bracket', 'ab.rank', $order);
+		$order = str_replace('age_bracket', 'ab.`rank`', $order);
 		if ($congregationids) {
 			$order = preg_replace("/(^|[^.])status($| |,)/", '\\1person.status\\2', $order);
 		} else {
-			$order = preg_replace("/(^|[^.])status($| |,)/", '\\1pgms.rank\\2', $order);
+			$order = preg_replace("/(^|[^.])status($| |,)/", '\\1pgms.`rank`\\2', $order);
 		}
 		$SQL .= '
 				ORDER BY '.$order;

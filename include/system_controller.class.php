@@ -38,14 +38,10 @@ class System_Controller
 
 		if (!isset($_SESSION['views'][$base_dir]) || isset($_REQUEST['regen'])) {
 			$_SESSION['views'][$base_dir] = Array();
-			$dh = opendir($this->_base_dir.'/views');
-			while (FALSE !== ($filename = readdir($dh))) {
-				if (is_file($this->_base_dir.'/views/'.$filename)) {
-					$raw_filenames[] = $filename;
-				}
-			}
+			$raw_filenames = glob($this->_base_dir.'/views/*.class.php');
 			natsort($raw_filenames);
 			foreach ($raw_filenames as $filename) {
+				$filename = basename($filename);
 				$classname = null;
 				if (preg_match('/^view_([0-9]*)_(.*)__([0-9]*)_(.*)\.class\.php/', $filename, $matches)) {
 					$classname = 'View_'.$matches[2].'__'.$matches[4];
@@ -143,9 +139,15 @@ class System_Controller
 		}
 	}
 
+	public function shouldShowNavigation()
+	{
+		if ($this->_view) return $this->_view->shouldShowNavigation();
+	}
 
 	public function printNavigation()
 	{
+		if ($this->_view && !$this->_view->shouldShowNavigation()) return;
+
 		$current_view = array_get($_REQUEST, 'view', 'home');
 		foreach ($_SESSION['views'][$this->_base_dir] as $name => $data) {
 			if ($name[0] == '_') continue;
@@ -241,6 +243,7 @@ class System_Controller
 	{
 		if (error_reporting() == 0) return; // the "@" shutup-operator was used
 		$send_email = true;
+		$showTechDetails = ifdef('SHOW_ERROR_DETAILS', (JETHRO_VERSION == 'DEV'));	
 		$exit = false;
 		switch ($errno) {
 			case E_ERROR:
@@ -256,17 +259,20 @@ class System_Controller
 				$title = 'SYSTEM ERROR (WARNING)';
 				break;
 			case E_NOTICE:
-				$showTechDetails = ifdef('SHOW_ERROR_DETAILS', (JETHRO_VERSION == 'DEV'));
 				$bg = $showTechDetails ? 'info' : NULL; // on prod, send emails but show nothing in browser
 				$title = 'SYSTEM ERROR (NOTICE)';
 				break;
 			case E_USER_NOTICE:
-				$send_email = false;
-				if ($this->_friendly_errors) {
+				$send_email = false; // never send emails for E_USER_NOTICE
+				if ($this->_friendly_errors || (!headers_sent() && !$showTechDetails)) {
 					add_message('Error: '.$errstr, 'failure');
 					return;
+				} else if (!$showTechDetails) {
+					// if headers are sent, print it now - we don't want it on the next page load
+					print_message('Error: '.$errstr, 'failure');
+					return;
 				}
-				$bg = 'info';
+				$bg = 'warning';
 				$title = 'NOTICE';
 				break;
 			default:
@@ -299,7 +305,7 @@ class System_Controller
 			?>
 			<div class="alert<?php if(isset($bg)){ echo" alert-".$bg;} ?>">
 			<?php
-			if ($showTechDetails) {
+			if ($showTechDetails || !$send_email) {
 				?>
 				<h4><?php echo $title; ?></h4>
 				<p><?php echo $errstr; ?></p>

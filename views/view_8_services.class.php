@@ -112,7 +112,7 @@ class View_services extends View
 			<h1>
 				<small class="pull-right">
 					<a href="?view=services__list_all">
-						<i class="icon-chevron-left"></i>Back to service list
+						<i class="icon-chevron-left"></i>Back to service schedule
 					</a>
 				</small>
 				<?php echo ents($this->service->toString()); ?>
@@ -541,10 +541,18 @@ class View_services extends View
 									$runsheetTitle = $this->service->replaceKeywords($runsheetTitle);
 								}
 								$comp['personnel'] = $this->service->replaceKeywords($comp['personnel']);
-								$weeks = '';
+								$lastUse = '';
+								$lastUseSort = 0;
 								if ($comp['lastused']) {
-									$weeks = floor(($serviceTS - strtotime($comp['lastused'])) / 60 / 60 / 24 / 7);
-									$weeks = "{$weeks}w";
+									$lastTS = strtotime($comp['lastused']);
+									$lastUseSort = (int)$lastTS;
+									if ($lastTS == $serviceTS) {
+										$lastUse = 'now';
+									} else if ($lastTS > $serviceTS) {
+										$lastUse = '+'.ceil(($lastTS - $serviceTS) / 60 / 60 / 24 / 7).'w';
+									} else {
+										$lastUse = ceil(($serviceTS - $lastTS) / 60 / 60 / 24 / 7).'w';
+									}
 								}
 
 								?>
@@ -562,8 +570,8 @@ class View_services extends View
 										}
 										?>
 									</td>
-									<td data-sort-value="<?php echo (int)$weeks; ?>" class="hide-in-transit">
-										<?php echo $weeks; ?>
+									<td data-sort-value="<?php echo $lastUseSort; ?>" class="hide-in-transit">
+										<?php echo $lastUse; ?>
 									</td>
 									<td class="hide-in-transit">
 										<?php echo $comp['usage_12m']; ?>x

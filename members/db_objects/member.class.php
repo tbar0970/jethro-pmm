@@ -39,7 +39,7 @@ class Member extends DB_Object
 	static function getList($search=NULL, $congregationid=NULL)
 	{
 		$t = new Member();
-		$order = 'family_name, familyid, ab.rank ASC, gender DESC';
+		$order = 'family_name, member.familyid, ab.`rank` ASC, gender DESC';
 		$conds = Array();
 		if (!empty($search)) {
 			$conds['first_name'] = $search.'%';
@@ -47,9 +47,6 @@ class Member extends DB_Object
 			$conds['family_name'] = $search.'%';
 		}
 		$query_bits = $t->getInstancesQueryComps($conds, 'OR', $order);
-		$query_bits['from'] .= "
-								JOIN age_bracket ab ON ab.id = member.age_bracketid
-								";
 		if (!empty($congregationid)) {
 			if (strlen(trim($query_bits['where']))) {
 				$query_bits['where'] = "(\n".$query_bits['where'].")\n AND congregationid = ".(int)$congregationid;
@@ -57,8 +54,19 @@ class Member extends DB_Object
 				$query_bits['where'] = "congregationid = ".(int)$congregationid;
 			}
 		}
+		$query_bits['from'] .= "\n  LEFT JOIN family_photo fp ON fp.familyid = member.familyid";
+		$query_bits['select'][] = 'IF(fp.familyid IS NULL, 0, 1) as has_family_photo';
 		return $t->_getInstancesData($query_bits);
 	}
+	
+	function getInstancesQueryComps($params, $logic, $order)
+	{
+		$res = parent::getInstancesQueryComps($params, $logic, $order);
+		$res['select'][] = 'c.name as congregation, ab.label as age_bracket';
+		$res['from'] = '('.$res['from'].')
+						LEFT JOIN congregation c ON member.congregationid = c.id
+						JOIN age_bracket ab on ab.id = member.age_bracketid ';
+		return $res;
+	}	
 
 }
-?>

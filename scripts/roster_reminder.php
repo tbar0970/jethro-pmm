@@ -307,16 +307,16 @@ if ($sendemail) {
 			}
 		} else { // using php mail()
 		  $email_to=$roster_coordinator;
-		  $header = "From: ".$email_from.$eol;
+		  $header = "From: \"".addslashes($email_from_name)."\" <".$email_from.">".$eol;
 		  $header .= "MIME-Version: 1.0".$eol;
-		  $header .= "Bcc: ".$emails_string.$eol;
+		  $header .= "Bcc: ".implode(',',$emails).$eol;
 		  $header .= "Content-Type: multipart/mixed; boundary=\"".$uid."\"";
 		  $message = "--".$uid.$eol;
 		  $message .= "Content-type:text/html; charset=iso-8859-1".$eol;
 		  $message .= "Content-Transfer-Encoding: 8bit".$eol.$eol;
 		  $message .= $longstring.$eol;
 		  $message .= "--".$uid."--";
-		   if (mail($email_to, $email_subject . "$roster_date", "$message", $header)) {
+		   if (mail($email_to, $email_subject . "$roster_date", "$message", $header, "-f ".$email_from)) {
 		   	echo "Mail send roster reminder - ".$roster_name." sent OK <br>";
 		   } else {
 		   	echo "Mail send roster reminder - ".$roster_name." send ERROR!";
@@ -360,7 +360,7 @@ if ($sendemail) {
 		}
 	} else {
 		$email_to=$roster_coordinator;
-		$header = "From: ".$email_from.$eol;
+		$header = "From: \"".addslashes($email_from_name)."\" <".$email_from.">".$eol;
 		$header .= "MIME-Version: 1.0".$eol;
 		$header .= "Content-Type: multipart/mixed; boundary=\"".$uid."\"";
 		$message = "--".$uid.$eol;
@@ -368,7 +368,7 @@ if ($sendemail) {
 		$message .= "Content-Transfer-Encoding: 8bit".$eol.$eol;
 		$message .= $summary.$eol;
 		$message .= "--".$uid."--";
-		if (mail($email_to,$summary_notification_subject . "$roster_date","$message",$header)) {
+		if (mail($email_to,$summary_notification_subject . "$roster_date","$message",$header, "-f ".$email_from)) {
 			if (!empty($verbose)) {
 				echo "Sent roster ($roster_name) reminder notification to coordinator.\n";
 			}

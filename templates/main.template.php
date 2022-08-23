@@ -22,17 +22,25 @@
 				</a>
 				</span>
 
-				<!-- user details (full width) -->
+				<!-- user details (full width) -->				
 				<div class="user-detail pull-right">
 					<div>
-						<input type="hidden" name="logout" value="1" />
-						<?php echo _('Logged in as')?>
 						<span class="dropdown">
-							<a class="dropdown-toggle" id="user-menu" data-toggle="dropdown" href="#">
-								<?php echo $GLOBALS['user_system']->getCurrentUser('first_name').' '.$GLOBALS['user_system']->getCurrentUser('last_name'); ?>
+							<a class="dropdown-toggle btn" id="user-menu" data-toggle="dropdown" href="#">
+								<i class="icon-user"></i>
 								<i class="caret"></i>
 							</a>
 							<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="user-menu">
+								<li class="user-header"><small>Logged in as</small><br />
+									<b><?php echo $GLOBALS['user_system']->getCurrentUser('first_name').' '.$GLOBALS['user_system']->getCurrentUser('last_name'); ?></b>
+								</li>
+							<?php
+							if ($GLOBALS['user_system']->getCurrentRestrictions()) {
+								?>
+								<li class="restrictions" title=""<?php echo _('This user account can only see persons in certain congregations or groups')?>"> <?php echo _('Restrictions in effect')?> </li>
+								<?php
+							}
+							?>
 								<li><a href="?view=_edit_me"><?php echo _('Edit me')?></a></li>
 								<li><a href="./?logout=1" data-method="post"><?php echo _('Log out')?></a></li>
 							<?php
@@ -44,17 +52,21 @@
 							?>
 							</ul>
 						</span>
-
-					<?php
-					if ($GLOBALS['user_system']->getCurrentRestrictions()) {
-						?>
-						<p class="restrictions" title=<?php echo _('"This user account can only see persons in certain congregations or groups"')?>> <?php echo _('Restrictions in effect')?> </p>
-						<?php
-					}
-					?>
-
 					</div>
 				</div>
+			<?php
+			if (!empty($_REQUEST['view']) && $_REQUEST['view'] != 'home') {
+				?>
+				<form method="get" class="form-horizontal global-search pull-right">
+					<input type="hidden" name="view" value="_mixed_search" />
+					<span class="input-append fullwidth">
+						<input type="text" name="search" class="no-autofocus" enterkeyhint="Search" placeholder="<?php echo _('Search');?>..." />
+						<button type="submit" class="btn"><i class="icon-search"></i></button>
+					</span>
+				</form>
+				<?php
+			}
+			?>
 
 				<!-- logo and system name -->
 				<h1>
@@ -74,6 +86,13 @@
 								<li>
 									<a href="./?logout=1" data-method="post"><?php echo _('Log out')?></a>
 								</li>
+							<?php
+							if (MEMBER_LOGIN_ENABLED) {
+								?>
+								<li><a href="./members"><?php echo _('Go to members area')?></a></li>
+								<?php
+							}
+							?>
 							</ul>
 						</li>
 					<?php $GLOBALS['system']->printNavigation(); ?>

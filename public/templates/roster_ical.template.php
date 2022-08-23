@@ -25,7 +25,8 @@ X-WR-CALNAME:<?php echo SYSTEM_NAME; ?> Roster
                 $endtime += 86400;
             }
 			if ($alloc['assignedon'] != NULL) {
-				$assignedon = (new DateTime($alloc['assignedon']))->getTimestamp();
+				$x = new DateTime($alloc['assignedon']);
+				$assignedon = $x->getTimestamp();
 			} else {
 				// Use now if we don't know when it was assigned
 				$assignedon = time();

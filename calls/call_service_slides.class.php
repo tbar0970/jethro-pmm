@@ -88,7 +88,7 @@ class Call_Service_slides extends Call
 
 						for($y = 0; $y < $numtextelements; $y++) {
 							if (strcmp($textelements->item($y)->nodeValue, "title") == 0) { //title textbox
-								$textelements->item($y)->nodeValue = array_values(array_slice($title, -1))[0]; //get last element of title array
+								$textelements->item($y)->nodeValue = end($title); //get last element of title array
 							} elseif (strcmp($textelements->item($y)->nodeValue, 'contents') == 0) { //contents textbox
 
 								//deal with multiline text
@@ -106,7 +106,7 @@ class Call_Service_slides extends Call
 								$textlines = $xpath->query(".//*[text()[contains(., 'contents')]]",$textelements->item($y)->parentNode->parentNode);
 								//populate text elements
 								for ($z = 0; $z < ($numlines); $z++) {
-									$textlines->item($z)->nodeValue = htmlspecialchars(strip_tags(html_entity_decode($lines[$z])), ENT_QUOTES, 'UTF-8', false);
+									$textlines->item($z)->nodeValue = xml_safe_string($lines[$z]);
 								}
 
 							} elseif (strcmp($textelements->item($y)->nodeValue, 'credit') == 0) { //credits textbox
@@ -130,7 +130,7 @@ class Call_Service_slides extends Call
 
 									//populate text elements
 									for ($z = 0; $z < ($numlines); $z++) {
-										$textlines->item($z)->nodeValue = htmlspecialchars(strip_tags(html_entity_decode($lines[$z], ENT_XML1, 'UTF-8')), ENT_QUOTES, 'UTF-8', false);
+										$textlines->item($z)->nodeValue = xml_safe_string($lines[$z]);
 									}
 								}
 							}

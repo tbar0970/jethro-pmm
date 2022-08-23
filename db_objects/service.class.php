@@ -26,7 +26,6 @@ class service extends db_object
 			'date'				=> Array(
 									'type'		=> 'date',
 									'allow_empty'	=> FALSE,
-									'default' => '0000-00-00',
 								   ),
 			'congregationid'	=> Array(
 									'type'				=> 'reference',
@@ -213,11 +212,25 @@ class service extends db_object
 
 	static function shiftServices($congids, $after_date, $shift_by)
 	{
+		$cong_set = '('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congids)).')';
+		if ($shift_by < 0) {
+			// check that we won't make trouble
+			$sql = 'SELECT ABS(DATEDIFF('.$GLOBALS['db']->quote($after_date).', MIN(`date`)))
+					FROM service
+					WHERE congregationid IN '.$cong_set.' 
+					AND `date` >= '.$GLOBALS['db']->quote($after_date);
+			$gap = $GLOBALS['db']->queryOne($sql);
+			if ($gap < 7) {
+				add_message("Could not shift services back because the next service is less than a week after the deleted service", 'error');
+				return;
+			}
+		}
+		
 		$sql = 'UPDATE service
-				SET date = DATE_ADD(date, INTERVAL '.(int)$shift_by.' DAY)
-				WHERE date >= '.$GLOBALS['db']->quote($after_date).'
-				AND congregationid IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congids)).')
-				ORDER BY date '.(($shift_by > 0) ? 'DESC' : 'ASC');
+				SET `date` = DATE_ADD(date, INTERVAL '.(int)$shift_by.' DAY)
+				WHERE `date` >= '.$GLOBALS['db']->quote($after_date).'
+				AND congregationid IN '.$cong_set.' 
+				ORDER BY `date` '.(($shift_by > 0) ? 'DESC' : 'ASC');
 		$res = $GLOBALS['db']->query($sql);
 	}
 
@@ -409,7 +422,7 @@ class service extends db_object
 		$res['select'][] = 'GROUP_CONCAT(CONCAT(sbr.bible_ref, "=", sbr.to_read, "=", sbr.to_preach) ORDER BY sbr.order_num SEPARATOR ";") as readings';
 		$res['from'] .= ' LEFT JOIN service_bible_reading sbr ON service.id = sbr.service_id';
 		$res['select'][] = 'IF (si.id IS NULL, 0, 1) as has_items';
-		$res['from'] .= ' LEFT JOIN service_item si ON si.serviceid = service.id AND si.rank = 0 ';
+		$res['from'] .= ' LEFT JOIN service_item si ON si.serviceid = service.id AND si.`rank` = 0 ';
 		$res['group_by'] = 'service.id';
 		return $res;
 	}
@@ -481,10 +494,10 @@ class service extends db_object
 				AND rra.assignment_date = '.$GLOBALS['db']->quote($this->getValue('date')).'
 		';
 		if ($index !== NULL) {
-			$sql .= 'AND rank = '.($index-1).' ';
+			$sql .= 'AND `rank` = '.($index-1).' ';
 		}
 		$sql .= '
-				ORDER BY roster_role_id, rank';
+				ORDER BY roster_role_id, `rank`';
 		$assignments =  $GLOBALS['db']->queryAll($sql, null, null, false);
 		$role_ids = Array();
 		$names = Array();
@@ -563,7 +576,7 @@ class service extends db_object
 
 		if (!empty($itemList)) {
 			$SQL = 'INSERT INTO service_item
-					(serviceid, rank, componentid, title, personnel, show_in_handout, length_mins, note, heading_text)
+					(serviceid, `rank`, componentid, title, personnel, show_in_handout, length_mins, note, heading_text)
 					VALUES
 					';
 			$sets = Array();
@@ -622,7 +635,7 @@ class service extends db_object
 				WHERE si.serviceid = '.(int)$this->id.'
 				';
 		if (!empty($ofCategoryID)) $SQL .= ' AND sc.categoryid = '.(int)$ofCategoryID."\n";
-		$SQL .= ' ORDER BY rank';
+		$SQL .= ' ORDER BY `rank`';
 		$res = $GLOBALS['db']->queryAll($SQL);
 
 		foreach ($res as $k => &$item) {
@@ -751,7 +764,7 @@ class service extends db_object
 			}
 	return $serviceContent;
 	}
-	
+
 	public function printRunSheetPersonnelFlexi()
 	{
 		$rosterViews = Roster_View::getForRunSheet($this->getValue('congregationid'));

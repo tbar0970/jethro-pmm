@@ -86,20 +86,18 @@ class Installer
 
 
 
-	function initDB()
+	function initDB($printOnly=FALSE)
 	{
+		$allSQL = Array();
 		ini_set('max_execution_time', 120);
-		$dh = opendir(dirname(dirname(__FILE__)).'/db_objects');
-		while (FALSE !== ($filename = readdir($dh))) {
-			if (($filename[0] == '.') || is_dir($filename)) continue;
-			$filenames[] = $filename;
-		}
+		$filenames = glob(dirname(dirname(__FILE__)).'/db_objects/*.class.php');
 
 		$fks  = Array();
 		$views = Array();
 
 		sort($filenames);
 		foreach ($filenames as $filename) {
+			$filename = basename($filename);
 			$classname = str_replace('.class.php', '', $filename);
 			require_once dirname(dirname(__FILE__)).'/db_objects/'.$filename;
 			$data_obj = new $classname;
@@ -108,7 +106,7 @@ class Installer
 				if (!empty($sql)) {
 					if (!is_array($sql)) $sql = Array($sql);
 					foreach ($sql as $s) {
-						$r = $GLOBALS['db']->query($s);
+						$allSQL[] = $s;
 					}
 				}
 
@@ -126,7 +124,7 @@ class Installer
 			  `userid` int(11) NOT NULL default '0',
 			  `lock_type` VARCHAR( 16 ) NOT NULL,
 			  `object_type` varchar(255) NOT NULL default '',
-			  `expires` datetime NOT NULL default '0000-00-00 00:00:00',
+			  `expires` datetime NOT NULL,
 			  KEY `objectid` (`objectid`),
 			  KEY `userid` (`userid`),
 			  KEY `object_type` (`object_type`)
@@ -175,14 +173,13 @@ class Installer
 			JOIN _person self ON self.familyid = mp.familyid
 			WHERE
 				self.id = getCurrentUserID()
-				AND mp.status <> "archived"
-				AND mf.status <> "archived"
+				AND ((mp.status <> "archived") OR (mp.id = self.id))
 				AND ((self.status <> "archived") OR (mp.id = self.id))
 				/* archived persons can only see themselves, not any family members */
 			;',
 
 			"CREATE TABLE setting (
-				rank  int(11) unsigned,
+				`rank`  int(11) unsigned,
 				heading VARCHAR(255) DEFAULT NULL,
 				symbol VARCHAR(255) NOT NULL,
 				note VARCHAR(255) NOT NULL,
@@ -193,7 +190,7 @@ class Installer
 
 			"SET @rank = 1;	",
 
-			"INSERT INTO setting (rank, heading, symbol, note, type, value)
+			"INSERT INTO setting (`rank`, heading, symbol, note, type, value)
 			 VALUES
 			(@rank:=@rank+5, '','SYSTEM_NAME','Label displayed at the top of every page','text',''),
 
@@ -251,6 +248,7 @@ class Installer
 			(@rank:=@rank+5, '',                         'CCLI_DETAIL_URL','URL Template for CCLI song details by song number, with the keyword __NUMBER__','text','https://au.songselect.com/songs/__NUMBER__'),
 			(@rank:=@rank+5, '',                         'POSTCODE_LOOKUP_URL','URL template for looking up postcodes, with the keyword __SUBURB__','text','https://m.auspost.com.au/view/findpostcode/__SUBURB__'),
 			(@rank:=@rank+5, '',                         'MAP_LOOKUP_URL','URL template for map links, with the keywords __ADDRESS_STREET__, __ADDRESS_SUBURB__, __ADDRESS_POSTCODE__, __ADDRESS_STATE__','text','http://maps.google.com.au?q=__ADDRESS_STREET__,%20__ADDRESS_SUBURB__,%20__ADDRESS_STATE__,%20__ADDRESS_POSTCODE__'),
+			(@rank:=@rank+5, '',                         'QR_CODE_GENERATOR_URL', 'URL template for generating QR codes, containing the placeholder __URL__', 'text', 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=__URL__'),
 			(@rank:=@rank+5, '',                         'EMAIL_CHUNK_SIZE','When displaying mailto links for emails, divide into batches of this size','int','25'),
 			(@rank:=@rank+5, '',                         'MULTI_EMAIL_SEPARATOR','When displaying mailto links for emails, separate addresses using this character','text',','),
 
@@ -280,7 +278,7 @@ class Installer
 			(@rank:=@rank+5, '',                         'SMS_SEND_LOGFILE','File on the server to save a log of sent SMS messages','text','');"
 		);
 		foreach ($sql as $s) {
-			$r = $GLOBALS['db']->query($s);
+			$allSQL[] = $s;
 		}
 
 		foreach ($fks as $table => $keys) {
@@ -292,13 +290,33 @@ class Installer
 				$SQL = 'ALTER TABLE '.$table.'
 						ADD CONSTRAINT `'.$name.'`
 						FOREIGN KEY ('.$from.') REFERENCES '.$to;
-				$r = $GLOBALS['db']->query($SQL);
+				$allSQL[] = $SQL;
 			}
 		}
 
 		foreach (array_unique($views) as $v) {
-			$r = $GLOBALS['db']->query($v);
+			$allSQL[] = $v;
 		}
+
+		// RUN ALL THE SQL WE'VE ACCUMULATED
+		if ($printOnly) {
+			foreach ($allSQL as $s) bam(str_replace("\t", "  ", trim($s)));
+			return;
+		}
+		$sql_so_far = Array();
+		foreach ($allSQL as $sql) {
+			$sql_so_far[] = $sql;
+			try {
+				$GLOBALS['db']->query($sql);
+			} catch (Exception $e) {
+				trigger_error("Error during install.  Bad query is at the bottom of the list below.");
+				bam($e->getMessage());
+				bam($sql_so_far);
+				exit;
+			}
+		}
+
+		// NOW SAVE SOME SOME FINAL SETTINGS
 
 		Config_Manager::saveSetting('SYSTEM_NAME', substr($_REQUEST['system_name'], 0, 30));
 
@@ -339,6 +357,7 @@ class Installer
 		}
 		$this->user->setValue('status', 0);
 		$this->user->setValue('age_bracketid', 1);
+		$this->user->setValue('congregationid', 1); // will be overwritten with a real one later
 		$this->user->setValue('permissions', PERM_SYSADMIN);
 		if (!$this->user->validateFields()) return FALSE;
 
@@ -438,6 +457,7 @@ class Installer
 			<table>
 			<?php
 			$sm = new Staff_Member();
+			$sm->setValue('username', ifdef('PREFILL_USERNAME'));
 			foreach ($this->initial_person_fields as $fieldname) {
 				?>
 				<tr>

@@ -140,6 +140,18 @@ if (is_readable($confFile)) {
 .login-box .controls {
 	margin-left: 6em;
 }
+.a2hs-prompt {
+	display: none; /* jethro.js will show it as appropriate */
+	text-align: center;
+	background: @jethroDarkest;
+	color: white;
+	margin: 20px;
+	padding: 10px;
+	border-radius: 5px;
+	font-size: 85%;
+	position: sticky; /* https://css-tricks.com/a-clever-sticky-footer-technique/ */
+	top: 100vh;
+}
 @media (max-width: 640px) {
 	body#login {
 		overflow: hidden;
@@ -271,28 +283,22 @@ body {
 	color: black;
 	text-align: left;
 }
+/* members area only */
+a#user-menu {
+	color: @jethroLightText;
+}
 #user-detail-in-nav {
 	display: none;
 }
 #user-detail-in-nav a.log-out {
 	padding: 0px;
 }
-#user-detail-in-nav  .btn-link {
-	background-color: transparent;
-	color: inherit;
-	font-weight: inherit;
-	text-decoration: inherit;
-	display: block;
-	width: 100%;
-	padding: 9px 15px;
-	border-radius: 3px;
-	text-align: left;
-}
-
 @media (max-width: 900px) {
 	/* When there is not enough width for the full nav */
 	#jethro-nav .btn-navbar {
 		display: inline-block;
+		height: 15px; /* makes it match the search box */
+		margin-left: 0px;
 	}
 	.user-detail {
 		display: none;
@@ -307,15 +313,6 @@ body {
 		z-index: 9999;
 	}
 }
-@media (max-width:480px) {
-	/* When not enough width for the "logged in as" bit, show user detail in the nav instead */
-	.user-detail {
-		display: none !important;
-	}
-	#user-detail-in-nav {
-		display: inherit !important;
-	}
-}
 
 @media (max-width:480px) {
 	/* hide the church name when there is no room */
@@ -325,6 +322,12 @@ body {
 	/* but not in the public site */
 	#jethro-public #jethro-nav h1 span {
 		display: inline;
+	}
+	#jethro-nav-toprow .brand {
+		position: absolute;
+		top: 7px;
+		z-index: 888;
+		margin: 0px;
 	}
 }
 
@@ -377,13 +380,16 @@ body {
 	.nav-collapse .nav > li > a,
 	.nav-collapse .dropdown-menu a {
 		background-color: @jethroDarkish;
+		font-weight: normal !important;		
 	}
 
 }
 
 /* current submenu  item */
 .dropdown-menu > .active > a, .dropdown-menu > .active > a:hover, .dropdown-menu > .active > a:focus,
-.navbar .nav li.dropdown a:hover {
+.navbar .nav li.dropdown a:hover,
+.user-header
+{
 		color: @navbarLinkColorActive;
 		text-decoration: none;
 		background: @navbarLinkBackgroundActive;
@@ -415,36 +421,56 @@ body {
 
 .user-detail {
 	float: right;
-	margin-right: 5px;
+	white-space: nowrap;
 }
-
 .user-detail .dropdown-menu {
-	min-width: 80px !important;
+	min-width: 90px !important;
+	margin-top: 8px;
+	border-radius: 5px 0 5px 5px;
+	padding-top: 0px;
+	border-top-width: 0px;
 }
-.user-detail a, .user-detail .btn-link, #body .dropdown-menu li a {
-	color: @jethroLightText !important;
+.user-detail li, .user-detail .btn-link, #body .dropdown-menu li a {
 	text-decoration: none !important;
-}
-.user-detail .caret {
-	border-bottom-color: @jethroLightText !important;
-	border-top-color: @jethroLightText !important;
-}
-.user-detail li .btn-link {
-	border: 0px !important;
 }
 .user-detail li a:hover .btn-link, .user-detail li a:hover, #body .dropdown-menu li a:hover  {
 	color: @grayDark !important;
 }
-.user-detail .restrictions {
-	text-align: center;
-	color: #888;
-	background-color: #bbb;
-	font-weight: normal;
-	border-radius: 3px;
-	margin: 0px;
-	padding: 0px;
+li.user-header {
+	line-height: 1.1;
+	padding: 6px 20px 6px 20px;
+	margin-bottom: 4px;
 }
-
+.user-detail .restrictions {
+	color: #eee;
+	background-color: @grayMid;
+	font-weight: normal;
+	margin-top: -4px;
+	margin-bottom: 4px;
+	padding: 0px 20px;
+	font-size: 80%;
+}
+.user-detail small {
+	font-size: 80%;
+	color: #999;
+	padding-left: 1px;
+}
+form.global-search {
+	margin: 0px 5px 0px 0px;
+	line-height: 38px;
+}
+form.global-search span.input-append {
+	margin: 0px;
+}
+form.global-search input[type=text] {
+	width: 8ex;
+	transition: width 0.3s ease-in-out;	
+}
+form.global-search input[type=text]:focus {
+	z-index: 999;
+	width: 25ex;
+}
+	
 
 /**************** HEADINGS ********************/
 h1 {
@@ -466,6 +492,8 @@ h3 {
 }
 h4 {
   font-size: 14px;
+  margin-bottom: 6px;
+  margin-top: 14px;
 }
 h4 strong {
 	text-decoration: underline; /* ?? */
@@ -474,11 +502,11 @@ h5,h6 {
   font-size: 14px;
   margin-bottom: 0px;
 }
-/*
-h3:first-child, h4:first-child, h5:first-child {
+
+#body h4:first-child, #body h5:first-child {
 	margin-top: 0;
 }
-*/
+
 @media (max-width: 480px) {
 	h1, h1 {
 		font-size: 20px;
@@ -509,17 +537,30 @@ p.text {
 		max-width: 100%;
 	}
 }
+#jethro-public p, #jethro-public #body li { 
+	max-width: 45em; 
+	margin-top: 0.75ex; 
+	margin-bottom: 0.75ex; 
+	line-height: 1.4
+}
 ul {
 	margin-bottom: 2px;
 }
 .modal {
 	z-index: 9999;
 }
+@media (min-width: 500px) {
+	.modal-wide {
+		width: 70% !important;
+		margin-left: -35%;
+	}
+}
+
 .modal-backdrop {
 	z-index: 8888;
 	opacity: 0.4;
 }
-#body a, .modal a, .clickable, button.btn-link, input.btn-link {
+#body a:not(.label), .modal a, .clickable, button.btn-link, input.btn-link {
 	text-decoration: underline;
 	color: @linkColor;
 }
@@ -532,6 +573,10 @@ ul {
 }
 #body .pagination a {
 	text-decoration: none;
+}
+#body .pagination {
+	margin-top: 5px;
+	margin-bottom: 5px;
 }
 form.min {
 	display: inline;
@@ -662,6 +707,14 @@ tr:last-child .insert-row-below {
 	padding: 0;
 	font-style: italic;
 	color: @gray;
+}
+#body .soft { /* low-key links */
+	font-size: 90%;
+	padding-top: 1px;
+	color: #aaa !important;
+}
+#body a.pull-right {
+	padding-right: 5px;
 }
 .custom-field-tooltip {
 	background: @jethroGrayish !important;
@@ -801,12 +854,43 @@ input.btn-link, button.btn-link {
 	.indent-left {
 		margin-left: 15px;
 	}
+	.fullwidth-phone {
+		width: 99%;
+		float: none !important;
+		margin-left: 0px !important;
+	}
+	.fullwidth-phone .input-prepend, .fullwidth-phone .input-append {
+		width: 99%;
+		box-sizing: border-box;
+		display: inline-grid !important;
+	}
+	.fullwidth-phone .input-append {
+		grid-template-columns: 1fr min-content;
+	}
 }
 .input-prepend .add-on {
 	margin-left: 1px; /* work around a bug where the left margin gets cut off on homepage */
 }
 
-#body h1 small, #body h2 sminsll {
+.input-prepend.fullwidth, .input-append.fullwidth {
+	width: 99%;
+	box-sizing: border-box;
+	display: inline-grid !important;
+}
+.input-append *, .input-prepend * {
+	grid-row: 1;
+}
+.input-append.fullwidth {
+	grid-template-columns: 1fr min-content;
+}
+.input-prepend.fullwidth {
+	grid-template-columns: min-content 1fr;
+}
+
+.input-append input {
+	min-width: 10px !important;
+}
+#body h1 small, #body h2 small {
 	font-size: 14px;
 }
 
@@ -817,11 +901,13 @@ input.btn-link, button.btn-link {
 
 /************* REPORTS **************/
 table.query-results {
-	margin-bottom: 2px; /*  so the X persons listed text can snuggle underneath */
+	margin-bottom: 5px; /*  so the X persons listed text can snuggle underneath */
 }
-p.report-summary {
-	font-weight: bold;
-	color: @grayLight;
+table.query-results tfoot * {
+	border-bottom: 0px !important;
+}
+.report-summary, .report-summary * {
+	color: @grayLight !important;
 }
 
 
@@ -878,7 +964,7 @@ img.person-photo {
 	-webkit-box-sizing: border-box;
 	-moz-box-sizing: border-box;
 	border: 1px solid @jethroDarkest;
-	padding: 15px;
+	padding: 15px 10px 10px 10px;
 	position: relative;
 	z-index: 50;
 	overflow: hidden;
@@ -917,14 +1003,12 @@ img.person-photo {
 	}
 }
 
-
-
 .details-box table {
 	width: 100%;
 }
 
 .details-box h3 {
-	margin: -15px -15px 15px -15px;
+	margin: -15px -10px 10px -10px;
 	padding-left: 15px;
 	white-space: nowrap;
 	text-shadow: 0 1px 0 @jethroDarkText;
@@ -989,20 +1073,26 @@ img.person-photo {
 .family-details .details-box {
 	width: 630px;
 }
+.family-members-container {
+	display: grid;
+	grid-template-columns: 1fr 1fr; 
+	column-gap: 10px;
+	row-gap: 10px;
+	box-sizing: border-box;
+	margin-bottom: 10px;
+ }
 .family-member {
 	box-sizing: border-box;
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
 	border: 1px solid @jethroDarkest;
 	background-color: @jethroLightest;
 	padding: 5px;
 	border-radius: 5px;
-	width: 47.1%;
-	margin: 0 15px 15px 0;
 	height: 72px;
-	float: left;
 	overflow: hidden;
 	color: @jethroDarkText;
+}
+.family-member.archived {
+	color: @grayLight;
 }
 .family-member:hover {
 	background-color: @jethroGrayish;
@@ -1015,7 +1105,7 @@ img.person-photo {
 	height: 20px;
 	width: 20px;
 }
-.family-member * {
+.family-members-container a, .family-members-container a * {
 	text-decoration: none !important;
 }
 .family-member img {
@@ -1029,9 +1119,8 @@ img.person-photo {
 	.family-details .details-box {
 		width: 100%;
 	}
-	.family-member {
-		width: 100%;
-		margin: 0 0 15px 0;
+	.family-members-container {
+		grid-template-columns: 1fr;
 	}
 }
 
@@ -1093,42 +1182,74 @@ img.person-photo {
 		min-width: 1300px;
 	}
 }
+form.homepage-search {
+	max-width: 400px;
+}
+.homepage-search span.input-append {
+	margin-bottom: 3px;
+}
+.homepage-search-options,.homepage-search-options *  {
+	font-size: 12px;
+	margin: 0px;
+}
 
 /*************** MEMBERS HOME PAGE ******************/
-
 .member-homepage-box {
 	float: left;
-	margin-right: 30px;
-	margin-bottom: 15px;
+	box-sizing: border-box;
+	width: 100%;
 }
 
-@media (max-width: 640px) {
-	/* reduce homepage to 1 col for landscape phone and below */
-	#body .member-homepage-box {
+@media (min-width: 650px) {
+	.member-homepage-box {
+		width: 30%;
+		margin-right: 3%;
+	}
+	.member-homepage-box.family {
 		width: 100%;
-		margin: 0px;
-		float: none !important;
 	}
 }
+
+@media (min-width: 800px) {
+	.member-homepage-container {
+		display: grid;
+		grid-template-columns: 1fr 2fr; 
+		grid-template-rows: auto auto auto;
+		column-gap: 30px;
+	}
+	.member-homepage-smalls .member-homepage-box {
+		width: 100%;
+		float: none;
+		position: relative;
+	}
+	.member-homepage-box {
+		margin-bottom: 30px;
+		position: relative;  /* to constrain the floating photo */
+	}
+}
+
 .member-homepage-box img.family-photo {
 	float: right !important;
-	width: 150px;
+	position: absolute;
+	width: 200px;
 	right: 5px;
 	margin-bottom: 5px;
 	border-radius: 5px;
 	border: 1px solid @jethroDarkest;
 }
-.member-homepage-box table {
-	width: auto !important;
-}
 @media (max-width: 440px) {
 	.member-homepage-box img.family-photo {
-		float: none;
-		width: 100%;
+		float: none !important;
+		position: static;
+		width: auto;
+		max-height: 230px;
 	}
 }
 
 /*************** PERSON LIST IN MEMBER INTERFACE *************/
+.member-homepage-box table {
+	margin-bottom: 5px !important;
+}
 #member-list {
 	max-width: 110ex;
 	margin-left: 0px;
@@ -1152,6 +1273,7 @@ img.person-photo {
 	width: 150px;
 	border-radius: 5px;
 	border: 1px solid @jethroDarkest;
+	margin-left: 10px;
 }
 #member-list div.member-family-details {
 	margin: 5px 0px;
@@ -1159,12 +1281,15 @@ img.person-photo {
 #member-list div.member-family-contents {
 	margin-right: 152px;
 }
+
 .member-family-members {
-	overflow: auto; /* clearfix */
+	display: grid;
+	grid-template-columns: 1fr 1fr; 
+	column-gap: 10px;
+	row-gap: 10px;
 }
 .member-family-members .family-member {
-	width: 49%;
-	margin: 0 1% 5px 0;
+
 }
 .member-family-members .family-member div {
 	margin-left: 73px;
@@ -1178,14 +1303,15 @@ img.person-photo {
 }
 
 @media (max-width: 700px) {
-	.member-family-members .family-member {
-		width: 98%;
+	.member-family-members {
+		grid-template-columns: 1fr;
 	}
 }
 @media (max-width: 440px) {
 	#member-list img.family {
 		float: none;
-		width: 100%;
+		max-height: 330px;
+		margin: 0px 0px 5px 0px;
 	}
 	#member-list div.member-family-contents {
 		margin-right: 0;
@@ -1232,6 +1358,17 @@ img.person-photo {
 	}
 }
 
+/* widgets at the top of "list all" pages */
+.list-all-controls {
+	line-height: 30px; 
+	min-height: 30px
+}
+.list-all-controls form.pull-right {
+	margin-left: 8px;
+}
+.list-all-controls p {
+	margin-bottom: 0px;
+}
 
 /* TAB AND ACCORION OVERRIDES */
 ul.nav-tabs {
@@ -1262,29 +1399,63 @@ ul.nav-tabs {
 
 
 /*********** ROSTERS ***********/
-#body table.roster td {
-	background: @jethroLightest !important; /* lighter yellow */
+#body table.roster {
+	-webkit-box-shadow: 3px 3px 10px rgba(0,0,0,.2);
+	-moz-box-shadow: 3px 3px 10px rgba(0,0,0,.2);
+	box-shadow: 3px 3px 10px rgba(0,0,0,.2);
+	width: auto;
+	border-collapse: separate !important; /* need this for stick header's borders to show correctly */
+	border-spacing: 0;
+	border-width:  2px 1px 1px 2px !important; /*top left borders on table; bottom right borders on cells. */ 
+	border-style: solid !important;
+	border-color: @jethroDarkest;
+}  
+#body table.roster td, #body table.roster th {
+	border-color: @jethroDarkest;
+	border-width:  0px 1px 1px 0px ;
+	border-style: solid !important;
+	border-color: @jethroDarkest;
+	padding: 4px;
 }
-#body table.roster th {
+#body table.roster thead  {
+	position: sticky;
+	top: 0;
+	box-shadow: 0 3px 3px -1px rgba(0, 0, 0, 0.4);
+	z-index: 99;
+}
+#body table.roster thead th {
+	z-index: 99;
 	background-image: none;
 	filter: none;
 	background-color: @jethroDarkish;
-	/*border: 1px solid !important;*/
 }
+#body table.roster>tbody>tr:first-child>td, #body table.roster>tbody>tr:first-child>th {
+	padding-top: 7px !important; /* so the drop shadow doesn't make the row look too skinny */
+}
+#body table.roster td, #body table.roster tbody th {
+	background: @jethroLightest; /* lighter yellow */
+}
+#body table.roster tr.roster-next td, #body table.roster tr.roster-next th {
+	background: @tableBackgroundHover !important;
+}
+
 .thick-left-border {
-	border-left-width: 2px !important;
+	border-left: 2px solid @jethroDarkest !important;
 }
-#body table.roster td, #body table.roster th {
-	padding: 4px;
-	border: 1px solid @jethroDarkest;
+#body table.roster thead th.roster-date {
+	text-align: center;
+	position: sticky;
+	left: 0;
 }
-#body table.roster {
-	border-collapse: collapse;
-	border: 2px solid @jethroDarkest;
-  -webkit-box-shadow: 3px 3px 10px rgba(0,0,0,.2);
-  -moz-box-shadow: 3px 3px 10px rgba(0,0,0,.2);
-  box-shadow: 3px 3px 10px rgba(0,0,0,.2);
-	width: auto;
+#body table.roster tbody th.roster-date {
+	text-align: right;
+	position: sticky;
+	left: 0;
+	z-index: 1;
+}
+#body table.roster th.roster-date .smallprint {
+	font-weight: normal;
+	text-align: center;
 }
 #body table.roster a {
 	white-space: nowrap;
@@ -1306,7 +1477,7 @@ ul.nav-tabs {
 	height: 18px;
 	line-height: 18px
 }
-#body table.roster *.clash {
+#body table.roster *.clash, #body table.roster *.error {
 	border: 1px solid red;
 }
 
@@ -1315,9 +1486,6 @@ ul.nav-tabs {
 	height: 22px;
 	margin-bottom: 4px;
 	margin-top: 0px;
-}
-#body table.roster tr:last-child select {
-	margin-bottom: 0px;
 }
 table.roster select.unlisted-allocee, #body table.roster select option.unlisted-allocee {
 	color: #e68a00;
@@ -1417,13 +1585,13 @@ table.service-details td table td label {
 table.service-details td table td input {
 	margin: 0px 3px 0px 0px !important;
 }
-#body table.service-program tr.copy-details td {
+#body table.service-program tr.insert-space td {
 	text-align: center;
 	padding: 0px !important;
 	height: 12px !important;
 	line-height: 12px !important;
 }
-#body table.service-program tr.copy-details td button {
+#body table.service-program tr.insert-space td button {
 	height: 10px !important;
 	width: 16px !important;
 	background-image: url(../img/expand_up_down_green_small.png);
@@ -1613,8 +1781,8 @@ table.service-details td table td input {
 		border: 1px solid @grayMid;
 		box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset;
 		border-radius: 4px 4px 4px 4px;
-		padding: 4px 6px;
-		/*margin-bottom: 10px;*/
+		padding: 4px 6px 0px 6px;
+		margin-bottom: 10px;
 		color: @jethroDarkText;
 		width: auto;
 		max-width: 300px;
@@ -1651,9 +1819,6 @@ div.multi-select:focus, div.radio-button-group:focus {
 
 /******** CHOOSER *************/
 
-ul.multi-person-finder {
-	width: 250px;
-}
 li div.delete-list-item, li div.delete-chosen-person {
 	float: right;
 	background-image: url(../img/cross_red.png);
@@ -2172,18 +2337,21 @@ div#send-sms-modal div.results {
 		display: block;
 		margin: 0px;
 		padding: 0px;
-		line-height: 40px;
-		font-size: 25px;
+		line-height: 32px;
+		font-size: 22px;
+		height: 32px;
 		white-space: nowrap;
 		text-indent: 0px;
-		color: black;
+		color: #444;
 	}
 	#jethro-nav, #jethro-nav-toprow, #jethro-nav-toprow h1 {
 		width: 100% !important;
+		padding: 0px !important;
 	}
 	#jethro-nav h1 span {
 		display: block !important;
 		float: right !important;
+		padding-right: 5px;
 	}
 	#jethro-nav .navbar {
 		display: none;

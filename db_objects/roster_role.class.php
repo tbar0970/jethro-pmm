@@ -51,10 +51,12 @@ class Roster_Role extends db_object
 									'type'			=> 'select',
 									'options'		=> Array(1 => 'Yes', 0 => 'No'),
 									'default'		=> 0,
+									'note'			=> 'Whether multiple people can be assigned to this role on a given date'
 							   ),
 			'details'		=> Array(
 									'type'		=> 'html',
-									'note' => 'These details will be shown when a public user clicks the role name in the public roster'
+									'label'		=> 'Role description',
+									'note'		=> 'These details are shown when somebody clicks the role title in a published roster'
 								   ),
 			'active'		=> Array(
 									'type'			=> 'select',
@@ -75,6 +77,14 @@ class Roster_Role extends db_object
 			$value = array_get($this->values, $name);
 			Person_Group::printChooser($prefix.$name, $value, array(), null, '(None)');
 		} else {
+			if ($name == 'active') {
+				$memberships = $this->getViewMemberships();
+				if ($memberships && $this->getValue('active')) {
+					echo 'Yes<br />';
+					$this->fields['active']['note'] = 'This role cannot be deactvated because it is used in '.count($memberships).' roster views.';
+					return;
+				}
+			}
 			parent::printFieldInterface($name, $prefix);
 		}
 	}
@@ -106,6 +116,16 @@ class Roster_Role extends db_object
 							LEFT OUTER JOIN congregation c ON roster_role.congregationid = c.id';
 		return $res;
 	}
+	
+	/**
+	 * Get the roster views in which this role is used
+	 */
+	function getViewMemberships()
+	{
+		$SQL = 'SELECT * from roster_view_role_membership
+				WHERE roster_role_id = '.(int)$this->id;
+		return $GLOBALS['db']->queryAll($SQL);
+	}
 
 	function _printUnlistedAlloceeOption($personid)
 	{
@@ -114,11 +134,30 @@ class Roster_Role extends db_object
 		<option value="<?php echo (int)$personid; ?>" class="unlisted-allocee" selected="selected" title="This person is not in the volunteer group for this role"><?php echo ents($person->toString()); ?></option>
 		<?php
 	}
+	
+	private function _printChooserOption($vid, $name, $selectedid, &$absentees)
+	{
+		$sel = $dis = $note = '';
+		if ($vid == $selectedid) {
+			$sel = ' selected="selected" ';
+			if (in_array($vid, $absentees)) {
+				$note = ' !! ABSENT !!';
+			}
+		} else {
+			if (in_array($vid, $absentees)) {
+				$note = ' (absent)';
+				$dis = ' disabled="disabled" ';
+			}
+		}
+		?>
+		<option value="<?php echo $vid; ?>"<?php echo $sel.$dis;?>><?php echo ents($name).$note; ?></option>
+		<?php
+	}
 
 	/**
 	* Print a widget for choosing people to fulfill this role, using the volunteer group if applicable
 	*/
-	function printChooser($date, $currentval=Array(''))
+	function printChooser($date, $currentval=Array(''), $absentees=Array())
 	{
 		if ($groupid = $this->getValue('volunteer_group')) {
 			$volunteers = $this->_getVolunteers();
@@ -135,9 +174,7 @@ class Roster_Role extends db_object
 					<?php
 					if (!empty($id) && !isset($volunteers[$id])) $this->_printUnlistedAlloceeOption($id);
 					foreach ($volunteers as $vid => $name) {
-						?>
-						<option value="<?php echo $vid; ?>"<?php if ($vid == $id) echo ' selected="selected"'; ?>><?php echo ents($name); ?></option>
-						<?php
+						$this->_printChooserOption($vid, $name, $id, $absentees);
 					}
 					?>
 						<option class="other">Other...</option>
@@ -156,9 +193,7 @@ class Roster_Role extends db_object
 				<?php
 				if (!empty($currentID) && !isset($volunteers[$currentID])) $this->_printUnlistedAlloceeOption($currentID);
 				foreach ($volunteers as $id => $name) {
-					?>
-					<option value="<?php echo $id; ?>"<?php if ($currentID == $id) echo ' selected="selected"'; ?>><?php echo ents($name); ?></option>
-					<?php
+					$this->_printChooserOption($id, $name, $currentID, $absentees);
 				}
 				?>
 					<option class="other">Other...</option>
@@ -168,10 +203,10 @@ class Roster_Role extends db_object
 		} else {
 			$GLOBALS['system']->includeDBClass('person');
 			if ($this->getValue('assign_multiple')) {
-				Person::printMultipleFinder('assignees['.$this->id.']['.$date.']', $currentval);
+				Person::printMultipleFinder('assignees['.$this->id.']['.$date.']', $currentval, $date);
 			} else {
 				$currentID = (int)reset($currentval);
-				Person::printSingleFinder('assignees['.$this->id.']['.$date.']', $currentID);
+				Person::printSingleFinder('assignees['.$this->id.']['.$date.']', $currentID, $date);
 			}
 		}
 	}

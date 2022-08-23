@@ -1,6 +1,11 @@
 <?php
 class Call_Document_Merge extends Call
 {
+	public static function getSavedTemplatesDir()
+	{
+		return Documents_Manager::getRootPath().'/Templates/To_Merge/';
+	}
+
 	function run()
 	{
 		if (array_get($_REQUEST, 'template_format') == 'legacy') {
@@ -10,14 +15,34 @@ class Call_Document_Merge extends Call
 
 		$file_info = array_get($_FILES, 'source_document');
 		$content = null;
-		if (empty($file_info['tmp_name'])) {
-			trigger_error('Template file does not seem to have been uploaded');
+		$template_filename = null;
+		if (!empty($file_info['tmp_name'])) {
+			if (!empty($_REQUEST['save_template'])) {
+				$ok = TRUE;
+				if (!is_dir(self::getSavedTemplatesDir())) {
+					$ok = mkdir(self::getSavedTemplatesDir(), 0770, TRUE);
+				}
+				if ($ok) $ok = copy($file_info['tmp_name'], self::getSavedTemplatesDir().basename($file_info['name']));
+				if (!$ok) trigger_error("Problem saving template", E_USER_ERROR);
+
+			}
+			
+			$bits = explode('.', $file_info['name']);
+			$extension = strtolower(end($bits));
+			$template_filename = basename($file_info['name']);
+			$source_file = $file_info['tmp_name'];
+			rename ($source_file, $source_file.'.'.$extension);
+			$source_file = $source_file.'.'.$extension;
+
+		} else if (!empty($_REQUEST['source_doc_select'])) {
+			// NB basename for security to avoid path injections.
+			$source_file = $template_filename = self::getSavedTemplatesDir().basename($_REQUEST['source_doc_select']);
+			$extension = @strtolower(end(explode('.', $source_file)));
+		} else {
+			trigger_error('Template file does not seem to have been uploaded or selected');
 			return;
 		}
-		$extension = @strtolower(end(explode('.', $file_info['name'])));
-		$source_file = $file_info['tmp_name'];
-		rename ($source_file, $source_file.'.'.$extension);
-		$source_file = $source_file.'.'.$extension;
+
 		switch ($extension) {
 			case 'odt':
 			case 'odg':
@@ -64,10 +89,16 @@ class Call_Document_Merge extends Call
 				if ($merge_type != 'family') { $merge_type = 'person'; }
 				$data = $this->getMergeData();
 				$TBS->MergeBlock($merge_type, $data);
-				$filename = basename($file_info['name']);
+				$filename = basename($template_filename);
 				$bits = explode('.', $filename);
 				$ext = array_pop($bits);
 				$filename = implode('_', $bits).'_merged_'.date('Y-m-d').'.'.$ext;
+
+				header('Content-type: application/force-download');
+				header("Content-Type: application/octet-stream");
+				header("Content-Type: application/download");
+				header('Content-Disposition: attachment; filename="'.urlencode('MERGED_'.basename($source_file)).'"');
+
 				$TBS->Show(OPENTBS_DOWNLOAD, $filename);
 				break;
 
@@ -178,6 +209,7 @@ class Call_Document_Merge extends Call
 					$outputrow[$headerrow[$k]] = $outputrow[$k] = $dummy_family->getFormattedValue($k, $v);
 				} else if ($k == 'selected_firstnames') {
 					$outputrow['selected_members'] = $v;
+					$outputrow[$k] = $v;
 				} else {
 					$outputrow[$k] = $v;
 				}
