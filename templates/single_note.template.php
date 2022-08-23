@@ -90,9 +90,11 @@ $type = (!empty($entry['familyid']) ? 'family' : 'person');
 		?>
 		<div class="status">
 			<?php
+			$back_to = array_get($_REQUEST, 'note_back_to', '');
+			if ($back_to) $back_to = '&back_to='.ents($back_to);
 			if (!empty($show_edit_link) && $dummy->canEdit()) {
 				?>
-				<a class="pull-right link-collapse" href="?view=_edit_note&note_type=<?php echo $type; ?>&noteid=<?php echo $id; ?>"><i class="icon-wrench"></i><?php echo _('Edit / Comment')?></a>
+				<a class="pull-right link-collapse" href="?view=_edit_note&note_type=<?php echo $type; ?>&noteid=<?php echo $id.$back_to ?>"><i class="icon-wrench"></i><?php echo _('Update note')?></a>
 				<?php
 			}
 			$statusClasses = Array(
