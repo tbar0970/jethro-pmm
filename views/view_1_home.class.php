@@ -58,8 +58,8 @@ class View_Home extends View
 								$icon = ($task['type'] == 'person') ? 'user' : 'home';
 								$view = ($task['type'] == 'person') ? 'persons' : 'families';
 								$url = ifdef('NOTES_LINK_TO_EDIT')
-										? '?view=_edit_note&note_type='.ents($task['type']).'&noteid='.(int)$id
-										: '?view='.$view.'&'.$task['type'].'id='.$task[$task['type'].'id'].'#note_'.$id;
+										? '?view=_edit_note&note_type='.ents($task['type']).'&noteid='.(int)$id.'&back_to=home'
+										: '?view='.$view.'&'.$task['type'].'id='.$task[$task['type'].'id'].'&note_back_to=home#note_'.$id;
 								$nameurl = '?view='.$view.'&'.$task['type'].'id='.$task[$task['type'].'id'];
 								?>
 								<tr>
