@@ -59,7 +59,7 @@ Config_Manager::init();
 $expiryTime = defined('SESSION_MAXLENGTH_MINS') ? SESSION_MAXLENGTH_MINS * 60 : NULL;
 session_set_cookie_params($expiryTime, parse_url(BASE_URL, PHP_URL_PATH));
 if (session_id() == '') {
-	session_name('JethroSession');
+	session_name('JethroSess');
 	session_start();
 	upgrade_session_cookie();
 }
