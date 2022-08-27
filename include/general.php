@@ -171,15 +171,15 @@ function redirect($view, $params=Array(), $hash='')
 function upgrade_session_cookie()
 {
 	foreach (headers_list() as $header) {
-		if (FALSE !== strpos($header, 'JethroSession')) {
+		if (FALSE !== strpos($header, session_name())) {
 			// There is a session cookie header waiting to be sent. Remove it, and add a better one.
 			$path = parse_url(BASE_URL, PHP_URL_PATH);
 			$domain = parse_url(BASE_URL, PHP_URL_HOST);
 			header_remove('Set-Cookie');
-			header("Set-Cookie: JethroSession=".session_id()."; path=".$path."; domain=".$domain."; HttpOnly; SameSite=Lax");
+			header("Set-Cookie: ".session_name()."=".session_id()."; path=".$path."; HttpOnly; SameSite=Lax");
 			return;
 		}
-	}	
+	}
 }
 
 
