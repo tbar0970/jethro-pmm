@@ -432,6 +432,7 @@ a#user-menu {
 }
 .user-detail li, .user-detail .btn-link, #body .dropdown-menu li a {
 	text-decoration: none !important;
+	color: @jethroLightText !important;
 }
 .user-detail li a:hover .btn-link, .user-detail li a:hover, #body .dropdown-menu li a:hover  {
 	color: @grayDark !important;
