@@ -26,7 +26,7 @@ $(document).ready(function() {
 		}
 
 		// add a back button
-		$('a.brand').parent().prepend('<ei class="icon-white icon-chevron-left" onclick="history.go(-1); "></i>')
+		$('a.brand').parent().prepend('<i class="icon-white icon-chevron-left" onclick="history.go(-1); "></i>')
 
 		// stay inside the app, avoid linking out to mobile safari
 		$("a").click(function (event) {
@@ -43,7 +43,10 @@ $(document).ready(function() {
 			}
 		});
 	}
-	if (("standalone" in window.navigator) && !window.navigator.standalone) {
+	if ((navigator.userAgent.toLowerCase().indexOf('safari/') > -1)
+		&& ("standalone" in window.navigator)
+		&& !window.navigator.standalone) {
+		// we're in safari, but not in standalone mode, so show the tip
 		$('.a2hs-prompt').show();
 	}
 

@@ -248,7 +248,9 @@ body {
 	display: table-cell;
 	vertical-align: middle;
 	height: 40px;
-/*	border: 1px solid green;*/
+	position: absolute;
+	margin-top: 0px;
+	z-index: 888;
 }
 #jethro-public #jethro-nav-toprow h1 {
 	line-height: 40px;
@@ -256,20 +258,21 @@ body {
 /* mobile back button */
 #jethro-nav-toprow .icon-chevron-left {
 	float: left;
-	margin-top: 9px;
+	margin-top: 12px;
+	margin-right: 3px;
 }
 #jethro-nav-toprow .brand {
 	background: url(../img/jethro-white.png);
 	background-repeat: no-repeat;
 	background-position: 50% 50%;
 	font-size: 0.01em;
-	height: 24px;
-	margin: 7px 10px 5px 0px;
+	height: 40px;
 	padding: 0;
 	text-indent: -9999px;
 	width: 106px;
 	float: left;
 	display: block;
+	margin-right: 5px;
 }
 #jethro-nav .btn-navbar {
 	display: none;
@@ -324,7 +327,6 @@ a#user-menu {
 		display: inline;
 	}
 	#jethro-nav-toprow .brand {
-		position: absolute;
 		top: 7px;
 		z-index: 888;
 		margin: 0px;
