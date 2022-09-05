@@ -541,8 +541,11 @@ class Person_Query extends DB_Object
 						$options['photo'] = 'Photo';
 					}
 					$options['--D'] = '-----';
-					$options['view_link'] = 'A link to view their person record';
-					$options['edit_link'] = 'A link to edit their person record';
+					$options['view_link'] = 'A link to view person details';
+					$options['edit_link'] = 'A link to edit the person';
+					if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
+						$options['note_link'] = 'A link to add a note';
+					}
 					$options['checkbox'] = 'A checkbox for bulk actions';
 					print_widget('show_fields[]', Array('options' => $options, 'type' => 'select', 'disabled_prefix' => '--'), $chosen_field);
 					?>
@@ -1243,6 +1246,7 @@ class Person_Query extends DB_Object
 						break;
 					case 'view_link':
 					case 'edit_link':
+					case 'note_link':
 					case 'checkbox':
 					case 'photo':
 						$query['select'][] = 'p.id as '.$field;
@@ -1528,7 +1532,7 @@ class Person_Query extends DB_Object
 			}
 
 			foreach ($headers as $heading) {
-				if (in_array($heading, Array('view_link', 'edit_link', 'checkbox'))) continue;
+				if (in_array($heading, Array('view_link', 'edit_link', 'note_link', 'checkbox'))) continue;
 				switch($heading) {
 					case 'person_groups':
 						$hr[] = 'Groups';
@@ -1555,7 +1559,7 @@ class Person_Query extends DB_Object
 		foreach ($x as $row) {
 			$r = Array();
 			foreach ($row as $label => $val) {
-				if (in_array($label, Array('view_link', 'edit_link', 'checkbox'))) continue;
+				if (in_array($heading, Array('view_link', 'edit_link', 'note_link', 'checkbox'))) continue;
 				if (isset($this->_field_details[$label])) {
 					$var = $label[0] == 'p' ? '_dummy_person' : '_dummy_family';
 					$fieldname = substr($label, 2);
@@ -1606,6 +1610,7 @@ class Person_Query extends DB_Object
 								break;
 							case 'edit_link':
 							case 'view_link':
+							case 'note_link':
 								break;
 							case 'checkbox':
 								echo '<input type="checkbox" class="select-all" title="Select all" />';
@@ -1640,13 +1645,20 @@ class Person_Query extends DB_Object
 						switch ($label) {
 							case 'edit_link':
 								?>
-								<a class="med-popup no-print" href="?view=_edit_person&personid=<?php echo $row[$label]; ?>"><i class="icon-wrench"></i>Edit</a>
+								<a class="med-popup no-print" href="?view=_edit_person&personid=<?php echo $row[$label]; ?>&then=refresh_opener"><i class="icon-wrench"></i>Edit</a>
 								<?php
 								break;
 							case 'view_link':
 								?>
 								<a class="med-popup no-print" href="?view=persons&personid=<?php echo $row[$label]; ?>"><i class="icon-user"></i>View</a>
 								<?php
+								break;
+							case 'note_link':
+								if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
+									?>
+									<a class="med-popup no-print" href="?view=_add_note_to_person&personid=<?php echo $row[$label]; ?>&then=refresh_opener"><i class="icon-pencil"></i>Add&nbsp;Note</a>
+									<?php
+								}
 								break;
 							case 'checkbox':
 								?>
@@ -1768,7 +1780,7 @@ class Person_Query extends DB_Object
 	function _getColClasses($heading)
 	{
 		$class_list = Array();
-		if (in_array($heading, Array('edit_link', 'view_link', 'checkbox'))) {
+		if (in_array($heading, Array('edit_link', 'view_link', 'note_link', 'checkbox'))) {
 			$class_list[] = 'no-print narrow';
 		}
 		if ($heading == 'checkbox') {
