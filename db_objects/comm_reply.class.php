@@ -44,7 +44,7 @@ class Comm_Reply extends DB_Object
 			  `created` timestamp NOT NULL default CURRENT_TIMESTAMP,
 			  `contents` text NOT NULL,
 			  PRIMARY KEY  (`id`)
-			) ENGINE=InnoDB ;
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
 		";
 	}
 
