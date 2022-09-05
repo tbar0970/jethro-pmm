@@ -51,7 +51,14 @@ class View__Add_Note_To_Person extends View
 				if ($this->_note->create()) $success++;
 			}
 			if ($success) {
-				if ($this->_person) {
+				if (array_get($_REQUEST, 'then') == 'refresh_opener') {
+					$msg = $this->_person ? 'Note added to '.$this->_person->toString() : 'Note added';
+					add_message($msg);
+					?>
+					<script>window.opener.location.reload();window.close();</script>
+					<?php
+					exit;
+				} else if ($this->_person) {
 					add_message(_('Note added'));
 					redirect('persons', Array('personid' => $this->_person->id), 'note_'.$this->_note->id); // exits
 				} else {
