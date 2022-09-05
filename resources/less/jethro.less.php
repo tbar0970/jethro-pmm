@@ -432,7 +432,7 @@ a#user-menu {
 	padding-top: 0px;
 	border-top-width: 0px;
 }
-.user-detail li, .user-detail .btn-link, #body .dropdown-menu li a {
+#body .dropdown-menu li a {
 	text-decoration: none !important;
 	color: @jethroLightText !important;
 }
