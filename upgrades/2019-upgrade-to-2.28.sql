@@ -6,8 +6,7 @@
               `created` timestamp NOT NULL default CURRENT_TIMESTAMP,
               `contents` text NOT NULL,
               PRIMARY KEY  (`id`)
-            ) ENGINE=InnoDB ;
-
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
 
             CREATE TABLE `person_comm` (
               `personid` int(11) NOT NULL default '0',
@@ -18,7 +17,8 @@
 /* Not sure what to do with the constraints...
               CONSTRAINT `pc_personid` FOREIGN KEY (personid) REFERENCES _person(id) ON DELETE CASCADE,
               CONSTRAINT pc_id FOREIGN KEY (id) REFERENCES abstract_note(id) ON DELETE CASCADE
-            ) ENGINE=InnoDB ;
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+	
 */
 /* Move SMS Messages from person_note to person_comm */
 
