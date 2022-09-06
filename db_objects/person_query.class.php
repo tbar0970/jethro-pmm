@@ -1312,9 +1312,10 @@ class Person_Query extends DB_Object
 												AND date > (SELECT COALESCE(MAX(date), "2000-01-01") FROM attendance_record ar2 WHERE ar2.personid = ar.personid AND present = 1 AND groupid='.(int)$groupid.')) AS `Running Absences`';
 						break;
 					case 'actionnotes.subjects':
-						$query['select'][] = '(SELECT GROUP_CONCAT(subject SEPARATOR ", ")
+						$query['select'][] = '(SELECT GROUP_CONCAT(CONCAT(subject, " [", substr(asn.first_name, 1, 1), substr(asn.last_name, 1, 1),"]") SEPARATOR ", ")
 												FROM abstract_note an
 												JOIN person_note pn ON an.id = pn.id
+												LEFT JOIN person asn on asn.id = an.assignee
 												WHERE pn.personid = p.id
 												AND an.status = "pending"
 												AND an.action_date <= NOW()) AS `Notes`';
@@ -1633,7 +1634,6 @@ class Person_Query extends DB_Object
 			</thead>
 			<tbody>
 			<?php
-
 			foreach ($x as $personid => $row) {
 				?>
 				<tr data-personid="<?php echo $personid; ?>">
@@ -1654,9 +1654,11 @@ class Person_Query extends DB_Object
 								<?php
 								break;
 							case 'note_link':
+								// if notes are shown on this report, we want to refresh after adding a new one
+								$then = in_array('Notes', $headers) ? '&then=refresh_opener' : '';
 								if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
 									?>
-									<a class="med-popup no-print" href="?view=_add_note_to_person&personid=<?php echo $row[$label]; ?>&then=refresh_opener"><i class="icon-pencil"></i>Add&nbsp;Note</a>
+									<a class="med-popup no-print" href="?view=_add_note_to_person&personid=<?php echo $row[$label].$then ?>"><i class="icon-pencil"></i>Add&nbsp;Note</a>
 									<?php
 								}
 								break;
@@ -1678,6 +1680,11 @@ class Person_Query extends DB_Object
 							case 'p.id':
 							case 'f.id':
 								echo $val;
+								break;
+							case 'Notes':
+								$val = ents($val);
+								$val = preg_replace('/(\[[A-Z][A-Z]\])/', "<span class=\"soft\">$1</span>", $val);
+								echo nl2br($val);
 								break;
 							default:
 								if (isset($this->_field_details[$label])) {
