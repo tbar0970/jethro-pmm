@@ -711,7 +711,7 @@ tr:last-child .insert-row-below {
 	color: @gray;
 }
 #body .soft { /* low-key links */
-	font-size: 90%;
+	font-size: 85%;
 	padding-top: 1px;
 	color: #aaa !important;
 }
