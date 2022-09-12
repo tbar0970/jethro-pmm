@@ -762,15 +762,15 @@ class roster_view extends db_object
 							}
 							if (!empty($emails)) {
 								?>
-								<div class="smallprint no-print">
-									<a href="<?php echo get_email_href($my_email, NULL, $emails, date('jS F', strtotime($date))); ?>" <?php echo email_link_extras(); ?>>Email&nbsp;All</a>
+								<div class="smallprint no-print soft">
+									<a class="soft" href="<?php echo get_email_href($my_email, NULL, $emails, date('jS F', strtotime($date))); ?>" <?php echo email_link_extras(); ?>>Email&nbsp;All</a>
 				                </div>
 								<?php
 							}
 							if (!empty($mobiles) && SMS_Sender::canSend()) {
 								?>
 								<div class="smallprint no-print">
-								  <a href="#send-sms-modal" data-personid="<?php echo implode(',', array_unique($personids)); ?>" data-toggle="sms-modal" data-name="People Rostered on <?php echo $date;?>" onclick="$(this).parents('tr:first').addClass('tblib-hover')">SMS&nbsp;All</a>
+								  <a class="soft" href="#send-sms-modal" data-personid="<?php echo implode(',', array_unique($personids)); ?>" data-toggle="sms-modal" data-name="People Rostered on <?php echo $date;?>" onclick="$(this).parents('tr:first').addClass('tblib-hover')">SMS&nbsp;All</a>
 								</div>
 								<?php
 							}
