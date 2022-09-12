@@ -522,8 +522,10 @@ h5,h6 {
 	float: right !important;
 }
 hr, table.object-summary tr.divider-before > td, table.object-summary tr.divider-before > th {
-	border-top-width: 1px;
-	border-top-color: @grayLighter !important;
+	border-top: 1px solid @tableBorder !important;
+}
+.table {
+	border-bottom: 1px solid @tableBorder;
 }
 abbr[title] {
 	border-bottom:0px !important;
@@ -651,9 +653,6 @@ input[type="radio"] {
 #body table.table-min-width {
 	width: auto !important;
 	min-width: 50ex;
-}
-.table {
-	border-bottom: 1px solid @tableBorder;
 }
 /* nested tables - see list of family members within single person view */
 .table td table {
