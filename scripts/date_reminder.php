@@ -102,11 +102,10 @@ foreach ($summaries as $supervisors => $remindees) {
 	  ->setFrom(array($ini['FROM_ADDRESS'] => $ini['FROM_NAME']))
 	  ->setBody($content)
 	  ->addPart($html, 'text/html');
-	foreach (explode(';', $supervisors) as $sup) {
-		if (!empty($ini['OVERRIDE_RECIPIENT'])) {
-			$sup = $ini['OVERRIDE_RECIPIENT'];
-		}
-		$message->setTo($sup);
+	if (!empty($ini['OVERRIDE_RECIPIENT'])) {
+		$message->setTo($ini['OVERRIDE_RECIPIENT']);
+	} else {
+		$message->setTo(explode(';', $supervisors));
 	}
 	$res = Emailer::send($message);
 	if (!$res) {
