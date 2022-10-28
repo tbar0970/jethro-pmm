@@ -204,6 +204,7 @@ class User_System extends Abstract_User_System
 	 */
 	public function reverifyCurrentUser($password)
 	{
+		if (!empty($GLOBALS['JETHRO_INSTALLING'])) return TRUE;
 		$res = $this->_findUser($this->getCurrentUser('username'), $password);
 		return ($res) && ($res['id'] == $this->getCurrentUser('id'));
 	}
