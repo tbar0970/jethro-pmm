@@ -528,12 +528,14 @@ class View_Admin__Import extends View
 					$rowspan = 'rowspan="'.count($familydata['members']).'"';
 					?>
 					<tr>
-						<td <?php echo $rowspan; ?> class="nowrap"><?php echo ents($familydata['family_name']); ?></td>
-						<td <?php echo $rowspan; ?> class="nowrap"><?php echo ents($familydata['home_tel']); ?></td>
+						<td <?php echo $rowspan; ?> class="nowrap"><?php echo ents(array_get($familydata, 'family_name')); ?></td>
+						<td <?php echo $rowspan; ?> class="nowrap"><?php echo ents(array_get($familydata, 'home_tel')); ?></td>
 						<td <?php echo $rowspan; ?> class="nowrap">
 							<?php
-							echo nl2br(ents($familydata['address_street']));
-							echo '<br />'.$familydata['address_suburb'].' '.$familydata['address_state'].' '.$familydata['address_postcode'];
+							if (!empty($familydata['address_street'])) {
+								echo nl2br(ents($familydata['address_street']));
+								echo '<br />'.$familydata['address_suburb'].' '.$familydata['address_state'].' '.$familydata['address_postcode'];
+							}
 							?>
 						</td>
 					<?php
@@ -587,12 +589,14 @@ class View_Admin__Import extends View
 						<td>
 							<a href="?view=families&familyid=<?php echo (int)$id; ?>" class="med-popup">#<?php echo (int)$id; ?></a>
 						</td>
-						<td class="nowrap"><?php echo ents($familydata['family_name']); ?></td>
-						<td class="nowrap"><?php echo ents($familydata['home_tel']); ?></td>
+						<td class="nowrap"><?php echo ents(array_get($familydata, 'family_name')); ?></td>
+						<td class="nowrap"><?php echo ents(array_get($familydata, 'home_tel')); ?></td>
 						<td class="nowrap">
 							<?php
-							echo nl2br(ents($familydata['address_street']));
-							echo '<br />'.$familydata['address_suburb'].' '.$familydata['address_state'].' '.$familydata['address_postcode'];
+							if (!empty($familydata['address_street'])) {
+								echo nl2br(ents($familydata['address_street']));
+								echo '<br />'.$familydata['address_suburb'].' '.$familydata['address_state'].' '.$familydata['address_postcode'];
+							}
 							?>
 						</td>
 					</tr>
@@ -690,6 +694,7 @@ class View_Admin__Import extends View
 
 		}
 		foreach ($this->_sess['new_persons'] as $row) {
+			if (!isset($row['gender'])) $row['gender'] = 'Unknown';
 			$person = new Person();
 			$person->fromCSVRow($row);
 			if (!$person->create()) {
@@ -803,12 +808,12 @@ class View_Admin__Import extends View
 			<td><?php echo ents($person['first_name']); ?></td>
 			<td><?php echo ents($person['last_name']); ?></td>
 			<td><?php echo ents($person['age_bracket']); ?></td>
-			<td><?php echo ents($person['gender']); ?></td>
-			<td><?php echo ents($person['congregation']); ?></td>
+			<td><?php echo ents(array_get($person, 'gender')); ?></td>
+			<td><?php echo ents(array_get($person, 'congregation')); ?></td>
 			<td><?php echo ents($person['status']); ?></td>
-			<td><?php echo ents($person['email']); ?></td>
-			<td><?php echo ents($person['mobile_tel']); ?></td>
-			<td><?php echo ents($person['work_tel']); ?></td>
+			<td><?php echo ents(array_get($person, 'email')); ?></td>
+			<td><?php echo ents(array_get($person, 'mobile_tel')); ?></td>
+			<td><?php echo ents(array_get($person, 'work_tel')); ?></td>
 			<?php
 			foreach ($this->_sess['used_custom_fields'] as $fieldid => $label) {
 				?>
@@ -861,7 +866,9 @@ class View_Admin__Import extends View
 			} else if ($this->_sess['new_group_name']) {
 				$total_group = new Person_Group();
 				$total_group->setValue('name', $this->_sess['new_group_name']);
-				$total_group->setValue('categoryid', $this->_sess['new_group_categoryid']);
+				if (!empty($this->_sess['new_group_categoryid'])) {
+					$total_group->setValue('categoryid', $this->_sess['new_group_categoryid']);
+				}
 				$total_group->create();
 			}
 		}
@@ -960,7 +967,7 @@ class View_Admin__Import extends View
 					'last_name' => $row['last_name'],
 				);
 		$matches = $GLOBALS['system']->getDBObjectData('person', $params, 'AND');
-		$row['mobile_tel'] = preg_replace('/[^0-9]/', '', $row['mobile_tel']);
+		$row['mobile_tel'] = preg_replace('/[^0-9]/', '', array_get($row, 'mobile_tel', ''));
 		foreach (Array('email', 'mobile_tel') as $fieldName) {
 			if (!empty($_REQUEST['match_'.$fieldName]) && strlen(array_get($row, $fieldName, ''))) {
 				foreach ($matches as $id => $details) {
@@ -1013,7 +1020,7 @@ class View_Admin__Import extends View
 		return !empty($this->_captured_errors[$i]);
 	}
 
-	public static function getSampleHeader($basic=FALSE)
+	public static function getSampleHeader($required_fields_only=FALSE)
 	{
 		$header = Array(
 			'family_name',
@@ -1021,8 +1028,13 @@ class View_Admin__Import extends View
 			'first_name',
 			'congregation',
 			'status',
-			'gender',
 			'age_bracket',
+		);
+		if ($required_fields_only) {
+			return $header;
+		}
+		$header = array_merge($header, Array(
+			'gender',
 			'email',
 			'mobile_tel',
 			'work_tel',
@@ -1031,8 +1043,7 @@ class View_Admin__Import extends View
 			'address_suburb',
 			'address_state',
 			'address_postcode',
-		);
-		if ($basic) return $header;
+		));
 		$custom_fields = Person::getCustomFields();
 		foreach ($custom_fields as $field) {
 			$header[] = self::_stringToKey($field['name']);
