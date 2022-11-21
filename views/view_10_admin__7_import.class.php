@@ -56,27 +56,60 @@ class View_Admin__Import extends View
 			print_message(_('You must create a group to import into before you can import persons.  See Groups > Add.'));
 			return;
 		}
-		$text = _('This page allows you to import persons, families and notes from a CSV file containing one person per row.
-			The CSV must be in a format like this sample file.  (Column order is flexible, but the correct column headers are essential). Along with the person and family details, the "note" column allows you to add a note to the person record, and the "group" columns allow you to add person to one or more groups. Jethro treats successive rows as members of the same family, unless (a) the family name or details are different or (b) there is a blank row in between.
-			If you choose the "update" option below, Jethro will look for existing records to update rather than always creating new persons and families. If an existing person is matched by an import row, surrounding rows may be imported as new members of that family if applicable.
-			All the created or updated persons will be added to the group you choose below.');
+		$text = _('This page allows you to import persons, families, groups and notes from a spreadsheet file containing one person per row.  You can upload a CSV file or paste tab-separated text.
+			The data must be formatted like this sample file.  (Correct column headers are important, but column order is flexible). 
+			Jethro treats successive rows as members of the same family, unless (a) the family name or family details are different or (b) there is a blank row in between.
+			Along with the person and family details, the "note" column allows you to add a note to the person record, and "group" columns allow you to add person to new or existing groups. 
+			If you choose the "update" option below, Jethro will try to update existing persons/families rather than creating new ones.  If an existing person is matched by an import row, surrounding rows may be imported as new members of that family if applicable.');
 		$s = _('sample file');
 		$text = str_replace($s, '<a href="?call=sample_import">'.$s.'</a>', $text);
 		$text = '<p class="text">'.str_replace("\n", '</p><p class="text">', $text);
-		echo $text;
+		print_message($text, 'info', true);
 		?>
 		<form method="post" enctype="multipart/form-data">
 		<table>
 			<tr>
-				<td>Import File:</td>
-				<td><input type="file" name="import" /></td>
+				<th>Import Data&nbsp</th>
+				<td>
+					<label>
+						<input type="radio" name="data_source" value="upload" checked="checked" data-toggle="visible" data-target=".importsource" data-match-attr="data-source"  />
+						Upload file&nbsp;
+						<input class="importsource" data-source="upload" type="file" name="import" />
+					</label>
+					<label>
+						<input type="radio" name="data_source" value="input" data-toggle="visible" data-target=".importsource" data-match-attr="data-source" />
+						Paste text...<br />
+						<textarea style="display: none; width: 50ex; height: 4ex" name="importdata" class="importsource" data-source="input" placeholder="Paste Tab-separated text here"></textarea>
+					</label>
+				</td>
 			</tr>
 			<tr>
-				<td>Group:</td>
-				<td><?php Person_Group::printChooser('groupid', array_get($_REQUEST, 'groupid', 0)); ?></td>
+				<th>Group</th>
+				<td>
+					<label>
+						<input type="radio" name="group_type" value="new" checked="checked" data-toggle="visible" data-target=".grouptype" data-match-attr="data-group-source"  />
+						Create a new group
+						<span class="grouptype" data-group-source="new">
+						called
+						<input type="text" name="new_group_name" />
+						in category
+						<?php
+						Person_Group_Category::printChooser('new_group_categoryid');
+						?>
+						</span>
+					</label>
+					<label>
+						<input type="radio" name="group_type" value="existing" data-toggle="visible" data-target=".grouptype" data-match-attr="data-group-source" />
+						Add to an existing group: 
+						<span style="display:none" class="grouptype" data-group-source="existing">
+						<?php Person_Group::printChooser('groupid', array_get($_REQUEST, 'groupid', 0)); ?>
+						</span>
+					</label>											
+					<p class="smallprint">All created/updated persons will be added to this group as a record of this import</p>
+				</td>
 			</tr>
 			<tr>
-				<td>Options</td>
+				<th>Options</th>
 				<td>
 					<label class="checkbox">
 						<input type="checkbox" name="match_existing" value="1" <?php if (array_get($_REQUEST, 'match_existing', 1)) echo 'checked="checked"';?> data-toggle="enable" data-target="#match-options *"/>
@@ -116,22 +149,54 @@ class View_Admin__Import extends View
 
 	private function _preparePreview()
 	{
-		if (empty($_REQUEST['groupid'])) {
-			add_message(_("You must choose a group first"), 'error');
-			$this->stage = 'begin';
-			return;
+		switch ($_REQUEST['group_type']) {
+			case 'existing':
+				if (empty($_REQUEST['groupid'])) {
+					add_message(_("You must choose a group first"), 'error');
+					$this->stage = 'begin';
+					return;
+				}
+				break;
+			case 'new':
+				if (!strlen(array_get($_REQUEST, 'new_group_name'))) {
+					add_message(_("You must enter a name for the new group"), 'error');
+					$this->stage = 'begin';
+					return;
+				}
+				break;
 		}
-		if (empty($_FILES['import']) || empty($_FILES['import']['tmp_name'])) {
-			add_message(_("You must upload a file"), 'error');
-			return;
+		
+		switch ($_REQUEST['data_source']) {
+			case 'upload':
+				if (empty($_FILES['import']) || empty($_FILES['import']['tmp_name'])) {
+					add_message(_("You must upload a file"), 'error');
+					return;
+				}
+				$datafile = $_FILES['import']['tmp_name'];
+				$separator = ",";
+				break;
+			case 'input':
+				if (!strlen($_REQUEST['importdata'])) {
+					add_message(_("You must enter some import data"), 'error');
+					return;
+				}
+				$datafile = tempnam(sys_get_temp_dir(), 'jethroimport');
+				$separator = "\t";
+				file_put_contents($datafile, $_REQUEST['importdata']);
+				break;
+			default:
+				trigger_error("Invalid data_source value");
 		}
+		
 		$this->_dummy_family = new Family();
 		$this->_dummy_person = new Person();
 		$family_fields = Array('family_name', 'home_tel', 'address_street', 'address_suburb', 'address_state', 'address_postcode');
 		$_SESSION['import'] = Array();
 
 		$this->_sess['overwrite_existing'] = array_get($_REQUEST, 'overwrite_existing', 1);
-		$this->_sess['groupid'] = (int)$_POST['groupid']; // the group for every new/updated person to go in
+		$this->_sess['groupid'] = (int)array_get($_POST, 'groupid'); // the group for every new/updated person to go in
+		$this->_sess['new_group_name'] = array_get($_POST, 'new_group_name'); // the group for every new/updated person to go in
+		$this->_sess['new_group_categoryid'] = (int)array_get($_POST, 'new_group_categoryid'); // the group for every new/updated person to go in
 
 		// @var existing groups mentioned in a 'group' column (name => id)
 		$this->_sess['matched_groups'] = Array();
@@ -166,13 +231,13 @@ class View_Admin__Import extends View
 
 		// read the csv and save to session
 		ini_set("auto_detect_line_endings", "1");
-		$fp = fopen($_FILES['import']['tmp_name'], 'r');
+		$fp = fopen($datafile, 'r');
 		if (!$fp) {
 			add_message(_("There was a problem reading your CSV file.  Please try again."), 'error');
 			$this->stage = 'begin';
 			return;
 		}
-		$map = fgetcsv($fp, 0, ",", '"');
+		$map = fgetcsv($fp, 0, $separator, '"');
 		$sample_header = self::getSampleHeader();
 		foreach ($map as $k => $v) {
 			if ($v == '') continue;
@@ -197,14 +262,12 @@ class View_Admin__Import extends View
 			return;
 		}
 
-
-
 		$row_errors = Array();
 		$current_new_family_data = Array();
 		$current_existing_family_data = NULL;
 
 		$i = 0;
-		while ($rawrow = fgetcsv($fp, 0, ",", '"')) {
+		while ($rawrow = fgetcsv($fp, 0, $separator, '"')) {
 			$i++;
 			$row = Array();
 			foreach ($map as $index => $fieldname) {
@@ -364,13 +427,18 @@ class View_Admin__Import extends View
 		} else {
 			$this->_stage = 'confirm';
 		}
+		unlink($datafile);
 
 	}
 
 
 	private function _printConfirmView()
 	{
-		$groupname = $GLOBALS['system']->getDBObject('person_group', $_SESSION['import']['groupid'])->toString();
+		if (($this->_sess['groupid'])) {
+			$groupname = $GLOBALS['system']->getDBObject('person_group', $_SESSION['import']['groupid'])->toString();
+		} else {
+			$groupname = $this->_sess['new_group_name'];
+		}
 		$GLOBALS['system']->includeDBClass('family');
 		$this->_dummy_family = new Family();
 		?>
@@ -425,9 +493,7 @@ class View_Admin__Import extends View
 		?>
 		</table>
 		<?php
-		if (!empty($this->_sess['groupid'])) {
-			printf('<p>'._('All new and updated persons will be added to the %s group.').'</p>', '<i>'.ents($groupname).'</i>');
-		}
+		printf('<p>'._('All new and updated persons will be added to the %s group.').'</p>', '<i>'.ents($groupname).'</i>');
 
 		if (!empty($this->_sess['new_groups'])) {
 			?>
@@ -570,12 +636,14 @@ class View_Admin__Import extends View
 		ini_set('memory_limit', '256M');
 		ini_set('max_execution_time', 60*10);
 		ini_set('zlib.output_compression', 'Off');
-
+		include_once 'templates/head.template.php';
+		
 		// read from session and create
 		$GLOBALS['system']->doTransaction('BEGIN');
 		$done = 0;
 		$todo = $this->_sess['total_new_persons'] + count($this->_sess['new_persons']) + count($this->_sess['family_updates']) + count($this->_sess['person_updates'])
 		?>
+		
 		<h1 style="position: absolute; text-align: center; top: 40%; color: #ccc; width: 100%">Importing...</h1>
 		<div style="border: 1px solid; width: 50%; height: 30px; top: 50%; left: 25%; position: absolute"><div id="progress" style="background: blue; height: 30px; width: 2%; overflow: visible; line-height: 30px; text-align: center; color: white" /></div>
 		<p style="text-align: center; color: #888">If this indicator stops making progress, your import may still be running in the background.<br />You should <a href="<?php echo build_url(Array('view' => 'persons__list_all')); ?>">check your system for the imported persons</a> before running the import again.</p>
@@ -669,8 +737,8 @@ class View_Admin__Import extends View
 		} else {
 			add_message(_('Import complete'), 'success',TRUE);
 			$GLOBALS['system']->doTransaction('COMMIT');
-			if ($this->_sess['groupid']) {
-				$url = build_url(Array('view' => 'groups', 'groupid' => $this->_sess['groupid']));
+			if ($total_group = $this->_getTotalGroup()) {
+				$url = build_url(Array('view' => 'groups', 'groupid' => $total_group->id));
 			}
 		}
 
@@ -773,23 +841,36 @@ class View_Admin__Import extends View
 			}
 		}
 
-		static $total_group = NULL;
-		if ($total_group === NULL) {
-			$total_group = FALSE;
-			if ($this->_sess['groupid']) {
-				$total_group = new Person_Group($this->_sess['groupid']);
-			}
-		}
-		if ($total_group) {
+		if ($total_group = $this->_getTotalGroup()) {
 			$total_group->addMember($person->id);
 		}
 
 
 	}
-
+	
+	/**
+	 * @return Person_Group that all new/updated persons should be added to
+	 */
+	private function _getTotalGroup()
+	{
+		static $total_group = NULL;
+		if ($total_group === NULL) {
+			$total_group = FALSE;
+			if ($this->_sess['groupid']) {
+				$total_group = new Person_Group($this->_sess['groupid']);
+			} else if ($this->_sess['new_group_name']) {
+				$total_group = new Person_Group();
+				$total_group->setValue('name', $this->_sess['new_group_name']);
+				$total_group->setValue('categoryid', $this->_sess['new_group_categoryid']);
+				$total_group->create();
+			}
+		}
+		return $total_group;
+	}
+	
 	private function _printProgress($done, $todo)
 	{
-		if (TRUE || $done % 20 == 0) {
+		if ($done % 5 == 0) {
 			$message = ((int)(($done/$todo)*100)).'% complete';
 			?>
 			<script>
@@ -800,7 +881,6 @@ class View_Admin__Import extends View
 			<?php
 			echo str_repeat('    ', 1024*4);
 		}
-
 	}
 
 	private function _filterArrayKeys($dataArray, $desiredKeys)
@@ -964,8 +1044,5 @@ class View_Admin__Import extends View
 		$header[] = 'group';
 		return $header;
 	}
-
-
-
 
 }
