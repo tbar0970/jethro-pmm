@@ -895,6 +895,7 @@ class View_Admin__Import extends View
 			add_message('"'.$row['first_name'].' '.$row['last_name'].'" could not be matched to an existing record because there are already several persons with that name', 'warning');
 		}
 		if (count($matches) == 1) {
+			reset($matches);
 			return $GLOBALS['system']->getDBObject('person', key($matches));
 		}
 
