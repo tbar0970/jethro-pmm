@@ -316,8 +316,14 @@ $(document).ready(function() {
 	function onRadioButtonActivated(event) {
 		this.addClass('active');
 		this.siblings('div').removeClass('active');
-		this.parents('.radio-button-group').find('input').val(this.attr('data-val'));
 
+		var oldValue = this.parents('.radio-button-group').find('input').val();
+		var newValue = this.attr('data-val');
+		var headCountInput = this.closest('.width-really-auto').find('.headcount');
+		updateHeadCount(oldValue, newValue, headCountInput);
+
+		this.parents('.radio-button-group').find('input').val(newValue);
+		
 		if (attendanceUseKeyboard) {
 			var thisCell = $(this).parents('td');
 			thisCell.closest('tr').removeClass('hovered');
@@ -333,6 +339,20 @@ $(document).ready(function() {
 			} while (nextCell.length && !nextCell.find('.radio-button-group').length);
 
 			nextCell.find('.radio-button-group').focus();
+		}
+	}
+
+	function updateHeadCount(oldValue, newValue, headCountInput) {
+		var delta = 0;
+		if(newValue == 'present' && (oldValue == '' || oldValue == 'unknown' || oldValue == 'absent')) {
+			delta = 1;
+		} else if(oldValue == 'present' && (newValue == 'unknown' || newValue == 'absent')) {
+			delta = -1;
+		}
+
+		if(delta != 0) {
+			var currentHeadCount = parseInt(headCountInput.val()) || 0;
+			headCountInput.val(currentHeadCount + delta);
 		}
 	}
 
