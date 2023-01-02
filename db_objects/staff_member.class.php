@@ -338,6 +338,9 @@ class Staff_Member extends Person
 
 	function processForm($prefix='', $fields=NULL)
 	{
+		if ($fields === NULL) {
+			$fields = Array('username', 'password', 'active', 'permissions', 'restrictions');
+		}
 		parent::processForm($prefix, $fields);
 		if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN) && !empty($_REQUEST['restrictions'])) {
 			$this->_old_restrictions = $this->_restrictions;
