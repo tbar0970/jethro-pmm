@@ -365,7 +365,7 @@ class Staff_Member extends Person
 	
 	function create()
 	{
-		if (!($GLOBALS['user_system']->reverifyCurrentUser($_POST['my_current_password']))) {
+		if (!($GLOBALS['user_system']->reverifyCurrentUser(array_get($_POST, 'my_current_password')))) {
 			add_message("Password for current user was incorrect.  Account details not saved", 'error');
 			return FALSE;
 		}	
@@ -374,7 +374,7 @@ class Staff_Member extends Person
 	
 	function createFromChild($person)
 	{
-		if (!($GLOBALS['user_system']->reverifyCurrentUser($_POST['my_current_password']))) {
+		if (!($GLOBALS['user_system']->reverifyCurrentUser(array_get($_POST, 'my_current_password')))) {
 			add_message("Password for current user was incorrect.  Account details not saved", 'error');
 			return FALSE;
 		}	
@@ -394,7 +394,7 @@ class Staff_Member extends Person
 
 	function save($update_family = true)
 	{
-		if (!($GLOBALS['user_system']->reverifyCurrentUser($_POST['my_current_password']))) {
+		if (!($GLOBALS['user_system']->reverifyCurrentUser(array_get($_POST, 'my_current_password')))) {
 			add_message("Password for current user was incorrect.  Account details not saved", 'error');
 			return FALSE;
 		}
