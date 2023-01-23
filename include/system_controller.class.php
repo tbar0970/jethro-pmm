@@ -81,6 +81,8 @@ class System_Controller
 
 	public function run()
 	{
+
+		$this->setGlobalHeaders();
 		if (!empty($_REQUEST['call'])) {
 			$this->initErrorHandler();
 			$call_name = str_replace('/', '', $_REQUEST['call']);
@@ -378,6 +380,20 @@ class System_Controller
 
 		if (substr(BASE_URL, -1) != '/') {
 			trigger_error("Configuration file error: Your BASE_URL must end with a slash", E_USER_ERROR);
+		}
+	}
+
+	public function setGlobalHeaders()
+	{
+        	if (session_id()) {
+			header('X-Jethro-Session: '.substr(session_id(), 0, 5));
+		}
+		if (!empty($_SESSION['user'])) {
+			header('X-Jethro-User: '.array_get($_SESSION['user'], 'username'));
+			header('X-Jethro-UID: '.array_get($_SESSION['user'], 'username'));
+		} elseif (!empty($_SESSION['member'])) {
+			header('X-Jethro-User: '.array_get($_SESSION['member'], 'email'));
+			header('X-Jethro-UID: '.array_get($_SESSION['member'], 'id'));
 		}
 	}
 }
