@@ -391,7 +391,7 @@ class System_Controller
 		}
 		if (!empty($_SESSION['user'])) {
 			header('X-Jethro-User: '.array_get($_SESSION['user'], 'username'));
-			header('X-Jethro-UID: '.array_get($_SESSION['user'], 'username'));
+			header('X-Jethro-UID: '.array_get($_SESSION['user'], 'id'));
 		} elseif (!empty($_SESSION['member'])) {
 			header('X-Jethro-User: '.array_get($_SESSION['member'], 'email'));
 			header('X-Jethro-UID: '.array_get($_SESSION['member'], 'id'));
