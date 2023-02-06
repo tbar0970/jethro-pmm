@@ -441,7 +441,7 @@ class Person_Query extends DB_Object
 
 	if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
 		?>
-		<h4>who have a person note containing the phrase:</h4>
+		<h4>who have a person/family note containing the phrase:</h4>
 		<div class="indent-left">
 			<input type="text" name="note_phrase" size="60" value="<?php echo (isset($params["note_phrase"])?$params["note_phrase"]:""); ?>">
 		</div>
@@ -518,8 +518,8 @@ class Person_Query extends DB_Object
 
 					if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
 						$options['--Y'] = '-----';
-						$options['notes.subjects'] = 'Notes matching the phrase above';
-						$options['actionnotes.subjects'] = 'Notes requiring action';
+						$options['notes.subjects'] = 'Person/family notes matching the phrase above';
+						$options['actionnotes.subjects'] = 'Person/family notes requiring action';
 					}
 
 					if ($this->_custom_fields) {
@@ -1126,13 +1126,15 @@ class Person_Query extends DB_Object
 
 		//NOTE FILTERS
 		if (!empty($params['note_phrase'])) {
-			$note_sql = 'SELECT pn.personid, GROUP_CONCAT(an.Subject) as subjects
-						FROM person_note pn
-						JOIN abstract_note an ON an.id = pn.id
+			$note_sql = 'SELECT p.id as personid, GROUP_CONCAT(an.Subject SEPARATOR "\n") as subjects
+						FROM abstract_note an
+						LEFT JOIN person_note pn ON pn.id = an.id
+						LEFT JOIN family_note fn ON fn.id = an.id
+						LEFT JOIN person p ON (p.id = pn.personid) OR (p.familyid = fn.familyid)
 						WHERE an.details LIKE '.$GLOBALS['db']->quote('%'.$params['note_phrase'].'%').'
 						OR an.subject LIKE '.$GLOBALS['db']->quote('%'.$params['note_phrase'].'%').'
-						GROUP BY pn.personid';
-			$query['from'] .= ' JOIN ('.$note_sql.') notes ON notes.personid = p.id ';
+						GROUP BY p.id';
+			$query['from'] .= ' JOIN ('.$note_sql.') notes ON (notes.personid = p.id)';
 		}
 
 		// ATTENDANCE FILTERS
@@ -1312,11 +1314,12 @@ class Person_Query extends DB_Object
 												AND date > (SELECT COALESCE(MAX(date), "2000-01-01") FROM attendance_record ar2 WHERE ar2.personid = ar.personid AND present = 1 AND groupid='.(int)$groupid.')) AS `Running Absences`';
 						break;
 					case 'actionnotes.subjects':
-						$query['select'][] = '(SELECT GROUP_CONCAT(CONCAT(subject, " [", substr(asn.first_name, 1, 1), substr(asn.last_name, 1, 1),"]") SEPARATOR ", ")
+						$query['select'][] = '(SELECT GROUP_CONCAT(CONCAT(subject, " [", substr(asn.first_name, 1, 1), substr(asn.last_name, 1, 1),"]") SEPARATOR "\n")
 												FROM abstract_note an
-												JOIN person_note pn ON an.id = pn.id
+												LEFT JOIN person_note pn ON an.id = pn.id
+												LEFT JOIN family_note fn ON an.id = fn.id
 												LEFT JOIN person asn on asn.id = an.assignee
-												WHERE pn.personid = p.id
+												WHERE ((pn.personid = p.id) OR (fn.familyid = p.familyid))
 												AND an.status = "pending"
 												AND an.action_date <= NOW()) AS `Notes`';
 						break;
@@ -1683,7 +1686,7 @@ class Person_Query extends DB_Object
 								break;
 							case 'Notes':
 								$val = ents($val);
-								$val = preg_replace('/(\[[A-Z][A-Z]\])/', "<span class=\"soft\">$1</span>", $val);
+								$val = preg_replace('/(\[[A-Z][A-Z]\])/', "<small class=\"soft\">$1</small>", $val);
 								echo nl2br($val);
 								break;
 							default:
