@@ -25,7 +25,7 @@ if (ifdef('TASK_NOTIFICATION_ENABLED', FALSE) == FALSE) {
 require_once JETHRO_ROOT.'/include/user_system.class.php';
 require_once JETHRO_ROOT.'/include/system_controller.class.php';
 $GLOBALS['user_system'] = new User_System();
-$GLOBALS['user_system']->setPublic();
+$GLOBALS['user_system']->setCLIScript();
 $GLOBALS['system'] = System_Controller::get();
 
 if ($DRYRUN) $VERBOSE = TRUE;
@@ -85,3 +85,4 @@ foreach ($reminders as $reminder) {
 		echo "Sent reminder to ".$reminder['first_name'].' '.$reminder['last_name']."\n";
 	}
 }
+if ($VERBOSE) { echo "Done \n"; }

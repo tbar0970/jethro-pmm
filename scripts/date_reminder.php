@@ -31,7 +31,7 @@ require_once JETHRO_ROOT.'/include/init.php';
 require_once JETHRO_ROOT.'/include/user_system.class.php';
 require_once JETHRO_ROOT.'/include/system_controller.class.php';
 $GLOBALS['user_system'] = new User_System();
-$GLOBALS['user_system']->setPublic();
+$GLOBALS['user_system']->setCLIScript();
 $GLOBALS['system'] = System_Controller::get();
 //error_reporting(E_ALL);
 
