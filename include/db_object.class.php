@@ -765,7 +765,7 @@ class db_object
 <div class="control-group">
 
 			<?php
-			if (strlen(array_get($details, 'heading_before'))) {
+			if (strlen(strval(array_get($details, 'heading_before')))) {
 				?>
 					<h4><?php echo ents($details['heading_before']); ?></h4>
 				<?php

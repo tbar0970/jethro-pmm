@@ -30,13 +30,14 @@ class Call_document_merge_help extends Call
 						<td>Nametags, A4, 3x7 per page</td>
 						<td>
 							<a href="./resources/merge_samples/example_nametags_7x3.docx">DOCX</a>
+							<a href="./resources/merge_samples/example_nametags_7x3.odt">ODT</a>
 						</td>
 					</tr>
 					<tr>
 						<td>Attendance list, with birthdays highlighted
 							<br /><small><i>This also shows date of birth (a custom field) and whether they have had a birthday in the past week. The ODS version uses conditional formatting to omit dividing lines between members of the same family.</i></small></td>
 						<td>
-							<a href="./resources/merge_samples/example_attendance_sheet.odt">ODS</a> &nbsp;
+							<a href="./resources/merge_samples/example_attendance_sheet.ods">ODS</a> &nbsp;
 							<a href="./resources/merge_samples/example_attendance_sheet.xlsx">XLSX</a>
 						</td>
 					</tr>
@@ -54,6 +55,7 @@ class Call_document_merge_help extends Call
 						<td>Mailing labels, A4, 3x7 per page</td>
 						<td>
 							<a href="./resources/merge_samples/example_mailing_labels_7x3.docx">DOCX</a>
+							<a href="./resources/merge_samples/example_mailing_labels_7x3.odt">ODT</a>
 						</td>
 					</tr>
 					<tr>
@@ -79,6 +81,10 @@ class Call_document_merge_help extends Call
 				<p>When creating a template, you include special markers (<em>TBS tags</em>) which will be replaced with the relevant person/family details.<p>
 				<p>A <em>TBS block</em> is defined by one or more <em>TBS fields</em>.  When the merge is performed, the TBS block will be repeated for each person/family.</p>
 
+				<p>Most of the available fields are listed here, but to reveal <em>ALL</em> fields available on your system use <a href="#dump">Dump mode</a>.</p>
+				
+				<p>Using the <a href="#dump">Dump mode</a> you will notice that many fields have a variant in the form <code>[field<b>_cr</b>]</code> eg <code>[roster.notes_cr]</code>. These variants include a new line character. The 'normal' versions replace new line characters with ', '.</p>
+				
 				The available fields for merging <b>per person</b> are:
 				<ul>
 					<li><code>[person.id]</code> - the unique internal identifier number</li>
@@ -137,13 +143,36 @@ class Call_document_merge_help extends Call
 
 				<p>There are also some special fields which you may use outside a TBS block:</p>
 				<ul>
-					<li><code>[onshow..now;frm='yyyy-mm-dd']</code> - the current date and time</li>
+				<li><code>[onshow..now;frm='yyyy-mm-dd']</code> - the current date and time</li>
 				<li><code>[onshow.system_name]</code> - the name of Jethro system</li>
 				<li><code>[onshow.username]</code> - the username of the person generating the document</li>
 				<li><code>[onshow.first_name]</code> - the first name of the person generating the document</li>
 				<li><code>[onshow.last_name]</code> - the last name of the person generating the document</li>
 				<li><code>[onshow.email]</code> - the email address of the person generating the document</li>
 				</ul>
+
+				<h3>Separation of records by status</h3>
+				<p>It is sometimes convenient to divide people into groups by their member status. In place of <code>[person.</code> in the examples above you can place a status name.</p>
+				<p>For example in a system where member status can be 'Member', 'Contact' and group membership can be 'Registered', 'Unregistered' you can use fields like</p>
+				<ul>
+					<li><code>[Member.first_name]</code></li>
+					<li><code>[Contact.first_name]</code></li>
+					<li><code>[Registered.first_name]</code></li>
+					<li><code>[Unregistered.first_name]</code></li>
+				</ul>
+
+				<p>Example Attendance-Specific Template 3 uses this concept:			
+							<a href="./resources/merge_samples/example_monthly_attendance2.ods">ODS</a> &nbsp;
+							<a href="./resources/merge_samples/example_monthly_attendance2.xlsx">XLSX</a> &nbsp;
+				</p>
+				
+				<p><b>Special considerations</b></p>
+				<ol>
+				<li>If you have a member status and a group status with the same name there will be one combined 'table'</li>
+				<li>To get the group membership 'table' in a report you need to select 'Group membership status' as one of the selected fields</li>
+				<li>Group membership is implicit for a group attendance template but not available for rosters</li>
+				<li>If you have multiple groups in the report only group membership status for one group will be available for each person - which group is not defined</li>
+				</ol>
 
 				<h3>Extra Fields for Attendance Page</h3>
 				<p>When merging a document from the 'Display attendance' screen, with "tabular" format selected, additional fields are available:
@@ -165,10 +194,10 @@ class Call_document_merge_help extends Call
 				<p>
 				<b>Example Attendance-Specific Templates</b>:<br />  Example 1:
 							<a href="./resources/merge_samples/example_monthly_attendance.ods">ODS</a> &nbsp;
-							<a href="./resources/merge_samples/example_monthly_attendance.xlsx">XLSX</a> &nbsp;
+							<a href="./resources/merge_samples/example_monthly_attendance.xlsx">XLSX</a><br>
 				Example 2:
 							<a href="./resources/merge_samples/example_monthly_attendance1.ods">ODS</a> &nbsp;
-							<a href="./resources/merge_samples/example_monthly_attendance1.xlsx">XLSX</a> &nbsp;
+							<a href="./resources/merge_samples/example_monthly_attendance1.xlsx">XLSX</a><br>
 				Example 3:
 							<a href="./resources/merge_samples/example_monthly_attendance2.ods">ODS</a> &nbsp;
 							<a href="./resources/merge_samples/example_monthly_attendance2.xlsx">XLSX</a> &nbsp;
@@ -189,10 +218,18 @@ class Call_document_merge_help extends Call
 				<li><code>[people.name]</code> - the person's name</li>
 				<li><code>[roster.role1]</code>...<code>[roster.role20]</code> - the person(s) doing the role on that date</li>
 				</ul>
+				For each person who appears on the roster - unlike <code>[people.name]</code> each person will only appear once in this list
+				<ul>
+				<li><code>[person.name]</code> - the person's name</li>
+				</ul>
 				<p>
-				<b>Example Roster-specific Template</b>:<br />
+				<b>Example Roster-specific Templates</b>:<br />
+				Sign-in sheets: 
 							<a href="./resources/merge_samples/example_roster_sign_in_out_sheet.ods">ODS</a> &nbsp;
-							<a href="./resources/merge_samples/example_roster_sign_in_out_sheet.xlsx">XLSX</a> &nbsp;
+							<a href="./resources/merge_samples/example_roster_sign_in_out_sheet.xlsx">XLSX</a><br>
+				Roster: 
+							<a href="./resources/merge_samples/example_roster.ods">ODS</a> &nbsp;
+							<a href="./resources/merge_samples/example_roster.xlsx">XLSX</a> &nbsp;
 				</p>
 
 				<h3>Controlling Spreadsheet Cell Formatting</h3>
@@ -240,6 +277,12 @@ class Call_document_merge_help extends Call
 					<td nowrap="nowrap">For XLSX, it's an alias of <span class="smallcode">ope=tbs:num</span></td>
 				  </tr>
 				</tbody></table>
+				<h3 id="dump">Dump mode</h3>
+
+				<p>When you select dump the system will display all the available data and the <em>TBS fields</em> you can use to insert the data into your template.<p>
+				<p>You don't need to specify a template in this instance.</p>
+				
+				<p>&nbsp;</p>
 		</div>
 		</body>
 		</html>

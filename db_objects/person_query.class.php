@@ -1460,13 +1460,22 @@ class Person_Query extends DB_Object
 			echo '<form method="post" enctype="multipart/form-data" class="bulk-person-action">';
 		}
 
+		$data = array();
 		$grouping_field = $params['group_by'];
 		if (empty($grouping_field)) {
 			$res = $db->queryAll($sql, null, null, true, true);
-			$this->_printResultSet($res, $format);
+			if ($format == 'array') {
+				$data = $this->_printResultSet($res, $format);
+			} else {
+				$this->_printResultSet($res, $format);
+			}
 		} else {
 			$res = $db->queryAll($sql, null, null, true, false, true);
-			$this->_printResultGroups($res, $params, $format);
+			if ($format == 'array') {
+				$data = $this->_printResultGroups($res, $params, $format);
+			} else {
+				$this->_printResultGroups($res, $params, $format);
+			}
 		}
 
 		if ($res && ($format == 'html') && in_array('checkbox', $params['show_fields'])) {
@@ -1475,10 +1484,17 @@ class Person_Query extends DB_Object
 			echo '</div>';
 			echo '</form>';
 		}
+
+		if ($format == 'array') {
+			return $data;
+		} 
 	}
 
 	function _printResultGroups($res, $params, $format)
 	{
+		if ($format == 'array') {
+			$data = array();
+		}
 		foreach ($res as $i => $v) {
 			if (0 === strpos($params['group_by'], 'custom-')) {
 				$gb_bits = explode('-', $params['group_by']);
@@ -1499,20 +1515,29 @@ class Person_Query extends DB_Object
 				$set[$vv['ID']] = $vv;
 				unset($set[$vv['ID']]['ID']);
 			}
-			$this->_printResultSet($set, $format, $heading);
+			if ($format == 'array') {
+				$data[] = $this->_printResultSet($set, $format, $heading);
+			} else {
+				$this->_printResultSet($set, $format, $heading);
+			}
+		}
+		if ($format == 'array') {
+			return $data;
 		}
 	}
 
 
 	/*
 	 * @param $dataset	Results keyed by personID
-	 * @param $format	csv or html
+	 * @param $format	csv, array or html
 	 * @param $heading
 	 */
 	function _printResultSet($dataset, $format, $heading=NULL)
 	{
 		if ($format == 'csv') {
 			$this->_printResultSetCsv($dataset, $heading);
+		} elseif ($format == 'array') {
+			return $this->_printResultSetArray($dataset, $heading);
 		} else {
 			$this->_printResultSetHtml($dataset, $heading);
 		}
@@ -1579,6 +1604,82 @@ class Person_Query extends DB_Object
 			fputcsv($fp, $r);
 		}
 		fclose($fp);
+	}
+
+	function _printResultSetArray($x, $groupingname)
+	{
+		if (empty($x)) return;
+//		return $x;
+		$data = array();
+		$hr = Array();
+		$headers = array_keys(reset($x));
+		$personid_found = false;
+		$i = 0;
+		foreach ($headers as $heading) {
+			if (in_array($heading, Array('view_link', 'edit_link', 'checkbox'))) continue;
+			switch($heading) {
+				case 'person_groups':
+					$i++;
+					$hr[$i] = 'Groups';
+					break;
+				case 'notes.subjects':
+				case 'actionnotes.subjects':
+					$i++;
+					$hr[$i] = 'Notes';
+					break;
+				default:
+					$i++;
+					if (isset($this->_field_details[$heading])) {
+						$hr[$i] = $this->_field_details[$heading]['label'];
+					} else if (0 === strpos($heading, self::CUSTOMFIELD_PREFIX)) {
+						$hr[$i] = $this->_custom_fields[substr($heading, strlen(self::CUSTOMFIELD_PREFIX))]['name'];
+					} else {
+						$hr[$i] = ucfirst($heading);
+					}
+					if ($hr[$i] == 'Person ID') {
+						$personid_found = true;
+					}
+			}
+		}
+		if ($groupingname) {
+			$i++;
+			$hr[$i] = 'GROUPING';
+		}
+
+		foreach ($x as $id => $row) {
+			$r = Array();
+			$i = 0;
+			foreach ($row as $label => $val) {
+				if (in_array($label, Array('view_link', 'edit_link', 'checkbox'))) continue;
+				if (isset($this->_field_details[$label])) {
+					$var = $label[0] == 'p' ? '_dummy_person' : '_dummy_family';
+					$fieldname = substr($label, 2);
+					if ($fieldname == 'id') {
+							$i++;
+							$r[$hr[$i]] = $val;
+					} else {
+							$i++;
+							$r[$hr[$i]] = $this->$var->getFormattedValue($fieldname, $val);
+					}
+				} else if (0 === strpos($label, self::CUSTOMFIELD_PREFIX)) {
+					$i++;
+					$r[$hr[$i]] = $this->_formatCustomFieldValue($val, substr($label, strlen(self::CUSTOMFIELD_PREFIX)));
+				} else {
+					$i++;
+					$r[$hr[$i]] = $val;
+				}
+			}
+			if ($groupingname) {
+				$i++;
+				$r[$hr[$i]] = str_replace('"', '""', $groupingname);
+			}
+			if (! $personid_found) {
+				$r['Person ID'] = $id;
+			}
+			$data[] = $r;
+		}
+
+		return $data;
 	}
 
 	function _printResultSetHtml($x, $heading)

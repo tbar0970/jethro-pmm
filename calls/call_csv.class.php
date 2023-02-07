@@ -15,13 +15,16 @@ class Call_csv extends Call
 		header('Content-Disposition: attachment; filename="jethro_'.date('Y-m-d_h:i').'.csv"');
 		$GLOBALS['system']->includeDBClass('family');
 		$GLOBALS['system']->includeDBClass('person');
+		$data_type = array_get($_REQUEST, 'data_type', 'none');
 		switch (array_get($_REQUEST, 'merge_type')) {
 			case 'family':
+				$data_type = 'none'; // Does not make sense for families
 				$merge_data = Family::getFamilyDataByMemberIDs($_POST['personid']);
 				$dummy = new Family();
 				$dummy_family = NULL;
 				break;
 			case 'person':
+				$data_type = 'none';
 			default:
 				$merge_data = $GLOBALS['system']->getDBObjectData('person', Array('id' => (array)$_POST['personid']));
 				foreach (Person::getCustomMergeData($_POST['personid']) as $personid => $data) {
@@ -29,6 +32,13 @@ class Call_csv extends Call
 				}
 				$dummy = new Person();
 				$dummy_family = new Family();
+				break;
+		}
+		switch ($data_type) {
+			case 'attendance_tabular':
+				$dates = (array)$_REQUEST['dates'];
+				$groups = (array)$_REQUEST['groups'];
+				$data = (array)$_REQUEST['data'];
 				break;
 		}
 
@@ -39,6 +49,19 @@ class Call_csv extends Call
 			if ($header == 'history') continue;
 			if ($header == 'feed_uuid') continue;
 			$headerrow[] = strtoupper($dummy->getFieldLabel($header));
+		}
+		switch ($data_type) {
+			case 'attendance_tabular':
+				$lastrow[] = '';
+				foreach ($headerrow as $Hash) { $lastrow[] = ''; }
+				$lastrow[1] = 'Extras';
+				foreach ($dates as $date) {
+					foreach ($groups as $group) {
+						$headerrow[] = $group;
+					}
+					$headerrow[] = $date;
+				}
+				break;
 		}
 		fputcsv($fp, $headerrow);
 
@@ -58,7 +81,56 @@ class Call_csv extends Call
 					$outputrow[] = $v;
 				}
 			}
+			switch ($data_type) {
+				case 'attendance_tabular':
+					$sumval = 0;
+					foreach ($dates as $date) {
+						$sum = 0;
+						$extras = FALSE;
+						foreach ($groups as $group) {
+							$letter = $data[$id][$sumval];
+							switch ($letter) {
+								case 'P':
+									$val = 1;
+									break;
+								case 'A':
+								case '?':
+									$val = 0;
+									break;
+								default:
+									$val = $letter;
+									$extras = TRUE;
+							}
+							$sumval += 1;
+							$outputrow[] = $val;
+							$sum += $val;
+						}
+						if ($extras) {
+							$val = $sum;
+						} else {
+							$val = ($sum > 0) ? 1:0;
+						}
+						$outputrow[] = $val;
+					}
+					break;
+			}
 			fputcsv($fp, $outputrow);
+		}
+		switch ($data_type) {
+			case 'attendance_tabular':
+				$sumval = 0;
+				foreach ($dates as $date) {
+					$sum = 0;
+					foreach ($groups as $group) {
+						$val = $data[-1][$sumval];
+						$sumval += 1;
+						$lastrow[] = $val;
+						$sum += $val;
+					}
+					$lastrow[] = $sum;
+				}
+				fputcsv($fp, $lastrow);
+				break;
 		}
 		fclose($fp);
 	}
