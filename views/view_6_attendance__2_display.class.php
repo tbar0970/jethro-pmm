@@ -368,6 +368,10 @@ class View_Attendance__Display extends View
 				foreach ($ctotals as $date => $t) $all_totals[$date][$cohortid] = $t;
 				foreach ($cattendances as $personid => $cat) {
 					$all_persons[$personid]['cohortids'][] = $cohortid;
+					$all_persons[$personid]['group_status'] = '';
+					if (isset($cat['membership_status'])) {
+						$all_persons[$personid]['group_status'] = $cat['membership_status'];
+					}
 					foreach ($cat as $k => $v) {
 						if (!in_array($k, Array('first_name', 'last_name', 'membership_status', 'status'))) {
 							$all_attendances[$personid][$cohortid][$k] = $v;
@@ -453,6 +457,7 @@ class View_Attendance__Display extends View
 
 			foreach ($all_persons as $personid => $details) {
 				if (!isset($all_attendances[$personid])) continue;
+                                $letters = '';
 				?>
 				<tr <?php if ($details['status'] == 'archived') echo 'class="archived"'; ?>>
 					<td class="nowrap">
@@ -490,10 +495,15 @@ class View_Attendance__Display extends View
 							if ($first) $class .= ' new-cohort';
 							echo '<td class="'.$class.'">'.$letter;
 							$first = FALSE;
-							echo '<input type="hidden" name="data['.$personid.'][]" value="'.$letter.'"></td>';
+                                                        $letters .= $letter.',';
 						}
 					}
 				}
+				$group_status = ' ';
+				if (isset($details['group_status'])) {
+					$group_status = $details['group_status'];
+				}
+                echo "\n".'<input type="hidden" name="data2['.$personid.'][]" value="'.$letters.';'.$group_status.'">';
 				$this->_printActionsAndSelector($personid);
 				?>	
 				</tr>
