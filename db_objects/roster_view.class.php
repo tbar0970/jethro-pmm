@@ -813,7 +813,7 @@ class roster_view extends db_object
 								if (!$public && !$vs['assigneehidden']) {
 									$href = '?view=persons&personid='.$personid;
 									$n = '<span class="nowrap"><a data-personid="'.$personid . '" href="'.$href.'" title="Assigned by '.ents($vs['assigner']).' on '.format_datetime($vs['assignedon']).'">'.ents($vs['name']).'</a>';
-									if (strlen($vs['absenceid'])) {
+									if (strlen(strval($vs['absenceid']))) {
 										$n .= ' <a href="'.$href.'#rosters" class="label label-important" title="Planned absence: '.ents($vs['absence_comment']).'">!</i></a>';
 									}
 									if (('' === $vs['email'])) $n .= ' <img class="visible-desktop" src="'.BASE_URL.'resources/img/no_email.png" title="No Email Address" />';
