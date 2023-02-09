@@ -13,10 +13,10 @@ class Paginator
 	public function getCurrentSliceStartEnd()
 	{
 		$x = 'A';
-		$y = chr(ord($x) + $this->_slice_size- 1);
+		$y = chr(ord($x) + round($this->_slice_size - 1));
 		$i = 1;
 		while (ord($x) <= ord('Z') && $i <= 26) {
-			$y = chr(ord($x) + $this->_slice_size- 1);
+			$y = chr(ord($x) + round($this->_slice_size - 1));
 			if (ord($y) > ord('Z')) $y = NULL; // include staff after Z in last batch
 			if ($i == $this->_slice_num) {
 				if ($x == 'A') $x = NULL; // include stuff before A in first batch
@@ -34,7 +34,7 @@ class Paginator
 		$x = 'A';
 		$i = 1;
 		while (ord($x) <= ord('Z') && $i <= 26) {
-			$y = chr(ord($x) + $this->_slice_size- 1);
+			$y = chr(ord($x) + round($this->_slice_size - 1));
 			if (ord($y) > ord('Z')) $y = 'Z';
 			if ($i != $this->_slice_num) {
 				echo '<li><a href="'.build_url(Array('slice_size' => round($this->_slice_size, 1), 'slice_num' => $i)).'">';
