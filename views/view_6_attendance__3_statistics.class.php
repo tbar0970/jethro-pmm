@@ -132,7 +132,10 @@ class View_Attendance__Statistics extends View
 		<table class="table table-bordered attendance-stats">
 			<thead>
 				<tr>
-					<th colspan="4"><?php echo ents($cohortname); ?></th>
+					<th colspan="4">
+						<span class="clickable soft pull-right" data-action="copy-tsv">TSV</span>
+						<strong><?php echo ents($cohortname); ?></strong>
+					</th>
 				</tr>
 				<tr>
 					<th><?php echo _('Segment');?></th>
@@ -201,7 +204,7 @@ class View_Attendance__Statistics extends View
 						}
 						?>
 					</td>
-					<td colspan="2"></td>
+					<td></td>
 				</tr>
 				<?php
 			}

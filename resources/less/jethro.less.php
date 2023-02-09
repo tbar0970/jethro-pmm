@@ -715,6 +715,9 @@ tr:last-child .insert-row-below {
 	padding-top: 1px;
 	color: #aaa !important;
 }
+#body .table thead th .soft, #body .table tfoot th .soft {
+	color: #ccc !important;
+}
 #body a.pull-right {
 	padding-right: 5px;
 }
