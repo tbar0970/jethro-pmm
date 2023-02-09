@@ -304,6 +304,9 @@ class db_object
 		foreach ($this->fields as $name => $details) {
 			if (($details['type'] == 'serialise') && isset($this->values[$name])) {
 				$this->values[$name] = unserialize($this->values[$name]);
+				if (is_string($this->values[$name]) && (trim($this->values[$name]) === "")) {
+					$this->values[$name] = array();
+				}
 			}
 		}
 	}
