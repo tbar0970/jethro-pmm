@@ -303,10 +303,13 @@ class db_object
 		}
 		foreach ($this->fields as $name => $details) {
 			if (($details['type'] == 'serialise') && isset($this->values[$name])) {
-				$this->values[$name] = unserialize($this->values[$name]);
 				if (is_string($this->values[$name]) && (trim($this->values[$name]) === "")) {
+					error_log(__FILE__.':'.__LINE__.' - WARNING: Jethro found a blank string in the database for the serialised field '.$name.' and converted it to an empty array. This may indicate a database corruption that should be investigated.');
 					$this->values[$name] = array();
+				} else {
+					$this->values[$name] = unserialize($this->values[$name]);
 				}
+					
 			}
 		}
 	}
