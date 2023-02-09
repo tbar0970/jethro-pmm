@@ -390,12 +390,11 @@ class family extends db_object
 					// Status has just been changed to 'archived' so archive members too
 					$members = $this->getMemberData();
 					if (!empty($members)) {
-						$GLOBALS['system']->includeDBClass('person');
-						$member = new Person();
+						$member = null;
 						$all_members_archived = TRUE;
 						foreach ($members as $id => $details) {
-							$member->reset();
-							$member->populate($id, $details);
+							unset($member);
+							$member = new Person($id);
 							if ($member->canAcquireLock()) {
 								$member->acquireLock();
 								$member->setValue('status', 'archived');
@@ -445,9 +444,10 @@ class family extends db_object
 					if ($members_all_have_family_name) {
 						$all_members_updated = TRUE;
 						$GLOBALS['system']->includeDBClass('person');
-						$member = new Person();
+						$member = null;
 						foreach ($members as $id => $details) {
-							$member->populate($id, $details);
+							unset($member);
+							$member = new Person($id);
 							if ($member->canAcquireLock()) {
 								$member->acquireLock();
 								$member->setValue('last_name', $this->getValue('family_name'));

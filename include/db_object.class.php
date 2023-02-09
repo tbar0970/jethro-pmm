@@ -351,6 +351,10 @@ class db_object
 
 		// Add to the history, unless it's been explicly set as a value (see Person::archiveAndClean())
 		if (isset($this->fields['history']) && empty($this->_old_values['history'])) {
+			if (!isset($this->values['history']) || !is_array($this->values['history'])) {
+				trigger_error("History field is not an array - this should not be. Aborting.", E_USER_ERROR);
+				exit;
+			}
 			$changes = $this->_getChanges();
 			if ($changes) {
 				$user = $GLOBALS['user_system']->getCurrentPerson();
