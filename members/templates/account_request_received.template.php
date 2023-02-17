@@ -18,7 +18,7 @@
 			<?php
 			if (defined('MEMBER_REGO_HELP_EMAIL')) {
 				?>
-				Please contact <a href="<?php echo ents(MEMBER_REGO_HELP_EMAIL); ?>"><?php echo ents(MEMBER_REGO_HELP_EMAIL); ?></a> for help.</p>
+				Please contact <a href="mailto:<?php echo ents(MEMBER_REGO_HELP_EMAIL); ?>"><?php echo ents(MEMBER_REGO_HELP_EMAIL); ?></a> for help.</p>
 				<?php
 			}
 			?>
