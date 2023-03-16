@@ -1563,7 +1563,7 @@ class Person_Query extends DB_Object
 		foreach ($x as $row) {
 			$r = Array();
 			foreach ($row as $label => $val) {
-				if (in_array($heading, Array('view_link', 'edit_link', 'note_link', 'checkbox'))) continue;
+				if (in_array($label, Array('view_link', 'edit_link', 'note_link', 'checkbox'))) continue;
 				if (isset($this->_field_details[$label])) {
 					$var = $label[0] == 'p' ? '_dummy_person' : '_dummy_family';
 					$fieldname = substr($label, 2);
