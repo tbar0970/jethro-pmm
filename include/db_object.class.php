@@ -303,7 +303,13 @@ class db_object
 		}
 		foreach ($this->fields as $name => $details) {
 			if (($details['type'] == 'serialise') && isset($this->values[$name])) {
-				$this->values[$name] = unserialize($this->values[$name]);
+				if (is_string($this->values[$name]) && (trim($this->values[$name]) === "")) {
+					error_log(__FILE__.':'.__LINE__.' - WARNING: Jethro found a blank string in the database for the serialised field '.$name.' and converted it to an empty array. This may indicate a database corruption that should be investigated.');
+					$this->values[$name] = array();
+				} else {
+					$this->values[$name] = unserialize($this->values[$name]);
+				}
+					
 			}
 		}
 	}
@@ -351,6 +357,10 @@ class db_object
 
 		// Add to the history, unless it's been explicly set as a value (see Person::archiveAndClean())
 		if (isset($this->fields['history']) && empty($this->_old_values['history'])) {
+			if (!isset($this->values['history']) || !is_array($this->values['history'])) {
+				trigger_error("History field is not an array - this should not be. Aborting.", E_USER_ERROR);
+				exit;
+			}
 			$changes = $this->_getChanges();
 			if ($changes) {
 				$user = $GLOBALS['user_system']->getCurrentPerson();
@@ -765,7 +775,7 @@ class db_object
 <div class="control-group">
 
 			<?php
-			if (strlen(array_get($details, 'heading_before'))) {
+			if (strlen(strval(array_get($details, 'heading_before')))) {
 				?>
 					<h4><?php echo ents($details['heading_before']); ?></h4>
 				<?php

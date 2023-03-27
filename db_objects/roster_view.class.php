@@ -762,15 +762,15 @@ class roster_view extends db_object
 							}
 							if (!empty($emails)) {
 								?>
-								<div class="smallprint no-print">
-									<a href="<?php echo get_email_href($my_email, NULL, $emails, date('jS F', strtotime($date))); ?>" <?php echo email_link_extras(); ?>>Email&nbsp;All</a>
+								<div class="smallprint no-print soft">
+									<a class="soft" href="<?php echo get_email_href($my_email, NULL, $emails, date('jS F', strtotime($date))); ?>" <?php echo email_link_extras(); ?>>Email&nbsp;All</a>
 				                </div>
 								<?php
 							}
 							if (!empty($mobiles) && SMS_Sender::canSend()) {
 								?>
 								<div class="smallprint no-print">
-								  <a href="#send-sms-modal" data-personid="<?php echo implode(',', array_unique($personids)); ?>" data-toggle="sms-modal" data-name="People Rostered on <?php echo $date;?>" onclick="$(this).parents('tr:first').addClass('tblib-hover')">SMS&nbsp;All</a>
+								  <a class="soft" href="#send-sms-modal" data-personid="<?php echo implode(',', array_unique($personids)); ?>" data-toggle="sms-modal" data-name="People Rostered on <?php echo $date;?>" onclick="$(this).parents('tr:first').addClass('tblib-hover')">SMS&nbsp;All</a>
 								</div>
 								<?php
 							}
@@ -813,7 +813,7 @@ class roster_view extends db_object
 								if (!$public && !$vs['assigneehidden']) {
 									$href = '?view=persons&personid='.$personid;
 									$n = '<span class="nowrap"><a data-personid="'.$personid . '" href="'.$href.'" title="Assigned by '.ents($vs['assigner']).' on '.format_datetime($vs['assignedon']).'">'.ents($vs['name']).'</a>';
-									if (strlen($vs['absenceid'])) {
+									if (strlen(strval($vs['absenceid']))) {
 										$n .= ' <a href="'.$href.'#rosters" class="label label-important" title="Planned absence: '.ents($vs['absence_comment']).'">!</i></a>';
 									}
 									if (('' === $vs['email'])) $n .= ' <img class="visible-desktop" src="'.BASE_URL.'resources/img/no_email.png" title="No Email Address" />';

@@ -158,6 +158,9 @@ define('DB_TYPE', 'mysql');
 // Defaults to [yourJethroRoot]/files
 // define('DOCUMENTS_ROOT_PATH', '');
 
+// Order to list persons when recording/displaying attendance
+define('ATTENDANCE_LIST_ORDER', 'status ASC, family_name ASC, familyid, age_bracket ASC, gender DESC');
+
 // To use the "generate service documents" feature, add folder paths here.
 // They can be absolute paths, or relative within the documents root above.
 // Separate multiple entries with pipe (|).

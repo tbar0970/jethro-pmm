@@ -7,6 +7,15 @@ class Member_User_System extends Abstract_User_System
 
 	public function __construct()
 	{
+		if (!strlen(ifdef('MEMBER_REGO_EMAIL_FROM_ADDRESS'))
+				|| !strlen(ifdef('MEMBER_REGO_EMAIL_FROM_NAME'))
+				|| !strlen(ifdef('MEMBER_REGO_EMAIL_SUBJECT'))
+		) {
+			?>
+			<p>Setup incomplete:  A system administrator needs to finish configuring the members area on this system via the System Configuration page.</p>
+			<?php
+			exit;
+		}
 	}
 
 	public function run() {

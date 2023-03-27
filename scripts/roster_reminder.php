@@ -51,7 +51,7 @@ define('DB_MODE', 'private');
 require_once JETHRO_ROOT.'/include/init.php';
 require_once JETHRO_ROOT.'/include/user_system.class.php';
 $GLOBALS['user_system'] = new User_System();
-$GLOBALS['user_system']->setPublic();
+$GLOBALS['user_system']->setCLIScript();
 
 $ini = parse_ini_file($_SERVER['argv'][1]);
 //this is a bit verbose - to aid with fault-finding/testing

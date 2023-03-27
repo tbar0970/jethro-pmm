@@ -119,7 +119,11 @@ function nbsp($x)
  */
 function ents($str)
 {
-	return htmlspecialchars($str, ENT_QUOTES, "UTF-8", false);
+	if (trim(strval($str)) == '') {
+		return '';
+	}
+	return htmlspecialchars(strval($str), ENT_QUOTES, "UTF-8", false);
+
 }
 
 /**
