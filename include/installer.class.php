@@ -209,7 +209,6 @@ class Installer
 			(@rank:=@rank+5, '',                         'CHUNK_SIZE','Batch size to aim for when dividing lists of items','int','100'),
 			(@rank:=@rank+5, '',                         'REPEAT_DATE_THRESHOLD','When a roster has this many columns, show the date on the right as well as the left','int','10'),
 			(@rank:=@rank+5, '',                         'ROSTER_WEEKS_DEFAULT','Number of weeks to show in rosters by default','int','8'),
-			(@rank:=@rank+5, '',                         'ATTENDANCE_LIST_ORDER','Order to list persons when recording/displaying attendance','text','status ASC, family_name ASC, familyid, age_bracket ASC, gender DESC'),
 			(@rank:=@rank+5, '',                         'ATTENDANCE_DEFAULT_DAY','Default day to record attendance','select[\"Sunday\",\"Monday\",\"Tuesday\",\"Wednesday\",\"Thursday\",\"Friday\",\"Saturday\"]','Sunday'),
 			(@rank:=@rank+5, '',                         'ENVELOPE_WIDTH_MM','Envelope width (mm)','int','220'),
 			(@rank:=@rank+5, '',                         'ENVELOPE_HEIGHT_MM','Envelope height (mm)','int','110'),
@@ -234,8 +233,7 @@ class Installer
 			(@rank:=@rank+5, '',                         'MEMBER_REGO_EMAIL_FROM_NAME','Sender name for member rego emails','text',''),
 			(@rank:=@rank+5, '',                         'MEMBER_REGO_EMAIL_FROM_ADDRESS','Sender address for member rego emails','text',''),
 			(@rank:=@rank+5, '',                         'MEMBER_REGO_EMAIL_SUBJECT','Subject for member rego emails','text',''),
-			(@rank:=@rank+5, '',                         'MEMBER_REGO_EMAIL_CC','CC all member rego emails to...','text',''),
-			(@rank:=@rank+5, '',                         'MEMBER_REGO_FAILURE_EMAIL','Address to notifiy when member rego fails','text',''),
+			(@rank:=@rank+5, '',                         'MEMBER_REGO_HELP_EMAIL', 'Address that users can contact for assistance with member rego (optional)', 'text', ''),			(@rank:=@rank+5, '',                         'MEMBER_REGO_FAILURE_EMAIL','Address to notifiy when member rego fails','text',''),
 			(@rank:=@rank+5, '',                         'MEMBER_PASSWORD_MIN_LENGTH','Minimum length for member passwords','int','7'),
 			(@rank:=@rank+5, '',                         'MEMBERS_SHARE_ADDRESS','Should addresses be visible in the members area?','bool','0'),
 

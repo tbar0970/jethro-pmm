@@ -11,6 +11,7 @@ class User_System extends Abstract_User_System
 	private $_error;
 	private $_permission_levels = Array();
 	private $_is_public = FALSE;
+	private $_is_cli_script = FALSE;
 
 	public function __construct()
 	{
@@ -147,12 +148,26 @@ class User_System extends Abstract_User_System
 			exit;
 		}
 	}
-
+	
 	// Called by the public interface to indicate no login expected
 	public function setPublic()
 	{
         $GLOBALS['db']->setCurrentUserID(-1);
 		$this->_is_public = TRUE;
+	}
+	
+	/**
+	 * Similar to setPublic - there is no current user. Called by scripts.
+	 */
+	public function setCLIScript()
+	{
+        $GLOBALS['db']->setCurrentUserID(-1);
+		$this->_is_cli_script = TRUE;
+	}
+	
+	public function isCLIScript()
+	{
+		return $this->_is_cli_script;
 	}
 
 	public function printLogin()

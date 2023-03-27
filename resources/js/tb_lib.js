@@ -165,7 +165,7 @@ $(document).ready(function() {
 			}
 		})
 	})
-	$('input[data-toggle=visible][type!=checkbox], select[data-toggle=visible]').change();
+	$('input[data-toggle=visible][type!=checkbox][type!=radio], select[data-toggle=visible]').change();
 
 	// needs to attach to document so that dynamically-generated buttons can work
 	$( document ).on('click', '[data-toggle=visible]', function(event) {
