@@ -120,10 +120,10 @@ Class SMS_Sender
 	 * Send an SMS message
 	 * @param string $message
 	 * @param array $recips	Array of person records
-	 * @param boolean $saveAsNote Whether to save a note against the recipients
+	 * @param boolean $saveComm Whether to save a copy against the recipients
 	 * @return array('success' => bool, 'successes' => array, 'failures' => array, 'rawresponse' => string)
 	 */
-	public static function sendMessage($message, $recips, $saveAsNote=FALSE)
+	public static function sendMessage($message, $recips, $saveComm=TRUE)
 	{
 		$message = self::cleanseMessage($message);
 		$mobile_tels = Array();
@@ -182,7 +182,7 @@ Class SMS_Sender
 		}
 
 		$header = "" . ifdef('SMS_HTTP_HEADER_TEMPLATE', '');
-		$header = $header . "Content-Length: " . strlen($content) . "\r\n" . "Content-Type: application/x-www-form-urlencoded\r\n";
+		$header = $header . "\r\n" . "Content-Length: " . strlen($content) . "\r\n" . "Content-Type: application/x-www-form-urlencoded\r\n";
 
 		$opts = Array(
 			'http' => Array(
@@ -236,10 +236,10 @@ Class SMS_Sender
 					}
 				} //$recips as $id => $recip
 				self::logSuccess(count($successes), $message);
-				if ($saveAsNote) self::saveAsNote($successes, $message);
+				if ($saveComm) self::saveComm($successes, $message);
 			} else {
 				self::logSuccess(count($mobile_tels), $message);
-				if ($saveAsNote) self::saveAsNote($recips, $message);
+				if ($saveComm) self::saveComm($recips, $message);
 			}
 		} //$success
 
@@ -316,18 +316,18 @@ Class SMS_Sender
 		<?php
 	}
 
-	private static function saveAsNote($recipients, $message)
+    private static function saveComm($recipients, $message)
 	{
-		$GLOBALS['system']->includeDBClass('person_note');
+		$GLOBALS['system']->includeDBClass('person_comm');
 		$subject = ifdef('SMS_SAVE_TO_NOTE_SUBJECT', 'SMS Sent');
 		foreach ($recipients as $id => $details) {
 			// Add a note containing the SMS to the user
-			$note = new Person_Note();
-			$note->setValue('subject', $subject);
-			$note->setvalue('details', $message);
-			$note->setValue('personid', $id);
-			if (!$note->create()) {
-				trigger_error('Failed to save SMS as a note.');
+			$comm = new Person_Comm();
+			$comm->setValue('subject', $subject);
+			$comm->setvalue('details', $message);
+			$comm->setValue('personid', $id);
+			if (!$comm->create()) {
+				trigger_error('Failed to save SMS as a communications note.');
 			}
 		}
 	}
