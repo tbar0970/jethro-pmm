@@ -114,7 +114,7 @@ foreach ($summaries as $supervisors => $remindees) {
 	  ->setFrom(array($ini['FROM_ADDRESS'] => $ini['FROM_NAME']))
 	  ->setBody($content)
 	  ->addPart($html, 'text/html');
-      
+
 	if (!empty($ini['OVERRIDE_RECIPIENT'])) {
 		$message->setTo($ini['OVERRIDE_RECIPIENT']);
 	} else {
@@ -133,6 +133,7 @@ foreach ($summaries as $supervisors => $remindees) {
 function send_reminder($person)
 {
 	global $ini;
+    global $save_sms_communication;
 	
 	$sentSomething = FALSE;
 	if (!empty($ini['EMAIL_BODY'])) {
