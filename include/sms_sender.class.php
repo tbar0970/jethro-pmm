@@ -140,14 +140,19 @@ Class SMS_Sender
 
 		$me = $GLOBALS['system']->getDBObject('person', $GLOBALS['user_system']->getCurrentUser('id'));
 		if (FALSE !== strpos($content, '_USER_MOBILE_')) {
-			if (empty($me)) {
-				trigger_error("Your SMS config includes the _USER_MOBILE_ keyword but there is no current user!  Exiting.", E_USER_ERROR);
+			if (defined('OVERRIDE_USER_MOBILE')) {
+				$usermobile = OVERRIDE_USER_MOBILE;
+			} else {
+				if (empty($me)) {
+					trigger_error("Your SMS config includes the _USER_MOBILE_ keyword but there is no current user!  Exiting.", E_USER_ERROR);
+				}
+				if (!strlen($me->getValue('mobile_tel'))) {
+					return Array('success' => FALSE, 'successes' => Array(), 'failures' => Array(), 'rawresponse' => '',
+						'error' => 'You must save your own mobile number before you can send an SMS');
+				}
+				$usermobile = $me->getValue('mobile_tel');
 			}
-			if (!strlen($me->getValue('mobile_tel'))) {
-				return Array('success' => FALSE, 'successes' => Array(), 'failures' => Array(), 'rawresponse' => '',
-					'error' => 'You must save your own mobile number before you can send an SMS');
-			}
-			$content = str_replace('_USER_MOBILE_', urlencode($me->getValue('mobile_tel')), $content);
+			$content = str_replace('_USER_MOBILE_', urlencode($usermobile), $content);
 		}
 
 		if (FALSE !== strpos($content, '_USER_EMAIL_')) {

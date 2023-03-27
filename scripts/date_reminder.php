@@ -31,13 +31,15 @@ require_once JETHRO_ROOT.'/include/init.php';
 require_once JETHRO_ROOT.'/include/user_system.class.php';
 require_once JETHRO_ROOT.'/include/system_controller.class.php';
 $GLOBALS['user_system'] = new User_System();
-$GLOBALS['user_system']->setPublic();
+$GLOBALS['user_system']->setCLIScript();
 $GLOBALS['system'] = System_Controller::get();
 //error_reporting(E_ALL);
 
 $SQL = 'SELECT p.*, cfv.value_date AS expirydate ';
 if (!empty($ini['SUMMARY_RECIPIENT_STATUS'])) {
 	$SQL .= ', GROUP_CONCAT(supervisor.email SEPARATOR ";") as supervisor, GROUP_CONCAT(CONCAT(supervisor.first_name, " ", supervisor.last_name) SEPARATOR ", ") as supervisor_name ';
+} else if (!empty($ini['SUMMARY_RECIPIENT_EMAIL'])) {
+	$SQL .= ', '.$GLOBALS['db']->quote($ini['SUMMARY_RECIPIENT_EMAIL']).' as supervisor, '.$GLOBALS['db']->quote($ini['SUMMARY_RECIPIENT_EMAIL']).' as supervisor_name ';
 }
 $SQL .= '
 		FROM _person p
@@ -65,6 +67,10 @@ if (empty($res) && !empty($ini['VERBOSE'])) {
 }
 
 if (!empty($ini['SMS_MESSAGE'])) {
+	
+	if (!empty($ini['SMS_FROM'])) {
+		define('OVERRIDE_USER_MOBILE', $ini['SMS_FROM']);
+	}
 	require_once JETHRO_ROOT.'/include/sms_sender.class.php';
 	if (!ifdef('SMS_HTTP_URL')) {
 		trigger_error("You have specified an SMS message in ".$_SERVER['argv'][1].' but this Jethro system does not have an SMS gateway configured. No SMS messages will be sent.');
@@ -108,11 +114,11 @@ foreach ($summaries as $supervisors => $remindees) {
 	  ->setFrom(array($ini['FROM_ADDRESS'] => $ini['FROM_NAME']))
 	  ->setBody($content)
 	  ->addPart($html, 'text/html');
-	foreach (explode(';', $supervisors) as $sup) {
-		if (!empty($ini['OVERRIDE_RECIPIENT'])) {
-			$sup = $ini['OVERRIDE_RECIPIENT'];
-		}
-		$message->setTo($sup);
+      
+	if (!empty($ini['OVERRIDE_RECIPIENT'])) {
+		$message->setTo($ini['OVERRIDE_RECIPIENT']);
+	} else {
+		$message->setTo(explode(';', $supervisors));
 	}
 	$res = Emailer::send($message);
 	if (!$res) {
@@ -160,7 +166,7 @@ function send_reminder($person)
 
 		if (strlen($person['mobile_tel'])) {
 			$toNumber = $person['mobile_tel'];
-			if (!empty($ini['OVERRIDE_RECIPIENT_SMS'])) $toNumber = $ini['OVERRIDE_RECIPIENT_SMS'];
+			if (!empty($ini['OVERRIDE_RECIPIENT_SMS'])) $toNumber = $person['mobile_tel'] = $ini['OVERRIDE_RECIPIENT_SMS'];
 			$message = replace_keywords($ini['SMS_MESSAGE'], $person);
 			$res = SMS_Sender::sendMessage($message, Array($person), ((int)$save_sms_communication==1));
 			if (count($res['successes']) != 1) {

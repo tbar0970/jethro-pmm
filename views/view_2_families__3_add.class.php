@@ -106,7 +106,11 @@ class View_Families__Add extends View
 			if ($success) {
 				$GLOBALS['system']->doTransaction('commit');
 				add_message(_('Family Created'));
-				redirect('families', Array('familyid' => $this->_family->id));
+				if (count($members) > 1) {
+					redirect('families', Array('familyid' => $this->_family->id));
+				} else {
+					redirect('persons', Array('personid' => $members[0]->id));
+				}
 			} else {
 				$GLOBALS['system']->doTransaction('rollback');
 				$this->_family->id = 0;

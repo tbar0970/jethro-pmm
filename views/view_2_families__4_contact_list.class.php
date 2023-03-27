@@ -356,6 +356,7 @@ class View_Families__Contact_List extends View
 		$gridspan = 3;
 		if (!empty($_REQUEST['include_congregation'])) $gridspan++;
 
+		$rowProps = array('cantSplit' => true);   # Don't split row contents across pagebreaks. https://phpword.readthedocs.io/en/latest/styles.html
 		$extraWideCellProps = $wideCellProps = array('gridSpan' => $gridspan, 'valign' => 'top');
 		if (!empty($_REQUEST['include_photos'])) {
 			$wideCellProps['gridSpan']--;
@@ -371,12 +372,12 @@ class View_Families__Contact_List extends View
 
 		$cleanup = Array();
 		foreach ($this->getData() as $family) {
-			$table->addRow();
+			$table->addRow(NULL, $rowProps);
 
 			$table->addCell(NULL, $extraWideCellProps)
 						->addText($family['family_name'], 'FAMILY-NAME', 'FAMILY-HEADER');
 
-			$table->addRow();
+			$table->addRow(NULL, $rowProps);
 			$rowOpen = TRUE;
 			if (!empty($_REQUEST['include_photos'])) {
 				// Add photo cell but stay on the same row.
@@ -409,7 +410,7 @@ class View_Families__Contact_List extends View
 
 			if (!empty($_REQUEST['include_address']) && $family['address_street']) {
 				if (!$rowOpen) {
-					$table->addRow();
+					$table->addRow(NULL, $rowProps);
 					if (!empty($_REQUEST['include_photos'])) {
 						$table->addCell(NULL, $mergeProps);
 					}
@@ -425,7 +426,7 @@ class View_Families__Contact_List extends View
 
 			if (!empty($_REQUEST['include_home_tel']) && $family['home_tel']) {
 				if (!$rowOpen) {
-					$table->addRow();
+					$table->addRow(NULL, $rowProps);
 					if (!empty($_REQUEST['include_photos'])) {
 						$table->addCell(NULL, $mergeProps);
 					}
@@ -437,7 +438,7 @@ class View_Families__Contact_List extends View
 
 			foreach ($family['optins'] as $member) {
 				if (!$rowOpen) {
-					$table->addRow();
+					$table->addRow(NULL, $rowProps);
 					if (!empty($_REQUEST['include_photos'])) {
 						$table->addCell(NULL, $mergeProps);
 					}

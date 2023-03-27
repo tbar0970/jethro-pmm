@@ -352,6 +352,12 @@ class Abstract_Note extends DB_Object
 	 */
 	public static function getNotifications($minutes)
 	{
+		// For performance, if we are running userless, we use the underlying
+		// raw data tables rather than views, to make the query faster.
+		$userless = $GLOBALS['user_system']->isCLIScript();
+		$persontable = $userless ? '_person' : 'person';
+		$notetable = $userless ? '_abstract_note' : 'abstract_note';
+		
 		// get notes recently marked for action, notes recently assigned to a new person
 		// and notes which have just reached their action date in the last $minutes minutes
 		// We operate 10 seconds in the past to allow time for things to setting down
@@ -359,14 +365,14 @@ class Abstract_Note extends DB_Object
 		$between = 'BETWEEN (NOW() - INTERVAL '.(int)(($minutes*60)+10).' SECOND) AND (NOW() - INTERVAL 10 SECOND)';
 		$SQL = 'SELECT p.first_name, p.last_name, p.email,
 					(SELECT count(*)
-						FROM abstract_note an
+						FROM '.$notetable.' an
 						WHERE status = "pending"
 						AND action_date <= DATE(NOW())
 						AND assignee = p.id) AS total_notes,
 					COUNT(DISTINCT nn.id) as new_notes,
 					GROUP_CONCAT(nn.id) as new_note_ids
-				FROM person p
-				JOIN abstract_note nn ON nn.assignee = p.id
+				FROM '.$persontable.' p
+				JOIN '.$notetable.' nn ON nn.assignee = p.id
 										AND nn.status = "pending"
 										AND nn.action_date <= DATE(NOW())
 										AND ((

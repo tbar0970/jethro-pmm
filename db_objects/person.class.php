@@ -1020,6 +1020,7 @@ class Person extends DB_Object
 				$customFields[str_replace(' ', '_', strtolower($field['name']))] = $GLOBALS['system']->getDBObject('custom_field', $fieldID);
 			}
 		}
+		if (empty($this->id) && !isset($row['gender'])) $row['gender'] = "Unknown"; // only apply the female default via the GUI, not import
 		foreach ($row as $k => $v) {
 			$k = str_replace(' ', '_', strtolower($k));
 			if (isset($customFields[$k]) && strlen($v)) {

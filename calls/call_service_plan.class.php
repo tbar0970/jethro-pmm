@@ -14,6 +14,7 @@ class Call_Service_Plan extends Call
 		?>
 		<html>
 			<head>
+				<title><?php echo $service->getValue('date').'_'.$service->getCongregation()->getValue('meeting_time'); ?></title>
 				<style>
 					body {
 						margin: 1cm;
