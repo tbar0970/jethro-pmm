@@ -79,7 +79,7 @@ table.gridtable td {
 	border-style: solid;
 	border-color: #666666;
 	background-color: #ffffff;
-} </style></head><body>This is the result of a report generatated from the ".SYSTEM_NAME." Jethro system. <br><br>".$ini['MESSAGE']."<br><h2>Report name: ".$reportname."</h2>";
+} </style></head><body>This is the result of a report generated from the ".SYSTEM_NAME." Jethro system. <br><br>".$ini['MESSAGE']."<br><h2>Report name: ".$reportname."</h2>";
 //first work-over $csv_string to deal with the issue of new-lines within a field by replacing those new lines with <br>
 $csv_string  = preg_replace('#\\n(?=[^"]*"[^"]*(?:"[^"]*"[^"]*)*$)#' , '<br>', $csv_string);
 //now separate out the table rows
