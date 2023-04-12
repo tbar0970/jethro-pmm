@@ -221,7 +221,7 @@ class Person extends DB_Object
 
 					OR /* current user has no group/cong restrictions */
 					((0 = (select count(congregationid) from account_congregation_restriction cr WHERE cr.personid = getCurrentUserID()))
-					   AND (0 = (select count(congregationid) from account_group_restriction cr WHERE cr.personid = getCurrentUserID())))
+					   AND (0 = (select count(gr.groupid) from account_group_restriction gr WHERE gr.personid = getCurrentUserID())))
 
 					OR /* person is within a permitted cong */
 					(`p`.`congregationid` in (select `cr`.`congregationid` AS `congregationid` from `account_congregation_restriction` `cr` where (`cr`.`personid` = `getCurrentUserID`())))
