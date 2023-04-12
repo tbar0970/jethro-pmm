@@ -266,9 +266,7 @@ function run_mc_sync($mc, $report_id, $list_id)
                                                         $tgzfile = $dir.'/response.tgz';
                                                         @mkdir($dir);
                                                         file_put_contents($tgzfile, $batch_results);
-                                                        $p = new PharData($tgzfile);
-                                                        $p2 = $p->decompress();
-                                                        $p2->extractTo($dir, NULL, TRUE);
+                                                        extract_tgz_to_dir($tgzfile, $dir);
                                                         foreach (glob($dir.'/*.json') as $jsonfile) {
                                                                 $resps = json_decode(file_get_contents($jsonfile));
                                                                 foreach ($resps as $resp) {
@@ -293,12 +291,12 @@ function run_mc_sync($mc, $report_id, $list_id)
                                                                 }
                                                         }
                         }
-                        if ($all_failures) {
-							trigger_error("[Syncing report $report_id to list $list_id] ".$batch_res_summary['errored_operations']." mailchimp operations failed.");
-							bam($all_failures);
-						} else if ($DEBUG > 0) {
-							bam($batch_res_summary['total_operations'].' mailchimp operations completed succesfully.');
-                        }
+                                                if ($all_failures) {
+                                                        trigger_error("[Syncing report $report_id to list $list_id] ".$batch_res_summary['errored_operations']." mailchimp operations failed.");
+                                                        bam($all_failures);
+                                                } else if ($DEBUG > 0) {
+                                                        bam($batch_res_summary['total_operations'].' mailchimp operations completed succesfully.');
+                                                }
                 }
         } else {
                 if ($DEBUG > 0) {
@@ -327,6 +325,25 @@ function getMergeVars($person_data, $email=NULL) {
         );
         if ($email) $res['EMAIL'] = $email;
         return $res;
+}
+
+# MailChimp returns errors in a tgz file containing a spurious '.' entry, which breaks the PHP extracTo() function.
+# This is workaround. See https://github.com/tbar0970/jethro-pmm/issues/870
+function extract_tgz_to_dir($tgzfile, $dir) {
+        $p = new PharData($tgzfile, RecursiveDirectoryIterator::SKIP_DOTS);
+        $p->convertToData(Phar::ZIP);
+        $createdZipArchive = str_replace('tgz', 'zip', $tgzfile);
+        $zip = new ZipArchive;
+        $res = $zip->open($createdZipArchive);
+        if ($res == TRUE) {
+                echo "Extracting Mailchimp tgz response ".$tgzfile." to " . $dir . "/" . $createdZipArchive . PHP_EOL;
+                $zip->extractTo($dir);
+                echo "Successfully extracted to " . $dir . PHP_EOL;
+        } else {
+                trigger_error("Could not extract Mailchimp response");
+        }
+
+        $zip->close();
 }
 
 function needsUpdate($jethroData, $mcData)
