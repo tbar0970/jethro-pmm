@@ -422,8 +422,8 @@ class roster_view extends db_object
 
 		$to_print = Array();
 		foreach ($services as $id => $service_details) {
-			$to_print[$service_details['date']]['service'][$service_details['congregationid']] = $service_details;
-			$to_print[$service_details['date']]['service'][$service_details['congregationid']]['id'] = $id;
+			$to_print[$service_details['date']]['service'] = $service_details;
+			$to_print[$service_details['date']]['service']['id'] = $id;
 			$to_print[$service_details['date']]['assignments'] = Array();
 		}
 		foreach ($this->getAssignments($start_date, $end_date) as $date => $date_assignments) {
@@ -460,6 +460,34 @@ class roster_view extends db_object
 
 		foreach ($to_print as $date => $ddetail) {
 			$row = Array(format_date($date));
+			if ($return) {
+				if (isset($ddetail['service']['format_title'])) {
+					$row['format'] = $ddetail['service']['format_title'];
+				} else {
+					$row['format'] = '';
+				}
+				if (isset($ddetail['service']['topic_title'])) {
+					$row['topic'] = $ddetail['service']['topic_title'];
+				} else {
+					$row['topic'] = '';
+				}
+				if (trim(strval($row['topic'])) == '<div class=') {
+					$row['topic'] = '';
+				}
+				if (isset($ddetail['service']['notes'])) {
+					$row['notes'] = $ddetail['service']['notes'];
+				} else {
+					$row['notes'] = '';
+				}
+				if (strpos($row['notes'], 'htmlspecial') > 1) {
+					$row['notes'] = '';
+				}
+				if (isset($ddetail['service']['comments'])) {
+					$row['comments'] = $ddetail['service']['comments'];
+				} else {
+					$row['comments'] = '';
+				}
+			}
 			foreach ($this->_members as $id => $mdetail) {
 				if (empty($mdetail)) continue;
 
