@@ -934,7 +934,7 @@ class Person extends DB_Object
 		switch ($name) {
 			case 'photo':
 				?>
-				<input type="file" accept="image/*" name="<?php echo $prefix; ?>photo" />
+				<input type="file" accept="image/*" max-bytes="<?php echo file_upload_max_size(); ?>" name="<?php echo $prefix; ?>photo" />
 				<?php
 				break;
 			case 'familyid':

@@ -211,7 +211,7 @@ class View_Documents extends View
 						<h4>Upload new files:</h4>
 					</div>
 					<div class="modal-body">
-						<input type="file" name="newfile[]" multiple="multiple" />
+						<input type="file" name="newfile[]" multiple="multiple" max-bytes="<?php echo file_upload_max_size(); ?>" />
 						<p class="upload-progress hide">Uploading...<br /><img src="resources/img/progress.gif" /></p>
 					</div>
 					<div class="modal-footer">
@@ -227,7 +227,7 @@ class View_Documents extends View
 						<h4>Replace <span id="replaced-filename"></span> with:</h4>
 					</div>
 					<div class="modal-body">
-						<input type="file" id="replace-file" name="replacefile[X]" />
+						<input type="file" id="replace-file" name="replacefile[X]" max-bytes="<?php echo file_upload_max_size(); ?>" />
 						<p class="upload-progress hide">Uploading...<br /><img src="resources/img/progress.gif" /></p>
 					</div>
 					<div class="modal-footer">

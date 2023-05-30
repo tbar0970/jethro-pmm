@@ -390,6 +390,13 @@ $(document).ready(function() {
 		}
 		return false;
 	});
+
+	$('input[type=file][max-bytes').change(function() {
+		if (this.files[0].size > $(this).attr('max-bytes')) {
+			alert("Sorry, that file is too big - please choose a smaller one");
+			this.value = "";
+		}
+	});
 });
 
 
