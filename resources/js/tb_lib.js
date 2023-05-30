@@ -382,6 +382,14 @@ $(document).ready(function() {
 			link.innerHTML = '✔ Copied';
 		});
 	});
+
+	$("[data-action=copy]").click(function() {
+		var t = $($(this).attr('data-target')).get(0).innerText;
+		if (navigator.clipboard.writeText(t)) {
+			if (this.innerHTML.substr(-1) != '✔') this.innerHTML += ' ✔';
+		}
+		return false;
+	});
 });
 
 

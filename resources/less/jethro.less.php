@@ -601,6 +601,12 @@ form.min {
 	color: black;
 	font-weight: bold;
 }
+.icon-copy {
+	background: url(../img/copy-icon.svg) no-repeat !important;
+	background-size: cover;
+	height: 14px;
+	width: 14px;
+}
 #body .btn-mini [class*="icon-"] {
 	padding-right: 0px !important;
 }

@@ -302,6 +302,7 @@ class Person extends DB_Object
 					$msg = SMS_Sender::canSend() ? 'SMS via my device' : 'SMS';
 					$links[] = '<a href="sms:'.ents($value).'"><i class="icon-envelope"></i> '.$msg.'</a>';
 				}
+				$links[] = '<a data-action="copy" data-target="#mobile-'.$this->id.'"><i class="icon-copy"></i> Copy number</a>';
 
 				?>
 				<span class="dropdown nowrap">
