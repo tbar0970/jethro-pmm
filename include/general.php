@@ -474,6 +474,16 @@ function print_widget($name, $params, $value)
 				if (!empty($params['filter']) && is_array($params['filter'])) $where = $params['filter'];
 				$where_logic = array_get($params, 'filter_logic', 'AND');
 				$options = $GLOBALS['system']->getDBObjectData($params['references'], $where, $where_logic, array_get($params, 'order_by'));
+
+				// Some filtering might mean currently-selected values are not yet included
+				// in the options. Add more options to make sure the current value can be expressed.
+				foreach ((array)$value as $val) {
+					if (!isset($options[$val])) {
+						$obj = $GLOBALS['system']->getDBObject($params['references'], $val);
+						$options[$val] = $obj->toString();
+					}
+				}
+
 				$dummy = new $params['references']();
 				$our_val = is_array($value) ? $value : (empty($value) ? Array() : Array($value));
 				$default = NULL;

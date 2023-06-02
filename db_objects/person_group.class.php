@@ -467,9 +467,15 @@ class Person_Group extends db_object
 	static function printChooser($fieldname, $value, $exclude_groups=Array(), $allow_category_select=FALSE, $empty_text='(Choose)')
 	{
 		static $cats = NULL;
-		static $groups = NULL;
+		static $groupsCache = NULL;
 		if ($cats === NULL) $cats = $GLOBALS['system']->getDBObjectData('person_group_category', Array(), 'OR', 'name');
-		if ($groups === NULL) $groups = $GLOBALS['system']->getDBObjectData('person_group', Array('is_archived' => 0), 'OR', 'name');
+		if ($value === NULL) {
+			if ($groupsCache === NULL) $groupsCache = $GLOBALS['system']->getDBObjectData('person_group', Array('is_archived' => 0), 'OR', 'name');
+			$groups = $groupsCache;
+		} else {
+			$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('is_archived' => 0, 'id' => $value), 'OR', 'name');			
+		}
+
 		if (empty($groups)) {
 			?><i>There are no groups in the system yet</i> &nbsp;<?php
 			return FALSE;
