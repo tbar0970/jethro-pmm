@@ -248,7 +248,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 				</div>
 			</div>
 		<?php
-		if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
+		if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE) && strlen(ifdef('SMS_SAVE_TO_NOTE_SUBJECT', ''))) {
 			?>
 			<div class="control-group">
 				<label class="control-label">After sending:</label>
