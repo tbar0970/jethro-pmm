@@ -202,6 +202,7 @@ class Installer
 			(@rank:=@rank+5, '',                         'SESSION_MAXLENGTH_MINS','Every session will be logged out this many minutes after login','int','480'),
 
 			(@rank:=@rank+5, 'Jethro Behaviour Options','REQUIRE_INITIAL_NOTE','Whether an initial note is required when adding new family','bool','1'),
+			(@rank:=@rank+5, '',                         'DEFAULT_NOTE_STATUS','Default status when creating a new note','select{\"no_action\":\"No Action Required\",\"pending\":\"Requires Action\"}', 'pending',
 			(@rank:=@rank+5, '',                         'NOTES_ORDER','Order to display person and family notes','select{\"ASC\":\"Oldest first\",\"DESC\":\"Newest first\"}','ASC'),
 			(@rank:=@rank+5, '',                         'LOCK_LENGTH','Number of minutes users have to edit an object before their lock expires','int','10'),
 			(@rank:=@rank+5, '',                         'PERSON_LIST_SHOW_GROUPS','Show all groups when listing persons?','bool','0'),

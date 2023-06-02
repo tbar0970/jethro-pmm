@@ -29,7 +29,7 @@ class Abstract_Note extends DB_Object
 												'failed'	=> 'Failed',
 												'complete'	=> 'Complete',
 											   ),
-								'default'	=> 'no_action',
+								'default'	=> ifdef('DEFAULT_NOTE_STATUS', 'no_action'),
 								'class'		=> 'note-status',
 								'allow_empty'	=> false,
 								'label'		=> 'Status',
