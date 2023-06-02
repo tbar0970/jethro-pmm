@@ -670,7 +670,7 @@ class Person extends DB_Object
 							}
 							break;
 						default:
-							$textVal = $value;
+							$textVal = substr($value, 0, 255); // don't pass too-long strings to database
 					}
 					if ($textVal || $optionVal || $dateVal) {
 						$sets[] = '('.(int)$this->id.','.(int)$fieldid.','.$db->quote($textVal).','.$db->quote($dateVal).','.$db->quote($optionVal).')';

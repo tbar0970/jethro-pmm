@@ -493,6 +493,9 @@ class Custom_Field extends db_object
 				$params['options']['other'] = _('Other');
 			}
 		}
+		if ($this->getValue('type') == 'text') {
+			$params['maxlength'] = 255;
+		}
 		if (!empty($this->values['params']['allow_blank_year'])) $params['allow_blank_year'] = $this->values['params']['allow_blank_year'];
 		if (!empty($this->values['params']['regex'])) $params['regex'] = $this->values['params']['regex'];
 		return $params;
