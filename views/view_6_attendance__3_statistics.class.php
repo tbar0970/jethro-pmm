@@ -43,7 +43,7 @@ class View_Attendance__Statistics extends View
 		<?php echo _('between');?> <?php print_widget('start_date', Array('type' => 'date'), $this->_start_date); ?>
 		<?php echo _('and');?>  <?php print_widget('end_date', Array('type' => 'date'), $this->_end_date); ?>
 		<input type="submit" class="btn" value="Go" />
-		<p class="smallprint"><?php echo _('Note: Any weeks where a person attendance is left blank (neither present nor absent) are ignored when calculating attendance percentages.');?></p>
+		<p><small><?php echo _('Note: Percentages are based on when people are marked \'present\' vs \'absent\'. Dates with blank attendance are ignored altogether.');?></small></p>
 		</form>
 		<?php
 

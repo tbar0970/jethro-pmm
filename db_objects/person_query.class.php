@@ -456,7 +456,7 @@ class Person_Query extends DB_Object
 			<?php
 			$groupid_params = Array(
 				'type' => 'select',
-				'options' => Array(null => '(Nothing)', '__cong__' => 'their congregation'),
+				'options' => Array(null => '', '__cong__' => 'their congregation'),
 				'attrs' => Array('data-toggle' => 'enable', 'data-target' => '.attendance-input'),
 			);
 			$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('!attendance_recording_days' => 0, 'is_archived' => 0), 'AND');
@@ -477,6 +477,8 @@ class Person_Query extends DB_Object
 						   );
 			print_widget('attendance_operator', $operator_params, array_get($params, 'attendance_operator', '<')); ?>
 			<input name="attendance_percent" type="number" size="2" class="attendance-input" value="<?php echo (int)array_get($params, 'attendance_percent', 50); ?>" />%
+			<i class="clickable icon-question-sign" data-toggle="visible" data-target="#attendancetooltip"></i><div class="help-block custom-field-tooltip" id="attendancetooltip" style="display: none; font-weight: normal">Note: Percentages are based on when people are marked 'present' vs 'absent'. Dates with <i>blank</i> attendance are ignored altogether.</div>
+
 
 			<br />over the last <input name="attendance_weeks" type="number" size="2" class="attendance-input" value="<?php echo (int)array_get($params, 'attendance_weeks', 2); ?>" /> weeks
 		</div>

@@ -542,6 +542,9 @@ p.text {
 		max-width: 100%;
 	}
 }
+.well p:last-child {
+	margin-bottom: 0;
+}
 #jethro-public p, #jethro-public #body li { 
 	max-width: 45em; 
 	margin-top: 0.75ex; 
