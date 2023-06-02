@@ -272,8 +272,16 @@ Class SMS_Sender
 	private static function logSuccess($recip_count, $message)
 	{
 		if (defined('SMS_SEND_LOGFILE') && ($file = constant('SMS_SEND_LOGFILE'))) {
+			if (filesize(SMS_SEND_LOGFILE) < 3) {
+				// Write a header row
+				$headers = Array('Timestamp', 'Username', 'RecipientCount', 'MessageLength', 'Content');
+				$json = json_encode($headers);
+				error_log($json."\n", 3, $file);
+			}
 			$msg_trunc = strlen($message) > 30 ? substr($message, 0, 27) . '...' : $message;
-			error_log(date('Y-m-d H:i') . ': ' . $GLOBALS['user_system']->getCurrentUser('username') . ' (#' . $GLOBALS['user_system']->getCurrentUser('id') . ') to ' . (int) $recip_count . ' recipients: "' . $msg_trunc . "\"\n", 3, $file);
+			$vals = Array(date('Y-m-d H:i'), $GLOBALS['user_system']->getCurrentUser('username'), $recip_count, strlen($message), $msg_trunc);
+			$json = json_encode($vals);
+			error_log($json."\n", 3, $file);
 		}
 	}
 
