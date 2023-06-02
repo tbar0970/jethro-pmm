@@ -1235,10 +1235,12 @@ JethroServicePlanner._refreshNumbersAndTimes = function() {
 	});
 	// Adjust the spacer so the min height is 5 items equivalent
 	var spacer = $('#service-plan-spacer');
-	spacer.remove();
-	$('#service-plan tbody').append(spacer); // make sure it's at the end
+	if (spacer.get(0).nextSibling) {
+		spacer.remove();
+		$('#service-plan tbody').append(spacer); // make sure it's at the end
+	}
 	var spacerHeight = Math.max(0, (5 - $('tr.service-item').length)*30);
-	$('#service-plan-spacer td').height(spacerHeight);
+	//$('#service-plan-spacer td').height(spacerHeight);
 	JethroServicePlanner.setDroppable(spacer);
 }
 

@@ -209,7 +209,8 @@ class View_services extends View
 				?>
 				Run Sheet
 			</h3>
-			<form method="post" id="service-plan-container" data-lock-length="<?php echo db_object::getLockLength() ?>">
+			<form method="post"data-lock-length="<?php echo db_object::getLockLength() ?>">
+			<div id="service-plan-container">
 			<input type="hidden" name="save_service" value="1" />
 			<table class="table table-bordered table-condensed no-autofocus" id="service-plan" data-starttime="<?php echo $startTime; ?>">
 				<thead>
@@ -224,93 +225,63 @@ class View_services extends View
 
 				<tbody>
 				<?php
-				if (empty($items)) {
-					?>
-					<tr id="service-plan-placeholder">
-						<td colspan="5" style="padding: 40px;">
-							<?php
-							if ($this->editing) {
-								?>
-								<div class="alert alert-info">
-								To start building this run sheet,
-								<ul>
-									<li>drag an item from the component library</li>
-									<li><a href="#" data-toggle="modal" data-target="#ad-hoc-modal">enter an ad hoc item</a>, or </li>
-									<li><a href="#" data-toggle="modal" data-target="#copy-previous-modal">Copy items from a previous service</a></li>
-								</ul>
-								</div>
-								<?php
-							} else {
-								?>
-								<i>This service does not yet have any items</i>
-								<?php
-							}
-							?>
-						</td>
-					</tr>
-					<?php
-				} else {
-					foreach ($items as $rank => $item) {
-						if (strlen($item['heading_text'])) {
-							?>
-							<tr>
-								<td colspan="4">
-									<input type="text" class="service-heading unfocused" name="" value="<?php echo ents($item['heading_text']); ?>" />
-								</td>
-								<td class="tools">
-									<a href="javascript:;" data-action="remove"><i class="icon-trash"></i></a>
-								</td>
-							</tr>
-							<?php
-						}
+				foreach ($items as $rank => $item) {
+					if (strlen($item['heading_text'])) {
 						?>
-						<tr class="service-item<?php if (empty($item['componentid'])) echo ' ad-hoc'; ?>">
-							<td class="start"></td>
-							<td class="number"></td>
-							<td class="item">
-								<span>
-								<?php
-								if (!empty($item['runsheet_title_format'])) {
-									$title = $item['runsheet_title_format'];
-									$title = str_replace('%title%', $item['title'], $title);
-									$title = $this->service->replaceKeywords($title);
-								} else {
-									$title = $item['title'];
-								}
-								echo ents($title);
-								?>
-								</span>
-								<?php
-								print_hidden_field('title[]', $title);
-								foreach (Array('componentid', 'length_mins', 'show_in_handout') as $k) {
-									?>
-									<input type="hidden" name="<?php echo $k; ?>[]" class="<?php echo $k; ?>" value="<?php echo ents($item[$k]); ?>" />
-									<?php
-								}
-								?>
-								<textarea name="note[]" class="unfocused"
-									<?php
-									if (!strlen($item['note'])) {
-										echo 'style="display:none" ';
-										echo 'rows="1" ';
-									} else {
-										echo 'rows="'.(substr_count($item['note'], "\n")+1).'" ';
-									}
-									?>><?php echo ents($item['note']); ?></textarea>
+						<tr>
+							<td colspan="4">
+								<input type="text" class="service-heading unfocused" name="" value="<?php echo ents($item['heading_text']); ?>" />
 							</td>
-							<td class="personnel"><input class="unfocused" name="personnel[]" type="text" value="<?php echo ents($item['personnel']); ?>" /></td>
 							<td class="tools">
-								<?php $this->_printTools(); ?>
+								<a href="javascript:;" data-action="remove"><i class="icon-trash"></i></a>
 							</td>
 						</tr>
 						<?php
-
 					}
+					?>
+					<tr class="service-item<?php if (empty($item['componentid'])) echo ' ad-hoc'; ?>">
+						<td class="start"></td>
+						<td class="number"></td>
+						<td class="item">
+							<span>
+							<?php
+							if (!empty($item['runsheet_title_format'])) {
+								$title = $item['runsheet_title_format'];
+								$title = str_replace('%title%', $item['title'], $title);
+								$title = $this->service->replaceKeywords($title);
+							} else {
+								$title = $item['title'];
+							}
+							echo ents($title);
+							?>
+							</span>
+							<?php
+							print_hidden_field('title[]', $title);
+							foreach (Array('componentid', 'length_mins', 'show_in_handout') as $k) {
+								?>
+								<input type="hidden" name="<?php echo $k; ?>[]" class="<?php echo $k; ?>" value="<?php echo ents($item[$k]); ?>" />
+								<?php
+							}
+							?>
+							<textarea name="note[]" class="unfocused"
+								<?php
+								if (!strlen($item['note'])) {
+									echo 'style="display:none" ';
+									echo 'rows="1" ';
+								} else {
+									echo 'rows="'.(substr_count($item['note'], "\n")+1).'" ';
+								}
+								?>><?php echo ents($item['note']); ?></textarea>
+						</td>
+						<td class="personnel"><input class="unfocused" name="personnel[]" type="text" value="<?php echo ents($item['personnel']); ?>" /></td>
+						<td class="tools">
+							<?php $this->_printTools(); ?>
+						</td>
+					</tr>
+					<?php
+
 				}
 				?>
-					<tr id="service-plan-spacer">
-						<td colspan="5"></td>
-					</tr>
 					<tr id="service-item-template">
 						<td class="start"></td>
 						<td class="number"></td>
@@ -327,6 +298,24 @@ class View_services extends View
 						</td>
 						<td class="tools"><a href="javascript:;" data-action="remove"><i class="icon-trash"></i></a></td>
 					</tr>
+					<tr id="service-plan-spacer">
+						<td colspan="5">
+							<?php
+							if (empty($items) && $this->editing) {
+								?>
+								<div class="alert alert-info" id="service-plan-placeholder">
+								To start building this run sheet,
+								<ul>
+									<li>drag an item from the component library</li>
+									<li><a href="#" data-toggle="modal" data-target="#ad-hoc-modal">enter an ad hoc item</a>, or </li>
+									<li><a href="#" data-toggle="modal" data-target="#copy-previous-modal">Copy items from a previous service</a></li>
+								</ul>
+								</div>
+								<?php
+							}
+							?>
+						</td>
+					</tr>
 
 				</tbody>
 
@@ -340,11 +329,13 @@ class View_services extends View
 					</tr>
 					<tr>
 						<td colspan="5">
-							<button type="submit" class="btn">Save</button>
+							
 						</td>
 					</tr>
 				</tfoot>
 			</table>
+			</div>
+			<button type="submit" class="btn">Save</button>
 			</form>
  		</div>
 
@@ -521,6 +512,7 @@ class View_services extends View
 					?>
 					<div class="tab-pane <?php echo $active; ?>"
 						 id="cat<?php echo (int)$catid; ?>">
+						<div class="comps-table-container">
 
 						<table style="display: none" class="table table-bordered table-condensed"
 							   title="Double-click or drag to add to service">
@@ -585,6 +577,7 @@ class View_services extends View
 							?>
 							</tbody>
 						</table>
+						</div>
 					</div>
 					<?php
 					$active = '';

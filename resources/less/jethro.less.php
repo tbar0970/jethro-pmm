@@ -2088,11 +2088,7 @@ table.system-config td small {
 	font-size: 90%;
 	font-weight: bold;
 }
-#service-planner td, #service-planner td * {
-	/*font-family: "Arial Narrow", "Helvetica neue", Helvetica, Arial, Sans Serif;*/
-}
 #service-planner .tab-pane {
-	/*overflow: auto;*/
 	max-width: 100%;
 }
 
@@ -2114,6 +2110,11 @@ table.system-config td small {
 
 #service-plan-container {
 	padding-right: 15px; /* space for vertical scrollbar, so it doesn't trigger horizontal scrollbar' */
+	max-height: 82vh;
+	overflow: auto;
+}
+#service-plan-container, #service-plan-container table {
+	margin-bottom: 5px; /* so it's consistent whether or not we are scrolling */
 }
 #service-plan .tools, #service-comps .tools {
 	padding: 0px;
@@ -2137,6 +2138,32 @@ table.system-config td small {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+}
+#service-plan tbody td, #service-plan tfoot td {
+	background: @jethroLightest;
+}
+#body #service-plan-placeholder {
+	margin: 25px 15px;
+}
+/* as other items get added above the spacer, make the spacer smaller */
+/* once there are 5 items (plus 2 invisible template rows), spacer is zero */
+#body #service-plan-spacer, #body #service-plan-spacer td {
+	height: 0px;
+}
+#body #service-plan-spacer:nth-child(4) td {
+	height: 10em;
+}
+#body #service-plan-spacer:nth-child(5) td {
+	height: 8em;
+}
+#body #service-plan-spacer:nth-child(6) td {
+	height: 6em;
+}
+#body #service-plan-spacer:nth-child(7) td {
+	height: 4em;
+}
+#body #service-plan-spacer:nth-child(8) td {
+	height: 2em;
 }
 
 #service-plan textarea.unfocused, #service-plan input.unfocused {
@@ -2196,20 +2223,38 @@ td.run-sheet-comments * {
 	padding-top: 0px;
 }
 
+#service-comps, #service-comps .tab-pane {
+	height: 70vh;
+}
+
 #service-comps {
 	margin-bottom: 20px;
-	min-height: 77vh;
+	overflow: hidden;
+}
+
+#service-comps .tab-pane {
+	padding-right: 5px;
+	container-type: size; /* allows us to use the cqh unit within */
+	overflow: hidden;
+	box-sizing: border-box;
+}
+#service-comps .comps-table-container {
+	height: 99cqh;
+	overflow: auto;
 }
 
 #service-comps th {
 	padding-right: 18px;
 }
 
-#service-comps .tab-pane {
-	max-height: 75vh;
-	padding-right: 5px;
+#service-comps table {
+   margin-bottom: 0px;
 }
 
+#service-plan thead, #service-comps table thead {
+	position: sticky;
+	top: 0;
+}
 #service-comps th .icon-arrow-up, #service-comps th .icon-arrow-down {
 	float: right;
 	position: absolute;
