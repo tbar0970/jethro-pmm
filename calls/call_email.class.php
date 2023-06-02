@@ -128,11 +128,12 @@ class Call_email extends Call
 			$sep = defined('MULTI_EMAIL_SEPARATOR') ? MULTI_EMAIL_SEPARATOR : ',';
 			$set = implode($sep, $emails);
 			?>
-			<p>Copy the addresses below and paste into your email client. (There are too many for a link.)<br />Remember it's wise to use BCC for large group emails.</p>
-			<div class="input-append textbox-copier">
-				<input readonly="readonly" style="cursor: pointer; width: 60ex" type="text" value="<?php echo ents($set); ?>" />
-				<input class="btn" type="button" value="Copy" />
-			</div>
+			<form><p>Copy the addresses below and paste into your email client. (There are too many for a link.)<br />Remember it's wise to use BCC for large group emails.</p>
+			<p class="input-append">
+				<input type="text" id="emails" readonly="readonly" autoselect="autoselect" style="width: 60ex" value="<?php echo ents($set); ?>" />
+				<button input class="btn" type="button" data-action="copy" data-target="#emails">Copy</button>
+			</p>
+			</form>
 			<?php
 		}
 		if (count($archived) || count($blanks)) echo '<hr />';
@@ -143,8 +144,8 @@ class Call_email extends Call
 	private function printPopup($emails, $archived, $blanks)
 	{
 		$public = array_get($_REQUEST, 'method') == 'public';
-		?>
-		<html>
+		?><!DOCTYPE html>
+		<html lang="en">
 			<head>
 				<?php include 'templates/head.template.php'; ?>
 

@@ -352,16 +352,9 @@ $(document).ready(function() {
 		this.href="javascript:document.getElementById('"+pform.attr('id')+"').submit()";
 	});
 
+	// This is used only by the component library page.
+	// That page could be reworked and this feature removed
 	TBLib.anchorBottom('.anchor-bottom');
-
-	$(document).on('click', '.textbox-copier', function() {
-		var box = $(this).find('input[type=text]');
-		box.select();
-		document.execCommand("copy");
-		$('#copy-success').remove();
-		$(this).after('&nbsp;<span id="copy-success" class="label label-success">✔ Copied</span>');
-
-	});
 
 	$('a[target="_append"]').click(function() {
 		 $.get(this.href, function(data) {
@@ -372,21 +365,43 @@ $(document).ready(function() {
 	
 	$("[data-action=copy-tsv]").click(function() {
 		var link = this;
+		var oldLabel = this.innerHTML;
 		TBLib.copyTSV($(this).parents('table:first').get(0)).then(function() {
 			link.innerHTML = '✔ Copied';
+			setTimeout(function() {
+				link.innerHTML = oldLabel;
+			}, 2000);
 		});
 	});
 	$("[data-action=copy-table]").click(function() {
 		var link = this;
+		var oldLabel = this.innerHTML;
 		TBLib.copyTable($(this).parents('table:first').get(0)).then(function() {
 			link.innerHTML = '✔ Copied';
+			setTimeout(function() {
+				link.innerHTML = oldLabel;
+			}, 2000);
 		});
 	});
 
 	$("[data-action=copy]").click(function() {
-		var t = $($(this).attr('data-target')).get(0).innerText;
+		var target = $($(this).attr('data-target'));
+		var t = '';
+		if (target.is('input, textarea')) {
+			t = target.attr('value');
+			target.get(0).select();
+		} else {
+			t = target.get(0).innerText;
+		}
 		if (navigator.clipboard.writeText(t)) {
-			if (this.innerHTML.substr(-1) != '✔') this.innerHTML += ' ✔';
+			var oldLink = this;
+			var oldLabel = this.innerHTML;
+			this.innerHTML = '✔ Copied';
+			setTimeout(function() {
+				oldLink.innerHTML = oldLabel;
+			}, 2000);
+		} else {
+			alert("Sorry, browser settings do not allow copying");
 		}
 		return false;
 	});

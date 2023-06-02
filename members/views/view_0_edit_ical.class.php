@@ -47,7 +47,10 @@ class View__Edit_Ical extends View
 			$url = BASE_URL.'public/?call=roster_ical&uuid='.rawurlencode($uuid);
 			?>
 			<p>Your personalised roster assignments iCal feed is available at <br />
-				<a href="<?php echo $url; ?>" target="_blank"><?php echo $url; ?></a></p>
+				<span class="input-append"><input id="ical-url" type="text" class="span8" autoselect="autoselect" readonly="readonly" value="<?php echo $url; ?>" />
+				<button type="button" class="btn" data-action="copy" data-target="#ical-url">Copy</button>
+				</span>
+			</p>
 
 			<p>To use the feed, enter this URL into Google Calendar, Microsoft Outlook, Apple iCal or another calendar tool which supports the iCalendar format.</p>
 
