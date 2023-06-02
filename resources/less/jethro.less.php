@@ -607,6 +607,12 @@ form.min {
 	height: 14px;
 	width: 14px;
 }
+.icon-rss {
+	background: url(../img/rss-icon.svg) no-repeat !important;
+	background-size: cover;
+	height: 14px;
+	width: 14px;
+}
 #body .btn-mini [class*="icon-"] {
 	padding-right: 0px !important;
 }
