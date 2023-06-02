@@ -150,87 +150,16 @@ $(document).ready(function() {
 	/************************ SEARCH CHOOSERS ************************/
 
 	$('input.person-search-multiple').each(function() {
-		var stem = this.id.substr(0, this.id.length-6);
-		var baseScript = '?call=find_person_json';
-		for (var j=0; j < this.attributes.length; j++) {
-			if (this.attributes[j].nodeName.substr(0,5) == 'data-') {
-				baseScript += '&'+this.attributes[j].nodeName.substr(5)+'='+this.attributes[j].nodeValue
-			}
-		}
-		var options = {
-			script: baseScript+'&',
-			varname: "search",
-			json: true,
-			maxresults: 10,
-			delay: 300,
-			cache: false,
-			timeout: -1,
-			callback: function(item) {
-						var myInput = document.getElementById(stem+'-input');
-						if (item.id != 0) {
-							$(document.getElementById(stem+'-list')).append('<li><div class=\"delete-list-item\" title=\"Remove this item\" onclick=\"deletePersonChooserListItem(this);\" />'+item.value+'<input type=\"hidden\" name=\"'+stem+'[]\" value=\"'+item.id+'\" /></li>');
-						} else {
-							$(myInput).addClass('error');
-							setTimeout(function() { $(myInput).removeClass('error'); }, 1000);
-						}
-						if (typeof myInput.onchange == 'function') myInput.onchange();
-						myInput.value = '';
-						myInput.focus();			
-					  }
-			
-		};
-		var as = new bsn.AutoSuggest(this.id, options);
+		JethroSearchChooserMulti.init(this);
 	});
 
 	$('input.person-search-single, input.family-search-single').each(function() {
-		var stem = this.id.substr(0, this.id.length-6);
-		var baseScript = $(this).hasClass('person-search-single') ? "?call=find_person_json" : "?call=find_family_json";
-		for (var j=0; j < this.attributes.length; j++) {
-			if (this.attributes[j].nodeName.substr(0,5) == 'data-') {
-				baseScript += '&'+this.attributes[j].nodeName.substr(5)+'='+this.attributes[j].nodeValue
-			}
-		}
-		var options = {
-			script: baseScript+'&',
-			varname: "search",
-			json: true,
-			maxresults: 10,
-			delay: 300,
-			cache: false,
-			timeout: -1,
-			callback: function(item) {
-							var myInput = document.getElementById(stem+'-input');
-							myInput.transition = true;
-							if (item.id != 0) {
-								document.getElementsByName(stem)[0].value = item.id;
-								if (typeof myInput.onchange == 'function') myInput.onchange();
-								myInput.value = item.value+' (#'+item.id+')';
-								myInput.select();
-								myInput.oldValue = myInput.value;
-							} else {
-								$(myInput).addClass('error');
-								setTimeout(function() { $(myInput).removeClass('error'); }, 1000);								
-								myInput.select();
-								myInput.value = myInput.oldValue;
-							}
-							return false;
-						}
-		};
-		var as = new bsn.AutoSuggest(this.id, options);
+		JethroSearchChooserSingle.init(this);
 	}).focus(function() {
 		this.select();
-		// Yuck: Because BSN autosugest puts the person's name in the textbox
-		// itself, independely of the callback function above, we need to 
-		// only save values that include hashes (as in T Barrett (#01)).
-		if (this.value.indexOf('#') != -1) this.oldValue = this.value;
 	}).blur(function() {
-		if (this.value == '') {
-			document.getElementsByName(this.id.substr(0, this.id.length-6))[0].value = 0;
-		} else if ((this.value != this.oldValue) && (this.oldValue)) {
-			this.value = this.oldValue;
-		}
+		JethroSearchChooserSingle.handleBlur(this);
 	});
-
 
 	/******************* DOCUMENT REPOSITORY ************************/
 
@@ -537,6 +466,121 @@ $(document).ready(function() {
 		if (this.value == '__NEW__') $('#merge-template-upload input[type=file]').click();
 	})
 });
+
+
+
+/*** SEARCH CHOOSERS ****/
+
+var JethroSearchChooserMulti = {};
+
+JethroSearchChooserMulti._getScriptURL = function(inputBox) {
+	var baseScript = '?call=find_person_json';
+	for (var j=0; j < inputBox.attributes.length; j++) {
+		if (inputBox.attributes[j].nodeName.substr(0,5) == 'data-') {
+			baseScript += '&'+inputBox.attributes[j].nodeName.substr(5)+'='+inputBox.attributes[j].nodeValue
+		}
+	}
+	return baseScript+'&';
+}
+
+JethroSearchChooserMulti.init = function(inputBox) {
+	var stem = inputBox.id.substr(0, inputBox.id.length-6);
+
+	var options = {
+		script: JethroSearchChooserMulti._getScriptURL(inputBox),
+		varname: "search",
+		json: true,
+		maxresults: 10,
+		delay: 300,
+		cache: false,
+		timeout: -1,
+		callback: function(item) {
+					var myInput = document.getElementById(stem+'-input');
+					if (item.id != 0) {
+						$(document.getElementById(stem+'-list')).append('<li><div class=\"delete-list-item\" title=\"Remove inputBox item\" onclick=\"deletePersonChooserListItem(inputBox);\" />'+item.value+'<input type=\"hidden\" name=\"'+stem+'[]\" value=\"'+item.id+'\" /></li>');
+					} else {
+						$(myInput).addClass('error');
+						setTimeout(function() { $(myInput).removeClass('error'); }, 1000);
+					}
+					if (typeof myInput.onchange == 'function') myInput.onchange();
+					myInput.value = '';
+					myInput.focus();
+				  }
+
+	};
+	inputBox.as = new bsn.AutoSuggest(inputBox.id, options);
+}
+
+JethroSearchChooserMulti.reinit = function(inputBox) {
+	inputBox.as.oP.script = JethroSearchChooserMulti._getScriptURL(inputBox);
+}
+
+
+
+var JethroSearchChooserSingle = {};
+
+JethroSearchChooserSingle._getScriptURL = function(inputBox) {
+	var baseScript = $(inputBox).hasClass('person-search-single') ? "?call=find_person_json" : "?call=find_family_json";
+	for (var j=0; j < inputBox.attributes.length; j++) {
+		if (inputBox.attributes[j].nodeName.substr(0,5) == 'data-') {
+			baseScript += '&'+inputBox.attributes[j].nodeName.substr(5)+'='+inputBox.attributes[j].nodeValue
+		}
+	}
+	return baseScript+'&';
+}
+
+JethroSearchChooserSingle.init = function(inputBox) {
+	var stem = inputBox.id.substr(0, inputBox.id.length-6);
+	var options = {
+		script: JethroSearchChooserSingle._getScriptURL(inputBox),
+		varname: "search",
+		json: true,
+		maxresults: 10,
+		delay: 300,
+		cache: false,
+		timeout: -1,
+		callback: function(item) {
+						var myInput = document.getElementById(stem+'-input');
+						myInput.transition = true;
+						if (item.id != 0) {
+							document.getElementsByName(stem)[0].value = item.id;
+							if (typeof myInput.onchange == 'function') myInput.onchange();
+							myInput.value = item.value+' (#'+item.id+')';
+							myInput.select();
+							myInput.oldValue = myInput.value;
+						} else {
+							myInput.value = '';
+							if (myInput.oldValue) {
+								myInput.value = myInput.oldValue;
+							}
+							myInput.select();
+						}
+						return false;
+					}
+	};
+	inputBox.oldValue = inputBox.value;
+	inputBox.as = new bsn.AutoSuggest(inputBox.id, options);
+
+}
+
+JethroSearchChooserSingle.handleBlur = function(inputBox) {
+	if (inputBox.value == '') {
+		document.getElementsByName(inputBox.id.substr(0, inputBox.id.length-6))[0].value = 0;
+	} else {
+		inputBox.value = inputBox.oldValue;
+	}
+	inputBox.as.clearSuggestions();
+}
+
+/**
+ * Used to refresh the AJAX-call URL based on the params of the input box element.
+ */
+JethroSearchChooserSingle.reinit = function(inputBox) {
+	inputBox.as.oP.script = JethroSearchChooserSingle._getScriptURL(inputBox);
+}
+
+
+/************* SMS ****************/
 
 var JethroSMS = {};
 
@@ -1236,6 +1280,9 @@ JethroRoster.init = function() {
 			$opt = $(this.options[this.selectedIndex]);
 			if ($opt.hasClass('other')) {
 				JethroRoster.CUSTOM_ASSIGNEE_TARGET = this;
+				var thisDate = this.name.substr(-11, 10);
+				$('#choose-assignee-modal #personid-input').attr('data-show-absence-date', thisDate);
+				JethroSearchChooserSingle.reinit($('#choose-assignee-modal #personid-input').get(0));
 				$('#choose-assignee-modal').modal({});
 			}
 	});
