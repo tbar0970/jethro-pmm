@@ -232,10 +232,12 @@ class Installer
 			(@rank:=@rank+5, 'Member area',              'MEMBER_LOGIN_ENABLED','Should church members be able to log in at <system_url>members ?','bool','0'),
 			(@rank:=@rank+5, '',                         'MEMBER_REGO_EMAIL_FROM_NAME','Sender name for member rego emails','text',''),
 			(@rank:=@rank+5, '',                         'MEMBER_REGO_EMAIL_FROM_ADDRESS','Sender address for member rego emails','text',''),
-			(@rank:=@rank+5, '',                         'MEMBER_REGO_EMAIL_SUBJECT','Subject for member rego emails','text',''),
+			(@rank:=@rank+5, '',                         'MEMBER_REGO_EMAIL_SUBJECT','Subject for member rego emails','text','Setting up your account'),
 			(@rank:=@rank+5, '',                         'MEMBER_REGO_HELP_EMAIL', 'Address that users can contact for assistance with member rego (optional)', 'text', ''),			(@rank:=@rank+5, '',                         'MEMBER_REGO_FAILURE_EMAIL','Address to notifiy when member rego fails','text',''),
 			(@rank:=@rank+5, '',                         'MEMBER_PASSWORD_MIN_LENGTH','Minimum length for member passwords','int','7'),
 			(@rank:=@rank+5, '',                         'MEMBERS_SHARE_ADDRESS','Should addresses be visible in the members area?','bool','0'),
+
+			(@rank:=@rank+5, 'iCal feeds',               'ROSTER_FEEDS_ENABLED','Whether users can access their roster assignments via an ical feed with secret URL', 'bool', 1),
 
 			(@rank:=@rank+5, 'Public area',              'PUBLIC_AREA_ENABLED','Whether to allow public access to certain info at <system_url>public','bool',''),
 			(@rank:=@rank+5, '',						  'SHOW_SERVICE_NOTES_PUBLICLY','Should service notes be visible in the public area at <system_url>public?','bool',''),

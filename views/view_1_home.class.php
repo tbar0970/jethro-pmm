@@ -25,7 +25,7 @@ class View_Home extends View
 				   href="javascript:if (sp = prompt('Search <?php echo SYSTEM_NAME; ?> for: ')) window.location='<?php echo BASE_URL; ?>?view=_mixed_search&search='+sp"
 				   onclick="prompt('To create a search-jethro button in your browser, save the following code as a bookmark/favourite: ', this.href); return false"
 				>
-					<i class="icon-bookmark"></i><small class="hidden-phone">Bookmark</small>
+					<small class="hidden-phone"><i class="icon-bookmark"></i>Bookmark</small>
 				</a>
 				<?php echo _('System-Wide Search');?>
 			</h3>
@@ -93,7 +93,13 @@ class View_Home extends View
 			?>
 			<div class="homepage-box my-roster">
 				<h3>
-					<a href="?view=_manage_ical" class="pull-right"><i class="icon-bookmark"></i><small class="hidden-phone">Subscribe</small></a>
+				<?php
+				if (ifdef('ROSTER_FEEDS_ENABLED', 0)) {
+					?>
+					<a href="?view=_manage_ical" class="pull-right"><small><i class="icon-rss"></i><span class="hidden-phone">Subscribe</span></small></a>
+					<?php
+				}
+				?>
 					Upcoming roster
 				</h3>
 				<?php

@@ -3,6 +3,13 @@ class Call_Roster_Ical extends Call
 {
 	function run()
 	{
+
+		if (ifdef('ROSTER_FEEDS_ENABLED', 0) == 0) {
+			header("HTTP/1.0 403 Forbidden");
+			?><p>Roster feeds are not enabled on this system</p><?php
+			exit;
+		}
+		
 		if (empty($_REQUEST['uuid'])) {
 			header("HTTP/1.0 400 Bad request");
 			?><p>UUID not specified</p><?php

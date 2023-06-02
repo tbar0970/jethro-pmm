@@ -31,7 +31,13 @@ class View_Home extends View
 			?>
 			<div class="member-homepage-box">
 			<h3>
-				<a class="pull-right" href="?view=_edit_ical"><small><i class="icon-calendar"></i>Subscribe</small></a>
+				<?php
+				if (ifdef('ROSTER_FEEDS_ENABLED', 0)) {
+					?>
+					<a href="?view=_edit_ical" class="pull-right"><small><i class="icon-rss"></i><span class="hidden-phone">Subscribe</span></small></a>
+					<?php
+				}
+				?>
 				My Roster &nbsp;
 			</h3>
 			<?php

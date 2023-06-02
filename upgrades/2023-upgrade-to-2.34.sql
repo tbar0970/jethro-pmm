@@ -21,4 +21,8 @@ WHERE
         OR
         /* person is within a permitted group */
         (`p`.`id` in (select `m`.`personid` AS `personid` from (`person_group_membership` `m` join `account_group_restriction` `gr` on((`m`.`groupid` = `gr`.`groupid`))) where (`gr`.`personid` = `getCurrentUserID`())))
-    )
+    );
+
+INSERT INTO setting (rank, heading, symbol, note, type, value)
+SELECT rank-1, 'iCal Feeds', 'ROSTER_FEEDS_ENABLED', 'Whether users can access their roster assignments via an ical feed with secret URL', 'bool', 1
+FROM setting WHERE symbol = 'PUBLIC_AREA_ENABLED';
