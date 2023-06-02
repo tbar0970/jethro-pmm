@@ -52,10 +52,6 @@ class View_Admin__Import extends View
 
 	private function _printBeginView()
 	{
-		if (!($GLOBALS['system']->getDBObjectData('person_group'))) {
-			print_message(_('You must create a group to import into before you can import persons.  See Groups > Add.'));
-			return;
-		}
 		$text = _('This page allows you to import persons, families, groups and notes from a spreadsheet file containing one person per row.  You can upload a CSV file or paste tab-separated text.
 			The data must be formatted like this sample file.  (Correct column headers are important, but column order is flexible). 
 			Jethro treats successive rows as members of the same family, unless (a) the family name or family details are different or (b) there is a blank row in between.
