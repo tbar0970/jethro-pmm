@@ -600,8 +600,25 @@ class db_object
 
 	public function readyToCreate()
 	{
-		return $this->validateFields();
+		if (!$this->validateFields()) return FALSE;
 
+		// Check for unique key violations
+		foreach ($this->_getUniqueKeys() as $name => $cols) {
+			$params = Array();
+			foreach ($cols as $col) {
+				$params[$col] = $this->getValue($col);
+			}
+			if ($this->getInstancesData($params, 'AND')) {
+				$msgs = Array();
+				foreach ($params as $k => $v) {
+					$msgs[] = $this->getFieldLabel($k).' = '.$this->getFormattedValue($k);
+				}
+				trigger_error("There is already a ".get_class($this)." with ".implode(' and ', $msgs));
+				return FALSE;
+			}
+		}
+
+		return TRUE;
 	}
 
 

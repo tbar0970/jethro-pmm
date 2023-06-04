@@ -128,7 +128,10 @@ class View_Services__List_All extends View
 					$service->setValue('date', $date);
 					$service->setValue('congregationid', $congid);
 					$this->_processServiceCell($congid, $date, $service);
-					$service->create();
+
+					if (!$service->create()) {
+						add_message('New '.$service->toString().' could not be created', 'error');
+					}
 				}
 			}
 		}
@@ -144,7 +147,9 @@ class View_Services__List_All extends View
 					$service->setValue('date', process_widget('new_service_date['.$i.']', Array('type' => 'date')));
 					$service->setValue('congregationid', $congid);
 					$this->_processServiceCell($congid, 'new_'.$i, $service);
-					$service->create();
+					if (!$service->create()) {
+						add_message('New '.$service->toString().' could not be created', 'error');
+					}
 				}
 			}
 			$i++;
