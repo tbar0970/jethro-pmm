@@ -248,13 +248,13 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 				</div>
 			</div>
 		<?php
-		if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE) && strlen(ifdef('SMS_SAVE_TO_NOTE_SUBJECT', ''))) {
+		if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
 			?>
 			<div class="control-group">
 				<label class="control-label">After sending:</label>
 				<div class="controls">
 				  <label class="checkbox">
-					<input type="checkbox" name="saveasnote" accesskey="n" <?php if (ifdef('SMS_SAVE_TO_NOTE_BY_DEFAULT')) { echo 'checked="checked"'; } ?>  />
+					<input type="checkbox" name="saveasnote" <?php if (ifdef('SMS_SAVE_TO_NOTE_BY_DEFAULT')) { echo 'checked="checked"'; } ?>  />
 					save as note
 				  </label>
 				</div>

@@ -297,7 +297,7 @@ Class SMS_Sender
 				<div contenteditable="true" autofocus="autofocus" id="sms_message" class="sms_editor" data-maxlength="<?php echo SMS_MAX_LENGTH; ?>"></div>
 				<span class="pull-right smscharactercount"><?php echo SMS_MAX_LENGTH; ?> characters remaining.</span>
 			<?php
-			if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
+			if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE) && defined('SMS_SAVE_TO_NOTE_SUBJECT')) {
 				?>
 				<label class="checkbox">
 					<?php
@@ -327,7 +327,8 @@ Class SMS_Sender
 	private static function saveAsNote($recipients, $message)
 	{
 		$GLOBALS['system']->includeDBClass('person_note');
-		$subject = ifdef('SMS_SAVE_TO_NOTE_SUBJECT', 'SMS Sent');
+		$subject = ifdef('SMS_SAVE_TO_NOTE_SUBJECT', '');
+		if (!strlen($subject)) $subject = 'SMS Sent';
 		foreach ($recipients as $id => $details) {
 			// Add a note containing the SMS to the user
 			$note = new Person_Note();

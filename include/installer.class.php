@@ -275,7 +275,7 @@ class Installer
 			(@rank:=@rank+5, '',                         'SMS_LOCAL_PREFIX','Used for converting local to international numbers.  eg 0','text',''),
 			(@rank:=@rank+5, '',                         'SMS_INTERNATIONAL_PREFIX','Used for converting local to international numbers. eg +61','text',''),
 			(@rank:=@rank+5, '',                         'SMS_SAVE_TO_NOTE_BY_DEFAULT','Whether to save each sent SMS as a person note by default','bool',''),
-			(@rank:=@rank+5, '',                         'SMS_SAVE_TO_NOTE_SUBJECT','','text',''),
+			(@rank:=@rank+5, '',                         'SMS_SAVE_TO_NOTE_SUBJECT','','text','SMS Sent'),
 			(@rank:=@rank+5, '',                         'SMS_SEND_LOGFILE','File on the server to save a log of sent SMS messages','text','');"
 		);
 		foreach ($sql as $s) {
