@@ -96,48 +96,66 @@ class View_Rosters__Display_Roster_Assignments extends View
 			</form>
 			<?php
 			if ($viewid) {
-				?>
-				<p class="no-print">
-				<?php
 				if (!$this->_editing) {
-					echo '<a href="?call=email&print_modal=1&roster_view='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'" target="_append"><i class="icon-email">@</i>Email all assignees</a> &nbsp; ';
-					echo '<a target="print-roster" class="med-newwin" href="'.BASE_URL.'?call=display_roster&viewid='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'"><i class="icon-print"></i>Show printable version</a> &nbsp; ';
+					echo '<div class="no-print margin-below">';
+					echo '<a target="print-roster" class="med-newwin nowrap" href="'.BASE_URL.'?call=display_roster&viewid='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'"><i class="icon-print"></i>Show printable version</a> &nbsp; ';
+					echo '<a href="?call=email&print_modal=1&roster_view='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'" target="_append" class="nowrap"><i class="icon-email">@</i>Email all assignees</a> &nbsp; ';
+
+					if (SMS_Sender::canSend()) {
+						$assignees = $this->_view->getAssignees($this->_start_date, $this->_end_date);
+						echo '<a  class="nowrap" href="#send-sms-modal" data-personid="'.implode(',', array_keys($assignees)).'" data-toggle="sms-modal" data-name="'.count($assignees).' assignees in '.ents($this->_view->getValue('name')).'"><i class="icon-envelope"></i>SMS all assignees</a> &nbsp; ' ;
+
+					}
 					if ($this->_view->getValue('visibility') != '') {
-						echo '<a target="_rosterview" href="'.BASE_URL.'members/?view=rosters&roster_view='.$this->_view->id.'"><i class="icon-share"></i>View in members area</a> &nbsp; ';
+						echo '<a target="_rosterview"  class="nowrap" href="'.BASE_URL.'members/?view=rosters&roster_view='.$this->_view->id.'"><i class="icon-share"></i>View in members area</a> &nbsp; ';
 					}
 					if ($this->_view->getValue('visibility') == 'public') {
 						$url = BASE_URL.'public/?view=display_roster&roster_view='.$this->_view->id;
 						if (PUBLIC_ROSTER_SECRET) $url .= '&secret='.PUBLIC_ROSTER_SECRET;
-						echo '<a target="_rosterview" href="'.$url.'"><i class="icon-share"></i>View in public site</a> &nbsp; ';
+						echo '<a  class="nowrap" target="_rosterview" href="'.$url.'"><i class="icon-share"></i>View in public site</a> &nbsp; ';
 					}
-					echo '<a href="?call=roster_csv&roster_view='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'" ><i class="icon-download-alt"></i>Download CSV</a> &nbsp; ';
+				
+					require_once 'size_detector.class.php';
+					if (!SizeDetector::isNarrow()) {
+						?>
+						<span class="dropdown">
+							<a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-chevron-down"></i>Download...</a>
+							<ul class="dropdown-menu" role="menu">
+								<li><?php echo '<a href="?call=roster_csv&roster_view='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'" ><i class="icon-download-alt"></i>Download CSV</a>'; ?></li>
+								<li><a href="#merge-modal" data-toggle="modal" data-target="#merge-modal" ><i class="icon-download-alt"></i>Merge a document...</a></li>
+							</ul>
+						</span>
+						<?php
+					}
+					echo '</div>';
 
-					?>
-					<a href="#merge-modal" data-toggle="modal" data-target="#merge-modal" ><i class="icon-download-alt"></i>Merge a document...</a>
 
-					<div id="merge-modal" class="modal sms-modal hide fade" role="dialog" aria-hidden="true">
-						<form onsubmit="$('#merge-modal').modal('hide')" action="?call=document_merge_rosters" method="post" enctype="multipart/form-data">
-						<div class="modal-header">
-							<h4>Mail merge a document from this roster</h4>
+					if (!SizeDetector::isNarrow()) {
+						?>
+						<div id="merge-modal" class="modal sms-modal hide fade" role="dialog" aria-hidden="true">
+							<form onsubmit="$('#merge-modal').modal('hide')" action="?call=document_merge_rosters" method="post" enctype="multipart/form-data">
+							<div class="modal-header">
+								<h4>Mail merge a document from this roster</h4>
+							</div>
+							<div class="modal-body">
+								<?php
+								echo _('Source Document').':';
+								print_hidden_field('roster_view', $viewid);
+								print_hidden_field('roster_view_name', $this->_view->getValue('name'));
+								print_hidden_field('start_date', $this->_start_date);
+								print_hidden_field('end_date', $this->_end_date);
+								?>
+								<input class="compulsory" type="file" name="source_document" />
+								<span class="smallprint"><a target="roster-merge-help" class="med-newwin" href="<?php echo BASE_URL; ?>index.php?call=document_merge_help"><i class="icon-print"></i>Help and examples</a><br></span>
+							</div>
+							<div class="modal-footer">
+								<input type="submit" class="btn" value="Go" />
+								<input type="button" class="btn" data-dismiss="modal" value="Cancel" />
+							</div>
+							</form>
 						</div>
-						<div class="modal-body">
-							<?php
-							echo _('Source Document').':';
-							print_hidden_field('roster_view', $viewid);
-							print_hidden_field('roster_view_name', $this->_view->getValue('name'));
-							print_hidden_field('start_date', $this->_start_date);
-							print_hidden_field('end_date', $this->_end_date);
-							?>
-							<input class="compulsory" type="file" name="source_document" />
-							<span class="smallprint"><a target="roster-merge-help" class="med-newwin" href="<?php echo BASE_URL; ?>index.php?call=document_merge_help"><i class="icon-print"></i>Help and examples</a><br></span>
-						</div>
-						<div class="modal-footer">
-							<input type="submit" class="btn" value="Go" />
-							<input type="button" class="btn" data-dismiss="modal" value="Cancel" />
-						</div>
-						</form>
-					</div>
-				<?php
+					<?php
+				}
 			}
 		}
 	}

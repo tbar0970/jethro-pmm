@@ -402,11 +402,11 @@ class roster_view extends db_object
 		if (empty($roleids)) return Array();
 		if (is_null($start_date)) $start_date = date('Y-m-d');
 		if (is_null($end_date)) $end_date = date('Y-m-d', strtotime('+1 year'));
-		$sql = 'SELECT person.*
+		$sql = 'SELECT person.id, person.first_name, person.last_name, person.email, person.mobile_tel
 				FROM roster_role_assignment rr JOIN person ON rr.personid = person.id
 				WHERE roster_role_id IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $roleids)).')
 				AND assignment_date BETWEEN '.$GLOBALS['db']->quote($start_date).' AND '.$GLOBALS['db']->quote($end_date);
-		$rows = $GLOBALS['db']->queryAll($sql);
+		$rows = $GLOBALS['db']->queryAll($sql, null, null, TRUE);
 		return $rows;
 	}
 

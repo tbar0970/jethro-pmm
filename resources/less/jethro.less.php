@@ -870,6 +870,9 @@ input.btn-link, button.btn-link {
 .indent-left {
 	margin-left: 40px;
 }
+.margin-below {
+	margin-bottom: 10px;
+}
 @media (max-width: 480px) {
 	.indent-left {
 		margin-left: 15px;
