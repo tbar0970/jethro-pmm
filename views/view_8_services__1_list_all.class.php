@@ -320,7 +320,7 @@ class View_Services__List_All extends View
 				$last_cong = count($this->_congregations) -1;
 				foreach ($this->_grouped_services as $date => $services) {
 					?>
-					<tr<?php if ($date == date('Y-m-d', strtotime('Sunday'))) echo ' class="tblib-hover"'; ?>>
+					<tr<?php if ($date == date('Y-m-d', strtotime('Sunday'))) echo ' class="roster-next"'; ?>>
 						<td class="nowrap center narrow"><strong><?php echo date('j M y', strtotime($date)); ?></strong></td>
 					<?php
 					foreach ($this->_congregations as $i => $congid) {
