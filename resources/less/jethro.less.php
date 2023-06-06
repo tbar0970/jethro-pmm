@@ -1475,10 +1475,11 @@ ul.nav-tabs {
 	position: sticky;
 	left: 0;
 	z-index: 1;
+	white-space: nowrap;
 }
 #body table.roster th.roster-date .smallprint {
 	font-weight: normal;
-	text-align: center;
+	line-height: 1.0;
 }
 #body table.roster a {
 	white-space: nowrap;
@@ -1544,6 +1545,40 @@ table.service-program td.right-tools, table.service-program td.service  {
 	width: 11ex;
 }
 
+#body table.service-program .pull-right {
+	padding-right: 0px;
+	margin-left: 5px;
+}
+
+/* service details in services-list-all and within rosters */
+/* these styles are replicated in call_display_roster.class.php */
+#body table.roster p {
+	line-height: 1.0;
+	margin: 1.5px 0px;
+	padding: 1px;
+	max-width: 20em;
+}
+#body table.roster p.title {
+	font-style: italic;
+	font-size: 105%;
+}
+#body table.roster p.bible {
+	color: @jethroLinkColor;
+	font-weight: 400;
+}
+#body table.roster p.bible strong {
+	color: @jethroLinkColor;
+	font-weight: 800;
+}
+#body table.roster p.notes {
+	font-size: 80%;
+	color: #666;
+	font-style: italic;
+}
+
+
+
+/* service-details is for edit mode */
 table.service-details td, table.service-details th {
 	background: none !important;
 	padding: 1px 2px !important;

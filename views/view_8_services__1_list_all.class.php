@@ -321,7 +321,7 @@ class View_Services__List_All extends View
 				foreach ($this->_grouped_services as $date => $services) {
 					?>
 					<tr<?php if ($date == date('Y-m-d', strtotime('Sunday'))) echo ' class="roster-next"'; ?>>
-						<td class="nowrap center narrow"><strong><?php echo date('j M y', strtotime($date)); ?></strong></td>
+						<th class="roster-date"><?php echo date('j M y', strtotime($date)); ?></th>
 					<?php
 					foreach ($this->_congregations as $i => $congid) {
 						?>
@@ -451,7 +451,7 @@ class View_Services__List_All extends View
 			<?php
 		}
 		$this->_dummy_service->populate($data['id'], $data);
-		$this->_dummy_service->printFieldValue('summary');
+		$this->_dummy_service->printFieldValue('summary_nolinks');
 
 	}
 

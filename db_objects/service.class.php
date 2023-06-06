@@ -258,7 +258,7 @@ class service extends db_object
 					$entry = $br->toShortString();
 					if (!$reading['to_read']) $entry = '('.$entry.')';
 					if ($reading['to_preach']) $entry = '<strong>'.$entry.'</strong>';
-					$res[] = $entry;
+					$res[] = '<span class="nowrap">'.$entry.'</span>';
 				}
 				return implode(', ', $res);
 				break;
@@ -325,8 +325,29 @@ class service extends db_object
 				break;
 
 			case 'summary':
+			case 'summary_nolinks':
+				if (strlen($this->values['topic_title'])) {
+					echo '<p class="title">'.ents($this->values['topic_title']).'</p>';
+				}
+				if ($this->getRawBibleReadings()) {
+					echo '<p class="bible">';
+					if ($fieldname == 'summary_nolinks') {
+						echo $this->getFormattedValue('bible_all');
+					} else {
+						$this->printFieldValue('bible_all');
+					}
+					echo '</p>';
+				}
+				if (strlen($this->values['format_title'])) {
+					echo '<p class="format">'.ents($this->values['format_title']).'</p>';
+				}
+				if (!empty($this->values['notes'])) {
+					echo '<p class="notes">'.nl2br(ents($this->values['notes'])).'</p>';
+				}
+				break;
+
 			case 'summary_inline':
-				$separator = $fieldname == 'summary' ? '<br />' : '&nbsp; &bull; &nbsp;';
+				$separator = '&nbsp; &bull; &nbsp;';
 				$bits = Array();
 				if (strlen($this->values['topic_title'])) {
 					$bits[] = '<i>'.ents($this->values['topic_title']).'</i>';

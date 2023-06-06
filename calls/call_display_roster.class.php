@@ -37,6 +37,7 @@ class Call_Display_Roster extends Call
 					td, th {
 						padding: 3px 1ex;
 						font-size: 0.8em;
+						vertical-align: top;
 					}
 					thead th {
 						background-color: #555;
@@ -55,9 +56,32 @@ class Call_Display_Roster extends Call
 					tbody .roster-date {
 						text-align: right;
 					}
+					#body table.roster p {
+						line-height: 1.0;
+						margin: 1.5px 0px;
+						padding: 1px;
+						max-width: 20em;
+					}
+					#body table.roster p.title {
+						font-style: italic;
+						font-size: 105%;
+					}
+					#body table.roster p.bible {
+						color: @jethroLinkColor;
+						font-weight: 400;
+					}
+					#body table.roster p.bible strong {
+						color: @jethroLinkColor;
+						font-weight: 800;
+					}
+					#body table.roster p.notes {
+						font-size: 80%;
+						color: #666;
+						font-style: italic;
+					}
 				</style>
 			</head>
-			<body>
+			<body id="body">
 				<h1>Roster: <?php $view->printFieldValue('name'); ?></h1>
 				<?php
 
