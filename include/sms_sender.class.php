@@ -279,7 +279,7 @@ Class SMS_Sender
 				error_log($json."\n", 3, $file);
 			}
 			$msg_trunc = strlen($message) > 30 ? substr($message, 0, 27) . '...' : $message;
-			$vals = Array(date('Y-m-d H:i'), $GLOBALS['user_system']->getCurrentUser('username'), $recip_count, strlen($message), $msg_trunc);
+			$vals = Array(date('c'), $GLOBALS['user_system']->getCurrentUser('username'), $recip_count, strlen($message), $msg_trunc);
 			$json = json_encode($vals);
 			error_log($json."\n", 3, $file);
 		}
