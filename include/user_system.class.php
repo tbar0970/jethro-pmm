@@ -35,20 +35,42 @@ class User_System extends Abstract_User_System
 			}
 			$user_details = $this->_findUser($_POST['username'], $_POST['password']);
 			if (is_null($user_details)) {
+				// No user found matching those credentials
 				$this->_error = 'Incorrect username or password';
+			} else if ($errs = self::getPasswordStrengthErrors($_POST['password'])) {
+				// Found a user, but thier  password does not meet the current strength requirements.
+				// Record their details but don't log them in.
+				$_SESSION['user_requiring_password_upgrade'] = $user_details;
+				$_SESSION['password_upgrade_key'] = generate_random_string(32);
+				$_SESSION['password_upgrade_expiry'] = time() + (60*5); // 5 mins to change password
+				return;
 			} else {
-				// Log the user in
-				// Recreate session when logging in
-				session_regenerate_id();
-				upgrade_session_cookie();
-				$_SESSION = Array();
-				$_SESSION['user'] = $user_details;
-				$_SESSION['login_time'] = time();
-				$_SESSION['last_activity_time'] = time();
-				include_once 'include/size_detector.class.php';
-				SizeDetector::processRequest();
+				// Found a user, all is good, do the business to make them the logged-in user.
+				$this->_logUserIn($user_details);
 			}
+		} else if (!empty($_SESSION['user_requiring_password_upgrade'])) {
+			// We are processing a password upgrade.
+			if ($_SESSION['password_upgrade_expiry'] < time()) {
+				unset($_SESSION['user_requiring_password_upgrade']);
+				return;
+			} else if (array_get($_POST, 'password_upgrade_key') != $_SESSION['password_upgrade_key']) {
+				unset($_SESSION['user_requiring_password_upgrade']);
+				return;
+			}
+			if (!empty($_POST['new_user_pw1'])) {
+				$hashed = Staff_Member::processPasswordField('new_');
+				if ($hashed) {
+					$this->_setUserPassword($_SESSION['user_requiring_password_upgrade']['id'], $hashed);
+					$this->_logUserIn($_SESSION['user_requiring_password_upgrade']);
+					add_message('Password updated');
+					unset($_SESSION['user_requiring_password_upgrade']);
+				}
+				// else we fall through to show the password-upgrade form again.
+			}
+
+
 		}
+
 		if (!empty($_SESSION['user'])) {
 			if (defined('SESSION_TIMEOUT_MINS') && constant('SESSION_TIMEOUT_MINS')) {
 				if ((time() - $_SESSION['last_activity_time']) / 60 > SESSION_TIMEOUT_MINS) {
@@ -72,6 +94,19 @@ class User_System extends Abstract_User_System
 
 	}//end constructor
 
+	private function _logUserIn($user_details)
+	{
+		// Recreate session when logging in
+		session_regenerate_id();
+		upgrade_session_cookie();
+		$_SESSION = Array();
+		$_SESSION['user'] = $user_details;
+		$_SESSION['login_time'] = time();
+		$_SESSION['last_activity_time'] = time();
+		include_once 'include/size_detector.class.php';
+		SizeDetector::processRequest();
+	}
+
 
 	public function setError($s)
 	{
@@ -85,6 +120,14 @@ class User_System extends Abstract_User_System
 		$_SESSION['user'] = NULL;
 		$_SESSION['login_time'] = NULL;
 		$_SESSION['last_activity_time'] = NULL;
+	}
+
+	private function _setUserPassword($userid, $hashed) {
+		$db = $GLOBALS['db'];
+		$SQL = 'UPDATE staff_member
+				SET password = '.$db->quote($hashed).'
+				WHERE id = '.(int)$userid;
+		return $db->exec($SQL);
 	}
 
 	/**
@@ -176,6 +219,19 @@ class User_System extends Abstract_User_System
 			trigger_error("This system has no user accounts - it has not been installed properly", E_USER_ERROR);
 			exit;
 		}
+
+		if (!empty($_SESSION['user_requiring_password_upgrade'])) {
+			if ($_SESSION['password_upgrade_expiry'] < time()) {
+				// took too long. Forget about them, and fall through to the login form again.
+				unset($_SESSION['user_requiring_password_upgrade']);
+			} else {
+				$password_upgrade_key = $_SESSION['password_upgrade_key'];
+				$person_name = $_SESSION['user_requiring_password_upgrade']['first_name'].' '.$_SESSION['user_requiring_password_upgrade']['last_name'];
+				require TEMPLATE_DIR.'/upgrade_password_form.template.php';
+				exit;
+			}
+		}
+
 		$_SESSION['login_key'] = $login_key = generate_random_string(32);
 		require TEMPLATE_DIR.'/login_form.template.php';
 
@@ -222,6 +278,23 @@ class User_System extends Abstract_User_System
 		if (!empty($GLOBALS['JETHRO_INSTALLING'])) return TRUE;
 		$res = $this->_findUser($this->getCurrentUser('username'), $password);
 		return ($res) && ($res['id'] == $this->getCurrentUser('id'));
+	}
+
+	/**
+	 * Check password strength
+	 * @param string $val  Password to check
+	 * @return   FALSE if no errors, otherwise a string error message.
+	 */
+	public static function getPasswordStrengthErrors($val)
+	{
+		$min_length = max(8, ifdef('PASSWORD_MIN_LENGTH', 8));
+		if (strlen($val) < $min_length) {
+			return 'Passwords must be at least '.$min_length.' characters';
+		}
+		if (!preg_match('/[0-9]+/', $val) || !preg_match('/[^0-9]+/', $val)) {
+			return 'Passwords must contain letters and numbers';
+		}
+		return FALSE;
 	}
 
 

@@ -305,18 +305,9 @@ class Staff_Member extends Person
 				$this->setValue('username', array_get($_REQUEST, $prefix.'user_un'));
 				break;
 			case 'password':
-				if (!empty($_REQUEST[$prefix.'user_pw1'])) {
-					$val = $_REQUEST[$prefix.'user_pw1'];
-					if ($val != $_REQUEST[$prefix.'user_pw2']) {
-						trigger_error('Password and password confirmation do not match; Password not saved.');
-					} else if (strlen($val) < $this->getMinPasswordLength()) {
-						trigger_error('Password is too short - must be at least '.$this->getMinPasswordLength().' characters; Password not saved.');
-					} else if (!preg_match('/[0-9]+/', $val) || !preg_match('/[^0-9]+/', $val)) {
-						trigger_error('Password is too simple - it must contain letters and numbers; Password not saved.');
-					} else {
-						$this->setValue($name, jethro_password_hash($val));
-						$this->_tmp['raw_password'] = $val; // only saved in this script execution
-					}
+				if ($hashed = self::processPasswordField($prefix)) {
+					$this->setValue($name, $hashed);
+					$this->_tmp['raw_password'] = $_REQUEST[$prefix.'user_pw1']; // only saved in this script execution
 				}
 				break;
 
@@ -328,6 +319,27 @@ class Staff_Member extends Person
 			default:
 				parent::processFieldInterface($name, $prefix);
 		}
+	}
+
+	/**
+	 * Static function so this can be called from the User System before anything else is set up.
+	 * @param string $prefix
+	 * @return string - hashed password if all is good, else null.
+	 */
+	static function processPasswordField($prefix)
+	{
+		if (!empty($_REQUEST[$prefix.'user_pw1'])) {
+			$val = $_REQUEST[$prefix.'user_pw1'];
+			if ($val != $_REQUEST[$prefix.'user_pw2']) {
+				trigger_error('Password and password confirmation do not match; Password not saved.');
+			} else if ($msg = User_System::getPasswordStrengthErrors($val)) {
+				trigger_error("Password is not strong enough: ".$msg."; Password not saved");
+			} else {
+				return jethro_password_hash($val);
+			}
+		}
+		return NULL;
+
 	}
 
 	private function getMinPasswordLength() {
