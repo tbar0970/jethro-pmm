@@ -1305,6 +1305,13 @@ class Person_Query extends DB_Object
 												WHERE date >= '.$GLOBALS['db']->quote($min_date).'
 												AND groupid = '.(int)$groupid.'
 												AND personid = p.id) AS `Attendance`';
+						$query['from'] .= ' LEFT JOIN planned_absence pa
+												ON pa.personid = p.id
+												AND pa.start_date <= NOW()
+												AND pa.end_date >= '.$GLOBALS['db']->quote($min_date).'
+											';
+						$query['select'][] = 'IFNULL(MAX(pa.id),0) as `_has_planned_absence`';
+
 						break;
 					case 'attendance_numabsences':
 						/* The number of "absents" recorded since the last "present".*/
@@ -1604,6 +1611,7 @@ class Person_Query extends DB_Object
 				<tr>
 				<?php
 				foreach ($headers as $heading) {
+					if ($heading[0] == '_') continue;
 					?>
 					<th<?php echo $this->_getColClasses($heading); ?>>
 						<?php
@@ -1644,6 +1652,7 @@ class Person_Query extends DB_Object
 				<tr data-personid="<?php echo $personid; ?>">
 				<?php
 				foreach ($row as $label => $val) {
+					if ($label[0] == '_') continue;
 					?>
 					<td <?php echo $this->_getColClasses($label); ?>>
 						<?php
@@ -1680,7 +1689,13 @@ class Person_Query extends DB_Object
 								<?php
 								break;
 							case 'Attendance':
+								if ($row['_has_planned_absence']) {
+									echo '<span class="nowrap" title="Includes planned absence(s) in this period">';
+								}
 								echo $val.'%';
+								if ($row['_has_planned_absence']) {
+									echo '&nbsp;<b>✱</b></span>';
+								}
 								break;
 							case 'p.id':
 							case 'f.id':

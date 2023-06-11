@@ -153,9 +153,19 @@ class Attendance_Record_Set
 					$this->_persons[$personid]['assignments'] = $asns;
 				}
 			}
+			foreach (Planned_Absence::getForDateAndCong($date, $this->congregationid) as $personid => $absences) {
+				if (isset($this->_persons[$personid])) {
+					$this->_persons[$personid]['assignments'] = '['._('Planned absence').']';
+				}
+			}
 		} else {
 			$group = $GLOBALS['system']->getDBObject('person_group', $this->groupid);
 			$this->_persons = $group->getMembers($conds, $order);
+			foreach (Planned_Absence::getForDateAndGroup($date, $this->groupid) as $personid => $absences) {
+				if (isset($this->_persons[$personid])) {
+					$this->_persons[$personid]['assignments'] = '['._('Planned absence').']';
+				}
+			}
 		}
 	}
 
@@ -671,7 +681,7 @@ class Attendance_Record_Set
 	 */
 	public static function getAttendances($congregationids, $groupid, $params, $start_date, $end_date)
 	{
-		$SQL = 'SELECT person.id, person.last_name, person.first_name, '.($groupid ? 'pgms.label AS membership_status, ' : '').' person.status, ar.date, ar.present
+		$SQL = 'SELECT person.id, person.last_name, person.first_name, '.($groupid ? 'pgms.label AS membership_status, ' : '').' person.status, ar.date, ar.present, IF (pa.id IS NOT NULL, 1, 0) as planned_absence
 				FROM person person
 				JOIN age_bracket ab ON ab.id = person.age_bracketid
 				JOIN family f ON person.familyid = f.id  ';
@@ -689,6 +699,11 @@ class Attendance_Record_Set
 			$SQL .= '
 				LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status';
 		}
+		$SQL .= '
+				LEFT JOIN planned_absence pa
+					ON pa.personid = person.id
+					AND ar.date BETWEEN pa.start_date AND pa.end_date
+				';
 		$SQL .= '
 				WHERE ((person.status <> "archived") OR (ar.present IS NOT NULL)) ';
 		if ($congregationids) {
@@ -741,7 +756,8 @@ class Attendance_Record_Set
 			foreach (Array('last_name', 'first_name', 'membership_status', 'status') as $f) {
 				if (array_key_exists($f, $row)) $attendances[$row['id']][$f] = $row[$f];
 			}
-			$attendances[$row['id']][$row['date']] = $row['present'];
+	$attendances[$row['id']][$row['date']] = "".$row['present'];
+			if ($row['planned_absence']) $attendances[$row['id']][$row['date']] .= '*';
 			if (!isset($totals[$row['date']]) || !isset($totals[$row['date']][$row['present']])) {
 				$totals[$row['date']][$row['present']] = 0;
 			}

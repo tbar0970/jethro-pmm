@@ -228,9 +228,15 @@ class View_Attendance__Display extends View
 					</td>
 				<?php
 				foreach ($dates as $date) {
-					$letter = $this->letters[array_get($record, $date, '')];
-					$class = $this->classes[array_get($record, $date, '')];
-					echo '<td class="'.$class.'">'.$letter.'</td>';
+					$raw = array_get($record, $date, ''); // might have a trailing * to indicate planned absence
+					$char = substr($raw, 0, 1);
+					$letter = $this->letters[$char];
+					$class = $this->classes[$char];
+					if ($raw == '0*') {
+						echo '<td class="'.$class.'" title="(Planned absence)">('.$letter.')</td>';
+					} else {
+						echo '<td class="'.$class.'">'.$letter.'</td>';
+					}
 				}
 				$this->_printActionsAndSelector($personid);
 				?>
@@ -484,11 +490,17 @@ class View_Attendance__Display extends View
 							} else {
 								$catt = array_get($all_attendances[$personid], $cohortid, Array());
 								$v = array_get($catt, $date, '');
+								$pa = ($v == '0*'); // planned absence
+								$v = substr($v, 0, 1);
 								$letter = $this->letters[$v];
 								$class = $this->classes[$v];
 							}
 							if ($first) $class .= ' new-cohort';
-							echo '<td class="'.$class.'">'.$letter;
+							if ($pa) {
+								echo '<td class="'.$class.'" title="(Planned absence)">('.$letter.')';
+							} else {
+								echo '<td class="'.$class.'">'.$letter;
+							}
 							$first = FALSE;
 							echo '<input type="hidden" name="data['.$personid.'][]" value="'.$letter.'"></td>';
 						}

@@ -107,6 +107,29 @@ class Planned_Absence extends db_object
 		$res = $db->queryAll($SQL, NULL, NULL, TRUE);
 		return $res;
 	}
-	
+
+	public static function getForDateAndCong($date, $congregationid)
+	{
+		$db = $GLOBALS['db'];
+		$SQL = 'SELECT pa.personid, comment
+				FROM planned_absence pa
+				JOIN person p ON pa.personid = p.id
+				WHERE p.congregationid = '.(int)$congregationid.'
+				AND '.$db->quote($date).' BETWEEN start_date AND end_date';
+		$res = $db->queryAll($SQL, NULL, NULL, TRUE);
+		return $res;
+	}
+
+	public static function getForDateAndGroup($date, $groupid)
+	{
+		$db = $GLOBALS['db'];
+		$SQL = 'SELECT pa.personid, comment
+				FROM planned_absence pa
+				JOIN person_group_membership pgm ON pgm.personid = pa.personid
+				WHERE pgm.groupid = '.(int)$groupid.'
+				AND '.$db->quote($date).' BETWEEN start_date AND end_date';
+		$res = $db->queryAll($SQL, NULL, NULL, TRUE);
+		return $res;
+	}
 
 }
