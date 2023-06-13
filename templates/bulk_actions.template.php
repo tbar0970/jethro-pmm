@@ -298,17 +298,30 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 						<input type="file" name="source_document" />
 						<label class="checkbox"><input type="checkbox" name="save_template" value="1" />Save template for next time</label>
 					</div>
+					<p class="help-inline">
+						<a target="roster-merge-help" class="med-newwin" href="<?php echo BASE_URL; ?>index.php?call=document_merge_help"><i class="icon-help"></i>Help and examples</a>
+						&nbsp;
+						<button type="submit" class="btn btn-mini muted" name="preview_keywords" onclick="$('input[name=source_document]').removeClass('compulsory')" data-set-form-target="_blank" data-set-form-action="<?php echo BASE_URL; ?>index.php?call=document_merge">Preview all tags</button>
+					</p>
 					<?php
 				} else {
 					?>
 					<input class="compulsory" type="file" name="source_document" />
-					<p class="help-inline">(docx/xlsx/pptx/odt/ods/odp)</p>
+					<p class="help-inline">
+						<a target="roster-merge-help" class="med-newwin" href="<?php echo BASE_URL; ?>index.php?call=document_merge_help"><i class="icon-help"></i>Help and examples</a>
+						&nbsp;
+						<button type="submit" class="btn btn-mini muted" name="preview_keywords" onclick="$('input[name=source_document]').removeClass('compulsory')" data-set-form-target="_blank" data-set-form-action="<?php echo BASE_URL; ?>index.php?call=document_merge">Preview all tags</button>
+					</p>
 					<label class="checkbox"><input type="checkbox" name="save_template" value="1" />Save template for next time</label>
 					<?php
 				}
 				?>
 				</div>
 			</div>
+		<?php
+		if (ifdef('MAIL_MERGE_INCLUDE_LEGACY', FALSE)) {
+			// Just in case somebody still needs legacy-mode merge, we can re-activate it in the conf.php
+			?>
 			<div class="control-group">
 				<label class="control-label"><?php echo _('Template type')?></label>
 				<div class="controls">
@@ -320,15 +333,11 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 						<input type="radio" name="template_format" value="legacy" />
 						Legacy <small><i>(Jethro ≤ v2.27)</i></small>
 					</label>
-					<label class="radio inline" style="color:#888">
-						<input type="radio" name="template_format" value="dump" />
-						Dump <small><i>(<a target="roster-merge-help" class="med-newwin" href="<?php echo BASE_URL; ?>index.php?call=document_merge_help#dump">help</a>)</i></small>
-					</label>
-					<label class="radio inline smallprint">
-						<a target="roster-merge-help" class="med-newwin" href="<?php echo BASE_URL; ?>index.php?call=document_merge_help"><i class="icon-help"></i>Help and examples</a>
-					</label>
 				</div>
 			</div>
+			<?php
+		}
+		?>
 			<div class="control-group">
 				<label class="control-label"><?php echo _('Merge for')?></label>
 				<div class="controls">
@@ -350,13 +359,10 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 						</label>
 				</div>
 			</div>
+			<?php if (!empty($_REQUEST['queryid'])) print_hidden_field('queryid', $_REQUEST['queryid']); ?>
 			<div class="control-group">
 				<div class="controls">
-					<input type="submit" class="btn " value="Go" data-set-form-action="<?php echo BASE_URL; ?>index.php?call=document_merge<?php
-						if (isset($_REQUEST['queryid'])) {
-							print '&queryid='.$_REQUEST['queryid'];
-                        }
-                        ?>" />
+					<input type="submit" class="btn " value="Go" data-set-form-action="<?php echo BASE_URL; ?>index.php?call=document_merge" />
 				</div>
 			</div>
 

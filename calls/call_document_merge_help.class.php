@@ -12,7 +12,7 @@ class Call_document_merge_help extends Call
 				<div id="body">
 				<h1>Mail Merge in Jethro</h1><a id="top"></a>
 				<p>Jethro can merge person and family data into Microsoft office files (DOCX, XLS, PPTX) and OpenOffice/LibreOffice files (ODT, ODS, ODP).</p>
-				<p>From version 2.28 onwards, Jethro uses the <a href="http://www.tinybutstrong.com/opentbs.php">TinyButStrong OpenTBS engine</a> to merge documents. However legacy templates ODT/DOCX templates created for older versions of Jethro are still supported, by selecting the "legacy" option.</p>
+				<p>Jethro uses the <a href="http://www.tinybutstrong.com/opentbs.php">TinyButStrong OpenTBS engine</a> to merge documents. However legacy templates ODT/DOCX templates created for older versions of Jethro are still supported, by selecting the "legacy" option.</p>
 
 				<h3>Sample Templates</h3>
 				<h4>For merging person-by-person</h4>
@@ -40,13 +40,6 @@ class Call_document_merge_help extends Call
 							<a href="./resources/merge_samples/example_attendance_sheet.xlsx">XLSX</a>
 						</td>
 					</tr>
-					<tr class="archived">
-						<td>Legacy-format examples</td>
-						<td>
-							<a href="./resources/merge_samples/legacy_merge_sample_persons.odt">ODT</a> &nbsp;
-							<a href="./resources/merge_samples/legacy_merge_sample_persons.docx">DOCX</a>
-						</td>
-					</tr>
 				</table>
 				<h4>For merging family-by-family</h4>
 				<table class="table table-bordered">
@@ -61,14 +54,6 @@ class Call_document_merge_help extends Call
 						<td>
 							<a href="./resources/merge_samples/example_family_attendance.ods">ODS</a> &nbsp;
 							<a href="./resources/merge_samples/example_family_attendance.xlsx">XLSX</a>
-						</td>
-					</tr>
-
-					<tr class="archived">
-						<td>Legacy-format examples</td>
-						<td>
-							<a href="./resources/merge_samples/legacy_merge_sample_family.odt">ODT</a> &nbsp;
-							<a href="./resources/merge_samples/legacy_merge_sample_family.docx">DOCX</a>
 						</td>
 					</tr>
 				</table>
@@ -241,6 +226,11 @@ class Call_document_merge_help extends Call
 				  </tr>
 				</tbody></table>
 		</div>
+		<script>
+			$('code').click(function() {
+				TBLib.selectElementText(this);
+			})
+		</script>
 		</body>
 		</html>
 		<?php

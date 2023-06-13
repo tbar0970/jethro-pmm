@@ -1517,6 +1517,9 @@ function setDateField(prefix, value)
 $(document).ready(function() {
 	$('input[data-set-form-target], button[data-set-form-target]').click(function() {
 		switch ($(this).attr('data-set-form-target')) {
+			case '_blank':
+				this.form.target = '_blank';
+				break;
 			case 'envelope':
 				envelopeWindow = window.open('', 'envelopes', 'height=320,width=500,location=no,menubar=no,titlebar=no,toolbar=no,resizable=yes,statusbar=no');
 				if (envelopeWindow) {

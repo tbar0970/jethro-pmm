@@ -1,6 +1,8 @@
 <?php
 class Call_Document_Merge extends Call
 {
+	const SHOWKEYWORDS = '@@DUMP_KEYWORDS@@';
+
 	public static function getSavedTemplatesDir()
 	{
 		return Documents_Manager::getRootPath().'/Templates/To_Merge/';
@@ -15,8 +17,8 @@ class Call_Document_Merge extends Call
 
 		$file_info = array_get($_FILES, 'source_document');
 		$content = null;
-		if (array_get($_REQUEST, 'template_format') == 'dump') {
-			$extension = '@@@debug@@@';
+		if (isset($_REQUEST['preview_keywords'])) {
+			$extension = self::SHOWKEYWORDS;
 		} else if (!empty($file_info['tmp_name'])) {
 			if (!empty($_REQUEST['save_template'])) {
 				$ok = TRUE;
@@ -57,13 +59,12 @@ class Call_Document_Merge extends Call
 			case 'docx':
 			case 'xlsx':
 			case 'ppt':
-            case '@@@debug@@@':
+            case self::SHOWKEYWORDS:
 				$merge_type = array_get($_REQUEST, 'merge_type', 'person');
 				if ($merge_type != 'family') { $merge_type = 'person'; }
 				$data = $this->getMergeData();
-				if ($extension == '@@@debug@@@') {
-					echo '<a href="javascript:history.go(-1)">Return</a>'."\n\n";
-                    echo "<pre>\n";
+				if ($extension == self::SHOWKEYWORDS) {
+					ob_start();
 				    echo '[onshow.system_name] = '.ifdef('SYSTEM_NAME', '')."\n";
 				    echo '[onshow.timezone] = '.ifdef('TIMEZONE', '')."\n";
 				    echo '[onshow.username] = '.$_SESSION['user']['username']."\n";
@@ -95,12 +96,12 @@ class Call_Document_Merge extends Call
 				$TBS->VarRef['last_name'] = $_SESSION['user']['last_name'];
 				$TBS->VarRef['email'] = $_SESSION['user']['email'];
 				$i = $this->TabulatedData($extension, $TBS, 'dates', 60, 'date');
-				if ($extension == '@@@debug@@@') {
+				if ($extension == self::SHOWKEYWORDS) {
 				    echo '[onshow.dates] = '.$i."\n";
 				}
 				$TBS->VarRef['dates'] = $i;
 				$i = $this->TabulatedData($extension, $TBS, 'groups', 20, 'group');
-				if ($extension == '@@@debug@@@') {
+				if ($extension == self::SHOWKEYWORDS) {
 				    echo '[onshow.groups] = '.$i."\n";
 				}
 				$TBS->VarRef['groups'] = $i;
@@ -108,7 +109,7 @@ class Call_Document_Merge extends Call
 					$tables = (array)$_REQUEST['tables'];
 					foreach ($tables as $table) {
 						$i = $this->TabulatedData($extension, $TBS, $table);
-						if ($extension == '@@@debug@@@') {
+						if ($extension == self::SHOWKEYWORDS) {
 							echo '[onshow.'.$table.'s] = '.$i."\n";
 						}
 						$TBS->VarRef[$table.'s'] = $i;
@@ -143,7 +144,7 @@ class Call_Document_Merge extends Call
 					}
 				}
 				
-				if ($extension == '@@@debug@@@') {
+				if ($extension == self::SHOWKEYWORDS) {
 					echo "\n";
 					if ($merge_type == 'person') {
 						foreach ($data as $line) {
@@ -170,8 +171,8 @@ class Call_Document_Merge extends Call
 							echo "\n";
 						}
 					}
-                    echo "</pre>\n";
-                    return;
+                    $this->_printKeywordList(ob_get_clean());
+					return;
                 }
 				$TBS->LoadTemplate($source_file, OPENTBS_ALREADY_UTF8);
 				$TBS->MergeBlock($merge_type, $data);
@@ -209,7 +210,7 @@ class Call_Document_Merge extends Call
 			foreach ($data as $bit) {
 				$i++;
 				$TBS->VarRef[$base.$i] = $bit;
-				if ($extension == '@@@debug@@@') {
+				if ($extension == self::SHOWKEYWORDS) {
 					echo '[onshow.'.$base.$i.'] = '.$bit."\n";
 				}
 			}
@@ -524,6 +525,55 @@ class Call_Document_Merge extends Call
 		$res = str_replace('>', '&gt;', $res);
 		$res = str_replace('<', '&lt;', $res);
 		return $res;
+	}
+
+	private function _printKeywordList($text)
+	{
+		?>
+		<!DOCTYPE html>
+		<head>
+			<?php include 'templates/head.template.php'; ?>
+		</head>
+		<body id="body">
+			<p>The following is a preview of all the tags that can be used, and the values they would be replaced with.<br />
+				Note that the first keyword in the template must define a new TBS block by adding <code>;block=tbs:row</code> to the field, eg <code>[person.first_name;block=tbs:row]</code><br />
+				For full details see the <a href="?call=document_merge_help">Mail Merge Help page</a>.</p>
+		<table class="table table-bordered table-condensed">
+			<thead>
+				<tr>
+					<th class="narrow">Keyword</th>
+					<th>First value</th>
+				</tr>
+			<?php
+			$i = 0;
+			foreach (explode("\n", $text) as $line) {
+				$i++;
+				?>
+				<tr>
+				<?php
+				if (preg_match('/([^=]+)=(.*)/', $line, $matches)) {
+					//echo '<tr><td data-action="copy" data-target="#keyword'.$i.'"><code id="keyword'.$i.'">'.ents($matches[1]).'</code></td><td>'.ents($matches[2]).'</td></tr>';
+					//echo '<tr><td><input type="text" readonly="readonly" id="keyword'.$i.'" value="'.ents($matches[1]).'" /></td><td>'.ents($matches[2]).'</td></tr>';
+					echo '<tr><td><code id="keyword'.$i.'">'.ents($matches[1]).'</code></td><td>'.ents($matches[2]).'</td></tr>';
+				} else {
+					?>
+					<th colspan="2"><?php echo ents($line); ?></th>
+					<?php
+				}
+				?>
+				</tr>
+				<?php
+			}
+			?>
+			</thead>
+		</table>
+		<script>
+			$('code').click(function() {
+				TBLib.selectElementText(this);
+			})
+		</script>
+		</body>
+		<?php
 	}
 
 }
