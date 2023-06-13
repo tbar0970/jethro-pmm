@@ -320,6 +320,10 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 						<input type="radio" name="template_format" value="legacy" />
 						Legacy <small><i>(Jethro ≤ v2.27)</i></small>
 					</label>
+					<label class="radio inline" style="color:#888">
+						<input type="radio" name="template_format" value="dump" />
+						Dump <small><i>(<a target="roster-merge-help" class="med-newwin" href="<?php echo BASE_URL; ?>index.php?call=document_merge_help#dump">help</a>)</i></small>
+					</label>
 					<label class="radio inline smallprint">
 						<a target="roster-merge-help" class="med-newwin" href="<?php echo BASE_URL; ?>index.php?call=document_merge_help"><i class="icon-help"></i>Help and examples</a>
 					</label>
@@ -348,7 +352,11 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 			</div>
 			<div class="control-group">
 				<div class="controls">
-					<input type="submit" class="btn " value="Go" data-set-form-action="<?php echo BASE_URL; ?>index.php?call=document_merge" />
+					<input type="submit" class="btn " value="Go" data-set-form-action="<?php echo BASE_URL; ?>index.php?call=document_merge<?php
+						if (isset($_REQUEST['queryid'])) {
+							print '&queryid='.$_REQUEST['queryid'];
+                        }
+                        ?>" />
 				</div>
 			</div>
 

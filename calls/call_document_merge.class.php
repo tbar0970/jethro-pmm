@@ -15,8 +15,9 @@ class Call_Document_Merge extends Call
 
 		$file_info = array_get($_FILES, 'source_document');
 		$content = null;
-		$template_filename = null;
-		if (!empty($file_info['tmp_name'])) {
+		if (array_get($_REQUEST, 'template_format') == 'dump') {
+			$extension = '@@@debug@@@';
+		} else if (!empty($file_info['tmp_name'])) {
 			if (!empty($_REQUEST['save_template'])) {
 				$ok = TRUE;
 				if (!is_dir(self::getSavedTemplatesDir())) {
@@ -37,11 +38,14 @@ class Call_Document_Merge extends Call
 		} else if (!empty($_REQUEST['source_doc_select'])) {
 			// NB basename for security to avoid path injections.
 			$source_file = $template_filename = self::getSavedTemplatesDir().basename($_REQUEST['source_doc_select']);
-			$extension = @strtolower(end(explode('.', $source_file)));
+			$bits = explode('.', $source_file);
+			$extension = strtolower(end($bits));
 		} else {
 			trigger_error('Template file does not seem to have been uploaded or selected');
 			return;
 		}
+		
+		$data_type = array_get($_REQUEST, 'data_type', 'none');
 
 		switch ($extension) {
 			case 'odt':
@@ -53,6 +57,21 @@ class Call_Document_Merge extends Call
 			case 'docx':
 			case 'xlsx':
 			case 'ppt':
+            case '@@@debug@@@':
+				$merge_type = array_get($_REQUEST, 'merge_type', 'person');
+				if ($merge_type != 'family') { $merge_type = 'person'; }
+				$data = $this->getMergeData();
+				if ($extension == '@@@debug@@@') {
+					echo '<a href="javascript:history.go(-1)">Return</a>'."\n\n";
+                    echo "<pre>\n";
+				    echo '[onshow.system_name] = '.ifdef('SYSTEM_NAME', '')."\n";
+				    echo '[onshow.timezone] = '.ifdef('TIMEZONE', '')."\n";
+				    echo '[onshow.username] = '.$_SESSION['user']['username']."\n";
+				    echo '[onshow.first_name] = '.$_SESSION['user']['first_name']."\n";
+				    echo '[onshow.last_name] = '.$_SESSION['user']['last_name']."\n";
+				    echo '[onshow.email] = '.$_SESSION['user']['email']."\n";
+                }
+
 				require_once 'include/tbs.class.php';
 				include_once 'include/tbs_plugin_opentbs.php';
 				if (ini_get('date.timezone')=='') {
@@ -61,7 +80,6 @@ class Call_Document_Merge extends Call
 				$TBS = new clsTinyButStrong;
 				$TBS->Plugin(TBS_INSTALL, OPENTBS_PLUGIN);
 				$TBS->SetOption('noerr', TRUE);
-				$TBS->LoadTemplate($source_file, OPENTBS_ALREADY_UTF8);
 				$TBS->ResetVarRef(false);
 				$TBS->VarRef['x_num'] = 3152.456;
 				$TBS->VarRef['x_pc'] = 0.2567;
@@ -76,19 +94,92 @@ class Call_Document_Merge extends Call
 				$TBS->VarRef['first_name'] = $_SESSION['user']['first_name'];
 				$TBS->VarRef['last_name'] = $_SESSION['user']['last_name'];
 				$TBS->VarRef['email'] = $_SESSION['user']['email'];
-
-				$merge_type = array_get($_REQUEST, 'merge_type', 'person');
-				$TBS->VarRef['dates'] = $this->TabulatedData($TBS, 'dates', 60, 'date');
-				$TBS->VarRef['groups'] = $this->TabulatedData($TBS, 'groups', 20, 'group');
+				$i = $this->TabulatedData($extension, $TBS, 'dates', 60, 'date');
+				if ($extension == '@@@debug@@@') {
+				    echo '[onshow.dates] = '.$i."\n";
+				}
+				$TBS->VarRef['dates'] = $i;
+				$i = $this->TabulatedData($extension, $TBS, 'groups', 20, 'group');
+				if ($extension == '@@@debug@@@') {
+				    echo '[onshow.groups] = '.$i."\n";
+				}
+				$TBS->VarRef['groups'] = $i;
 				if (isset($_REQUEST['tables'])) {
 					$tables = (array)$_REQUEST['tables'];
 					foreach ($tables as $table) {
-						$TBS->VarRef[$table.'s'] = $this->TabulatedData($TBS, $table);
+						$i = $this->TabulatedData($extension, $TBS, $table);
+						if ($extension == '@@@debug@@@') {
+							echo '[onshow.'.$table.'s] = '.$i."\n";
+						}
+						$TBS->VarRef[$table.'s'] = $i;
 					}
 				}
-				if ($merge_type != 'family') { $merge_type = 'person'; }
-				$data = $this->getMergeData();
+				
+				if ($merge_type == 'person') {
+					// Replicate to status and group tables
+					// Create extra arrays
+					$GLOBALS['system']->includeDBClass('person_group');
+					$group_status_list = Person_Group::getMembershipStatusOptionsAndDefault();
+					$GLOBALS['system']->includeDBClass('person');
+					$member_status_list = Person::getStatusOptions();
+					$List_of_lists = array();
+					foreach ($group_status_list[0] as $status_item) {
+						$List_of_lists[$status_item] = array();
+						foreach ($data as $line) {
+							if (isset($line['Membership Status'])) {
+								if ($line['Membership Status'] == trim($status_item)) {
+									$List_of_lists[trim($status_item)][] = $line;
+								}
+							}
+						}
+					}
+					foreach ($member_status_list as $status_item) {
+						$List_of_lists[$status_item] = array();
+						foreach ($data as $line) {
+							if ($line['status'] == trim($status_item)) {
+								$List_of_lists[trim($status_item)][] = $line;
+							}
+						}
+					}
+				}
+				
+				if ($extension == '@@@debug@@@') {
+					echo "\n";
+					if ($merge_type == 'person') {
+						foreach ($data as $line) {
+							foreach ($line as $k => $v) {
+								echo '[person.'.$k.'] = '.$v."\n";
+							}	
+							echo "\n";
+						}
+						foreach ($List_of_lists as $i => $a) {
+							echo "\n";
+							foreach ($a as $line) {
+								foreach ($line as $k => $v) {
+									echo '['.$i.'.'.$k.'] = '.$v."\n";
+								}	
+								echo "\n";
+							}
+						}
+					}
+					if ($merge_type == 'family') {
+						foreach ($data as $line) {
+							foreach ($line as $k => $v) {
+								echo '[family.'.$k.'] = '.$v."\n";
+							}	
+							echo "\n";
+						}
+					}
+                    echo "</pre>\n";
+                    return;
+                }
+				$TBS->LoadTemplate($source_file, OPENTBS_ALREADY_UTF8);
 				$TBS->MergeBlock($merge_type, $data);
+				if ($merge_type == 'person') {
+					foreach ($List_of_lists as $i => $a) {
+						$TBS->MergeBlock($i, $a);
+					}
+				}
 				$filename = basename($template_filename);
 				$bits = explode('.', $filename);
 				$ext = array_pop($bits);
@@ -109,7 +200,7 @@ class Call_Document_Merge extends Call
 
 	}
 
-	protected function TabulatedData($TBS, $table, $max = 60, $base = '')
+	protected function TabulatedData($extension, $TBS, $table, $max = 60, $base = '')
 	{
 		$i = 0;
 		if (isset($_REQUEST[$table])) {
@@ -118,6 +209,9 @@ class Call_Document_Merge extends Call
 			foreach ($data as $bit) {
 				$i++;
 				$TBS->VarRef[$base.$i] = $bit;
+				if ($extension == '@@@debug@@@') {
+					echo '[onshow.'.$base.$i.'] = '.$bit."\n";
+				}
 			}
 		}
 		$j = $i;
@@ -133,6 +227,7 @@ class Call_Document_Merge extends Call
 		$return_data = array();
 		$GLOBALS['system']->includeDBClass('family');
 		$GLOBALS['system']->includeDBClass('person');
+		$GLOBALS['system']->includeDBClass('person_query');
 		$data_type = array_get($_REQUEST, 'data_type', 'none');
 		switch (array_get($_REQUEST, 'merge_type')) {
 			case 'family':
@@ -144,19 +239,56 @@ class Call_Document_Merge extends Call
 			case 'person':
 				$data_type = 'none';
 			default:
+				// Get details about each person
 				$merge_data = $GLOBALS['system']->getDBObjectData('person', Array('id' => (array)$_POST['personid']));
-				foreach (Person::getCustomMergeData($_POST['personid'], FALSE) as $personid => $data) {
+				if (isset($_REQUEST['queryid'])) {
+					// If this is a report there will be a 'queryid' (attendance report won't have this)
+					// run the query and retrieve the data it returns - this will include 'Person ID'
+					$query_data = $GLOBALS['system']->getDBObject('person_query',$_REQUEST['queryid']);
+					$merge_data2 = $query_data->printResults('array');
+					// Merge this data into merge_data
+					foreach ($merge_data2 as $data) {
+						foreach ($data as $name => $val) {
+							if ($name == 'Person ID') {
+								$merge_data[$val] += $data;
+								break;
+							}
+						}
+					}
+				}
+                foreach (Person::getCustomMergeData($_POST['personid'], FALSE) as $personid => $data) {
 					$merge_data[$personid] += $data;
 				}
 				$dummy = new Person();
 				$dummy_family = new Family();
 				break;
 		}
+		
+		// We have a switch instead of an if because we may add more, such as rosters
 		switch ($data_type) {
 			case 'attendance_tabular':
-				$dates = (array)$_REQUEST['dates'];
-				$groups = (array)$_REQUEST['groups'];
-				$data = (array)$_REQUEST['data'];
+				if (isset($_REQUEST['dates'])) {
+					$dates = (array)$_REQUEST['dates'];
+				} else {
+					$dates = array();
+				}
+				if (isset($_REQUEST['groups'])) {
+					$groups = (array)$_REQUEST['groups'];
+				} else {
+					$groups = array();
+				}
+				if (isset($_REQUEST['data2'])) {
+					$data2 = (array)$_REQUEST['data2'];
+				} else {
+					$data2 = array();
+				}
+				$data = array();
+				$group_status = array();
+				foreach ($data2 as $k => $dat) {
+					$dat2 = explode(';', $dat[0]);
+					$data[$k] = explode(',', $dat2[0]);
+					$group_status[$k] = $dat2[1];
+				}
 				break;
 		}
 
@@ -169,7 +301,9 @@ class Call_Document_Merge extends Call
 		}
 		switch ($data_type) {
 			case 'attendance_tabular':
-				foreach ($headerrow as $Hash) { $lastrow[$Hash] = ''; }
+				foreach ($headerrow as $Hash) { 
+					$lastrow[$Hash] = ''; 
+				}
 				$dat = 1;
 				foreach ($dates as $date) {
 					$grp = 1;
@@ -208,14 +342,15 @@ class Call_Document_Merge extends Call
 				} else if ($dummy_family && $dummy_family->hasField($k)) {
 					$outputrow[$headerrow[$k]] = $outputrow[$k] = $dummy_family->getFormattedValue($k, $v);
 				} else if ($k == 'selected_firstnames') {
-					$outputrow['selected_members'] = $v;
-					$outputrow[$k] = $v;
+					$outputrow['selected_members'] = strval($v);
+					$outputrow[$k] = strval($v);
 				} else {
-					$outputrow[$k] = $v;
+					$outputrow[$k] = str_replace("\n", '; ', strval($v));
 				}
 			}
 			switch ($data_type) {
 				case 'attendance_tabular':
+					$outputrow['Membership Status'] = $group_status[$id];
 					$sumval = 0;
 					$extras = FALSE;
 					foreach ($dates as $date) {
