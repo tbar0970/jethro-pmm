@@ -64,10 +64,6 @@ $(document).ready(function() {
 
 	//// CLICKABLE THINGS ETC ////
 
-	// Access key "s" for all submit buttons
-	var submits = $('#body form[method=post] input[type=submit]');
-	if (submits.length == 1) submits.attr('accesskey', 's');
-
 	// Ability for any element to submit the form it's part of
 	$('.submit').click(function() {
 		if ($(this).hasClass('confirm-title')) {
