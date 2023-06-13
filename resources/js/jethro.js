@@ -316,7 +316,7 @@ $(document).ready(function() {
 	function onRadioButtonActivated(event) {
 		this.addClass('active');
 		this.siblings('div').removeClass('active');
-		this.parents('.radio-button-group').find('input').val(this.attr('data-val'));
+		this.parents('.radio-button-group').find('input').val(this.attr('data-val')).trigger('change');
 
 		if (attendanceUseKeyboard) {
 			var thisCell = $(this).parents('td');
@@ -359,6 +359,17 @@ $(document).ready(function() {
 			$(this).parents('tr:first').addClass('hovered');
 		});
 	}
+
+	$('table.attendance-record input[type=hidden]').change(function() {
+		var pcBox = $('#present-count');
+		if (!pcBox) return;
+		var totalPresent = 0;
+		$('table.attendance-record input[type=hidden]').each(function() {
+			if (this.value == 'present') totalPresent++;
+		})
+		pcBox.html("("+totalPresent+" marked present)");
+
+	})
 
 	// MULTI-SELECT
 

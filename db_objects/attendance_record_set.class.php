@@ -267,7 +267,7 @@ class Attendance_Record_Set
 		$GLOBALS['system']->includeDBClass('person');
 		$dummy = new Person();
 		?>
-		<table class="table table-condensed table-auto-width valign-middle">
+		<table class="table table-condensed table-auto-width valign-middle attendance-record">
 		<?php
 		$is_first = TRUE;
 		foreach ($this->_persons as $personid => $details) {
@@ -354,6 +354,7 @@ class Attendance_Record_Set
 		}
 		?>
 		<input type="tel" name="<?php echo $headcountFieldName; ?>" value="<?php echo $headcountValue; ?>" style="width: 60px" />
+		<span id="present-count" class="muted"></span>
 		<?php
 	}
 
@@ -756,7 +757,7 @@ class Attendance_Record_Set
 			foreach (Array('last_name', 'first_name', 'membership_status', 'status') as $f) {
 				if (array_key_exists($f, $row)) $attendances[$row['id']][$f] = $row[$f];
 			}
-	$attendances[$row['id']][$row['date']] = "".$row['present'];
+			$attendances[$row['id']][$row['date']] = "".$row['present'];
 			if ($row['planned_absence']) $attendances[$row['id']][$row['date']] .= '*';
 			if (!isset($totals[$row['date']]) || !isset($totals[$row['date']][$row['present']])) {
 				$totals[$row['date']][$row['present']] = 0;
