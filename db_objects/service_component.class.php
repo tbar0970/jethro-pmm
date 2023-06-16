@@ -243,12 +243,12 @@ class Service_Component extends db_object
 				break;
 
 			case 'ccli_number':
-				if (defined('CCLI_DETAIL_URL')) {
+				if (defined('CCLI_DETAIL_URL') && ((int)$this->getValue($name) > 0)) {
 					// Can't just use class=med-popup because it's loaded in an AJAX frame so the window.onload has already run
 					echo '<a href="'.str_replace('__NUMBER__', $this->getValue($name), CCLI_DETAIL_URL).'" onclick="return TBLib.handleMedPopupLinkClick(this)">';
 				}
 				echo $this->getValue($name);
-				if (defined('CCLI_DETAIL_URL')) {
+				if (defined('CCLI_DETAIL_URL') && ((int)$this->getValue($name) > 0)) {
 					echo '</a>';
 				}
 				break;
