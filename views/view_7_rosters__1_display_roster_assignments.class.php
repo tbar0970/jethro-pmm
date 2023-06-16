@@ -35,10 +35,13 @@ class View_Rosters__Display_Roster_Assignments extends View
 		}
 		if (!empty($_REQUEST['viewid'])) {
 			$this->_view = $GLOBALS['system']->getDBObject('roster_view', (int)$_REQUEST['viewid']);
+		} else if (!empty($_SESSION['roster_view_id'])) {
+			$this->_view = $GLOBALS['system']->getDBObject('roster_view', (int)$_SESSION['roster_view_id']);
 		}
 		if (empty($_REQUEST['goback'])) {
 			$_SESSION['roster_start_date'] = $this->_start_date;
 			$_SESSION['roster_end_date'] = $this->_end_date;
+			if ($this->_view) $_SESSION['roster_view_id'] = $this->_view->id;
 		}
 	}
 
