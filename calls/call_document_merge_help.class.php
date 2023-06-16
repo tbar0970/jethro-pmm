@@ -66,10 +66,8 @@ class Call_document_merge_help extends Call
 				<p>When creating a template, you include special markers (<em>TBS tags</em>) which will be replaced with the relevant person/family details.<p>
 				<p>A <em>TBS block</em> is defined by one or more <em>TBS fields</em>.  When the merge is performed, the TBS block will be repeated for each person/family.</p>
 
-				<p>Most of the available fields are listed here, but to reveal <em>ALL</em> fields available on your system use <a href="#dump">Dump mode</a>.</p>
-				
-				<p>Using the <a href="#dump">Dump mode</a> you will notice that many fields have a variant in the form <code>[field<b>_cr</b>]</code> eg <code>[roster.notes_cr]</code>. These variants include a new line character. The 'normal' versions replace new line characters with ', '.</p>
-				
+				<p>To preview all the available keywords and their values, use the "preview all keywords" button when merging.</p>
+								
 				The available fields for merging <b>per person</b> are:
 				<ul>
 					<li><code>[person.id]</code> - the unique internal identifier number</li>
@@ -195,6 +193,8 @@ class Call_document_merge_help extends Call
 				<li><code>[onshow.date]</code> - the date of the last roster</li>
 				<li><code>[onshow.label1]</code>...<code>[onshow.label20]</code> - label for each column of the roster</li>
 				</ul>
+				<p>Also, Some keywords have a variant ending in <code>_cr</code> eg <code>[roster.notes_cr]</code>. These variants include a new line character. The 'normal' versions replace new line characters with ', '.</p>
+
 				Block fields
 				<ul>
 				<li><code>[roster.date]</code> - the date the roster</li>
@@ -270,11 +270,6 @@ class Call_document_merge_help extends Call
 					<td nowrap="nowrap">For XLSX, it's an alias of <span class="smallcode">ope=tbs:num</span></td>
 				  </tr>
 				</tbody></table>
-				<h3 id="dump">Dump mode</h3>
-
-				<p>When you select dump the system will display all the available data and the <em>TBS fields</em> you can use to insert the data into your template.<p>
-				<p>You don't need to specify a template in this instance.</p>
-				
 				<p>&nbsp;</p>
 		</div>
 		<script>
