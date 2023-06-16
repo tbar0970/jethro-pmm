@@ -3,6 +3,10 @@ class View_Admin__Import extends View
 {
 	private $_stage = 'begin';
 	private $_sess = NULL;
+	private $_dummy_family = NULL;
+	private $_dummy_person = NULL;
+	private $_captured_errors = Array();
+	private $_error_index = 0;
 
 	static function getMenuPermissionLevel()
 	{
@@ -226,7 +230,6 @@ class View_Admin__Import extends View
 		}
 
 		// read the csv and save to session
-		ini_set("auto_detect_line_endings", "1");
 		$fp = fopen($datafile, 'r');
 		if (!$fp) {
 			add_message(_("There was a problem reading your CSV file.  Please try again."), 'error');
@@ -826,7 +829,7 @@ class View_Admin__Import extends View
 
 	private function _finalisePerson($person, $row)
 	{
-		$text = array_get($row, '_note');
+		$text = array_get($row, '_note', '');
 		if (strlen($text)) {
 			$note = new Person_Note();
 			$note->setValue('subject', 'Import note');
