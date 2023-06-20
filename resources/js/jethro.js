@@ -1026,7 +1026,7 @@ JethroServicePlanner.init = function() {
 		}
 	})
 
-	$('#service-plan-submit').click(JethroServicePlanner.onSubmit)
+	$('#service-planner-form').submit(JethroServicePlanner.onSubmit)
 
 	$('#service-plan').on('click', '.tools a[data-action]', function() {
 		var action = $(this).attr('data-action');
@@ -1091,7 +1091,6 @@ JethroServicePlanner.onSubmit = function() {
 	})
 
 	JethroServicePlanner.isChanged = false;
-	this.form.submit();
 }
 
 JethroServicePlanner.Item = {};
