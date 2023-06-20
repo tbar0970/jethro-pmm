@@ -73,6 +73,8 @@ class Service_Component extends db_object
 			'length_mins'		=> Array(
 									'type'		=> 'int',
 									'label'		=> 'Length (mins)',
+									'default'	=> 0,
+									'allow_empty' => FALSE,
 								   ),
 			'show_in_handout'		=> Array(
 									'type'		=> 'select',

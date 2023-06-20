@@ -69,8 +69,8 @@ class View__Import_Service_Components extends View
 					$comp->save();
 
 				} else {
+					$data['categoryid'] = (int)$_REQUEST['categoryid'];
 					$comp->fromCSVRow($data);
-					$comp->setValue('categoryid', $_REQUEST['categoryid']);
 					if ($errors = $this->_getErrors()) {
 						$this->errors[$rowNum] = $errors;
 					} else {
@@ -171,6 +171,9 @@ class View__Import_Service_Components extends View
 	function _handleError($errno, $errstr, $errfile, $errline)
 	{
 		if (in_array($errno, array(E_USER_NOTICE, E_USER_WARNING, E_NOTICE, E_WARNING))) {
+			if (JETHRO_VERSION == 'DEV') {
+				$errstr .= ' (Line '.$errline.' of '.$errfile.')';
+			}
 			$this->_captured_errors[] = $errstr;
 		}
 	}
