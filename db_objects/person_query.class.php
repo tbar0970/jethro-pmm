@@ -1187,6 +1187,11 @@ class Person_Query extends DB_Object
 			$grouping_order = 'IF(cfvgroup.personid IS NULL, 1, 0), '.Custom_Field::getSortValueSQLExpr('cfvgroup', 'cfogroup').', ';
 			$grouping_field = Custom_Field::getRawValueSQLExpr('cfvgroup', 'cfgroup').', ';
 			$query['group_by'][] = Custom_Field::getRawValueSQLExpr('cfvgroup', 'cfgroup');
+		} else if ($params['group_by'] == 'p.congregationid') {
+			$query['from'] .= ' LEFT JOIN congregation csort ON csort.id = p.congregationid
+								';
+			$grouping_order = 'csort.meeting_time, ';
+			$grouping_field = $params['group_by'].', ';
 		} else {
 			// by some core field
 			$grouping_order = $grouping_field = $params['group_by'].', ';
