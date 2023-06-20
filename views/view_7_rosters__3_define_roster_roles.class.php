@@ -1,6 +1,7 @@
 <?php
 class View_Rosters__Define_Roster_Roles extends View
 {
+	private $role = NULL;
 
 	static function getMenuPermissionLevel()
 	{
@@ -9,23 +10,36 @@ class View_Rosters__Define_Roster_Roles extends View
 
 	function processView()
 	{
-
+		if (!empty($_REQUEST['roster_roleid'])) {
+			$this->role = new Roster_Role((int)$_REQUEST['roster_roleid']);
+		}
 	}
 
 	function getTitle()
 	{
-		return 'Define Roster Roles';
+		if ($this->role) {
+			return 'Roster Role: '.$this->role->getValue('title');
+		} else {
+			return 'Define Roster Roles';
+		}
 	}
 
 	
 	function printView()
 	{
+		if ($this->role) {
+			$this->_printRoleDetails();
+			return;
+		}
 		?>
 		<p class="text alert alert-info">
 			<?php 
 			echo _('A roster role represents an activity somebody does which is organised by a roster.
 				Roster roles are often congregation-specific; for example each congregation probably has its own separate "bible reader" role.
-				Other roles may be congregation-independent, such as cleaning or gardening.');
+				Other roles may be congregation-independent, such as cleaning or gardening. ');
+			if (PUBLIC_AREA_ENABLED) {
+				printf(_('Roster role descriptions can be viewed in the %s.'), '<a href="'.BASE_URL.'/public/?view=display_role_description">'._('public area of Jethro').'</a>');
+			}
 			?>
 		</p>
 		<p><a href="?view=_add_roster_role"><i class="icon-plus-sign"></i><?php echo _('Add Role'); ?></a></p>
@@ -73,7 +87,10 @@ class View_Rosters__Define_Roster_Roles extends View
 							}
 							?>
 						</td>
-						<td class="narrow"><a href="?view=_edit_roster_role&roster_roleid=<?php echo $rid; ?>"><i class="icon-wrench"></i>Edit</a></td>
+						<td class="narrow">
+							<a href="?view=rosters__define_roster_roles&roster_roleid=<?php echo $rid; ?>"><i class="icon-eye-open"></i>View</a>
+							<a href="?view=_edit_roster_role&roster_roleid=<?php echo $rid; ?>"><i class="icon-wrench"></i>Edit</a>
+						</td>
 					</tr>
 					<?php
 				}
@@ -83,5 +100,13 @@ class View_Rosters__Define_Roster_Roles extends View
 			<?php
 		}
 	}
+
+	private function _printRoleDetails()
+	{
+		?>
+		<a class="pull-right" href="?view=_edit_roster_role&roster_roleid=<?php echo $this->role->id; ?>"><i class="icon-wrench"></i>Edit role</a>
+		<a class="pull-right" href="<?php echo build_url(Array('roster_roleid' => NULL)); ?>">&laquo; Back to roles list</a>
+		<?php
+		$this->role->printSummary();
+	}
 }
-?>

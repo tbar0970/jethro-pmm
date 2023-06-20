@@ -534,7 +534,7 @@ input[type=image] {
 	height: auto !important;
 	padding: 0px !important;
 }
-p.text {
+p.text, .text * {
 	max-width: 800px;
 }
 @media (max-width: 800px) {

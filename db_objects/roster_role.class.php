@@ -24,6 +24,12 @@ class Roster_Role extends db_object
 	{
 		
 		$fields = Array(
+			'title'		=> Array(
+									'type'		=> 'text',
+									'maxlength'	=> 128,
+									'initial_cap'	=> TRUE,
+									'allow_empty' => FALSE,
+								   ),
 			'congregationid'	=> Array(
 									'type'				=> 'reference',
 									'references'		=> 'congregation',
@@ -34,12 +40,12 @@ class Roster_Role extends db_object
 									'filter'			=> function($x) {$y = $x->getValue("meeting_time"); return !empty($y);},
 									'note'				=> 'Congregations must have a "code name" set to be available here',
 								   ),
-			'title'		=> Array(
-									'type'		=> 'text',
-									'maxlength'	=> 128,
-									'initial_cap'	=> TRUE,
-									'allow_empty' => FALSE,
-								   ),
+			'active'		=> Array(
+									'type'			=> 'select',
+									'options'		=> Array(1 => 'Yes', 0 => 'No'),
+									'default'		=> '1',
+									'note'			=> 'When a role is no longer to be used, mark it as inactive'
+							   ),
 			'volunteer_group'		=> Array(
 									'type'		=> 'reference',
 									'references' => 'person_group',
@@ -58,12 +64,6 @@ class Roster_Role extends db_object
 									'label'		=> 'Role description',
 									'note'		=> 'These details are shown when somebody clicks the role title in a published roster'
 								   ),
-			'active'		=> Array(
-									'type'			=> 'select',
-									'options'		=> Array(1 => 'Yes', 0 => 'No'),
-									'default'		=> '1',
-									'note'			=> 'When a role is no longer to be used, mark it as inactive'
-							   ),
 		);
 		return $fields;
 	}
@@ -86,6 +86,24 @@ class Roster_Role extends db_object
 				}
 			}
 			parent::printFieldInterface($name, $prefix);
+		}
+	}
+
+	function printFieldValue($name, $value=NULL)
+	{
+		switch ($name) {
+			case 'details':
+				echo '<a class="pull-right" target="publicrole" href="'.BASE_URL.'/public/?view=display_role_description&role='.$this->id.'"><i class="icon-share"></i>View in public area</a>';
+				echo '<div class="text">'.$this->getValue($name).'</div>';
+				break;
+			case 'volunteer_group':
+				if ($val = $this->getValue($name)) {
+					$group = new Person_group($val);
+					echo '<a href="?view=groups&groupid='.(int)$val.'">'.ents($group->getValue('name')).'</a>';
+				}
+				break;
+			default:
+				parent::printFieldValue($name, $value);
 		}
 	}
 
