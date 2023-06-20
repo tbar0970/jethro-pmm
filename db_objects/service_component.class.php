@@ -228,7 +228,7 @@ class Service_Component extends db_object
 	{
 		switch ($name) {
 			case 'congregationids':
-				$congs = $GLOBALS['system']->getDBObjectData('congregation_service_component', Array('componentid' => $this->id));
+				$congs = $GLOBALS['system']->getDBObjectData('congregation_service_component', Array('componentid' => $this->id), 'AND', 'meeting_time');
 				$names = Array();
 				foreach ($congs as $cong) {
 					$names[] = $cong['name'];
