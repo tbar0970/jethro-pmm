@@ -335,7 +335,7 @@ class View_services extends View
 				</tfoot>
 			</table>
 			</div>
-			<button type="submit" class="btn">Save</button>
+			<button type="button" class="btn" id="service-plan-submit">Save</button>
 			</form>
  		</div>
 

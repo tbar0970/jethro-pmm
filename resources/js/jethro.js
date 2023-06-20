@@ -1019,14 +1019,14 @@ JethroServicePlanner.init = function() {
 		JethroServicePlanner.isChanged = true;
 		if (event.charCode == 13) this.rows += 1;
 	})
-	$('#service-plan').on('keypress', 'input', function(event) {
+	$('#service-plan').on('keypress', 'input[type=text]', function(event) {
 		if (event.charCode == 13) {
 			this.blur();
 			return false;
 		}
 	})
 
-	$('#service-plan button[type=submit]').click(JethroServicePlanner.onSubmit)
+	$('#service-plan-submit').click(JethroServicePlanner.onSubmit)
 
 	$('#service-plan').on('click', '.tools a[data-action]', function() {
 		var action = $(this).attr('data-action');
@@ -1091,6 +1091,7 @@ JethroServicePlanner.onSubmit = function() {
 	})
 
 	JethroServicePlanner.isChanged = false;
+	this.form.submit();
 }
 
 JethroServicePlanner.Item = {};
