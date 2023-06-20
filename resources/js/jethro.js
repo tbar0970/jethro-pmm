@@ -1019,7 +1019,7 @@ JethroServicePlanner.init = function() {
 		JethroServicePlanner.isChanged = true;
 		if (event.charCode == 13) this.rows += 1;
 	})
-	$('#service-plan').on('keypress', 'input.service-heading', function(event) {
+	$('#service-plan').on('keypress', 'input', function(event) {
 		if (event.charCode == 13) {
 			this.blur();
 			return false;
