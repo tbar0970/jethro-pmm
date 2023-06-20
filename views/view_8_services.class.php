@@ -289,7 +289,7 @@ class View_services extends View
 							<span></span>
 							<textarea name="note[]" class="unfocused" rows="1" style="display: none"></textarea>
 						</td>
-						<td class="personnel"><input name="personnel[]" type="text" value="" /></td>
+						<td class="personnel"><input name="personnel[]" type="text" value="" class="unfocused" /></td>
 						<td class="tools"><?php $this->_printTools(); ?></td>
 					</tr>
 					<tr id="service-heading-template">
