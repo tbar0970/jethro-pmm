@@ -436,12 +436,10 @@ a#user-menu {
 	text-decoration: none !important;
 	color: @jethroLightText !important;
 }
-.user-detail li a:hover .btn-link, .user-detail li a:hover, #body .dropdown-menu li a:hover  {
+.user-detail li a:hover .btn-link, .user-detail li a:hover, #body .dropdown-menu li a:hover, .user-header a  {
 	color: @grayDark !important;
 }
 li.user-header {
-	line-height: 1.1;
-	padding: 6px 20px 6px 20px;
 	margin-bottom: 4px;
 }
 .user-detail .restrictions {

@@ -31,8 +31,11 @@
 								<i class="caret"></i>
 							</a>
 							<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="user-menu">
-								<li class="user-header"><small>Logged in as</small><br />
-									<b><?php echo $GLOBALS['user_system']->getCurrentUser('first_name').' '.$GLOBALS['user_system']->getCurrentUser('last_name'); ?></b>
+								<li class="user-header">
+									<a href="?view=persons&personid=<?php echo $GLOBALS['user_system']->getCurrentUser('id'); ?>">
+										<small>Logged in as</small><br />
+										<b><?php echo $GLOBALS['user_system']->getCurrentUser('first_name').' '.$GLOBALS['user_system']->getCurrentUser('last_name'); ?></b>
+									</a>
 								</li>
 							<?php
 							if ($GLOBALS['user_system']->getCurrentRestrictions()) {
@@ -80,9 +83,10 @@
 				<div class="collapse nav-collapse">
 					<ul class="nav">
 						<li id="user-detail-in-nav" class="dropdown">
-							<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown"><b>User:</b> <?php echo $GLOBALS['user_system']->getCurrentUser('first_name').' '.$GLOBALS['user_system']->getCurrentUser('last_name'); ?> <i class="caret"></i></a>
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown"><b>User:</b> <?php echo $GLOBALS['user_system']->getCurrentUser('first_name').' '.$GLOBALS['user_system']->getCurrentUser('last_name'); ?> <i class="caret"></i></a>
 							<ul class="dropdown-menu">
-								<li><a href="?view=_edit_me"><?php echo _('Edit me')?></a></li>
+								<li><a href="?view=persons&personid=<?php echo $GLOBALS['user_system']->getCurrentUser('id'); ?>"><?php echo _('View my details'); ?></a</li>
+								<li><a href="?view=_edit_me"><?php echo _('Edit my account')?></a></li>
 								<li>
 									<a href="./?logout=1" data-method="post"><?php echo _('Log out')?></a>
 								</li>
