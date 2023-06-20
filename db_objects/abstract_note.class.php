@@ -20,6 +20,8 @@ class Abstract_Note extends DB_Object
 								'width'		=> 50,
 								'height'	=> 5,
 								'initial_cap'	=> true,
+								'add_links'	=> TRUE,
+
 							   ),
 			'status'		=> Array(
 								'type'		=> 'select',

@@ -9,6 +9,7 @@
 $dummy->reset();
 $dummy->populate($id, $entry);
 $type = (!empty($entry['familyid']) ? 'family' : 'person');
+include_once 'urllinker.php';
 ?>
 <a name="note_<?php echo $id; ?>"></a>
 <div class="notes-history-entry well <?php echo $type; ?>-note" id="note_<?php echo $id; ?>">
@@ -43,7 +44,7 @@ $type = (!empty($entry['familyid']) ? 'family' : 'person');
 	<?php
 	if (strlen($entry['details'])) {
 		?>
-		<p class="content"><?php echo nl2br(ents($entry['details'])); ?></p>
+		<p class="content"><?php echo linkUrlsInTrustedHtml(nl2br(ents($entry['details']))); ?></p>
 		<?php
 	}
 	?>
@@ -67,7 +68,7 @@ $type = (!empty($entry['familyid']) ? 'family' : 'person');
 		foreach ($entry['comments'] as $comment) {
 			?>
 			<blockquote>
-				<p><?php echo nl2br(ents(trim($comment['contents']))); ?></p>
+				<p><?php echo linkUrlsInTrustedHtml(nl2br(ents(trim($comment['contents'])))); ?></p>
 				<small class="author">
 					<?php echo $comment['creator_fn'].' '.$comment['creator_ln'].' <span class="visible-desktop">(#'.$entry['creator'].')</span>, '; ?>
 					<?php echo format_datetime($comment['created']); ?>
