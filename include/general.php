@@ -478,9 +478,13 @@ function print_widget($name, $params, $value)
 				// Some filtering might mean currently-selected values are not yet included
 				// in the options. Add more options to make sure the current value can be expressed.
 				foreach ((array)$value as $val) {
-					if (!empty($val) && !isset($options[$val])) {
+					if (!empty($val) && intval($val) && !isset($options[$val])) {
 						$obj = $GLOBALS['system']->getDBObject($params['references'], $val);
-						$options[$val] = $obj->toString();
+						if ($obj) {
+							$options[$val] = $obj->toString();
+						} else {
+							$options[$val] = '!!! Unknown option #'.$val;
+						}
 					}
 				}
 
