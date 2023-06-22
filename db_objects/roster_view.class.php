@@ -622,8 +622,8 @@ class roster_view extends db_object
 		if ($editing) {
 			$absences = $GLOBALS['system']->getDBObjectData('planned_absence',
 																Array(
-																	'>end_date' => $start_date,
-																	'<start_date' => $end_date,
+																	'>=end_date' => $start_date,
+																	'<=start_date' => $end_date,
 																),
 																'AND');
 		}
