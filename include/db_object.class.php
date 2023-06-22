@@ -992,6 +992,18 @@ class db_object
 //--        GLOBAL        --//
 
 
+	/**
+	 * Get an array of SQL query components for fetching rows from this object-type's table
+	 * @param array $params Logical parameters for filtering results, fieldname => value
+	 *						Fieldname can be prefixed as follows to indicate comparison operators:
+	 *						>  >=  < <= (comparison operators)
+	 *						!   (not equal)
+	 *						(   ("in", with value as an array of values)
+	 *						_   (WORDBEGIN)
+	 * @param string $logic - 'AND' or "or" (default)
+	 * @param type $order  Field to order results by
+	 * @return array
+	 */
 	public function getInstancesQueryComps($params, $logic, $order)
 	{
 		$db =& $GLOBALS['db'];
