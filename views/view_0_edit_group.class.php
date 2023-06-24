@@ -91,7 +91,7 @@ class View__Edit_Group extends Abstract_View_Edit_Object
 				break;
 
 			case 'delete':
-				if ($_POST['action'] == 'delete') { // must be POSTed
+				if (array_get($_POST, 'action') == 'delete') { // must be POSTed
 					$GLOBALS['user_system']->checkPerm(PERM_EDITGROUP);
 					$name = $this->_edited_object->toString();
 					if ($this->_edited_object->delete()) {
@@ -100,6 +100,8 @@ class View__Edit_Group extends Abstract_View_Edit_Object
 					} else {
 						redirect('groups', Array('groupid' => $this->_edited_object->id));
 					}
+				} else {
+					add_message('Groups can only be deleted in the same browser window. Please try again');
 				}
 				break;
 		}
