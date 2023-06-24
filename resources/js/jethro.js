@@ -1591,6 +1591,10 @@ function handleNoteStatusChange(elt) {
 	} else {
 		$('select[name='+prefix+'assignee] option[value=""]').remove();
 	}
+	var oldStatus = $(elt).parent('.note-status').attr('data-original-val');
+	var commentRequired = (oldStatus == 'pending') && (elt.value !== 'pending');
+	$('textarea[name='+prefix+'contents]')[commentRequired ? 'addClass' : 'removeClass']('compulsory');
+
 }
 
 function handlePersonStatusChange()

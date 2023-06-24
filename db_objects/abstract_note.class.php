@@ -146,7 +146,7 @@ class Abstract_Note extends DB_Object
 				return;
 			}
 		}
-		if ($name == 'status') echo '<div class="note-status">';
+		if ($name == 'status') echo '<div class="note-status" data-original-val="'.ents($this->getValue('status')).'">';
 		parent::printFieldInterface($name, $prefix);
 		if ($name == 'status') echo '</div>';
 		if ($name == 'action_date') {

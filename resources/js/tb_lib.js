@@ -661,10 +661,11 @@ TBLib.handleFormSubmit = function()
 	}
 	$('.control-group.error').removeClass('error');
 	// Process compulsory inputs
-	var compulsoryInputs = ($(this).find('input.compulsory, select.compulsory'));
+	var compulsoryInputs = ($(this).find('input.compulsory, select.compulsory, textarea.compulsory'));
 	for (var i=0; i < compulsoryInputs.size(); i++) {
 		if ((compulsoryInputs.get(i).value == '') && (!compulsoryInputs.get(i).disabled)) {
 			TBLib.markErroredInput(compulsoryInputs.get(i));
+			compulsoryInputs.get(i).focus();
 			alert('A mandatory field has been left blank');
 			compulsoryInputs.get(i).focus();
 			return false;
