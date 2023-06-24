@@ -1281,6 +1281,18 @@ var JethroRoster = {}
 JethroRoster.CUSTOM_ASSIGNEE_TARGET = null;
 
 JethroRoster.init = function() {
+	// This applies to read-only rosters
+	$('table.roster [data-personid]').on('mouseover', function() {
+		var personid = $(this).attr('data-personid');
+		var others = $(this).parents('.roster').find('a[data-personid='+personid+'], span[data-personid='+personid+']');
+		if (others.length > 1) {
+			others.addClass('rosteree-highlighted');
+		}
+	}).on('mouseout', function() {
+		$('.rosteree-highlighted').removeClass('rosteree-highlighted');
+	});
+
+	// Go no further unless we're editing a roster
 	if (!$('form#roster').length) return;
 
 	$('table.roster select').keypress(function() { JethroRoster.onAssignmentChange(this); }).change(function() { JethroRoster.onAssignmentChange(this); });

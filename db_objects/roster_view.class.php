@@ -812,7 +812,8 @@ class roster_view extends db_object
 								$personid = $vs['personid'];
 								if (!$public && !$vs['assigneehidden']) {
 									$href = '?view=persons&personid='.$personid;
-									$n = '<span class="nowrap"><a data-personid="'.$personid . '" href="'.$href.'" title="Assigned by '.ents($vs['assigner']).' on '.format_datetime($vs['assignedon']).'">'.ents($vs['name']).'</a>';
+									$n = '<span class="nowrap">';
+									$n .= '<a data-personid="'.$personid . '" href="'.$href.'" title="Assigned by '.ents($vs['assigner']).' on '.format_datetime($vs['assignedon']).'">'.ents($vs['name']).'</a>';
 									if (strlen(strval($vs['absenceid']))) {
 										$n .= ' <a href="'.$href.'#rosters" class="label label-important" title="Planned absence: '.ents($vs['absence_comment']).'">!</i></a>';
 									}
@@ -823,7 +824,7 @@ class roster_view extends db_object
 									$n .= '</span>';
 									$names[] = $n;
 								} else {
-									$names[] = nbsp($vs['name']);
+									$names[] = '<span data-personid="'.$personid.'">'.nbsp(ents($vs['name'])).'</span>';;
 								}
 							}
 							echo implode("<br />", $names);
