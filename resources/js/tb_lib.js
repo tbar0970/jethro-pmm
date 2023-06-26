@@ -45,17 +45,6 @@ $(document).ready(function() {
 	})
 
 	//// POPUPS ETC ////
-	// handler for hidden-frame links
-	var hlinks = ($('a.hidden-frame'));
-	if (hlinks.size() > 0) {
-		hlinks.each(function() { this.target = 'tblib-hidden-frame' });
-		var iframe = document.createElement('IFRAME');
-		iframe.name = 'tblib-hidden-frame';
-		iframe.style.height = '0px';
-		iframe.style.width = '0px';
-		iframe.style.borderWidth = '0px';
-		document.body.appendChild(iframe);
-	}
 
 	$('a.med-popup').click(TBLib.handleMedPopupLinkClick).each(function() {
 		if (!this.title) this.title = '(Opens in a new window)';
