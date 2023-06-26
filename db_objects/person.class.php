@@ -97,7 +97,6 @@ class Person extends DB_Object
 									'type'		=> 'email',
 									'width'		=> 40,
 									'maxlength'	=> 255,
-									'class'		=> 'valid-email',
 								   ),
 			'mobile_tel'	=> Array(
 									'type'			=> 'phone',

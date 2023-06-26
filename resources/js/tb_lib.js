@@ -780,14 +780,6 @@ TBLib.handleFormSubmit = function()
 	});
 	if (!ok) return false;
 
-	$(this).find('input.valid-email').each(function() {
-		if (!TBLib.handleEmailBlur.apply(this)) {
-			ok = false;
-			return false;
-		}
-	});
-	if (!ok) return false;
-
 	$(this).find('input.day-box').each(function() {
 		if (!TBLib.handleDayBoxBlur.apply(this)) {
 			ok = false;
@@ -868,25 +860,6 @@ TBLib.handleBitmaskBoxClick = function()
 }
 
 /******************************************/
-function parseQueryString(qs)
-{
-	qs = qs.replace(/\+/g, ' ')
-	if (qs[0] == '?') qs = qs.substr(1);
-	var args = qs.split('&') // parse out name/value pairs separated via &
-	var params = {};
-	for (var i=0;i<args.length;i++) {
-		var value;
-		var pair = args[i].split('=');
-		var name = unescape(pair[0]);
-		if (pair.length == 2) {
-			value = unescape(pair[1]);
-		} else {
-			value = name;
-		}
-		params[name] = value
-	}
-	return params;
-}
 
 function getKeyCode(e)
 {
