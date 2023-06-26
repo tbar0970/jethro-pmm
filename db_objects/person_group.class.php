@@ -311,6 +311,13 @@ class Person_Group extends db_object
 			return FALSE;
 		}
 
+		$roles = $GLOBALS['system']->getDBObjectData('roster_role', Array('volunteer_group' => $this->id));
+		if ($roles) {
+			$role = reset($roles);
+			add_message("This group cannot be deleted because it used by the roster role '".$role['title']."'", 'error');
+			return FALSE;
+		}
+
 		$r = parent::delete();
 		$db =& $GLOBALS['db'];
 		$sql = 'DELETE FROM person_group_membership WHERE groupid = '.$db->quote($this->id);

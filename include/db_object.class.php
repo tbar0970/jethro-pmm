@@ -156,7 +156,7 @@ class db_object
 	}
 
 	/**
-	 *
+	 * Get foreign keys to apply to this class's DB table
 	 * @return Array ([tablename.]columnName => referenceExpression) eg '`tagid`' => '`tagoption`(`id`) ON DELETE CASCADE'
 	 */
 	public function getForeignKeys()

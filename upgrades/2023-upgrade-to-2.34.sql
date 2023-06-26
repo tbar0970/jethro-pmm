@@ -33,3 +33,10 @@ FROM setting WHERE symbol = 'NOTES_ORDER';
 
 SELECT @newrank:=rank+1 from setting where symbol = 'NOTES_ORDER';
 UPDATE setting SET rank = @newrank WHERE symbol = 'NOTES_LINK_TO_EDIT';
+
+
+UPDATE roster_role set volunteer_group = NULL
+where volunteer_group NOT IN (select id from _person_group);
+
+ALTER TABLE roster_role
+ADD CONSTRAINT `rr_groupid` FOREIGN KEY (volunteer_group) REFERENCES _person_group(id) ON DELETE RESTRICT;

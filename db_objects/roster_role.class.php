@@ -67,7 +67,14 @@ class Roster_Role extends db_object
 		);
 		return $fields;
 	}
-
+	
+	/**
+	 * Get foreign keys to apply to this class's DB table
+	 */
+	public function getForeignKeys()
+	{
+		return Array('roster_role.volunteer_group' => '_person_group(id)');
+	}
 
 
 	function printFieldInterface($name, $prefix='')
