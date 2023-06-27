@@ -849,7 +849,7 @@ class db_object
 	public function printFieldInterface($name, $prefix='')
 	{
 		$value = array_get($this->values, $name);
-		if ($this->id && !$this->haveLock()) {
+		if (((int)$this->id >0)&& !$this->haveLock()) {
 			echo $value;
 		} else {
 			print_widget($prefix.$name, $this->fields[$name], $value);

@@ -685,8 +685,8 @@ class Person_Query extends DB_Object
 					</td>
 				</tr>
 				<tr>
-					<td></td>
-					<td>Show on home page?
+					<td>Show on home page?</td>
+					<td>
 						<?php
 						$this->printFieldInterface('show_on_homepage');
 						?>
