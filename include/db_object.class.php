@@ -400,6 +400,10 @@ class db_object
 			if ($this->fields[$i]['type'] == 'serialise') {
 				$new_val = serialize($new_val);
 			}
+			if (($new_val === '') && (in_array($this->fields[$i]['type'], Array('date', 'datetime', 'int', 'reference')))) {
+				// Mysql strict mode doesn't like blank strings being inserted into datetime cols
+				$new_val = NULL;
+			}
 			if (($this->fields[$i]['type'] == 'datetime') && ($new_val == 'CURRENT_TIMESTAMP')) {
 				// CURRENT_TIMESTAMP should not be quoted
 				$sets[] = ''.$db->quoteIdentifier($i).' = '.$new_val;
