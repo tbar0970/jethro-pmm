@@ -39,7 +39,8 @@ class Call_Service_Plan extends Call
 					}
 					thead th {
 						background-color: #555;
-						color: white;
+						color: white !important;
+						text-align: left;
 					}
 					tbody th {
 						text-align: left;
@@ -47,7 +48,7 @@ class Call_Service_Plan extends Call
 					tbody th:first-child {
 						padding-left: 0px;
 					}
-					th * {
+					thead th * {
 						color: white !important;
 					}
 					table {
@@ -63,11 +64,16 @@ class Call_Service_Plan extends Call
 						width: 1%;
 						white-space: nowrap;
 					}
+					a, a:visited {
+						color: #444;
+					}
 				</style>
 				<style media="print">
 					html body * {
 						color: black;
-						text-decoration: none;
+					}
+					thead th * {
+						color: white !important;
 					}
 					body {
 						margin: 0px !important;

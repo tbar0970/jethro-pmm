@@ -572,7 +572,9 @@ class roster_view extends db_object
 	private function _printOutputLabel($member, $service)
 	{
 		if ($member['role_id']) {
+			echo '<a class="med-popup" href="'.BASE_URL.'/public/?view=display_role_description&role='.(int)$member['role_id'].'">';
 			echo ents($member['role_title']);
+			echo '</a>';
 		} else if ($member['service_field']) {
 			echo ents($service->getFieldLabel($member['service_field'], TRUE));
 		}
