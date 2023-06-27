@@ -572,7 +572,11 @@ class roster_view extends db_object
 	private function _printOutputLabel($member, $service)
 	{
 		if ($member['role_id']) {
-			echo '<a class="med-popup" href="'.BASE_URL.'/public/?view=display_role_description&role='.(int)$member['role_id'].'">';
+			if (ifdef('PUBLIC_AREA_ENABLED', 1)) {
+				echo '<a class="med-popup" href="'.BASE_URL.'/public/?view=display_role_description&role='.(int)$member['role_id'].'">';
+			} else {
+				echo '<a class="med-popup" href="'.BASE_URL.'?view=rosters__define_roster_roles&roster_roleid='.(int)$member['role_id'].'">';
+			}
 			echo ents($member['role_title']);
 			echo '</a>';
 		} else if ($member['service_field']) {
@@ -919,16 +923,13 @@ class roster_view extends db_object
 			<th class="<?php echo $th_class; ?>">
 				<?php
 				if ($details['role_id']) {
-					if ($editing) {
-						if (!empty($details['volunteer_group'])) {
-							echo '<a title="Click to edit volunteer group" href="'.BASE_URL.'?view=groups&groupid='.(int)$details['volunteer_group'].'">'.ents($details['role_title']).'</a>';
-						} else {
-							echo ents($details['role_title']);
-						}
-						if (!empty($details['readonly'])) echo '<br /><b>[LOCKED]</b>';
+					if ($public) {
+						echo '<a class="med-popup" href="'.BASE_URL.'/public/?view=display_role_description&role='.(int)$details['role_id'].'">';
 					} else {
-						echo '<a class="med-popup" title="Click for role description" href="'.BASE_URL.'/public/?view=display_role_description&role='.$details['role_id'].'">'.ents($details['role_title']).'</a>';
+						echo '<a class="med-popup" href="'.BASE_URL.'?view=rosters__define_roster_roles&roster_roleid='.(int)$details['role_id'].'">';
 					}
+					echo ents($details['role_title']);
+					echo '</a>';
 				} else {
 					echo ents($dummy_service->getFieldLabel($details['service_field'], true));
 				}
