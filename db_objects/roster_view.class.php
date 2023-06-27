@@ -110,7 +110,7 @@ class roster_view extends db_object
 								),
 			'show_on_run_sheet' => Array(
 									'type'	=> 'select',
-									'options' => Array(0 => 'No', 1 => 'Yes'),
+									'options' => Array(0 => 'No', 1 => 'Yes, including empty roles', 2 => 'Yes, without empty roles'),
 									'default' => 0,
 									'note' => 'Whether to display this view\'s allocations at the top of applicable service run sheets',
 									),
@@ -498,8 +498,10 @@ class roster_view extends db_object
 		$numCols = 3;
 		$totalRows = ceil($numMembers/$numCols);
 		$i = 0;
+		$showBlanks = ($this->getValue('show_on_run_sheet') == 1);
 		foreach ($this->_members as $member) {
 			if (!$includeServiceFields && (empty($member['role_id']))) continue;
+			if (!$showBlanks && !empty($member['role_id']) && empty($asns[$member['role_id']])) continue;
 			?>
 			<div class="clearfix">
 				<label>
@@ -535,6 +537,7 @@ class roster_view extends db_object
 		}
 
 		$totalRows = ceil($numMembers/$columns);
+		$showBlanks = ($this->getValue('show_on_run_sheet') == 1);
 		?>
 		<table cellpadding="5">
 			<?php
@@ -545,6 +548,7 @@ class roster_view extends db_object
 				$i = 0;
 				foreach ($this->_members as $member) {
 					if (!$includeServiceFields && (empty($member['role_id']))) continue;
+					if (!$showBlanks && !empty($member['role_id']) && empty($asns[$member['role_id']])) continue;
 
 					if (($i % $totalRows) == $rowNum) {
 						?>
@@ -1043,7 +1047,7 @@ class roster_view extends db_object
 		$SQL = '
 		SELECT id
 		FROM roster_view
-		WHERE show_on_run_sheet = 1
+		WHERE show_on_run_sheet > 0
 		AND id IN (
 			SELECT DISTINCT roster_view_id
 			FROM roster_view_service_field sf
