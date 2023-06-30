@@ -382,10 +382,8 @@ class service extends db_object
 							include_once 'urllinker.php';
 							$compid = $item['componentid'];
 							$line .= ' <i class="clickable icon-info-sign" data-toggle="visible" data-target="#compdetail'.$compid.'-'.$this->id.'"></i>';
-							//$line .= '<div >';
 							$line .= '<table class="help-block custom-field-tooltip" id="compdetail'.$compid.'-'.$this->id.'"><tr><td class="narrow">CCLI #:</td><td>'.ents($item['ccli_number']).'</td></tr>';
 							$line .= '<tr><td>Comments:</td><td>'.linkUrlsInTrustedHtml($item['comments']).'</td></tr></table>';
-							//$line .= '</div>';
 						}
 						$res[] = $line;
 					}
