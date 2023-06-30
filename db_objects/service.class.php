@@ -377,10 +377,34 @@ class service extends db_object
 					$compCatID = (int)substr($fieldname, 6);
 					$res = Array();
 					foreach ($this->getItems(FALSE, $compCatID) as $item) {
-						$res[] = ents($item['title']);
+				        $title = nbsp(ents($item['title']));
+ 				        $songid = ents($item['componentid']);
+                			$sql = 'SELECT ccli_number FROM service_component WHERE id = "'.$songid.'"';
+		                	$ccli_number = $GLOBALS['db']->queryOne($sql);
+ 		                	$sql = 'SELECT comments FROM service_component WHERE id = "'.$songid.'"';
+                       			$comments = $GLOBALS['db']->queryOne($sql);
+                        		if (strlen($comments) >= 20) {
+                          			$comments = (substr($comments,0,19).'...');
+                          		}
+                        		if (empty($comments) & empty($ccli_number)) {
+                        			$res [] = $title;
+                         		}
+                        		else {
+                          			if (empty($ccli_number)) {
+                          				$ccli_number ="";
+                          			}
+                         			else {
+                          				$ccli_number = 'CCLI#: '.$ccli_number.'<br>'; 
+                          			}
+                          			if (!empty($comments)) {
+                          				$comments = 'Comments: '.$comments ;
+                          			}
+						$res[] = $title.'<i class="clickable icon-question-sign" data-toggle="visible" data-target=#'.$songid.'></i><div class="help-block custom-field-tooltip" id='.$songid.'>'.$ccli_number.$comments.'</div>';
 					}
-					echo implode('<br />', nbsp($res));
-				} else {
+					}
+			    		echo implode('<br />', $res);		
+  							
+					} else {
 					parent::printFieldvalue($fieldname);
 				}
 		}
