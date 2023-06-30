@@ -87,7 +87,7 @@ class Call_Display_Roster extends Call
 
 				$start_date = substr(array_get($_REQUEST, 'start_date', ''), 0, 10);
 				$end_date = substr(array_get($_REQUEST, 'end_date', ''), 0, 10);
-				$view->printView($start_date, $end_date, FALSE, TRUE);
+				$view->printView($start_date, $end_date, FALSE, TRUE, TRUE);
 				?>
 			</body>
 		</html>

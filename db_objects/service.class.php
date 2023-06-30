@@ -290,7 +290,7 @@ class service extends db_object
 				}
 		}	}
 
-	function printFieldValue($fieldname, $value=NULL)
+	function printFieldValue($fieldname, $value=NULL, $printableMode=FALSE)
 	{
 		// a few special cases
 		switch ($fieldname) {
@@ -377,30 +377,17 @@ class service extends db_object
 					$compCatID = (int)substr($fieldname, 6);
 					$res = Array();
 					foreach ($this->getItems(FALSE, $compCatID) as $item) {
-				        $title = nbsp(ents($item['title']));
- 				        $songid = ents($item['componentid']);
-                			$sql = 'SELECT ccli_number FROM service_component WHERE id = "'.$songid.'"';
-		                	$ccli_number = $GLOBALS['db']->queryOne($sql);
- 		                	$sql = 'SELECT comments FROM service_component WHERE id = "'.$songid.'"';
-                       			$comments = $GLOBALS['db']->queryOne($sql);
-                        		if (strlen($comments) >= 20) {
-                          			$comments = (substr($comments,0,19).'...');
-                          		}
-                        		if (empty($comments) & empty($ccli_number)) {
-                        			$res [] = $title;
-                         		}
-                        		else {
-                          			if (empty($ccli_number)) {
-                          				$ccli_number ="";
-                          			}
-                         			else {
-                          				$ccli_number = 'CCLI#: '.$ccli_number.'<br>'; 
-                          			}
-                          			if (!empty($comments)) {
-                          				$comments = 'Comments: '.$comments ;
-                          			}
-						$res[] = $title.'<i class="clickable icon-question-sign" data-toggle="visible" data-target=#'.$songid.'></i><div class="help-block custom-field-tooltip" id='.$songid.'>'.$ccli_number.$comments.'</div>';
-					}
+						$line = nbsp(ents($item['title']));
+						if (!$printableMode && (strlen($item['ccli_number']) + strlen($item['comments']) > 0)) {
+							include_once 'urllinker.php';
+							$compid = $item['componentid'];
+							$line .= ' <i class="clickable icon-info-sign" data-toggle="visible" data-target="#compdetail'.$compid.'-'.$this->id.'"></i>';
+							//$line .= '<div >';
+							$line .= '<table class="help-block custom-field-tooltip" id="compdetail'.$compid.'-'.$this->id.'"><tr><td class="narrow">CCLI #:</td><td>'.ents($item['ccli_number']).'</td></tr>';
+							$line .= '<tr><td>Comments:</td><td>'.linkUrlsInTrustedHtml($item['comments']).'</td></tr></table>';
+							//$line .= '</div>';
+						}
+						$res[] = $line;
 					}
 			    		echo implode('<br />', $res);		
   							
@@ -673,7 +660,9 @@ class service extends db_object
 					IFNULL(IF(LENGTH(sc.runsheet_title_format) = 0, scc.runsheet_title_format, sc.runsheet_title_format), "%title%") AS runsheet_title_format,
 					IFNULL(IF(LENGTH(sc.handout_title_format) = 0, scc.handout_title_format, sc.handout_title_format), "%title%") AS handout_title_format,
 					IF(LENGTH(si.personnel) > 0, si.personnel, IF(LENGTH(sc.personnel) > 0, sc.personnel, scc.personnel_default)) as personnel,
-					sc.categoryid
+					sc.categoryid,
+					sc.ccli_number,
+					sc.comments
 				FROM service_item si
 				LEFT JOIN service_component sc ON si.componentid = sc.id
 				LEFT JOIN service_component_category scc ON sc.categoryid = scc.id

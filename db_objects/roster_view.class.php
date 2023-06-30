@@ -615,7 +615,7 @@ class roster_view extends db_object
 	}
 
 
-	function printView($start_date=NULL, $end_date=NULL, $editing=FALSE, $public=FALSE)
+	function printView($start_date=NULL, $end_date=NULL, $editing=FALSE, $public=FALSE, $printable=FALSE)
 	{
 		if (empty($this->_members)) return;
 		$GLOBALS['system']->includeDBClass('service');
@@ -846,7 +846,7 @@ class roster_view extends db_object
 								unset($ddetail['service'][$mdetail['congregationid']]['notes']);
 							}
 							$dummy_service->populate($ddetail['service'][$mdetail['congregationid']]['id'], $ddetail['service'][$mdetail['congregationid']]);
-							$dummy_service->printFieldvalue($mdetail['service_field']);
+							$dummy_service->printFieldvalue($mdetail['service_field'], NULL, $printable);
 						}
 					}
 					?>

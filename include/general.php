@@ -119,6 +119,7 @@ function nbsp($x)
  */
 function ents($str)
 {
+	if ($str === NULL) return '';
 	if (trim(strval($str)) == '') {
 		return '';
 	}

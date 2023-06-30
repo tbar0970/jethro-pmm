@@ -723,6 +723,7 @@ tr:last-child .insert-row-below {
 	font-style: italic;
 	color: @gray;
 }
+
 #body .soft { /* low-key links */
 	font-size: 85%;
 	padding-top: 1px;
@@ -742,6 +743,14 @@ tr:last-child .insert-row-below {
 	margin-top: 2px;
 	width: 300px;
 	font-style: italic;
+}
+#body table.custom-field-tooltip td {
+	background: @grayLighter !important;
+	border: 1px solid !important;
+}
+table.custom-field-tooltip {
+	margin: 0px;
+	border: 1px solid;
 }
 .compact-2col {
 	max-width: 800px;
