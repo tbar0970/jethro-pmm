@@ -931,9 +931,9 @@ class roster_view extends db_object
 					echo ents($details['role_title']);
 					echo '</a>';
 				} else {
-					echo '<a href="?view=services__list_all">';
+					if (!$public) echo '<a href="?view=services__list_all">';
 					echo ents($dummy_service->getFieldLabel($details['service_field'], true));
-					echo '</a>';
+					if (!$public) echo '</a>';
 				}
 				?>
 			</th>
