@@ -476,7 +476,7 @@ class service extends db_object
 	public function replaceKeywords($text)
 	{
 		$matches = Array();
-		preg_match_all('/%([a-zA-Z0-9_]*)%/', $text, $matches);
+		preg_match_all('/%([a-zA-Z0-9_/#]*)%/', $text, $matches);
 		foreach ($matches[1] as $keyword) {
 			$text = str_replace('%'.$keyword.'%', $this->getKeywordReplacement($keyword), $text);
 		}
