@@ -382,8 +382,9 @@ class service extends db_object
 							include_once 'urllinker.php';
 							$compid = $item['componentid'];
 							$line .= ' <i class="clickable icon-info-sign" data-toggle="visible" data-target="#compdetail'.$compid.'-'.$this->id.'"></i>';
-							$line .= '<table class="help-block custom-field-tooltip" id="compdetail'.$compid.'-'.$this->id.'"><tr><td class="narrow">CCLI #:</td><td>'.ents($item['ccli_number']).'</td></tr>';
-							$line .= '<tr><td>Comments:</td><td>'.linkUrlsInTrustedHtml(nl2br($item['comments'])).'</td></tr></table>';
+							$line .= '<table class="help-block custom-field-tooltip" id="compdetail'.$compid.'-'.$this->id.'"><tr><td class="narrow">CCLI #:</td><td>'.ents($item['ccli_number']).'</td>';
+							$line .= '<td class="narrow"><a title="Edit this component" href="'.BASE_URL.'?view=_edit_service_component&service_componentid='.$compid.'"><i class="icon-wrench"></i></a></td></tr>';
+							$line .= '<tr><td>Comments:</td><td colspan="2">'.linkUrlsInTrustedHtml(nl2br($item['comments'])).'</td></tr></table>';
 						}
 						$res[] = $line;
 					}
@@ -476,7 +477,7 @@ class service extends db_object
 	public function replaceKeywords($text)
 	{
 		$matches = Array();
-		preg_match_all('/%([a-zA-Z0-9_/#]*)%/', $text, $matches);
+		preg_match_all('/%([a-zA-Z0-9#_\/]*)%/', $text, $matches);
 		foreach ($matches[1] as $keyword) {
 			$text = str_replace('%'.$keyword.'%', $this->getKeywordReplacement($keyword), $text);
 		}
