@@ -40,3 +40,6 @@ where volunteer_group NOT IN (select id from _person_group);
 
 ALTER TABLE roster_role
 ADD CONSTRAINT `rr_groupid` FOREIGN KEY (volunteer_group) REFERENCES _person_group(id) ON DELETE RESTRICT;
+
+ALTER TABLE service
+ADD CONSTRAINT `service_congregationid` FOREIGN KEY (congregationid) REFERENCES congregation(id) ON DELETE RESTRICT;
