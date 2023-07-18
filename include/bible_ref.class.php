@@ -324,15 +324,21 @@ class bible_ref
 	private $start_v = 0;
 	private $end_ch = 0;
 	private $end_v = 0;
+	private $start_v2 = 0;
+	private $end_v2 = 0;
 
 	public function __construct($str)
 	{
 		if (empty($str)) return;
 		if ($str[0] == '0') {
-			list($this->book, $this->start_ch, $this->start_v, $this->end_ch, $this->end_v) = sscanf($str, '%03d_%03d:%03d-%03d:%03d');
+			if (strpos($str, ',') === FALSE) {
+				list($this->book, $this->start_ch, $this->start_v, $this->end_ch, $this->end_v) = sscanf($str, '%03d_%03d:%03d-%03d:%03d');
+			} else {
+				list($this->book, $this->start_ch, $this->start_v, $this->end_ch, $this->end_v, $this->start_v2, $this->end_v2) = sscanf($str, '%03d_%03d:%03d-%03d:%03d,%03d-%03d');
+			}
 		} else {
 			$str = strtolower(str_replace(' ', '', $str));
-			$pattern = "/([0-9]{0,1}([^0-9]+))(([0-9]+)([\-\:.])){0,1}(([0-9]+)([\-\:.])){0,1}(([0-9]+)([\-\:.])){0,1}([0-9]+)/";
+			$pattern = "/([0-9]?([^0-9]+))(([0-9]+)([\-\:.]))?(([0-9]+)([\-\:.]))?(([0-9]+)([\-\:.]))?([0-9]+)(,([0-9]+)(-([0-9]+))?)?/";
 			$matches = Array();
 			preg_match($pattern, $str, $matches);
 			$this->book = @$this->names_to_numbers[$matches[1]];
@@ -370,37 +376,51 @@ class bible_ref
 				$this->start_v = 1;
 				$this->end_v = 999;
 			}
+
+			if (!empty($matches[14])) {
+				// split reading = extra verse reference(s).
+				$this->start_v2 = $this->end_v2 = $matches[14];
+				if (!empty($matches[16])) {
+					$this->end_v2 = $matches[16];
+				}
+			}
 		}
 	}
 
 	public function toString($short=false)
 	{
 		if (is_null($this->book)) return '';
-		$book = $short ? $this->short_names[$this->book] : ucwords($this->med_names[$this->book]);
+		$res = $short ? $this->short_names[$this->book] : ucwords($this->med_names[$this->book]);
 		if ($this->start_ch == $this->end_ch) {
 			if ($this->start_v == $this->end_v) {
 				// single verse
-				return $book.' '.$this->start_ch.':'.$this->start_v;
+				$res .= ' '.$this->start_ch.':'.$this->start_v;
 			} else {
 				// within a single chapter
 				if (($this->start_v == 1) && ($this->end_v == 999)) {
 					// whole chapter
-
-					return $book.' '.$this->start_ch;
+					$res .= ' '.$this->start_ch;
 				} else {
 					// designated portion
-					return $book.' '.$this->start_ch.':'.$this->start_v.'-'.$this->end_v;
+					$res .= ' '.$this->start_ch.':'.$this->start_v.'-'.$this->end_v;
 				}
 			}
 		} else {
 			if (($this->start_v == 1) && ($this->end_v == 999)) {
 				// whole chapters
-				return $book.' '.$this->start_ch.' - '.$this->end_ch;
+				$res .= ' '.$this->start_ch.' - '.$this->end_ch;
 			} else {
 				// full four-number reference
-				return $book.' '.$this->start_ch.':'.$this->start_v.' - '.$this->end_ch.':'.$this->end_v;
+				$res .= ' '.$this->start_ch.':'.$this->start_v.' - '.$this->end_ch.':'.$this->end_v;
 			}
 		}
+		if ($this->start_v2) {
+			$res .= ', '.$this->start_v2;
+			if ($this->end_v2 > $this->start_v2) {
+				$res .= '-'.$this->end_v2;
+			}
+		}
+		return $res;
 	}
 
 	public function toShortString()
@@ -416,13 +436,44 @@ class bible_ref
 
 	public function toCode()
 	{
-		return sprintf('%03d_%03d:%03d-%03d:%03d', $this->book, $this->start_ch, $this->start_v, $this->end_ch, $this->end_v);
+		if ($this->end_v2) {
+			return sprintf('%03d_%03d:%03d-%03d:%03d,%03d-%03d', $this->book, $this->start_ch, $this->start_v, $this->end_ch, $this->end_v, $this->start_v2, $this->end_v2);
+		} else {
+			return sprintf('%03d_%03d:%03d-%03d:%03d', $this->book, $this->start_ch, $this->start_v, $this->end_ch, $this->end_v);
+		}
 	}
 
 	public function printJSRegex()
 	{
 		$books = implode('|', array_keys($this->names_to_numbers));
-		echo '/^('.$books.')(([0-9]+)([\-\:.])){0,1}(([0-9]+)([\-\:.])){0,1}(([0-9]+)([\-\:.])){0,1}([0-9]+)$/gi';
+		echo '/^('.$books.')(([0-9]+)([\-\:.]))?(([0-9]+)([\-\:.]))?(([0-9]+)([\-\:.]))?([0-9]+)(,[0-9]+(-[0-9]+)?)?$/gi';
+	}
+
+	static function printTests()
+	{
+		echo '<table border="1">';
+		$tests = Array(
+			'1 John 23',
+			'Matthew 23:4',
+			'Matthew 23:5-6',
+			'Matthew 23:1 - 24:5',
+			'2 Thess 23:1-2, 4',
+			'2 Thess 23:1-2, 4-5',
+			'1 Peter 2:29-3:2,5',
+			'1 Peter 2:29-3:2,5-6',
+		);
+		foreach ($tests as $str) {
+			$x = new Bible_Ref($str);
+			?>
+			<tr>
+				<td><?php echo $str; ?></td>
+				<td><?php echo $x->toString(TRUE); ?></td>
+				<td><?php echo $x->toCode(); ?></td>
+				<td><?php $y = new Bible_ref($x->toCode()); echo $y->toString(TRUE); ?></td>
+			</tr>
+			<?php
+		}
+
 	}
 
 
