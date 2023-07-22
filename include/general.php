@@ -476,19 +476,6 @@ function print_widget($name, $params, $value)
 				$where_logic = array_get($params, 'filter_logic', 'AND');
 				$options = $GLOBALS['system']->getDBObjectData($params['references'], $where, $where_logic, array_get($params, 'order_by'));
 
-				// Some filtering might mean currently-selected values are not yet included
-				// in the options. Add more options to make sure the current value can be expressed.
-				foreach ((array)$value as $val) {
-					if (!empty($val) && intval($val) && !isset($options[$val])) {
-						$obj = $GLOBALS['system']->getDBObject($params['references'], $val);
-						if ($obj) {
-							$options[$val] = $obj->toString();
-						} else {
-							$options[$val] = '!!! Unknown option #'.$val;
-						}
-					}
-				}
-
 				$dummy = new $params['references']();
 				$our_val = is_array($value) ? $value : (empty($value) ? Array() : Array($value));
 				$default = NULL;
@@ -506,6 +493,20 @@ function print_widget($name, $params, $value)
 					$params['options'][$k] = $dummy->toString();
 					if (!empty($details['is_default'])) $default = $k;
 				}
+
+				// Some filtering might mean currently-selected values are not yet included
+				// in the options. Add more options to make sure the current value can be expressed.
+				foreach ((array)$value as $val) {
+					if (!empty($val) && intval($val) && !isset($options[$val])) {
+						$obj = $GLOBALS['system']->getDBObject($params['references'], $val);
+						if ($obj) {
+							$params['options'][$val] = $obj->toString();
+						} else {
+							$params['options'][$val] = '!!! Unknown option #'.$val;
+						}
+					}
+				}
+
 				$params['type'] = 'select';
 				if (empty($params['allow_empty']) && ($value === '')) $value = $default;
 				return print_widget($name, $params, $value);
