@@ -79,6 +79,7 @@ class Person extends DB_Object
 			'congregationid'	=> Array(
 									'type'				=> 'reference',
 									'references'		=> 'congregation',
+									'filter'			=> Array('holds_persons' => 1),
 									'order_by'			=> 'name',
 									'label'				=> 'Congregation',
 									'show_id'			=> FALSE,

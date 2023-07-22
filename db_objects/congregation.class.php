@@ -23,14 +23,12 @@ class Congregation extends db_object
 									'label'			=> 'Short Name',
 									'note'			=> 'For general use within Jethro',
 								   ),
-			'meeting_time'	=> Array(
-									'type'		=> 'text',
-									'width'		=> 10,
-									'maxlength'	=> 255,
-									'label'		=> 'Code Name',
-									'regex'		=> '/^[^0-9]*[0-2]\d[0-5]\d[^0-9]*$/',
-									'note'		=> 'Used for filenames and sorting.  Fill this field in to enable service planning and rosters for this congregation.  An HHMM time must be present within the value (eg ash_0930_late).',
-								   ),
+			'holds_persons'	 => Array(
+									'type'		=> 'select',
+									'options'	=> Array('No', 'Yes'),
+									'default'	=> 1,
+									'label'		=> 'Features',
+								),
 			'attendance_recording_days'	=> Array(
 									'type'		=> 'bitmask',
 									'options'	=> Array(
@@ -45,16 +43,68 @@ class Congregation extends db_object
 									'default'	=> 127,
 									'label'		=> 'Attendance Recording Days',
 									'cols'		=> 2,
-									'note'		=> 'Jethro will only allow you to record attendance for this congregation on the selected days.  Select nothing if you do not plan to record attendance for this congregation.',
+									'note'		=> 'Jethro will only allow you to record attendance on the selected days.  ',
 									'show_unselected' => FALSE,
 						   ),
-			'print_quantity' => Array(
-									'type'		=> 'int',
-									'hidden'	=> true,
-									'editable' => false,
-									'default'	=> 0,
+			'meeting_time'	=> Array(
+									'type'		=> 'text',
+									'width'		=> 10,
+									'maxlength'	=> 255,
+									'label'		=> 'Time code',
+									'regex'		=> '/^[^0-9]*[0-2]\d[0-5]\d[^0-9]*$/',
+									'note'		=> 'Enter the starting time, in HHMM format, with optional prefix/suffix (eg ash_0930_late). Also used for filenames and sorting.',
 								   ),
 		);
+	}
+
+	public function printFieldInterface($name, $prefix='')
+	{
+		switch ($name) {
+			case 'holds_persons':
+				$params = Array('type' => 'checkbox', 'attrs' => Array('data-toggle' => 'visible'));
+				?>
+				<label class="checkbox">
+					<?php
+					print_widget('holds_persons', $params, $this->getValue('holds_persons'));
+					?>
+					Persons can be added to this congregation
+				</label>
+				<label class="checkbox">
+					<?php 
+					$params['attrs']['data-target'] = '#field-attendance_recording_days';
+					print_widget('holds_attendance', $params, empty($this->id) || $this->getValue('attendance_recording_days') > 0); ?>
+					Attendance can be recorded for this congregation
+				</label>
+				<label class="checkbox">
+					<?php
+					$params['attrs']['data-target'] = '#field-meeting_time';
+					print_widget('holds_services', $params, empty($this->id) || strlen($this->getValue('meeting_time')) > 0);
+					?>
+					This congregation has services/rosters
+				</label>
+				<?php
+				break;
+			default:
+				return parent::printFieldInterface($name, $prefix);
+		}
+	}
+
+	public function processFieldInterface($name, $prefix = '')
+	{
+		switch ($name) {
+			case 'holds_persons':
+				$this->setValue('holds_persons', array_get($_POST, 'holds_persons', 0));
+				break;
+			default:
+				parent::processFieldInterface($name, $prefix);
+		}
+	}
+
+	public function isActive()
+	{
+		return ($this->getValue('holds_persons') > 0)
+				|| ($this->getValue('meeting_time') != '')
+				|| ($this->getValue('attendance_recording_days') > 0);
 	}
 
 
@@ -102,5 +152,26 @@ class Congregation extends db_object
 		return $testIndex & $this->getValue('attendance_recording_days');
 	}
 
+	public function canDelete($trigger_messages=FALSE)
+	{
+		$members = $GLOBALS['system']->getDBObjectData('person', Array('congregationid' => $this->id));
+		if (count($members)) {
+			if ($trigger_messages) add_message(_("Cannot delete congregation because it is not empty"), "error");
+			return FALSE;
+		}
+		
+		$usernames = Staff_Member::getUsernamesByCongregationRestriction($this->id);
+		if (count($usernames)) {
+			if ($trigger_messages) add_message(_("Cannot delete congregation because there are user accounts restricted to it: ").implode(',', $usernames), 'error');
+			return FALSE;
+		}
+
+		$services = $GLOBALS['system']->getDBObjectData('service', Array('congregationid' => $this->id));
+		if ($services) {
+			if ($trigger_messages) add_message("This congregation cannot be deleted because there are historical services that belong to it", 'error');
+			return FALSE;
+		}
+		return TRUE;
+	}
+
 }
-?>

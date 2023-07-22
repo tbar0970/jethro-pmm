@@ -43,3 +43,9 @@ ADD CONSTRAINT `rr_groupid` FOREIGN KEY (volunteer_group) REFERENCES _person_gro
 
 ALTER TABLE service
 ADD CONSTRAINT `service_congregationid` FOREIGN KEY (congregationid) REFERENCES congregation(id) ON DELETE RESTRICT;
+
+ALTER TABLE congregation
+DROP column print_quantity;
+
+ALTER TABLE congregation
+ADD COLUMN holds_persons VARCHAR(255) NOT NULL DEFAULT '1';

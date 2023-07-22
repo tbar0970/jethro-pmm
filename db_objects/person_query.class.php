@@ -162,6 +162,7 @@ class Person_Query extends DB_Object
 		<?php
 		foreach ($this->_query_fields as $i) {
 			$v = $this->_field_details[$i];
+			unset($v['filter']); // remove the holds_persons restriction for congregations; there might be inactive congregations we want to analyse.
 			if (in_array($v['type'], Array('select', 'reference', 'datetime', 'text'))
 				&& !in_array($i, Array('p.first_name', 'p.last_name', 'f.family_name', 'p.remarks', 'p.email'))) {
 				?>

@@ -252,7 +252,7 @@ class Staff_Member extends Person
 								<?php
 								print_widget(
 									'restrictions[congregation]',
-									Array('type' => 'reference', 'references' => 'congregation', 'allow_multiple' => true),
+									Array('type' => 'reference', 'references' => 'congregation', 'allow_multiple' => true, 'filter' => Array('holds_persons' => 1)),
 									array_get($this->_restrictions, 'congregation', Array())
 								);
 								?>

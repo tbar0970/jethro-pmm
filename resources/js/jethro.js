@@ -476,6 +476,39 @@ $(document).ready(function() {
 		$('#merge-template-upload')[(this.value == '__NEW__') ? 'show' : 'hide']();
 		if (this.value == '__NEW__') $('#merge-template-upload input[type=file]').click();
 	})
+
+	// Interface for editing congregation details
+	var congForm = $('form#add-congregation, form#congregation_form');
+	if (congForm) {
+		if (!$('input[name=holds_attendance]').attr('checked')) $('#field-attendance_recording_days').hide();
+		if (!$('input[name=holds_services]').attr('checked')) $('#field-meeting_time').hide();
+		congForm.submit(function() {
+			if ($('input[name=holds_attendance]').attr('checked')) {
+				var gotChecked = false;
+				$('#field-attendance_recording_days input[type=checkbox]').each(function() {
+					if (this.checked) gotChecked = true;
+				});
+				if (!gotChecked) {
+					alert('If attendance is enabled, you must choose at least one day to record attendance');
+					return false;
+				}
+			} else {
+				$('#field-attendance_recording_days input[type=checkbox]').each(function() {
+					this.checked = false;
+				});
+			}
+			if ($('input[name=holds_services]').attr('checked')) {
+				if ($('input[name=meeting_time]').val() == '') {
+					$('input[name=meeting_time]').focus();
+					alert('If services are enabled, you must enter a time code');
+					$('input[name=meeting_time]').focus();
+					return false;
+				}
+			} else {
+				$('input[name=meeting_time]').val('');
+			}
+		})
+	}
 });
 
 

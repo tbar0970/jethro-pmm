@@ -464,8 +464,15 @@ class db_object
 		$this->_acquirable_locks = Array();
 	}
 
+	public function canDelete($trigger_messages=FALSE)
+	{
+		return TRUE;
+	}
+
 	public function delete()
 	{
+		if (!$this->canDelete(TRUE)) return FALSE;
+
 		$GLOBALS['system']->doTransaction('begin');
 		$db =& $GLOBALS['db'];
 		$table_name = strtolower(get_class($this));
@@ -793,7 +800,7 @@ class db_object
 			if (array_get($details, 'readonly')) continue;
 			if (!array_get($details, 'editable', true)) continue;
 			?>
-<div class="control-group">
+<div class="control-group" id="field-<?php echo $name; ?>">
 
 			<?php
 			if (strlen(strval(array_get($details, 'heading_before')))) {
