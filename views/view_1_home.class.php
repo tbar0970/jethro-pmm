@@ -134,7 +134,7 @@ class View_Home extends View
 			$reportVals[] = 'auth';
 		}
 		$owners = Array(NULL, $GLOBALS['user_system']->getCurrentUser('id'));
-		$frontpagereports = $GLOBALS['system']->getDBObjectData('person_query', Array('show_on_homepage' => $reportVals, 'owner' => $owners), 'AND');
+		$frontpagereports = $GLOBALS['system']->getDBObjectData('person_query', Array('show_on_homepage' => $reportVals, 'owner' => $owners), 'AND', 'name');
 		foreach ($frontpagereports as $reportid => $reportparams) {
 			$report = $GLOBALS['system']->getDBObject('person_query', $reportid);
 			?>
