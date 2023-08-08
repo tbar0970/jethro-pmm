@@ -202,7 +202,7 @@ class Installer
 			(@rank:=@rank+5, '',                         'SESSION_MAXLENGTH_MINS','Every session will be logged out this many minutes after login','int','480'),
 
 			(@rank:=@rank+5, 'Jethro Behaviour Options','REQUIRE_INITIAL_NOTE','Whether an initial note is required when adding new family','bool','1'),
-			(@rank:=@rank+5, '',                         'DEFAULT_NOTE_STATUS','Default status when creating a new note','select{\"no_action\":\"No Action Required\",\"pending\":\"Requires Action\"}', 'pending',
+			(@rank:=@rank+5, '',                         'DEFAULT_NOTE_STATUS','Default status when creating a new note','select{\"no_action\":\"No Action Required\",\"pending\":\"Requires Action\"}', 'pending'),
 			(@rank:=@rank+5, '',                         'NOTES_ORDER','Order to display person and family notes','select{\"ASC\":\"Oldest first\",\"DESC\":\"Newest first\"}','ASC'),
 			(@rank:=@rank+5, '',                         'LOCK_LENGTH','Number of minutes users have to edit an object before their lock expires','int','10'),
 			(@rank:=@rank+5, '',                         'PERSON_LIST_SHOW_GROUPS','Show all groups when listing persons?','bool','0'),
@@ -276,7 +276,7 @@ class Installer
 			(@rank:=@rank+5, '',                         'SMS_INTERNATIONAL_PREFIX','Used for converting local to international numbers. eg +61','text',''),
 			(@rank:=@rank+5, '',                         'SMS_SAVE_TO_NOTE_BY_DEFAULT','Whether to save each sent SMS as a person note by default','bool',''),
 			(@rank:=@rank+5, '',                         'SMS_SAVE_TO_NOTE_SUBJECT','','text','SMS Sent'),
-			(@rank:=@rank+5, '',                         'SMS_SEND_LOGFILE','File on the server to save a log of sent SMS messages','text','');"
+			(@rank:=@rank+5, '',                         'SMS_SEND_LOGFILE','File on the server to save a log of sent SMS messages','text',''); "
 		);
 		foreach ($sql as $s) {
 			$allSQL[] = $s;
