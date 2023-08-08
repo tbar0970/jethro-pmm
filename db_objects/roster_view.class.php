@@ -422,14 +422,15 @@ class roster_view extends db_object
 
 		$to_print = Array();
 		foreach ($services as $id => $service_details) {
-			$to_print[$service_details['date']]['service'][$service_details['congregationid']] = $service_details;
-			$to_print[$service_details['date']]['service'][$service_details['congregationid']]['id'] = $id;
+			$to_print[$service_details['date']][$service_details['congregationid']]['service'] = $service_details;
+			$to_print[$service_details['date']][$service_details['congregationid']]['service']['id'] = $id;
 			$to_print[$service_details['date']]['assignments'] = Array();
 		}
 		foreach ($this->getAssignments($start_date, $end_date) as $date => $date_assignments) {
 			$to_print[$date]['assignments'] = $date_assignments;
 		}
 		ksort($to_print);
+ 
 		$role_objects = Array();
 
 		$csvData = Array();
@@ -458,20 +459,54 @@ class roster_view extends db_object
 		}
 		$csvData[] = $row;
 
-		foreach ($to_print as $date => $ddetail) {
+		foreach ($to_print as $date => $sdetail) {
 			$row = Array(format_date($date));
+			if ($return) {
+				foreach ($sdetail as $cong => $ddetail) {
+					if (isset($ddetail['service']['format_title'])) {
+						$row['format'] = $ddetail['service']['format_title'];
+					} else {
+						$row['format'] = '';
+					}
+					$row['format_'.$cong] = $row['format'];
+					if (isset($ddetail['service']['topic_title'])) {
+						$row['topic'] = $ddetail['service']['topic_title'];
+					} else {
+						$row['topic'] = '';
+					}
+					if (trim(strval($row['topic'])) == '<div class=') {
+						$row['topic'] = '';
+					}
+					$row['topic_'.$cong] = $row['topic'];
+					if (isset($ddetail['service']['notes'])) {
+						$row['notes'] = $ddetail['service']['notes'];
+					} else {
+						$row['notes'] = '';
+					}
+					if (strpos($row['notes'], 'htmlspecial') > 1) {
+						$row['notes'] = '';
+					}
+					$row['notes_'.$cong] = $row['notes'];
+					if (isset($ddetail['service']['comments'])) {
+						$row['comments'] = $ddetail['service']['comments'];
+					} else {
+						$row['comments'] = '';
+					}
+					$row['comments_'.$cong] = $row['comments'];
+				}
+			}
 			foreach ($this->_members as $id => $mdetail) {
 				if (empty($mdetail)) continue;
 
 				if (!empty($mdetail['role_id'])) {
 					$names = Array();
-					foreach (array_get($ddetail['assignments'], $mdetail['role_id'], Array()) as $rank => $vs) {
+					foreach (array_get($sdetail['assignments'], $mdetail['role_id'], Array()) as $rank => $vs) {
 						$names[] = $vs['name'];
 					}
 					$row[] = implode("\n", $names);;
 				} else {
-					if (!empty($ddetail['service'][$mdetail['congregationid']])) {
-						$dummy_service->populate($ddetail['service'][$mdetail['congregationid']]['id'], $ddetail['service'][$mdetail['congregationid']]);
+					if (!empty($sdetail[$mdetail['congregationid']]['service'])) {
+						$dummy_service->populate($sdetail[$mdetail['congregationid']]['service']['id'], $sdetail[$mdetail['congregationid']]['service']);
 						$row[] = $dummy_service->getFormattedValue($mdetail['service_field']);
 					} else {
 						$row[] = '';
@@ -760,7 +795,8 @@ class roster_view extends db_object
 								foreach ($assignees as $rank => $pdetails) {
 									$personids[] = $pdetails['personid'];
 									if (!empty($pdetails['email']) && $pdetails['email'] != $my_email) {
-										$emails[] = $pdetails['email'];
+										$emails['"'.str_replace('"',"'",$pdetails['name']).'" <'.$pdetails['email'].'>'] = 1;
+//										$emails[] = $pdetails['email'];
 									}
 									if (!empty($pdetails['mobile'])) {
 										$mobiles[] = $pdetails['mobile'];
@@ -771,6 +807,7 @@ class roster_view extends db_object
 								echo '<br />';
 							}
 							if (!empty($emails)) {
+                            	$emails = array_keys($emails);
 								?>
 								<div class="smallprint no-print soft">
 									<a class="soft" href="<?php echo get_email_href($my_email, NULL, $emails, date('jS F', strtotime($date))); ?>" <?php echo email_link_extras(); ?>>Email&nbsp;All</a>
