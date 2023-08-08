@@ -386,7 +386,7 @@ class View_Services__List_All extends View
 	function _printParamsForm()
 	{
 		if (empty($this->_cong_options)) {
-			print_message("To edit services you must first go to admin > congregations and set the 'code name' for the relevant congregations", 'failure');
+			print_message("Before editing services, you must go to the Admin > Congregations page and enable services for some of your congregations.", 'failure');
 			return;
 		}
 		?>

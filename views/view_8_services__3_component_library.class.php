@@ -20,7 +20,7 @@ class View_Services__Component_Library extends View
 	{
 		$congs = $GLOBALS['system']->getDBObjectData('congregation', Array('!meeting_time' => ''), 'AND', 'name');
 		if (empty($congs)) {
-			print_message("To edit services you must first go to admin > congregations and set the 'code name' for the relevant congregations", 'failure');
+			print_message("To edit services you must first go to admin > congregations and enable services for relevant congregations", 'failure');
 			return;
 		}
 		?>

@@ -109,7 +109,7 @@ class View__Generate_Service_Documents extends View
 	public function processView()
 	{
 		if (!count(self::getCongregations())) {
-			add_message("You need to set the 'code name' for some of your congregations before using this feature", 'failure');
+			add_message("You need to enable services for some of your congregations before using this feature", 'failure');
 			return;
 		}
 
