@@ -41,11 +41,15 @@ where volunteer_group NOT IN (select id from _person_group);
 ALTER TABLE roster_role
 ADD CONSTRAINT `rr_groupid` FOREIGN KEY (volunteer_group) REFERENCES _person_group(id) ON DELETE RESTRICT;
 
-ALTER TABLE service
-ADD CONSTRAINT `service_congregationid` FOREIGN KEY (congregationid) REFERENCES congregation(id) ON DELETE RESTRICT;
-
 ALTER TABLE congregation
 DROP column print_quantity;
 
 ALTER TABLE congregation
 ADD COLUMN holds_persons VARCHAR(255) NOT NULL DEFAULT '1';
+
+-- Recreate deleted congregations referred to be services, so our new foreign key (added in next line) works
+INSERT INTO congregation (id, long_name, name, meeting_time, attendance_recording_days, holds_persons)
+SELECT DISTINCT congregationid, concat('Deleted Congregation ', congregationid), concat('Deleted Congregation ', congregationid), '', 0, 0 FROM service WHERE NOT EXISTS (SELECT * FROM congregation WHERE id=service.congregationid);
+
+ALTER TABLE service
+ADD CONSTRAINT `service_congregationid` FOREIGN KEY (congregationid) REFERENCES congregation(id) ON DELETE RESTRICT;
