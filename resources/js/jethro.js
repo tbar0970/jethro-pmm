@@ -97,7 +97,7 @@ $(document).ready(function() {
 		}
 		var url = this.href.replace('__SUBURB__', suburb);
 		if (state.length) url = url.replace('__STATE__', state.get(0).value);
-		var postcodeWindow = window.open(url, 'postcode', 'height=320,width=650,location=no,menubar=no,titlebar=no,toolbar=no,resizable=yes,statusbar=no,scrollbars=yes');
+		var postcodeWindow = window.open(url, 'postcode', 'height=600,width=650,location=no,menubar=no,titlebar=no,toolbar=no,resizable=yes,statusbar=no,scrollbars=yes');
 		if (!postcodeWindow) {
 			alert('Jethro tried but could not open a popup window - you probably have a popup blocker enabled.  Please disable your popup blocker for this site, reload the page and try again.');
 		}

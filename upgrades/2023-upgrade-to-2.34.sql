@@ -53,3 +53,8 @@ SELECT DISTINCT congregationid, concat('Deleted Congregation ', congregationid),
 
 ALTER TABLE service
 ADD CONSTRAINT `service_congregationid` FOREIGN KEY (congregationid) REFERENCES congregation(id) ON DELETE RESTRICT;
+
+UPDATE setting
+set value = "https://auspost.com.au/postcode/__SUBURB__"
+where symbol = "POSTCODE_LOOKUP_URL"
+and value like "%auspost%";
