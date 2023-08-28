@@ -1317,7 +1317,7 @@ JethroRoster.init = function() {
 	// This applies to read-only rosters
 	$('table.roster [data-personid]').on('mouseover', function() {
 		var personid = $(this).attr('data-personid');
-		var others = $(this).parents('.roster').find('a[data-personid='+personid+'], span[data-personid='+personid+']');
+		var others = $(this).parents('.roster').find('td a[data-personid='+personid+'], td span[data-personid='+personid+']');
 		if (others.length > 1) {
 			others.addClass('rosteree-highlighted');
 		}
