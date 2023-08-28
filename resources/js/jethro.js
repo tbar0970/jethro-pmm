@@ -970,6 +970,7 @@ JethroServicePlanner._getTRDragHelper = function(event, tr) {
 	helper.children().each(function(index) {
 		$(this).width(originals.eq(index).width())
 	});
+	helper.addClass('service-item-in-transit')
 	return helper;
 }
 

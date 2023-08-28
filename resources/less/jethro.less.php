@@ -2188,8 +2188,12 @@ table.system-config td small {
     -ms-user-select: none;
     user-select: none;
 }
-#service-plan tbody td, #service-plan tfoot td {
+#service-plan tbody td, #service-plan tfoot td, .service-item-in-transit * {
 	background: @jethroLightest;
+}
+.service-item-in-transit {
+	border-bottom-style: solid;
+	border-bottom-width: 1px;
 }
 #body #service-plan-placeholder {
 	margin: 25px 15px;
