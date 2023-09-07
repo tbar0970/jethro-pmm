@@ -13,7 +13,8 @@ Download the latest version of Jethro from the [releases page](https://github.co
 System requirements are:
 * MySQL 5.1 or above
 * PHP 5.3.0 or above
-    * with gettext extension enabled
+    * with [gettext extension](https://www.php.net/manual/en/book.gettext.php) enabled
+    * [GD library](https://www.php.net/manual/en/book.image.php) recommended, to manage the size of uploaded photos
 * Some web server (apache suggested)
 
 The steps to install are:
@@ -22,7 +23,7 @@ The steps to install are:
 2. Create a mysql database and database user for your jethro system to use. If asked, choose utf8_unicode_ci as the character set and collation.
 3. Edit Jethro's configuration file conf.php and fill in the essential details (system name, URL, database details).  Further explanation can be found inside the file.
 4. Open the jethro system URL in your web browser
-5.. In your web browser, the Jethro installer will start automatically and will prompt you for details to create the initial user account.  When the installer completes, it will prompt you to log into the installed system.
+    In your web browser, the Jethro installer will start automatically and will prompt you for details to create the initial user account.  When the installer completes, it will prompt you to log into the installed system.
 
 # Documentation
 
@@ -40,9 +41,7 @@ If you're having trouble with Jethro and think you might have found a bug, pleas
 
 If you have an idea for a new feature, please [look if somebody has already requested it](https://github.com/tbar0970/jethro-pmm/issues?q=is%3Aopen+is%3Aissue+label%3Afeature-request) and if not, [open a new issue](https://github.com/tbar0970/jethro-pmm/issues/new).
 
-General questions about Jethro and how to use it can also be done in github issues, but the better place to do it is on our [facebook wall](https://www.facebook.com/pages/Jethro-PMM/188904087848113)
-
-(Historical discussions can be seen at our older [Sourceforge forums](https://sourceforge.net/p/jethro-pmm/discussion/))
+General questions about Jethro and how to use it can also be done in github issues
 
 The Jethro developers try to respond to issues in a timely manner, but for real-time support you may need to sign up for a hosting service such as [Easy Jethro](http://easyjethro.com.au).
  
@@ -51,7 +50,7 @@ The following is a high-level overview of the objects in Jethro and how they rel
 * A **person** has a name and various other properties.
 * Every person belongs to exactly one **family**.  A family is a collection of persons who live at the same address and are in some way related.
 * Every person belongs to exactly one **congregation** - the main grouping within a church.  (One exception to this is persons with status 'contact', who can be congregation-less).
-* A person can belong to various **groups** which can represent many things such as bible studies, volunteers for some role, people who are undergoing a welcoming process, people who have completed some particular training course, etc etc.
+* A person can belong to several **groups** which can represent many things such as bible studies, volunteers for some role, people who are undergoing a welcoming process, people who have completed some particular training course, etc etc.
 * A person's **attendance** at their congregation or a certain group can be recorded week by week
 * **Notes** can be added to persons or families.  These may simply record extra free-form information about the person, or may be assigned to a Jethro user for action (eg "call Mr Smith").
 * A **report** can show persons who match certain rules regarding their personal details, group memberships etc etc.
