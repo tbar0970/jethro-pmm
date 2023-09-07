@@ -15,6 +15,7 @@ System requirements are:
 * PHP 5.3.0 or above
     * with [gettext extension](https://www.php.net/manual/en/book.gettext.php) enabled
     * [GD library](https://www.php.net/manual/en/book.image.php) recommended, to manage the size of uploaded photos
+    * with [curl extension](https://www.php.net/manual/en/book.curl.php) enabled, if you intend to use the Mailchimp integration
 * Some web server (apache suggested)
 
 The steps to install are:
