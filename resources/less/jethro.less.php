@@ -567,7 +567,6 @@ ul {
 	opacity: 0.4;
 }
 #body a:not(.label), .modal a, .clickable, button.btn-link, input.btn-link {
-	text-decoration: underline;
 	color: @linkColor;
 }
 #body a.btn, .modal a.btn {
