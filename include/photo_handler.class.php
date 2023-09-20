@@ -1,8 +1,8 @@
 <?php
 Class Photo_Handler {
 
-	const MAX_PHOTO_WIDTH = 500;
-	const MAX_PHOTO_HEIGHT = 500;
+	const MAX_PHOTO_WIDTH = 1000;
+	const MAX_PHOTO_HEIGHT = 1000;
 
 	const CROP_WIDTH = 1;
 	const CROP_HEIGHT = 2;
