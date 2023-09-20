@@ -2,8 +2,8 @@
 
 class Call_Downsize_Photos extends Call
 {
-	const MAX_PHOTO_WIDTH = 500;
-	const MAX_PHOTO_HEIGHT = 500;
+	const MAX_PHOTO_WIDTH = 1000;
+	const MAX_PHOTO_HEIGHT = 1000;
 
 	function msg(string $msg) {
 		echo $msg.PHP_EOL;
