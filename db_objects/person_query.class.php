@@ -1231,7 +1231,7 @@ class Person_Query extends DB_Object
 								$query['select'][] = 'GROUP_CONCAT(pg.name ORDER BY pg.name SEPARATOR "\n") as person_groups';
 							} else if ($field == 'membershipstatus') {
 								$query['from'] .= ' LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status';
-								$query['select'][] = 'pgms.label as `Membership Status`';
+								$query['select'][] = 'DISTINCT pgms.label as `Membership Status`';
 							}
 						} else {
 							if (!$joined_groups) {
@@ -1246,10 +1246,10 @@ class Person_Query extends DB_Object
 								$joined_groups = TRUE;
 							}
 							if ($field == 'groups') {
-								$query['select'][] = 'GROUP_CONCAT(pg.name ORDER BY pg.name SEPARATOR "\n") as person_groups';
+								$query['select'][] = 'GROUP_CONCAT(DISTINCT pg.name ORDER BY pg.name SEPARATOR "\n") as person_groups';
 							} else if ($field == 'membershipstatus') {
 								$query['from'] .= ' LEFT JOIN person_group_membership_status pgms ON pgms.id = pgm.membership_status';
-								$query['select'][] = 'GROUP_CONCAT(pgms.label ORDER BY pg.name SEPARATOR "\n") as `Membership Status`';
+								$query['select'][] = 'GROUP_CONCAT(DISTINCT pgms.label ORDER BY pg.name SEPARATOR "\n") as `Membership Status`';
 							}
 						}
 
