@@ -416,7 +416,8 @@ class roster_view extends db_object
 		$dummy_service = new Service();
 
 		if (empty($start_date)) $start_date = date('Y-m-d');
-		$service_params = Array('congregationid' => $this->getCongregations(), '>date' => date('Y-m-d', strtotime($start_date.' -1 day')));
+		$Congregations = $this->getCongregations();
+		$service_params = Array('congregationid' => $Congregations, '>date' => date('Y-m-d', strtotime($start_date.' -1 day')));
 		if (!empty($end_date)) $service_params['<date'] = date('Y-m-d', strtotime($end_date.' +1 day'));
 		$services = $GLOBALS['system']->getDBObjectData('service', $service_params, 'AND', 'date');
 
@@ -457,9 +458,38 @@ class roster_view extends db_object
 			}
 		}
 		$csvData[] = $row;
-
+			$to_print[$service_details['date']]['service'][$service_details['congregationid']] = $service_details;
 		foreach ($to_print as $date => $ddetail) {
 			$row = Array(format_date($date));
+			if ($return) {
+				$row['format'] = '';
+				$row['topic'] = '';
+				$row['notes'] = '';
+				$row['comments'] = '';
+				foreach ($Congregations as $i) {
+					if (isset($ddetail['service'][$i]['format_title'])) {
+						$row['format'] = $ddetail['service'][$i]['format_title'];
+					}
+					if (isset($ddetail['service'][$i]['topic_title'])) {
+						$row['topic'] = $ddetail['service'][$i]['topic_title'];
+					}
+					if (trim(strval($row['topic'])) == '<div class=') {
+						$row['topic'] = '';
+					}
+					if (isset($ddetail['service'][$i]['notes'])) {
+						$row['notes'] = $ddetail['service'][$i]['notes'];
+					}
+					if (isset($ddetail['service'][$i]['comments'])) {
+						$row['comments'] = $ddetail['service'][$i]['comments'];
+					}
+				}
+				if (trim(strval($row['topic'])) == '<div class=') {
+					$row['topic'] = '';
+				}
+				if (strpos($row['notes'], 'htmlspecial') > 1) {
+					$row['notes'] = '';
+				}
+			}
 			foreach ($this->_members as $id => $mdetail) {
 				if (empty($mdetail)) continue;
 
