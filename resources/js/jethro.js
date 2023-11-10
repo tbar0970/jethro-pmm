@@ -1163,6 +1163,7 @@ JethroServicePlanner.Item.addAdHoc = function ($tr) {
 			.html('Yes');
 
 	$modal.find('.modal-header h4').html('Add ad-hoc service item');
+	$modal.find('input[name=title]').parents('.control-group').show();
 	$modal.modal('show');
 }
 
