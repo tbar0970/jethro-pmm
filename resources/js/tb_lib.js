@@ -400,7 +400,7 @@ $(document).ready(function() {
 
 	$('input[type=email]').on('paste', function(event) {
 		var text = event.originalEvent.clipboardData.getData('text/plain');
-		if (text.indexOf('mailto:' == 0)) {
+		if (text.indexOf('mailto:') == 0) {
 			this.value = text.substr(7); // chop off 'mailto';
 			event.preventDefault();
 			return false;
