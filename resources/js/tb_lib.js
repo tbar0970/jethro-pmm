@@ -369,7 +369,8 @@ $(document).ready(function() {
 		});
 	});
 
-	$("[data-action=copy]").click(function() {
+	// Need to apply on document level so that the handler runs on buttons added after pageload
+	$( document ).on('click', '[data-action=copy]', function(event) {
 		var target = $($(this).attr('data-target'));
 		var t = '';
 		if (target.is('input, textarea')) {
@@ -378,16 +379,27 @@ $(document).ready(function() {
 		} else {
 			t = target.get(0).innerText;
 		}
-		if (navigator.clipboard.writeText(t)) {
-			var oldLink = this;
-			var oldLabel = this.innerHTML;
-			this.innerHTML = '✔ Copied';
-			setTimeout(function() {
-				oldLink.innerHTML = oldLabel;
-			}, 2000);
-		} else {
-			alert("Sorry, browser settings do not allow copying");
-		}
+		try {
+			if (navigator.clipboard.writeText(t)) {
+				var oldLink = this;
+				var oldLabel = this.value || this.innerHTML;
+				if ($(this).is('input')) {
+					this.value = '✔ Copied';
+					setTimeout(function() {
+						oldLink.value = oldLabel;
+					}, 2000);				
+				} else {
+					this.innerHTML = '✔ Copied';
+					setTimeout(function() {
+						oldLink.innerHTML = oldLabel;
+					}, 2000);
+				}
+			} else {
+				alert("Sorry, browser settings do not allow copying");
+			}
+		} catch (e) {
+				alert("Sorry, browser settings do not allow copying");
+		}	
 		return false;
 	});
 
