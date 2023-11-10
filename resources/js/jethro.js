@@ -998,6 +998,8 @@ JethroServicePlanner.init = function() {
 		cursor: "move",
 		start: function(event, ui) {
 			$('#service-plan').addClass('comp-dragging');
+			ui.helper.remove();
+			$(document.body).append(ui.helper);
 			ui.helper.addClass('component-in-transit');
 			JethroServicePlanner.draggedComp = $(this);
 		},
