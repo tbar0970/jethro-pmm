@@ -486,22 +486,22 @@ class roster_view extends db_object
 
 	function printSingleViewFlexi($service, $includeServiceFields=FALSE)
 	{
+		$showBlanks = ($this->getValue('show_on_run_sheet') == 1);
 		$asns = $this->getAssignments($service->getValue('date'), $service->getValue('date'));
 		$asns = empty($asns) ? Array() : reset($asns);
-		$numMembers = 0;
+		$ourMembers = Array();
 		foreach ($this->_members as $member) {
-			if ($member['role_id'] || $includeServiceFields) $numMembers++;
+			if (empty($member['role_id']) && !$includeServiceFields) continue;
+			if (!$showBlanks && !empty($member['role_id']) && empty($asns[$member['role_id']])) continue;
+			$ourMembers[] = $member;
 		}
 		?>
 		<div class="column">
 		<?php
 		$numCols = 3;
-		$totalRows = ceil($numMembers/$numCols);
+		$totalRows = ceil(count($ourMembers)/$numCols);
 		$i = 0;
-		$showBlanks = ($this->getValue('show_on_run_sheet') == 1);
-		foreach ($this->_members as $member) {
-			if (!$includeServiceFields && (empty($member['role_id']))) continue;
-			if (!$showBlanks && !empty($member['role_id']) && empty($asns[$member['role_id']])) continue;
+		foreach ($ourMembers as $member) {
 			?>
 			<div class="clearfix">
 				<label>
@@ -513,7 +513,7 @@ class roster_view extends db_object
 			</div>
 			<?php
 			$i++;
-			if (($i % $totalRows == 0) && ($i < $numMembers)) {
+			if (($i % $totalRows == 0) && ($i < count($ourMembers))) {
 				?>
 		</div>
 		<div class="column">
@@ -529,15 +529,18 @@ class roster_view extends db_object
 
 	function printSingleViewTable($service, $columns=2, $includeServiceFields=FALSE)
 	{
+		$showBlanks = ($this->getValue('show_on_run_sheet') == 1);
 		$asns = $this->getAssignments($service->getValue('date'), $service->getValue('date'));
 		$asns = empty($asns) ? Array() : reset($asns);
-		$numMembers = 0;
+		
+		$ourMembers = Array();
 		foreach ($this->_members as $member) {
-			if ($member['role_id'] || $includeServiceFields) $numMembers++;
+			if (empty($member['role_id']) && !$includeServiceFields) continue;
+			if (!$showBlanks && !empty($member['role_id']) && empty($asns[$member['role_id']])) continue;
+			$ourMembers[] = $member;
 		}
 
-		$totalRows = ceil($numMembers/$columns);
-		$showBlanks = ($this->getValue('show_on_run_sheet') == 1);
+		$totalRows = ceil(count($ourMembers)/$columns);
 		?>
 		<table cellpadding="5">
 			<?php
@@ -546,10 +549,7 @@ class roster_view extends db_object
 				<tr>
 				<?php
 				$i = 0;
-				foreach ($this->_members as $member) {
-					if (!$includeServiceFields && (empty($member['role_id']))) continue;
-					if (!$showBlanks && !empty($member['role_id']) && empty($asns[$member['role_id']])) continue;
-
+				foreach ($ourMembers as $member) {
 					if (($i % $totalRows) == $rowNum) {
 						?>
 						<th><?php $this->_printOutputLabel($member, $service); ?></th>
