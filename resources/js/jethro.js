@@ -479,7 +479,7 @@ $(document).ready(function() {
 
 	// Interface for editing congregation details
 	var congForm = $('form#add-congregation, form#congregation_form');
-	if (congForm) {
+	if (congForm.length) {
 		if (!$('input[name=holds_attendance]').attr('checked')) $('#field-attendance_recording_days').hide();
 		if (!$('input[name=holds_services]').attr('checked')) $('#field-meeting_time').hide();
 		congForm.submit(function() {
