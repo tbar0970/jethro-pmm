@@ -308,7 +308,7 @@ class View_services extends View
 								<ul>
 									<li>drag an item from the component library</li>
 									<li><a href="#" data-toggle="modal" data-target="#ad-hoc-modal">enter an ad hoc item</a>, or </li>
-									<li><a href="#" data-toggle="modal" data-target="#copy-previous-modal">Copy items from a previous service</a></li>
+									<li><a href="#" data-toggle="modal" data-target="#copy-previous-modal">copy items from a previous service</a></li>
 								</ul>
 								</div>
 								<?php
