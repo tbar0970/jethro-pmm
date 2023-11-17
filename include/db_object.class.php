@@ -1029,7 +1029,10 @@ class db_object
 		$res['from'] = $this->_getTableNames();
 		$wheres = Array();
 		foreach ($params as $field => $val) {
-			$operator = is_array($val) ? 'IN' : (((FALSE === strpos($val, '%')) && (FALSE === strpos($val, '?'))) ? '=' : 'LIKE');
+				$operator = '=';
+				if (! ($val == NULL)) {
+					$operator = is_array($val) ? 'IN' : (((FALSE === strpos($val, '%')) && (FALSE === strpos($val, '?'))) ? '=' : 'LIKE');
+				}
 				$prefix = '';
 				$suffix = '';
 			if ($field[0] == '!') {
