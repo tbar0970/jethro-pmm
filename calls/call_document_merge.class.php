@@ -1,7 +1,7 @@
 <?php
-class Call_Document_Merge extends Call
+include_once 'calls/abstract_call_document_merge.class.php';
+class Call_Document_Merge extends Abstract_Call_Document_Merge
 {
-	const SHOWKEYWORDS = '@@DUMP_KEYWORDS@@';
 
 	public static function getSavedTemplatesDir()
 	{
@@ -15,41 +15,11 @@ class Call_Document_Merge extends Call
 			exit;
 		}
 
-		$file_info = array_get($_FILES, 'source_document');
-		$content = null;
-		if (isset($_REQUEST['preview_keywords'])) {
-			$extension = self::SHOWKEYWORDS;
-		} else if (!empty($file_info['tmp_name'])) {
-			if (!empty($_REQUEST['save_template'])) {
-				$ok = TRUE;
-				if (!is_dir(self::getSavedTemplatesDir())) {
-					$ok = mkdir(self::getSavedTemplatesDir(), 0770, TRUE);
-				}
-				if ($ok) $ok = copy($file_info['tmp_name'], self::getSavedTemplatesDir().basename($file_info['name']));
-				if (!$ok) trigger_error("Problem saving template", E_USER_ERROR);
-
-			}
-			
-			$bits = explode('.', $file_info['name']);
-			$extension = strtolower(end($bits));
-			$template_filename = basename($file_info['name']);
-			$source_file = $file_info['tmp_name'];
-			rename ($source_file, $source_file.'.'.$extension);
-			$source_file = $source_file.'.'.$extension;
-
-		} else if (!empty($_REQUEST['source_doc_select'])) {
-			// NB basename for security to avoid path injections.
-			$source_file = $template_filename = self::getSavedTemplatesDir().basename($_REQUEST['source_doc_select']);
-			$bits = explode('.', $source_file);
-			$extension = strtolower(end($bits));
-		} else {
-			trigger_error('Template file does not seem to have been uploaded or selected');
-			return;
-		}
+		$this->GetTemplate();
 		
 		$data_type = array_get($_REQUEST, 'data_type', 'none');
 
-		switch ($extension) {
+		switch ($this->extension) {
 			case 'odt':
 			case 'odg':
 			case 'ods':
@@ -63,55 +33,19 @@ class Call_Document_Merge extends Call
 				$merge_type = array_get($_REQUEST, 'merge_type', 'person');
 				if ($merge_type != 'family') { $merge_type = 'person'; }
 				$data = $this->getMergeData();
-				if ($extension == self::SHOWKEYWORDS) {
-					ob_start();
-				    echo '[onshow.system_name] = '.ifdef('SYSTEM_NAME', '')."\n";
-				    echo '[onshow.timezone] = '.ifdef('TIMEZONE', '')."\n";
-				    echo '[onshow.username] = '.$_SESSION['user']['username']."\n";
-				    echo '[onshow.first_name] = '.$_SESSION['user']['first_name']."\n";
-				    echo '[onshow.last_name] = '.$_SESSION['user']['last_name']."\n";
-				    echo '[onshow.email] = '.$_SESSION['user']['email']."\n";
-                }
 
-				require_once 'include/tbs.class.php';
-				include_once 'include/tbs_plugin_opentbs.php';
-				if (ini_get('date.timezone')=='') {
-					date_default_timezone_set('UTC');
-				}
-				$TBS = new clsTinyButStrong;
-				$TBS->Plugin(TBS_INSTALL, OPENTBS_PLUGIN);
-				$TBS->SetOption('noerr', TRUE);
-				$TBS->ResetVarRef(false);
-				$TBS->VarRef['x_num'] = 3152.456;
-				$TBS->VarRef['x_pc'] = 0.2567;
-				$TBS->VarRef['x_dt'] = mktime(13,0,0,2,15,2010);
-				$TBS->VarRef['x_bt'] = true;
-				$TBS->VarRef['x_bf'] = false;
-				$TBS->VarRef['x_delete'] = 1;
-				$TBS->VarRef['yourname'] = $_SESSION['user']['username'];
-				$TBS->VarRef['system_name'] = ifdef('SYSTEM_NAME', '');
-				$TBS->VarRef['timezone'] = ifdef('TIMEZONE', '');
-				$TBS->VarRef['username'] = $_SESSION['user']['username'];
-				$TBS->VarRef['first_name'] = $_SESSION['user']['first_name'];
-				$TBS->VarRef['last_name'] = $_SESSION['user']['last_name'];
-				$TBS->VarRef['email'] = $_SESSION['user']['email'];
-				$i = $this->TabulatedData($extension, $TBS, 'dates', 60, 'date');
-				if ($extension == self::SHOWKEYWORDS) {
-				    echo '[onshow.dates] = '.$i."\n";
-				}
+				$TBS = $this->newTBS();
+				$i = $this->TabulatedData($TBS, 'dates', 60, 'date');
+				$this->Keyword('dates', $i);
 				$TBS->VarRef['dates'] = $i;
-				$i = $this->TabulatedData($extension, $TBS, 'groups', 20, 'group');
-				if ($extension == self::SHOWKEYWORDS) {
-				    echo '[onshow.groups] = '.$i."\n";
-				}
+				$i = $this->TabulatedData($TBS, 'groups', 20, 'group');
+				$this->Keyword('groups', $i);
 				$TBS->VarRef['groups'] = $i;
 				if (isset($_REQUEST['tables'])) {
 					$tables = (array)$_REQUEST['tables'];
 					foreach ($tables as $table) {
-						$i = $this->TabulatedData($extension, $TBS, $table);
-						if ($extension == self::SHOWKEYWORDS) {
-							echo '[onshow.'.$table.'s] = '.$i."\n";
-						}
+						$i = $this->TabulatedData($TBS, $table);
+						$this->Keyword($table, $i);
 						$TBS->VarRef[$table.'s'] = $i;
 					}
 				}
@@ -144,83 +78,54 @@ class Call_Document_Merge extends Call
 					}
 				}
 				
-				if ($extension == self::SHOWKEYWORDS) {
-					echo "\n";
+				if ($this->ShowKeywords) {
+					$this->Keyword();
 					if ($merge_type == 'person') {
+						$this->KeywordSection('person');
 						foreach ($data as $line) {
 							foreach ($line as $k => $v) {
-								echo '[person.'.$k.'] = '.$v."\n";
+								$this->Keyword($k, $v);
 							}	
-							echo "\n";
+							$this->Keyword();
 						}
 						foreach ($List_of_lists as $i => $a) {
-							echo "\n";
+							$this->Keyword();
+							$this->KeywordSection($i);
 							foreach ($a as $line) {
 								foreach ($line as $k => $v) {
-									echo '['.$i.'.'.$k.'] = '.$v."\n";
+									$this->Keyword($k, $v);
 								}	
-								echo "\n";
+								$this->Keyword();
 							}
 						}
 					}
 					if ($merge_type == 'family') {
+						$this->KeywordSection('family');
 						foreach ($data as $line) {
 							foreach ($line as $k => $v) {
-								echo '[family.'.$k.'] = '.$v."\n";
+								$this->Keyword($k, $v);
 							}	
-							echo "\n";
+							$this->Keyword();
 						}
 					}
-                    $this->_printKeywordList(ob_get_clean());
+                    $this->_printKeywordList();
 					return;
                 }
-				$TBS->LoadTemplate($source_file, OPENTBS_ALREADY_UTF8);
 				$TBS->MergeBlock($merge_type, $data);
 				if ($merge_type == 'person') {
 					foreach ($List_of_lists as $i => $a) {
 						$TBS->MergeBlock($i, $a);
 					}
 				}
-				$filename = basename($template_filename);
-				$bits = explode('.', $filename);
-				$ext = array_pop($bits);
-				$filename = implode('_', $bits).'_merged_'.date('Y-m-d').'.'.$ext;
-
-				header('Content-type: application/force-download');
-				header("Content-Type: application/octet-stream");
-				header("Content-Type: application/download");
-				header('Content-Disposition: attachment; filename="'.urlencode('MERGED_'.basename($source_file)).'"');
-
-				$TBS->Show(OPENTBS_DOWNLOAD, $filename);
+				
+				$this->downloadTBS($TBS);
 				break;
 
 			default:
-				trigger_error("Format $extension not yet supported");
+				trigger_error("Format $this->extension not yet supported");
 				return;
 		}
 
-	}
-
-	protected function TabulatedData($extension, $TBS, $table, $max = 60, $base = '')
-	{
-		$i = 0;
-		if (isset($_REQUEST[$table])) {
-			if ($base == '') { $base = $table; }
-			$data = (array)$_REQUEST[$table];
-			foreach ($data as $bit) {
-				$i++;
-				$TBS->VarRef[$base.$i] = $bit;
-				if ($extension == self::SHOWKEYWORDS) {
-					echo '[onshow.'.$base.$i.'] = '.$bit."\n";
-				}
-			}
-		}
-		$j = $i;
-		while ($i <= $max) {
-			$i++;
-			$TBS->VarRef[$base.$i] = '';
-		}
-		return $j;
 	}
 
 	protected function getMergeData()
@@ -251,7 +156,9 @@ class Call_Document_Merge extends Call
 					foreach ($merge_data2 as $data) {
 						foreach ($data as $name => $val) {
 							if ($name == 'Person ID') {
-								$merge_data[$val] += $data;
+                            	if (isset($merge_data[$val])) {
+									$merge_data[$val] += $data;
+                            	}
 								break;
 							}
 						}
@@ -515,65 +422,6 @@ class Call_Document_Merge extends Call
 		copy($source_file, $merged_file);
 
 		ODF_Tools::setXML($merged_file, $header.$merged_middle.$footer, $xml_filename);
-	}
-
-	protected function xmlEntities($x)
-	{
-		$res = str_replace("&", '&amp;', $x);
-		$res = str_replace("'", '&apos;', $res);
-		$res = str_replace('"', '&quot;', $res);
-		$res = str_replace('>', '&gt;', $res);
-		$res = str_replace('<', '&lt;', $res);
-		return $res;
-	}
-
-	private function _printKeywordList($text)
-	{
-		?>
-		<!DOCTYPE html>
-		<head>
-			<?php include 'templates/head.template.php'; ?>
-		</head>
-		<body id="body">
-			<p>The following is a preview of all the tags that can be used, and the values they would be replaced with.<br />
-				Note that the first keyword in the template must define a new TBS block by adding <code>;block=tbs:row</code> to the field, eg <code>[person.first_name;block=tbs:row]</code><br />
-				For full details see the <a href="?call=document_merge_help">Mail Merge Help page</a>.</p>
-		<table class="table table-bordered table-condensed">
-			<thead>
-				<tr>
-					<th class="narrow">Keyword</th>
-					<th>First value</th>
-				</tr>
-			<?php
-			$i = 0;
-			foreach (explode("\n", $text) as $line) {
-				$i++;
-				?>
-				<tr>
-				<?php
-				if (preg_match('/([^=]+)=(.*)/', $line, $matches)) {
-					//echo '<tr><td data-action="copy" data-target="#keyword'.$i.'"><code id="keyword'.$i.'">'.ents($matches[1]).'</code></td><td>'.ents($matches[2]).'</td></tr>';
-					//echo '<tr><td><input type="text" readonly="readonly" id="keyword'.$i.'" value="'.ents($matches[1]).'" /></td><td>'.ents($matches[2]).'</td></tr>';
-					echo '<tr><td><code id="keyword'.$i.'">'.ents($matches[1]).'</code></td><td>'.ents($matches[2]).'</td></tr>';
-				} else {
-					?>
-					<th colspan="2"><?php echo ents($line); ?></th>
-					<?php
-				}
-				?>
-				</tr>
-				<?php
-			}
-			?>
-			</thead>
-		</table>
-		<script>
-			$('code').click(function() {
-				TBLib.selectElementText(this);
-			})
-		</script>
-		</body>
-		<?php
 	}
 
 }
