@@ -117,48 +117,68 @@ class View_Rosters__Display_Roster_Assignments extends View
 						if (PUBLIC_ROSTER_SECRET) $url .= '&secret='.PUBLIC_ROSTER_SECRET;
 						echo '<a  class="nowrap" target="_rosterview" href="'.$url.'"><i class="icon-share"></i>View in public site</a> &nbsp; ';
 					}
-				
-					require_once 'size_detector.class.php';
-					if (!SizeDetector::isNarrow()) {
-						?>
-						<span class="dropdown">
-							<a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-chevron-down"></i>Download...</a>
-							<ul class="dropdown-menu" role="menu">
-								<li><?php echo '<a href="?call=roster_csv&roster_view='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'" ><i class="icon-download-alt"></i>Download CSV</a>'; ?></li>
-								<li><a href="#merge-modal" data-toggle="modal" data-target="#merge-modal" ><i class="icon-download-alt"></i>Merge a document...</a></li>
-							</ul>
-						</span>
-						<?php
-					}
-					echo '</div>';
+					echo '<a href="?call=roster_csv&roster_view='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'" ><i class="icon-download-alt"></i>Download CSV</a> &nbsp; ';
 
+					?>
+					<a href="#merge-modal" data-toggle="modal" data-target="#merge-modal" ><i class="icon-download-alt"></i>Merge a document...</a>
 
-					if (!SizeDetector::isNarrow()) {
-						?>
-						<div id="merge-modal" class="modal sms-modal hide fade" role="dialog" aria-hidden="true">
-							<form onsubmit="$('#merge-modal').modal('hide')" action="?call=document_merge_rosters" method="post" enctype="multipart/form-data">
-							<div class="modal-header">
-								<h4>Mail merge a document from this roster</h4>
-							</div>
-							<div class="modal-body">
-								<?php
-								echo _('Source Document').':';
-								print_hidden_field('roster_view', $viewid);
-								print_hidden_field('roster_view_name', $this->_view->getValue('name'));
-								print_hidden_field('start_date', $this->_start_date);
-								print_hidden_field('end_date', $this->_end_date);
-								?>
-								<input class="compulsory" type="file" name="source_document" />
-								<span class="smallprint"><a target="roster-merge-help" class="med-newwin" href="<?php echo BASE_URL; ?>index.php?call=document_merge_help"><i class="icon-print"></i>Help and examples</a><br></span>
-							</div>
-							<div class="modal-footer">
-								<input type="submit" class="btn" value="Go" />
-								<input type="button" class="btn" data-dismiss="modal" value="Cancel" />
-							</div>
-							</form>
+					<div id="merge-modal" class="modal sms-modal hide fade" role="dialog" aria-hidden="true">
+						<form onsubmit="$('#merge-modal').modal('hide')" action="?call=document_merge_rosters" method="post" enctype="multipart/form-data">
+						<div class="modal-header">
+							<h4>Mail merge a document from this roster</h4>
 						</div>
-					<?php
-				}
+						<div class="modal-body">
+							<?php
+							include_once 'calls/call_document_merge_rosters.class.php';
+							$templates = @glob(Call_Document_Merge_Rosters::getSavedTemplatesDir().'/*.*');
+							?>
+							<div class="control-group">
+							<label class="control-label"><?php echo _('Template Document')?></label>
+							<div class="controls">
+							<?php
+							if (!empty($templates)) {
+								$tOptions = Array('' => '', '__NEW__' => 'Upload a new file...');
+								foreach ($templates as $t) $tOptions[basename($t)] = basename($t);
+								print_widget('source_doc_select', Array('type' => 'select', 'options' => $tOptions, 'class' => 'merge-template'), '');
+							?>
+							<div id="merge-template-upload" class="indent-left" style="display:none">
+								<input type="file" name="source_document" />
+								<label class="checkbox"><input type="checkbox" name="save_template" value="1" />Save template for next time</label>
+							</div>
+							<?php
+						} else {
+							?>
+							<input class="compulsory" type="file" name="source_document" />
+							<label class="checkbox"><input type="checkbox" name="save_template" value="1" />Save template for next time</label>
+							<?php
+						}
+						?>
+						</div>
+					</div>
+					<div class="control-group">
+						<div class="controls">
+							<p class="help-inline">
+							<a target="roster-merge-help" class="med-newwin" href="<?php echo BASE_URL; ?>index.php?call=document_merge_help"><i class="icon-help"></i>Help and examples</a>
+						&nbsp;
+							<button type="submit" class="btn btn-mini muted" name="preview_keywords" onclick="$('input[name=source_document]').removeClass('compulsory')" data-set-form-target="_blank" data-set-form-action="<?php echo BASE_URL; ?>index.php?call=document_merge_rosters">Preview all tags</button>
+							</p>
+							
+						</div>
+					</div>
+					<div class="modal-footer">
+						<input type="hidden" name="roster_view" value="<?php echo $viewid; ?>" />
+						<?php
+							print_hidden_field('roster_view_name', $this->_view->getValue('name'));
+							print_hidden_field('start_date', $this->_start_date);
+							print_hidden_field('end_date', $this->_end_date);
+							?>
+							<input type="submit" class="btn" value="Go" />
+							<input type="button" class="btn" data-dismiss="modal" value="Cancel" />
+						</div>
+						</form>
+					</div>
+					</div>
+				<?php
 			}
 		}
 	}
