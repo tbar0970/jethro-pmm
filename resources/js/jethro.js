@@ -479,7 +479,7 @@ $(document).ready(function() {
 
 	// Interface for editing congregation details
 	var congForm = $('form#add-congregation, form#congregation_form');
-	if (congForm) {
+	if (congForm.length) {
 		if (!$('input[name=holds_attendance]').attr('checked')) $('#field-attendance_recording_days').hide();
 		if (!$('input[name=holds_services]').attr('checked')) $('#field-meeting_time').hide();
 		congForm.submit(function() {
@@ -998,6 +998,8 @@ JethroServicePlanner.init = function() {
 		cursor: "move",
 		start: function(event, ui) {
 			$('#service-plan').addClass('comp-dragging');
+			ui.helper.remove();
+			$(document.body).append(ui.helper);
 			ui.helper.addClass('component-in-transit');
 			JethroServicePlanner.draggedComp = $(this);
 		},
@@ -1163,6 +1165,7 @@ JethroServicePlanner.Item.addAdHoc = function ($tr) {
 			.html('Yes');
 
 	$modal.find('.modal-header h4').html('Add ad-hoc service item');
+	$modal.find('input[name=title]').parents('.control-group').show();
 	$modal.modal('show');
 }
 

@@ -384,7 +384,7 @@ class View_Families__Contact_List extends View
 				$cell = $table->addCell($imageWidthTwips, $narrowCellProps);
 				$imageStyle = (count($family['all']) == 1) ? $singleImageStyle : $familyImageStyle;
 				if ($family['have_photo'] || (count($family['all']) == 1 && $family['have_person_photo'])  ) {
-					$tempfile = str_replace('.tmp', '', tempnam(sys_get_temp_dir(), 'contactlistphoto')).'.jpg';
+					$tempfile = str_replace('.tmp', '', tempnam(sys_get_temp_dir(), 'contactlistphoto-jpg'));
 					$cleanup[] = $tempfile;
 					file_put_contents($tempfile, Photo_Handler::getPhotoData('family', $family['familyid']));
 					try {
@@ -499,7 +499,7 @@ class View_Families__Contact_List extends View
 		}
 		if (file_exists($templateFilename)) {
 			require_once 'include/odf_tools.class.php';
-			$outname = tempnam(sys_get_temp_dir(), 'contactlist').'.docx';
+			$outname = tempnam(sys_get_temp_dir(), 'contactlist-docx-');
 			copy($templateFilename, $outname);
 			ODF_Tools::insertFileIntoFile($tempname, $outname, '%CONTACT_LIST%');
 			$replacements = Array('SYSTEM_NAME' => SYSTEM_NAME, 'MONTH' => date('F Y'));

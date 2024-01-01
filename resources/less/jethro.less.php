@@ -2146,7 +2146,11 @@ table.system-config td small {
 }
 
 .component-in-transit {
-	background: @grayLighter;
+	background: @jethroLight;
+}
+.component-in-transit td {
+	border: 1px solid @grayMid;
+	padding: 3px 8px;
 }
 .component-in-transit td.hide-in-transit {
 	display: none;

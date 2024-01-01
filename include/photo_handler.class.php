@@ -15,7 +15,7 @@ Class Photo_Handler {
 			if (!empty($_FILES[$fieldName]['error'])) {
 				$err = $_FILES[$fieldName]['error'];
 				if (in_array($err, Array(UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE))) {
-					add_message("Your photo could not be saved because the file is too big. Please try a smaller image.", 'error');
+					add_message("Your photo could not be saved because the file is too big (over ".self::maxUploadSize()."Mb). Please try a smaller image.", 'error');
 					return NULL;
 				} else {
 					trigger_error("Technical error uploading photo file: Error #".$err, E_USER_ERROR);
@@ -97,6 +97,15 @@ Class Photo_Handler {
 				return $res;
 			}
 		}
+	}
+
+	private static function maxUploadSize()
+	{
+		$max_upload = (int)(ini_get('upload_max_filesize'));
+		$max_post = (int)(ini_get('post_max_size'));
+		$memory_limit = (int)(ini_get('memory_limit'));
+		$upload_mb = min($max_upload, $max_post, $memory_limit);
+		return $upload_mb;
 	}
 
 	public static function getDataURL($type, $id)
