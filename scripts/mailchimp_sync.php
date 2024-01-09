@@ -291,6 +291,7 @@ function run_mc_sync($mc, $report_id, $list_id)
                                                                 }
                                                         }
                         }
+                                                rmdir_recursive($dir);
                                                 if ($all_failures) {
                                                         trigger_error("[Syncing report $report_id to list $list_id] ".$batch_res_summary['errored_operations']." mailchimp operations failed.");
                                                         bam($all_failures);
@@ -344,6 +345,16 @@ function extract_tgz_to_dir($tgzfile, $dir) {
         }
 
         $zip->close();
+}
+
+function rmdir_recursive($dir) {
+        $it = new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS);
+        $it = new RecursiveIteratorIterator($it, RecursiveIteratorIterator::CHILD_FIRST);
+        foreach($it as $file) {
+                if ($file->isDir()) rmdir($file->getPathname());
+                else unlink($file->getPathname());
+        }
+        rmdir($dir);
 }
 
 function needsUpdate($jethroData, $mcData)
