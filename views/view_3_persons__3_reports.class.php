@@ -108,6 +108,9 @@ class View_Persons__Reports extends View
 			// THEY ASKED FOR A QUERY BUT THEY CAN'T HAVE IT
 			print_message('The requested report does not exist, or you do not have permission to view it', 'error');
 			return;
+
+		} else if (!empty($_REQUEST['custom_report'])) {
+			$this->_executeCustomReport($_REQUEST['custom_report']);
 			
 		} else {
 			// PRINT THE LIST OF SAVED REPORTS
@@ -193,10 +196,116 @@ class View_Persons__Reports extends View
 				</table>
 				</form>
 				<?php
+
+				$this->_listCustomReports();
 			}
 		}
 	}
 
+	private function _listCustomReports()
+	{
+		$files = $this->_getCustomReports();
+		if (empty($files)) return;
+		
+		?>
+		<h3>Custom Reports</h3>
+		<ul>
+		<?php
+		foreach ($files as $fn => $title) {
+			echo '<li><a href="'.build_url(Array('custom_report' => $fn)).'">'.ents($title).'</a></li>';
+		}
+		?>
+		</ul>
+		<?php
+	}
+
+	private function _executeCustomReport($file)
+	{
+		$reports = $this->_getCustomReports();
+		if (!isset($reports[$file])) {
+			trigger_error("Invalid custom report filename");
+			return;
+		}
+
+		echo '<h2>'.ents($reports[$file]).'</h2>';
+
+		$fp = fopen($this->_getCustomReportsDir().'/'.$file, 'r');
+		$sql = fread($fp, 99999);
+		fclose($fp);
+
+		$sql = trim($sql);
+		if (0 !== strpos(strtoupper($sql), 'SELECT')) {
+			trigger_error("Custom report does not seem to start with SELECT; aborting");
+			return;
+		}
+
+		$res = $GLOBALS['db']->queryAll($sql);
+
+		?>
+		<table class="table table-bordered table-condensed table-auto-width">
+			<thead>
+				<tr>
+				<?php
+				$headers = array_keys($res[0]);
+				foreach ($headers as $h) {
+					?>
+					<th><?php echo ents($h); ?></th>
+					<?php
+				}
+				?>
+			</thead>
+			<tbody>
+			<?php
+			foreach ($res as $row) {
+				?>
+				<tr>
+				<?php
+				foreach ($row as $k => $v) {
+					echo '<td>'.ents($v).'</td>';
+				}
+				?>
+				</tr>
+				<?php
+			}
+			?>
+			</tbody>
+			<tfoot>
+				<tr>
+					<td class="report-summary no-tsv" colspan="<?php echo count($headers); ?>">
+						<span class="pull-right no-print">
+							Copy:
+							<span class="clickable" title="plain table to paste elsewhere" data-action="copy-table">Table</span>
+							<span class="clickable" title="tab-separated for spreadsheet" data-action="copy-tsv">TSV</span>
+						</span>
+					</td>
+				</tr>
+			</tfoot>
+		</table>
+		<?php
+	}
+
+
+	private function _getCustomReports()
+	{
+		$dir = $this->_getCustomReportsDir();
+		if (!is_dir($dir)) return Array();
+
+		$files = glob($dir.'/*.sql');
+		if (empty($files)) return Array();
+
+		foreach ($files as $f) {
+			$f = basename($f);
+			$title = substr(ucwords(str_replace('_', ' ', $f)), 0, -4);
+			$res[$f] = $title;
+		}
+		return $res;
+
+	}
+
+	private function _getCustomReportsDir()
+	{
+		return ifdef('CUSTOM_REPORTS_DIR', JETHRO_ROOT.'/custom_reports');
+	}
 
 }
-?>
+

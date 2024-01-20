@@ -492,6 +492,7 @@ class View_Attendance__Display extends View
 							if (!in_array($cohortid, array_get($all_persons[$personid], 'cohortids', Array()))) {
 								$class = 'disabled';
 								$letter = '';
+								$pa = FALSE;
 							} else {
 								$catt = array_get($all_attendances[$personid], $cohortid, Array());
 								$v = array_get($catt, $date, '');

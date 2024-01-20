@@ -273,7 +273,7 @@ function run_mc_sync($mc, $report_id, $list_id)
                                                                         $resp->response = json_decode($resp->response);
                                                                         // Special handling for 'member in compliance state' unavoidable error
                                                                         // See https://github.com/tbar0970/jethro-pmm/issues/656
-                                                                        if (is_object($resp->response) && ($resp->response->status == 400) && ($resp->response->title == 'Member In Compliance State')) {
+                                                                        if (is_object($resp->response) && ($resp->response->status == 400) && ($resp->response->title == 'Member In Compliance State' || $resp->response->title == 'Forgotten Email Not Subscribed')) {
                                                                                 $pemail = substr($resp->operation_id, 4); // chop of 'add-'
                                                                                 $bpersons = $GLOBALS['system']->getDBObjectData('person', Array('email' => $pemail));
                                                                                 foreach ($bpersons as $pid => $pdetail) {
@@ -291,6 +291,7 @@ function run_mc_sync($mc, $report_id, $list_id)
                                                                 }
                                                         }
                         }
+                                                rmdir_recursive($dir);
                                                 if ($all_failures) {
                                                         trigger_error("[Syncing report $report_id to list $list_id] ".$batch_res_summary['errored_operations']." mailchimp operations failed.");
                                                         bam($all_failures);
@@ -344,6 +345,16 @@ function extract_tgz_to_dir($tgzfile, $dir) {
         }
 
         $zip->close();
+}
+
+function rmdir_recursive($dir) {
+        $it = new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS);
+        $it = new RecursiveIteratorIterator($it, RecursiveIteratorIterator::CHILD_FIRST);
+        foreach($it as $file) {
+                if ($file->isDir()) rmdir($file->getPathname());
+                else unlink($file->getPathname());
+        }
+        rmdir($dir);
 }
 
 function needsUpdate($jethroData, $mcData)
