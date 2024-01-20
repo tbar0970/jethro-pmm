@@ -1579,7 +1579,7 @@ table.service-program td.right-tools, table.service-program td.service  {
 }
 #body table.roster p.bible strong {
 	color: @jethroLinkColor;
-	font-weight: 800;
+	font-weight: 600;
 }
 #body table.roster p.notes {
 	font-size: 80%;
