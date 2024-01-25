@@ -347,7 +347,18 @@ class View_Admin__Import extends View
 				}
 
 				if (!$this->_haveErrors($i)) {
-					$this->_sess['person_updates'][$existingPerson->id] = $person_row;
+					if (isset($this->_sess['person_updates'][$existingPerson->id])) {
+						// a previous import row also matched this same person.
+						// that can be deliberate.
+						// Don't overwrite stuff.
+						$already_groups = array_get($this->_sess['person_updates'][$existingPerson->id], '_groups', Array());
+						$this->_pushIntoArray($this->_sess['person_updates'][$existingPerson->id], $person_row);
+						$this->_sess['person_updates'][$existingPerson->id] = $person_row;
+						$this->_sess['person_updates'][$existingPerson->id]['_groups'] = array_unique(array_merge($already_groups, $person_row['_groups']));
+
+					} else {
+						$this->_sess['person_updates'][$existingPerson->id] = $person_row;
+					}
 					$this->_sess['family_updates'][$existingPerson->getValue('familyid')] = $current_existing_family_data;
 				}
 			} else {
@@ -913,7 +924,7 @@ class View_Admin__Import extends View
 
 	private function _pushIntoArray($from, &$to) {
 		foreach ($from as $k => $v) {
-			if (strlen($v) && array_key_exists($k, $to) && !strlen($to[$k])) {
+			if (is_string($v) && strlen($v) && array_key_exists($k, $to) && !strlen($to[$k])) {
 				// $to has this element but it's empty
 				$to[$k] = $v;
 			}
