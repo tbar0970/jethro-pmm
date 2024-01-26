@@ -349,12 +349,13 @@ class View_Admin__Import extends View
 				if (!$this->_haveErrors($i)) {
 					if (isset($this->_sess['person_updates'][$existingPerson->id])) {
 						// a previous import row also matched this same person.
-						// that can be deliberate.
-						// Don't overwrite stuff.
+						// Later rows take precedence over earlier rows, but data should be combined where possible (eg groups).
 						$already_groups = array_get($this->_sess['person_updates'][$existingPerson->id], '_groups', Array());
 						$this->_pushIntoArray($this->_sess['person_updates'][$existingPerson->id], $person_row);
 						$this->_sess['person_updates'][$existingPerson->id] = $person_row;
-						$this->_sess['person_updates'][$existingPerson->id]['_groups'] = array_unique(array_merge($already_groups, $person_row['_groups']));
+						if (!empty($person_row['_groups'])) {
+							$this->_sess['person_updates'][$existingPerson->id]['_groups'] = array_unique(array_merge($already_groups, $person_row['_groups']));
+						}
 
 					} else {
 						$this->_sess['person_updates'][$existingPerson->id] = $person_row;
