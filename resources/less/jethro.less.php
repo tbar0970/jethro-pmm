@@ -2183,6 +2183,7 @@ table.system-config td small {
 }
 #service-plan .tools .dropdown-toggle i {
 	padding: 0px !important;
+	opacity: 50%;
 }
 #service-plan tbody td {
     -webkit-touch-callout: none;
