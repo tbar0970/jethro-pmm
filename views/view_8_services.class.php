@@ -212,7 +212,7 @@ class View_services extends View
 			<form method="post" id="service-planner-form" data-lock-length="<?php echo db_object::getLockLength() ?>">
 			<div id="service-plan-container">
 			<input type="hidden" name="save_service" value="1" />
-			<table class="table table-bordered table-condensed no-autofocus" id="service-plan" data-starttime="<?php echo $startTime; ?>">
+			<table class="table table-bordered table-hover table-condensed no-autofocus" id="service-plan" data-starttime="<?php echo $startTime; ?>">
 				<thead>
 					<tr>
 						<th class="narrow">Start</th>
