@@ -290,8 +290,8 @@ function run_mc_sync($mc, $report_id, $list_id)
                                                                         }
                                                                 }
                                                         }
-                        }
-                                                rmdir_recursive($dir);
+                                                        rmdir_recursive($dir);
+                                                }
                                                 if ($all_failures) {
                                                         trigger_error("[Syncing report $report_id to list $list_id] ".$batch_res_summary['errored_operations']." mailchimp operations failed.");
                                                         bam($all_failures);
