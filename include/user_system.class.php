@@ -374,6 +374,29 @@ class User_System extends Abstract_User_System
 	}
 
 	/**
+	 * Check whether a given staff_member would require 2FA when they try to log in
+	 * @param Staff_member $staff_member
+	 * @return boolean
+	 */
+	public function wouldRequire2FA($staff_member)
+	{
+		$req_perms = ifdef('2FA_REQUIRED_PERMS', '');
+		if (!strlen($req_perms)) return FALSE;
+
+		if ($staff_member->hasRestrictions() && !ifdef('2FA_EVEN_FOR_RESTRICTED_ACCTS', true)) {
+			return FALSE;
+		}
+
+		foreach (explode(',', $req_perms) as $perm) {
+			if (($staff_member->getValue('permissions') & $perm) == $perm) {
+				// They have one of the relevant permissions
+				return TRUE;
+			}
+		}
+		return FALSE;
+	}
+
+	/**
 	 * Initialise the 2FA process
 	 * @param array $user_details  The user who has just entered their password correctly
 	 * @return voice

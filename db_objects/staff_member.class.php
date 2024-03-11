@@ -83,6 +83,13 @@ class Staff_Member extends Person
 	{
 		return 'staff_member';
 	}
+
+	private function _check2FAAccess()
+	{
+		if ($GLOBALS['user_system']->wouldRequire2FA($this) && ($this->getValue('mobile_tel') == '')) {
+			add_message("The user ".$this->getValue('username')." won't be able to log in, because 2-factor authentication is required but their mobile number is blank. Please set their mobile number so they can log in.", "error");
+		}
+	}
 	
 	// We need this to override person::getInitSQL
 	public function getInitSQL($table_name=NULL)
@@ -384,14 +391,23 @@ class Staff_Member extends Person
 		if ($name == 'restrictions') return $this->_restrictions;
 		return parent::getValue($name);
 	}
-	
+
+	function hasRestrictions()
+	{
+		foreach ($this->_restrictions as $type => $rs) {
+			if (!empty($rs)) return TRUE;
+		}
+		return FALSE;
+	}	
 	
 	function create()
 	{
 		if (!($GLOBALS['user_system']->reverifyCurrentUser(array_get($_POST, 'my_current_password')))) {
 			add_message("Password for current user was incorrect.  Account details not saved", 'error');
 			return FALSE;
-		}	
+		}
+		$this->_check2FAAccess();
+
 		return parent::create();
 	}
 	
@@ -437,6 +453,12 @@ class Staff_Member extends Person
 				}
 				$this->_insertRestrictions();
 			}
+
+			$this->_check2FAAccess();
+
+			// Check for 2FA issues
+			// TODO: either call, or copy, some of the logic from User_System::_require2FA. Refactoring needed.
+			// Issue a warning if they require 2FA but their mobile number is blank.
 
 			// Run hooks
 			$GLOBALS['system']->runHooks('staff_member_updated', $this);
