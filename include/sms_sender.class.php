@@ -6,16 +6,26 @@ Class SMS_Sender
 	// Normal config uses constants starting with SMS_HTTP_
 	// but the 2 factor auth system can use alternative settings.
 	private static $configPrefix = 'SMS_HTTP_';
+	const DEFAULT_CONFIG_PREFIX = 'SMS_HTTP_';
 
+	/**
+	 * Usually, the SMS Sender uses config vars starting with SMS_HTTP.
+	 * Use this function to tell it to use config vars starting with some other prefix.
+	 * @param string $prefix
+	 */
 	public static function setConfigPrefix($prefix)
 	{
 		if (substr($prefix, -1) !== '_') $prefix .= '_';
 		self::$configPrefix = $prefix;
 	}
 
+	/**
+	 * Get a config setting to use in the SMS Sending process
+	 */
 	private static function _getSetting($var)
 	{
-		return ifdef(self::$configPrefix.$var);
+		$constName = self::$configPrefix.$var;
+		return ifdef($constName);
 	}
 
 	/**
@@ -157,7 +167,7 @@ Class SMS_Sender
 		}
 
 		$response = '';
-		$success = false;
+		$executed = false;
 		$content = self::_getSetting('POST_TEMPLATE');
 
 		if (FALSE !== strpos($content, '_USER_MOBILE_')) {
@@ -169,7 +179,7 @@ Class SMS_Sender
 					trigger_error("Your SMS config includes the _USER_MOBILE_ keyword but there is no current user!  Exiting.", E_USER_ERROR);
 				}
 				if (!strlen($me->getValue('mobile_tel'))) {
-					return Array('success' => FALSE, 'successes' => Array(), 'failures' => Array(), 'rawresponse' => '',
+					return Array('executed' => FALSE, 'successes' => Array(), 'failures' => Array(), 'rawresponse' => '',
 						'error' => 'You must save your own mobile number before you can send an SMS');
 				}
 				$usermobile = $me->getValue('mobile_tel');
@@ -226,21 +236,21 @@ Class SMS_Sender
 			$fp = fopen(self::_getSetting('URL'), 'r', false, stream_context_create($opts));
 			if (!$fp) {
 				$http_error = "ERROR: Unable to connect to SMS Server.<br>" . join("<br>", $http_response_header);
-				return array("success" => false, "successes" => array(), "failures" => array(), "rawresponse" => $http_error, "error" => $http_error);
+				return array("executed" => false, "successes" => array(), "failures" => array(), "rawresponse" => $http_error, "error" => $http_error);
 			} else {
 				$response = stream_get_contents($fp);
 				fclose($fp);
 			}
 		} catch (Exception $e) {
 			$error = "ERROR: Unable to connect to SMS Server. " . $e->getMessage();
-			return array("success" => false, "successes" => array(), "failures" => array(), "rawresponse" => $error, "error" => $error);
+			return array("executed" => false, "successes" => array(), "failures" => array(), "rawresponse" => $error, "error" => $error);
 		}
 		restore_error_handler(); // Restore system error_handler
 		$executed = !empty($response);
 		$error = null;
 		if ($errorReg = ifdef(self::_getSetting('RESPONSE_ERROR_REGEX'))) {
 			if (preg_match("/" . $errorReg . "/", $response)) {
-				$success = FALSE;
+				$executed = FALSE;
 				$error = "$response";
 			}
 		}
@@ -294,6 +304,8 @@ Class SMS_Sender
 
 	private static function logSuccess($recip_count, $message)
 	{
+		if (self::$configPrefix !== self::DEFAULT_CONFIG_PREFIX) return; // Log doesn't apply when using dedicated 2FA settings.
+		
 		if (defined('SMS_SEND_LOGFILE') && ($file = constant('SMS_SEND_LOGFILE'))) {
 			if (filesize(SMS_SEND_LOGFILE) < 3) {
 				// Write a header row
