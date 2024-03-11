@@ -175,14 +175,27 @@ function redirect($view, $params=Array(), $hash='')
  */
 function upgrade_session_cookie()
 {
-	foreach (headers_list() as $header) {
+	$headers_list = headers_list();
+	$header_was_deleted = FALSE;
+	foreach ($headers_list as $i => $header) {
 		if (FALSE !== strpos($header, session_name())) {
 			// There is a session cookie header waiting to be sent. Remove it, and add a better one.
 			$path = parse_url(BASE_URL, PHP_URL_PATH);
 			$domain = parse_url(BASE_URL, PHP_URL_HOST);
 			header_remove('Set-Cookie');
+			unset($headers_list[$i]);
+			$header_was_deleted = TRUE;
 			header("Set-Cookie: ".session_name()."=".session_id()."; path=".$path."; HttpOnly; SameSite=Lax");
-			return;
+			break;
+		}
+	}
+	if ($header_was_deleted) {
+		foreach ($headers_list as $header) {
+			if (FALSE !== strpos($header, 'Set-Cookie:')) {
+				// Since the call to header_remove above will have deleted ALL Set-Cookie headers, we will reinstate
+				// Any Set-Cookie headers that are not related to the Session ID.
+				header($header, false);
+			}
 		}
 	}
 }
@@ -892,9 +905,15 @@ function email_link_extras()
 	if (function_exists('custom_email_extras')) return custom_email_extras();
 }
 
-// From http://stackoverflow.com/questions/1182584/secure-random-number-generation-in-php
-// get 128 pseudorandom bits in a string of 16 bytes
-function generate_random_string($chars=16)
+/**
+ * Get a string that's as random as possible
+ * From http://stackoverflow.com/questions/1182584/secure-random-number-generation-in-php
+ *
+ * @param int $chars	Number of characters required
+ * @param array $set	Optional array of valid chars. Defaults to a-zA-Z0-9
+ * @return string
+ */
+function generate_random_string($chars=16, $set=NULL)
 {
 	if (defined('USE_POOR_RANDOMS')) {
 		$options = array_merge(range('a', 'b'), range('A', 'Z'), range(0, 9));
@@ -943,11 +962,9 @@ function generate_random_string($chars=16)
 		trigger_error("Generated random string not long enough (only ".strlen($pr_bits));
 	}
 
-	$validChars = array_merge(range(0,9), range('A', 'Z'), range('a', 'z'));
+	$validChars = $set ? $set : array_merge(range(0,9), range('A', 'Z'), range('a', 'z'));
 	for ($i=0; $i < strlen($pr_bits); $i++) {
-		if (!preg_match('/[A-Za-z0-9]/', $pr_bits[$i])) {
-			$pr_bits[$i] = $validChars[ord($pr_bits[$i]) % count($validChars)];
-		}
+		$pr_bits[$i] = $validChars[ord($pr_bits[$i]) % count($validChars)];
 	}
 
 	return $pr_bits;

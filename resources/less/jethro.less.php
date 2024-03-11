@@ -855,6 +855,9 @@ table.object-summary>tbody>tr>td>table>tbody>tr:first-child td {
 	text-align: right;
 	margin-top: 0px;
 }
+.control-group .alert {
+	margin: 0px !important;
+}
 
 .day-box {
 	width: 4.5ex !important;

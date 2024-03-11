@@ -29,6 +29,9 @@ class View_Admin__System_Configuration extends View {
 				case 'AGE_BRACKET_OPTIONS':
 					$this->processAgeBracketOptions();
 					break;
+				case '2FA_REQUIRED_PERMS':
+					$this->process2FARequiredPermsField();
+					break;
 				default:
 					if (isset($_REQUEST[$symbol])) {
 						list($params, $value, $multi) = self::getParamsAndValue($symbol, $details);
@@ -79,11 +82,10 @@ class View_Admin__System_Configuration extends View {
 						if (defined($symbol.'_IN_CONFIG_FILE')) {
 							if (Config_Manager::allowSettingInFile($symbol) && constant($symbol)) {
 								// Don't show the value here - sensitive
-								echo '<i>'._("This setting has been set in the conf.php file").'</i>';
+								print_message('This setting has been set in the system config file', 'warning');
 							} else {
 								$this->printValue($symbol, $details);
-								if ($details['note']) echo '<p class="smallprint">'.ents($details['note']).'</p>';
-								echo '<p class="smallprint">'._('To edit this setting here, first remove it from your conf.php file').'</p>';;
+								print_message('This setting has been set in the system config file. To make it editable here, remove it from the config file.', 'warning');
 							}
 						} else {
 							$this->printWidget($symbol, $details);
@@ -215,6 +217,9 @@ class View_Admin__System_Configuration extends View {
 			case 'GROUP_MEMBERSHIP_STATUS_OPTIONS':
 				$this->printGroupMembershipStatusOptions();
 				break;
+			case '2FA_REQUIRED_PERMS':
+				$this->print2FARequiredPermsField();
+				break;
 			default:
 				list($params, $value, $multi) = self::getParamsAndValue($symbol, $details);
 				if ($multi) {
@@ -234,6 +239,43 @@ class View_Admin__System_Configuration extends View {
 					print_widget($symbol, $params, $value);
 				}
 				break;
+		}
+	}
+
+	private function print2FARequiredPermsField()
+	{
+		if (!SMS_Sender::canSend()) {
+			SMS_Sender::setConfigPrefix ('2FA_SMS');
+			if (!SMS_Sender::canSend()) {
+				print_message("2 Factor auth is only available once a SMS gateway has been configured. Contact your System Administrator to set this up.", 'warning');
+				return;
+			}
+		}
+		echo '<div style="columns: 2">';
+		$selected_perms = explode(',', constant('2FA_REQUIRED_PERMS'));
+		$levels = $GLOBALS['user_system']->getPermissionLevels();
+		print_hidden_field('2FA_REQUIRED_PERMS_SUBMITTED', 1);
+		foreach ($levels as $num => $desc) {
+			$checked = in_array($num, $selected_perms) ? 'checked="checked"' : '';
+			?>
+			<label class="checkbox">
+				<input type="checkbox" name="2FA_REQUIRED_PERMS[]" value="<?php echo (int)$num; ?>" <?php echo $checked; ?>>
+				<?php echo ents($desc); ?>
+			</label>
+			<?php
+		}
+		echo '</div>';
+	}
+
+	private function process2FARequiredPermsField()
+	{
+		if (!empty($_REQUEST['2FA_REQUIRED_PERMS_SUBMITTED'])) {
+			$levels = $GLOBALS['user_system']->getPermissionLevels();
+			$res = Array();
+			foreach (array_get($_REQUEST, '2FA_REQUIRED_PERMS', Array()) as $perm) {
+				if (isset($levels[$perm])) $res[] = $perm;
+			}
+			Config_Manager::saveSetting('2FA_REQUIRED_PERMS', implode(',', $res));
 		}
 	}
 

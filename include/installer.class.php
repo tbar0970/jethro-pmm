@@ -196,10 +196,15 @@ class Installer
 
 			(@rank:=@rank+5, 'Permissions and Security','ENABLED_FEATURES','Which Jethro features are visible to users?','multiselect{\"NOTES\":\"Notes\",\"PHOTOS\":\"Photos\",\"ATTENDANCE\":\"Attendance\",\"ROSTERS&SERVICES\":\"Rosters & Services\",\"SERVICEDETAILS\":\"Service Details\",\"DOCUMENTS\":\"Documents\",\"SERVICEDOCUMENTS\":\"Service documents\"}','NOTES,PHOTOS,ATTENDANCE,ROSTERS&SERVICES,SERVICEDETAILS,DOCUMENTS,SERVICEDOCUMENTS'),
 			(@rank:=@rank+5, '',                         'DEFAULT_PERMISSIONS','Permissions to grant to new user accounts by default','int','7995391'),
-			(@rank:=@rank+5, '',                         'RESTRICTED_USERS_CAN_ADD','Can users with group or congregation restrictions add new persons and families?','bool','0'),
+			(@rank:=@rank+5, '',                         'RESTRICTED_USERS_CAN_ADD','Allow users with group/congregation restrictions to create new persons and families?','bool','0'),
 			(@rank:=@rank+5, '',                         'PASSWORD_MIN_LENGTH','Minimum password length','int','8'),
 			(@rank:=@rank+5, '',                         'SESSION_TIMEOUT_MINS','Inactive sessions will be logged out after this number of minutes','int','90'),
 			(@rank:=@rank+5, '',                         'SESSION_MAXLENGTH_MINS','Every session will be logged out this many minutes after login','int','480'),
+
+			(@rank:=@rank+5, '2-Factor Authentication',  '2FA_REQUIRED_PERMS','Users who hold permission levels selected here will be required to complete 2-factor authentication at login.',text',''),
+			(@rank:=@rank+5, '',                         '2FA_EVEN_FOR_RESTRICTED_ACCTS','Require 2-factor auth even for accounts with group/congregation restrictions?','bool','0'),
+			(@rank:=@rank+5, '',                         '2FA_TRUST_DAYS','Users can tick a box to skip 2-factor auth for this many days. Set to 0 to disable.','int','30'),
+			(@rank:=@rank+5, '',                         '2FA_SENDER_ID','Sender ID for 2-factor auth messages','text','Jethro'),
 
 			(@rank:=@rank+5, 'Jethro Behaviour Options','REQUIRE_INITIAL_NOTE','Whether an initial note is required when adding new family','bool','1'),
 			(@rank:=@rank+5, '',                         'DEFAULT_NOTE_STATUS','Default status when creating a new note','select{\"no_action\":\"No Action Required\",\"pending\":\"Requires Action\"}', 'pending'),

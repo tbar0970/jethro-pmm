@@ -87,7 +87,17 @@ class Staff_Member extends Person
 	// We need this to override person::getInitSQL
 	public function getInitSQL($table_name=NULL)
 	{
-		return $this->_getInitSQL();
+		return Array(
+
+			$this->_getInitSQL(),
+			
+			'CREATE TABLE `2fa_trust` (
+			  `userid` int(11) NOT NULL,
+			  `token` varchar(255) NOT NULL,
+			  `expiry` datetime NOT NULL,
+			  CONSTRAINT 2fatrust_person FOREIGN KEY (`userid`) REFERENCES `staff_member` (`id`) ON DELETE CASCADE
+			) ENGINE=InnoDB'
+		);
 	}
 
 	public function getForeignKeys()
@@ -207,6 +217,7 @@ class Staff_Member extends Person
 	{
 		switch ($name) {
 			case 'username':
+				// todo; diosab;e autocomplete here
 				print_widget($prefix.'user_un', $this->fields['username'], $this->getValue('username'));
 				break;
 			case 'password':
