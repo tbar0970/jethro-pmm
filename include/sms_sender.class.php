@@ -2,15 +2,31 @@
 
 Class SMS_Sender
 {
+	// Prefix for relevant config constants.
+	// Normal config uses constants starting with SMS_HTTP_
+	// but the 2 factor auth system can use alternative settings.
+	private static $configPrefix = 'SMS_HTTP_';
+
+	public static function setConfigPrefix($prefix)
+	{
+		if (substr($prefix, -1) !== '_') $prefix .= '_';
+		self::$configPrefix = $prefix;
+	}
+
+	private static function _getSetting($var)
+	{
+		return ifdef(self::$configPrefix.$var);
+	}
 
 	/**
 	 * Return true if we are able to send a message, considering config, perms etc.
 	 */
 	public static function canSend()
 	{
-		return ifdef('SMS_HTTP_URL')
-				&& ifdef('SMS_HTTP_POST_TEMPLATE')
-				&& $GLOBALS['user_system']->havePerm(PERM_SENDSMS);
+		if (!self::_getSetting('URL')) return FALSE;
+		if (!self::_getSetting('POST_TEMPLATE')) return FALSE;
+		if (!empty($GLOBALS['user_system']) && !$GLOBALS['user_system']->havePerm(PERM_SENDSMS)) return FALSE;
+		return TRUE;
 	}
 
 	/**
@@ -121,7 +137,13 @@ Class SMS_Sender
 	 * @param string $message
 	 * @param array $recips	Array of person records
 	 * @param boolean $saveAsNote Whether to save a note against the recipients
-	 * @return array('success' => bool, 'successes' => array, 'failures' => array, 'rawresponse' => string)
+	 * @return array(
+	 *			'executed' => bool, (whether the message was successfully submitted to the gateway)
+	 *			'successes' => array, (addresses that the gateway accepted OK)
+	 *			'failures' => array, (addresses that the gateway rejected)
+	 *			'rawresponse' => string, (raw response from the gateway)
+	 *			'error' => string  (details of any error that occurred)
+	 * )
 	 */
 	public static function sendMessage($message, $recips, $saveAsNote=FALSE)
 	{
@@ -136,13 +158,13 @@ Class SMS_Sender
 
 		$response = '';
 		$success = false;
-		$content = SMS_HTTP_POST_TEMPLATE;
+		$content = self::_getSetting('POST_TEMPLATE');
 
-		$me = $GLOBALS['system']->getDBObject('person', $GLOBALS['user_system']->getCurrentUser('id'));
 		if (FALSE !== strpos($content, '_USER_MOBILE_')) {
-			if (defined('OVERRIDE_USER_MOBILE')) {
+			if (ifdef('OVERRIDE_USER_MOBILE')) {
 				$usermobile = OVERRIDE_USER_MOBILE;
 			} else {
+				$me = $GLOBALS['system']->getDBObject('person', $GLOBALS['user_system']->getCurrentUser('id'));
 				if (empty($me)) {
 					trigger_error("Your SMS config includes the _USER_MOBILE_ keyword but there is no current user!  Exiting.", E_USER_ERROR);
 				}
@@ -156,6 +178,7 @@ Class SMS_Sender
 		}
 
 		if (FALSE !== strpos($content, '_USER_EMAIL_')) {
+			$me = $GLOBALS['system']->getDBObject('person', $GLOBALS['user_system']->getCurrentUser('id'));
 			if (empty($me)) {
 				trigger_error("Your SMS config includes the _USER_EMAIL_ keyword but there is no current user!  Exiting.", E_USER_ERROR);
 			}
@@ -168,7 +191,7 @@ Class SMS_Sender
 		if (ifdef('SMS_RECIPIENT_ARRAY_PARAMETER')) {
 			$content = str_replace('_RECIPIENTS_ARRAY_', SMS_RECIPIENT_ARRAY_PARAMETER . '[]=' . implode('&' . SMS_RECIPIENT_ARRAY_PARAMETER . '[]=', $mobile_tels), $content);
 		}
-		if (strlen(ifdef('SMS_LOCAL_PREFIX')) && strlen(ifdef('SMS_INTERNATIONAL_PREFIX')) && FALSE !== strpos(SMS_HTTP_POST_TEMPLATE, '_RECIPIENTS_INTERNATIONAL')
+		if (strlen(ifdef('SMS_LOCAL_PREFIX')) && strlen(ifdef('SMS_INTERNATIONAL_PREFIX')) && FALSE !== strpos(self::_getSetting('HEADER_TEMPLATE'), '_RECIPIENTS_INTERNATIONAL')
 		) {
 			$intls = Array();
 			foreach ($mobile_tels as $t) {
@@ -181,7 +204,7 @@ Class SMS_Sender
 			}
 		}
 
-		$header = "" . ifdef('SMS_HTTP_HEADER_TEMPLATE', '');
+		$header = "" . self::_getSetting('HEADER_TEMPLATE');
 		$header = $header . "Content-Length: " . strlen($content) . "\r\n" . "Content-Type: application/x-www-form-urlencoded\r\n";
 
 		$opts = Array(
@@ -200,7 +223,7 @@ Class SMS_Sender
 			throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
 		});
 		try {
-			$fp = fopen(SMS_HTTP_URL, 'r', false, stream_context_create($opts));
+			$fp = fopen(self::_getSetting('URL'), 'r', false, stream_context_create($opts));
 			if (!$fp) {
 				$http_error = "ERROR: Unable to connect to SMS Server.<br>" . join("<br>", $http_response_header);
 				return array("success" => false, "successes" => array(), "failures" => array(), "rawresponse" => $http_error, "error" => $http_error);
@@ -213,22 +236,22 @@ Class SMS_Sender
 			return array("success" => false, "successes" => array(), "failures" => array(), "rawresponse" => $error, "error" => $error);
 		}
 		restore_error_handler(); // Restore system error_handler
-		$success = !empty($response);
+		$executed = !empty($response);
 		$error = null;
-		if (ifdef('SMS_HTTP_RESPONSE_ERROR_REGEX')) {
-			if (preg_match("/" . SMS_HTTP_RESPONSE_ERROR_REGEX . "/", $response)) {
+		if ($errorReg = ifdef(self::_getSetting('RESPONSE_ERROR_REGEX'))) {
+			if (preg_match("/" . $errorReg . "/", $response)) {
 				$success = FALSE;
 				$error = "$response";
 			}
 		}
 		$successes = $failures = Array();
-		if ($success) {
+		if ($executed) {
 			$response = str_replace("\r", '', $response);
-			if (ifdef('SMS_HTTP_RESPONSE_OK_REGEX')) {
+			if ($okReg = self::_getSetting('RESPONSE_OK_REGEX')) {
 				foreach ($recips as $id => $recip) {
 					$reps['_RECIPIENT_INTERNATIONAL_'] = self::internationaliseNumber($recip['mobile_tel']);
 					$reps['_RECIPIENT_'] = $recip['mobile_tel'];
-					$pattern = '/' . str_replace(array_keys($reps), array_values($reps), SMS_HTTP_RESPONSE_OK_REGEX) . '/m';
+					$pattern = '/' . str_replace(array_keys($reps), array_values($reps), $okReg) . '/m';
 					if (preg_match($pattern, $response)) {
 						$successes[$id] = $recip;
 					} else {
@@ -241,10 +264,10 @@ Class SMS_Sender
 				self::logSuccess(count($mobile_tels), $message);
 				if ($saveAsNote) self::saveAsNote($recips, $message);
 			}
-		} //$success
+		}
 
 		return array(
-			"success" => $success,
+			"executed" => $executed,
 			"successes" => $successes,
 			"failures" => $failures,
 			"rawresponse" => $response,
@@ -278,8 +301,13 @@ Class SMS_Sender
 				$json = json_encode($headers);
 				error_log($json."\n", 3, $file);
 			}
+			if (!empty($GLOBALS['user_system'])) {
+				$username = $GLOBALS['user_system']->getCurrentUser('username');
+			} else {
+				$username = '[System]';
+			}
 			$msg_trunc = strlen($message) > 30 ? substr($message, 0, 27) . '...' : $message;
-			$vals = Array(date('c'), $GLOBALS['user_system']->getCurrentUser('username'), $recip_count, strlen($message), $msg_trunc);
+			$vals = Array(date('c'), $username, $recip_count, strlen($message), $msg_trunc);
 			$json = json_encode($vals);
 			error_log($json."\n", 3, $file);
 		}

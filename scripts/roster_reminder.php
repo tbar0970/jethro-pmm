@@ -178,12 +178,12 @@ if ($sendsms) { // make the sms message!
 		if (!empty($assignees))  {
 			$sendResponse = SMS_Sender::sendMessage($sms_message, $assignees, FALSE);
 			$successes = $failures = $rawresponse = Array();
-			$success = $sendResponse['success'];
+			$executed = $sendResponse['executed'];
 			$successes = array_values($sendResponse['successes']);
 			$failures = array_values($sendResponse['failures']);
 			$rawresponse = $sendResponse['rawresponse'];
 			$error = $sendResponse['error'];
-			if (!$success) {
+			if (!$executed) {
 				$sms_notification = "Unable to send SMS\n\n$error\n";
 			} else {
 				if ((count($successes) <= 0) && (count($failures) <= 0)) {
@@ -210,7 +210,7 @@ if ($sendsms) { // make the sms message!
 	$sendResponse = SMS_Sender::sendMessage($sms_notification, $coordinator, FALSE);
 	if (!empty($verbose)) {
 		echo "$sms_notification\n";
-		if (!$sendResponse['success']) {
+		if (!$sendResponse['executed'] || empty($sendResponse['successes'])) {
 			echo "Unable to send Notification SMS:\n\n" . $sendResponse['error'] . "\n";
 		}
 		echo "\nFull Server Response:\n\n" . $sendResponse['rawresponse'] . "\n";

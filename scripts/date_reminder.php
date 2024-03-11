@@ -162,7 +162,7 @@ function send_reminder($person)
 			if (!empty($ini['OVERRIDE_RECIPIENT_SMS'])) $toNumber = $person['mobile_tel'] = $ini['OVERRIDE_RECIPIENT_SMS'];
 			$message = replace_keywords($ini['SMS_MESSAGE'], $person);
 			$res = SMS_Sender::sendMessage($message, Array($person), FALSE);
-			if (count($res['successes']) != 1) {
+			if (!$res['executed'] || (count($res['successes']) != 1)) {
 				echo "Failed to send SMS to ".$toNumber."\n";
 			} else {
 				$sentSomething = TRUE;
