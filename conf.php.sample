@@ -52,6 +52,23 @@ define('DB_HOST', 'localhost');
 define('DB_TYPE', 'mysql');
 
 ///////////////////////////////////////////////////////////////////////////
+// 2-FACTOR AUTH SETTINGS - These can also be configured in the web interface,
+// but you may want to define them here to lock them down.
+///////////////////////////////////////////////////////////////////////////
+
+// Allow users to tick a box to bypass 2-factor auth for this many days
+//define('2FA_TRUST_DAYS','30');
+
+// Sender ID for 2-factor auth SMS messages
+//define('2FA_SENDER_ID','');
+
+// Require 2-factor auth for users that hold these permissions
+//define('2FA_REQUIRED_PERMS','2147483647,48'); // SYSADMIN,VIEWNOTE
+
+// Require 2-factor auth even for accounts with group/congregation restrictions?
+//define('2FA_EVEN_FOR_RESTRICTED_ACCTS', false);
+
+///////////////////////////////////////////////////////////////////////////
 // SMS SETTINGS - These can also be configured in the web interface,
 // but you may want to define them here to avoid making credentials visible.
 ///////////////////////////////////////////////////////////////////////////
@@ -60,8 +77,8 @@ define('DB_TYPE', 'mysql');
 // define('SMS_MAX_LENGTH', 160);
 
 // URL of the SMS gateway to send SMSes through
-//define('SMS_HTTP_URL', 'https://www.5centsms.com.au:/api/v4/sms');
-//define('SMS_HTTP_URL', 'https://api.smsbroadcast.com.au/api-adv.php');
+// define('SMS_HTTP_URL', 'https://www.5centsms.com.au:/api/v4/sms');
+// define('SMS_HTTP_URL', 'https://api.smsbroadcast.com.au/api-adv.php');
 // define('SMS_HTTP_URL', "");
 
 // Template for the headers of the HTTP POST request Jethro will send to the SMS gateway.
@@ -72,7 +89,6 @@ define('DB_TYPE', 'mysql');
 // define('SMS_HTTP_HEADER_TEMPLATE', "");
 
 // Template for the body of the HTTP POST request Jethro will send to the SMS gateway.
-//
 // Can include the following keywords:
 // _MESSAGE_ - text message to send
 // _RECIPIENTS_COMMAS_ - recipient mobile numbers separated by commas
@@ -97,7 +113,7 @@ define('DB_TYPE', 'mysql');
 // define('SMS_RECIPIENT_ARRAY_PARAMETER', 'number');
 
 // Regex to use to detect success message from the SMS server for each recipient.
-// Leave blank to ignore response.
+// Optional. Omit slash delimiters at start and end. Leave blank to ignore response.
 // Keywords available:
 // _RECIPIENT_ - recipient number in raw format
 // _RECIPIENT_INTERNATIONAL_ - recipient number in international format (see SMS_LOCAL_PREFIX and SMS_INTERNATIONAL_PREFIX below)
@@ -109,8 +125,7 @@ define('DB_TYPE', 'mysql');
 // define('SMS_HTTP_RESPONSE_OK_REGEX', '');
 
 // Regex to detect an overall error response from the API server (eg bad credentials).
-// For example, '#^ERR#i'
-// Optional.
+// Optional.  Omit slash delimiters at start and end. Leave blank to ignore response.
 // define('SMS_HTTP_RESPONSE_ERROR_REGEX', '');
 
 // Local prefix used in the mobile numbers stored in Jethro.
@@ -121,7 +136,7 @@ define('DB_TYPE', 'mysql');
 // Needed for some SMS gateways which use international-format numbers
 // define('SMS_INTERNATIONAL_PREFIX', '61');
 
-// A file to log who has sent SMSes (optional)
+// A file to log who has sent SMSes (optional). JSONP format.
 // define('SMS_SEND_LOGFILE', '');
 
 ///////////////////////////////////////////////////////////////////////////
@@ -162,6 +177,22 @@ define('DB_TYPE', 'mysql');
 // Defaults to [yourJethroRoot]/custom_reports
 // define('CUSTOM_REPORTS_DIR', '');
 
+// Dedicated SMS gateway config for 2FA SMS messages (optional)
+// - If 2FA_SMS_URL is set:
+//    * 2FA will use all the 2FA_SMS_ settings instead of SMS_HTTP_ settings.
+//    * 2FA messages will NOT be logged in SMS_SEND_LOGFILE.
+//define('2FA_SMS_URL', '');
+//define('2FA_SMS_POST_TEMPLATE', '');
+//define('2FA_SMS_HEADER_TEMPLATE', "");
+//define('2FA_SMS_RESPONSE_OK_REGEX', '');
+//define('2FA_SMS_RESPONSE_ERROR_REGEX', '');
+
+// Log file to keep track of 2FA actions
+// define('2FA_LOGFILE', "/var/log/jethro-2fa.log");
+// define('2FA_LOG_LEVEL', "full"); // 'full' for everything, or 'quiet' for errors only.
+
+// Dev option: Don't actually sent 2FA messages, just log them
+// define('2FA_BLOCK_MESSAGES', TRUE); // Don't actually send SMS, just log the intention to send.
 
 // Order to list persons when recording/displaying attendance
 define('ATTENDANCE_LIST_ORDER', 'status ASC, family_name ASC, familyid, age_bracket ASC, gender DESC');
@@ -176,7 +207,6 @@ define('ATTENDANCE_LIST_ORDER', 'status ASC, family_name ASC, familyid, age_brac
 // add their paths here.
 // Separate multiple entries with pipe (|).
 // define('MEMBER_FILES_DIRS', 'Member_Files');
-
 
 // How to contact the system administrator (probably the person editing this file)
 // either mailto:someone@domain.com or http://somedomain.com/info-page
