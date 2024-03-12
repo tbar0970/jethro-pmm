@@ -456,10 +456,6 @@ class Staff_Member extends Person
 
 			$this->_check2FAAccess();
 
-			// Check for 2FA issues
-			// TODO: either call, or copy, some of the logic from User_System::_require2FA. Refactoring needed.
-			// Issue a warning if they require 2FA but their mobile number is blank.
-
 			// Run hooks
 			$GLOBALS['system']->runHooks('staff_member_updated', $this);
 
