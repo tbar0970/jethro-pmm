@@ -308,6 +308,7 @@ Class SMS_Sender
 		
 		if (defined('SMS_SEND_LOGFILE') && ($file = constant('SMS_SEND_LOGFILE'))) {
 			if (filesize(SMS_SEND_LOGFILE) < 3) {
+				if (!file_exists($file)) touch($file);
 				// Write a header row
 				$headers = Array('Timestamp', 'Username', 'RecipientCount', 'MessageLength', 'Content');
 				$json = json_encode($headers);
