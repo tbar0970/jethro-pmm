@@ -65,13 +65,24 @@ $(document).ready(function() {
 		}
 	});
 	
-	$('#password-toggle').click(function() {
+	$('#change-password-toggle').click(function() {
 		if (this.checked) {
 			$('#new-password-fields input[type=password]').focus();
 		} else {
 			$('#new-password-fields input[type=password]').val('');
 		}
 	});
+	$('#password-visible-toggle').click(function() {
+		var i = $(this).siblings('input').get(0);
+		if (i.type == 'password') {
+			i.type = 'text';
+			$(this).find('.icon-eye-open').removeClass('icon-eye-open').addClass('icon-eye-close');
+		} else {
+			i.type = 'password';
+			$(this).find('.icon-eye-close').removeClass('icon-eye-close').addClass('icon-eye-open');
+
+		}
+	})
 			
 
 
