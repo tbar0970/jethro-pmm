@@ -1,3 +1,4 @@
+-- 2 factor auth
 CREATE TABLE `2fa_trust` (
   `userid` int(11) NOT NULL,
   `token` varchar(255) NOT NULL,
@@ -15,3 +16,6 @@ VALUES
 (@rankBase+10, '',                         '2FA_EVEN_FOR_RESTRICTED_ACCTS','Require 2-factor auth even for accounts with group/congregation restrictions?','bool','0'),
 (@rankBase+15, '',                         '2FA_TRUST_DAYS','Users can tick a box to skip 2-factor auth for this many days. Set to 0 to disable.','int','30'),
 (@rankBase+20, '',                         '2FA_SENDER_ID','Sender ID for 2-factor auth messages','text','Jethro');
+
+-- https://github.com/tbar0970/jethro-pmm/issues/994
+alter table custom_field_value modify value_date char(10);
