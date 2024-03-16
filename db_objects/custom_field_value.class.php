@@ -9,7 +9,7 @@ class Custom_Field_Value extends db_object
 				personid INT(11) NOT NULL,
 				fieldid INT(11) NOT NULL,
 				value_text VARCHAR(255) DEFAULT NULL,
-				value_date DATE DEFAULT NULL,
+				value_date CHAR(10) DEFAULT NULL,
 				value_optionid INT(11) DEFAULT NULL
 			) Engine=InnoDB;';
 	}
