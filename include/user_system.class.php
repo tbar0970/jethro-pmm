@@ -35,8 +35,12 @@ class User_System extends Abstract_User_System
 			}
 			$user_details = $this->_findUser($_POST['username'], $_POST['password']);
 			if (empty($user_details)) {
-				// No user found matching those credentials
+				// No user found matching those credentials.
 				$this->_error = 'Incorrect username or password';
+				// Waste scammers' time with a randomised delay to slow down brute force attempts
+				$_SESSION['bad_password_attempts'] = array_get($_SESSION, 'bad_password_attempts', 0) + 1;
+				$sleeptime = rand(1, min(18, $_SESSION['bad_password_attempts'] * 2))/2;
+				sleep($sleeptime);
 			} else {
 				// Found a user matching username and password. But check some things before making them the current user.
 				$go_ahead = TRUE;
