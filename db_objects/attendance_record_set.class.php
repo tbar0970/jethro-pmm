@@ -354,7 +354,7 @@ class Attendance_Record_Set
 		}
 		?>
 		<input type="tel" name="<?php echo $headcountFieldName; ?>" value="<?php echo $headcountValue; ?>" style="width: 60px" />
-		<span id="present-count" class="muted"></span>
+		<span id="present-count" class="muted nowrap"></span>
 		<?php
 	}
 
