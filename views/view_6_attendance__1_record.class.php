@@ -111,13 +111,13 @@ class View_Attendance__Record extends View
 					} else {
 						if ($set->processForm($i)) {
 							$set->save();
-							if ((int)$set->congregationid) {
-								Headcount::save('congregation', $this->_attendance_date, $set->congregationid, $_REQUEST['headcount']['congregation'][$set->congregationid]);
-							} else {
-								Headcount::save('person_group', $this->_attendance_date, $set->groupid, $_REQUEST['headcount']['group'][$set->groupid]);
-							}
-							$set->releaseLock();
 						}
+						if ((int)$set->congregationid) {
+							Headcount::save('congregation', $this->_attendance_date, $set->congregationid, $_REQUEST['headcount']['congregation'][$set->congregationid]);
+						} else {
+							Headcount::save('person_group', $this->_attendance_date, $set->groupid, $_REQUEST['headcount']['group'][$set->groupid]);
+						}
+						$set->releaseLock();
 					}
 				}
 			} else {
