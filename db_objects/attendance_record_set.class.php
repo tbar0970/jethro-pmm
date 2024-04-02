@@ -432,8 +432,8 @@ class Attendance_Record_Set
 		foreach (Array(1 => 'Present', 0 => 'Absent') as $present => $label) {
 			?>
 			<tr class="<?php echo strtolower($label); ?>">
-				<th rowspan="<?php echo count($breakdowns[$present]); ?>">Marked <?php echo $label; ?></th>
-				<td rowspan="<?php echo count($breakdowns[$present]); ?>">
+				<th rowspan="<?php echo max(1, count($breakdowns[$present])); ?>">Marked <?php echo $label; ?></th>
+				<td rowspan="<?php echo max(1, count($breakdowns[$present])); ?>">
 					<b><?php echo $totals[$present]; ?></b>
 				</td>
 			<?php
