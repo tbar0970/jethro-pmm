@@ -473,6 +473,7 @@ class View_Admin__System_Configuration extends View {
 					$ab->load((int)$_POST['age_bracket_'.$i.'_id']);
 				}
 				$ab->acquireLock();
+				$ab->setValue('is_adult', 0); // The form field will set this back to true if appropriate.
 				$ab->processForm('age_bracket_'.$i.'_');
 				$ab->setValue('rank', $ranks[$i]);
 				$is_default = (int)(array_get($_POST, 'age_bracket_default_rank', -1) == $i);
