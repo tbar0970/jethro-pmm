@@ -254,7 +254,7 @@ class service extends db_object
 				$res = Array();
 				foreach ($readings as $reading) {
 					$br = new Bible_Ref($reading['bible_ref']);
-					$res[] = $br->toShortString();
+					$res[] =  '<span class="nowrap">'.$br->toShortString().'</span>';
 				}
 				return implode(', ', $res);
 				break;
@@ -312,7 +312,11 @@ class service extends db_object
 					$br = new Bible_Ref($reading['bible_ref']);
 					$res[] = $br->getLinkedShortString();
 				}
-				echo implode(', ', $res);
+				$res2 = Array();
+				foreach (array_chunk($res, 2) as $chunk) {
+					$res2[] = implode(', ', $chunk);
+				}
+				echo implode(', <br />', $res2);
 				break;
 
 			case 'bible_all':
@@ -325,7 +329,11 @@ class service extends db_object
 					if ($reading['to_preach']) $entry = '<strong>'.$entry.'</strong>';
 					$res[] = $entry;
 				}
-				echo implode(', ', $res);
+				$res2 = Array();
+				foreach (array_chunk($res, 2) as $chunk) {
+					$res2[] = implode(', ', $chunk);
+				}
+				echo implode(', <br />', $res2);
 				break;
 
 			case 'format_title':
