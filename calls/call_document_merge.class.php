@@ -242,19 +242,14 @@ class Call_Document_Merge extends Call
 			default:
 				// Get details about each person
 				$merge_data = $GLOBALS['system']->getDBObjectData('person', Array('id' => (array)$_POST['personid']));
-				if (isset($_REQUEST['queryid'])) {
-					// If this is a report there will be a 'queryid' (attendance report won't have this)
-					// run the query and retrieve the data it returns - this will include 'Person ID'
-					$query_data = $GLOBALS['system']->getDBObject('person_query',$_REQUEST['queryid']);
-					$merge_data2 = $query_data->printResults('array');
-					// Merge this data into merge_data
+				if (!empty($_REQUEST['queryid'])) {
+					// If our merge has originated from a person report, add the report's columns
+					// (eg "selected groups", "other family members" etc) to the merge data.
+					$query = $GLOBALS['system']->getDBObject('person_query',$_REQUEST['queryid']);
+					$merge_data2 = $query->printResults('array');
 					foreach ($merge_data2 as $data) {
-						foreach ($data as $name => $val) {
-							if ($name == 'Person ID') {
-								$merge_data[$val] += $data;
-								break;
-							}
-						}
+						$personid = $data['Person ID'];
+						if (isset($merge_data[$personid])) $merge_data[$personid] += $data;
 					}
 				}
                 foreach (Person::getCustomMergeData($_POST['personid'], FALSE) as $personid => $data) {
