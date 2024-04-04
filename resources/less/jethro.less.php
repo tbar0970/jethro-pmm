@@ -1567,7 +1567,7 @@ table.service-program td.right-tools, table.service-program td.service  {
 /* service details in services-list-all and within rosters */
 /* these styles are replicated in call_display_roster.class.php */
 #body table.roster p {
-	line-height: 1.0;
+	line-height: 1.1;
 	margin: 1.5px 0px;
 	padding: 1px;
 	max-width: 20em;
