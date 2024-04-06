@@ -251,6 +251,10 @@ define('ATTENDANCE_LIST_ORDER', 'status ASC, family_name ASC, familyid, age_brac
 // Write your own, or use the sample below to make sure all mailto links open in a new window.
 // function custom_email_extras() { return 'target="_mail"'; }
 
+// When Jethro sends an email itself (eg for member rego), force the From: address to this value,
+// and use the user-specified From address as a reply-to.
+//define('OVERRIDE_EMAIL_FROM', '');
+
 // Pre-filled values for the login form.  Only use on demo systems etc.
 // define('PREFILL_USERNAME', '');
 // define('PREFILL_PASSWORD', '');

@@ -1,12 +1,32 @@
 <?php
-
 require_once 'vendor/autoload.php';
+class Jethro_Swift_Message extends Swift_Message
+{
+	public function setFrom($addresses, $name = null)
+	{
+		if (($name === null) && (is_array($addresses))) {
+			// assumption: it's an associative array email => name
+			$name = reset($addresses);
+			$addresses = key($addresses);
+		}
+		// If OVERRIDE_MAIL_FROM is set, use it as the actual From address,
+		// and use the user-supplied address as Reply-to.
+		if (ifdef('OVERRIDE_EMAIL_FROM')) {
+			$this->addReplyTo($addresses, $name);
+			parent::setFrom(OVERRIDE_EMAIL_FROM, $name);
+		} else {
+			parent::setFrom($addresses, $name);
+		}
+		return $this;
+	}
+}
+
 class Emailer
 {
 	
 	static function newMessage()
 	{
-		return new Swift_Message();
+		return new Jethro_Swift_Message();
 	}
 	
 	/**
