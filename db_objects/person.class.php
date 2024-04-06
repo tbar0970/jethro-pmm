@@ -602,6 +602,14 @@ class Person extends DB_Object
 				}
 			}
 		}
+
+		if (!empty($this->_old_values['mobile_tel']) && ($this->getValue('mobile_tel') != $this->_old_values['mobile_tel'])) {
+			// Mobile tel has changed; this could have 2FA implications
+			$GLOBALS['user_system']->handle2FAMobileTelChange($this, $this->_old_values['mobile_tel']);
+		}
+
+
+
 		$res = parent::save();
 		if ($res) {
 			$this->_savePhoto();
@@ -859,6 +867,10 @@ class Person extends DB_Object
 
 		if (!$this->id) unset($this->fields['familyid']);
 
+		// Extra CSRF protection because mobile number is sensitive.
+		$_SESSION['person_form_token'] = generate_random_string();
+		print_hidden_field($prefix.'token', $_SESSION['person_form_token']);
+
 		parent::printForm($prefix, $fields);
 
 		unset($this->fields['photo']);
@@ -918,6 +930,12 @@ class Person extends DB_Object
 
 	function processForm($prefix='', $fields=NULL)
 	{
+		// Extra CSRF protection because mobile number is sensitive.
+		if (array_get($_REQUEST, $prefix.'token') != $_SESSION['person_form_token']) {
+			trigger_error("Synchroniser token mismatch - person could not be saved", E_USER_ERROR);
+			return FALSE;
+		}
+
 		$res = parent::processForm($prefix, $fields);
 		if (empty($fields)) {
 			foreach ($this->getCustomFields() as $fieldid => $fieldDetails) {

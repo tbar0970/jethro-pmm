@@ -425,12 +425,8 @@ class User_System extends Abstract_User_System
 			return;
 		}
 
-		if (ifdef('2FA_SMS_URL', '')) {
-			// Use dedicated SMS gateway settings as supplied
-			SMS_Sender::setConfigPrefix('2FA_SMS');
-		}
-
-		if (!$this->_send2FACode($_SESSION['2fa']['code'])) {
+		$msg = $_SESSION['2fa']['code'].' '._('is your code to log in to').SYSTEM_NAME;
+		if (!$this->_send2FAMessage($msg, $_SESSION['2fa']['pending_user'])) {
 			add_message("System error during 2-factor auth. Please contact your system administrator.", 'error');
 			$this->_notifySysadmins("The user ".$_SESSION['2fa']['pending_user']['username']." was unable to log in, because Jethro could not send the 2-factor auth code. The SMS gateway may be down, or mis-configured.");
 			$this->_reset2FA();
@@ -441,14 +437,19 @@ class User_System extends Abstract_User_System
 
 	/**
 	 * Send the 2FA code by SMS to the 2fa-pending user.
-	 * @param string $code
+	 * @param string $message
+	 * @param array	$recipient	person record data
 	 * @return boolean TRUE if sent successfully.
 	 */
-	private function _send2FACode($code)
+	private function _send2FAMessage($msg, $recipient)
 	{
-		$msg = $code.' '._('is your code to log in to').SYSTEM_NAME;
+		if (ifdef('2FA_SMS_URL', '')) {
+			// Use dedicated SMS gateway settings as supplied
+			SMS_Sender::setConfigPrefix('2FA_SMS');
+		}
+
 		define('OVERRIDE_USER_MOBILE', ifdef('2FA_SENDER_ID'));
-		$res = SMS_Sender::sendMessage($msg, Array($_SESSION['2fa']['pending_user']));
+		$res = SMS_Sender::sendMessage($msg, Array($recipient));
 
 		if ($res['executed'] && !empty($res['successes'])) {
 			return TRUE;
@@ -548,6 +549,17 @@ class User_System extends Abstract_User_System
 			$this->_2faLog("ERROR: Failed sending 2FA-failure notification to SysAdmins: ".$e->getMessage());
 		}
 
+	}
+
+	public function handle2FAMobileTelChange($person, $old_mobile)
+	{
+		$staff_member = new Staff_Member($person->id);
+		if (!$staff_member) return;
+		if ($this->wouldRequire2FA($staff_member)) {
+			// Send a notification to the old number.
+			$msg = 'The mobile number for user account "'.$staff_member->getValue('username').'" was just changed to '.$person->getValue('mobile_tel').'. If this is unexpected, please contact your system administrator ASAP.';
+			$this->_send2FAMessage($msg, Array('mobile_tel' => $old_mobile));
+		}	
 	}
 
 	public function hasUsers()
