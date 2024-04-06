@@ -923,6 +923,16 @@ input.btn-link, button.btn-link {
 .input-append input {
 	min-width: 10px !important;
 }
+
+.submit-in-progress {
+	background-image: url(../img/loading-spinner.gif) !important;
+	background-size: 20px !important;
+	background-repeat: no-repeat;
+	background-repeat: none;
+	background-position: right !important;
+	padding-right: 30px;
+}
+
 #body h1 small, #body h2 small {
 	font-size: 14px;
 }

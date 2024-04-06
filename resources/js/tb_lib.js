@@ -41,7 +41,8 @@ $(document).ready(function() {
 		// The submit button itself will be disabled on submit, so we
 		// create a hidden element to preserve its value in the request
 		var h = '<input type="hidden" name="'+this.name+'" value="'+this.value+'" />';
-		$(this).after(h);
+		$(this).addClass('submit-in-progress').after(h);
+
 	})
 
 	//// POPUPS ETC ////
