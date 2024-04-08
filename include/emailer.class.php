@@ -9,7 +9,7 @@ class Jethro_Swift_Message extends Swift_Message
 			$name = reset($addresses);
 			$addresses = key($addresses);
 		}
-		// If OVERRIDE_MAIL_FROM is set, use it as the actual From address,
+		// If OVERRIDE_EMAIL_FROM is set, use it as the actual From address,
 		// and use the user-supplied address as Reply-to.
 		if (ifdef('OVERRIDE_EMAIL_FROM')) {
 			$this->addReplyTo($addresses, $name);
