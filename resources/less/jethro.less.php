@@ -724,7 +724,7 @@ tr:last-child .insert-row-below {
 	color: @gray;
 }
 
-#body .soft { /* low-key links */
+#body .soft, .soft { /* low-key links */
 	font-size: 85%;
 	padding-top: 1px;
 	color: #aaa !important;
@@ -2385,19 +2385,6 @@ button.sms-success, #body tr.sms-success .mobile-tel, #body tr.sms-success .mobi
 	background-position: 0 0 !important;
 }
 
-div.sms_editor {
-  border: 1px solid @grayMid;
-  height: 8em;
-  width: 100%;
-  margin: .5em 0 .5em 0;
-  padding: .25em;
-  overflow-y: auto;
-  border-radius: @baseBorderRadius;
-}
-
-div#sms_message:focus, div#bulk_sms_message:focus {
-  outline: none;
-}
 div#send-sms-modal div.results {
   display: none;
 }

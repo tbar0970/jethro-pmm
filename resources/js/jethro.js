@@ -642,18 +642,7 @@ var JethroSMS = {};
 JethroSMS.init = function() {
 
 	// SMS Character counting
-	$('.smscharactercount').parent().find('textarea, div.sms_editor').on('keyup propertychange paste', function() {
-		var maxlength = (this.tagName == 'DIV') ? $(this).attr("data-maxlength") : $(this).attr('maxlength');
-		var rawtext = (this.tagName == 'DIV') ? $(this).text() : this.value;
-	        var wideCharacterCount = rawtext.length - rawtext.replace (/\^|\||\{|\}|\�~B�|\[|\]|\~|\\/g,'').length; // These characters cost 2 characters in GSM 03.38
-        	var currentLength = rawtext.length + wideCharacterCount;
-		var chars = maxlength - currentLength;
-		if (chars <= 0 && this.tagName == 'DIV') {
-			$(this).val($(this).text().substring(0, maxlength));
-			chars = 0;
-		}
-		$(this).parent().find('.smscharactercount').html(chars + ' characters remaining.');
-	});
+	$('.smscharactercount').parent().find('textarea').on('keyup propertychange paste', JethroSMS.updateCharCount);
 
 	$(document).on('click', '[data-toggle="sms-modal"]', function(e) {
 		var $this = $(this)
@@ -665,9 +654,8 @@ JethroSMS.init = function() {
 		var $personid = $this.attr('data-personid');
 
 		$("#send-sms-modal .sms_recipients").html($recipients);
-		$("#sms_message").text(""); // Empty the textarea in case of reuse
+		$("#sms_message").val(""); // Empty the textarea in case of reuse
 		$("#send-sms-modal .results").html(""); // Empty in case of reuse
-		$('#send-sms-modal .smscharactercount').html($("#sms_message").attr("data-maxlength") + ' characters remaining.'); // reset character count
 
 		if (!!$personid) {
 			$("#send-sms-modal").attr("data-sms_type", "person");
@@ -677,9 +665,13 @@ JethroSMS.init = function() {
 			$target.modal(option).one('hide', function() {
 				$this.focus()
 			})
+			$target.on('shown', function() { $("#sms_message").select(); })
 		} else {
 			alert('No SMS recipients found');
 		}
+		JethroSMS.updateCharCount.apply($("#sms_message").get(0));
+		
+
 	});
 
 	$('.bulk-sms-submit').click(function(event) {
@@ -734,7 +726,7 @@ JethroSMS.init = function() {
 		resultsDiv.hide();
 
 		var modalDiv = $("#send-sms-modal");
-		var sms_message = $("#sms_message").text();
+		var sms_message = $("#sms_message").val();
 		if (!sms_message) {
 			alert("Please enter a message first.");
 			return false;
@@ -784,6 +776,60 @@ JethroSMS.init = function() {
 			return false;
 		}
 	});
+}
+
+JethroSMS.focusedTextbox = null;
+JethroSMS.personListenerInited = false;
+
+JethroSMS.setFocusedTextbox = function(box) {
+	JethroSMS.focusedTextbox = box;
+	if (!JethroSMS.personListenerInited) {
+		JethroSMS.personListenerInited = true;
+		$("input[name='personid[]'], input.select-all").click(function() {
+			JethroSMS.updateCharCount.apply(JethroSMS.focusedTextbox);
+		});
+	}
+}
+
+JethroSMS.updateCharCount = function() {
+	JethroSMS.setFocusedTextbox(this);
+	var maxlength = $(this).attr('maxlength');
+	var rawtext = this.value;
+	// Count the "extended" characters that use 2 bytes in GSM 03.38 https://en.wikipedia.org/wiki/GSM_03.38
+	var wideCharacterCount = rawtext.replace(/[^€~{}^|\[\]\\]/g,'').length;
+	var currentLength = rawtext.length + wideCharacterCount;
+	var charsRemain = maxlength - currentLength;
+	var segmentLength = $(this).attr('data-segment-length');
+	var segmentCount = 1;
+	if (segmentLength && currentLength) {
+		segmentCount = Math.ceil(currentLength / segmentLength);
+		var segmentCost = $(this).attr('data-segment-cost');
+		var recipientCount = 0;
+
+		var modal = $(this).parents('#send-sms-modal');
+		if (modal.length) {
+			recipientCount = modal.attr('data-personid').split(',').length;
+		} else {
+			recipientCount = $("input[name='personid[]']:checked").length;
+			if (!recipientCount) recipientCount = $("input[name='personid[]']").length;
+		}
+		if ((segmentCost > 0) && (recipientCount > 0)) {
+			var cost = segmentCount * recipientCount * segmentCost;
+			var plural = (segmentCount > 1) ? 's' : '';
+			msg = currentLength+' characters ('+segmentCount+' segment'+plural+') to '+recipientCount+' recipients = $'+cost.toFixed(2)+' approx.';
+		} else if (segmentCount <= 1) {
+			msg = (segmentLength - currentLength) + ' characters remaining in this message segment';
+		} else {
+			msg = currentLength+' characters = '+segmentCount+' message segments';
+		}
+		if (currentLength >= maxlength) {
+			msg = 'Max length reached. '+msg;
+		}
+	} else {
+		var msg = charsRemain + ' characters remaining';
+	}
+	$(this).parent().find('.smscharactercount').html(msg);
+
 }
 
 /**
@@ -1330,7 +1376,7 @@ JethroRoster.CUSTOM_ASSIGNEE_TARGET = null;
 
 JethroRoster.init = function() {
 	// This applies to read-only rosters
-	$('table.roster [data-personid]').on('mouseover', function() {
+	$('table.roster td a[data-personid]').on('mouseover', function() {
 		var personid = $(this).attr('data-personid');
 		var others = $(this).parents('.roster').find('td a[data-personid='+personid+'], td span[data-personid='+personid+']');
 		if (others.length > 1) {

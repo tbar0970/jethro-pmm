@@ -242,9 +242,9 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 			<div class="control-group">
 				<label class="control-label">Message: </label>
 				<div class="controls">
-					<textarea id="bulk_sms_message" name="message" class="span4" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
-					<br />
-                    <span class="smscharactercount"><?php echo SMS_MAX_LENGTH; ?> characters remaining.</span>
+					<?php
+					SMS_Sender::printTextbox();
+					?>
 				</div>
 			</div>
 		<?php

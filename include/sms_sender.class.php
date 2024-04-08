@@ -326,6 +326,14 @@ Class SMS_Sender
 		}
 	}
 
+	public static function printTextbox()
+	{
+		?>
+		<textarea id="sms_message" name="message" data-segment-length="<?php echo ifdef('SMS_SEGMENT_LENGTH', 160); ?>" data-segment-cost="<?php echo ifdef('SMS_SEGMENT_COST', "0"); ?>" class="span4" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
+		<div class="smscharactercount soft"><?php echo SMS_MAX_LENGTH; ?> characters remaining.</div>
+		<?php
+	}
+
 	public static function printModal()
 	{
 		?>
@@ -333,11 +341,10 @@ Class SMS_Sender
 			<div class="modal-header">
 				<h4>Send SMS to <span class="sms_recipients"></span></h4>
 			</div>
-			<div class="modal-body">
+			<div class="modal-body form-horizontal">
 				Message:<br />
-				<div contenteditable="true" autofocus="autofocus" id="sms_message" class="sms_editor" data-maxlength="<?php echo SMS_MAX_LENGTH; ?>"></div>
-				<span class="pull-right smscharactercount"><?php echo SMS_MAX_LENGTH; ?> characters remaining.</span>
 			<?php
+			self::printTextbox();
 			if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE) && defined('SMS_SAVE_TO_NOTE_SUBJECT')) {
 				?>
 				<label class="checkbox">
