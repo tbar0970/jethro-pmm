@@ -1343,7 +1343,7 @@ form.homepage-search {
 	margin-top: 15px;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 900px) {
 	.member-family-members {
 		grid-template-columns: 1fr;
 	}
