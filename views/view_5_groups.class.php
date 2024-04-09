@@ -272,7 +272,7 @@ class View_Groups extends View
 				}
 				if (SizeDetector::isWide()) {
 					?>
-					<td><?php $dummy_person->printFieldValue('age_bracketid'); ?></td>
+					<td class="nowrap"><?php $dummy_person->printFieldValue('age_bracketid'); ?></td>
 					<td><?php $dummy_person->printFieldValue('gender'); ?></td>
 					<?php
 				}
