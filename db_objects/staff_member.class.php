@@ -112,6 +112,29 @@ class Staff_Member extends Person
 		return Array();
 	}
 
+	/**
+	 * Check whether a given staff_member would require 2FA when they try to log in
+	 * @param Staff_member $staff_member
+	 * @return boolean
+	 */
+	public function requires2FA()
+	{
+		$req_perms = ifdef('2FA_REQUIRED_PERMS', '');
+		if (!strlen($req_perms)) return FALSE;
+
+		if ($this->hasRestrictions() && !ifdef('2FA_EVEN_FOR_RESTRICTED_ACCTS', true)) {
+			return FALSE;
+		}
+
+		foreach (explode(',', $req_perms) as $perm) {
+			if (($this->getValue('permissions') & $perm) == $perm) {
+				// They have one of the relevant permissions
+				return TRUE;
+			}
+		}
+		return FALSE;
+	}
+
 
 	public function getTasks($type='all')
 	{

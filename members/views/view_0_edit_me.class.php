@@ -35,9 +35,14 @@ class View__Edit_Me extends View
 			$this->family->releaseLock();
 			$fields = Array('gender', 'age_bracket', 'email', 'mobile_tel', 'work_tel');
 			foreach ($this->persons as $person) {
-				$person->processForm('person_'.$person->id, $this->person_fields);
-				$person->save(FALSE);
-				$person->releaseLock();
+				$sm = new Staff_Member($person->id);
+				if ($sm->requires2FA()) {
+					// People with 2FA control-centre accounts can't be edited via members area, so skip
+				} else {
+					$person->processForm('person_'.$person->id, $this->person_fields);
+					$person->save(FALSE);
+					$person->releaseLock();
+				}
 			}
 			
 			add_message("Details saved");
@@ -79,7 +84,13 @@ class View__Edit_Me extends View
 
 			foreach ($this->persons as $person) {
 				echo '<h3>'.$person->getValue('first_name').' '.$person->getValue('last_name').'</h3>';
-				$person->printForm('person_'.$person->id, $this->person_fields);
+
+				$sm = new Staff_Member($person->id);
+				if ($sm->requires2FA()) {
+					echo '<p><i>This person has a control centre account, so their details can only be edited via the <a href="'.BASE_URL.'?view=persons&personid='.(int)$person->id.'">control centre</a></i></p>';
+				} else {
+					$person->printForm('person_'.$person->id, $this->person_fields);
+				}
 			}
 				
 			?>

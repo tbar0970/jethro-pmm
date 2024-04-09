@@ -9,21 +9,12 @@ require_once dirname(__FILE__).'/abstract_user_system.class.php';
 class User_System extends Abstract_User_System
 {
 	private $_error;
-	private $_permission_levels = Array();
 	private $_is_public = FALSE;
 	private $_is_cli_script = FALSE;
 
 	public function __construct()
 	{
-		include 'permission_levels.php';
-		$enabled_features = explode(',', strtoupper(ifdef('ENABLED_FEATURES', '')));
-		foreach ($PERM_LEVELS as $i => $detail) {
-			list($define_symbol, $desc, $feature_code) = $detail;
-			define('PERM_'.$define_symbol, $i);
-			if (empty($feature_code) || in_array($feature_code, $enabled_features)) {
-				$this->_permission_levels[$i] = $desc;
-			}
-		}
+		$this->_loadPermissionLevels();
 
 		if (!empty($_REQUEST['logout'])) {
 			$this->_logOut();
@@ -207,11 +198,6 @@ class User_System extends Abstract_User_System
 		return $res;
 	}
 
-	public function getPermissionLevels()
-	{
-		return $this->_permission_levels;
-	}
-
 	public function havePerm($permission)
 	{
 		if (!is_int($permission)) trigger_error("Non-numeric permission level is invalid", E_USER_ERROR);
@@ -377,27 +363,15 @@ class User_System extends Abstract_User_System
 		return FALSE;
 	}
 
-	/**
-	 * Check whether a given staff_member would require 2FA when they try to log in
-	 * @param Staff_member $staff_member
-	 * @return boolean
-	 */
-	public function wouldRequire2FA($staff_member)
+	public function handle2FAMobileTelChange($person, $old_mobile)
 	{
-		$req_perms = ifdef('2FA_REQUIRED_PERMS', '');
-		if (!strlen($req_perms)) return FALSE;
-
-		if ($staff_member->hasRestrictions() && !ifdef('2FA_EVEN_FOR_RESTRICTED_ACCTS', true)) {
-			return FALSE;
+		$staff_member = new Staff_Member($person->id);
+		if (!$staff_member) return;
+		if ($staff_member->requires2FA()) {
+			// Send a notification to the old number.
+			$msg = 'The mobile number for user account "'.$staff_member->getValue('username').'" was just changed to '.$person->getValue('mobile_tel').'. If this is unexpected, please contact your system administrator ASAP.';
+			$this->_send2FAMessage($msg, Array('mobile_tel' => $old_mobile));
 		}
-
-		foreach (explode(',', $req_perms) as $perm) {
-			if (($staff_member->getValue('permissions') & $perm) == $perm) {
-				// They have one of the relevant permissions
-				return TRUE;
-			}
-		}
-		return FALSE;
 	}
 
 	/**
@@ -549,17 +523,6 @@ class User_System extends Abstract_User_System
 			$this->_2faLog("ERROR: Failed sending 2FA-failure notification to SysAdmins: ".$e->getMessage());
 		}
 
-	}
-
-	public function handle2FAMobileTelChange($person, $old_mobile)
-	{
-		$staff_member = new Staff_Member($person->id);
-		if (!$staff_member) return;
-		if ($this->wouldRequire2FA($staff_member)) {
-			// Send a notification to the old number.
-			$msg = 'The mobile number for user account "'.$staff_member->getValue('username').'" was just changed to '.$person->getValue('mobile_tel').'. If this is unexpected, please contact your system administrator ASAP.';
-			$this->_send2FAMessage($msg, Array('mobile_tel' => $old_mobile));
-		}	
 	}
 
 	public function hasUsers()
