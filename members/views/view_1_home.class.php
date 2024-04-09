@@ -45,12 +45,12 @@ class View_Home extends View
 			$rallocs = Roster_Role_Assignment::getUpcomingAssignments($GLOBALS['user_system']->getCurrentMember('id'), NULL);
 			if ($rallocs) {
 				?>
-				<table class="table table-auto-width">
+				<table class="table table-condensed">
 				<?php
 				foreach ($rallocs as $date => $allocs) {
 					 ?>
 					 <tr>
-						 <th><?php echo date('j M', strtotime($date)); ?></th>
+						 <th class="narrow"><?php echo date('j M', strtotime($date)); ?></th>
 						 <td>
 							<?php
 							foreach ($allocs as $alloc) {

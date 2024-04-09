@@ -1274,7 +1274,7 @@ form.homepage-search {
 .member-homepage-box img.family-photo {
 	float: right !important;
 	position: absolute;
-	width: 200px;
+	height: 150px;
 	right: 5px;
 	margin-bottom: 5px;
 	border-radius: 5px;
@@ -1284,8 +1284,6 @@ form.homepage-search {
 	.member-homepage-box img.family-photo {
 		float: none !important;
 		position: static;
-		width: auto;
-		max-height: 230px;
 	}
 }
 
