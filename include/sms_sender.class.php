@@ -382,6 +382,7 @@ Class SMS_Sender
 			$note = new Person_Note();
 			$note->setValue('subject', $subject);
 			$note->setvalue('details', $message);
+			$note->setValue('status', 'no_action');
 			$note->setValue('personid', $id);
 			if (!$note->create()) {
 				trigger_error('Failed to save SMS as a note.');
