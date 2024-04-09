@@ -16,7 +16,7 @@
 			<p>If the email hasn't arrived after a few minutes, please check your junk or spam folders. Or if you think we might have a different email address on file, try again using that one.</p>
 
 			<?php
-			if (defined('MEMBER_REGO_HELP_EMAIL')) {
+			if (ifdef('MEMBER_REGO_HELP_EMAIL')) {
 				?>
 				Please contact <a href="mailto:<?php echo ents(MEMBER_REGO_HELP_EMAIL); ?>"><?php echo ents(MEMBER_REGO_HELP_EMAIL); ?></a> for help.</p>
 				<?php
