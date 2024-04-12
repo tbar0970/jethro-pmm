@@ -979,7 +979,7 @@ class roster_view extends db_object
 					foreach ($assignee as $rank => $new_personid) {
 						$new_personid = (int)$new_personid;
 						if (empty($new_personid)) continue;
-						if (isset($to_delete[$date][$roleid][$rank]) && $to_delete[$date][$roleid][$rank] == $new_personid) {
+						if (isset($to_delete[$date][$roleid][$rank]) && $to_delete[$date][$roleid][$rank]['personid'] == $new_personid) {
 							// unchanged allocation - leave it as is
 							unset($to_delete[$date][$roleid][$rank]);
 						} else {
