@@ -868,8 +868,8 @@ class Person extends DB_Object
 		if (!$this->id) unset($this->fields['familyid']);
 
 		// Extra CSRF protection because mobile number is sensitive.
-		$_SESSION['person_form_token'] = generate_random_string();
-		print_hidden_field($prefix.'token', $_SESSION['person_form_token']);
+		$_SESSION['person_form_token'][$this->id] = generate_random_string();
+		print_hidden_field($prefix.'token', $_SESSION['person_form_token'][$this->id]);
 
 		parent::printForm($prefix, $fields);
 
@@ -931,7 +931,7 @@ class Person extends DB_Object
 	function processForm($prefix='', $fields=NULL)
 	{
 		// Extra CSRF protection because mobile number is sensitive.
-		if (array_get($_REQUEST, $prefix.'token') != $_SESSION['person_form_token']) {
+		if (array_get($_REQUEST, $prefix.'token') != $_SESSION['person_form_token'][$this->id]) {
 			trigger_error("Synchroniser token mismatch - person could not be saved", E_USER_ERROR);
 			return FALSE;
 		}
