@@ -86,7 +86,7 @@ class Staff_Member extends Person
 
 	private function _check2FAAccess()
 	{
-		if ($GLOBALS['user_system']->wouldRequire2FA($this) && ($this->getValue('mobile_tel') == '')) {
+		if ($this->requires2FA() && ($this->getValue('mobile_tel') == '')) {
 			add_message("The user ".$this->getValue('username')." won't be able to log in, because 2-factor authentication is required but their mobile number is blank. Please set their mobile number so they can log in.", "error");
 		}
 	}
