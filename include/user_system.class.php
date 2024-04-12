@@ -399,7 +399,7 @@ class User_System extends Abstract_User_System
 			return;
 		}
 
-		$msg = $_SESSION['2fa']['code'].' '._('is your code to log in to').SYSTEM_NAME;
+		$msg = $_SESSION['2fa']['code'].' '._('is your code to log in to').' '.SYSTEM_NAME;
 		if (!$this->_send2FAMessage($msg, $_SESSION['2fa']['pending_user'])) {
 			add_message("System error during 2-factor auth. Please contact your system administrator.", 'error');
 			$this->_notifySysadmins("The user ".$_SESSION['2fa']['pending_user']['username']." was unable to log in, because Jethro could not send the 2-factor auth code. The SMS gateway may be down, or mis-configured.");
