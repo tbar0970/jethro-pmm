@@ -98,7 +98,7 @@ class View_Persons__Reports extends View
 				<div class="span4 align-centre">
 					<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $this->_query->id; ?>&configure=1"><i class="icon-wrench"></i><?php echo _('Reconfigure this report');?></a>
 				</div>
-				<div class="span4 align-right">
+				<div class="span4 align-right hidden-phone">
 					<a href="?call=report_csv&queryid=<?php echo $this->_query->id; ?>"><i class="icon-download-alt"></i><?php echo _('Download CSV');?></a>
 				</div>
 			</div>
@@ -131,29 +131,45 @@ class View_Persons__Reports extends View
 				<table class="table table-striped table-min-width table-hover">
 					<thead>
 						<tr>
-							<th>ID</th>
+							<th class="hidden-phone">ID</th>
 							<th><?php echo _('Report Name');?></th>
 							<th><?php echo _('Visible To');?></th>
+						<?php
+						if (!SizeDetector::isNarrow()) {
+							?>
 							<th><?php echo _('Actions');?></th>
 							<th></th>
+							<?php
+						}
+						?>
 						</tr>
 					</thead>
 					<tbody>
 
 					<?php
 					if (!empty($_SESSION['saved_query'])) {
-						?>
-						<tr>
-							<td>-</td>
-							<td><i><?php echo _('Last ad-hoc report');?></i></td>
-							<td>-</td>
-							<td class="action-cell">
-								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=TEMP&configure=1"><i class="icon-wrench"></i><?php echo _('Configure');?></a> &nbsp;
-								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=TEMP"><i class="icon-list"></i><?php echo _('View');?></a> &nbsp;
+						if (SizeDetector::isNarrow()) {
+							?>
+							<td class="hidden-phone">-</td>
+							<td>
+								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=TEMP">
+									<i><?php echo _('Last ad-hoc report');?></i>
+								</a>
 							</td>
-							<td>&nbsp;</td>
-						</tr>
-						<?php
+						} else {
+							?>
+							<tr>
+								<td class="hidden-phone">-</td>
+								<td><i><?php echo _('Last ad-hoc report');?></i></td>
+								<td>-</td>
+								<td class="action-cell">
+									<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=TEMP"><i class="icon-list"></i><?php echo _('View');?></a> &nbsp;
+									<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=TEMP&configure=1"><i class="icon-wrench"></i><?php echo _('Configure');?></a> &nbsp;
+								</td>
+								<td></td>
+							</tr>
+							<?php
+						}
 					}
 
 					$staff_members = $GLOBALS['system']->getDBObjectData('staff_member');
@@ -161,9 +177,18 @@ class View_Persons__Reports extends View
 					foreach ($saved_reports as $id => $details) {
 						?>
 						<tr>
-							<td class="narrow"><?php echo (int)$id; ?></td>
-							<td><?php echo $details['name']; ?></td>
+							<td class="narrow hidden-phone"><?php echo (int)$id; ?></td>
+							<td>
+								<?php
+								if (SizeDetector::isNarrow()) echo '<a href="?view='.ents($_REQUEST['view']).'&queryid='.(int)$id.'">';
+								echo $details['name'];
+								if (SizeDetector::isNarrow()) echo '</a>';
+								?>
+							</td>
 							<td><?php echo ($details['owner'] === NULL) ? _('Everyone') : _('Only Me'); ?></td>
+						<?php
+						if (!SizeDetector::isNarrow()) {
+							?>
 							<td class="action-cell narrow">
 								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>"><i class="icon-list"></i><?php echo _('View');?></a> &nbsp;
 							<?php
@@ -178,7 +203,7 @@ class View_Persons__Reports extends View
 							}
 							?>
 							</td>
-							<td class="narrow">
+							<td class="action-cell narrow">
 								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>&configure=1"><i class="icon-wrench"></i><?php echo _('Configure');?></a> &nbsp;
 							<?php
 							if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
@@ -188,6 +213,9 @@ class View_Persons__Reports extends View
 							}
 							?>
 							</td>
+							<?php
+						}
+						?>
 						</tr>
 						<?php
 					}
