@@ -1374,17 +1374,43 @@ var JethroRoster = {}
 
 JethroRoster.CUSTOM_ASSIGNEE_TARGET = null;
 
+JethroRoster.highlightPersons = function(personid) {
+	var others = $('td a[data-personid='+personid+'], td span[data-personid='+personid+']');
+	if (others.length > 1) {
+		others.addClass('rosteree-highlighted');
+	}
+};
+
+JethroRoster.unhighlightPersons = function(personid) {
+	var others = $('td a[data-personid='+personid+'], td span[data-personid='+personid+']');
+	if (others.length > 1) {
+		others.removeClass('rosteree-highlighted');
+	}
+};
+
 JethroRoster.init = function() {
 	// This applies to read-only rosters
 	$('table.roster td a[data-personid]').on('mouseover', function() {
-		var personid = $(this).attr('data-personid');
-		var others = $(this).parents('.roster').find('td a[data-personid='+personid+'], td span[data-personid='+personid+']');
-		if (others.length > 1) {
-			others.addClass('rosteree-highlighted');
-		}
+		JethroRoster.highlightPersons($(this).attr('data-personid'));
 	}).on('mouseout', function() {
-		$('.rosteree-highlighted').removeClass('rosteree-highlighted');
+		JethroRoster.unhighlightPersons($(this).attr('data-personid'));
 	});
+
+	$('table.roster-analysis td a[data-personid]').on('click', function(e) {
+		$('.rosteree-highlighted').removeClass('rosteree-highlighted');
+		var wasSticky = $(this).hasClass('sticky-highlight');
+		$('.sticky-highlight').removeClass('sticky-highlight');
+		if (!wasSticky) {
+			$(this).addClass('sticky-highlight');
+			JethroRoster.highlightPersons($(this).attr('data-personid'))
+		} else {
+			JethroRoster.unhighlightPersons($(this).attr('data-personid'))
+		}
+		event.preventDefault();
+		event.stopPropagation();
+
+	});
+
 
 	// Go no further unless we're editing a roster
 	if (!$('form#roster').length) return;

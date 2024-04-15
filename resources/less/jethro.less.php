@@ -1539,7 +1539,7 @@ table.roster select.unlisted-allocee option {
 table.roster input.clash, table.roster select.clash {
 	border-color: red;
 }
-table.roster .rosteree-highlighted {
+#body .rosteree-highlighted {
 	background: #ccffcc;
 	outline: 3px solid #ccffcc;
 }

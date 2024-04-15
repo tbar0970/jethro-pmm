@@ -54,6 +54,11 @@ class JethroDB extends PDO
 		$GLOBALS['db'] = new JethroDB($dsn, $username, $password);
 	}
 
+	public static function get()
+	{
+		if (empty($GLOBALS['db'])) self::init();
+		return $GLOBALS['db'];
+	}
 
 
 	/**

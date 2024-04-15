@@ -51,7 +51,12 @@ class View_Rosters__Display_Roster_Assignments extends View
 		$this->_printParams();
 		if ($this->_view) {
 			$this->_view->printView($this->_start_date, $this->_end_date, $this->_editing);
-
+			if (!$this->_editing) {
+				$duration_days = (strtotime($this->_end_date) - strtotime($this->_start_date)) / (60 * 60 * 24);
+				$duration_weeks = ceil($duration_days / 7);
+				echo '<h4>Workload Analysis for this '.$duration_weeks.' week period:</h4>';
+				$this->_view->printAnalysis($this->_start_date, $this->_end_date);
+			}
 		}
 	}
 
@@ -117,7 +122,7 @@ class View_Rosters__Display_Roster_Assignments extends View
 						if (PUBLIC_ROSTER_SECRET) $url .= '&secret='.PUBLIC_ROSTER_SECRET;
 						echo '<a  class="nowrap" target="_rosterview" href="'.$url.'"><i class="icon-share"></i>View in public site</a> &nbsp; ';
 					}
-				
+
 					require_once 'size_detector.class.php';
 					if (!SizeDetector::isNarrow()) {
 						?>

@@ -1069,5 +1069,53 @@ class roster_view extends db_object
 		}
 		return $res;
 	}
+
+	public function printAnalysis($start, $end)
+	{
+		$db = JethroDB::get();
+		$SQL = '
+				SELECT personid, first_name, last_name,
+					GROUP_CONCAT(DISTINCT role_title SEPARATOR ", ") as role_titles, count(asnid) as assignment_count, COUNT(distinct role_id) as role_count, COUNT(distinct assignment_date) as date_count
+				FROM (
+					SELECT p.id as personid, p.first_name, p.last_name, rr.id as role_id, rr.title as role_title, rra.assignment_date, concat(rra.assignment_date, "-", rr.id) as asnid
+					FROM person p
+					JOIN roster_role_assignment rra on p.id = rra.personid
+					JOIN roster_role rr ON rra.roster_role_id = rr.id
+					WHERE rra.assignment_date BETWEEN '.$db->quote($start).' AND '.$db->quote($end).'
+					AND rr.id IN ('.implode(',', $this->getRoleIDs()).')
+				) x
+				GROUP BY personid, first_name, last_name
+				ORDER BY assignment_count DESC
+				';
+		$res = $db->queryAll($SQL);
+
+		?>
+		<table class="table roster-analysis table-bordered table-condensed table-auto-width table-compact">
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>Load</th>
+					<th>Roles</th>
+				</tr>
+			</thead>
+			<tbody>
+			<?php
+			foreach ($res as $row) {
+				$asn = $row['assignment_count'] > 1 ? 'assignments' : 'assignment';
+				$dt = $row['date_count'] > 1 ? 'dates' : 'date';
+				?>
+				<tr>
+					<td><a title="Click to highlight assignments" data-personid="<?php echo (int)$row['personid']; ?>" href="#"><?php echo ents($row['first_name'].' '.$row['last_name']); ?></a></td>
+					<td><?php echo $row['assignment_count'].' '.$asn.' on '.$row['date_count'].' '.$dt; ?></td>
+					<td><?php echo ents($row['role_titles']); ?></td>
+				</tr>
+				<?php
+			}
+			?>
+			</tbody>
+		</table>
+		<?php
+
+	}
 }
 ?>
