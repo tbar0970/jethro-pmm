@@ -398,7 +398,8 @@ if (isset($tabs['attendance'])) {
 
 	printf($panel_header, 'attendance', _('Attendance'), '');
 
-	$attendances = $person->getAttendance(date('Y-m-d', strtotime('-12 weeks')));
+	$weeks = SizeDetector::isNarrow() ? 8 : 13;
+	$attendances = $person->getAttendance(date('Y-m-d', strtotime('-'.$weeks.' weeks')));
 	if (empty($attendances)) {
 		?>
 		<p><i><?php echo _('No attendance has been recorded for ')?><?php $person->printFieldValue('name'); ?></i></p>
