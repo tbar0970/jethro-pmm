@@ -95,4 +95,23 @@ class service_item extends db_object
 		}
 	}
 
+	public static function getComponentStats($start_date, $end_date, $component_category_id, $congregationid=NULL)
+	{
+		$db = JethroDB::get();
+		$SQL = 'SELECT sc.id, sc.title, sc.ccli_number, COUNT(distinct s.id) as usage_count
+				FROM service_item si
+				JOIN service s ON s.id = si.serviceid
+				JOIN service_component sc ON sc.id = si.componentid
+				WHERE sc.categoryid = '.(int)$component_category_id.'
+				AND s.`date` BETWEEN '.$db->quote($start_date).' AND '.$db->quote($end_date);
+		if ($congregationid) {
+			$SQL .= '
+				AND s.congregationid = '.(int)$congregationid;
+		}
+		$SQL .= '
+				GROUP BY sc.id, sc.title
+				ORDER BY usage_count DESC';
+		return $db->queryAll($SQL);
+	}
+
 }

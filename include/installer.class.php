@@ -250,8 +250,9 @@ class Installer
 			(@rank:=@rank+5, '',                         'PUBLIC_ROSTER_SECRET','Advanced: Only allow access to public rosters if the URL contains \"&secret=<this-secret>\"','text',''),
 
 			(@rank:=@rank+5, 'External Links',           'BIBLE_URL','URL Template for bible passage links, with the keyword __REFERENCE__','text','https://www.biblegateway.com/passage/?search=__REFERENCE__&version=NIVUK'),
-			(@rank:=@rank+5, '',                         'CCLI_SEARCH_URL','URL Template for searching CCLI, with the keyword __TITLE__','text','http://us.search.ccli.com/search/results?SearchText=__TITLE__'),
-			(@rank:=@rank+5, '',                         'CCLI_DETAIL_URL','URL Template for CCLI song details by song number, with the keyword __NUMBER__','text','https://au.songselect.com/songs/__NUMBER__'),
+			(@rank:=@rank+5, '',                         'CCLI_SEARCH_URL','URL Template for searching CCLI, with the keyword __TITLE__','text','https://songselect.ccli.com/search/results?search=__TITLE__'),
+			(@rank:=@rank+5, '',                         'CCLI_DETAIL_URL','URL Template for CCLI song details by song number, with the keyword __NUMBER__','text','https://songselect.ccli.com/songs/__NUMBER__'),
+			(@rank:=@rank+5, '',                         'CCLI_REPORT_URL','URL Template for reporting usage to CCLI by song number, with keyword __NUMBER__', 'text', 'https://reporting.ccli.com/search?s=__NUMBER__&page=1&category=all'
 			(@rank:=@rank+5, '',                         'POSTCODE_LOOKUP_URL','URL template for looking up postcodes, with the keyword __SUBURB__','text','https://auspost.com.au/postcode/__SUBURB__'),
 			(@rank:=@rank+5, '',                         'MAP_LOOKUP_URL','URL template for map links, with the keywords __ADDRESS_STREET__, __ADDRESS_SUBURB__, __ADDRESS_POSTCODE__, __ADDRESS_STATE__','text','http://maps.google.com.au?q=__ADDRESS_STREET__,%20__ADDRESS_SUBURB__,%20__ADDRESS_STATE__,%20__ADDRESS_POSTCODE__'),
 			(@rank:=@rank+5, '',                         'QR_CODE_GENERATOR_URL', 'URL template for generating QR codes, containing the placeholder __URL__', 'text', 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=__URL__'),

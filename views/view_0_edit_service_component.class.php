@@ -14,6 +14,12 @@ class View__Edit_Service_Component extends Abstract_View_Edit_Object
 
 	protected function _doSuccessRedirect()
 	{
+		if (array_get($_REQUEST, 'then') == 'refresh_opener') {
+			?>
+			<script>window.opener.location.reload();window.close();</script>
+			<?php
+			exit;
+		}
 		redirect($this->_on_success_view, Array(), 'cat'.array_get($_REQUEST, 'categoryid'));
 	}
 }

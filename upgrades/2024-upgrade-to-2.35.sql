@@ -19,3 +19,8 @@ VALUES
 
 -- https://github.com/tbar0970/jethro-pmm/issues/994
 alter table custom_field_value modify value_date char(10);
+
+INSERT INTO setting (`rank`, heading, symbol, note, type, value)
+SELECT `rank`+1, '', 'CCLI_REPORT_URL', 'URL Template for reporting usage to CCLI by song number, with keyword __NUMBER__', 'text', 'https://reporting.ccli.com/search?s=__NUMBER__&page=1&category=all'
+FROM setting
+where symbol = 'CCLI_DETAIL_URL';

@@ -119,12 +119,26 @@ $(document).ready(function() {
 		var title = $('[name=title]').val();
 		if (title == '') return false;
 		var url = this.href.replace('__TITLE__', title);
-		var ccliWindow = window.open(url, 'ccli', 'height=320,width=800,location=no,menubar=no,titlebar=no,toolbar=no,resizable=yes,statusbar=no,scrollbars=yes');
+		var ccliWindow = window.open(url, 'ccli', 'height='+(screen.height-100)+',width='+(screen.width/2)+',left='+(screen.width/2)+',top=0location=no,menubar=no,titlebar=no,toolbar=no,resizable=yes,statusbar=no,scrollbars=yes');
 		if (!ccliWindow) {
 			alert('Jethro tried but could not open a popup window - you probably have a popup blocker enabled.  Please disable your popup blocker for this site, reload the page and try again.');
 		}
 		return false;
 	});
+
+	$('table.component-usage a.ccli-report').click(function() {
+		$(this).next('span').css('visibility', 'visible');
+		$('tr.hovered').removeClass('hovered');
+		$(this).parents('tr').addClass('hovered');
+		window.CCLIPopup = window.open(this.href, 'ccli-popup', 'height='+screen.height+',width='+(screen.width/2)+',left='+(screen.width/2)+',top=0,resizable=yes,scrollbars=yes');
+		if (window.CCLIPopup) {
+			window.CCLIPopup.focus();
+		} else {
+			alert('Jethro tried but could not open a popup window - you probably have a popup blocker enabled.  Please disable the popup blocker for this site, reload the page and try again.');
+		}
+		return false;
+
+	})
 
 	$('a.map').click(function() {
 		var mapWindow = window.open(this.href, 'map', 'height='+parseInt($(window).height()*0.9, 10)+',width='+parseInt($(window).width()*0.9, 10)+',location=no,menubar=no,titlebar=no,toolbar=no,resizable=yes,statusbar=no');
