@@ -127,8 +127,9 @@ if ($sendsms) { // make the sms message!
 	define('OVERRIDE_USER_MOBILE', $ini['SMS_FROM']);
 	$sms_notification = "No SMS Notification was sent for " . $roster_name . ". There were no people assigned.\n";
 
+	is_int($roster_coordinator_id) || trigger_error("ROSTER_COORDINATOR_ID must be an integer ID referencing a _person record", E_USER_ERROR);
 	$coordinator=new Person($roster_coordinator_id);
-	$sql = 'SELECT person.* FROM person WHERE person.id='.$roster_coordinator_id;
+	$sql = 'SELECT person.* FROM person WHERE person.id='.(int)$roster_coordinator_id;
 	$coordinator = $GLOBALS['db']->queryAll($sql);
 
 	if (count($assignees) > 0) {
