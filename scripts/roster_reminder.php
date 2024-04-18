@@ -123,8 +123,8 @@ if (count($roster_array) > 2) {
 $assignees=$view->getAssignees($start_date, $end_date);
 
 if ($sendsms) { // make the sms message!
-//	!empty($ini['SMS_FROM']) || trigger_error("SMS_FROM (the mobile number SMS notifications will appear to come from) is required", E_USER_ERROR);
-//	define('OVERRIDE_USER_MOBILE', $ini['SMS_FROM']);
+	!empty($ini['SMS_FROM']) || trigger_error("SMS_FROM (the mobile number SMS notifications will appear to come from) is required", E_USER_ERROR);
+	define('OVERRIDE_USER_MOBILE', $ini['SMS_FROM']);
 	$sms_notification = "No SMS Notification was sent for " . $roster_name . ". There were no people assigned.\n";
 
 	$coordinator=new Person($roster_coordinator_id);
