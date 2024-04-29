@@ -123,10 +123,13 @@ if (count($roster_array) > 2) {
 $assignees=$view->getAssignees($start_date, $end_date);
 
 if ($sendsms) { // make the sms message!
+	!empty($ini['SMS_FROM']) || trigger_error("SMS_FROM (the mobile number SMS notifications will appear to come from) is required", E_USER_ERROR);
+	define('OVERRIDE_USER_MOBILE', $ini['SMS_FROM']);
 	$sms_notification = "No SMS Notification was sent for " . $roster_name . ". There were no people assigned.\n";
 
+	ctype_digit($roster_coordinator_id) || trigger_error("ROSTER_COORDINATOR_ID must be an integer ID referencing a _person record", E_USER_ERROR);
 	$coordinator=new Person($roster_coordinator_id);
-	$sql = 'SELECT person.* FROM person WHERE person.id='.$roster_coordinator_id;
+	$sql = 'SELECT person.* FROM person WHERE person.id='.(int)$roster_coordinator_id;
 	$coordinator = $GLOBALS['db']->queryAll($sql);
 
 	if (count($assignees) > 0) {
