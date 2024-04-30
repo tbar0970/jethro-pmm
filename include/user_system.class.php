@@ -59,7 +59,7 @@ class User_System extends Abstract_User_System
 				$this->_reset2FA();
 				return;
 			} else if (array_get($_POST, '2fa_key') != $_SESSION['2fa']['key']) {
-				add_message("2-factor form expired. Please try again.", 'warning');
+				add_message("2-factor authentication was interrupted. Please try again.", 'warning');
 				$this->_reset2FA();
 				return;
 			}
