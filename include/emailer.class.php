@@ -19,6 +19,16 @@ class Jethro_Swift_Message extends Swift_Message
 		}
 		return $this;
 	}
+
+    public function setTo($addresses, $name = null)
+    {
+		// Do some sanity checking that the parent does not
+		if (is_array($addresses)) $addresses = array_remove_empties($addresses);
+		if (empty($addresses)) return;
+		if (!is_array($addresses) && empty($addresses)) return;
+
+        return parent::setTo($addresses, $name);
+    }
 }
 
 class Emailer
