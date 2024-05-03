@@ -55,7 +55,7 @@ class User_System extends Abstract_User_System
 		} else if (!empty($_SESSION['2fa']['pending_user'])) {
 			// We are processing a 2FA code
 			if ($_SESSION['2fa']['expiry'] < time()) {
-				add_message('2-factor form has expired. Please try again.', 'warning');
+				add_message('SMS-code form has expired. Please try again.', 'warning');
 				$this->_reset2FA();
 				return;
 			} else if (array_get($_POST, '2fa_key') != $_SESSION['2fa']['key']) {
@@ -494,7 +494,7 @@ class User_System extends Abstract_User_System
 		$SQL = 'SELECT email
 				FROM _person p
 				JOIN staff_member sm on p.id = sm.id
-				WHERE sm.permissions = '.PERM_SYSADMIN;
+				WHERE email <> "" AND sm.permissions = '.PERM_SYSADMIN;
 		$emails = $GLOBALS['db']->queryCol($SQL);
 		if (empty($emails)) return;
 
