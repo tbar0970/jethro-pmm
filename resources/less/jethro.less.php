@@ -213,7 +213,7 @@ body {
 }
 @media (min-width: 1025px) {
 	#jethro-overall-width {
-		min-width: 800px;
+		min-width: 1025px;
 	}
 }
 @media (max-width: 1025px) {
