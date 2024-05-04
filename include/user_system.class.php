@@ -67,7 +67,9 @@ class User_System extends Abstract_User_System
 				if ($_POST['2fa_code'] == $_SESSION['2fa']['code']) {
 					$this->_2faLog($_SESSION['2fa']['pending_user']['username']." entered the correct code and will be logged in.");
 					$this->_process2FATrust();
-					$this->_logUserIn($_SESSION['2fa']['pending_user']);
+					if (empty($_SESSION['user_requiring_password_upgrade'])) {
+						$this->_logUserIn($_SESSION['2fa']['pending_user']);
+					}
 					$this->_reset2FA();
 				} else {
 					$this->_error = 'Incorrect 2-factor code. Please try again';
