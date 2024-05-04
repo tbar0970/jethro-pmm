@@ -1085,6 +1085,7 @@ class roster_view extends db_object
 					AND rr.id IN ('.implode(',', $this->getRoleIDs()).')
 				) x
 				GROUP BY personid, first_name, last_name
+				HAVING date_count > 1
 				ORDER BY assignment_count DESC
 				';
 		$res = $db->queryAll($SQL);
