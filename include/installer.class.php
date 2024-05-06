@@ -201,7 +201,7 @@ class Installer
 			(@rank:=@rank+5, '',                         'SESSION_TIMEOUT_MINS','Inactive sessions will be logged out after this number of minutes','int','90'),
 			(@rank:=@rank+5, '',                         'SESSION_MAXLENGTH_MINS','Every session will be logged out this many minutes after login','int','480'),
 
-			(@rank:=@rank+5, '2-Factor Authentication',  '2FA_REQUIRED_PERMS','Users who hold permission levels selected here will be required to complete 2-factor authentication at login.',text',''),
+			(@rank:=@rank+5, '2-Factor Authentication',  '2FA_REQUIRED_PERMS','Users who hold permission levels selected here will be required to complete 2-factor authentication at login.','text',''),
 			(@rank:=@rank+5, '',                         '2FA_EVEN_FOR_RESTRICTED_ACCTS','Require 2-factor auth even for accounts with group/congregation restrictions?','bool','0'),
 			(@rank:=@rank+5, '',                         '2FA_TRUST_DAYS','Users can tick a box to skip 2-factor auth for this many days. Set to 0 to disable.','int','30'),
 			(@rank:=@rank+5, '',                         '2FA_SENDER_ID','Sender ID for 2-factor auth messages','text','Jethro'),
@@ -252,7 +252,7 @@ class Installer
 			(@rank:=@rank+5, 'External Links',           'BIBLE_URL','URL Template for bible passage links, with the keyword __REFERENCE__','text','https://www.biblegateway.com/passage/?search=__REFERENCE__&version=NIVUK'),
 			(@rank:=@rank+5, '',                         'CCLI_SEARCH_URL','URL Template for searching CCLI, with the keyword __TITLE__','text','https://songselect.ccli.com/search/results?search=__TITLE__'),
 			(@rank:=@rank+5, '',                         'CCLI_DETAIL_URL','URL Template for CCLI song details by song number, with the keyword __NUMBER__','text','https://songselect.ccli.com/songs/__NUMBER__'),
-			(@rank:=@rank+5, '',                         'CCLI_REPORT_URL','URL Template for reporting usage to CCLI by song number, with keyword __NUMBER__', 'text', 'https://reporting.ccli.com/search?s=__NUMBER__&page=1&category=all'
+			(@rank:=@rank+5, '',                         'CCLI_REPORT_URL','URL Template for reporting usage to CCLI by song number, with keyword __NUMBER__', 'text', 'https://reporting.ccli.com/search?s=__NUMBER__&page=1&category=all'),
 			(@rank:=@rank+5, '',                         'POSTCODE_LOOKUP_URL','URL template for looking up postcodes, with the keyword __SUBURB__','text','https://auspost.com.au/postcode/__SUBURB__'),
 			(@rank:=@rank+5, '',                         'MAP_LOOKUP_URL','URL template for map links, with the keywords __ADDRESS_STREET__, __ADDRESS_SUBURB__, __ADDRESS_POSTCODE__, __ADDRESS_STATE__','text','http://maps.google.com.au?q=__ADDRESS_STREET__,%20__ADDRESS_SUBURB__,%20__ADDRESS_STATE__,%20__ADDRESS_POSTCODE__'),
 			(@rank:=@rank+5, '',                         'QR_CODE_GENERATOR_URL', 'URL template for generating QR codes, containing the placeholder __URL__', 'text', 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=__URL__'),
