@@ -140,7 +140,7 @@ define('DB_TYPE', 'mysql');
 // define('SMS_SEND_LOGFILE', '');
 
 // Length of a single SMS segment for cost estimation purposes
-//define'SMS_SEGMENT_LENGTH', 160);
+//define('SMS_SEGMENT_LENGTH', 160);
 
 // Cost of sending a single SMS segment, for cost estimation purposes.
 //define('SMS_SEGMENT_COST', 0.05);
