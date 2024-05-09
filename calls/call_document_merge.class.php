@@ -246,8 +246,8 @@ class Call_Document_Merge extends Call
 					// If our merge has originated from a person report, add the report's columns
 					// (eg "selected groups", "other family members" etc) to the merge data.
 					$query = $GLOBALS['system']->getDBObject('person_query',$_REQUEST['queryid']);
-					$merge_data2 = $query->printResults('array');
-					foreach ($merge_data2 as $data) {
+					$persons = $this->runquery_and_flatten($query);
+					foreach ($persons as $data) {
 						$personid = $data['Person ID'];
 						if (isset($merge_data[$personid])) $merge_data[$personid] += $data;
 					}
@@ -570,5 +570,25 @@ class Call_Document_Merge extends Call
 		</body>
 		<?php
 	}
-
+	/**
+	 * Runs a Person_Query and returns a flat list of Persons, flattening any grouping.
+	 * @param $query a Person_Query
+	 * @return A flat array of Person records.
+	 */
+	private function runquery_and_flatten($query)
+	{
+		// Note: if there is some way to tell from $query whether there is a 'group by' clause, that would be nicer
+		// than this approach of relying on 'Person ID' to identify person records.
+		$queryresult = $query->printResults('array');
+		if (is_null($queryresult[0])){
+			return $queryresult;
+		} elseif (isset($queryresult[0]['Person ID'])) {
+			return $queryresult;
+		} elseif (isset($queryresult[0][0]['Person ID'])) {
+			// The query has a 'group by' clause, e.g. grouping Persons by congregation
+			return array_unique(array_merge(...$queryresult));
+		} else {
+			trigger_error("Query returned neither a simple list of Persons, nor a grouped list of Persons");
+		}
+	}
 }
