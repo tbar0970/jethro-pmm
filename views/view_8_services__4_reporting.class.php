@@ -13,7 +13,7 @@ class View_Services__Reporting extends View
 
 	static function getMenuPermissionLevel()
 	{
-		return PERM_SERVICECOMPS;
+		return PERM_VIEWSERVICE;
 	}
 
 	function processView()
