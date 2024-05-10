@@ -23,7 +23,11 @@ class Jethro_Swift_Message extends Swift_Message
     public function setTo($addresses, $name = null)
     {
 		// Do some sanity checking that the parent does not
-		if (is_array($addresses)) $addresses = array_remove_empties($addresses);
+		if (is_array($addresses)) {
+			foreach ($addresses as $k => $v) {
+				if (is_int($k) && strlen($v) == 0) unset($addresses[$k]);
+			}
+		}
 		if (empty($addresses)) return;
 		if (!is_array($addresses) && empty($addresses)) return;
 
