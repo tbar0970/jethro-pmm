@@ -60,7 +60,7 @@ define('DB_TYPE', 'mysql');
 //define('2FA_TRUST_DAYS','30');
 
 // Sender ID for 2-factor auth SMS messages
-//define('2FA_SENDER_ID','');
+//define('2FA_SENDER_ID','Jethro');
 
 // Require 2-factor auth for users that hold these permissions
 //define('2FA_REQUIRED_PERMS','2147483647,48'); // SYSADMIN,VIEWNOTE

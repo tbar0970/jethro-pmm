@@ -143,6 +143,16 @@ Class SMS_Sender
 	}
 
 	/**
+	 * Returns whether the _USER_MOBILE_ keyword is used, and therefore we
+	 * need a current user or OVERRIDE_USER_MOBILE set.
+	 */
+	public static function usesUserMobile()
+	{
+		$content = self::_getSetting('POST_TEMPLATE');
+		return (FALSE !== strpos($content, '_USER_MOBILE_'));
+	}
+
+	/**
 	 * Send an SMS message
 	 * @param string $message
 	 * @param array $recips	Array of person records
@@ -174,9 +184,12 @@ Class SMS_Sender
 			if (ifdef('OVERRIDE_USER_MOBILE')) {
 				$usermobile = OVERRIDE_USER_MOBILE;
 			} else {
-				$me = $GLOBALS['system']->getDBObject('person', $GLOBALS['user_system']->getCurrentUser('id'));
+				$me = NULL;
+				if (!empty($GLOBALS['system']) && $GLOBALS['user_system']->getCurrentUser('id')) {
+					$me = $GLOBALS['system']->getDBObject('person', $GLOBALS['user_system']->getCurrentUser('id'));
+				}
 				if (empty($me)) {
-					trigger_error("Your SMS config includes the _USER_MOBILE_ keyword but there is no current user!  Exiting.", E_USER_ERROR);
+					trigger_error("Your SMS config includes the _USER_MOBILE_ keyword but there is no current user, and no other senderID has been specified.  Exiting.", E_USER_ERROR);
 				}
 				if (!strlen($me->getValue('mobile_tel'))) {
 					return Array('executed' => FALSE, 'successes' => Array(), 'failures' => Array(), 'rawresponse' => '',

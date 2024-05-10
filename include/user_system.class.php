@@ -335,6 +335,12 @@ class User_System extends Abstract_User_System
 			return FALSE;
 		}
 
+		if (SMS_Sender::usesUserMobile() && strlen(ifdef('2FA_SENDER_ID')) == 0) {
+			// Configuation problem.
+			$this->_2faLog('2FA_SENDER_ID not set, so 2FA being skipped');
+			return FALSE;
+		}
+
 		$req_perms = ifdef('2FA_REQUIRED_PERMS', '');
 		if (!strlen($req_perms)) return FALSE;
 		if (!empty($user_details['congregation_restrictions']) && !ifdef('2FA_EVEN_FOR_RESTRICTED_ACCTS', true)) {
