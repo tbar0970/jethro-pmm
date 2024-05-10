@@ -2133,12 +2133,22 @@ table.system-config td small {
 
 /*************** SERVICE PLANNING ****************/
 
+div.service-content {
+	border: 1px solid #dddddd;
+	border-radius: 4px;
+	padding: 5px;
+	background-color: @jethroLightest;
+}
 .service-content h4 {
 	font-size: 110%;
 	color: @grayLight;
 	margin-top: 1ex;
 	margin-bottom: 0px;
 }
+table.run-sheet tbody td {
+	background-color: @jethroLightest;
+}
+
 
 #service-comp-manager .tab-content {
 	overflow-y: auto;
