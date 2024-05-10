@@ -586,7 +586,13 @@ class Call_Document_Merge extends Call
 			return $queryresult;
 		} elseif (isset($queryresult[0][0]['Person ID'])) {
 			// The query has a 'group by' clause, e.g. grouping Persons by congregation
-			return array_unique(array_merge(...$queryresult));
+			$mergedArray = [];
+			foreach ($queryresult as $result) {
+				if (is_array($result)) {
+					$mergedArray = array_merge($mergedArray, $result);
+				}
+			}
+			return $mergedArray;
 		} else {
 			trigger_error("Query returned neither a simple list of Persons, nor a grouped list of Persons");
 		}
