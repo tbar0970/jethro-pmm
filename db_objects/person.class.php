@@ -931,7 +931,7 @@ class Person extends DB_Object
 	function processForm($prefix='', $fields=NULL)
 	{
 		// Extra CSRF protection because mobile number is sensitive.
-		if (array_get($_REQUEST, $prefix.'token') != $_SESSION['person_form_token'][$this->id]) {
+		if (($this->id) && (array_get($_REQUEST, $prefix.'token') != $_SESSION['person_form_token'][$this->id])) {
 			trigger_error("Synchroniser token mismatch - person could not be saved", E_USER_ERROR);
 			return FALSE;
 		}
