@@ -254,10 +254,18 @@ class View_Persons__Reports extends View
 			trigger_error("Invalid custom report filename");
 			return;
 		}
+		$fn = $this->_getCustomReportsDir().'/'.$file;
+		if (!is_readable($fn)) {
+				trigger_error("Custom report SQL file is not readable");
+				return;
+		}
 
 		echo '<h2>'.ents($reports[$file]).'</h2>';
-
-		$fp = fopen($this->_getCustomReportsDir().'/'.$file, 'r');
+		$fp = fopen($fn, 'r');
+		if (!$fp) {
+				trigger_error("Could not open custom report SQL file");
+				return;
+		}
 		$sql = fread($fp, 99999);
 		fclose($fp);
 
