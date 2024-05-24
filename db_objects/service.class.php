@@ -396,10 +396,18 @@ class service extends db_object
 					foreach ($this->getItems(FALSE, $compCatID) as $item) {
 						$line = nbsp(ents($item['title']));
 						if (!$printableMode && (strlen($item['ccli_number']) + strlen($item['comments']) > 0)) {
+							
+							// yuck, but oh well...
+							ob_start();
+							$dummy_comp = new Service_Component();
+							$dummy_comp->setValue('ccli_number', $item['ccli_number']);
+							$dummy_comp->printFieldValue('ccli_number');
+							$ccli_code = ob_get_clean();
+
 							include_once 'urllinker.php';
 							$compid = $item['componentid'];
 							$line .= ' <i class="clickable icon-info-sign" data-toggle="visible" data-target="#compdetail'.$compid.'-'.$this->id.'"></i>';
-							$line .= '<table class="help-block custom-field-tooltip" id="compdetail'.$compid.'-'.$this->id.'"><tr><td class="narrow">CCLI #:</td><td>'.ents($item['ccli_number']).'</td>';
+							$line .= '<table class="help-block custom-field-tooltip" id="compdetail'.$compid.'-'.$this->id.'"><tr><td class="narrow">CCLI #:</td><td>'.$ccli_code.'</td>';
 							$line .= '<td class="narrow"><a title="Edit this component" href="'.BASE_URL.'?view=_edit_service_component&service_componentid='.$compid.'"><i class="icon-wrench"></i></a></td></tr>';
 							$line .= '<tr><td>Comments:</td><td colspan="2">'.linkUrlsInTrustedHtml(nl2br($item['comments'])).'</td></tr></table>';
 						}

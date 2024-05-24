@@ -77,7 +77,9 @@ function htmlEscapeAndLinkUrls($text, $target='')
             {
                 // Prepend http:// if no scheme is specified
                 $completeUrl = $scheme ? $url : "http://$url";
-                $linkText = "$domain$port$path";
+				$shortenedPath = $afterDomain;
+				if (strlen($shortenedPath) > 6) $shortenedPath = substr($shortenedPath, 0, 6).'…';
+                $linkText = "$domain$port$shortenedPath";
             }
 
 			$targetCode = strlen($target) ? 'target="'.$target.'"' : '';
