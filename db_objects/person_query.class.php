@@ -1193,6 +1193,9 @@ class Person_Query extends DB_Object
 								';
 			$grouping_order = 'csort.meeting_time, ';
 			$grouping_field = $params['group_by'].', ';
+		} else if ($params['group_by'] == 'p.age_bracketid') {
+			$grouping_order = 'absort.`rank`, ';
+			$grouping_field = 'p.age_bracketid, ';
 		} else {
 			// by some core field
 			$grouping_order = $grouping_field = $params['group_by'].', ';
@@ -1480,8 +1483,15 @@ class Person_Query extends DB_Object
 
 		$data = array();
 		$grouping_field = $params['group_by'];
+		if (!empty($_REQUEST['debug'])) {
+			bam($params);
+			bam($sql);
+		}
+
+
 		if (empty($grouping_field)) {
 			$res = $db->queryAll($sql, null, null, true, true);
+			if (array_get($_REQUEST, 'debug') > 1) bam($res);
 			if ($format == 'array') {
 				$data = $this->_printResultSet($res, $format);
 			} else {
@@ -1489,6 +1499,7 @@ class Person_Query extends DB_Object
 			}
 		} else {
 			$res = $db->queryAll($sql, null, null, true, false, true);
+			if (array_get($_REQUEST, 'debug') > 1) bam($res);
 			if ($format == 'array') {
 				$data = $this->_printResultGroups($res, $params, $format);
 			} else {
