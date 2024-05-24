@@ -968,8 +968,16 @@ class Person extends DB_Object
 				<i class="icon-random"></i>Move to different family</a>
 				</div>
 				<?php
-
 				break;
+			case 'age_bracketid':
+				// We look up and apply the default value at this point, 'just in time', so as to avoid
+				// a DB query every time a person object is created.
+				if (!$this->id) {
+					$defaults = $GLOBALS['system']->getDBObjectData('age_bracket', Array('is_default' => 1));
+					$default = key($defaults);
+					$this->values['age_bracketid'] = $default;
+				}
+				// intentional fallthrough.
 			default:
 				parent::printFieldInterface($name, $prefix);
 		}
