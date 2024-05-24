@@ -95,7 +95,19 @@ class View_services extends View
 
 	function getTitle()
 	{
+		if ($this->service) {
+			if ($this->editing) {
+				return 'Editing service';
+			} else {
+				return 'Viewing service';
+			}
+		}
 		return NULL;
+	}
+
+	function getPageHeading()
+	{
+		return '';
 	}
 
 	function printView()

@@ -3,6 +3,11 @@ class View_People extends View
 {
 	function getTitle()
 	{
+		return 'People';
+	}
+
+	function getPageHeading()
+	{
 		return '';
 	}
 

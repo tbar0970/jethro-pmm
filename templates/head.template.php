@@ -1,8 +1,8 @@
 	<title>
 		<?php
-		if (!defined('IS_PUBLIC')) echo 'Jethro PMM - ';
+		if (isset($GLOBALS['system']) && ($title = $GLOBALS['system']->getTitle())) echo $title.' - ';
+		if (!defined('IS_PUBLIC')) echo 'Jethro - ';
 		echo ifdef('SYSTEM_NAME', '');
-		if (isset($GLOBALS['system']) && ($title = $GLOBALS['system']->getTitle())) echo ' - '.$title;
 		?>
 	</title>
 	<meta name="robots" content="noindex, nofollow">

@@ -141,6 +141,11 @@ class System_Controller
 		}
 	}
 
+	public function getPageHeading()
+	{
+		if ($this->_view) return $this->_view->getPageHeading();
+	}
+
 	public function shouldShowNavigation()
 	{
 		if ($this->_view) return $this->_view->shouldShowNavigation();

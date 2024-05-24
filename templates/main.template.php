@@ -110,7 +110,7 @@
 
 			dump_messages();
 
-			if ($title = $GLOBALS['system']->getTitle()) {
+			if ($title = $GLOBALS['system']->getPageHeading()) {
 				echo '<h1>'.ents($title).'</h1>';
 			}
 
