@@ -48,6 +48,13 @@ class View_Admin__System_Configuration extends View {
 		}
 	}
 
+	private function _doConfigChecks()
+	{
+		if ((ifdef('2FA_REQUIRED_PERMS') > 0) && SMS_Sender::usesUserMobile() && strlen(ifdef('2FA_SENDER_ID')) == 0) {
+			print_message("2-Factor authentication will not work until you set the 2FA_SENDER_ID setting", 'error');
+		}
+	}
+
 	public function printView()
 	{
 		if (JETHRO_VERSION == 'DEV') {
@@ -61,6 +68,7 @@ class View_Admin__System_Configuration extends View {
 				<?php
 			}
 		}
+		$this->_doConfigChecks();
 		?>
 		<form method="post">
 			<div class="form-horizontal">
