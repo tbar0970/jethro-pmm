@@ -399,6 +399,7 @@ class User_System extends Abstract_User_System
 		if (!strlen($user_details['mobile_tel'])) {
 			add_message("2-factor auth could not be completed because your contact details are incomplete. Please contact your system administrator.", 'error');
 			$this->_notifySysadmins("The user ".$_SESSION['2fa']['pending_user']['username']." was unable to log in: Jethro could not send a 2-factor auth code because their mobile number is blank. Please update their mobile number.");
+			$this->_2faLog($_SESSION['2fa']['pending_user']['username']." can't log in because they have blank mobile number. Sysadmins have been notified");
 			$this->_reset2FA();
 			return;
 		}
@@ -411,6 +412,7 @@ class User_System extends Abstract_User_System
 		if (!$this->_send2FAMessage($msg, $_SESSION['2fa']['pending_user'])) {
 			add_message("System error during 2-factor auth. Please contact your system administrator.", 'error');
 			$this->_notifySysadmins("The user ".$_SESSION['2fa']['pending_user']['username']." was unable to log in, because Jethro could not send the 2-factor auth code. The SMS gateway may be down, or mis-configured.");
+			$this->_2faLog($_SESSION['2fa']['pending_user']['username']." could not log in because SMS could not be sent. SMS gateway down or misconfigured. Sysadmins have been notified.");
 			$this->_reset2FA();
 			return;
 		}
@@ -502,7 +504,7 @@ class User_System extends Abstract_User_System
 		$SQL = 'SELECT email
 				FROM _person p
 				JOIN staff_member sm on p.id = sm.id
-				WHERE email <> "" AND sm.permissions = '.PERM_SYSADMIN;
+				WHERE email <> "" AND sm.active AND p.status <> "archived" AND sm.permissions = '.PERM_SYSADMIN;
 		$emails = $GLOBALS['db']->queryCol($SQL);
 		if (empty($emails)) return;
 
