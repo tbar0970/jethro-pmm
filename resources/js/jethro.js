@@ -497,6 +497,13 @@ $(document).ready(function() {
 
 	JethroSMS.init();
 
+	$('table.table-sortable').stupidtable().bind('aftertablesort', function(event, data) {
+		$(this).find('th .icon-arrow-up, th .icon-arrow-down').remove();
+		var cn = (data.direction === "asc") ? 'up' : 'down';
+		$(this).find('th').eq(data.column).append('<i class="icon-arrow-'+cn+'"></i>');
+	})
+
+
 	$('select.merge-template').change(function() {
 		$('#merge-template-upload')[(this.value == '__NEW__') ? 'show' : 'hide']();
 		if (this.value == '__NEW__') $('#merge-template-upload input[type=file]').click();
@@ -1091,13 +1098,6 @@ JethroServicePlanner.init = function() {
 	})
 
 	$("#service-comps td, #service-plan td").css('cursor', 'default').disableSelection();
-
-
-	$('#service-comps table').stupidtable().bind('aftertablesort', function(event, data) {
-		$(this).find('th .icon-arrow-up, th .icon-arrow-down').remove();
-		var cn = (data.direction === "asc") ? 'up' : 'down';
-		$(this).find('th').eq(data.column).append('<i class="icon-arrow-'+cn+'"></i>');
-	})
 
 	// SERVICE PLAN TABLE:
 	JethroServicePlanner.setDroppable($("#service-plan tbody tr"));
