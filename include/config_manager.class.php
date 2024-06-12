@@ -31,6 +31,7 @@ class Config_Manager {
 	public static function allowSettingInFile($symbol)
 	{
 		if (0 === strpos($symbol, 'SMS_')) return TRUE;
+		if (0 === strpos($symbol, '2FA_')) return TRUE;
 		if (0 === strpos($symbol, 'SMTP')) return TRUE;
 		return FALSE;
 	}
