@@ -1145,7 +1145,7 @@ class Person_Query extends DB_Object
 			$groupid = $params['attendance_groupid'] == '__cong__' ? 0 : $params['attendance_groupid'];
 			$min_date = date('Y-m-d', strtotime('-'.(int)$params['attendance_weeks'].' weeks'));
 			$operator = ($params['attendance_operator'] == '>') ? '>' : '<'; // nb whitelist because it will be used in the query directly
-			$query['where'][] = '(SELECT SUM(present)/COUNT(*)*100
+			$query['where'][] = '(SELECT coalesce(SUM(present)/COUNT(*)*100,0)
 									FROM attendance_record
 									WHERE date >= '.$GLOBALS['db']->quote($min_date).'
 									AND groupid = '.(int)$groupid.'
@@ -1309,7 +1309,7 @@ class Person_Query extends DB_Object
 					case 'attendance_percent':
 						$groupid = $params['attendance_groupid'] == '__cong__' ? 0 : $params['attendance_groupid'];
 						$min_date = date('Y-m-d', strtotime('-'.(int)$params['attendance_weeks'].' weeks'));
-						$query['select'][] = '(SELECT ROUND(SUM(present)/COUNT(*)*100)
+						$query['select'][] = '(SELECT coalesce(ROUND(SUM(present)/COUNT(*)*100),0)
 												FROM attendance_record ar
 												WHERE date >= '.$GLOBALS['db']->quote($min_date).'
 												AND groupid = '.(int)$groupid.'
