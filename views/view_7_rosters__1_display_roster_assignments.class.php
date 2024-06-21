@@ -55,7 +55,6 @@ class View_Rosters__Display_Roster_Assignments extends View
 				$duration_days = (strtotime($this->_end_date) - strtotime($this->_start_date)) / (60 * 60 * 24);
 				$duration_weeks = ceil($duration_days / 7);
 				if (!ifdef('ROSTERS_HIDE_ANALYSIS')) {
-					echo '<h4>People assigned on more than one date in this '.$duration_weeks.' week period:</h4>';
 					$this->_view->printAnalysis($this->_start_date, $this->_end_date);
 				}
 			}
