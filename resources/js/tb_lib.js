@@ -16,7 +16,7 @@ $(document).ready(function() {
 		// native autofocus is not supported, or no element is using it
 		if ($('.initial-focus, .autofocus, [autofocus]').length) {
 			setTimeout("$('.initial-focus, .autofocus, [autofocus]').get(0).focus()", 200);
-		} else {
+		} else if (document.location.hash.length == 0) {
 			// Focus the first visible input
 			setTimeout("try { $('body input[type!=checkbox]:visible, select:visible').not('.btn-link, [type=checkbox], [type=radio], [type=submit]').not('.no-autofocus *, .no-autofocus').get(0).focus(); } catch (e) {}", 200);
 		}
