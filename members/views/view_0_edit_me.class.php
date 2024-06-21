@@ -42,7 +42,7 @@ class View__Edit_Me extends View
 				$sm = new Staff_Member($person->id);
 				if ($sm && $sm->requires2FA()) {
 					// People with 2FA control-centre accounts can't be edited via members area, so skip
-				} else if ($this->canEditFamily || $this->isMe($person)) {
+				} else if ($this->canEditFamily() || $this->isMe($person)) {
 					$person->processForm('person_'.$person->id, $this->person_fields);
 					$person->save(FALSE);
 					$person->releaseLock();
