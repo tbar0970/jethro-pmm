@@ -753,10 +753,12 @@ class roster_view extends db_object
 						<?php
 						echo '<strong>'.str_replace(' ', '&nbsp;', date('j M y', strtotime($date))).'</strong>';
 						if (!$editing && !$public) {
+							$names = Array();
 							$emails = Array();
 							$mobiles = Array();
 							$personids = Array();
 							foreach ($ddetail['assignments'] as $roleid => $assignees) {
+								if ($roleid == 39) continue; // CoastEC mod: exclude 'Unavailable' role from Email/SMS
 								foreach ($assignees as $rank => $pdetails) {
 									$personids[] = $pdetails['personid'];
 									if (!empty($pdetails['email']) && $pdetails['email'] != $my_email) {
@@ -764,6 +766,9 @@ class roster_view extends db_object
 									}
 									if (!empty($pdetails['mobile'])) {
 										$mobiles[] = $pdetails['mobile'];
+									}
+									if (!empty($pdetails['name'])) {
+										$names[] = $pdetails['name'];
 									}
 								}
 							}
@@ -773,14 +778,14 @@ class roster_view extends db_object
 							if (!empty($emails)) {
 								?>
 								<div class="smallprint no-print soft">
-									<a class="soft" href="<?php echo get_email_href($my_email, NULL, $emails, date('jS F', strtotime($date))); ?>" <?php echo email_link_extras(); ?>>Email&nbsp;All</a>
+									<a class="soft" href="<?php echo get_email_href($my_email, NULL, $emails, date('jS F', strtotime($date))); ?>" <?php echo email_link_extras(); ?>>Email&nbsp;All Available</a>
 				                </div>
 								<?php
 							}
 							if (!empty($mobiles) && SMS_Sender::canSend()) {
 								?>
 								<div class="smallprint no-print">
-								  <a class="soft" href="#send-sms-modal" data-personid="<?php echo implode(',', array_unique($personids)); ?>" data-toggle="sms-modal" data-name="People Rostered on <?php echo format_date($date);?>" onclick="$(this).parents('tr:first').addClass('tblib-hover')">SMS&nbsp;All</a>
+								  <a class="soft" href="#send-sms-modal" data-personid="<?php echo implode(',', array_unique($personids)); ?>" data-toggle="sms-modal" data-name="<?php echo sizeof(array_unique($personids)); ?> Available People Rostered on <?php echo format_date($date);?><p><ul><li><?php print_r(implode('<li>', array_unique($names))); ?></ul></p>" onclick="$(this).parents('tr:first').addClass('tblib-hover')">SMS&nbsp;All Available</a>
 								</div>
 								<?php
 							}
@@ -1072,6 +1077,7 @@ class roster_view extends db_object
 
 	public function printAnalysis($start, $end)
 	{
+        if (!$this->getRoleIDs()) return;
 		$db = JethroDB::get();
 		$SQL = '
 				SELECT personid, first_name, last_name,
@@ -1091,6 +1097,7 @@ class roster_view extends db_object
 		$res = $db->queryAll($SQL);
 
 		?>
+        <h4>People assigned on more than one date in this '.$duration_weeks.' week period:</h4>
 		<table class="table roster-analysis table-bordered table-condensed table-auto-width table-compact">
 			<thead>
 				<tr>
