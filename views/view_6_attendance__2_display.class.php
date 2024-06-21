@@ -482,7 +482,7 @@ class View_Attendance__Display extends View
 						foreach ($this->cohortids as $cohortid) {
 							$catt = array_get($all_attendances[$personid], $cohortid, Array());
 							$x = (array_get($catt, $date, ''));
-							if (strlen($x)) $score = (int)$score + $x;
+							if (strlen($x)) $score = (int)$score + rtrim($x, '*'); // The '*' suffix indicates a planned absence
 						}
 						$class = $this->classes[$score > 0 ? 1 : $score];
 						if ($score === '') $score = '?';
