@@ -233,12 +233,13 @@ class View_Families__Contact_List extends View
 			IF (pp.personid IS NULL, 0, 1) as have_person_photo
 		from family
 		join person on family.id = person.familyid
+		join person_status ps ON ps.id = person.status
 		join age_bracket ab ON ab.id = person.age_bracketid
 		left join congregation on person.congregationid = congregation.id
 		left join family_photo fp ON fp.familyid = family.id
 		left join person_group_membership signup ON signup.personid = person.id AND signup.groupid = '.(int)$groupid.'
 		left join person_photo pp ON pp.personid = person.id
-		where person.status <> "archived"
+		where (NOT ps.is_archived)
 		and family.id in
 		(select familyid
 		from person join person_group_membership pgm on person.id = pgm.personid

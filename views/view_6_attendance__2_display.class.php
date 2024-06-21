@@ -214,8 +214,9 @@ class View_Attendance__Display extends View
 			<tbody>
 			<?php
 			foreach ($attendances as $personid => $record) {
+				$class = in_array($record['status'], Person_Status::getArchivedIDs()) ? 'class="archived"' : '';
 				?>
-				<tr data-personid="<?php echo $personid; ?>" <?php if ($record['status'] == 'archived') echo 'class="archived"'; ?>>
+				<tr data-personid="<?php echo $personid; ?>" <?php echo $class; ?>>
 					<td><?php echo ents($record['first_name'].' '.$record['last_name']); ?></td>
 					<td>
 						<?php
@@ -464,8 +465,9 @@ class View_Attendance__Display extends View
 			foreach ($all_persons as $personid => $details) {
 				if (!isset($all_attendances[$personid])) continue;
                                 $letters = '';
+				$class = in_array($details['status'], Person_Status::getArchivedIDs()) ? 'class="archived"' : '';
 				?>
-				<tr <?php if ($details['status'] == 'archived') echo 'class="archived"'; ?>>
+				<tr <?php echo $class; ?>>
 					<td class="nowrap">
 						<?php echo ents($details['first_name'].' '.$details['last_name']); ?>
 					</td>

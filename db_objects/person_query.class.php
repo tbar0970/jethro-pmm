@@ -81,13 +81,16 @@ class Person_Query extends DB_Object
 	protected static function _getFields()
 	{
 		$default_params = Array(
-							'rules'			=> Array('p.status' => Array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'contact')),
+							'rules'			=> Array('p.status' => Array()),
 							'show_fields'	=> Array('p.first_name', 'p.last_name', '', '', 'view_link', 'checkbox'),
 							'group_by'		=> '',
 							'sort_by'		=> 'p.last_name',
 							'include_groups'	=> Array(),
 							'exclude_groups'	=> Array(),
 						  );
+		foreach (Person_Status::getActive(FALSE) as $sid => $details) {
+			$default_params['rules']['p.status'][] = $sid;
+		}
 		return Array(
 			'name'	=> Array(
 									'type'		=> 'text',
@@ -1273,9 +1276,10 @@ class Person_Query extends DB_Object
 												GROUP_CONCAT(CONCAT(first_name, " ", last_name) ORDER BY ab.`rank`, gender DESC SEPARATOR ", ")
 											  ) AS `names`
 											FROM person pp
+											JOIN person_status ps ON ps.id = pp.status
 											JOIN age_bracket ab ON ab.id = pp.age_bracketid
 											JOIN family ff ON pp.familyid = ff.id
-											WHERE pp.status <> "archived"
+											WHERE (NOT ps.is_archived)
 											GROUP BY familyid
 										) all_members ON all_members.familyid = p.familyid
 										   ';
@@ -1298,9 +1302,10 @@ class Person_Query extends DB_Object
 												GROUP_CONCAT(CONCAT(first_name, " ", last_name) ORDER BY ab.`rank`, gender DESC SEPARATOR ", ")
 											  )
 											FROM person pp
+											JOIN person_status ps ON ps.id = pp.status
 											JOIN age_bracket ab ON pp.age_bracketid = ab.id
 											JOIN family ff ON pp.familyid = ff.id
-											WHERE pp.status <> "archived" AND ab.is_adult
+											WHERE (NOT ps.is_archived) AND ab.is_adult
 											GROUP BY familyid');
 						$query['from'] .= ' LEFT JOIN _family_adults'.$this->id.' ON _family_adults'.$this->id.'.familyid = p.familyid
 											';

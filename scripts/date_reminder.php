@@ -58,7 +58,7 @@ if (!empty($ini['SUMMARY_RECIPIENT_STATUS'])) {
 }
 $SQL .= '
 		WHERE cfv.value_date  = CURDATE() + INTERVAL '.(int)$ini['REMINDER_OFFSET'].' DAY
-		AND p.status <> "archived"
+		AND p.status NOT IN (SELECT id FROM person_status WHERE is_archived)
 		GROUP BY p.id';
 $res = $GLOBALS['db']->queryAll($SQL);
 

@@ -29,8 +29,12 @@ class Person extends DB_Object
 
 	public static function getStatusOptions()
 	{
-		return explode(',', ifdef('PERSON_STATUS_OPTIONS', ''))
-				+ Array('contact' => 'Contact', 'archived' => 'Archived');
+		static $res = NULL;
+		if ($res === NULL) {
+			$db = JethroDB::get();
+			$res = $db->queryAll('SELECT id, label FROM person_status ORDER BY `rank`', NULL, NULL, true);
+		}
+		return $res;
 	}
 
 	protected static function _getFields()
@@ -87,11 +91,13 @@ class Person extends DB_Object
 									'class'				=> 'person-congregation',
 							   ),
 			'status'	=> Array(
-								'type'	=> 'select',
-								'options'	=> self::getStatusOptions(),
-								'default'	=> 'contact' /* but see below */,
+								'type'	=> 'reference',
+								'references' => 'person_status',
 								'class'		=> 'person-status',
+								'filter'	=> Array('active' => 1),
 								'allow_empty'	=> false,
+								'default'	=> '', // the widget will use the option marked is_default
+								'show_id'		=> false,
 						   ),
 			'email'			=> Array(
 									'divider_before' => true,
@@ -150,11 +156,6 @@ class Person extends DB_Object
 									),
 
 		);
-		if (defined('PERSON_STATUS_DEFAULT')) {
-			if (FALSE !== ($i = array_search(constant('PERSON_STATUS_DEFAULT'), $res['status']['options']))) {
-				$res['status']['default'] = "$i";
-			}
-		}
 		foreach ($res as $k => $v) {
 			if ($label = ifdef('PERSON_'.strtoupper($k).'_LABEL')) {
 				$res[$k]['label'] = $label;
@@ -250,6 +251,7 @@ class Person extends DB_Object
 	{
 		return Array(
 				'_person.age_bracketid' => '`age_bracket`(`id`) ON DELETE RESTRICT',
+				'_person.status' => '`person_status`(`id`) ON DELETE RESTRICT',
 				'_person.familyid' => '`family`(`id`) ON DELETE RESTRICT',
 				'_person.congregationid' => '`congregation`(`id`) ON DELETE RESTRICT',
 		);
@@ -397,9 +399,12 @@ class Person extends DB_Object
 	function validateFields()
 	{
 		if (!parent::validateFields()) return FALSE;
-		if (empty($this->values['congregationid']) && ($this->values['status'] != 'contact') && ($this->values['status'] != 'archived')) {
-			trigger_error('Only persons with status "contact" may have a blank congregation');
-			return FALSE;
+		if (empty($this->values['congregationid'])) {
+			$stats = Person_Status::getActive();
+			if ($stats[$this->values['status']]['require_congregation']) {
+				trigger_error('Persons with status '.$this->getFormattedValue('status').' cannot have a blank congregation');
+				return FALSE;
+			}
 		}
 		return TRUE;
 	}
@@ -521,10 +526,11 @@ class Person extends DB_Object
 					OR (cfv.value_text LIKE '.$db->quote('% '.$searchTerm.'%').' )
 				)
 			) pp
+			JOIN person_status ps ON ps.id = ps.status
 		';
 		if (!$includeArchived) {
 			$SQL .= '
-			WHERE status <> "archived"
+			WHERE (NOT ps.is_archived)
 			';
 		}
 		$SQL .= '
@@ -548,14 +554,15 @@ class Person extends DB_Object
 			if (!empty($this->_old_values['status']) || !empty($this->_old_values['last_name'])) {
 				$family = $GLOBALS['system']->getDBObject('family', $this->getValue('familyid'));
 				$members = $family->getMemberData(TRUE);
+				$archivedStatuses = Person_Status::getArchivedIDs();
 
-				if (!empty($this->_old_values['status']) && ($this->getValue('status') == 'archived')) {
+				if (!empty($this->_old_values['status']) && (in_array($this->getValue('status'), $archivedStatuses))) {
 					// status has just been changed to 'archived' so archive family if no live members
 
 					$found_live_member = false;
 					foreach ($members as $id => $details) {
 						if ($id == $this->id) continue;
-						if ($details['status'] != 'archived') {
+						if (!in_array($details['status'], $archivedStatuses)) {
 							$found_live_member = true;
 							break;
 						}
@@ -572,7 +579,7 @@ class Person extends DB_Object
 						}
 					}
 				}
-				if ((array_get($this->_old_values, 'status') == 'archived') && ($this->getValue('status') != 'archived')) {
+				if (in_array(array_get($this->_old_values, 'status'), $archivedStatuses) && (!in_array($this->getValue('status'), $archivedStatuses))) {
 					// We have just been de-archived so de-archive family too
 					if ($family->getValue('status') == 'archived') {
 						if ($family->canAcquireLock()) {
@@ -783,16 +790,12 @@ class Person extends DB_Object
 	static function getStatusStats()
 	{
 		$dummy = new Person();
-		$status_options = $dummy->getStatusOptions();
-		$sql = 'SELECT status, count(id)
-				FROM person
-				GROUP BY status';
+		$sql = 'SELECT ps.label as status, count(p.id)
+				FROM person p
+				JOIN person_status ps ON p.status = ps.id
+				GROUP BY ps.id';
 		$res = $GLOBALS['db']->queryAll($sql, NULL, NULL, true);
-		$out = Array();
-		foreach ($status_options as $k => $v) {
-			$out[$v] = (int)array_get($res, $k, 0);
-		}
-		return $out;
+		return $res;
 	}
 
 	/**
@@ -969,13 +972,19 @@ class Person extends DB_Object
 				</div>
 				<?php
 				break;
-			case 'age_bracketid':
+			/*case 'age_bracketid':
 				// We look up and apply the default value at this point, 'just in time', so as to avoid
 				// a DB query every time a person object is created.
 				if (!$this->id) {
 					$defaults = $GLOBALS['system']->getDBObjectData('age_bracket', Array('is_default' => 1));
 					$default = key($defaults);
 					$this->values['age_bracketid'] = $default;
+				}*/
+				// intentional fallthrough.
+			case 'congregationid':
+				$stats = $GLOBALS['system']->getDBOBjectData('person_status', Array('active'=> 1));
+				foreach ($stats as $id => $details) {
+					print_hidden_field('status_'.$id.'_require_congregation', (int)$details['require_congregation']);
 				}
 				// intentional fallthrough.
 			default:
@@ -1102,7 +1111,7 @@ class Person extends DB_Object
 		$this->setValue('remarks', '');
 		$this->setValue('gender', '');
 		$this->setValue('feed_uuid', '');
-		$this->setValue('status', 'archived');
+		$this->setValue('status', reset($stats=Person_Status::getArchivedIDs)); // we use the top-ranked 'is_archived' status.
 		$this->setValue('history', Array());
 		$this->_clearCustomValues();
 		$this->_clearPhoto();
@@ -1119,7 +1128,7 @@ class Person extends DB_Object
 		$found_live_member = false;
 		foreach ($members as $id => $details) {
 			if ($id == $this->id) continue;
-			if ($details['status'] != 'archived') {
+			if (!in_array($details['status'], Person_Status::getArchivedIDs())) {
 				$found_live_member = true;
 				break;
 			}

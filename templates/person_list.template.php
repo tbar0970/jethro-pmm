@@ -44,7 +44,7 @@ if ($show_actions) {
 	<?php
 	foreach ($persons as $id => $details) {
 		$dummy_person->populate($id, $details);
-		$tr_class = ($details['status'] === 'archived') ? ' class="archived"' : '';
+		$tr_class = in_array($details['status'], Person_Status::getArchivedIDs()) ? ' class="archived"' : '';
 		?>
 		<tr data-personid="<?php echo $id; ?>" <?php echo $tr_class; ?>>
 		<?php if (SizeDetector::isWide()) {

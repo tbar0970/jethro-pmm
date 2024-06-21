@@ -153,15 +153,17 @@ class Installer
 			mp.email, mp.mobile_tel, mp.work_tel, mp.familyid,
 			mf.family_name, mf.address_street, mf.address_suburb, mf.address_state, mf.address_postcode, mf.home_tel
 			FROM _person mp
+			JOIN person_status mps ON mps.id = mp.status
 			JOIN family mf ON mf.id = mp.familyid
 			JOIN person_group_membership pgm1 ON pgm1.personid = mp.id
 			JOIN _person_group pg ON pg.id = pgm1.groupid AND pg.share_member_details = 1
 			JOIN person_group_membership pgm2 ON pgm2.groupid = pg.id
 			JOIN _person up ON up.id = pgm2.personid
+			JOIN person_status ups ON ups.id = up.status
 			WHERE up.id = getCurrentUserID()
-			   AND mp.status <> "archived"
-			   AND mf.status <> "archived"
-			   AND up.status <> "archived"	/* archived persons cannot see members of any group */
+			   AND (NOT mps.is_archived)    /* dont show archived persons */
+			   AND mf.status <> "archived"  /* dont show archived families */
+			   AND (NOT ups.is_archived)	/* dont let persons who are themselves archived see anything */
 
 			UNION
 
@@ -169,12 +171,14 @@ class Installer
 			mp.email, mp.mobile_tel, mp.work_tel, mp.familyid,
 			mf.family_name, mf.address_street, mf.address_suburb, mf.address_state, mf.address_postcode, mf.home_tel
 			FROM _person mp
+			JOIN person_status mps ON mps.id = mp.status
 			JOIN family mf ON mf.id = mp.familyid
 			JOIN _person self ON self.familyid = mp.familyid
+			JOIN person_status selfs ON selfs.id = self.status
 			WHERE
 				self.id = getCurrentUserID()
-				AND ((mp.status <> "archived") OR (mp.id = self.id))
-				AND ((self.status <> "archived") OR (mp.id = self.id))
+				AND ((NOT mps.is_archived) OR (mp.id = self.id))
+				AND ((NOT selfs.is_archived) OR (mp.id = self.id))
 				/* archived persons can only see themselves, not any family members */
 			;',
 
@@ -219,8 +223,7 @@ class Installer
 			(@rank:=@rank+5, '',                         'ENVELOPE_WIDTH_MM','Envelope width (mm)','int','220'),
 			(@rank:=@rank+5, '',                         'ENVELOPE_HEIGHT_MM','Envelope height (mm)','int','110'),
 
-			(@rank:=@rank+5, 'Data Structure options',   'PERSON_STATUS_OPTIONS','(The system-defined statuses \'Contact\' and \'Archived\' will be added to this list)','multitext_cm','Core,Crowd'),
-			(@rank:=@rank+5, '',                         'PERSON_STATUS_DEFAULT','','text','Contact'),
+			(@rank:=@rank+5, 'Data Structure options',   'PERSON_STATUS_OPTIONS','','',''),
 			(@rank:=@rank+5, '',                         'AGE_BRACKET_OPTIONS','','',''),
 			(@rank:=@rank+5, '',                         'GROUP_MEMBERSHIP_STATUS_OPTIONS','','',''),
 			(@rank:=@rank+5, '',                         'TIMEZONE','','text','Australia/Sydney'),

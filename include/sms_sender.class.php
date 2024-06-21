@@ -67,15 +67,15 @@ Class SMS_Sender
 		switch ($smstype) {
 			case 'family':
 				$families = Family::getFamilyDataByMemberIDs($personids);
-				$recips = $GLOBALS['system']->getDBObjectData('person', Array('(age_bracketid' => Age_Bracket::getAdults(), '(familyid' => array_keys($families), '!mobile_tel' => '', '!status' => 'archived'), 'AND');
-				$blanks = $GLOBALS['system']->getDBObjectData('person', Array('(age_bracketid' => Age_Bracket::getAdults(), '(familyid' => array_keys($families), 'mobile_tel' => '', '!status' => 'archived'), 'AND');
-				$archived = $GLOBALS['system']->getDBObjectData('person', Array('(age_bracketid' => Age_Bracket::getAdults(), '(familyid' => array_keys($families), 'status' => 'archived'), 'AND');
+				$recips = $GLOBALS['system']->getDBObjectData('person', Array('(age_bracketid' => Age_Bracket::getAdults(), '(familyid' => array_keys($families), '!mobile_tel' => '', '!(status' => Person_Status::getArchivedIDs()), 'AND');
+				$blanks = $GLOBALS['system']->getDBObjectData('person', Array('(age_bracketid' => Age_Bracket::getAdults(), '(familyid' => array_keys($families), 'mobile_tel' => '', '!(status' => Person_Status::getArchivedIDs()), 'AND');
+				$archived = $GLOBALS['system']->getDBObjectData('person', Array('(age_bracketid' => Age_Bracket::getAdults(), '(familyid' => array_keys($families), '(status' => Person_Status::getArchivedIDs()), 'AND');
 				break;
 			case 'person':
 			default:
-				$recips = $GLOBALS['system']->getDBObjectData('person', Array('id' => $personids, '!mobile_tel' => '', '!status' => 'archived'), 'AND');
-				$blanks = $GLOBALS['system']->getDBObjectData('person', Array('id' => $personids, 'mobile_tel' => '', '!status' => 'archived'), 'AND');
-				$archived = $GLOBALS['system']->getDBObjectData('person', Array('id' => $personids, 'status' => 'archived'), 'AND');
+				$recips = $GLOBALS['system']->getDBObjectData('person', Array('id' => $personids, '!mobile_tel' => '', '!(status' => Person_Status::getArchivedIDs()), 'AND');
+				$blanks = $GLOBALS['system']->getDBObjectData('person', Array('id' => $personids, 'mobile_tel' => '', '!(status' => Person_Status::getArchivedIDs()), 'AND');
+				$archived = $GLOBALS['system']->getDBObjectData('person', Array('id' => $personids, '(status' => Person_Status::getArchivedIDs()), 'AND');
 				$GLOBALS['system']->includeDBClass('person');
 		}
 		return Array($recips, $blanks, $archived);

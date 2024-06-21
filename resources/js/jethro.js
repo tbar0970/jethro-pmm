@@ -1739,18 +1739,15 @@ function handlePersonStatusChange()
 		var chooser = congChoosers[0];
 		for (var i=0; i < chooser.options.length; i++) {
 			if (chooser.options[i].value == '') {
-				if ((this.value == 'contact') || (this.value == 'archived')) {
-					// blank value allowed
-					return;
-				} else {
+				if ($('[name=status_'+this.value+'_require_congregation]').val() == 1) {
 					chooser.remove(i);
-					return;
 				}
+				return;
 			}
 		}
 		if ($(chooser).attr('data-allow-empty') != 0) {
 			// if we got to here, there is no blank option
-			if ((this.value == 'contact') || (this.value == 'archived')) {
+			if ($('[name=status_'+this.value+'_require_congregation]').val() == 0) {
 				// we need a blank option
 				var newOption = new Option('(None)', '');
 				try {

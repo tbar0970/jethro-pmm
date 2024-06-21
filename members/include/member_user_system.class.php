@@ -294,9 +294,10 @@ If you didn't request an account, you can just ignore this email";
 	{
 		$db =& $GLOBALS['db'];
 		$sql = 'SELECT COUNT(DISTINCT familyid) '
-				. 'FROM _person '
+				. 'FROM _person p '
+				. 'JOIN person_status ps ON ps.id = p.status '
 				. 'WHERE email = '.$db->quote($email).''
-				. 'AND status <> "archived"';
+				. 'AND (NOT ps.is_archived)';
 		$familyCount = $db->queryOne($sql);
 
 		if ($familyCount > 1) return -1;
@@ -304,9 +305,10 @@ If you didn't request an account, you can just ignore this email";
 
 		$sql = 'SELECT p.*
 				FROM _person p
+				JOIN person_status ps ON ps.id = p.status
 				JOIN age_bracket ab ON ab.id = p.age_bracketid
 				WHERE p.email  = '.$db->quote($email).'
-				AND status <> "archived"
+				AND (NOT ps.is_archived)
 				ORDER BY (IF(p.member_password IS NOT NULL, 0, 1)), ab.`rank` ASC, p.gender DESC';
 		$res = $db->queryRow($sql);
 

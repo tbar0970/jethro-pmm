@@ -20,7 +20,7 @@ class View__Groups extends View
 			return;
 		}
 
-		$persons = $this->group->getMembers(Array('!status' => 'archived'));
+		$persons = $this->group->getMembers(Array('!(status' => Person_Status::getArchivedIDs()));
 		$emails = Array();
 		foreach ($persons as $member) {
 			if ($e = $member['email']) $emails[] = $e;

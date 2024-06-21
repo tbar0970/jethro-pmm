@@ -521,7 +521,9 @@ function print_widget($name, $params, $value)
 				}
 
 				$params['type'] = 'select';
-				if (empty($params['allow_empty']) && ($value === '')) $value = $default;
+				if (empty($params['allow_empty']) && (($value === '') || ($value === NULL))) {
+					$value = $default;
+				}
 				return print_widget($name, $params, $value);
 			}
 			break;

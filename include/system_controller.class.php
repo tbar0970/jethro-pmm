@@ -43,7 +43,7 @@ class System_Controller
 			foreach ($raw_filenames as $filename) {
 				$filename = basename($filename);
 				$classname = null;
-				if (preg_match('/^view_([0-9]*)_(.*)__([0-9]*)_(.*)\.class\.php/', $filename, $matches)) {
+				if (preg_match('/^view_([0-9.]*)_(.*)__([0-9]*)_(.*)\.class\.php/', $filename, $matches)) {
 					$classname = 'View_'.$matches[2].'__'.$matches[4];
 				} else if (preg_match('/^view_([0-9]*)_(.*)\.class\.php/', $filename, $matches)) {
 					if ($matches[1] == 0) $matches[2] = '_'.$matches[2];
@@ -58,9 +58,9 @@ class System_Controller
 						$showView = $this->featureEnabled($view_feature);
 					}
 					if ($showView) {
-						if (preg_match('/^view_([0-9]*)_(.*)__([0-9]*)_(.*)\.class\.php/', $filename, $matches)) {
+						if (preg_match('/^view_([0-9.]*)_(.*)__([0-9]*)_(.*)\.class\.php/', $filename, $matches)) {
 							$_SESSION['views'][$base_dir][$matches[2]]['children'][$matches[4]]['filename'] = $filename;
-						} else if (preg_match('/^view_([0-9]*)_(.*)\.class\.php/', $filename, $matches)) {
+						} else if (preg_match('/^view_([0-9.]*)_(.*)\.class\.php/', $filename, $matches)) {
 							if ($matches[1] == 0) $matches[2] = '_'.$matches[2];
 							$_SESSION['views'][$base_dir][$matches[2]]['filename'] = $filename;
 						}

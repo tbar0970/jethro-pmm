@@ -367,7 +367,7 @@ if (isset($tabs['accounts'])) {
 	} else {
 		if ($sm) {
 			echo '<i>'.$person->toString().' has not registered a members area account, but can log into the members area using their control centre password.</i>';
-		} else if ($person->getValue('status') == 'archived') {
+		} else if (in_array($person->getValue('status'), Person_Status::getArchivedIDs())) {
 			echo '<i>'.$person->toString().' has not yet registered a members area account, and cannot register because they are archived. </i>';
 		} else if (!strlen($person->getValue('email'))) {
 			echo '<i>'.$person->toString().' must have an email address recorded to register for a member account. </i>';

@@ -136,7 +136,7 @@ class View_Groups extends View
 
 		$mParams = Array();
 		if (!array_get($_SESSION, 'show_archived_group_members', FALSE)) {
-			$mParams['!status'] = 'archived';
+			$mParams['!(status'] = Person_Status::getArchivedIDs();
 		}
 		$persons = $this->_group->getMembers($mParams);
 		list ($status_options, $default_status) = Person_Group::getMembershipStatusOptionsAndDefault();
@@ -251,7 +251,7 @@ class View_Groups extends View
 			$dummy_person = new Person();
 			foreach ($persons as $id => $details) {
 				$dummy_person->populate($id, $details);
-				$tr_class = ($details['status'] === 'archived') ? ' class="archived"' : '';
+				$tr_class = in_array($details['status'], Person_Status::getArchivedIDs()) ? ' class="archived"' : '';
 				?>
 				<tr data-personid="<?php echo $id; ?>" <?php echo $tr_class; ?>>
 					<td class="nowrap"><?php echo $dummy_person->printFieldvalue('name'); ?></td>

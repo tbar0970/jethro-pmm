@@ -1045,7 +1045,8 @@ class db_object
 				$prefix = 'NOT (';
 				$field = substr($field, 1);
 				$suffix = ')';
-			} else if ($field[0] == '<') {
+			}
+			if ($field[0] == '<') {
 				$operator = '<';
 				$field = substr($field, 1);
 				if ($field[0] == '=') {

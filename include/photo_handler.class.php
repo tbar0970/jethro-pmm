@@ -128,7 +128,7 @@ Class Photo_Handler {
 				$SQL = 'SELECT COALESCE(pp.photodata, IF(count(member.id) = 1, fp.photodata, NULL)) as photodata
 						FROM person p
 						JOIN family f ON p.familyid = f.id
-						JOIN person member ON member.familyid = f.id AND member.status <> "archived"
+						JOIN person member ON member.familyid = f.id AND member.status NOT IN (SELECT id FROM person_status where is_archived)
 						LEFT JOIN person_photo pp ON pp.personid = p.id
 						LEFT JOIN family_photo fp ON fp.familyid = f.id
 						WHERE p.id = '.(int)$obj->id.'
@@ -141,7 +141,7 @@ Class Photo_Handler {
 				$SQL = 'SELECT COALESCE(fp.photodata, IF(count(p.id) = 1, pp.photodata, NULL)) as photodata
 						FROM family f
 						LEFT JOIN family_photo fp ON fp.familyid = f.id
-						LEFT JOIN person p ON p.familyid = f.id AND p.status <> "archived"
+						LEFT JOIN person p ON p.familyid = f.id AND p.status NOT IN (SELECT id FROM person_status where is_archived)
 						LEFT JOIN person_photo pp ON pp.personid = p.id
 						WHERE f.id = '.(int)$obj->id.'
 						GROUP BY f.id';

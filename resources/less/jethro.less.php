@@ -832,7 +832,7 @@ table.object-summary td, table.object-summary th {
 table.object-summary>tbody>tr>td>table>tbody>tr:first-child td {
 	padding-top: 0px !important;
 }
-#body tr.archived td, #body tr.archived a, #body tr.archived .btn-link {
+#body tr.archived td, #body tr.archived a, #body tr.archived .btn-link, #body tr.archived input {
 	color: @grayLight;
 }
 #body tr.archived:hover td, #body tr.archived:hover td a, #body tr.archived:hover .btn-link {

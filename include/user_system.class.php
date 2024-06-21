@@ -503,8 +503,9 @@ class User_System extends Abstract_User_System
 	{
 		$SQL = 'SELECT email
 				FROM _person p
+				JOIN person_status ps ON ps.id = p.status
 				JOIN staff_member sm on p.id = sm.id
-				WHERE email <> "" AND sm.active AND p.status <> "archived" AND sm.permissions = '.PERM_SYSADMIN;
+				WHERE email <> "" AND sm.active AND (NOT ps.is_archived) AND sm.permissions = '.PERM_SYSADMIN;
 		$emails = $GLOBALS['db']->queryCol($SQL);
 		if (empty($emails)) return;
 

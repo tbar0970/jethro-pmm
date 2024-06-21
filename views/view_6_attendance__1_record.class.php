@@ -263,7 +263,7 @@ class View_Attendance__Record extends View
 		if ($this->_statuses) {
 			$params['(status'] = $this->_statuses;
 		} else {
-			$params['!status'] = 'archived';
+			$params['!(status'] = Person_Status::getArchivedIDs();
 		}
 		$totalPersons = Attendance_Record_Set::getPersonDataForCohorts($this->_cohortids, $params);
 		$totalPrinted = 0;

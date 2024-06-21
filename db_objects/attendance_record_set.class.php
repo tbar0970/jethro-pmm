@@ -144,7 +144,7 @@ class Attendance_Record_Set
 				$conds[$field][] = $statusID;
 			}
 		}
-		if (!isset($conds['(status'])) $conds['!status'] = 'archived';
+		if (!isset($conds['(status'])) $conds['!(status'] = Person_Status::getArchivedIDs();
 		if ($this->congregationid) {
 			$conds['congregationid'] = $this->congregationid;
 			$this->_persons = $GLOBALS['system']->getDBObjectData('person', $conds, 'AND', $order);
@@ -685,6 +685,7 @@ class Attendance_Record_Set
 		$SQL = 'SELECT person.id, person.last_name, person.first_name, '.($groupid ? 'pgms.label AS membership_status, ' : '').' person.status, ar.date, ar.present, IF (pa.id IS NOT NULL, 1, 0) as planned_absence
 				FROM person person
 				JOIN age_bracket ab ON ab.id = person.age_bracketid
+				JOIN person_status ps ON ps.id = person.status
 				JOIN family f ON person.familyid = f.id  ';
 		if ($groupid) {
 			$SQL .= '
@@ -706,7 +707,7 @@ class Attendance_Record_Set
 					AND ar.date BETWEEN pa.start_date AND pa.end_date
 				';
 		$SQL .= '
-				WHERE ((person.status <> "archived") OR (ar.present IS NOT NULL)) ';
+				WHERE ((NOT ps.is_archived) OR (ar.present IS NOT NULL)) ';
 		if ($congregationids) {
 			 $SQL .= '
 				 AND person.congregationid IN ('.implode(', ', array_map(Array($GLOBALS['db'], 'quote'), $congregationids)).') ';
