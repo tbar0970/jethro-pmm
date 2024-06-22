@@ -1062,21 +1062,26 @@ class Person_Query extends DB_Object
 				case 'select':
 					switch (array_get($values, 'criteria', 'contains')) {
 						case 'contains':
-							$ids = implode(',', array_map(Array($db, 'quote'), $values['val']));
-							$xrule = '(pd'.$fieldid.'.value_optionid IN ('.$ids.'))';
-							if (in_array(0, $values['val'])) {
-								// 'other' option
-								$xrule = '('.$xrule.' OR (pd'.$fieldid.'.value_text IS NOT NULL))';
+							if ($values['val']) {
+								$ids = implode(',', array_map(Array($db, 'quote'), $values['val']));
+								$xrule = '(pd'.$fieldid.'.value_optionid IN ('.$ids.'))';
+								if (in_array(0, $values['val'])) {
+									// 'other' option
+									$xrule = '('.$xrule.' OR (pd'.$fieldid.'.value_text IS NOT NULL))';
+								}
+								$customFieldWheres[] = $xrule;
+							} else {
+								// No options were picked for a select list custom field. Same as 'empty' ('not filled in')
+								$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NULL AND pd'.$fieldid.'.value_text IS NULL)';
 							}
-							$customFieldWheres[] = $xrule;
-							break;
-						case 'any':
-							$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NOT NULL OR pd'.$fieldid.'.value_text IS NOT NULL)';
-							break;
-						case 'empty':
-							$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NULL AND pd'.$fieldid.'.value_text IS NULL)';
-							break;
-					}
+								break;
+							case 'any':
+								$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NOT NULL OR pd'.$fieldid.'.value_text IS NOT NULL)';
+								break;
+							case 'empty':
+								$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NULL AND pd'.$fieldid.'.value_text IS NULL)';
+								break;
+						}
 					break;
 
 				case 'text':
