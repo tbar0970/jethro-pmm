@@ -1,3 +1,10 @@
+/* Issue #1040 - Setting to hide age brackets in members area */
+INSERT INTO setting
+(rank, symbol, type, value, note)
+SELECT rank+1, 'MEMBERS_SEE_AGE_BRACKET', type, 1, 'Should members be able to see and edit the age bracket field?'
+FROM setting
+WHERE symbol = 'MEMBERS_SHARE_ADDRESS';
+
 /* Issue 1035 - moving person_status to a table */
 
 DROP TABLE IF EXISTS person_status;

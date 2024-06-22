@@ -17,8 +17,10 @@ foreach ($persons as $personid => $person) {
 			<strong><?php echo ents($dummy->toString()); ?></strong>
 			<br />
 			<?php
-			echo ents($dummy->getFormattedValue('age_bracketid'));
-			echo ' &bull; ';
+			if (ifdef('MEMBERS_SEE_AGE_BRACKET', TRUE)) {
+				echo ents($dummy->getFormattedValue('age_bracketid'));
+				echo ' &bull; ';
+			}
 			echo ents($dummy->getFormattedValue('gender'));
 			if ($dummy->getValue('mobile_tel')) {
 				echo ' &bull; ';	

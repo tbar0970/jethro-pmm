@@ -5,6 +5,14 @@ class View__Edit_Me extends View
 	private $persons = Array();
 	private $hasAdult = FALSE;
 	private $person_fields = Array('gender', 'age_bracketid', 'email', 'mobile_tel', 'work_tel', 'photo');
+
+	public function __construct()
+	{
+		if (!ifdef('MEMBERS_SEE_AGE_BRACKET', TRUE)) {
+			$map = array_flip($this->person_fields);
+			unset($this->person_fields[$map['age_bracketid']]);
+		}
+	}
 	
 	function getTitle()
 	{
