@@ -1199,6 +1199,11 @@ class Person_Query extends DB_Object
 		} else if ($params['group_by'] == 'p.age_bracketid') {
 			$grouping_order = 'absort.`rank`, ';
 			$grouping_field = 'p.age_bracketid, ';
+		} else if ($params['group_by'] == 'p.status') {
+			$query['from'] .= ' JOIN person_status psgsort ON psgsort.id = p.status
+								';
+			$grouping_order = 'psgsort.`rank`, ';
+			$grouping_field = 'p.status, ';
 		} else {
 			// by some core field
 			$grouping_order = $grouping_field = $params['group_by'].', ';
@@ -1409,6 +1414,10 @@ class Person_Query extends DB_Object
 				$query['order_by'] = 'IF(cord.id IS NULL, 1, 0), IF(LENGTH(cord.meeting_time)>0, 0, 1), cord.meeting_time, cord.name';
 			} else if ($params['sort_by'] == 'p.age_bracketid') {
 				$query['order_by'] = 'absort.`rank`';
+			} else if ($params['sort_by'] == 'p.status') {
+				$query['from'] .= '
+					JOIN person_status pssort ON pssort.id = p.status ';
+				$query['order_by'] = 'pssort.`rank`';
 			} else {
 				$query['order_by'] = $this->_quoteAliasAndColumn($params['sort_by']);
 			}
