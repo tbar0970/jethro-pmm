@@ -488,6 +488,7 @@ function print_widget($name, $params, $value)
 				if (!empty($params['filter']) && is_array($params['filter'])) $where = $params['filter'];
 				$where_logic = array_get($params, 'filter_logic', 'AND');
 				$options = $GLOBALS['system']->getDBObjectData($params['references'], $where, $where_logic, array_get($params, 'order_by'));
+
 				$dummy = new $params['references']();
 				$our_val = is_array($value) ? $value : (empty($value) ? Array() : Array($value));
 				$default = NULL;
@@ -732,6 +733,7 @@ function format_value($value, $params)
 			return format_datetime($value);
 			break;
 		case 'date':
+			if (empty($value) && array_get($params, 'allow_empty')) return '';
 			return format_date($value);
 			break;
 		case 'bibleref':

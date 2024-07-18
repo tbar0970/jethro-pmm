@@ -1,70 +1,72 @@
 <?php
-include_once 'include/db_object.class.php';
-class Person_Status extends DB_Object
+class Person_Status extends db_object
 {
-	function __construct($sid=-1)
+	protected $_load_permission_level = 0;
+	protected $_save_permission_level = 0;
+
+	protected static function _getFields()
 	{
-		if ($sid == -1) { // get top ranked default status
-			$sid = Person_Status::getDefault();
-		}
-		return parent::__construct($sid);			
+
+		$fields = Array(
+			'label'		=> Array(
+									'type'		=> 'text',
+									'width'		=> 25,
+								   ),
+			'rank'		=> Array(
+									'type'		=> 'int',
+								   ),
+			'active' => Array(
+									'type' => 'boolean',
+									'note' => 'Is this status currently in use?',
+									'label' => 'Is active?',
+								),
+			'is_default' => Array(
+									'type' => 'boolean',
+									'note' => 'Is this the default status for new persons?',
+									'label' => 'Is default?',
+								),
+			'is_archived' => Array(
+									'type' => 'boolean',
+									'note' => 'Should persons with this status be considered archived?',
+									'label' => 'Is archived?',
+								),
+			'require_congregation' => Array(
+									'type' => 'boolean',
+									'note' => 'Must persons with this status be in a congregation?',
+									'label' => 'Require congregation?',
+								),
+
+		);
+		return $fields;
 	}
 
-	public static function getStatusLabel($sid) 
+	protected function _getUniqueKeys()
 	{
-		static $res = NULL;
-		if ($res === NULL) {
-			$db = JethroDB::get();
-			$res = $db->queryAll('SELECT id, label FROM person_status WHERE `id` = ' . $sid . ' ORDER BY `rank`', NULL, NULL, true);
-		}
-		if (count($res) > 0) {
-			return reset($res);	
-		} else {
-			return 'Unkown #' . $sid;
-		}
+		return Array('label' => Array('label'));
 	}
 
-	public static function getArchivedIDs()
+	public function getInitSQL($tableName=FALSE)
 	{
-		static $res = NULL;
-		if ($res === NULL) {
-			$db = JethroDB::get();
-			$res = $db->queryAll('SELECT id FROM person_status WHERE (`active` = 1 AND `is_archived` = 1) ORDER BY `rank`');
-		}
-		static $result = array();
-		foreach ($res as $item) {
-			$result[] = $item['id'];
-		}
-		return $result;	
-	}
-
-	public static function getActive($unkownoption = false)
-	{
-		static $res = NULL;
-		if ($res === NULL) {
-			$db = JethroDB::get();
-			$res = $db->queryAll('SELECT id, label, rank, active, is_default, is_archived, require_congregation FROM person_status WHERE `active` = 1 ORDER BY `rank`', NULL, NULL, true);
-		}
-		return $res;
-	}
-
-	public static function getDefault()
-	{
-		static $res = NULL;
-		if ($res === NULL) {
-			$db = JethroDB::get();
-			$res = $db->queryAll('SELECT id  FROM person_status WHERE `active` = 1 AND `is_archived` = 0 AND `is_default` = 1 ORDER BY `rank`');
-		}
-		if ((count($res) > 0) && (count($res[0]) > 0)) {
-			return reset($res[0]);
-		}
-		else return 0;
-	}
-
-	function getInstancesQueryComps($params, $logic, $order)
-	{
-		$res = parent::getInstancesQueryComps($params, $logic, $order);
-		$res['select'][] = 'person_status.id, person_status.label, person_status.rank, person_status.active, person_status.is_default, person_status.is_archived, person_status.require_congregation';
+		$res = Array();
+		$res[] =
+			'CREATE TABLE `person_status` (
+			  `id` int(11) NOT NULL AUTO_INCREMENT,
+			  `label` varchar(255) NOT NULL,
+			  `rank` int(11) NOT NULL DEFAULT 0,
+			  `active` tinyint(1) unsigned DEFAULT 1,
+			  `is_default` tinyint(1) unsigned DEFAULT 0,
+			  `is_archived` tinyint(1) unsigned DEFAULT 0,
+			  `require_congregation` tinyint(1) unsigned DEFAULT 1,
+			  PRIMARY KEY (`id`),
+			  UNIQUE KEY `label` (`label`)
+			) ENGINE=InnoDB;';
+		$res[] = '
+			INSERT INTO person_status (`rank`, label, is_default, is_archived, require_congregation)
+					VALUES
+					(0, "Core", 0, 0, 1),
+					(1, "Crowd", 0, 0, 1),
+					(2, "Contact", 1, 0, 0),
+					(3, "Archived, 0, 1, 0)';
 		return $res;
 	}
 
@@ -73,49 +75,32 @@ class Person_Status extends DB_Object
 		return $this->values['label'];
 	}
 
-	protected static function _getFields()
+	/**
+	 * Get details of all statuses that are currently in use
+	 * @param bool $include_archived Whether to include statuses that denote archived persons.
+	 * @return array
+	 */
+	static function getActive($include_archived=TRUE)
 	{
-		return Array(
-			'label'	=> Array(
-									'type'		=> 'text',
-									'width'		=> 40,
-									'maxlength'	=> 255,
-									'allow_empty'	=> FALSE,
-									'initial_cap'	=> TRUE,
-									'label'			=> 'Status',
-									'note'		=> '',
-								   ),
-			'rank'	 => Array(
-									'type'		=> 'int',
-									'default'	=> 1,
-									'label'		=> 'Rank',
-								),
-			'active'	 => Array(
-									'type'		=> 'select',
-									'options'	=> Array('No', 'Yes'),
-									'default'	=> 1,
-									'label'		=> 'Active',
-								),
-			'is_default'	 => Array(
-									'type'		=> 'select',
-									'options'	=> Array('No', 'Yes'),
-									'default'	=> 1,
-									'label'		=> 'Default',
-								),
-			'is_archived'	 => Array(
-									'type'		=> 'select',
-									'options'	=> Array('No', 'Yes'),
-									'default'	=> 1,
-									'label'		=> 'Archived',
-								),																
-			'require_congregation'	 => Array(
-									'type'		=> 'select',
-									'options'	=> Array('No', 'Yes'),
-									'default'	=> 1,
-									'label'		=> 'Requires Congregation',
-								),		
-		);
+		$params = Array('active' => 1);
+		if (!$include_archived) $params['is_archived'] = 0;
+		// The system controller caches this result
+		return $GLOBALS['system']->getDBObjectData('person_status', $params);
+	}
+
+	static function getArchivedIDs()
+	{
+		// The system controller caches this result
+		$res = $GLOBALS['system']->getDBObjectData('person_status', Array('is_archived' => 1));
+		return array_keys($res);
+
+	}
+
+
+	public function getInstancesQueryComps($params, $logic, $order)
+	{
+		if (empty($order)) $order = 'rank';
+		return parent::getInstancesQueryComps($params, $logic, $order);
 	}
 
 }
-

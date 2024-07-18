@@ -321,9 +321,6 @@ class Person extends DB_Object
 				</span>
 				<?php
 				return;
-			case 'status':
-				echo Person_Status::getStatusLabel($value);
-				return;
 			default:
 				parent::printFieldValue($name, $value);
 
@@ -529,7 +526,7 @@ class Person extends DB_Object
 					OR (cfv.value_text LIKE '.$db->quote('% '.$searchTerm.'%').' )
 				)
 			) pp
-			JOIN person_status ps ON ps.id = pp.status
+			JOIN person_status ps ON ps.id = ps.status
 		';
 		if (!$includeArchived) {
 			$SQL .= '
@@ -878,6 +875,7 @@ class Person extends DB_Object
 		print_hidden_field($prefix.'token', $_SESSION['person_form_token'][$this->id]);
 
 		parent::printForm($prefix, $fields);
+
 		unset($this->fields['photo']);
 
 		if (empty($fields) || in_array('custom', $fields)) {
