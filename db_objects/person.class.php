@@ -526,7 +526,7 @@ class Person extends DB_Object
 					OR (cfv.value_text LIKE '.$db->quote('% '.$searchTerm.'%').' )
 				)
 			) pp
-			JOIN person_status ps ON ps.id = ps.status
+			JOIN person_status ps ON ps.id = pp.status
 		';
 		if (!$includeArchived) {
 			$SQL .= '
