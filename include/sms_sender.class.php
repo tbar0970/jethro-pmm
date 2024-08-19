@@ -320,8 +320,8 @@ Class SMS_Sender
 		if (self::$configPrefix !== self::DEFAULT_CONFIG_PREFIX) return; // Log doesn't apply when using dedicated 2FA settings.
 		
 		if (defined('SMS_SEND_LOGFILE') && ($file = constant('SMS_SEND_LOGFILE'))) {
+			if (!file_exists($file)) touch($file);
 			if (filesize(SMS_SEND_LOGFILE) < 3) {
-				if (!file_exists($file)) touch($file);
 				// Write a header row
 				$headers = Array('Timestamp', 'Username', 'RecipientCount', 'MessageLength', 'Content');
 				$json = json_encode($headers);
