@@ -96,8 +96,9 @@ class View_Groups extends View
 			<?php
 		}
 
-		if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
+		if ($GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
 			?>
+
 			<div class="modal hide fade" id="action-plan-modal" role="dialog" aria-hidden="true">
 				<form method="post" action="?view=_edit_group&action=add_member&groupid=<?php echo $this->_group->id; ?>">
 					<div class="modal-header">
@@ -173,7 +174,7 @@ class View_Groups extends View
 				</div>
 				<?php
 			}
-			if (!empty($persons) && $GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
+			if (!empty($persons) && $GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
 				if (count($status_options) > 1) {
 					?>
 					<div class="edit-status-link">
@@ -182,7 +183,7 @@ class View_Groups extends View
 					<?php
 				}
 			}
-			if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
+			if ($GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
 				?>
 				<div class="add-link">
 					<a href="#action-plan-modal" data-toggle="modal"><i class="icon-plus-sign"></i><?php echo _('Add members');?></a>

@@ -29,7 +29,7 @@ if ($plan_chooser) {
 $can_add_group = FALSE;
 $GLOBALS['system']->includeDBClass('person_group');
 $groups = Person_Group::getGroups($person->id, TRUE);
-if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
+if ($GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
 	?>
 	<div id="add-group-modal" class="modal hide fade" role="dialog" aria-hidden="true">
 		<form method="post">
@@ -302,11 +302,13 @@ if (isset($tabs['groups'])) {
 				}
 				?>
 					<td>
+                        <?php if ($can_add_group) { ?>
 						<a data-method="post" class="link-collapse confirm-title"
 						   href="?view=_edit_group&action=remove_member&groupid=<?php echo $id; ?>&back_to=persons&personid=<?php echo $person->id; ?>"
 						   title="Remove <?php $person->printFieldValue('name'); ?> from <?php echo ents($details['name']); ?>">
 							<i class="icon-remove-sign"></i><?php echo _('Remove')?>
 						</a>
+						<?php } ?>
 					</td>
 				</tr>
 				<?php
