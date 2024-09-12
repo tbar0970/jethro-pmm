@@ -76,7 +76,7 @@ DELETE FROM setting WHERE symbol = "PERSON_STATUS_DEFAULT";
 
 UPDATE setting SET type="", note="" WHERE symbol = "PERSON_STATUS_OPTIONS"; /* turns it into a placeholder for custom interface */
 
-DROP VIEW members;
+DROP VIEW member;
 
 CREATE VIEW member AS
 SELECT mp.id, mp.first_name, mp.last_name, mp.gender, mp.age_bracketid, mp.congregationid,
