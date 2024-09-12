@@ -381,7 +381,7 @@ class roster_view extends db_object
 		$rows = $GLOBALS['db']->queryAll($sql);
 		$res = Array();
 		foreach ($rows as $row) {
-			$res[$row['assignment_date']][$row['roster_role_id']][$row['rank']] = Array(
+			$res[$row['assignment_date']][$row['roster_role_id']][] = Array(
 				'personid' => $row['personid'],
 				'name' => $row['assignee'],
 				'email' => $row['email'],
