@@ -135,7 +135,7 @@ WHERE rra.rank != a.correctrank;
 -- Relating to the #1078 fix above: ensure that every role (roster_role_id) assigned on a given date (assignment_date) has a distinct rank.
 ALTER TABLE roster_role_assignment ADD CONSTRAINT unique_role_assignment UNIQUE (assignment_date, roster_role_id, rank);
 
--- Issue
+-- Issue #890 - default value for configurable order for attendance recording
 INSERT INTO setting (`rank`, heading, symbol, note, type, value)
 SELECT `rank`+1, NULL, 'ATTENDANCE_ORDER_DEFAULT', 'Default order for recording/showing attendance',
 'select{"status":"Status, then family name","family_name":"Family name, then age bracket","last_name":"Last name","first_name":"First name","age_bracket":"Age bracket"}',
