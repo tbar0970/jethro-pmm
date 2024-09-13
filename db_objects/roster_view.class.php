@@ -1015,6 +1015,26 @@ class roster_view extends db_object
 					VALUES '.implode(",\n", $to_add);
 			$res = $GLOBALS['db']->query($sql);
 		}
+
+		// Tidy up ranks - for example if somebody already had rank 4 but they're
+		// now the only assignee, update their rank to 0.
+		// Just to be safe, we'll just do this for the roles in this roster view.
+		$clean_role_ids = Array();
+		foreach ($roles as $roleid) $clean_role_ids[] = (int)$roleid; // paranoia pays.
+		$SQL = 'UPDATE roster_role_assignment rra
+				INNER JOIN ( SELECT *,
+								(row_number() OVER (PARTITION BY assignment_date, roster_role_id
+													ORDER BY rank ASC) - 1) AS correctrank
+							   FROM roster_role_assignment
+							) a
+							ON rra.assignment_date = a.assignment_date
+								AND rra.roster_role_id = a.roster_role_id
+								AND rra.personid = a.personid
+				SET rra.rank = a.correctrank
+				WHERE rra.rank != a.correctrank
+				AND rra.roster_role_id IN ('.implode(',', $clean_role_ids).')';
+		$res = $GLOBALS['db']->query($SQL);
+
 		foreach ($roles as $i => $roleid) {
 			$role = $GLOBALS['system']->getDBObject('roster_role', $roleid);
 			$role->releaseLock('assignments');
