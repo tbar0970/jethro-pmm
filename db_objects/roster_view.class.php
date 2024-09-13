@@ -840,6 +840,7 @@ class roster_view extends db_object
 							echo implode("<br />", $names);
 						}
 					} else {
+						echo '<div class="service-field-'.$mdetail['service_field'].'">';
 						if (!empty($ddetail['service'][$mdetail['congregationid']])) {
 							if ($public && (!defined('SHOW_SERVICE_NOTES_PUBLICLY') || !SHOW_SERVICE_NOTES_PUBLICLY)) {
 								// no notes in public view
@@ -847,6 +848,7 @@ class roster_view extends db_object
 							}
 							$dummy_service->populate($ddetail['service'][$mdetail['congregationid']]['id'], $ddetail['service'][$mdetail['congregationid']]);
 							$dummy_service->printFieldvalue($mdetail['service_field'], NULL, $printable);
+							echo '</td>';
 						}
 					}
 					?>
