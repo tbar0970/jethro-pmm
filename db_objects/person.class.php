@@ -847,7 +847,8 @@ class Person extends DB_Object
 		$res['from'] = '(('.$res['from'].')
 						JOIN family f ON person.familyid = f.id)
 						LEFT JOIN congregation c ON person.congregationid = c.id
-						JOIN age_bracket ab on ab.id = person.age_bracketid ';
+						JOIN age_bracket ab on ab.id = person.age_bracketid
+						JOIN person_status ps ON ps.id = person.status';
 		return $res;
 	}
 

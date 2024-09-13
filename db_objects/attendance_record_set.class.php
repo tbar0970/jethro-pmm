@@ -14,13 +14,12 @@ class Attendance_Record_Set
 	private $_attendance_records = Array();
 	private $_cohort_object = NULL;
 
-	const LIST_ORDER_DEFAULT = 'status ASC, family_name ASC, familyid, ab.`rank` ASC, gender DESC';
 //--        CREATING, LOADING AND SAVING        --//
 
-	function __construct($date=NULL, $cohort=NULL, $age_brackets=NULL, $statuses=NULL)
+	function __construct($date=NULL, $cohort=NULL, $age_brackets=NULL, $statuses=NULL, $order=NULL)
 	{
 		if ($date && $cohort) {
-			$this->load($date, $cohort, $age_brackets, $statuses);
+			$this->load($date, $cohort, $age_brackets, $statuses, $order);
 		}
 	}
 
@@ -70,8 +69,9 @@ class Attendance_Record_Set
 	{
 	}
 
-	function load($date, $cohort, $age_brackets, $statuses)
+	function load($date, $cohort, $age_brackets, $statuses, $order=NULL)
 	{
+		if (empty($order)) $order = self::getOrderDefault();
 		$this->date = $date;
 		list($cohortType, $cohortID) = explode('-', $cohort);
 		switch ($cohortType) {
@@ -130,8 +130,7 @@ class Attendance_Record_Set
 		$this->_attendance_records = $db->queryAll($sql, null, null, true);
 
 		// NOW FETCH THE APPLICABLE PERSON RECORDS
-		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
-		$order = str_replace('age_bracket', 'ab.`rank`', $order);
+		
 
 		$conds = Array();
 		if ($this->age_brackets) {
@@ -147,7 +146,8 @@ class Attendance_Record_Set
 		if (!isset($conds['(status'])) $conds['!(status'] = Person_Status::getArchivedIDs();
 		if ($this->congregationid) {
 			$conds['congregationid'] = $this->congregationid;
-			$this->_persons = $GLOBALS['system']->getDBObjectData('person', $conds, 'AND', $order);
+			$orderSQL = self::getOrderSQL($order, 'ps');
+			$this->_persons = $GLOBALS['system']->getDBObjectData('person', $conds, 'AND', $orderSQL);
 			foreach (Roster_Role_Assignment::getAssignmentsForDateAndCong($date, $this->congregationid) as $personid => $asns) {
 				if (isset($this->_persons[$personid])) {
 					$this->_persons[$personid]['assignments'] = $asns;
@@ -160,7 +160,8 @@ class Attendance_Record_Set
 			}
 		} else {
 			$group = $GLOBALS['system']->getDBObject('person_group', $this->groupid);
-			$this->_persons = $group->getMembers($conds, $order);
+			$orderSQL = self::getOrderSQL($order, 'pgms');
+			$this->_persons = $group->getMembers($conds, $orderSQL);
 			foreach (Planned_Absence::getForDateAndGroup($date, $this->groupid) as $personid => $absences) {
 				if (isset($this->_persons[$personid])) {
 					$this->_persons[$personid]['assignments'] = '['._('Planned absence').']';
@@ -574,11 +575,14 @@ class Attendance_Record_Set
 
 	/**
 	 * Get person data for people in the specified cohorts and params
+	 * Used for tabular/parallel view when we need to know what people we are dealing with before
+	 * handling any actual attendance records.
 	 * @param array	$cohortids	Eg c-1, g-2
 	 * @param array $params		Filters to apply to person, eg age bracket
+	 * @param string $order
 	 * @return array
 	 */
-	public static function getPersonDataForCohorts($cohortids, $params)
+	public static function getPersonDataForCohorts($cohortids, $params, $order=NULL)
 	{
 		$db = $GLOBALS['db'];
 		$groupids = $congids = Array();
@@ -591,6 +595,7 @@ class Attendance_Record_Set
 				.($groupids ? 'group_concat(pgm.groupid) as groupids' : '"" AS groupids').'
 				FROM person person
 				JOIN age_bracket ab ON ab.id = person.age_bracketid
+				JOIN person_status ps ON ps.id = person.status
 				JOIN family f on person.familyid = f.id
 				LEFT JOIN congregation c ON person.congregationid = c.id
 				';
@@ -638,12 +643,10 @@ class Attendance_Record_Set
 			$SQL .= 'AND (('.implode(') OR (', $statusClauses).'))';
 		}
 
-		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
-		$order = str_replace('age_bracket', 'ab.`rank`', $order);
 		// Since we are getting persons for multiple cohorts, "status" has to mean person status here.
-		$order = preg_replace("/(^|[^.])status($| |,)/", '\\1person.status\\2', $order);
-		$SQL .=  "GROUP BY person.id \n";
-		$SQL .= ' ORDER BY '.$order."\n";
+		$orderSQL = self::getOrderSQL($order, 'ps');
+		$SQL .=  " GROUP BY person.id \n";
+		$SQL .= '  ORDER BY '.$orderSQL."\n";
 		$res= $db->queryAll($SQL, null, null, true);
 		return $res;
 
@@ -680,8 +683,9 @@ class Attendance_Record_Set
 	 * @param string $end_date
 	 * @return array
 	 */
-	public static function getAttendances($congregationids, $groupid, $params, $start_date, $end_date)
+	public static function getAttendances($congregationids, $groupid, $params, $start_date, $end_date, $order=NULL)
 	{
+		if (empty($$order)) $order = self::getOrderDefault();
 		$SQL = 'SELECT person.id, person.last_name, person.first_name, '.($groupid ? 'pgms.label AS membership_status, ' : '').' person.status, ar.date, ar.present, IF (pa.id IS NOT NULL, 1, 0) as planned_absence
 				FROM person person
 				JOIN age_bracket ab ON ab.id = person.age_bracketid
@@ -740,15 +744,10 @@ class Attendance_Record_Set
 		}
 		if ($statusClauses) $SQL .= 'AND (('.implode(') OR (', $statusClauses).'))';
 
-		$order = defined('ATTENDANCE_LIST_ORDER') ? constant('ATTENDANCE_LIST_ORDER') : self::LIST_ORDER_DEFAULT;
-		$order = str_replace('age_bracket', 'ab.`rank`', $order);
-		if ($congregationids) {
-			$order = preg_replace("/(^|[^.])status($| |,)/", '\\1person.status\\2', $order);
-		} else {
-			$order = preg_replace("/(^|[^.])status($| |,)/", '\\1pgms.`rank`\\2', $order);
-		}
+		$status_table = $congregationids ? 'ps' : 'pgms';
+		$orderSQL = self::getOrderSQL($order, $status_table);
 		$SQL .= '
-				ORDER BY '.$order;
+				ORDER BY '.$orderSQL;
 		$dates = Array();
 		$attendances = Array();
 		$totals = Array();
@@ -823,7 +822,7 @@ class Attendance_Record_Set
 	{
 		?>
 		<div class="row-fluid">
-			<div class="span6" style="margin-top: 5px">
+			<div class="span6">
 				<label class="checkbox nowrap" >
 					<?php
 					print_widget(
@@ -854,7 +853,7 @@ class Attendance_Record_Set
 					?>
 				</div>
 			</div>
-			<div class="span6" style="margin-top: 5px">
+			<div class="span6">
 				<label class="checkbox nowrap">
 					<?php
 					print_widget(
@@ -906,7 +905,38 @@ class Attendance_Record_Set
 		return $statusOptions;
 	}
 
+	public static function getOrderOptions()
+	{
+		// This set is also in the setting table - ATTENDANCE_ORDER_DEFAULT
+		return Array(
+			'status' => 'Status, then family name',
+			'family_name' => 'Family name, then age bracket',
+			'last_name'  => 'Last name',
+			'first_name' => 'First name',
+			'age_bracket' => 'Age bracket',
+		);
+	}
 
+	public static function getOrderDefault()
+	{
+		return ifdef('ATTENDANCE_ORDER_DEFAULT', 'status');
+	}
+	
+	public static function getOrderSQL($order=NULL, $status_table='ps')
+	{
+		$order_options = Array(
+			'status' => $status_table.'.`rank` ASC, family_name ASC, familyid, ab.`rank` ASC, gender DESC',
+			'family_name' => 'family_name ASC, familyid, ab.`rank` ASC',
+			'last_name'  => 'last_name ASC, first_name ASC, familyid',
+			'first_name' => 'first_name ASC, last_name ASC, familyid',
+			'age_bracket' => 'ab.`rank` ASC, family_name ASC, familyid, first_name',
+		);
+		if (!isset($order_options[$order])) {
+			trigger_error("Bad order option '$order'");
+			$order = self::getOrderDefault();
+		}
+		return $order_options[$order];
+	}
 
 
 

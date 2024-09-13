@@ -7,6 +7,7 @@ class View_Attendance__Display extends View
 	private $start_date = null;
 	private $end_date = null;
 	private $format = 'sequential';
+	private $order = NULL;
 
 	private $letters = Array(0 => 'A', 1 => 'P', '' => '?', '-1' => '');
 	private $classes = Array(0 => 'absent', 1 => 'present', '' => 'unknown', '-1' => '');
@@ -31,6 +32,7 @@ class View_Attendance__Display extends View
 				$this->start_date = array_get($_SESSION['attendance'], 'start_date', date('Y-m-d', strtotime('-7 weeks')));
 				$this->end_date = array_get($_SESSION['attendance'], 'end_date');
 				$this->format = array_get($_SESSION['attendance'], 'format');
+				$this->order =  array_get($_SESSION['attendance'], 'order', FALSE);
 			} else {
 				$this->start_date = date('Y-m-d', strtotime('-7 weeks'));
 			}
@@ -50,6 +52,7 @@ class View_Attendance__Display extends View
 			$this->start_date = $_SESSION['attendance']['start_date'] = process_widget('start_date', Array('type' => 'date'));
 			$this->end_date = $_SESSION['attendance']['end_date'] = process_widget('end_date', Array('type' => 'date'));
 			$this->format = $_SESSION['attendance']['format'] = $_REQUEST['format'];
+			$this->order = $_SESSION['attendance']['order'] = $_REQUEST['order'];
 		}
 
 		// Make sure there are no empty congregation IDs, except the first one
@@ -119,6 +122,12 @@ class View_Attendance__Display extends View
 					</td>
 				</tr>
 				<tr>
+					<th>Order&nbsp;by</th>
+					<td>
+						<?php print_widget('order', Array('type'=>'select', 'options' => Attendance_Record_Set::getOrderOptions()), $this->order); ?>
+					</td>
+				</tr>
+				<tr>
 					<th><?php echo _('Format');?></th>
 					<td>
 						<?php
@@ -184,7 +193,7 @@ class View_Attendance__Display extends View
 				return;
 			}
 		}
-		list ($dates, $attendances, $totals) = Attendance_Record_Set::getAttendances((array)$congid, $groupid, $params, $this->start_date, $this->end_date);
+		list ($dates, $attendances, $totals) = Attendance_Record_Set::getAttendances((array)$congid, $groupid, $params, $this->start_date, $this->end_date, $this->order);
 		if (empty($dates)) {
 			?>
 			<p><i><?php echo _('No attendance records found.  Try adjusting your criteria.');?></i></p>
@@ -357,7 +366,7 @@ class View_Attendance__Display extends View
 		if ($this->age_brackets) $params['(age_bracketid'] = $this->age_brackets;
 		if ($this->statuses) $params['(status'] = $this->statuses;
 		
-		$all_persons = Attendance_Record_Set::getPersonDataForCohorts($this->cohortids, $params);
+		$all_persons = Attendance_Record_Set::getPersonDataForCohorts($this->cohortids, $params, $this->order);
 		$all_dates = $all_attendances = $all_totals = $all_headcounts = Array();
 		if (!empty($this->cohortids)) {
 			foreach ($this->cohortids as $cohortid) {

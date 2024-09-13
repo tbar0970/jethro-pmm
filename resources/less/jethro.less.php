@@ -2079,21 +2079,21 @@ div.autosuggest ul li a .tl, div.autosuggest ul li a .tr {
 }
 
 /******** ATTENDANCE **********/
-.attendance-config-submit {
-	/*line-height: 100%;*/
-	vertical-align: bottom;
-	margin-bottom: 5px;
-}
 .attendance-config-table {
 	display: inline-block;
+	vertical-align: bottom;
 }
-.attendance-config-table > tbody  > tr > th {
-	padding: 10px 5px;
+.attendance-config-submit {
+	vertical-align: bottom;
+	display: inline-block;
+	padding-bottom: 10px;
+}
+.attendance-config-table > tbody > tr > td, .attendance-config-table > tbody > tr > th {
+	line-height: 30px !important;
+	padding-bottom: 4px;
 }
 .attendance-config-table > tbody > tr > td {
-	padding: 5px !important;
-}
-.attendance-config-table > tbody > tr:last-child > td, .attendance-config-table > tbody  > tr:last-child > th {
+	min-width: 300px;
 }
 @media (max-width: 640px) {
 	.attendance-config-table {
