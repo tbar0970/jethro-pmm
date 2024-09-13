@@ -848,8 +848,8 @@ class roster_view extends db_object
 							}
 							$dummy_service->populate($ddetail['service'][$mdetail['congregationid']]['id'], $ddetail['service'][$mdetail['congregationid']]);
 							$dummy_service->printFieldvalue($mdetail['service_field'], NULL, $printable);
-							echo '</td>';
 						}
+						echo '</div>';
 					}
 					?>
 					</td>
