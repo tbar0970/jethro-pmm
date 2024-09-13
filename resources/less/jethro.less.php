@@ -1543,6 +1543,9 @@ table.roster input.clash, table.roster select.clash {
 	background: #ccffcc;
 	outline: 3px solid #ccffcc;
 }
+#body table.roster div.service-field-summary, #body table.roster div[class^='service-field-bible'] {
+	max-width: 22ex !important;
+}
 
 /****** SERVICE PROGRAM ****/
 
