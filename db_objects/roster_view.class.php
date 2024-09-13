@@ -615,6 +615,15 @@ class roster_view extends db_object
 	}
 
 
+	/**
+	 *
+	 * @param string $start_date
+	 * @param string $end_date
+	 * @param boolean $editing Whether to show the editable version
+	 * @param boolean $public Whether we are showing on the public site
+	 * @param boolean $printable Whether to show the printable version
+	 * @return int	Count of the number of rows(dates) displayed.
+	 */
 	function printView($start_date=NULL, $end_date=NULL, $editing=FALSE, $public=FALSE, $printable=FALSE)
 	{
 		if (empty($this->_members)) return;
@@ -871,6 +880,8 @@ class roster_view extends db_object
 			</form>
 			<?php
 		}
+
+		return count(array_keys($to_print));
 	}
 
 	function _printTableHeader($editing, $public)
@@ -1111,6 +1122,10 @@ class roster_view extends db_object
 				ORDER BY assignment_count DESC
 				';
 		$res = $db->queryAll($SQL);
+		if (empty($res)) {
+			echo '<i>('._('None').')</i>';
+			return;
+		}
 
 		?>
 		<table class="table roster-analysis table-bordered table-condensed table-auto-width table-compact">

@@ -50,12 +50,10 @@ class View_Rosters__Display_Roster_Assignments extends View
 	{
 		$this->_printParams();
 		if ($this->_view) {
-			$this->_view->printView($this->_start_date, $this->_end_date, $this->_editing);
-			if (!$this->_editing) {
-				$duration_days = (strtotime($this->_end_date) - strtotime($this->_start_date)) / (60 * 60 * 24);
-				$duration_weeks = ceil($duration_days / 7);
+			$serviceCount = $this->_view->printView($this->_start_date, $this->_end_date, $this->_editing);
+			if ($serviceCount && !$this->_editing) {
 				if (!ifdef('ROSTERS_HIDE_ANALYSIS')) {
-					echo '<h4>People assigned on more than one date in this '.$duration_weeks.' week period:</h4>';
+					echo '<h4>People assigned more than once in the '.$serviceCount.' dates above:</h4>';
 					$this->_view->printAnalysis($this->_start_date, $this->_end_date);
 				}
 			}
