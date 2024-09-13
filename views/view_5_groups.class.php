@@ -48,7 +48,7 @@ class View_Groups extends View
 					<td class="hidden-phone"><?php $this->_group->printFieldValue('attendance_recording_days'); ?></td>
 					<td class="align-right">
 						<?php
-						if ($GLOBALS['user_system']->havePerm(PERM_EDITATTENDANCE)) {
+						if ($GLOBALS['user_system']->havePerm(PERM_EDITATTENDANCE) && $this->_group->getValue('attendance_recording_days')) {
 							?>
 							<a class="link-collapse"
 							   href="?view=attendance__record&cohortids[]=g-<?php echo $this->_group->id; ?>">
