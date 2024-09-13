@@ -1105,6 +1105,7 @@ class roster_view extends db_object
 
 	public function printAnalysis($start, $end)
 	{
+		if (!$this->getRoleIDs()) return;
 		$db = JethroDB::get();
 		$SQL = '
 				SELECT personid, first_name, last_name,
