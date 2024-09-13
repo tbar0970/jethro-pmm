@@ -179,7 +179,7 @@ class Person_Group extends db_object
 
 	function addMember($personid, $membership_status=NULL, $overwrite_existing=FALSE)
 	{
-		if (!$GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
+		if (!$GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
 			trigger_error("You do not have permission to add group members");
 			return FALSE;
 		}
@@ -211,7 +211,7 @@ class Person_Group extends db_object
 
 	function removeMember($personid)
 	{
-		if (!$GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
+		if (!$GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
 			trigger_error("You do not have permission to remove group members");
 			return FALSE;
 		}
@@ -229,7 +229,7 @@ class Person_Group extends db_object
 
 	function removeMembers($personids)
 	{
-		if (!$GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
+		if (!$GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
 			trigger_error("You do not have permission to remove group members");
 			return FALSE;
 		}

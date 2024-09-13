@@ -8,7 +8,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 		<select id="bulk-action-chooser" class="no-autofocus">
 			<option><?php echo _('-- Choose Action --')?></option>
 				<?php
-				if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
+				if ($GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
 					?>
 					<option value="update-field"><?php echo _('Set field(s)')?></option>
 					<?php
@@ -60,7 +60,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 				?>
 	</select>
 	<?php
-	if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
+	if ($GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
 		?>
 		<span class="bulk-action" id="remove-from-group">
 			<input type="submit" class="btn " value="Go" data-set-form-action="<?php echo BASE_URL; ?>?view=_edit_group&action=remove_members&groupid=<?php echo $groupid; ?>" />

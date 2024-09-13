@@ -112,6 +112,11 @@ WHERE
    /* archived persons can only see themselves, not any family members */
 ;
 
+
+-- Grant 'Groups - add/edit/delete' (1024) to everyone who had 'Persons & Families - add/edit' (1) and lacked it previously.
+-- See https://github.com/tbar0970/jethro-pmm/issues/1075
+update staff_member set permissions = permissions | 1024 where 1 = (permissions & 1) and 0 = (permissions & 1024) ;
+
 -- Fix duplicate roster role assignment ranks (https://github.com/tbar0970/jethro-pmm/issues/1078).
 UPDATE roster_role_assignment rra
 INNER JOIN

@@ -10,7 +10,7 @@ class View__Edit_Group extends Abstract_View_Edit_Object
 
 	static function getMenuPermissionLevel()
 	{
-		return PERM_EDITPERSON;
+		return PERM_EDITGROUP;
 	}
 
 	function __construct()
