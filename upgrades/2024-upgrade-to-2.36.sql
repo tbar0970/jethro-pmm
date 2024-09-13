@@ -112,4 +112,20 @@ WHERE
    /* archived persons can only see themselves, not any family members */
 ;
 
+-- Fix duplicate roster role assignment ranks (https://github.com/tbar0970/jethro-pmm/issues/1078).
+UPDATE roster_role_assignment rra
+INNER JOIN
+  -- Use row_number() window function to compute the correct rank
+  (SELECT *,
+          (row_number() OVER (PARTITION BY assignment_date,
+                                           roster_role_id
+                              ORDER BY rank ASC) - 1) AS correctrank
+   FROM roster_role_assignment
+   ) a ON rra.assignment_date = a.assignment_date
+AND rra.roster_role_id = a.roster_role_id
+AND rra.personid = a.personid
+SET rra.rank = a.correctrank
+WHERE rra.rank != a.correctrank;
 
+-- Relating to the #1078 fix above: ensure that every role (roster_role_id) assigned on a given date (assignment_date) has a distinct rank.
+ALTER TABLE roster_role_assignment ADD CONSTRAINT unique_role_assignment UNIQUE (assignment_date, roster_role_id, rank);
