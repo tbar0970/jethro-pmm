@@ -54,25 +54,42 @@ $GLOBALS['user_system'] = new User_System();
 $GLOBALS['user_system']->setCLIScript();
 
 $ini = parse_ini_file($_SERVER['argv'][1]);
+
+function getvar($name, $default = null) {
+	global $ini;	// Access the $ini array from the global scope
+	if (!isset($ini[$name])) {
+		if ($default === null) {
+			trigger_error("$name is required", E_USER_ERROR);
+		} else {
+			return $default;
+		}
+	}
+	return $ini[$name];
+}
+
 //this is a bit verbose - to aid with fault-finding/testing
-$messagetype=$ini['MESSAGE_TYPE'];
+$messagetype=getvar('MESSAGE_TYPE');
 $sendemail=($messagetype==='email') || ($messagetype==='both');
 $sendsms=($messagetype==='sms') || ($messagetype==='both');
-$roster_coordinator=$ini['ROSTER_COORDINATOR'];
-$roster_coordinator_id=$ini['ROSTER_COORDINATOR_ID'];
-$roster_id=$ini['ROSTER_ID'];
-$pre_message=$ini['PRE_MESSAGE'];
-$post_message=$ini['POST_MESSAGE'];
-$email_from=$ini['EMAIL_FROM'];
-$email_from_name=$ini['EMAIL_FROM_NAME'];
-$email_subject=$ini['EMAIL_SUBJECT'];
-$list_not_table=$ini['LIST_NOT_TABLE'];
-$include_roster_content=array_get($ini, 'INCLUDE_ROSTER_CONTENT', 1);
-//
-$debug=$ini['DEBUG'];
-$verbose=$ini['VERBOSE'];
-$phpMail=$ini['PHP_MAIL'];
-//
+if ($sendemail) {
+	$roster_coordinator=getvar('ROSTER_COORDINATOR');
+	$list_not_table=getvar('LIST_NOT_TABLE');
+	$email_from_name=getvar('EMAIL_FROM_NAME');
+	$email_from=getvar('EMAIL_FROM');
+	$email_subject=getvar('EMAIL_SUBJECT');
+	$phpMail=getvar('PHP_MAIL', 0);
+}
+if ($sendsms) {
+	$roster_coordinator_id=getvar('ROSTER_COORDINATOR_ID');
+	$smsfrom = getvar('SMS_FROM');
+}
+$include_roster_content=getvar('INCLUDE_ROSTER_CONTENT', 1);
+$roster_id=getvar('ROSTER_ID');
+$pre_message=getvar('PRE_MESSAGE');
+$post_message=getvar('POST_MESSAGE', '');
+$debug=getvar('DEBUG', 0);
+$verbose=getvar('VERBOSE', 0);
+
 //setup the includes etc
 //
 require_once JETHRO_ROOT.'/include/system_controller.class.php';
@@ -123,8 +140,7 @@ if (count($roster_array) > 2) {
 $assignees=$view->getAssignees($start_date, $end_date);
 
 if ($sendsms) { // make the sms message!
-	!empty($ini['SMS_FROM']) || trigger_error("SMS_FROM (the mobile number SMS notifications will appear to come from) is required", E_USER_ERROR);
-	define('OVERRIDE_USER_MOBILE', $ini['SMS_FROM']);
+	define('OVERRIDE_USER_MOBILE', $smsfrom);
 	$sms_notification = "No SMS Notification was sent for " . $roster_name . ". There were no people assigned.\n";
 
 	ctype_digit($roster_coordinator_id) || trigger_error("ROSTER_COORDINATOR_ID must be an integer ID referencing a _person record", E_USER_ERROR);
