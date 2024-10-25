@@ -55,6 +55,12 @@ if ($sqlMode = ifdef('SQL_MODE')) {
 
 Config_Manager::init();
 
+// The session we're about to create should not be GC'ed by PHP until at least SESSION_TIMEOUT_MINS have elapsed.
+// The default 'session.gc_maxlifetime' is 24 minutes, so we need to override it.
+if (defined('SESSION_TIMEOUT_MINS')) {
+	@ini_set('session.gc_maxlifetime', SESSION_TIMEOUT_MINS*60);
+}
+
 // If max length is set, set the cookie timeout - this will allow sessions to outlast browser invocations
 $expiryTime = defined('SESSION_MAXLENGTH_MINS') ? SESSION_MAXLENGTH_MINS * 60 : NULL;
 session_set_cookie_params($expiryTime, parse_url(BASE_URL, PHP_URL_PATH));
