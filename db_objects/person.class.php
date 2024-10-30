@@ -973,15 +973,6 @@ class Person extends DB_Object
 				</div>
 				<?php
 				break;
-			/*case 'age_bracketid':
-				// We look up and apply the default value at this point, 'just in time', so as to avoid
-				// a DB query every time a person object is created.
-				if (!$this->id) {
-					$defaults = $GLOBALS['system']->getDBObjectData('age_bracket', Array('is_default' => 1));
-					$default = key($defaults);
-					$this->values['age_bracketid'] = $default;
-				}*/
-				// intentional fallthrough.
 			case 'congregationid':
 				$stats = $GLOBALS['system']->getDBOBjectData('person_status', Array('active'=> 1));
 				foreach ($stats as $id => $details) {
