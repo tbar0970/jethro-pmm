@@ -5,6 +5,7 @@ class View__Mixed_Search extends View
 	private $_person_data = Array();
 	private $_group_data = Array();
 	private $_report_data = Array();
+	private $_search_params = Array();
 
 	function processView()
 	{
