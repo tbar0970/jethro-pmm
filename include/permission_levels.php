@@ -3,7 +3,7 @@
 /* WARNING: These numbers are referenced in the 2.28 upgrade script and installer */
 
 $PERM_LEVELS = Array(
-1 =>		Array('EDITPERSON',			'Persons & Families - add/edit/group',	''),
+1 =>		Array('EDITPERSON',			'Persons & Families - add/edit',	''),
 
 2 =>		Array('SENDSMS',			'SMS/Mailchimp - send',							''),
 

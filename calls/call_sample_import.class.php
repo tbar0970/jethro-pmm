@@ -19,8 +19,11 @@ class Call_Sample_Import extends Call
 		foreach ($congs as $id => $detail) {
 			$congs[$id] = $detail['name'];
 		}
-		$statuses = Person::getStatusOptions();
-		array_pop($statuses); // remove archived
+		$statuses = Person_Status::getActive(FALSE);
+		$first_status = reset($statuses);
+		$first_status = $first_status['label'];
+		$last_status = end(statuses);
+		$last_status = $last_status['label'];
 		$age_brackets = $GLOBALS['system']->getDBObjectData('age_bracket', Array(), 'OR', 'rank');
 		$default_age_bracket = '';
 		$child_age_bracket = '';
@@ -39,7 +42,7 @@ class Call_Sample_Import extends Call
 				'last_name' => 'Luther',
 				'first_name' => 'Martin',
 				'congregation' => reset($congs),
-				'status' => reset($statuses),
+				'status' => $first_status,
 				'gender' => 'male',
 				'age_bracket' => $default_age_bracket,
 				'email' => 'mluther@wittenberg.edu.de',
@@ -58,7 +61,7 @@ class Call_Sample_Import extends Call
 				'last_name' => 'von Bora',
 				'first_name' => 'Katherine',
 				'congregation' => reset($congs),
-				'status' => reset($statuses),
+				'status' => $first_status,
 				'gender' => 'female',
 				'age_bracket' => $default_age_bracket,
 				'email' => 'katievb1517@gmail.com',
@@ -77,7 +80,7 @@ class Call_Sample_Import extends Call
 				'last_name' => 'Luther',
 				'first_name' => 'Hans',
 				'congregation' => reset($congs),
-				'status' => reset($statuses),
+				'status' => $first_status,
 				'gender' => 'male',
 				'age_bracket' => $child_age_bracket,
 				'email' => '',
@@ -95,7 +98,7 @@ class Call_Sample_Import extends Call
 				'last_name' => 'Luther',
 				'first_name' => 'Elizabeth',
 				'congregation' => reset($congs),
-				'status' => reset($statuses),
+				'status' => $first_status,
 				'gender' => 'female',
 				'age_bracket' => $child_age_bracket,
 				'email' => '',
@@ -113,7 +116,7 @@ class Call_Sample_Import extends Call
 				'last_name' => 'Calvin',
 				'first_name' => 'John',
 				'congregation' => end($congs),
-				'status' => end($statuses),
+				'status' => $last_status,
 				'gender' => 'male',
 				'age_bracket' => $default_age_bracket,
 				'email' => 'jcalvin@geneva.gov.ch',
@@ -131,7 +134,7 @@ class Call_Sample_Import extends Call
 				'last_name' => 'de Bure',
 				'first_name' => 'Idelette',
 				'congregation' => end($congs),
-				'status' => end($statuses),
+				'status' => $last_status,
 				'gender' => 'female',
 				'age_bracket' => $default_age_bracket,
 				'email' => 'idelette1540@hotmail.com',

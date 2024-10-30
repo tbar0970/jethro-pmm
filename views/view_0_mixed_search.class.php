@@ -149,7 +149,7 @@ class View__Mixed_Search extends View
 			$lastFamilyID = 0;
 			$indent = '';
 			foreach ($this->_person_data as $id => $values) {
-				if (($values['status'] == 'archived') !== $archivedStatus) continue;
+				if (in_array($values['status'], Person_Status::getArchivedIDs()) !== $archivedStatus) continue;
 				if ($lastFamilyID != $values['familyid']) $indent = '';
 				if (isset($this->_family_data[$values['familyid']])) {
 					$this->_printFamilyRow($values['familyid'], $this->_family_data[$values['familyid']]);

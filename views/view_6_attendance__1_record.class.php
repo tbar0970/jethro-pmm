@@ -13,6 +13,7 @@ class View_Attendance__Record extends View
 
 	private $_show_photos = FALSE;
 	private $_parallel_mode = FALSE;
+	private $_order = NULL;
 
 	static function getMenuPermissionLevel()
 	{
@@ -56,6 +57,7 @@ class View_Attendance__Record extends View
 				$this->_cohortids = array_get($_SESSION['attendance'], 'cohortids');
 				$this->_show_photos =  array_get($_SESSION['attendance'], 'show_photos', FALSE);
 				$this->_parallel_mode =  array_get($_SESSION['attendance'], 'parallel_mode', FALSE);
+				$this->_order =  array_get($_SESSION['attendance'], 'order', FALSE);
 			}
 		}
 
@@ -67,10 +69,11 @@ class View_Attendance__Record extends View
 			$this->_statuses = $_SESSION['attendance']['statuses'] = array_get($_REQUEST, 'statuses');
 			$this->_show_photos = $_SESSION['attendance']['show_photos'] = array_get($_REQUEST, 'show_photos', FALSE);
 			$this->_parallel_mode = $_SESSION['attendance']['parallel_mode'] = array_get($_REQUEST, 'parallel_mode', FALSE);
+			$this->_order = $_SESSION['attendance']['order'] = array_get($_REQUEST, 'order', Attendance_Record_Set::getOrderDefault());
 		}
 
 		foreach ($this->_cohortids as $id) {
-			$this->_record_sets[$id] = new Attendance_Record_set($this->_attendance_date, $id, $this->_age_brackets, $this->_statuses);
+			$this->_record_sets[$id] = new Attendance_Record_set($this->_attendance_date, $id, $this->_age_brackets, $this->_statuses, $this->_order);
 			if ($this->_show_photos) $this->_record_sets[$id]->show_photos = TRUE;
 		}
 
@@ -111,13 +114,13 @@ class View_Attendance__Record extends View
 					} else {
 						if ($set->processForm($i)) {
 							$set->save();
-							if ((int)$set->congregationid) {
-								Headcount::save('congregation', $this->_attendance_date, $set->congregationid, $_REQUEST['headcount']['congregation'][$set->congregationid]);
-							} else {
-								Headcount::save('person_group', $this->_attendance_date, $set->groupid, $_REQUEST['headcount']['group'][$set->groupid]);
-							}
-							$set->releaseLock();
 						}
+						if ((int)$set->congregationid) {
+							Headcount::save('congregation', $this->_attendance_date, $set->congregationid, $_REQUEST['headcount']['congregation'][$set->congregationid]);
+						} else {
+							Headcount::save('person_group', $this->_attendance_date, $set->groupid, $_REQUEST['headcount']['group'][$set->groupid]);
+						}
+						$set->releaseLock();
 					}
 				}
 			} else {
@@ -147,12 +150,12 @@ class View_Attendance__Record extends View
 	{
 		// STEP 1 - choose congregation and date
 		?>
-		<form method="get" class="well well-small clearfix form-inline">
+		<form method="get" class="well well-small clearfix form-inline attendance-config-container">
 			<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
 			<table class="attendance-config-table">
 				<tr>
 					<th><?php echo _('For');?></th>
-					<td colspan="2" style="min-width: 240px">
+					<td colspan="2">
 						<?php
 						Attendance_Record_Set::printPersonFilters($this->_age_brackets, $this->_statuses);
 						?>
@@ -181,17 +184,27 @@ class View_Attendance__Record extends View
 						print_widget('attendance_date', Array('type' => 'date'), $this->_attendance_date); ?>
 					</td>
 				</tr>
+				<tr>
+					<th>Order&nbsp;by</th>
+					<td>
+						<?php print_widget('order', Array('type'=>'select', 'options' => Attendance_Record_Set::getOrderOptions()), $this->_order); ?>
+					</td>
+				</tr>
 			<?php
-			if ($GLOBALS['system']->featureEnabled('PHOTOS')) {
+			if ($GLOBALS['system']->featureEnabled('PHOTOS') || !SizeDetector::isNarrow()) {
 				?>
 				<tr>
 					<th></th>
 					<td>
+					<?php
+					if ($GLOBALS['system']->featureEnabled('PHOTOS')) {
+						?>
 						<label class="checkbox">
 							<input type="checkbox" name="show_photos" value="1" <?php if ($this->_show_photos) echo 'checked="checked"'; ?> />
 							<?php echo _('Show photos');?>
 						</label>
-					<?php
+						<?php
+					}
 					if (!SizeDetector::isNarrow()) {
 						?>
 						<br />
@@ -208,7 +221,9 @@ class View_Attendance__Record extends View
 			}
 			?>
 			</table>
-			<button type="submit" class="btn attendance-config-submit"><?php echo _('Continue');?> <i class="icon-chevron-right"></i></button>
+			<div class="attendance-config-submit">
+				<button type="submit" class="btn"><?php echo _('Continue');?> <i class="icon-chevron-right"></i></button>
+			</div>
 			<input type="hidden" name="params_submitted" value="1" />
 		</form>
 		<?php
@@ -263,9 +278,9 @@ class View_Attendance__Record extends View
 		if ($this->_statuses) {
 			$params['(status'] = $this->_statuses;
 		} else {
-			$params['!status'] = 'archived';
+			$params['!(status'] = Person_Status::getArchivedIDs();
 		}
-		$totalPersons = Attendance_Record_Set::getPersonDataForCohorts($this->_cohortids, $params);
+		$totalPersons = Attendance_Record_Set::getPersonDataForCohorts($this->_cohortids, $params, $this->_order);
 		$totalPrinted = 0;
 		$cancelURL = build_url(Array('*' => NULL, 'view' => 'attendance__record', 'cohortids' => $this->_cohortids, 'attendance_date' => $this->_attendance_date, 'release' => 1));
 		$dummy = new Person();

@@ -16,7 +16,7 @@ $(document).ready(function() {
 		// native autofocus is not supported, or no element is using it
 		if ($('.initial-focus, .autofocus, [autofocus]').length) {
 			setTimeout("$('.initial-focus, .autofocus, [autofocus]').get(0).focus()", 200);
-		} else {
+		} else if (document.location.hash.length == 0) {
 			// Focus the first visible input
 			setTimeout("try { $('body input[type!=checkbox]:visible, select:visible').not('.btn-link, [type=checkbox], [type=radio], [type=submit]').not('.no-autofocus *, .no-autofocus').get(0).focus(); } catch (e) {}", 200);
 		}
@@ -41,7 +41,8 @@ $(document).ready(function() {
 		// The submit button itself will be disabled on submit, so we
 		// create a hidden element to preserve its value in the request
 		var h = '<input type="hidden" name="'+this.name+'" value="'+this.value+'" />';
-		$(this).after(h);
+		$(this).addClass('submit-in-progress').after(h);
+
 	})
 
 	//// POPUPS ETC ////
@@ -525,7 +526,8 @@ TBLib.medLinkPopupWindow = null;
 TBLib.handleMedPopupLinkClick = function(elt)
 {
 	if (!elt.href) elt = this;
-	TBLib.medLinkPopupWindow = window.open(elt.href, elt.target ? elt.target : 'medpopup', 'height=480,width=750,resizable=yes,scrollbars=yes');
+	var myWidth = Math.max(500, (screen.width/2));
+	TBLib.medLinkPopupWindow = window.open(elt.href, elt.target ? elt.target : 'medpopup', 'height=480,width='+myWidth+',resizable=yes,scrollbars=yes');
 	if (TBLib.medLinkPopupWindow) {
 		TBLib.medLinkPopupWindow.focus();
 	} else {

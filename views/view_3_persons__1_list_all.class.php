@@ -18,7 +18,7 @@ class View_Persons__List_All extends View
 			// Put all the archived ones last
 			$archiveds = Array();
 			foreach ($this->_person_data as $k => $v) {
-				if ($v['status'] == 'archived') {
+				if (in_array($v['status'], Person_Status::getArchivedIDs())) {
 					$archiveds[$k] = $v;
 					unset($this->_person_data[$k]);
 				}
@@ -30,7 +30,7 @@ class View_Persons__List_All extends View
 
 			$params = Array();
 			if (empty($_REQUEST['show_archived'])) {
-				$params['!status'] = 'archived';
+				$params['!(status'] = Person_Status::getArchivedIDs();
 			}
 			if (empty($_SESSION['total_persons'])) {
 				$_SESSION['total_persons'] = $GLOBALS['db']->queryOne('SELECT count(*) from person');

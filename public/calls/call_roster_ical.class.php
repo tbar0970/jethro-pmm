@@ -23,7 +23,7 @@ class Call_Roster_Ical extends Call
 			exit;
 		}
 		
-		$assignments = Roster_Role_Assignment::getUpcomingAssignments($personid, "8 weeks");
+		$assignments = Roster_Role_Assignment::getUpcomingAssignments($personid, NULL);
 		
 		header('Content-type: text/calendar');
 		header('Content-Disposition: inline; filename=roster.ics');

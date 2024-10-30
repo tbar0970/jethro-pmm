@@ -1029,14 +1029,24 @@ class db_object
 		$res['from'] = $this->_getTableNames();
 		$wheres = Array();
 		foreach ($params as $field => $val) {
-			$operator = is_array($val) ? 'IN' : (((FALSE === strpos($val, '%')) && (FALSE === strpos($val, '?'))) ? '=' : 'LIKE');
-				$prefix = '';
-				$suffix = '';
+			switch (TRUE) {
+				case ($val === NULL):
+					$operator = 'IS'; break;
+				case (is_array($val)):
+					$operator = 'IN'; break;
+				case ((FALSE !== strpos($val, '%')) || (FALSE !== strpos($val, '?'))):
+					$operator = 'LIKE'; break;
+				default:
+					$operator = '=';
+			}
+			$prefix = '';
+			$suffix = '';
 			if ($field[0] == '!') {
 				$prefix = 'NOT (';
 				$field = substr($field, 1);
 				$suffix = ')';
-			} else if ($field[0] == '<') {
+			}
+			if ($field[0] == '<') {
 				$operator = '<';
 				$field = substr($field, 1);
 				if ($field[0] == '=') {

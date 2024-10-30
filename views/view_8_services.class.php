@@ -95,7 +95,19 @@ class View_services extends View
 
 	function getTitle()
 	{
+		if ($this->service) {
+			if ($this->editing) {
+				return 'Editing service';
+			} else {
+				return 'Viewing service';
+			}
+		}
 		return NULL;
+	}
+
+	function getPageHeading()
+	{
+		return '';
 	}
 
 	function printView()
@@ -514,7 +526,7 @@ class View_services extends View
 						 id="cat<?php echo (int)$catid; ?>">
 						<div class="comps-table-container">
 
-						<table style="display: none" class="table table-bordered table-condensed"
+						<table style="display: none" class="table table-bordered table-condensed table-sortable"
 							   title="Double-click or drag to add to service">
 							<thead>
 								<tr>

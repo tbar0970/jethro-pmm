@@ -27,7 +27,10 @@ class View_Admin__Congregations extends View
 	{
 		?>
 		<p class="text alert alert-info">
-			Congregations are Jethro's primary grouping for <a href="?view=persons__list_all">persons</a> and <a href="?view=services__list_all">services</a>. Each person, and each service, belongs to <b>one</b> congregation (though contacts can be congregation-less). You can configure whether each congregation contains persons, services, or both. Depending on your church's structure, you might choose to put all your persons in one big congregation and use <a href="">person groups</a> for further categorisation.
+			Congregations are Jethro's primary grouping for <a href="?view=persons__list_all">persons</a> and <a href="?view=services__list_all">services</a>. 
+			Each person belongs to <b>one</b> congregation, unless their <a href="?view=admin__system_configuration#PERSON_STATUS_OPTIONS">person status</a> allows them to be congregation-less.
+			Each service belongs to one congregation.
+			You can configure whether each congregation contains persons, services, or both. Depending on your church's structure, you might choose to put all your persons in one big congregation and use <a href="">person groups</a> for further categorisation.
 		</p>
 		<p>
 			<a href="?view=_add_congregation"><i class="icon-plus-sign"></i>Add New Congregation</a>

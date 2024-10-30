@@ -29,7 +29,7 @@ if ($plan_chooser) {
 $can_add_group = FALSE;
 $GLOBALS['system']->includeDBClass('person_group');
 $groups = Person_Group::getGroups($person->id, TRUE);
-if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
+if ($GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
 	?>
 	<div id="add-group-modal" class="modal hide fade" role="dialog" aria-hidden="true">
 		<form method="post">
@@ -302,11 +302,13 @@ if (isset($tabs['groups'])) {
 				}
 				?>
 					<td>
+                        <?php if ($can_add_group) { ?>
 						<a data-method="post" class="link-collapse confirm-title"
 						   href="?view=_edit_group&action=remove_member&groupid=<?php echo $id; ?>&back_to=persons&personid=<?php echo $person->id; ?>"
 						   title="Remove <?php $person->printFieldValue('name'); ?> from <?php echo ents($details['name']); ?>">
 							<i class="icon-remove-sign"></i><?php echo _('Remove')?>
 						</a>
+						<?php } ?>
 					</td>
 				</tr>
 				<?php
@@ -367,7 +369,7 @@ if (isset($tabs['accounts'])) {
 	} else {
 		if ($sm) {
 			echo '<i>'.$person->toString().' has not registered a members area account, but can log into the members area using their control centre password.</i>';
-		} else if ($person->getValue('status') == 'archived') {
+		} else if (in_array($person->getValue('status'), Person_Status::getArchivedIDs())) {
 			echo '<i>'.$person->toString().' has not yet registered a members area account, and cannot register because they are archived. </i>';
 		} else if (!strlen($person->getValue('email'))) {
 			echo '<i>'.$person->toString().' must have an email address recorded to register for a member account. </i>';
@@ -398,7 +400,8 @@ if (isset($tabs['attendance'])) {
 
 	printf($panel_header, 'attendance', _('Attendance'), '');
 
-	$attendances = $person->getAttendance(date('Y-m-d', strtotime('-12 weeks')));
+	$weeks = SizeDetector::isNarrow() ? 8 : 13;
+	$attendances = $person->getAttendance(date('Y-m-d', strtotime('-'.$weeks.' weeks')));
 	if (empty($attendances)) {
 		?>
 		<p><i><?php echo _('No attendance has been recorded for ')?><?php $person->printFieldValue('name'); ?></i></p>

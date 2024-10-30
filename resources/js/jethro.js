@@ -65,13 +65,24 @@ $(document).ready(function() {
 		}
 	});
 	
-	$('#password-toggle').click(function() {
+	$('#change-password-toggle').click(function() {
 		if (this.checked) {
 			$('#new-password-fields input[type=password]').focus();
 		} else {
 			$('#new-password-fields input[type=password]').val('');
 		}
 	});
+	$('#password-visible-toggle').click(function() {
+		var i = $(this).siblings('input').get(0);
+		if (i.type == 'password') {
+			i.type = 'text';
+			$(this).find('.icon-eye-open').removeClass('icon-eye-open').addClass('icon-eye-close');
+		} else {
+			i.type = 'password';
+			$(this).find('.icon-eye-close').removeClass('icon-eye-close').addClass('icon-eye-open');
+
+		}
+	})
 			
 
 
@@ -108,12 +119,26 @@ $(document).ready(function() {
 		var title = $('[name=title]').val();
 		if (title == '') return false;
 		var url = this.href.replace('__TITLE__', title);
-		var ccliWindow = window.open(url, 'ccli', 'height=320,width=800,location=no,menubar=no,titlebar=no,toolbar=no,resizable=yes,statusbar=no,scrollbars=yes');
+		var ccliWindow = window.open(url, 'ccli', 'height='+(screen.height-100)+',width='+(screen.width/2)+',left='+(screen.width/2)+',top=0location=no,menubar=no,titlebar=no,toolbar=no,resizable=yes,statusbar=no,scrollbars=yes');
 		if (!ccliWindow) {
 			alert('Jethro tried but could not open a popup window - you probably have a popup blocker enabled.  Please disable your popup blocker for this site, reload the page and try again.');
 		}
 		return false;
 	});
+
+	$('table.component-usage a.ccli-report').click(function() {
+		$(this).next('span').css('visibility', 'visible');
+		$('tr.hovered').removeClass('hovered');
+		$(this).parents('tr').addClass('hovered');
+		window.CCLIPopup = window.open(this.href, 'ccli-popup', 'height='+screen.height+',width='+(screen.width/2)+',left='+(screen.width/2)+',top=0,resizable=yes,scrollbars=yes');
+		if (window.CCLIPopup) {
+			window.CCLIPopup.focus();
+		} else {
+			alert('Jethro tried but could not open a popup window - you probably have a popup blocker enabled.  Please disable the popup blocker for this site, reload the page and try again.');
+		}
+		return false;
+
+	})
 
 	$('a.map').click(function() {
 		var mapWindow = window.open(this.href, 'map', 'height='+parseInt($(window).height()*0.9, 10)+',width='+parseInt($(window).width()*0.9, 10)+',location=no,menubar=no,titlebar=no,toolbar=no,resizable=yes,statusbar=no');
@@ -472,6 +497,13 @@ $(document).ready(function() {
 
 	JethroSMS.init();
 
+	$('table.table-sortable').stupidtable().bind('aftertablesort', function(event, data) {
+		$(this).find('th .icon-arrow-up, th .icon-arrow-down').remove();
+		var cn = (data.direction === "asc") ? 'up' : 'down';
+		$(this).find('th').eq(data.column).append('<i class="icon-arrow-'+cn+'"></i>');
+	})
+
+
 	$('select.merge-template').change(function() {
 		$('#merge-template-upload')[(this.value == '__NEW__') ? 'show' : 'hide']();
 		if (this.value == '__NEW__') $('#merge-template-upload input[type=file]').click();
@@ -631,18 +663,7 @@ var JethroSMS = {};
 JethroSMS.init = function() {
 
 	// SMS Character counting
-	$('.smscharactercount').parent().find('textarea, div.sms_editor').on('keyup propertychange paste', function() {
-		var maxlength = (this.tagName == 'DIV') ? $(this).attr("data-maxlength") : $(this).attr('maxlength');
-		var rawtext = (this.tagName == 'DIV') ? $(this).text() : this.value;
-	        var wideCharacterCount = rawtext.length - rawtext.replace (/\^|\||\{|\}|\�~B�|\[|\]|\~|\\/g,'').length; // These characters cost 2 characters in GSM 03.38
-        	var currentLength = rawtext.length + wideCharacterCount;
-		var chars = maxlength - currentLength;
-		if (chars <= 0 && this.tagName == 'DIV') {
-			$(this).val($(this).text().substring(0, maxlength));
-			chars = 0;
-		}
-		$(this).parent().find('.smscharactercount').html(chars + ' characters remaining.');
-	});
+	$('.smscharactercount').parent().find('textarea').on('keyup propertychange paste', JethroSMS.updateCharCount);
 
 	$(document).on('click', '[data-toggle="sms-modal"]', function(e) {
 		var $this = $(this)
@@ -654,9 +675,8 @@ JethroSMS.init = function() {
 		var $personid = $this.attr('data-personid');
 
 		$("#send-sms-modal .sms_recipients").html($recipients);
-		$("#sms_message").text(""); // Empty the textarea in case of reuse
+		$("#sms_message").val(""); // Empty the textarea in case of reuse
 		$("#send-sms-modal .results").html(""); // Empty in case of reuse
-		$('#send-sms-modal .smscharactercount').html($("#sms_message").attr("data-maxlength") + ' characters remaining.'); // reset character count
 
 		if (!!$personid) {
 			$("#send-sms-modal").attr("data-sms_type", "person");
@@ -666,9 +686,13 @@ JethroSMS.init = function() {
 			$target.modal(option).one('hide', function() {
 				$this.focus()
 			})
+			$target.on('shown', function() { $("#sms_message").select(); })
 		} else {
 			alert('No SMS recipients found');
 		}
+		JethroSMS.updateCharCount.apply($("#sms_message").get(0));
+		
+
 	});
 
 	$('.bulk-sms-submit').click(function(event) {
@@ -723,7 +747,7 @@ JethroSMS.init = function() {
 		resultsDiv.hide();
 
 		var modalDiv = $("#send-sms-modal");
-		var sms_message = $("#sms_message").text();
+		var sms_message = $("#sms_message").val();
 		if (!sms_message) {
 			alert("Please enter a message first.");
 			return false;
@@ -773,6 +797,60 @@ JethroSMS.init = function() {
 			return false;
 		}
 	});
+}
+
+JethroSMS.focusedTextbox = null;
+JethroSMS.personListenerInited = false;
+
+JethroSMS.setFocusedTextbox = function(box) {
+	JethroSMS.focusedTextbox = box;
+	if (!JethroSMS.personListenerInited) {
+		JethroSMS.personListenerInited = true;
+		$("input[name='personid[]'], input.select-all").click(function() {
+			JethroSMS.updateCharCount.apply(JethroSMS.focusedTextbox);
+		});
+	}
+}
+
+JethroSMS.updateCharCount = function() {
+	JethroSMS.setFocusedTextbox(this);
+	var maxlength = $(this).attr('maxlength');
+	var rawtext = this.value;
+	// Count the "extended" characters that use 2 bytes in GSM 03.38 https://en.wikipedia.org/wiki/GSM_03.38
+	var wideCharacterCount = rawtext.replace(/[^€~{}^|\[\]\\]/g,'').length;
+	var currentLength = rawtext.length + wideCharacterCount;
+	var charsRemain = maxlength - currentLength;
+	var segmentLength = $(this).attr('data-segment-length');
+	var segmentCount = 1;
+	if (segmentLength && currentLength) {
+		segmentCount = Math.ceil(currentLength / segmentLength);
+		var segmentCost = $(this).attr('data-segment-cost');
+		var recipientCount = 0;
+
+		var modal = $(this).parents('#send-sms-modal');
+		if (modal.length) {
+			recipientCount = modal.attr('data-personid').split(',').length;
+		} else {
+			recipientCount = $("input[name='personid[]']:checked").length;
+			if (!recipientCount) recipientCount = $("input[name='personid[]']").length;
+		}
+		if ((segmentCost > 0) && (recipientCount > 0)) {
+			var cost = segmentCount * recipientCount * segmentCost;
+			var plural = (segmentCount > 1) ? 's' : '';
+			msg = currentLength+' characters ('+segmentCount+' segment'+plural+') to '+recipientCount+' recipients = $'+cost.toFixed(2)+' approx.';
+		} else if (segmentCount <= 1) {
+			msg = (segmentLength - currentLength) + ' characters remaining in this message segment';
+		} else {
+			msg = currentLength+' characters = '+segmentCount+' message segments';
+		}
+		if (currentLength >= maxlength) {
+			msg = 'Max length reached. '+msg;
+		}
+	} else {
+		var msg = charsRemain + ' characters remaining';
+	}
+	$(this).parent().find('.smscharactercount').html(msg);
+
 }
 
 /**
@@ -1020,13 +1098,6 @@ JethroServicePlanner.init = function() {
 	})
 
 	$("#service-comps td, #service-plan td").css('cursor', 'default').disableSelection();
-
-
-	$('#service-comps table').stupidtable().bind('aftertablesort', function(event, data) {
-		$(this).find('th .icon-arrow-up, th .icon-arrow-down').remove();
-		var cn = (data.direction === "asc") ? 'up' : 'down';
-		$(this).find('th').eq(data.column).append('<i class="icon-arrow-'+cn+'"></i>');
-	})
 
 	// SERVICE PLAN TABLE:
 	JethroServicePlanner.setDroppable($("#service-plan tbody tr"));
@@ -1317,17 +1388,43 @@ var JethroRoster = {}
 
 JethroRoster.CUSTOM_ASSIGNEE_TARGET = null;
 
+JethroRoster.highlightPersons = function(personid) {
+	var others = $('td a[data-personid='+personid+'], td span[data-personid='+personid+']');
+	if (others.length > 1) {
+		others.addClass('rosteree-highlighted');
+	}
+};
+
+JethroRoster.unhighlightPersons = function(personid) {
+	var others = $('td a[data-personid='+personid+'], td span[data-personid='+personid+']');
+	if (others.length > 1) {
+		others.removeClass('rosteree-highlighted');
+	}
+};
+
 JethroRoster.init = function() {
 	// This applies to read-only rosters
-	$('table.roster [data-personid]').on('mouseover', function() {
-		var personid = $(this).attr('data-personid');
-		var others = $(this).parents('.roster').find('td a[data-personid='+personid+'], td span[data-personid='+personid+']');
-		if (others.length > 1) {
-			others.addClass('rosteree-highlighted');
-		}
+	$('table.roster td a[data-personid]').on('mouseover', function() {
+		JethroRoster.highlightPersons($(this).attr('data-personid'));
 	}).on('mouseout', function() {
-		$('.rosteree-highlighted').removeClass('rosteree-highlighted');
+		JethroRoster.unhighlightPersons($(this).attr('data-personid'));
 	});
+
+	$('table.roster-analysis td a[data-personid]').on('click', function(e) {
+		$('.rosteree-highlighted').removeClass('rosteree-highlighted');
+		var wasSticky = $(this).hasClass('sticky-highlight');
+		$('.sticky-highlight').removeClass('sticky-highlight');
+		if (!wasSticky) {
+			$(this).addClass('sticky-highlight');
+			JethroRoster.highlightPersons($(this).attr('data-personid'))
+		} else {
+			JethroRoster.unhighlightPersons($(this).attr('data-personid'))
+		}
+		event.preventDefault();
+		event.stopPropagation();
+
+	});
+
 
 	// Go no further unless we're editing a roster
 	if (!$('form#roster').length) return;
@@ -1642,18 +1739,15 @@ function handlePersonStatusChange()
 		var chooser = congChoosers[0];
 		for (var i=0; i < chooser.options.length; i++) {
 			if (chooser.options[i].value == '') {
-				if ((this.value == 'contact') || (this.value == 'archived')) {
-					// blank value allowed
-					return;
-				} else {
+				if ($('[name=status_'+this.value+'_require_congregation]').val() == 1) {
 					chooser.remove(i);
-					return;
 				}
+				return;
 			}
 		}
 		if ($(chooser).attr('data-allow-empty') != 0) {
 			// if we got to here, there is no blank option
-			if ((this.value == 'contact') || (this.value == 'archived')) {
+			if ($('[name=status_'+this.value+'_require_congregation]').val() == 0) {
 				// we need a blank option
 				var newOption = new Option('(None)', '');
 				try {

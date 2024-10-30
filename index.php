@@ -28,11 +28,20 @@ define('JETHRO_ROOT', dirname(__FILE__));
 define('TEMPLATE_DIR', JETHRO_ROOT.'/templates/');
 
 // Load configuration
-if (!is_readable(JETHRO_ROOT.'/conf.php')) {
-	trigger_error('Jethro configuration file not found.  You need to copy conf.php.sample to conf.php and edit it before Jethro can run', E_USER_ERROR);
+$conf=JETHRO_ROOT.'/conf.php';
+if (!file_exists($conf)) {
+	$errmsg = "Jethro configuration file not found.  You need to copy $conf.sample to $conf and edit it before Jethro can run";
+	echo $errmsg;
+	trigger_error($errmsg, E_USER_ERROR);
 	exit();
 }
-require_once JETHRO_ROOT.'/conf.php';
+if (!is_readable($conf)) {
+	$errmsg = "$conf not readable by user ".$_SERVER["USER"].".";
+	echo $errmsg;
+	trigger_error($errmsg, E_USER_ERROR);
+	exit();
+}
+require_once $conf;
 
 define('DB_MODE', 'PRIVATE');
 require_once JETHRO_ROOT.'/include/init.php';

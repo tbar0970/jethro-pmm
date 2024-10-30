@@ -81,13 +81,16 @@ class Person_Query extends DB_Object
 	protected static function _getFields()
 	{
 		$default_params = Array(
-							'rules'			=> Array('p.status' => Array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'contact')),
+							'rules'			=> Array('p.status' => Array()),
 							'show_fields'	=> Array('p.first_name', 'p.last_name', '', '', 'view_link', 'checkbox'),
 							'group_by'		=> '',
 							'sort_by'		=> 'p.last_name',
 							'include_groups'	=> Array(),
 							'exclude_groups'	=> Array(),
 						  );
+		foreach (Person_Status::getActive(FALSE) as $sid => $details) {
+			$default_params['rules']['p.status'][] = $sid;
+		}
 		return Array(
 			'name'	=> Array(
 									'type'		=> 'text',
@@ -1059,21 +1062,26 @@ class Person_Query extends DB_Object
 				case 'select':
 					switch (array_get($values, 'criteria', 'contains')) {
 						case 'contains':
-							$ids = implode(',', array_map(Array($db, 'quote'), $values['val']));
-							$xrule = '(pd'.$fieldid.'.value_optionid IN ('.$ids.'))';
-							if (in_array(0, $values['val'])) {
-								// 'other' option
-								$xrule = '('.$xrule.' OR (pd'.$fieldid.'.value_text IS NOT NULL))';
+							if ($values['val']) {
+								$ids = implode(',', array_map(Array($db, 'quote'), $values['val']));
+								$xrule = '(pd'.$fieldid.'.value_optionid IN ('.$ids.'))';
+								if (in_array(0, $values['val'])) {
+									// 'other' option
+									$xrule = '('.$xrule.' OR (pd'.$fieldid.'.value_text IS NOT NULL))';
+								}
+								$customFieldWheres[] = $xrule;
+							} else {
+								// No options were picked for a select list custom field. Same as 'empty' ('not filled in')
+								$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NULL AND pd'.$fieldid.'.value_text IS NULL)';
 							}
-							$customFieldWheres[] = $xrule;
-							break;
-						case 'any':
-							$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NOT NULL OR pd'.$fieldid.'.value_text IS NOT NULL)';
-							break;
-						case 'empty':
-							$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NULL AND pd'.$fieldid.'.value_text IS NULL)';
-							break;
-					}
+								break;
+							case 'any':
+								$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NOT NULL OR pd'.$fieldid.'.value_text IS NOT NULL)';
+								break;
+							case 'empty':
+								$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NULL AND pd'.$fieldid.'.value_text IS NULL)';
+								break;
+						}
 					break;
 
 				case 'text':
@@ -1193,6 +1201,14 @@ class Person_Query extends DB_Object
 								';
 			$grouping_order = 'csort.meeting_time, ';
 			$grouping_field = $params['group_by'].', ';
+		} else if ($params['group_by'] == 'p.age_bracketid') {
+			$grouping_order = 'absort.`rank`, ';
+			$grouping_field = 'p.age_bracketid, ';
+		} else if ($params['group_by'] == 'p.status') {
+			$query['from'] .= ' JOIN person_status psgsort ON psgsort.id = p.status
+								';
+			$grouping_order = 'psgsort.`rank`, ';
+			$grouping_field = 'p.status, ';
 		} else {
 			// by some core field
 			$grouping_order = $grouping_field = $params['group_by'].', ';
@@ -1270,9 +1286,10 @@ class Person_Query extends DB_Object
 												GROUP_CONCAT(CONCAT(first_name, " ", last_name) ORDER BY ab.`rank`, gender DESC SEPARATOR ", ")
 											  ) AS `names`
 											FROM person pp
+											JOIN person_status ps ON ps.id = pp.status
 											JOIN age_bracket ab ON ab.id = pp.age_bracketid
 											JOIN family ff ON pp.familyid = ff.id
-											WHERE pp.status <> "archived"
+											WHERE (NOT ps.is_archived)
 											GROUP BY familyid
 										) all_members ON all_members.familyid = p.familyid
 										   ';
@@ -1295,9 +1312,10 @@ class Person_Query extends DB_Object
 												GROUP_CONCAT(CONCAT(first_name, " ", last_name) ORDER BY ab.`rank`, gender DESC SEPARATOR ", ")
 											  )
 											FROM person pp
+											JOIN person_status ps ON ps.id = pp.status
 											JOIN age_bracket ab ON pp.age_bracketid = ab.id
 											JOIN family ff ON pp.familyid = ff.id
-											WHERE pp.status <> "archived" AND ab.is_adult
+											WHERE (NOT ps.is_archived) AND ab.is_adult
 											GROUP BY familyid');
 						$query['from'] .= ' LEFT JOIN _family_adults'.$this->id.' ON _family_adults'.$this->id.'.familyid = p.familyid
 											';
@@ -1401,6 +1419,10 @@ class Person_Query extends DB_Object
 				$query['order_by'] = 'IF(cord.id IS NULL, 1, 0), IF(LENGTH(cord.meeting_time)>0, 0, 1), cord.meeting_time, cord.name';
 			} else if ($params['sort_by'] == 'p.age_bracketid') {
 				$query['order_by'] = 'absort.`rank`';
+			} else if ($params['sort_by'] == 'p.status') {
+				$query['from'] .= '
+					JOIN person_status pssort ON pssort.id = p.status ';
+				$query['order_by'] = 'pssort.`rank`';
 			} else {
 				$query['order_by'] = $this->_quoteAliasAndColumn($params['sort_by']);
 			}
@@ -1480,8 +1502,15 @@ class Person_Query extends DB_Object
 
 		$data = array();
 		$grouping_field = $params['group_by'];
+		if (!empty($_REQUEST['debug'])) {
+			bam($params);
+			bam($sql);
+		}
+
+
 		if (empty($grouping_field)) {
 			$res = $db->queryAll($sql, null, null, true, true);
+			if (array_get($_REQUEST, 'debug') > 1) bam($res);
 			if ($format == 'array') {
 				$data = $this->_printResultSet($res, $format);
 			} else {
@@ -1489,6 +1518,7 @@ class Person_Query extends DB_Object
 			}
 		} else {
 			$res = $db->queryAll($sql, null, null, true, false, true);
+			if (array_get($_REQUEST, 'debug') > 1) bam($res);
 			if ($format == 'array') {
 				$data = $this->_printResultGroups($res, $params, $format);
 			} else {

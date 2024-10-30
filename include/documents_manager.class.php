@@ -96,7 +96,7 @@ class Documents_Manager {
 			header("Cache-Control: private",false); // required for certain browsers
 			header("Content-Transfer-Encoding: binary");
 			header('Content-type: '.$mime);
-			header('Content-Disposition: attachment; filename="'.$filename.'"');
+			header('Content-Disposition: attachment; filename="'.basename($filename).'"');
 			readfile($filename);
 		}
 	}

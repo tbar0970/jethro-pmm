@@ -8,7 +8,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 		<select id="bulk-action-chooser" class="no-autofocus">
 			<option><?php echo _('-- Choose Action --')?></option>
 				<?php
-				if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
+				if ($GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
 					?>
 					<option value="update-field"><?php echo _('Set field(s)')?></option>
 					<?php
@@ -60,7 +60,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 				?>
 	</select>
 	<?php
-	if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON)) {
+	if ($GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
 		?>
 		<span class="bulk-action" id="remove-from-group">
 			<input type="submit" class="btn " value="Go" data-set-form-action="<?php echo BASE_URL; ?>?view=_edit_group&action=remove_members&groupid=<?php echo $groupid; ?>" />
@@ -242,9 +242,9 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 			<div class="control-group">
 				<label class="control-label">Message: </label>
 				<div class="controls">
-					<textarea id="bulk_sms_message" name="message" class="span4" rows="5" cols="30" maxlength="<?php echo SMS_MAX_LENGTH; ?>"></textarea>
-					<br />
-                    <span class="smscharactercount"><?php echo SMS_MAX_LENGTH; ?> characters remaining.</span>
+					<?php
+					SMS_Sender::printTextbox();
+					?>
 				</div>
 			</div>
 		<?php

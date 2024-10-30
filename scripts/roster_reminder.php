@@ -123,10 +123,13 @@ if (count($roster_array) > 2) {
 $assignees=$view->getAssignees($start_date, $end_date);
 
 if ($sendsms) { // make the sms message!
+	!empty($ini['SMS_FROM']) || trigger_error("SMS_FROM (the mobile number SMS notifications will appear to come from) is required", E_USER_ERROR);
+	define('OVERRIDE_USER_MOBILE', $ini['SMS_FROM']);
 	$sms_notification = "No SMS Notification was sent for " . $roster_name . ". There were no people assigned.\n";
 
+	ctype_digit($roster_coordinator_id) || trigger_error("ROSTER_COORDINATOR_ID must be an integer ID referencing a _person record", E_USER_ERROR);
 	$coordinator=new Person($roster_coordinator_id);
-	$sql = 'SELECT person.* FROM person WHERE person.id='.$roster_coordinator_id;
+	$sql = 'SELECT person.* FROM person WHERE person.id='.(int)$roster_coordinator_id;
 	$coordinator = $GLOBALS['db']->queryAll($sql);
 
 	if (count($assignees) > 0) {
@@ -178,12 +181,12 @@ if ($sendsms) { // make the sms message!
 		if (!empty($assignees))  {
 			$sendResponse = SMS_Sender::sendMessage($sms_message, $assignees, FALSE);
 			$successes = $failures = $rawresponse = Array();
-			$success = $sendResponse['success'];
+			$executed = $sendResponse['executed'];
 			$successes = array_values($sendResponse['successes']);
 			$failures = array_values($sendResponse['failures']);
 			$rawresponse = $sendResponse['rawresponse'];
 			$error = $sendResponse['error'];
-			if (!$success) {
+			if (!$executed) {
 				$sms_notification = "Unable to send SMS\n\n$error\n";
 			} else {
 				if ((count($successes) <= 0) && (count($failures) <= 0)) {
@@ -210,7 +213,7 @@ if ($sendsms) { // make the sms message!
 	$sendResponse = SMS_Sender::sendMessage($sms_notification, $coordinator, FALSE);
 	if (!empty($verbose)) {
 		echo "$sms_notification\n";
-		if (!$sendResponse['success']) {
+		if (!$sendResponse['executed'] || empty($sendResponse['successes'])) {
 			echo "Unable to send Notification SMS:\n\n" . $sendResponse['error'] . "\n";
 		}
 		echo "\nFull Server Response:\n\n" . $sendResponse['rawresponse'] . "\n";

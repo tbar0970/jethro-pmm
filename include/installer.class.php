@@ -153,15 +153,17 @@ class Installer
 			mp.email, mp.mobile_tel, mp.work_tel, mp.familyid,
 			mf.family_name, mf.address_street, mf.address_suburb, mf.address_state, mf.address_postcode, mf.home_tel
 			FROM _person mp
+			JOIN person_status mps ON mps.id = mp.status
 			JOIN family mf ON mf.id = mp.familyid
 			JOIN person_group_membership pgm1 ON pgm1.personid = mp.id
 			JOIN _person_group pg ON pg.id = pgm1.groupid AND pg.share_member_details = 1
 			JOIN person_group_membership pgm2 ON pgm2.groupid = pg.id
 			JOIN _person up ON up.id = pgm2.personid
+			JOIN person_status ups ON ups.id = up.status
 			WHERE up.id = getCurrentUserID()
-			   AND mp.status <> "archived"
-			   AND mf.status <> "archived"
-			   AND up.status <> "archived"	/* archived persons cannot see members of any group */
+			   AND (NOT mps.is_archived)    /* dont show archived persons */
+			   AND mf.status <> "archived"  /* dont show archived families */
+			   AND (NOT ups.is_archived)	/* dont let persons who are themselves archived see anything */
 
 			UNION
 
@@ -169,12 +171,14 @@ class Installer
 			mp.email, mp.mobile_tel, mp.work_tel, mp.familyid,
 			mf.family_name, mf.address_street, mf.address_suburb, mf.address_state, mf.address_postcode, mf.home_tel
 			FROM _person mp
+			JOIN person_status mps ON mps.id = mp.status
 			JOIN family mf ON mf.id = mp.familyid
 			JOIN _person self ON self.familyid = mp.familyid
+			JOIN person_status selfs ON selfs.id = self.status
 			WHERE
 				self.id = getCurrentUserID()
-				AND ((mp.status <> "archived") OR (mp.id = self.id))
-				AND ((self.status <> "archived") OR (mp.id = self.id))
+				AND ((NOT mps.is_archived) OR (mp.id = self.id))
+				AND ((NOT selfs.is_archived) OR (mp.id = self.id))
 				/* archived persons can only see themselves, not any family members */
 			;',
 
@@ -196,10 +200,15 @@ class Installer
 
 			(@rank:=@rank+5, 'Permissions and Security','ENABLED_FEATURES','Which Jethro features are visible to users?','multiselect{\"NOTES\":\"Notes\",\"PHOTOS\":\"Photos\",\"ATTENDANCE\":\"Attendance\",\"ROSTERS&SERVICES\":\"Rosters & Services\",\"SERVICEDETAILS\":\"Service Details\",\"DOCUMENTS\":\"Documents\",\"SERVICEDOCUMENTS\":\"Service documents\"}','NOTES,PHOTOS,ATTENDANCE,ROSTERS&SERVICES,SERVICEDETAILS,DOCUMENTS,SERVICEDOCUMENTS'),
 			(@rank:=@rank+5, '',                         'DEFAULT_PERMISSIONS','Permissions to grant to new user accounts by default','int','7995391'),
-			(@rank:=@rank+5, '',                         'RESTRICTED_USERS_CAN_ADD','Can users with group or congregation restrictions add new persons and families?','bool','0'),
+			(@rank:=@rank+5, '',                         'RESTRICTED_USERS_CAN_ADD','Allow users with group/congregation restrictions to create new persons and families?','bool','0'),
 			(@rank:=@rank+5, '',                         'PASSWORD_MIN_LENGTH','Minimum password length','int','8'),
 			(@rank:=@rank+5, '',                         'SESSION_TIMEOUT_MINS','Inactive sessions will be logged out after this number of minutes','int','90'),
 			(@rank:=@rank+5, '',                         'SESSION_MAXLENGTH_MINS','Every session will be logged out this many minutes after login','int','480'),
+
+			(@rank:=@rank+5, '2-Factor Authentication',  '2FA_REQUIRED_PERMS','Users who hold permission levels selected here will be required to complete 2-factor authentication at login.','text',''),
+			(@rank:=@rank+5, '',                         '2FA_EVEN_FOR_RESTRICTED_ACCTS','Require 2-factor auth even for accounts with group/congregation restrictions?','bool','0'),
+			(@rank:=@rank+5, '',                         '2FA_TRUST_DAYS','Users can tick a box to skip 2-factor auth for this many days. Set to 0 to disable.','int','30'),
+			(@rank:=@rank+5, '',                         '2FA_SENDER_ID','Sender ID for 2-factor auth messages','text','Jethro'),
 
 			(@rank:=@rank+5, 'Jethro Behaviour Options','REQUIRE_INITIAL_NOTE','Whether an initial note is required when adding new family','bool','1'),
 			(@rank:=@rank+5, '',                         'DEFAULT_NOTE_STATUS','Default status when creating a new note','select{\"no_action\":\"No Action Required\",\"pending\":\"Requires Action\"}', 'pending'),
@@ -214,8 +223,7 @@ class Installer
 			(@rank:=@rank+5, '',                         'ENVELOPE_WIDTH_MM','Envelope width (mm)','int','220'),
 			(@rank:=@rank+5, '',                         'ENVELOPE_HEIGHT_MM','Envelope height (mm)','int','110'),
 
-			(@rank:=@rank+5, 'Data Structure options',   'PERSON_STATUS_OPTIONS','(The system-defined statuses \'Contact\' and \'Archived\' will be added to this list)','multitext_cm','Core,Crowd'),
-			(@rank:=@rank+5, '',                         'PERSON_STATUS_DEFAULT','','text','Contact'),
+			(@rank:=@rank+5, 'Data Structure options',   'PERSON_STATUS_OPTIONS','','',''),
 			(@rank:=@rank+5, '',                         'AGE_BRACKET_OPTIONS','','',''),
 			(@rank:=@rank+5, '',                         'GROUP_MEMBERSHIP_STATUS_OPTIONS','','',''),
 			(@rank:=@rank+5, '',                         'TIMEZONE','','text','Australia/Sydney'),
@@ -245,8 +253,9 @@ class Installer
 			(@rank:=@rank+5, '',                         'PUBLIC_ROSTER_SECRET','Advanced: Only allow access to public rosters if the URL contains \"&secret=<this-secret>\"','text',''),
 
 			(@rank:=@rank+5, 'External Links',           'BIBLE_URL','URL Template for bible passage links, with the keyword __REFERENCE__','text','https://www.biblegateway.com/passage/?search=__REFERENCE__&version=NIVUK'),
-			(@rank:=@rank+5, '',                         'CCLI_SEARCH_URL','URL Template for searching CCLI, with the keyword __TITLE__','text','http://us.search.ccli.com/search/results?SearchText=__TITLE__'),
-			(@rank:=@rank+5, '',                         'CCLI_DETAIL_URL','URL Template for CCLI song details by song number, with the keyword __NUMBER__','text','https://au.songselect.com/songs/__NUMBER__'),
+			(@rank:=@rank+5, '',                         'CCLI_SEARCH_URL','URL Template for searching CCLI, with the keyword __TITLE__','text','https://songselect.ccli.com/search/results?search=__TITLE__'),
+			(@rank:=@rank+5, '',                         'CCLI_DETAIL_URL','URL Template for CCLI song details by song number, with the keyword __NUMBER__','text','https://songselect.ccli.com/songs/__NUMBER__'),
+			(@rank:=@rank+5, '',                         'CCLI_REPORT_URL','URL Template for reporting usage to CCLI by song number, with keyword __NUMBER__', 'text', 'https://reporting.ccli.com/search?s=__NUMBER__&page=1&category=all'),
 			(@rank:=@rank+5, '',                         'POSTCODE_LOOKUP_URL','URL template for looking up postcodes, with the keyword __SUBURB__','text','https://auspost.com.au/postcode/__SUBURB__'),
 			(@rank:=@rank+5, '',                         'MAP_LOOKUP_URL','URL template for map links, with the keywords __ADDRESS_STREET__, __ADDRESS_SUBURB__, __ADDRESS_POSTCODE__, __ADDRESS_STATE__','text','http://maps.google.com.au?q=__ADDRESS_STREET__,%20__ADDRESS_SUBURB__,%20__ADDRESS_STATE__,%20__ADDRESS_POSTCODE__'),
 			(@rank:=@rank+5, '',                         'QR_CODE_GENERATOR_URL', 'URL template for generating QR codes, containing the placeholder __URL__', 'text', 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=__URL__'),

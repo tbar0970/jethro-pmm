@@ -213,7 +213,7 @@ body {
 }
 @media (min-width: 1025px) {
 	#jethro-overall-width {
-		min-width: 800px;
+		min-width: 1025px;
 	}
 }
 @media (max-width: 1025px) {
@@ -724,7 +724,7 @@ tr:last-child .insert-row-below {
 	color: @gray;
 }
 
-#body .soft { /* low-key links */
+#body .soft, .soft { /* low-key links */
 	font-size: 85%;
 	padding-top: 1px;
 	color: #aaa !important;
@@ -832,7 +832,7 @@ table.object-summary td, table.object-summary th {
 table.object-summary>tbody>tr>td>table>tbody>tr:first-child td {
 	padding-top: 0px !important;
 }
-#body tr.archived td, #body tr.archived a, #body tr.archived .btn-link {
+#body tr.archived td, #body tr.archived a, #body tr.archived .btn-link, #body tr.archived input {
 	color: @grayLight;
 }
 #body tr.archived:hover td, #body tr.archived:hover td a, #body tr.archived:hover .btn-link {
@@ -854,6 +854,9 @@ table.object-summary>tbody>tr>td>table>tbody>tr:first-child td {
 	width: 160px;
 	text-align: right;
 	margin-top: 0px;
+}
+.control-group .alert {
+	margin: 0px !important;
 }
 
 .day-box {
@@ -920,6 +923,16 @@ input.btn-link, button.btn-link {
 .input-append input {
 	min-width: 10px !important;
 }
+
+.submit-in-progress {
+	background-image: url(../img/loading-spinner.gif) !important;
+	background-size: 20px !important;
+	background-repeat: no-repeat;
+	background-repeat: none;
+	background-position: right !important;
+	padding-right: 30px;
+}
+
 #body h1 small, #body h2 small {
 	font-size: 14px;
 }
@@ -1261,7 +1274,7 @@ form.homepage-search {
 .member-homepage-box img.family-photo {
 	float: right !important;
 	position: absolute;
-	width: 200px;
+	height: 150px;
 	right: 5px;
 	margin-bottom: 5px;
 	border-radius: 5px;
@@ -1271,8 +1284,6 @@ form.homepage-search {
 	.member-homepage-box img.family-photo {
 		float: none !important;
 		position: static;
-		width: auto;
-		max-height: 230px;
 	}
 }
 
@@ -1332,7 +1343,7 @@ form.homepage-search {
 	margin-top: 15px;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 900px) {
 	.member-family-members {
 		grid-template-columns: 1fr;
 	}
@@ -1528,9 +1539,12 @@ table.roster select.unlisted-allocee option {
 table.roster input.clash, table.roster select.clash {
 	border-color: red;
 }
-table.roster .rosteree-highlighted {
+#body .rosteree-highlighted {
 	background: #ccffcc;
 	outline: 3px solid #ccffcc;
+}
+#body table.roster div.service-field-summary, #body table.roster div[class^='service-field-bible'] {
+	max-width: 22ex !important;
 }
 
 /****** SERVICE PROGRAM ****/
@@ -1564,7 +1578,7 @@ table.service-program td.right-tools, table.service-program td.service  {
 /* service details in services-list-all and within rosters */
 /* these styles are replicated in call_display_roster.class.php */
 #body table.roster p {
-	line-height: 1.0;
+	line-height: 1.1;
 	margin: 1.5px 0px;
 	padding: 1px;
 	max-width: 20em;
@@ -2065,21 +2079,21 @@ div.autosuggest ul li a .tl, div.autosuggest ul li a .tr {
 }
 
 /******** ATTENDANCE **********/
-.attendance-config-submit {
-	/*line-height: 100%;*/
-	vertical-align: bottom;
-	margin-bottom: 5px;
-}
 .attendance-config-table {
 	display: inline-block;
+	vertical-align: bottom;
 }
-.attendance-config-table > tbody  > tr > th {
-	padding: 10px 5px;
+.attendance-config-submit {
+	vertical-align: bottom;
+	display: inline-block;
+	padding-bottom: 10px;
+}
+.attendance-config-table > tbody > tr > td, .attendance-config-table > tbody > tr > th {
+	line-height: 30px !important;
+	padding-bottom: 4px;
 }
 .attendance-config-table > tbody > tr > td {
-	padding: 5px !important;
-}
-.attendance-config-table > tbody > tr:last-child > td, .attendance-config-table > tbody  > tr:last-child > th {
+	min-width: 300px;
 }
 @media (max-width: 640px) {
 	.attendance-config-table {
@@ -2122,12 +2136,22 @@ table.system-config td small {
 
 /*************** SERVICE PLANNING ****************/
 
+div.service-content {
+	border: 1px solid #dddddd;
+	border-radius: 4px;
+	padding: 5px;
+	background-color: @jethroLightest;
+}
 .service-content h4 {
 	font-size: 110%;
 	color: @grayLight;
 	margin-top: 1ex;
 	margin-bottom: 0px;
 }
+table.run-sheet tbody td {
+	background-color: @jethroLightest;
+}
+
 
 #service-comp-manager .tab-content {
 	overflow-y: auto;
@@ -2373,19 +2397,6 @@ button.sms-success, #body tr.sms-success .mobile-tel, #body tr.sms-success .mobi
 	background-position: 0 0 !important;
 }
 
-div.sms_editor {
-  border: 1px solid @grayMid;
-  height: 8em;
-  width: 100%;
-  margin: .5em 0 .5em 0;
-  padding: .25em;
-  overflow-y: auto;
-  border-radius: @baseBorderRadius;
-}
-
-div#sms_message:focus, div#bulk_sms_message:focus {
-  outline: none;
-}
 div#send-sms-modal div.results {
   display: none;
 }

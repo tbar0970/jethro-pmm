@@ -165,6 +165,7 @@ class View_Families__Add extends View
 	{
 		$GLOBALS['system']->includeDBClass('person');
 		$person = new Person();
+		$person->loadDefaults();
 		$person->fields['first_name']['width'] = 11;
 		$person->fields['last_name']['width'] = 11;
 		$person->fields['email']['width'] = 25;

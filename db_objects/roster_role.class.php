@@ -121,8 +121,8 @@ class Roster_Role extends db_object
 			if ($this->getValue('volunteer_group')) {
 				$group = $GLOBALS['system']->getDBObject('person_group', $this->getValue('volunteer_group'));
 				if ($group) {
-					foreach ($group->getMembers() as $id => $details) {
-						if ($details['status'] == 'archived') continue;
+					$params = Array('!(status' => Person_Status::getArchivedIDs());
+					foreach ($group->getMembers($params) as $id => $details) {
 						$this->_volunteers[$id] = $details['first_name'].' '.$details['last_name'];
 					}
 				}

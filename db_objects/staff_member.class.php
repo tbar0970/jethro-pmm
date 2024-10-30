@@ -83,16 +83,56 @@ class Staff_Member extends Person
 	{
 		return 'staff_member';
 	}
+
+	private function _check2FAAccess()
+	{
+		if ($this->requires2FA() && ($this->getValue('mobile_tel') == '')) {
+			add_message("The user ".$this->getValue('username')." won't be able to log in, because 2-factor authentication is required but their mobile number is blank. Please set their mobile number so they can log in.", "error");
+		}
+	}
 	
 	// We need this to override person::getInitSQL
 	public function getInitSQL($table_name=NULL)
 	{
-		return $this->_getInitSQL();
+		return Array(
+
+			$this->_getInitSQL(),
+			
+			'CREATE TABLE `2fa_trust` (
+			  `userid` int(11) NOT NULL,
+			  `token` varchar(255) NOT NULL,
+			  `expiry` datetime NOT NULL,
+			  CONSTRAINT 2fatrust_person FOREIGN KEY (`userid`) REFERENCES `staff_member` (`id`) ON DELETE CASCADE
+			) ENGINE=InnoDB'
+		);
 	}
 
 	public function getForeignKeys()
 	{
 		return Array();
+	}
+
+	/**
+	 * Check whether a given staff_member would require 2FA when they try to log in
+	 * @param Staff_member $staff_member
+	 * @return boolean
+	 */
+	public function requires2FA()
+	{
+		$req_perms = ifdef('2FA_REQUIRED_PERMS', '');
+		if (!strlen($req_perms)) return FALSE;
+
+		if ($this->hasRestrictions() && !ifdef('2FA_EVEN_FOR_RESTRICTED_ACCTS', true)) {
+			return FALSE;
+		}
+
+		foreach (explode(',', $req_perms) as $perm) {
+			if (($this->getValue('permissions') & $perm) == $perm) {
+				// They have one of the relevant permissions
+				return TRUE;
+			}
+		}
+		return FALSE;
 	}
 
 
@@ -216,15 +256,17 @@ class Staff_Member extends Person
 					if ($this->id) {
 						?>
 						<label class="checkbox">
-							<input type="checkbox" id="password-toggle" data-toggle="visible" data-target="#new-password-fields" />
+							<input type="checkbox" id="change-password-toggle" data-toggle="visible" data-target="#new-password-fields" />
 							Change password...
 						</label>
 						<div style="display:none" id="new-password-fields">
 						<?php
 					}
 					?>
-						<input type="password" data-minlength="<?php echo (int)$this->getMinPasswordLength(); ?>" autocomplete="new-password" name="<?php echo $prefix.'user_pw1'; ?>" id="<?php echo $prefix.'user_pw1'; ?>" placeholder="New password" /><br />
-						<input type="password" data-minlength="<?php echo (int)$this->getMinPasswordLength(); ?>" autocomplete="new-password" name="<?php echo $prefix.'user_pw2'; ?>" placeholder="Again to confirm" /><br />
+						<div class="input-append">
+							<input type="password" autocomplete="new-password" data-minlength="<?php echo (int)$this->getMinPasswordLength(); ?>" name="<?php echo $prefix.'user_pw1'; ?>" id="<?php echo $prefix.'user_pw1'; ?>" placeholder="New password" />
+							<button class="btn" type="button" id="password-visible-toggle"><i class="icon-eye-open"></i></button>
+						</div>		
 						<p class="help-inline">Passwords must be at least <?php echo (int)$this->getMinPasswordLength(); ?> characters and contain 2 letters and 2 numbers</p>
 					<?php
 					if ($this->id) {
@@ -330,9 +372,7 @@ class Staff_Member extends Person
 	{
 		if (!empty($_REQUEST[$prefix.'user_pw1'])) {
 			$val = $_REQUEST[$prefix.'user_pw1'];
-			if ($val != $_REQUEST[$prefix.'user_pw2']) {
-				trigger_error('Password and password confirmation do not match; Password not saved.');
-			} else if ($msg = User_System::getPasswordStrengthErrors($val)) {
+			if ($msg = User_System::getPasswordStrengthErrors($val)) {
 				trigger_error("Password is not strong enough: ".$msg."; Password not saved");
 			} else {
 				return jethro_password_hash($val);
@@ -373,14 +413,23 @@ class Staff_Member extends Person
 		if ($name == 'restrictions') return $this->_restrictions;
 		return parent::getValue($name);
 	}
-	
+
+	function hasRestrictions()
+	{
+		foreach ($this->_restrictions as $type => $rs) {
+			if (!empty($rs)) return TRUE;
+		}
+		return FALSE;
+	}	
 	
 	function create()
 	{
 		if (!($GLOBALS['user_system']->reverifyCurrentUser(array_get($_POST, 'my_current_password')))) {
 			add_message("Password for current user was incorrect.  Account details not saved", 'error');
 			return FALSE;
-		}	
+		}
+		$this->_check2FAAccess();
+
 		return parent::create();
 	}
 	
@@ -426,6 +475,8 @@ class Staff_Member extends Person
 				}
 				$this->_insertRestrictions();
 			}
+
+			$this->_check2FAAccess();
 
 			// Run hooks
 			$GLOBALS['system']->runHooks('staff_member_updated', $this);

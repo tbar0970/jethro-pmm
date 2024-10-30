@@ -58,7 +58,7 @@ if (!empty($ini['SUMMARY_RECIPIENT_STATUS'])) {
 }
 $SQL .= '
 		WHERE cfv.value_date  = CURDATE() + INTERVAL '.(int)$ini['REMINDER_OFFSET'].' DAY
-		AND p.status <> "archived"
+		AND p.status NOT IN (SELECT id FROM person_status WHERE is_archived)
 		GROUP BY p.id';
 $res = $GLOBALS['db']->queryAll($SQL);
 
@@ -162,7 +162,7 @@ function send_reminder($person)
 			if (!empty($ini['OVERRIDE_RECIPIENT_SMS'])) $toNumber = $person['mobile_tel'] = $ini['OVERRIDE_RECIPIENT_SMS'];
 			$message = replace_keywords($ini['SMS_MESSAGE'], $person);
 			$res = SMS_Sender::sendMessage($message, Array($person), FALSE);
-			if (count($res['successes']) != 1) {
+			if (!$res['executed'] || (count($res['successes']) != 1)) {
 				echo "Failed to send SMS to ".$toNumber."\n";
 			} else {
 				$sentSomething = TRUE;

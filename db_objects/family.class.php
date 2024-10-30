@@ -226,7 +226,7 @@ class family extends db_object
 			<?php
 			foreach ($persons as $id => $person) {
 				$dummy_person->populate($id, $person);
-				$tr_class = ($person['status'] == 'archived') ? ' class="archived"' : '';
+				$tr_class = in_array($person['status'], Person_Status::getArchivedIDs()) ? ' class="archived"' : '';
 				?>
 				<tr<?php echo $tr_class; ?>>
 					<td class="nowrap"><a href="?view=persons&personid=<?php echo $id; ?>"><?php echo ents($dummy_person->toString()); ?></a></td>
@@ -269,7 +269,7 @@ class family extends db_object
 
 	function getAdultMemberNames()
 	{
-		$adults = $GLOBALS['system']->getDBObjectData('person', Array('familyid' => $this->id, '(age_bracketid' => Age_Bracket::getAdults(), '!status' => 'archived'), 'AND', 'ab.`rank`, gender DESC');
+		$adults = $GLOBALS['system']->getDBObjectData('person', Array('familyid' => $this->id, '(age_bracketid' => Age_Bracket::getAdults(), '!(status' => Person_Status::getArchivedIDs()), 'AND', 'ab.`rank`, gender DESC');
 		if (count($adults) == 1) {
 			$adult = reset($adults);
 			return $adult['first_name'].' '.$adult['last_name'];
@@ -388,6 +388,8 @@ class family extends db_object
 			if (!empty($this->_old_values['status'])) {
 				if ($this->getValue('status') == 'archived') {
 					// Status has just been changed to 'archived' so archive members too
+					// We use the top-ranked is_archived status
+					$archived_status = reset(Person_Status::getArchivedIDs());
 					$members = $this->getMemberData();
 					if (!empty($members)) {
 						$member = null;
@@ -397,7 +399,7 @@ class family extends db_object
 							$member = new Person($id);
 							if ($member->canAcquireLock()) {
 								$member->acquireLock();
-								$member->setValue('status', 'archived');
+								$member->setValue('status', $archived_status);
 								$member->save(FALSE);
 								$member->releaseLock();
 							} else {
@@ -405,7 +407,8 @@ class family extends db_object
 							}
 						}
 						if ($all_members_archived) {
-							$msg = 'The '.count($members).' members of the family have also been archived';
+							$status = new Person_Status($archived_status);
+							$msg = 'The '.count($members).' members of the family have also had their status set to '.$status->getValue('label');
 						} else {
 							$msg = 'Not all members of the family could be accordingly archived because another user holds the lock';
 						}
@@ -537,7 +540,8 @@ class family extends db_object
 			    GROUP_CONCAT(CONCAT_WS(" ",p.first_name,p.last_name) ORDER BY ab.`rank` ASC, p.gender DESC SEPARATOR ", ") as full_names
 			   FROM person p JOIN family f on p.familyid = f.id
 			   JOIN age_bracket ab ON ab.id = p.age_bracketid
-			   WHERE p.status <> "archived"
+			   JOIN person_status ps ON ps.id = p.status
+			   WHERE (NOT ps.is_archived)
 			   GROUP BY f.id
 			) allmembers ON allmembers.familyid = f.id
 			LEFT JOIN (
@@ -549,7 +553,8 @@ class family extends db_object
 			   FROM person p
 			   JOIN family f on p.familyid = f.id
 			   JOIN age_bracket ab ON ab.id = p.age_bracketid
-			   WHERE ab.is_adult and p.status <> "archived"
+			   JOIN person_status ps ON ps.id = p.status
+			   WHERE ab.is_adult and (NOT ps.is_archived)
 			   GROUP BY f.id
 			) adultmembers ON adultmembers.familyid = f.id
 			WHERE p.id IN ('.$quoted_ids.')

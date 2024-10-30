@@ -66,6 +66,8 @@ class View__Add_User_Account extends View
 				</div>
 			</div>
 		<?php
+		$this->_sm->printForm('', $this->_sm_fields);
+		/*
 		foreach ($this->_sm_fields as $field) {
 			?>
 			<div class="control-group">
@@ -76,7 +78,8 @@ class View__Add_User_Account extends View
 			</div>
 			<?php
 		}
-		$this->_sm->printPasswordVerifyBox();
+		 * */
+		 
 		?>
 			<hr />
 			<div class="controls">

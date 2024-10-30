@@ -381,7 +381,7 @@ class roster_view extends db_object
 		$rows = $GLOBALS['db']->queryAll($sql);
 		$res = Array();
 		foreach ($rows as $row) {
-			$res[$row['assignment_date']][$row['roster_role_id']][] = Array(
+			$res[$row['assignment_date']][$row['roster_role_id']][$row['rank']] = Array(
 				'personid' => $row['personid'],
 				'name' => $row['assignee'],
 				'email' => $row['email'],
@@ -615,6 +615,15 @@ class roster_view extends db_object
 	}
 
 
+	/**
+	 *
+	 * @param string $start_date
+	 * @param string $end_date
+	 * @param boolean $editing Whether to show the editable version
+	 * @param boolean $public Whether we are showing on the public site
+	 * @param boolean $printable Whether to show the printable version
+	 * @return int	Count of the number of rows(dates) displayed.
+	 */
 	function printView($start_date=NULL, $end_date=NULL, $editing=FALSE, $public=FALSE, $printable=FALSE)
 	{
 		if (empty($this->_members)) return;
@@ -780,7 +789,7 @@ class roster_view extends db_object
 							if (!empty($mobiles) && SMS_Sender::canSend()) {
 								?>
 								<div class="smallprint no-print">
-								  <a class="soft" href="#send-sms-modal" data-personid="<?php echo implode(',', array_unique($personids)); ?>" data-toggle="sms-modal" data-name="People Rostered on <?php echo $date;?>" onclick="$(this).parents('tr:first').addClass('tblib-hover')">SMS&nbsp;All</a>
+								  <a class="soft" href="#send-sms-modal" data-personid="<?php echo implode(',', array_unique($personids)); ?>" data-toggle="sms-modal" data-name="People Rostered on <?php echo format_date($date);?>" onclick="$(this).parents('tr:first').addClass('tblib-hover')">SMS&nbsp;All</a>
 								</div>
 								<?php
 							}
@@ -840,6 +849,7 @@ class roster_view extends db_object
 							echo implode("<br />", $names);
 						}
 					} else {
+						echo '<div class="service-field-'.$mdetail['service_field'].'">';
 						if (!empty($ddetail['service'][$mdetail['congregationid']])) {
 							if ($public && (!defined('SHOW_SERVICE_NOTES_PUBLICLY') || !SHOW_SERVICE_NOTES_PUBLICLY)) {
 								// no notes in public view
@@ -848,6 +858,7 @@ class roster_view extends db_object
 							$dummy_service->populate($ddetail['service'][$mdetail['congregationid']]['id'], $ddetail['service'][$mdetail['congregationid']]);
 							$dummy_service->printFieldvalue($mdetail['service_field'], NULL, $printable);
 						}
+						echo '</div>';
 					}
 					?>
 					</td>
@@ -869,6 +880,8 @@ class roster_view extends db_object
 			</form>
 			<?php
 		}
+
+		return count(array_keys($to_print));
 	}
 
 	function _printTableHeader($editing, $public)
@@ -979,7 +992,7 @@ class roster_view extends db_object
 					foreach ($assignee as $rank => $new_personid) {
 						$new_personid = (int)$new_personid;
 						if (empty($new_personid)) continue;
-						if (isset($to_delete[$date][$roleid][$rank]) && $to_delete[$date][$roleid][$rank] == $new_personid) {
+						if (isset($to_delete[$date][$roleid][$rank]) && $to_delete[$date][$roleid][$rank]['personid'] == $new_personid) {
 							// unchanged allocation - leave it as is
 							unset($to_delete[$date][$roleid][$rank]);
 						} else {
@@ -1013,6 +1026,26 @@ class roster_view extends db_object
 					VALUES '.implode(",\n", $to_add);
 			$res = $GLOBALS['db']->query($sql);
 		}
+
+		// Tidy up ranks - for example if somebody already had rank 4 but they're
+		// now the only assignee, update their rank to 0.
+		// Just to be safe, we'll just do this for the roles in this roster view.
+		$clean_role_ids = Array();
+		foreach ($roles as $roleid) $clean_role_ids[] = (int)$roleid; // paranoia pays.
+		$SQL = 'UPDATE roster_role_assignment rra
+				INNER JOIN ( SELECT *,
+								(row_number() OVER (PARTITION BY assignment_date, roster_role_id
+													ORDER BY rank ASC) - 1) AS correctrank
+							   FROM roster_role_assignment
+							) a
+							ON rra.assignment_date = a.assignment_date
+								AND rra.roster_role_id = a.roster_role_id
+								AND rra.personid = a.personid
+				SET rra.rank = a.correctrank
+				WHERE rra.rank != a.correctrank
+				AND rra.roster_role_id IN ('.implode(',', $clean_role_ids).')';
+		$res = $GLOBALS['db']->query($SQL);
+
 		foreach ($roles as $i => $roleid) {
 			$role = $GLOBALS['system']->getDBObject('roster_role', $roleid);
 			$role->releaseLock('assignments');
@@ -1068,6 +1101,60 @@ class roster_view extends db_object
 			$res[$id] = $GLOBALS['system']->getDBObject('roster_view', $id);
 		}
 		return $res;
+	}
+
+	public function printAnalysis($start, $end)
+	{
+		if (!$this->getRoleIDs()) return;
+		$db = JethroDB::get();
+		$SQL = '
+				SELECT personid, first_name, last_name,
+					GROUP_CONCAT(DISTINCT role_title SEPARATOR ", ") as role_titles, count(asnid) as assignment_count, COUNT(distinct role_id) as role_count, COUNT(distinct assignment_date) as date_count
+				FROM (
+					SELECT p.id as personid, p.first_name, p.last_name, rr.id as role_id, rr.title as role_title, rra.assignment_date, concat(rra.assignment_date, "-", rr.id) as asnid
+					FROM person p
+					JOIN roster_role_assignment rra on p.id = rra.personid
+					JOIN roster_role rr ON rra.roster_role_id = rr.id
+					WHERE rra.assignment_date BETWEEN '.$db->quote($start).' AND '.$db->quote($end).'
+					AND rr.id IN ('.implode(',', $this->getRoleIDs()).')
+				) x
+				GROUP BY personid, first_name, last_name
+				HAVING date_count > 1
+				ORDER BY assignment_count DESC
+				';
+		$res = $db->queryAll($SQL);
+		if (empty($res)) {
+			echo '<i>('._('None').')</i>';
+			return;
+		}
+
+		?>
+		<table class="table roster-analysis table-bordered table-condensed table-auto-width table-compact">
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>Load</th>
+					<th>Roles</th>
+				</tr>
+			</thead>
+			<tbody>
+			<?php
+			foreach ($res as $row) {
+				$asn = $row['assignment_count'] > 1 ? 'assignments' : 'assignment';
+				$dt = $row['date_count'] > 1 ? 'dates' : 'date';
+				?>
+				<tr>
+					<td><a title="Click to highlight assignments" data-personid="<?php echo (int)$row['personid']; ?>" href="#"><?php echo ents($row['first_name'].' '.$row['last_name']); ?></a></td>
+					<td><?php echo $row['assignment_count'].' '.$asn.' on '.$row['date_count'].' '.$dt; ?></td>
+					<td><?php echo ents($row['role_titles']); ?></td>
+				</tr>
+				<?php
+			}
+			?>
+			</tbody>
+		</table>
+		<?php
+
 	}
 }
 ?>

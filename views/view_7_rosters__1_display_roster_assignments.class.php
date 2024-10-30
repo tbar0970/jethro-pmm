@@ -50,8 +50,13 @@ class View_Rosters__Display_Roster_Assignments extends View
 	{
 		$this->_printParams();
 		if ($this->_view) {
-			$this->_view->printView($this->_start_date, $this->_end_date, $this->_editing);
-
+			$serviceCount = $this->_view->printView($this->_start_date, $this->_end_date, $this->_editing);
+			if ($serviceCount && !$this->_editing && count($this->_view->getRoleIDs()) > 0) {
+				if (!ifdef('ROSTERS_HIDE_ANALYSIS')) {
+					echo '<h4>People assigned more than once in the '.$serviceCount.' dates above:</h4>';
+					$this->_view->printAnalysis($this->_start_date, $this->_end_date);
+				}
+			}
 		}
 	}
 
@@ -117,7 +122,7 @@ class View_Rosters__Display_Roster_Assignments extends View
 						if (PUBLIC_ROSTER_SECRET) $url .= '&secret='.PUBLIC_ROSTER_SECRET;
 						echo '<a  class="nowrap" target="_rosterview" href="'.$url.'"><i class="icon-share"></i>View in public site</a> &nbsp; ';
 					}
-				
+
 					require_once 'size_detector.class.php';
 					if (!SizeDetector::isNarrow()) {
 						?>

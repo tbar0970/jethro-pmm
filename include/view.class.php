@@ -15,9 +15,23 @@ abstract class View
 	{
 	}
 
+	/**
+	 * Get the title that should be shown in the <head><title>
+	 * @return string
+	 */
 	public function getTitle()
 	{
 		return '';
+	}
+
+	/**
+	 * Get the heading that should be shown as an H1 at the top of the page
+	 * Defaults to getTitle().
+	 * @return strong
+	 */
+	public function getPageHeading()
+	{
+		return $this->getTitle();
 	}
 
 	/**

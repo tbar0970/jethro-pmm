@@ -103,7 +103,7 @@ printf($panel_header, 'basic', 'Basic Details & Members', 'active');
 			$dummy = new Person();
 			foreach ($family->getMemberData() as $personid => $person) {
 				$dummy->populate($personid, $person);
-				$archivedClass = $person['status'] == 'archived' ? 'archived' : '';
+				$archivedClass = in_array($person['status'], Person_Status::getArchivedIDs()) ? 'archived' : '';
 				?>
 				<a href="?view=persons&personid=<?php echo (int)$personid; ?>">
 				<div class="family-member <?php echo $archivedClass; ?>">

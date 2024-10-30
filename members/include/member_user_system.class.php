@@ -50,12 +50,7 @@ class Member_User_System extends Abstract_User_System
 			$_SESSION['last_activity_time'] = time();
             $GLOBALS['db']->setCurrentUserID((int)$_SESSION['member']['id']);
 
-
-			include JETHRO_ROOT.'/include/permission_levels.php';
-			foreach ($PERM_LEVELS as $i => $detail) {
-				list($define_symbol, $desc, $feature_code) = $detail;
-				define('PERM_'.$define_symbol, $i);
-			}
+			$this->_loadPermissionLevels();
 			return;
 
 		} else {
@@ -299,9 +294,10 @@ If you didn't request an account, you can just ignore this email";
 	{
 		$db =& $GLOBALS['db'];
 		$sql = 'SELECT COUNT(DISTINCT familyid) '
-				. 'FROM _person '
+				. 'FROM _person p '
+				. 'JOIN person_status ps ON ps.id = p.status '
 				. 'WHERE email = '.$db->quote($email).''
-				. 'AND status <> "archived"';
+				. 'AND (NOT ps.is_archived)';
 		$familyCount = $db->queryOne($sql);
 
 		if ($familyCount > 1) return -1;
@@ -309,9 +305,10 @@ If you didn't request an account, you can just ignore this email";
 
 		$sql = 'SELECT p.*
 				FROM _person p
+				JOIN person_status ps ON ps.id = p.status
 				JOIN age_bracket ab ON ab.id = p.age_bracketid
 				WHERE p.email  = '.$db->quote($email).'
-				AND status <> "archived"
+				AND (NOT ps.is_archived)
 				ORDER BY (IF(p.member_password IS NOT NULL, 0, 1)), ab.`rank` ASC, p.gender DESC';
 		$res = $db->queryRow($sql);
 
@@ -366,6 +363,15 @@ If you didn't request an account, you can just ignore this email";
 			}
 		}
 		return NULL;
+	}
+
+	public function handle2FAMobileTelChange($person, $old_mobile)
+	{
+		$staff_member = new Staff_Member($person->id);
+		if (!$staff_member) return;
+		if ($staff_member->requires2FA()) {
+			trigger_error("Attempt to change 2FA user's mobile number via the members interface", E_USER_ERROR);
+		}
 	}
 
 }
