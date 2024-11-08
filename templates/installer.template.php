@@ -7,7 +7,7 @@
 
 	<body>
 		<div id="header">
-			<h1>Jethro PMM Installer</h1>
+			<h1>St Peter's Hornsby ChurchOS Installer</h1>
 		</div>
 		<div id="jethro-overall-width">
 			<div id="jethro-overall-width-inner">
