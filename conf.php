@@ -37,7 +37,7 @@ define('REQUIRE_HTTPS', FALSE);
 // use. Optional. This can be used to add an extra layer of security by only granting
 // access to the tables needed for members area features.
 define('DB_MEMBERS_USERNAME', 'hornsbya_churchosmembers');
-define('DB_MEMBERS_PASSWORD', 'msph2077$');
+define('DB_MEMBERS_PASSWORD', 'msph2077$2');
 
 // Username and password of the mysql account that the PUBLIC area of Jethro should
 // use. Optional. This can be used to add an extra layer of security by only granting
