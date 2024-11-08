@@ -1,6 +1,6 @@
 <?php
 /**
- * JETHRO PMM
+ * St Peter's Hornsby ChurchOS
  *
  * conf.php - edit this file to configure jethro
  *
@@ -15,14 +15,14 @@
 
 
 // Name of the mysql database, eg jethro
-define('DB_DATABASE', '');
+define('DB_DATABASE', 'churchos');
 
 // Username and password of the mysql account with which to access the mysql database
-define('DB_USERNAME', '');
-define('DB_PASSWORD', '');
+define('DB_USERNAME', 'churchos');
+define('DB_PASSWORD', 'peatshornsbynsw');
 
 // The URL jethro will be running at.  NB The final slash is important!!
-define('BASE_URL', 'http://example.com/jethro/');
+define('BASE_URL', 'http://os.hornsbyanglican.org.au/');
 
 // Whether the system must be accessed by HTTPS.
 // If this is true, the BASE_URL above must begin with https://
