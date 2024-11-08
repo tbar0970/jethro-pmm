@@ -10,7 +10,7 @@
 		SizeDetector::printFormFields();
 		?>
 		<div id="login-header">
-			<h1><span>Jethro PMM </span> <?php echo ents(SYSTEM_NAME); ?></h1>
+			<h1><span>St Peter's Hornsby ChurchOS </span> <?php echo ents(SYSTEM_NAME); ?></h1>
 		</div>
 		<div id="login-body" class="form-horizontal">
 			<noscript>
