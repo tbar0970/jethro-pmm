@@ -15,7 +15,7 @@
 
 
 // Name of the mysql database, eg jethro
-define('DB_DATABASE', 'churchos');
+define('DB_DATABASE', 'hornsbya_churchos');
 
 // Username and password of the mysql account with which to access the mysql database
 define('DB_USERNAME', 'churchos');
