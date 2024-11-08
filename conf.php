@@ -36,14 +36,14 @@ define('REQUIRE_HTTPS', FALSE);
 // Username and password of the mysql account that the MEMBERS area of Jethro should
 // use. Optional. This can be used to add an extra layer of security by only granting
 // access to the tables needed for members area features.
-define('DB_MEMBERS_USERNAME', '');
-define('DB_MEMBERS_PASSWORD', '');
+define('DB_MEMBERS_USERNAME', 'churchosmembers');
+define('DB_MEMBERS_PASSWORD', 'msph2077$');
 
 // Username and password of the mysql account that the PUBLIC area of Jethro should
 // use. Optional. This can be used to add an extra layer of security by only granting
 // access to the tables needed for public  area features.
-define('DB_PUBLIC_USERNAME', 'churchosmembers');
-define('DB_PUBLIC_PASSWORD', '');
+define('DB_PUBLIC_USERNAME', 'churchospublic');
+define('DB_PUBLIC_PASSWORD', 'publicsph$2077');
 
 // Server on which mysql is running - usually localhost
 define('DB_HOST', 'localhost');
