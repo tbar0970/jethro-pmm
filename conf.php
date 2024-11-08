@@ -42,7 +42,7 @@ define('DB_MEMBERS_PASSWORD', '');
 // Username and password of the mysql account that the PUBLIC area of Jethro should
 // use. Optional. This can be used to add an extra layer of security by only granting
 // access to the tables needed for public  area features.
-define('DB_PUBLIC_USERNAME', '');
+define('DB_PUBLIC_USERNAME', 'churchosmembers');
 define('DB_PUBLIC_PASSWORD', '');
 
 // Server on which mysql is running - usually localhost
