@@ -63,7 +63,7 @@ class AgeBracketChangesFixer
 			}, $badchange);
 			if (count(array_unique($firstlines)) != 1) trigger_error("First lines in history are expected to always be 'Updated by ...", E_USER_ERROR);
 			$oldagebracket = array_values(array_unique($firstlines))[0];
-			if (preg_match('/Updated by ([\w\s]+) \(#(\d+)\)/', $oldagebracket, $matches)) {
+			if (preg_match('/Updated by (.+) \(#(\d+)\)/', $oldagebracket, $matches)) {
 				$updater = $matches[1];
 				$updaterid = $matches[2];
 			} else {
