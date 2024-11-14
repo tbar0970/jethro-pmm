@@ -142,3 +142,8 @@ SELECT `rank`+1, NULL, 'ATTENDANCE_ORDER_DEFAULT', 'Default order for recording/
 'status'
 FROM setting
 WHERE symbol = 'ATTENDANCE_DEFAULT_DAY';
+
+
+-- Deleting a congregation should delete associated headcounts. Fixes https://github.com/tbar0970/jethro-pmm/issues/1091
+ALTER TABLE `congregation_headcount` DROP FOREIGN KEY `congregation_headcount_congid2`;
+ALTER TABLE `congregation_headcount` ADD CONSTRAINT `congregation_headcount_congid2` FOREIGN KEY (`congregationid`) REFERENCES `congregation` (`id`) ON DELETE CASCADE;
