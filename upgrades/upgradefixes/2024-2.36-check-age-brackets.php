@@ -11,7 +11,7 @@ const MULTIPLE_PERSONS = "multiple persons affected";
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-define('JETHRO_ROOT', dirname(dirname(__FILE__)));
+define('JETHRO_ROOT', dirname(dirname(dirname(__FILE__))));
 set_include_path(get_include_path().PATH_SEPARATOR.JETHRO_ROOT);
 require_once JETHRO_ROOT.'/conf.php';
 define('DB_MODE', 'private');
@@ -52,7 +52,7 @@ if (!empty($groupedchanges)) {
 	foreach ($allaffected as $affected) {
 		print($affected.PHP_EOL);
 	}
-	print("Please go to Admin -> Fix Broken Age Brackets to fix this".PHP_EOL);
+	print("Please log in to Jethro to fix this - ".build_url(Array('view' => '_fix_age_brackets')).PHP_EOL);
 }
 //AgeBracketChangesFixer::printBadChanges($badchanges);
 //AgeBracketChangesFixer::fix($badChanges);
