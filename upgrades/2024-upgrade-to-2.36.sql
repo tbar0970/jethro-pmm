@@ -182,3 +182,6 @@ CREATE TABLE IF NOT EXISTS _disused_action_plan_backup_1035 SELECT * from action
 INSERT INTO setting
 (symbol, type, value, note)
 VALUES ('NEEDS_1035_UPGRADE', 'hidden', "1", "Whether the upgrade for person statuses needs to be run");
+
+-- Issue #1069 - 'archived by system' notes should not require action
+update _abstract_note set status = 'no_action' where subject = 'Archived by system';
