@@ -14,12 +14,14 @@ class View__Move_Person_To_Family extends View
 		$this->_person = $GLOBALS['system']->getDBObject('person', (int)$_REQUEST['personid']);
 		if (!empty($_REQUEST['move_to'])) {
 			if ($_REQUEST['move_to'] == 'new') {
+				$old_familyid = $this->_person->getValue('familyid');
 				$family = $GLOBALS['system']->getDBObject('family', (int)$this->_person->getValue('familyid'));
 				$family->id = 0;
 				$family->create();
 				$this->_person->setValue('familyid', $family->id);
 				$this->_person->save();
 				add_message('New family created with same details as old family.  You should update the new family\'s details as required');
+				$this->_annotateOldEmptyFamily($old_familyid, $family);
 				redirect('_edit_family', Array('familyid' => $family->id)); // exits
 			} else {
 				if (empty($_REQUEST['familyid'])) {
@@ -32,26 +34,7 @@ class View__Move_Person_To_Family extends View
 					$this->_person->setValue('familyid', (int)$_REQUEST['familyid']);
 					if ($this->_person->save()) {
 						add_message('Person moved to family "'.$family->toString().'"');
-
-						$remaining_members = $GLOBALS['system']->getDBObjectData('person', Array('familyid' => $old_familyid));
-						if (empty($remaining_members)) {
-							$old_family = $GLOBALS['system']->getDBObject('family', $old_familyid);
-							
-							if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
-								// add a note
-								$GLOBALS['system']->includeDBClass('family_note');
-								$note = new Family_Note();
-								$note->setValue('familyid', $old_familyid);
-								$note->setValue('subject', 'Archived by System');
-								$note->setValue('details', 'The system is archiving this family because its last member ('.$this->_person->toString().' #'.$this->_person->id.') has been moved to another family ('.$family->toString().' #'.$family->id.')');
-								$note->create();
-							}
-
-							// archive the family record
-							$old_family->setValue('status', 'archived');
-							$old_family->save();
-						}
-
+						$this->_annotateOldEmptyFamily($old_familyid, $family);
 						redirect('persons', Array('personid' => $this->_person->id)); // exits
 
 					}
@@ -59,6 +42,28 @@ class View__Move_Person_To_Family extends View
 			}
 
 		}
+	}
+
+	private function _annotateOldEmptyFamily($old_familyid, $new_family)
+	{
+		$remaining_members = $GLOBALS['system']->getDBObjectData('person', Array('familyid' => $old_familyid));
+		if (empty($remaining_members)) {
+			$old_family = new Family($old_familyid);
+			if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
+				// add a note
+				$GLOBALS['system']->includeDBClass('family_note');
+				$note = new Family_Note();
+				$note->setValue('familyid', $old_familyid);
+				$note->setValue('status', 'no_action');
+				$note->setValue('subject', 'Archived by System');
+				$note->setValue('details', 'The system is archiving this family because its last member ('.$this->_person->toString().' #'.$this->_person->id.') has been moved to another family ('.$new_family->toString().' #'.$new_family->id.')');
+				$note->create();
+			}
+
+			// archive the family record
+			$old_family->setValue('status', 'archived');
+			$old_family->save(FALSE);
+		}		
 	}
 
 	function getTitle()

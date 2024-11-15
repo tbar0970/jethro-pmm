@@ -69,9 +69,10 @@ class Family_Note extends Abstract_Note
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
 		$res['from'] = '('.$res['from'].') JOIN family subject ON family_note.familyid = subject.id ';
 
-		// eliminate any notes linked to families with no visible members
-		$res['from'] .= ' JOIN person fmember ON fmember.familyid = subject.id ';
-
+		if ($GLOBALS['user_system']->getCurrentRestrictions()) {
+			// eliminate any notes linked to families with no visible members
+			$res['from'] .= ' JOIN person fmember ON fmember.familyid = subject.id ';
+		}	
 		$res['select'][] = 'subject.family_name as family_name';
 		return $res;
 	}

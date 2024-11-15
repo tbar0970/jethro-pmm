@@ -176,7 +176,7 @@ if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
 				?>
 				<a href="?view=_add_note_to_family&familyid=<?php echo $family->id; ?>"><i class="icon-plus-sign"></i><?php echo _('Add Family Note')?></a>
 				<?php
-			} else {
+			} else if (count($members) == 1) {
 				?>
 				<a href="?view=_add_note_to_person&personid=<?php $memberarray = array_keys($members); echo reset($memberarray); ?>"><?php echo _('Add Person Note')?></a>
 				<?php
