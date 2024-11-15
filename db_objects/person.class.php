@@ -177,7 +177,7 @@ class Person extends DB_Object
 			  `mobile_tel` varchar(12) NOT NULL default '',
 			  `work_tel` varchar(12) NOT NULL default '',
 			  `remarks` text NOT NULL,
-			  `status` varchar(8) NOT NULL default '',
+			  `status` int(11) NOT NULL,
 			  `status_last_changed` datetime NULL default NULL,
 			  `history` text NOT NULL,
 			  `creator` int(11) NOT NULL default '0',

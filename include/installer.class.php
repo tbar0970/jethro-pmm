@@ -8,6 +8,7 @@ class Installer
 	var $initial_person_fields = Array('first_name', 'last_name', 'gender', 'username', 'password', 'email');
 	var $person = NULL;
 	var $family = NULL;
+	var $user = NULL;
 	var $congregations = Array();
 
 	function run()
@@ -365,9 +366,9 @@ class Installer
 		foreach ($this->initial_person_fields as $field) {
 			$this->user->processFieldInterface($field, 'install_');
 		}
-		$this->user->setValue('status', 0);
 		$this->user->setValue('age_bracketid', 1);
 		$this->user->setValue('congregationid', 1); // will be overwritten with a real one later
+		$this->user->setValue('status', 0); // ditto
 		$this->user->setValue('permissions', PERM_SYSADMIN);
 		if (!$this->user->validateFields()) return FALSE;
 
@@ -397,6 +398,7 @@ class Installer
 
 		$this->user->setValue('familyid', $this->family->id);
 		$this->user->setValue('congregationid', reset($cong_ids));
+		$this->user->setValue('status', Person_Status::getDefault());
 		$this->user->setValue('creator', 0);
 		if (!$this->user->create()) {
 			$this->reportFailure();

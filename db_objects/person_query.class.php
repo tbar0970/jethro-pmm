@@ -88,8 +88,10 @@ class Person_Query extends DB_Object
 							'include_groups'	=> Array(),
 							'exclude_groups'	=> Array(),
 						  );
-		foreach (Person_Status::getActive(FALSE) as $sid => $details) {
-			$default_params['rules']['p.status'][] = $sid;
+		if (empty($GLOBALS['JETHRO_INSTALLING'])) {
+			foreach (Person_Status::getActive(FALSE) as $sid => $details) {
+				$default_params['rules']['p.status'][] = $sid;
+			}
 		}
 		return Array(
 			'name'	=> Array(

@@ -66,7 +66,7 @@ class Person_Status extends db_object
 					(0, "Core", 0, 0, 1),
 					(1, "Crowd", 0, 0, 1),
 					(2, "Contact", 1, 0, 0),
-					(3, "Archived, 0, 1, 0)';
+					(3, "Archived", 0, 1, 0)';
 		return $res;
 	}
 
@@ -94,6 +94,12 @@ class Person_Status extends db_object
 		$res = $GLOBALS['system']->getDBObjectData('person_status', Array('is_archived' => 1));
 		return array_keys($res);
 
+	}
+
+	static function getDefault()
+	{
+		$r = $GLOBALS['system']->getDBObjectData('person_status', Array('is_default' => 1));
+		return key($r);
 	}
 
 
