@@ -12,10 +12,6 @@ ini_set('display_errors', 1);
 define('JETHRO_ROOT', dirname(dirname(__FILE__)));
 set_include_path(get_include_path().PATH_SEPARATOR.JETHRO_ROOT);
 
-function fail($msg) {
-	trigger_error($msg, E_USER_ERROR);
-}
-
 is_readable(JETHRO_ROOT.'/conf.php') || fail('Jethro configuration file not found.  You need to copy conf.php.sample to conf.php and edit it before Jethro can run', E_USER_ERROR);
 require_once JETHRO_ROOT.'/conf.php';
 define('DB_MODE', 'private');
