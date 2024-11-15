@@ -63,9 +63,9 @@ class Person_Status extends db_object
 		$res[] = '
 			INSERT INTO person_status (`rank`, label, is_default, is_archived, require_congregation)
 					VALUES
-					(0, "Core", 0, 0, 1),
+					(0, "Core", 1, 0, 1),
 					(1, "Crowd", 0, 0, 1),
-					(2, "Contact", 1, 0, 0),
+					(2, "Contact", 0, 0, 0),
 					(3, "Archived", 0, 1, 0)';
 		return $res;
 	}
