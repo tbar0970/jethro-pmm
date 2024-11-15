@@ -142,3 +142,31 @@ SELECT `rank`+1, NULL, 'ATTENDANCE_ORDER_DEFAULT', 'Default order for recording/
 'status'
 FROM setting
 WHERE symbol = 'ATTENDANCE_DEFAULT_DAY';
+
+-- Issue #1091 - FK for headcount tables needs to be on delete cascade
+
+RENAME TABLE congregation_headcount TO disused_congregation_headcount;
+RENAME TABLE person_group_headcount TO disused_person_group_headcount;
+
+CREATE TABLE congregation_headcount (
+      `date` DATE NOT NULL,
+      `congregationid` INT(11) NOT NULL,
+      `number` INT(11) NOT NULL,
+      PRIMARY KEY (`date`, `congregationid`),
+      FOREIGN KEY (congregationid) REFERENCES congregation(id) ON DELETE CASCADE
+) Engine=InnoDB;
+
+INSERT INTO congregation_headcount SELECT * FROM disused_congregation_headcount;
+
+CREATE TABLE person_group_headcount (
+      `date` DATE NOT NULL,
+      `person_groupid` INT(11) NOT NULL,
+      `number` INT(11) NOT NULL,
+      PRIMARY KEY (`date`, `person_groupid`),
+      FOREIGN KEY (person_groupid) REFERENCES _person_group(id) ON DELETE CASCADE
+) Engine=InnoDB;
+
+INSERT INTO person_group_headcount SELECT * FROM disused_person_group_headcount;
+
+DROP TABLE disused_congregation_headcount;
+DROP TABLE disused_person_group_headcount;
