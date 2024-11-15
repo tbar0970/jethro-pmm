@@ -144,4 +144,11 @@ class Config_Manager {
 		return TRUE;
 
 	}
+
+	public static function deleteSetting($symbol)
+	{
+		$db = JethroDB::get();
+		$SQL = 'DELETE FROM setting WHERE symbol = '.$db->quote($symbol);
+		return $db->exec($SQL);
+	}
 }

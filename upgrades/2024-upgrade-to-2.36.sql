@@ -170,3 +170,8 @@ INSERT INTO person_group_headcount SELECT * FROM disused_person_group_headcount;
 
 DROP TABLE disused_congregation_headcount;
 DROP TABLE disused_person_group_headcount;
+
+-- Issue #1086
+INSERT INTO setting
+(symbol, type, value, note)
+VALUES ('NEEDS_1086_CHECK', 'hidden', "1", "Whether the check for issue 1086 needs to be run");

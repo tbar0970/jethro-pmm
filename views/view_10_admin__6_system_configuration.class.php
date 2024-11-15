@@ -77,6 +77,7 @@ class View_Admin__System_Configuration extends View {
 			<div class="form-horizontal">
 			<?php
 			foreach (Config_Manager::getSettings() as $symbol => $details) {
+				if ($details['type'] == 'hidden') continue;
 				$details['note'] = str_replace('<system_url>', BASE_URL, $details['note']);
 				if ($details['heading']) {
 					echo '<hr /><h4>'.ents($details['heading']).'</h4>';
@@ -166,6 +167,7 @@ class View_Admin__System_Configuration extends View {
 			case 'int':
 			case 'select':
 			case 'email':
+			case 'hidden':
 				break;
 			default:
 				trigger_error("Unknown setting type '$type'");

@@ -4,7 +4,7 @@ require_once JETHRO_ROOT.'/upgrades/upgradefixes/2.5.1_fix_agebrackets/AgeBracke
 /**
  * Shows bulk edits that incorrectly set 'Age Bracket' (https://github.com/tbar0970/jethro-pmm/issues/108), and fixes the changes that the user indicates are incorrect.
  */
-class View_Admin__Fix_Broken_Age_brackets extends View
+class View__Fix_Age_Brackets extends View
 {
 	private $_stage = 'begin';
 	/**
@@ -53,7 +53,7 @@ class View_Admin__Fix_Broken_Age_brackets extends View
 
 	private function _printBeginView()
 	{
-		$text = "Jethro 2.35.1 had a bug <a href='https://github.com/tbar0970/jethro-pmm/issues/1086'>(#1086)</a> where bulk editing persons would reset people's Age Bracket to '".AgeBracketChangesFixer::getDefaultAgeBracketLabel()."'. This page lets you revert 'Age Bracket' to the original value for  affected persons.
+		$text = 'A <a href="https://github.com/tbar0970/jethro-pmm/issues/1086">bug in Jethro 2.35.1</a> meant that bulk-updating persons sometimes resulted in their age bracket being reset to '.AgeBracketChangesFixer::getDefaultAgeBracketLabel()."'. This page lets you check for affected records and reset 'Age Bracket' to the corrected value for affected persons.
 		Note:  If a change affected just one person, we can't tell if it was a bulk edit, or a regular edit where Age Bracket was deliberately changed. Please review the single-person changes carefully. The multi-person changes are more likely to be incorrect, and these ticked by default.";
 		$text = '<p class="text">'.str_replace("\n", '</p><p class="text">', $text);
 		print_message($text, 'info', true);
@@ -155,6 +155,7 @@ class View_Admin__Fix_Broken_Age_brackets extends View
 			}
 		}
 		$this->_fixresults = AgeBracketChangesFixer::fix($changes);
+		Config_Manager::deleteSetting('NEEDS_1086_CHECK');
 		$GLOBALS['system']->doTransaction('COMMIT');
 		$this->_stage = 'done';
 	}
@@ -172,5 +173,15 @@ class View_Admin__Fix_Broken_Age_brackets extends View
 	function _findAffectedPersons()
 	{
 		$this->_affectedpersons = AgeBracketChangesFixer::getBadChangeGroups();
+	}
+
+	function printInvitation()
+	{
+		$this->_findAffectedPersons();
+		if ($this->_affectedpersons) {
+			print_message('Some records in your system need review for accidental changes. <a href="?view=_fix_age_brackets">Click here for details.</a>', 'error', TRUE);
+		} else {
+			Config_Manager::deleteSetting('NEEDS_1086_CHECK');
+		}
 	}
 }

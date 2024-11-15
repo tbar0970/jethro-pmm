@@ -12,6 +12,13 @@ class View_Home extends View
 
 	function printView()
 	{
+		if (ifdef('NEEDS_1086_CHECK')) {
+			if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
+				require_once 'views/view_0_fix_age_brackets.class.php';
+				$x = new View__Fix_Age_Brackets();
+				$x->printInvitation();
+			}
+		}
 		$num_cols = 1;
 		if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) $num_cols++;
 		if ($GLOBALS['user_system']->havePerm(PERM_VIEWROSTER)) $num_cols++;
