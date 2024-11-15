@@ -3,6 +3,7 @@ class View_Attendance__Statistics extends View
 {
 	var $_start_date;
 	var $_end_date;
+	var $status_map;
 
 	static function getMenuPermissionLevel()
 	{

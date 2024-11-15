@@ -6,7 +6,7 @@ class Abstract_View_Notes_List extends View
 
 	function _compareNoteDates($a, $b)
 	{
-		return $a['action_date'] > $b['action_date'];
+		return $a['action_date'] > $b['action_date'] ? 1 : -1;
 	}
 
 	function processView()
