@@ -102,6 +102,18 @@ class Person_Status extends db_object
 		return key($r);
 	}
 
+	static function getByLabel($label)
+	{
+		static $set;
+		if (empty($set)) {
+			$x = $GLOBALS['system']->getDBObjectData('person_status', Array());
+			foreach ($x as $id => $detail) {
+				$set[$detail['label']] = $id;
+			}
+		}
+		return array_get($set, $label);		
+	}
+
 
 	public function getInstancesQueryComps($params, $logic, $order)
 	{

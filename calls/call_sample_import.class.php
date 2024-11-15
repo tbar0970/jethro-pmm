@@ -22,7 +22,7 @@ class Call_Sample_Import extends Call
 		$statuses = Person_Status::getActive(FALSE);
 		$first_status = reset($statuses);
 		$first_status = $first_status['label'];
-		$last_status = end(statuses);
+		$last_status = end($statuses);
 		$last_status = $last_status['label'];
 		$age_brackets = $GLOBALS['system']->getDBObjectData('age_bracket', Array(), 'OR', 'rank');
 		$default_age_bracket = '';

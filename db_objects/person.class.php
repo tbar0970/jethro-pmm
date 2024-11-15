@@ -1052,6 +1052,10 @@ class Person extends DB_Object
 			}
 		}
 
+		if (!empty($row['status']) && !is_int($row['status'])) {
+			$row['status'] = Person_Status::getByLabel($row['status']);
+		}
+
 		if (isset($row['age_bracket']) && strlen($row['age_bracket'])) {
 			foreach (Age_Bracket::getMap() as $id => $label) {
 				if (trim(strtolower($label)) == trim(strtolower($row['age_bracket']))) {
