@@ -175,3 +175,10 @@ DROP TABLE disused_person_group_headcount;
 INSERT INTO setting
 (symbol, type, value, note)
 VALUES ('NEEDS_1086_CHECK', 'hidden', "1", "Whether the check for issue 1086 needs to be run");
+
+-- Issue #1035
+CREATE TABLE IF NOT EXISTS _disused_person_query_backup_1035 SELECT * from person_query;
+CREATE TABLE IF NOT EXISTS _disused_action_plan_backup_1035 SELECT * from action_plan;
+INSERT INTO setting
+(symbol, type, value, note)
+VALUES ('NEEDS_1035_UPGRADE', 'hidden', "1", "Whether the upgrade for person statuses needs to be run");

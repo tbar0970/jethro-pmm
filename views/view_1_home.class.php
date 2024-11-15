@@ -19,6 +19,11 @@ class View_Home extends View
 				$x->printInvitation();
 			}
 		}
+		if (ifdef('NEEDS_1035_UPGRADE')) {
+			require_once 'upgrades/upgradelibs/status_upgrader.class.php';
+			Status_Upgrader::runHTML();
+		}
+
 		$num_cols = 1;
 		if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) $num_cols++;
 		if ($GLOBALS['user_system']->havePerm(PERM_VIEWROSTER)) $num_cols++;
