@@ -546,7 +546,9 @@ class View_Documents extends View
 		$downloadFilename = array_get($_REQUEST, 'zipname', 'JethroFiles');
 		if (substr($downloadFilename, -4) != '.zip') $downloadFilename .= '.zip';
 		$zip = new ZipArchive();
-		$zipFilename = tempnam(sys_get_temp_dir(), 'jethrozip').'.zip';
+		$zipFilename = tempnam(sys_get_temp_dir(), 'jethrozip');
+		rename($zipFilename, $zipFilename.".zip");
+		$zipFilename .= ".zip";
 		if ($zip->open($zipFilename, ZipArchive::CREATE)!==TRUE) {
 			exit("cannot open <$zipFilename>\n");
 		}
