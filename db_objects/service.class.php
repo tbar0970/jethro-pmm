@@ -733,7 +733,7 @@ class service extends db_object
 						$title = str_replace('%title%', $item['title'], $title);
 						$title = $this->replaceKeywords($title);
 						echo ents($title);
-						if ($item['note']) echo '<br /><i><small>'.nl2br(ents($item['note'])).'</small></i>';
+						if ($item['note']) echo '<div class="smallprint"><i>'.nl2br(ents($item['note'])).'</i></div>';
 						?>
 					</td>
 					<td class="narrow"><?php echo ents($item['personnel']); ?></td>

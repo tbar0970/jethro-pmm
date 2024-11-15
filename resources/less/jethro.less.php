@@ -2151,7 +2151,9 @@ div.service-content {
 table.run-sheet tbody td {
 	background-color: @jethroLightest;
 }
-
+table.run-sheet .smallprint {
+	line-height: 95%;
+}
 
 #service-comp-manager .tab-content {
 	overflow-y: auto;
