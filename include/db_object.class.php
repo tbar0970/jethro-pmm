@@ -530,7 +530,7 @@ class db_object
 			$value = clean_phone_number($value);
 		}
 		if (!empty($this->fields[$name]['maxlength']) 
-				//&& !is_null($value) 
+				&& !is_null($value) 
 				&& (strlen($value) > $this->fields[$name]['maxlength'])
 			) {
 			$value = substr($value, 0, $this->fields[$name]['maxlength']);
