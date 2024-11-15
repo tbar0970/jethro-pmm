@@ -7,6 +7,7 @@ class View_Admin__Import extends View
 	private $_dummy_person = NULL;
 	private $_captured_errors = Array();
 	private $_error_index = 0;
+	private $_groups = Array();
 
 	static function getMenuPermissionLevel()
 	{
