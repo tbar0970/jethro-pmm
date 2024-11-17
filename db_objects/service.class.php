@@ -494,7 +494,7 @@ class service extends db_object
 	public function replaceKeywords($text)
 	{
 		$matches = Array();
-		preg_match_all('/%([a-zA-Z0-9#_\/]*)%/', $text, $matches);
+		preg_match_all('/%([a-zA-Z0-9#_\/]*)%/', (string)$text, $matches);
 		foreach ($matches[1] as $keyword) {
 			$text = str_replace('%'.$keyword.'%', $this->getKeywordReplacement($keyword), $text);
 		}
@@ -733,7 +733,7 @@ class service extends db_object
 						$title = str_replace('%title%', $item['title'], $title);
 						$title = $this->replaceKeywords($title);
 						echo ents($title);
-						if ($item['note']) echo '<div class="smallprint"><i>'.nl2br(ents($item['note'])).'</i></div>';
+						if ($item['note']) echo '<div class="smallprint"><small><i>'.nl2br(ents($item['note'])).'</i></small></div>';
 						?>
 					</td>
 					<td class="narrow"><?php echo ents($item['personnel']); ?></td>
