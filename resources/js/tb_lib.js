@@ -526,8 +526,9 @@ TBLib.medLinkPopupWindow = null;
 TBLib.handleMedPopupLinkClick = function(elt)
 {
 	if (!elt.href) elt = this;
-	var myWidth = Math.max(500, (screen.width/2));
-	TBLib.medLinkPopupWindow = window.open(elt.href, elt.target ? elt.target : 'medpopup', 'height=480,width='+myWidth+',resizable=yes,scrollbars=yes');
+	var myWidth = Math.max(500, Math.min(700, (window.innerWidth/2)));
+	var myHeight = Math.max(500, (window.innerHeight * 0.8));
+	TBLib.medLinkPopupWindow = window.open(elt.href, elt.target ? elt.target : 'medpopup', 'height='+myHeight+',width='+myWidth+',top=15,resizable=yes,scrollbars=yes');
 	if (TBLib.medLinkPopupWindow) {
 		TBLib.medLinkPopupWindow.focus();
 	} else {
