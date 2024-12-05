@@ -154,14 +154,14 @@ class View_Admin__Import extends View
 			case 'existing':
 				if (empty($_REQUEST['groupid'])) {
 					add_message(_("You must choose a group first"), 'error');
-					$this->stage = 'begin';
+					$this->_stage = 'begin';
 					return;
 				}
 				break;
 			case 'new':
 				if (!strlen(array_get($_REQUEST, 'new_group_name'))) {
 					add_message(_("You must enter a name for the new group"), 'error');
-					$this->stage = 'begin';
+					$this->_stage = 'begin';
 					return;
 				}
 				break;
@@ -305,7 +305,11 @@ class View_Admin__Import extends View
 				continue;
 			}
 
-			$this->_captureErrors($i);
+			$ei = $i;
+			$name = array_get($row, 'first_name', '').' '.array_get($row, 'last_name', '');
+			if (strlen(trim($name))) $ei .= ' ('.$name.')';
+			$this->_captureErrors($ei);
+
 			if (!empty($row['congregation'])) {
 				$row['congregationid'] = Congregation::findByName($row['congregation']);
 			}
@@ -431,7 +435,7 @@ class View_Admin__Import extends View
 		if (!empty($row_errors)) {
 			$msg = _('Your import file is not valid.  Please correct the following errors and try again:').'<ul>';
 			foreach ($row_errors as $line => $errors) {
-				$msg .= '<li>Row '.($line+1).': '.implode('; ', $errors).'</li>';
+				$msg .= '<li>Row '.($line).': '.implode('; ', $errors).'</li>';
 			}
 			$msg .= '</ul>';
 			add_message($msg, 'failure', true);
