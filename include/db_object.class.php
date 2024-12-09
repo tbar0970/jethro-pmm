@@ -507,7 +507,7 @@ class db_object
 			return;
 		}
 		if (array_get($this->fields[$name], 'initial_cap')) {
-			$value = ucfirst($value);
+			$value = ucfirst($value ?? '');
 		}
 		// Force initial cap only if value is a single world
 		if (array_get($this->fields[$name], 'initial_cap_singleword') && (false === strpos($value, ' '))) {
