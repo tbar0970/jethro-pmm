@@ -1046,10 +1046,7 @@ class roster_view extends db_object
 				AND rra.roster_role_id IN ('.implode(',', $clean_role_ids).')';
 		$res = $GLOBALS['db']->query($SQL);
 
-		foreach ($roles as $i => $roleid) {
-			$role = $GLOBALS['system']->getDBObject('roster_role', $roleid);
-			$role->releaseLock('assignments');
-		}
+		$this->releaseLocks();
 		unset($roleid);
 
 		if (!empty($_POST['new_volunteers'])) {
@@ -1155,6 +1152,15 @@ class roster_view extends db_object
 		</table>
 		<?php
 
+	}
+
+	public function releaseLocks()
+	{
+		$roles = $this->getRoleIds();
+		foreach ($roles as $i => $roleid) {
+			$role = $GLOBALS['system']->getDBObject('roster_role', $roleid);
+			$role->releaseLock('assignments');
+		}
 	}
 }
 ?>
