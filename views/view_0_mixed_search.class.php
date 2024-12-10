@@ -213,7 +213,7 @@ class View__Mixed_Search extends View
 				<input type="text" 
 					   name="search" 
 					   value="<?php echo ents(array_get($_GET, 'search')); ?>" 
-					   placeholder=<?php echo _('"Name, phone or email"');?> 
+					   placeholder="<?php echo _("Name, phone or email");?>"
 					   <?php if (array_get($_GET, 'search')) echo 'autoselect="autoselect"'; ?>
 				/>
 				<button type="submit" class="btn"><i class="icon-search"></i></button>

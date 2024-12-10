@@ -189,7 +189,7 @@ class View_Attendance__Display extends View
 		
 		foreach ($this->statuses as $status) {
 			if ($status && ($status[0] == 'g') && empty($groupid)) {
-				print_message(_('"Congregational attendance cannot be filtered by a group membership status. Please clear the status filter to display attendance for this congregation."'), 'error');
+				print_message(_('Congregational attendance cannot be filtered by a group membership status. Please clear the status filter to display attendance for this congregation.'), 'error');
 				return;
 			}
 		}
@@ -428,7 +428,7 @@ class View_Attendance__Display extends View
 				}
 				?>
 					<th <?php if ($this->format != 'totals') echo 'rowspan="2"'; ?>></th>
-					<th class="narrow selector form-inline" rowspan="2"><input type="checkbox" class="select-all" title=<?php echo _('"Select all"');?> /></th>					
+					<th class="narrow selector form-inline" rowspan="2"><input type="checkbox" class="select-all" title="<?php echo _('Select all');?>" /></th>
 				</tr>
 
 			<?php

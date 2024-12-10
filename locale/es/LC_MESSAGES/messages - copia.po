@@ -387,9 +387,8 @@ msgid "Log out"
 msgstr "Salir"
 
 #: templates/main.template.php:44
-msgid ""
-"\"This user account can only see persons in certain congregations or groups\""
-msgstr "\"Este usuario solo puede ver personas de ciertos grupos\""
+msgid "This user account can only see persons in certain congregations or groups"
+msgstr "Este usuario solo puede ver personas de ciertos grupos"
 
 #: templates/main.template.php:44
 msgid "Restrictions in effect"
@@ -435,8 +434,8 @@ msgstr "Grupos"
 
 #: templates/person_list_header_footer.template.php:23
 #: views/view_6_attendance__2_display.class.php:405
-msgid "\"Select all\""
-msgstr "\"Seleccionar todos\""
+msgid "Select all"
+msgstr "Seleccionar todos"
 
 #: templates/single_note.template.php:18
 msgid "Edit original note"
@@ -447,7 +446,7 @@ msgid "Added by"
 msgstr "Agregado por"
 
 #: templates/single_note.template.php:40
-msgid "\". Edited by \""
+msgid ". Edited by "
 msgstr "\".Editada por \""
 
 #: templates/single_note.template.php:79
@@ -515,7 +514,7 @@ msgid " of "
 msgstr " de"
 
 #: templates/view_person.template.php:55
-msgid "\"Choose a group first\""
+msgid "Choose a group first"
 msgstr "\"Elegir un grupo primero\""
 
 #: templates/view_person.template.php:78
@@ -830,7 +829,7 @@ msgid "System-Wide Search"
 msgstr "Búsqueda en todo el sistema"
 
 #: views/view_1_home.class.php:36
-msgid "\"Name, Phone or Email\""
+msgid "Name, Phone or Email"
 msgstr "Nombre, Teléfono o Email"
 
 #: views/view_1_home.class.php:48
@@ -1110,11 +1109,11 @@ msgid "Person Reports"
 msgstr "Reportes de personas"
 
 #: views/view_3_persons__3_reports.class.php:85
-msgid "\"Save and view results\""
+msgid "Save and view results"
 msgstr "\"Guardar y ver resultados\""
 
 #: views/view_3_persons__3_reports.class.php:86
-msgid "\"Save and return to report list\""
+msgid "Save and return to report list"
 msgstr "\"Grabar y volver a la lista\""
 
 #: views/view_3_persons__3_reports.class.php:87
@@ -1181,7 +1180,7 @@ msgid "Delete"
 msgstr "Borrar"
 
 #: views/view_3_persons__3_reports.class.php:200
-msgid "\"Show result counts for selected reports\""
+msgid "Show result counts for selected reports"
 msgstr "\"Mostrar resultados para el informe seleccionado\""
 
 #: views/view_3_persons__4_statistics.class.php:12
@@ -1334,19 +1333,19 @@ msgid "Record Attendance"
 msgstr "Registrar asistencia"
 
 #: views/view_6_attendance__1_record.class.php:80
-msgid "\"Attendance for \""
+msgid "Attendance for "
 msgstr "\"Asistencia para \""
 
 #: views/view_6_attendance__1_record.class.php:80
-msgid "\" cannot be recorded on a \""
+msgid " cannot be recorded on a "
 msgstr "\" no puede registrarse sobre \""
 
 #: views/view_6_attendance__1_record.class.php:87
-msgid "\"Another user is currently recording attendance for \""
+msgid "Another user is currently recording attendance for "
 msgstr "\"Otro usuario esta tomando asistencia para \""
 
 #: views/view_6_attendance__1_record.class.php:87
-msgid "\".  Please wait until they finish then try again.\""
+msgid ".  Please wait until they finish then try again."
 msgstr "\". Por favor espere hasta que terminen e intente nuevamente.\" "
 
 #: views/view_6_attendance__1_record.class.php:158
@@ -1508,7 +1507,7 @@ msgid "Segment"
 msgstr "Segmento"
 
 #: views/view_6_attendance__3_statistics.class.php:125
-msgid "\"Percentage of dates marked present rather than absent\""
+msgid "Percentage of dates marked present rather than absent"
 msgstr "\"Porcentaje de presentes contra ausentes\""
 
 #: views/view_6_attendance__3_statistics.class.php:125
@@ -1516,7 +1515,7 @@ msgid "Rate"
 msgstr "Tasa"
 
 #: views/view_6_attendance__3_statistics.class.php:126
-msgid "\"Average number marked present per date\""
+msgid "Average number marked present per date"
 msgstr "\"Promedio de presentes por fecha\""
 
 #: views/view_6_attendance__3_statistics.class.php:126

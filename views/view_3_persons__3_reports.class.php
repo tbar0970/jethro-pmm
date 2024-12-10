@@ -76,8 +76,8 @@ class View_Persons__Reports extends View
 				$this->_query->printForm();
 				?>
 				<h3>&nbsp</h3>
-				<input type="submit" class="btn" value=<?php echo _('"Save and view results"');?> />
-				<input type="submit" class="btn" name="return" value=<?php echo _('"Save and return to report list"');?> />
+				<input type="submit" class="btn" value="<?php echo _('Save and view results');?>" />
+				<input type="submit" class="btn" name="return" value="<?php echo _('Save and return to report list');?>" />
 				<a class="btn" href="?view=<?php echo ents($_REQUEST['view']); ?>"><?php echo _('Cancel and return to report list');?></a>
 
 			</form>
