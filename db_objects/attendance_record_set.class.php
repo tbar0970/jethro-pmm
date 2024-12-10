@@ -65,6 +65,17 @@ class Attendance_Record_Set
 		return $obj->releaseLock('att-'.$this->date);
 	}
 
+	public function getLockHolder()
+	{
+		$obj = $this->_getCohortObject();
+		if (!$obj) {
+			trigger_error("Could not get cohort object for lock");
+			return FALSE;
+		}
+		return $obj->getLockHolder('att-'.$this->date);
+
+	}
+
 	function create()
 	{
 	}

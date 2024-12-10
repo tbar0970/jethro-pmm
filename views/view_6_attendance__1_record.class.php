@@ -91,7 +91,9 @@ class View_Attendance__Record extends View
 				}
 
 				if (!$set->acquireLock()) {
-					add_message(_('"Another user is currently recording attendance for "').$set->getCohortName()._('".  Please wait until they finish then try again."'), 'error');
+					$lockHolder = $set->getLockHolder();
+					$lockHolderStr = $lockHolder['first_name'] !== null ? "{$lockHolder['first_name']} {$lockHolder['last_name']} ({$lockHolder['userid']})" : "User {$lockHolder['userid']}";
+					add_message($lockHolderStr._(' is currently recording attendance for ').$set->getCohortName()._('.  Please wait until they finish then try again.'), 'error');
 					unset($this->_record_sets[$cohortid]);
 					$this->_cohortids = array_diff($this->_cohortids, Array($cohortid));
 				}
