@@ -453,8 +453,8 @@ msgid "Added by"
 msgstr "Agregado por"
 
 #: templates/single_note.template.php:40
-msgid "1"
-msgstr "\".Editada por \""
+msgid "Edited by"
+msgstr "Editada por"
 
 #: templates/single_note.template.php:79
 msgid "Edit / Comment"
@@ -521,8 +521,8 @@ msgid " of "
 msgstr " de"
 
 #: templates/view_person.template.php:55
-msgid "1"
-msgstr "\"Elegir un grupo primero\""
+msgid "Choose a group first"
+msgstr "Elegir un grupo primero"
 
 #: templates/view_person.template.php:78
 msgid "Attendance"
@@ -916,8 +916,8 @@ msgid "Parameters"
 msgstr "Parametros"
 
 #: views/view_10_admin__3_custom_fields.class.php:130
-msgid "1"
-msgstr "\"Click para borrar este campo\""
+msgid "Click to delete this field"
+msgstr "Click para borrar este campo"
 
 #: views/view_10_admin__3_custom_fields.class.php:142
 #: views/view_10_admin__3_date_types.class.php:85
