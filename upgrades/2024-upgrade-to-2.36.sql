@@ -35,17 +35,17 @@ INSERT INTO person_status(id, label, `rank`)
 SELECT ts.id, SUBSTRING_INDEX(SUBSTRING_INDEX(@sOptions, ',', ts.id), ',', -1), @rank:=@rank+1
 FROM temp_statuses ts;
 
-INSERT INTO person_status(label, `rank`, require_congregation)
+INSERT IGNORE INTO person_status(label, `rank`, require_congregation)
 VALUES
 ('Contact', @rank:=@rank+1, 0);
 
-SET @contact_status_id = LAST_INSERT_ID();
+SELECT id INTO @contact_status_id FROM person_status WHERE label='Contact';
 
-INSERT INTO person_status(label, rank, is_archived, require_congregation)
+INSERT IGNORE INTO person_status(label, rank, is_archived, require_congregation)
 VALUES
 ('Archived', @rank:=@rank+1, 1, 0);
 
-SET @archived_status_id = LAST_INSERT_ID();
+SELECT id INTO @archived_status_id FROM person_status WHERE label='Contact';
 
 CREATE TABLE _person_status_backup
 SELECT id, status FROM _person;
