@@ -21,44 +21,86 @@ CREATE TABLE `person_status` (
   UNIQUE KEY `label` (`label`)
 ) ENGINE=InnoDB;
 
-SET @sOptions = (SELECT CONCAT(value, ",") FROM setting WHERE symbol = 'PERSON_STATUS_OPTIONS');
+-- Get the old comma-separated PERSON_STATUS_OPTIONS, to be replaced by our new person_status table.
+-- E.g. 'Core,Flock,Connecting,Staff,Fringe,Satellite Members,Youth Contact,'
+SET @soptions =
+  (SELECT concat(value, ",")
+   FROM setting
+   WHERE symbol = 'PERSON_STATUS_OPTIONS');
 
-SELECT @sOptions;
+-- Augment @soptions with built-in 'Contact' and 'Archived' statuses, to save us having to insert them (with correct rank) later. Throw in whitespace to ensure we handle it properly
+-- E.g. 'Core,Flock,Connecting,Staff,Fringe,Satellite Members,Youth Contact,,Contact,  Archived'
+SET @soptions = concat(@soptions, ',Contact,  Archived');
 
-CREATE TEMPORARY TABLE temp_statuses
-SELECT distinct (status+1) as id, "TBA", 0
- FROM _person
-WHERE status NOT IN ('archived', 'contact');
+-- E.g. 'Core,Flock,Connecting,Staff,Fringe,Satellite Members,Youth Contact,Contact,  Archived'
+SET @soptions = regexp_replace(@soptions, ',+', ',');
 
-SET @rank = 0;
-INSERT INTO person_status(id, label, `rank`)
-SELECT ts.id, SUBSTRING_INDEX(SUBSTRING_INDEX(@sOptions, ',', ts.id), ',', -1), @rank:=@rank+1
-FROM temp_statuses ts;
+-- E.g. ["Core","Flock","Connecting","Staff","Fringe","Satellite Members","Youth Contact","Contact","  Archived"]
+SET @soptions =
+  (SELECT concat('["', replace(@soptions, ',', '","'), '"]'));
 
-INSERT IGNORE INTO person_status(label, `rank`, require_congregation)
-VALUES
-('Contact', @rank:=@rank+1, 0);
+-- Use json_table() to turn @soptions into a table, with sequential id and rank
+-- We GROUP BY the (trimmed, lowercased) label just in case there is more than one 'Contact' (#1115). If so, we use the first, user-supplied one's (via 'min(jt.id)') id and rank, not that of the 'Contact' we appended, so that id refs to it (in _person.status) remain valid.
+INSERT INTO `person_status` (id, label, `rank`)
+SELECT min(jt.id) AS id,
+       trim(jt.value) AS label,
+       min(jt.id) AS `rank`
+FROM json_table(@soptions, "$[*]" columns(id
+                                          FOR
+                                          ORDINALITY, value varchar(255) PATH "$")) AS jt
+WHERE trim(value) != ""
+GROUP BY trim(lower(jt.value));
 
-SELECT id INTO @contact_status_id FROM person_status WHERE label='Contact';
+UPDATE `person_status`
+SET require_congregation=0
+WHERE label='Contact';
 
-INSERT IGNORE INTO person_status(label, rank, is_archived, require_congregation)
-VALUES
-('Archived', @rank:=@rank+1, 1, 0);
+UPDATE `person_status`
+SET is_archived=1,
+    require_congregation=0
+WHERE label='Archived';
 
-SELECT id INTO @archived_status_id FROM person_status WHERE label='Contact';
+UPDATE `person_status`
+SET is_default = 1
+WHERE label = (SELECT value FROM setting WHERE symbol = "PERSON_STATUS_DEFAULT");
 
-CREATE TABLE _person_status_backup
-SELECT id, status FROM _person;
+-- At this point person_status is ready to go. In our example, it is:
+-- +----+-------------------+------+--------+------------+-------------+----------------------+
+-- | id | label             | rank | active | is_default | is_archived | require_congregation |
+-- +----+-------------------+------+--------+------------+-------------+----------------------+
+-- |  1 | Core              |    1 |      1 |          0 |           0 |                    1 |
+-- |  2 | Flock             |    2 |      1 |          0 |           0 |                    1 |
+-- |  3 | Connecting        |    3 |      1 |          0 |           0 |                    1 |
+-- |  4 | Staff             |    4 |      1 |          0 |           0 |                    1 |
+-- |  5 | Fringe            |    5 |      1 |          0 |           0 |                    1 |
+-- |  6 | Satellite Members |    6 |      1 |          0 |           0 |                    1 |
+-- |  7 | Youth Contact     |    7 |      1 |          0 |           0 |                    1 |
+-- |  8 | Contact           |    8 |      1 |          1 |           0 |                    0 |
+-- |  9 | Archived          |    9 |      1 |          0 |           1 |                    0 |
+-- +----+-------------------+------+--------+------------+-------------+----------------------+
 
-UPDATE _person
+
+-- Deal with obsolete settings
+DELETE FROM setting WHERE symbol = "PERSON_STATUS_DEFAULT";
+UPDATE setting SET type="", note="" WHERE symbol = "PERSON_STATUS_OPTIONS"; /* turns it into a placeholder for custom interface */
+
+
+-- Now we update _person.status to be a FK reference to person_status.id.
+-- _person.status used to be a 0-based index into the PERSON_STATUS_OPTIONS string, plus 'archived' and 'contact' magic values.
+-- PERSON_STATUS_OPTIONS has become the 1-based but otherwise identically ordered person_status table, so just increment the values.
+UPDATE `_person`
 SET status = status+1
 WHERE status NOT IN ('archived', 'contact');
 
-UPDATE _person
+-- Get id of 'Contact' (or 'contact' if the user defined it prior), and set _person.status to it where applicable
+SELECT id INTO @contact_status_id FROM person_status WHERE lower(label)='contact';
+UPDATE `_person`
 SET status = @contact_status_id
 WHERE status = 'contact';
 
-UPDATE _person
+-- Same with 'Archived'
+SELECT id INTO @archived_status_id FROM person_status WHERE lower(label)='archived';
+UPDATE `_person`
 SET status = @archived_status_id
 WHERE status = 'archived';
 
@@ -68,13 +110,8 @@ MODIFY COLUMN status INT(11) NOT NULL;
 ALTER TABLE `_person`
 ADD CONSTRAINT `person_status` FOREIGN KEY (`status`) REFERENCES `person_status` (`id`) ON DELETE RESTRICT;
 
-UPDATE person_status
-SET is_default = 1
-WHERE label = (SELECT value FROM setting WHERE symbol = "PERSON_STATUS_DEFAULT");
+-- Finished with _person
 
-DELETE FROM setting WHERE symbol = "PERSON_STATUS_DEFAULT";
-
-UPDATE setting SET type="", note="" WHERE symbol = "PERSON_STATUS_OPTIONS"; /* turns it into a placeholder for custom interface */
 
 DROP VIEW member;
 
