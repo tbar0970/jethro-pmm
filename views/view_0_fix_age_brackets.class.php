@@ -149,11 +149,13 @@ class View__Fix_Age_Brackets extends View
 	{
 		$GLOBALS['system']->doTransaction('BEGIN');
 		$changes = [];
-		foreach (AgeBracketChangesFixer::getBadChangeGroups() as $id => $change) {
-			if (in_array($id, $_REQUEST['time'])) {
-				$changes[$id] = $change;
+		if (array_key_exists('time', $_REQUEST)) { // 'time' is an array of timestamps of changes deemed to be in error. Null if none were picked.
+			foreach (AgeBracketChangesFixer::getBadChangeGroups() as $id => $change) {
+				if (in_array($id, $_REQUEST['time'])) {
+					$changes[$id] = $change;
+				}
 			}
-		}
+	    }
 		$this->_fixresults = AgeBracketChangesFixer::fix($changes);
 		Config_Manager::deleteSetting('NEEDS_1086_CHECK');
 		$GLOBALS['system']->doTransaction('COMMIT');
