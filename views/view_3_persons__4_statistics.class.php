@@ -34,4 +34,3 @@ class View_Persons__Statistics extends View
 
 
 }
-?>

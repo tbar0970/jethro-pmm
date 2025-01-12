@@ -126,4 +126,3 @@ class Abstract_View_Edit_Object extends View
 		}
 	}
 }
-?>

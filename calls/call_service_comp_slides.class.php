@@ -169,5 +169,3 @@ class Call_Service_Comp_Slides extends Call
 		}
 	}
 }
-
-?>

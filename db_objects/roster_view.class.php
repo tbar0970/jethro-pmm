@@ -1157,4 +1157,3 @@ class roster_view extends db_object
 
 	}
 }
-?>

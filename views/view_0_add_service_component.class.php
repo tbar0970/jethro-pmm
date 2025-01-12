@@ -55,4 +55,3 @@ class View__Add_Service_Component extends Abstract_View_Add_Object
 	}
 	
 }
-?>

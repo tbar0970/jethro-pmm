@@ -66,4 +66,3 @@ if ($GLOBALS['user_system']->getCurrentUser() == NULL) {
 	$GLOBALS['system'] = System_Controller::get();
 	System_Controller::get()->run();
 }
-?>

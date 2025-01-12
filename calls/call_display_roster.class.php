@@ -94,4 +94,3 @@ class Call_Display_Roster extends Call
 		<?php
 	}
 }
-?>

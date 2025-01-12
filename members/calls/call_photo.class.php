@@ -42,4 +42,3 @@ class Call_Photo extends Call
 		}
 	}
 }
-?>

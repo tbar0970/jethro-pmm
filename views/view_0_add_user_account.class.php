@@ -90,4 +90,3 @@ class View__Add_User_Account extends View
 		<?php
 	}
 }
-?>

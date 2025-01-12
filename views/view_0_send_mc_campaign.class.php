@@ -229,4 +229,3 @@ class View__Send_MC_Campaign extends View
 	}
 
 }
-?>

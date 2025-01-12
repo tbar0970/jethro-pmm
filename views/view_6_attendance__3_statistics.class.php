@@ -217,4 +217,3 @@ class View_Attendance__Statistics extends View
 		return TRUE;
 	}
 }
-?>

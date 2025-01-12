@@ -139,4 +139,3 @@ class View__Delete_Person extends View
 
 
 }
-?>

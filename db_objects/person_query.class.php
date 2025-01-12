@@ -2016,4 +2016,3 @@ class Person_Query extends DB_Object
 		return $params;
 	}
 }
-?>

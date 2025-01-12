@@ -78,4 +78,3 @@ class Person_Group_Category extends db_object
 	}
 
 }
-?>

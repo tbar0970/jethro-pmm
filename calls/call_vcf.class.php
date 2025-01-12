@@ -41,6 +41,3 @@ class Call_vcf extends Call
 		}
 	}
 }
-
-
-?>

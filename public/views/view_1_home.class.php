@@ -22,5 +22,3 @@ class View_Home extends View
 	}
 
 }
-
-?>

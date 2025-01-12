@@ -322,4 +322,3 @@ class View_Groups extends View
 		Person_Group::printMembershipStatusChooser('membership_status['.(int)$personid.']', $value);
 	}
 }
-?>

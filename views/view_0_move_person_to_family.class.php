@@ -143,4 +143,3 @@ class View__Move_Person_To_Family extends View
 		}
 	}
 }
-?>

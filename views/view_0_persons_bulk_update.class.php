@@ -95,4 +95,3 @@ class View__Persons_Bulk_Update extends View
 		
 	}
 }
-?>

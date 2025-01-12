@@ -23,4 +23,3 @@ class View__Edit_Me extends Abstract_View_Edit_Object
 	}
 
 }
-?>

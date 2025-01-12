@@ -28,4 +28,3 @@ class View_Families extends View
 		}
 	}
 }
-?>

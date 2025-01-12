@@ -52,4 +52,3 @@ class Custom_Field_Option extends db_object
 		return parent::printFieldInterface($fieldname, $prefix);
 	}
 }
-?>

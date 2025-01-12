@@ -80,4 +80,3 @@ class View__Edit_Attendance extends View
 		<?php
 	}
 }
-?>

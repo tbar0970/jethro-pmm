@@ -84,4 +84,3 @@ class View__Manage_Service_Component_Tags extends View
 		<?php
 	}
 }
-?>

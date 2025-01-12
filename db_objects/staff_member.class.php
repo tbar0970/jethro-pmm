@@ -523,4 +523,3 @@ class Staff_Member extends Person
 		return $GLOBALS['db']->queryCol($SQL);
 	}
 }
-?>

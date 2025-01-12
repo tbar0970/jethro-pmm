@@ -71,4 +71,3 @@ class View_Groups__Manage_Categories extends View
 	}
 
 }
-?>

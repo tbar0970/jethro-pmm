@@ -12,4 +12,3 @@ class View__Edit_Roster_View extends Abstract_View_Edit_Object
 		return PERM_MANAGEROSTERS;
 	}
 }
-?>

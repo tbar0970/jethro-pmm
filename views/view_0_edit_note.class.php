@@ -165,4 +165,3 @@ class View__Edit_Note extends View
 		}
 	}
 }
-?>

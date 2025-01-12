@@ -327,4 +327,3 @@ class View_Families__Add extends View
 		<?php
 	}
 }
-?>

@@ -31,5 +31,3 @@ class Call_Service_Comp_Detail extends Call
 		}
 	}
 }
-
-?>

@@ -180,4 +180,3 @@ class View_Groups__List_All extends View
 
 	}
 }
-?>

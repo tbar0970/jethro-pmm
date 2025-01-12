@@ -51,4 +51,3 @@ class View__Execute_Plans extends View
 
 	}
 }
-?>

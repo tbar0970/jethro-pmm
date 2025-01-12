@@ -72,4 +72,3 @@ class View__Add_Person_To_Family extends View
 		<?php
 	}
 }
-?>

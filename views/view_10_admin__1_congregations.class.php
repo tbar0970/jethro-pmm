@@ -103,4 +103,3 @@ class View_Admin__Congregations extends View
 
 	}
 }
-?>

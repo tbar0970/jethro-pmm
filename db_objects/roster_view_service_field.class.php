@@ -15,4 +15,3 @@ class roster_view_service_field extends db_object
 				) ENGINE=InnoDB ;';
 	}
 }
-?>

@@ -282,4 +282,3 @@ class Call_document_merge_help extends Call
 		<?php
 	}
 }
-?>

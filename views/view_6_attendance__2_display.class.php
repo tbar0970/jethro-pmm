@@ -630,4 +630,3 @@ class View_Attendance__Display extends View
 		<?php
 	}
 }
-?>

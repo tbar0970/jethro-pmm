@@ -189,4 +189,3 @@ class View_Admin__Custom_Fields extends View
 		<?php
 	}
 }
-?>
