@@ -532,7 +532,7 @@ class roster_view extends db_object
 		$showBlanks = ($this->getValue('show_on_run_sheet') == 1);
 		$asns = $this->getAssignments($service->getValue('date'), $service->getValue('date'));
 		$asns = empty($asns) ? Array() : reset($asns);
-		
+
 		$ourMembers = Array();
 		foreach ($this->_members as $member) {
 			if (empty($member['role_id']) && !$includeServiceFields) continue;
@@ -629,7 +629,7 @@ class roster_view extends db_object
 		if (empty($this->_members)) return;
 		$GLOBALS['system']->includeDBClass('service');
 		$dummy_service = new Service();
-	
+
 		if (is_null($start_date)) $start_date = date('Y-m-d');
 		$service_params = Array('congregationid' => $this->getCongregations(), '>date' => date('Y-m-d', strtotime($start_date.' -1 day')));
 		if (!is_null($end_date)) $service_params['<date'] = date('Y-m-d', strtotime($end_date.' +1 day'));
@@ -646,7 +646,7 @@ class roster_view extends db_object
 																),
 																'AND');
 		}
-		
+
 		$to_print = Array();
 		foreach ($services as $id => $service_details) {
 			$service_details['id'] = $id;
@@ -689,13 +689,15 @@ class roster_view extends db_object
 		if ($editing) {
 			$show_lock_fail_msg = false;
 			$show_group_denied_msg = false;
+			$lockholders = Array(); // Array mapping personid of lock holders to info about them and their lock, for later display. Typically there will be N identical locks for N roles edited. We only store the first, assuming it is representative.
 			foreach ($this->_members as $id => &$details) {
 				if (!empty($details['role_id'])) {
 					$role = $GLOBALS['system']->getDBObject('roster_role', $details['role_id']);
-
 					if (!($role->canAcquireLock('assignments') && $role->acquireLock('assignments'))) {
 						$details['readonly'] = true;
 						$show_lock_fail_msg = true;
+						$lockHolder = $role->getLockHolder('assignments');
+						$lockholders[$lockHolder['userid']] ??= $lockHolder;
 					}
 					if (!$role->canEditAssignments()) {
 						$details['readonly'] = true;
@@ -704,7 +706,7 @@ class roster_view extends db_object
 				}
 			}
 			if ($show_lock_fail_msg) {
-				print_message("Some of the roles in this roster are currently being edited by another user.  To edit assignments for these roles, wait until the other user finishes then try again.", 'failure');
+				$this->printLockHoldMessage($lockholders);
 			}
 			if ($show_group_denied_msg) {
 				print_message("There are some roles in this roster which you are not able to edit because they refer to a volunteer group you do not have access to.");
@@ -756,7 +758,7 @@ class roster_view extends db_object
 				}
 				$class_clause = ($date == $this_sunday) ? 'class="roster-next"' : '';
 				?>
-				
+
 				<tr <?php echo $class_clause; ?>>
 					<th class="roster-date nowrap">
 						<?php
@@ -1162,5 +1164,29 @@ class roster_view extends db_object
 			$role->releaseLock('assignments');
 		}
 	}
+
+	/**
+	 * Print an error explaining which other user has the roster edit lock, and for how long.
+	 * @param array{userid: int, array{userid: int, expires: string, first_name: ?string, last_name: ?string}} $lockholders Array mapping lock holder userids to info about them and their lock.
+	 *
+	 * @return void
+	 * @throws DateMalformedStringException
+	 */
+	public function printLockHoldMessage(array $lockholders): void
+	{
+		$lockHoldersStr =
+			implode(' and ', array_map(
+				fn($lockowner, $userid) => $lockowner['first_name'] !== null ? "{$lockowner['first_name']} {$lockowner['last_name']} ({$userid})" : "user $userid",
+				$lockholders,
+				array_keys($lockholders)
+			));
+        // If more than one person holds locks of differing expiries, the longest expiry is most relevant.
+		$maxLockExpiry = array_reduce($lockholders, function ($carry, $lockholder) {
+			return $lockholder['expires'] > $carry ? $lockholder['expires'] : $carry;
+		}, PHP_INT_MIN);
+		$lockExpiresStr = (new DateTime($maxLockExpiry))->format('H:i');
+		print_message("Some of the roles in this roster are currently being edited by $lockHoldersStr.  To edit assignments for these roles, wait until the other user finishes or their lock expires (at $lockExpiresStr), then try again.", 'failure');
+	}
 }
+
 ?>

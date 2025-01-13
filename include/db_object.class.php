@@ -507,7 +507,7 @@ class db_object
 			return;
 		}
 		if (array_get($this->fields[$name], 'initial_cap')) {
-			$value = ucfirst($value);
+			$value = ucfirst($value ?? '');
 		}
 		// Force initial cap only if value is a single world
 		if (array_get($this->fields[$name], 'initial_cap_singleword') && (false === strpos($value, ' '))) {
@@ -970,6 +970,26 @@ class db_object
 
 		return TRUE;
 	}
+
+    /**
+     * Get the id and name of the $type lock holder.
+     * If the user lacks permission to see the lock holder's details, first_name and last_name will be null.
+     *  @return array{userid: int, expires: string, first_name: ?string, last_name: ?string}
+     */
+    public function getLockHolder($type='') : array
+    {
+		if (!empty($GLOBALS['JETHRO_INSTALLING'])) return -1;
+        $db =& $GLOBALS['db'];
+			$sql = 'SELECT userid, expires, first_name, last_name
+					FROM  db_object_lock
+					LEFT JOIN person p ON p.id=db_object_lock.userid
+					WHERE object_type = '.$db->quote(strtolower(get_class($this))).'
+						AND lock_type = '.$db->quote($type).'
+						AND objectid = '.$db->quote($this->id).'
+						AND expires > NOW()';
+			$res = $db->queryRow($sql);
+            return $res;
+    }
 
 	/**
 	 * Release all locks held by the specified user.

@@ -201,9 +201,6 @@ define('DB_TYPE', 'mysql');
 // Dev option: Don't actually sent 2FA messages, just log them
 // define('2FA_BLOCK_MESSAGES', TRUE); // Don't actually send SMS, just log the intention to send.
 
-// Order to list persons when recording/displaying attendance
-define('ATTENDANCE_LIST_ORDER', 'status ASC, family_name ASC, familyid, age_bracket ASC, gender DESC');
-
 // To use the "generate service documents" feature, add folder paths here.
 // They can be absolute paths, or relative within the documents root above.
 // Separate multiple entries with pipe (|).
