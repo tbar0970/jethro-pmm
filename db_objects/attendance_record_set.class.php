@@ -65,6 +65,17 @@ class Attendance_Record_Set
 		return $obj->releaseLock('att-'.$this->date);
 	}
 
+	public function getLockHolder()
+	{
+		$obj = $this->_getCohortObject();
+		if (!$obj) {
+			trigger_error("Could not get cohort object for lock");
+			return FALSE;
+		}
+		return $obj->getLockHolder('att-'.$this->date);
+
+	}
+
 	function create()
 	{
 	}
@@ -910,6 +921,7 @@ class Attendance_Record_Set
 		// This set is also in the setting table - ATTENDANCE_ORDER_DEFAULT
 		return Array(
 			'status' => 'Status, then family name',
+			'status_last' => 'Status, then last name',
 			'family_name' => 'Family name, then age bracket',
 			'last_name'  => 'Last name',
 			'first_name' => 'First name',
@@ -925,7 +937,8 @@ class Attendance_Record_Set
 	public static function getOrderSQL($order=NULL, $status_table='ps')
 	{
 		$order_options = Array(
-			'status' => $status_table.'.`rank` ASC, family_name ASC, familyid, ab.`rank` ASC, gender DESC',
+			'status' => $status_table.'.`rank` ASC, family_name ASC, familyid, ab.`rank` ASC, IF (ab.is_adult, gender, 1) DESC',
+			'status_last' => $status_table.'.`rank` ASC, last_name ASC, familyid, ab.`rank` ASC, IF (ab.is_adult, gender, 1) DESC',
 			'family_name' => 'family_name ASC, familyid, ab.`rank` ASC',
 			'last_name'  => 'last_name ASC, first_name ASC, familyid',
 			'first_name' => 'first_name ASC, last_name ASC, familyid',
