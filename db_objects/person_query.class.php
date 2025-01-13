@@ -1436,7 +1436,7 @@ class Person_Query extends DB_Object
 			if ($params['sort_by'] == 'f.family_name') {
 				// Stop members of identically-named families from being intermingled
 				// and make sure kids follow adults even if their last names are earlier
-				$query['order_by'] .= ', f.id,  absort.`rank`';
+				$query['order_by'] .= ', f.id,  absort.`rank`, IF (absort.is_adult, gender, 1) DESC';
 			}
 
 			/*
