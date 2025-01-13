@@ -103,7 +103,7 @@ class Status_Upgrader
 			$actions = unserialize($row['actions']);
 			if (isset($actions['fields']['status'])) {
 				$oldstatus = $actions['fields']['status']['value'];
-				$newstatus = upgradeStatus($oldstatus);
+				$newstatus = Status_Upgrader::upgradeStatus($oldstatus);
 				if ($oldstatus != $newstatus) {
 					echo "Updating \n";
 					$actions['fields']['status']['value'] = $newstatus;
