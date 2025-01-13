@@ -84,7 +84,7 @@ class View_Attendance__Record extends View
 		} else if (!empty($_REQUEST['params_submitted'])) {
 			foreach ($this->_record_sets as $cohortid => $set) {
 				if (!$set->checkAllowedDate()) {
-					add_message(_('"Attendance for "').$set->getCohortName()._('" cannot be recorded on a "').date('l', strtotime($this->_attendance_date)), 'error');
+					add_message(_('Attendance for "').$set->getCohortName()._('" cannot be recorded on a ').date('l', strtotime($this->_attendance_date)), 'error');
 					unset($this->_record_sets[$cohortid]);
 					$this->_cohortids = array_diff($this->_cohortids, Array($cohortid));
 					continue;
