@@ -11,7 +11,7 @@ Jethro PMM is the software that powers online services such as [Easy Jethro](htt
 Download the latest version of Jethro from the [releases page](https://github.com/tbar0970/jethro-pmm/releases)
 
 System requirements are:
-* MySQL 5.1 or above
+* MySQL 8.0 or above
 * PHP 5.3.0 or above
     * with [gettext extension](https://www.php.net/manual/en/book.gettext.php) enabled
     * [GD library](https://www.php.net/manual/en/book.image.php) recommended, to manage the size of uploaded photos
