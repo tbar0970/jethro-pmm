@@ -45,4 +45,3 @@ class View__Add_Roster_View extends View
 
 	}
 }
-?>

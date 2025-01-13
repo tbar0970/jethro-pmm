@@ -30,4 +30,3 @@ class View_Notes__For_Immediate_Action extends Abstract_View_Notes_List
 		return _('Notes For Immediate Action');
 	}
 }
-?>

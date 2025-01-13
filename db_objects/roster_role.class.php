@@ -247,4 +247,3 @@ class Roster_Role extends db_object
 	}
 
 }
-?>

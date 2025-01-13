@@ -58,4 +58,3 @@ class View__Add_Note_To_Family extends View
 
 	}
 }
-?>

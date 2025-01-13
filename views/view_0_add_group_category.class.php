@@ -15,4 +15,3 @@ class View__Add_Group_Category extends Abstract_View_Add_Object
 	}
 	
 }
-?>

@@ -120,4 +120,3 @@ class View_Admin__Action_Plans extends View
 		}
 	}
 }
-?>

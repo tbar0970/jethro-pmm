@@ -35,4 +35,3 @@ class View_Persons extends View
 		}
 	}
 }
-?>

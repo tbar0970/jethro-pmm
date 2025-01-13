@@ -67,4 +67,4 @@ foreach ($persons as $id => $member) {
 }
 ?>
 </table>
- * <?php */ ?>
+ * <?php */

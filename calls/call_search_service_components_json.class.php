@@ -9,4 +9,3 @@ class Call_Search_Service_Components_Json extends Call
 		echo '['.implode(',', array_keys($results)).']';
 	}
 }
-?>

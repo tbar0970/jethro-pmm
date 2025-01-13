@@ -186,4 +186,3 @@ class View__Import_Service_Components extends View
 		return $res;
 	}
 }
-?>

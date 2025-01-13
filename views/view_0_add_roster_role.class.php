@@ -46,4 +46,3 @@ class View__Add_Roster_Role extends View
 
 	}
 }
-?>

@@ -62,4 +62,3 @@ class Call_Service_Content extends Call
 		<?php
 	}
 }
-?>

@@ -47,4 +47,3 @@ abstract class View
 	abstract public function printView();
 
 }//end class
-?>

@@ -203,6 +203,3 @@ class Call_email extends Call
 			}
 	}
 }
-
-
-?>

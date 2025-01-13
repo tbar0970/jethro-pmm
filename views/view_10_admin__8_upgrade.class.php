@@ -38,4 +38,3 @@ class View_Admin__Upgrade extends View
 		}
 	}
 }
-?>

@@ -114,4 +114,3 @@ class Call_Document_merge_rosters extends Call
 		}
 	}
 }
-?>

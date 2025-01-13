@@ -1188,5 +1188,3 @@ class roster_view extends db_object
 		print_message("Some of the roles in this roster are currently being edited by $lockHoldersStr.  To edit assignments for these roles, wait until the other user finishes or their lock expires (at $lockExpiresStr), then try again.", 'failure');
 	}
 }
-
-?>

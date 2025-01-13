@@ -104,4 +104,3 @@ class View__Add_Note_To_Person extends View
 		<?php
 	}
 }
-?>

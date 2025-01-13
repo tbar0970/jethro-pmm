@@ -16,4 +16,3 @@ class service_bible_reading extends db_object
 				) ENGINE=InnoDB ;';
 	}
 }
-?>

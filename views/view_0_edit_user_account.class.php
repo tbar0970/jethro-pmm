@@ -75,4 +75,3 @@ class View__Edit_User_Account extends View
 		}
 	}
 }
-?>

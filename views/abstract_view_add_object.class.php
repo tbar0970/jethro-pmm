@@ -66,4 +66,3 @@ class Abstract_View_Add_Object extends View
 		<?php
 	}
 }
-?>

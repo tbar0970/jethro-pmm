@@ -24,4 +24,3 @@ class View_Notes__For_Future_Action extends Abstract_View_Notes_List
 		return _('Notes For Future Action');
 	}
 }
-?>
