@@ -57,10 +57,10 @@ class View_Admin__Import extends View
 
 	private function _printBeginView()
 	{
-		$text = _('This page allows you to import persons, families, groups and notes from a spreadsheet file containing one person per row.  You can upload a CSV file or paste tab-separated text.
+		$text = _('This page allows you to import persons, families, groups and notes from a spreadsheet containing one person per row.  You can upload a CSV file or paste tab-separated text.
 			The data must be formatted like this sample file.  (Correct column headers are important, but column order is flexible). 
 			Jethro treats successive rows as members of the same family, unless (a) the family name or family details are different or (b) there is a blank row in between.
-			Along with the person and family details, the "note" column allows you to add a note to the person record, and "group" columns allow you to add person to new or existing groups. 
+			Along with the person and family details, a "note" column allows you to add a note to the person record, and "group" columns allow you to add the person to new or existing groups. 
 			If you choose the "update" option below, Jethro will try to update existing persons/families rather than creating new ones.  If an existing person is matched by an import row, surrounding rows may be imported as new members of that family if applicable.');
 		$s = _('sample file');
 		$text = str_replace($s, '<a href="?call=sample_import">'.$s.'</a>', $text);
@@ -68,19 +68,24 @@ class View_Admin__Import extends View
 		print_message($text, 'info', true);
 		?>
 		<form method="post" enctype="multipart/form-data">
-		<table>
+		<table class="table">
 			<tr>
-				<th>Import Data&nbsp</th>
+				<th class="narrow">Import Data&nbsp</th>
 				<td>
 					<label>
-						<input type="radio" name="data_source" value="upload" checked="checked" data-toggle="visible" data-target=".importsource" data-match-attr="data-source"  />
+						<input type="radio" name="data_source" value="upload" data-toggle="visible" data-target=".importsource" data-match-attr="data-source" 
+							<?php if (array_get($_REQUEST, 'data_source', 'upload') == 'upload') echo 'checked="checked"'; ?> />
 						Upload file&nbsp;
-						<input class="importsource" data-source="upload" type="file" name="import" />
+						<input class="importsource" data-source="upload" type="file" name="import"
+							<?php if (array_get($_REQUEST, 'data_source', 'upload') != 'upload') echo 'style="display:none"'; ?> />
 					</label>
 					<label>
-						<input type="radio" name="data_source" value="input" data-toggle="visible" data-target=".importsource" data-match-attr="data-source" />
+						<input type="radio" name="data_source" value="input" data-toggle="visible" data-target=".importsource" data-match-attr="data-source" 
+							<?php if (array_get($_REQUEST, 'data_source', 'upload') == 'input') echo 'checked="checked"'; ?> />
 						Paste text...<br />
-						<textarea style="display: none; width: 50ex; height: 4ex" name="importdata" class="importsource" data-source="input" placeholder="Paste Tab-separated text here"></textarea>
+						<textarea style="width: 50ex; height: 6ex;
+										<?php if (array_get($_REQUEST, 'data_source', 'upload') != 'input') echo 'display:none'; ?>
+							" name="importdata" class="importsource" data-source="input" placeholder="Paste Tab-separated text here"></textarea>
 					</label>
 				</td>
 			</tr>
@@ -88,22 +93,28 @@ class View_Admin__Import extends View
 				<th>Group</th>
 				<td>
 					<label>
-						<input type="radio" name="group_type" value="new" checked="checked" data-toggle="visible" data-target=".grouptype" data-match-attr="data-group-source"  />
+						<input type="radio" name="group_type" value="new" 
+							<?php if (array_get($_REQUEST, 'group_type', 'new') == 'new') echo 'checked="checked"'; ?>
+							data-toggle="visible" data-target=".grouptype" data-match-attr="data-group-source"  />
 						Create a new group
-						<span class="grouptype" data-group-source="new">
-						called
-						<input type="text" name="new_group_name" />
-						in category
-						<?php
-						Person_Group_Category::printChooser('new_group_categoryid');
-						?>
+						<span class="grouptype" data-group-source="new"
+							<?php if (array_get($_REQUEST, 'group_type', 'new') != 'new') echo 'style="display:none"'; ?>	>
+							called
+							<input type="text" name="new_group_name" value="<?php echo ents(array_get($_REQUEST, 'new_group_name', '')); ?>"/>
+							in category
+							<?php
+							Person_Group_Category::printChooser('new_group_categoryid', array_get($_REQUEST, 'new_group_categoryid'));
+							?>
 						</span>
 					</label>
 					<label>
-						<input type="radio" name="group_type" value="existing" data-toggle="visible" data-target=".grouptype" data-match-attr="data-group-source" />
-						Add to an existing group: 
-						<span style="display:none" class="grouptype" data-group-source="existing">
-						<?php Person_Group::printChooser('groupid', array_get($_REQUEST, 'groupid', 0)); ?>
+						<input type="radio" name="group_type" value="existing"
+						<?php if (array_get($_REQUEST, 'group_type', 'new') == 'existing') echo 'checked="checked"'; ?>
+						data-toggle="visible" data-target=".grouptype" data-match-attr="data-group-source" />
+						Add to an existing group
+						<span class="grouptype" data-group-source="existing"
+							<?php if (array_get($_REQUEST, 'group_type', 'new') != 'existing') echo 'style="display:none"'; ?>	>
+							<?php Person_Group::printChooser('groupid', array_get($_REQUEST, 'groupid', 0)); ?>
 						</span>
 					</label>											
 					<p class="smallprint">All created/updated persons will be added to this group as a record of this import</p>
@@ -139,11 +150,13 @@ class View_Admin__Import extends View
 			</tr>
 			<tr>
 				<td>&nbsp;</td>
-				<td class="compulsory"><input type="submit" class="btn" value="Go" /></td>
+				<td>
+					<input type="submit" class="btn" value="Continue &raquo;" /> 
+					<p class="smallprint">(<?php echo _('You will be asked to confirm at the next step'); ?>)</p>
+				</td>
 			</tr>
 		</table>
 		</form>
-		<p>(<?php echo _('You will be asked to confirm at the next step'); ?>)</p>
 		<?php
 	}
 
