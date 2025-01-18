@@ -65,4 +65,3 @@ class View_Rosters__Define_Roster_Views extends View
 	<?php
 	}
 }
-?>

@@ -67,4 +67,3 @@ class View_Groups__Add extends Abstract_View_Add_Object
 		}
 	}
 }
-?>

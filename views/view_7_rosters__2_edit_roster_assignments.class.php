@@ -12,7 +12,8 @@ class View_Rosters__Edit_Roster_Assignments extends View_Rosters__Display_Roster
 	function processView()
 	{
 		if (!empty($_REQUEST['viewing'])) {
-			// They clicked the "view roster" button
+			// They are editing, but clicked the "view roster" button, cancelling the edit. Release locks and redirect to View.
+			$this->releaseLocks();
 			redirect('rosters__display_roster_assignments', Array('viewing' => NULL));
 			return;
 		}
@@ -48,5 +49,13 @@ class View_Rosters__Edit_Roster_Assignments extends View_Rosters__Display_Roster
 		}
 	}
 
+	private function releaseLocks()
+	{
+		if (!empty($_REQUEST['viewid'])) {
+			$this->_view = $GLOBALS['system']->getDBObject('roster_view', (int)$_REQUEST['viewid']);
+			$this->_view->releaseLocks();
+		}
+	}
+
 }
-?>
+

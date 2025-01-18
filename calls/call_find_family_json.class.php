@@ -29,4 +29,3 @@ class Call_Find_Family_JSON extends Call
 		}
 	}
 }
-?>

@@ -243,7 +243,7 @@ class View_Groups extends View
 					}
 					?>
 						<th>&nbsp;</th>
-						<th class="narrow selector form-inline"><input type="checkbox" class="select-all" title=<?php echo _('"Select all"')?> /></th>
+						<th class="narrow selector form-inline"><input type="checkbox" class="select-all" title="<?php echo _('Select all')?>" /></th>
 					</tr>
 
 				</thead>
@@ -322,4 +322,3 @@ class View_Groups extends View
 		Person_Group::printMembershipStatusChooser('membership_status['.(int)$personid.']', $value);
 	}
 }
-?>

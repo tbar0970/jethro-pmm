@@ -13,4 +13,3 @@ class View__Edit_Group_Category extends Abstract_View_Edit_Object
 		return PERM_MANAGEGROUPCATS;
 	}
 }
-?>

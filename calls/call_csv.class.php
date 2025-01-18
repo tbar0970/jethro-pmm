@@ -63,6 +63,3 @@ class Call_csv extends Call
 		fclose($fp);
 	}
 }
-
-
-?>

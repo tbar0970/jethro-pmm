@@ -27,4 +27,3 @@ class Custom_Field_Value extends db_object
 		);
 	}
 }
-?>

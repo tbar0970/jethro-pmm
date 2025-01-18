@@ -40,4 +40,3 @@ class View__Add_Planned_Absence extends Abstract_View_Add_Object
 	}
 	
 }
-?>

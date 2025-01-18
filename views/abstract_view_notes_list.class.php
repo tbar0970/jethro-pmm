@@ -125,4 +125,3 @@ class Abstract_View_Notes_List extends View
 		}
 	}
 }
-?>

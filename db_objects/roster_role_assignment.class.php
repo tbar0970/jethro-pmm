@@ -61,4 +61,3 @@ class roster_role_assignment extends db_object
 	}
 
 }
-?>

@@ -1736,7 +1736,3 @@ class Envelope_List extends FPDF
 		}
 	}
 }
-
-
-
-?>

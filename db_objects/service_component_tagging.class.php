@@ -41,4 +41,3 @@ class Service_Component_Tagging extends db_object
 		return $res;
 	}
 }
-?>

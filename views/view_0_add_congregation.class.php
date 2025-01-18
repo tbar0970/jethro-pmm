@@ -48,4 +48,3 @@ class View__Add_Congregation extends View
 		<?php
 	}
 }
-?>

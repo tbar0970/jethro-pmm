@@ -60,7 +60,7 @@
 			<?php
 			if (!empty($_REQUEST['view']) && $_REQUEST['view'] != 'home') {
 				?>
-				<form method="get" class="form-horizontal global-search pull-right">
+				<form method="get" class="form-horizontal global-search no-print pull-right">
 					<input type="hidden" name="view" value="_mixed_search" />
 					<span class="input-append fullwidth">
 						<input type="text" name="search" class="no-autofocus" enterkeyhint="Search" placeholder="<?php echo _('Search');?>..." />

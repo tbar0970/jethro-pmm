@@ -78,4 +78,3 @@ class Family_Note extends Abstract_Note
 	}
 
 }
-?>

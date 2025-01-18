@@ -12,4 +12,3 @@ class View__Edit_Family extends Abstract_View_Edit_Object
 		return PERM_EDITPERSON;
 	}
 }
-?>

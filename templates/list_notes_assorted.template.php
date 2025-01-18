@@ -75,4 +75,3 @@ if ($reassigning) {
 	</form>
 	<?php
 }
-?>

@@ -45,4 +45,3 @@ class Congregation_Service_Component extends db_object
 		return $res;
 	}
 }
-?>

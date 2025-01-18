@@ -94,4 +94,3 @@ class View__Edit_Congregation extends View
 		}
 	}
 }
-?>

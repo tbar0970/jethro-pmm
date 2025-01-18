@@ -98,10 +98,9 @@ class View__Add_Note_To_Person extends View
 
 			?>	
 			<div class="controls">
-				<input type="submit" name="new_note_submitted" class="btn" value=<?php echo _('Add Note to Person')?> />
+				<input type="submit" name="new_note_submitted" class="btn" value="<?php echo _('Add Note to Person')?>" />
 				<a class="btn" href="<?php echo build_url(Array('view' => 'persons', 'personid' => $this->_person->id)); ?>">Cancel</a>
 		</form>
 		<?php
 	}
 }
-?>

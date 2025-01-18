@@ -152,11 +152,11 @@ class View_Families__Add extends View
 
 		<form method="post" class="min">
 		<?php print_hidden_fields($_POST); ?>
-		<input type="submit" class="btn" name="override_dup_check" value=<?php echo _('Create new family anyway');?> />
+		<input type="submit" class="btn" name="override_dup_check" value="<?php echo _('Create new family anyway');?>" />
 		</form>
 
 		<form method="get" class="min">
-		<input type="submit" class="btn" value=<?php echo _('Cancel family creation');?> />
+		<input type="submit" class="btn" value="<?php echo _('Cancel family creation');?>" />
 		</form>
 		<?php
 	}
@@ -320,11 +320,10 @@ class View_Families__Add extends View
 		?>
 		<h3><?php echo _('Create');?></h3>
 			<div class="align-right">
-				<input type="submit" class="btn" value=<?php echo _('Create Family');?> />
-				<input type="button" class="back btn" value=<?php echo _('Cancel');?> />
+				<input type="submit" class="btn" value="<?php echo _('Create Family');?>" />
+				<input type="button" class="back btn" value="<?php echo _('Cancel');?>" />
 			</div>
 		</form>
 		<?php
 	}
 }
-?>

@@ -33,7 +33,7 @@
 		if ($show_actions) {
 			?>
 			<th><?php echo _('Actions')?></th>
-			<th class="narrow selector form-inline"><input type="checkbox" class="select-all" title=<?php echo _('"Select all"')?> /></th>
+			<th class="narrow selector form-inline"><input type="checkbox" class="select-all" title="<?php echo _('Select all')?>" /></th>
 			<?php
 		}
 		?>
