@@ -85,7 +85,7 @@ class Person_Status extends db_object
 		$params = Array('active' => 1);
 		if (!$include_archived) $params['is_archived'] = 0;
 		// The system controller caches this result
-		return $GLOBALS['system']->getDBObjectData('person_status', $params);
+		return $GLOBALS['system']->getDBObjectData('person_status', $params, 'AND');
 	}
 
 	static function getArchivedIDs()
