@@ -1674,7 +1674,7 @@ class Person_Query extends DB_Object
 
 		if ($format == 'array') {
 			return $data;
-		} 
+		}
 	}
 
 	function _printResultGroups($res, $params, $format)
