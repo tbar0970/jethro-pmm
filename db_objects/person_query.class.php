@@ -1382,7 +1382,7 @@ class Person_Query extends DB_Object
 						$query['select'][] = 'all_members.names as `All Family Members`';
 						break;
 					case 'familymember_group_members':
-						$query['select'][] = 'familymember_in_required_group.familymember_name as `Family Member In Group`';
+						$query['select'][] = 'GROUP_CONCAT(DISTINCT familymember_in_required_group.familymember_name SEPARATOR ", ")  as `Family Members In Group`';
 						break;
 					case 'adult_members':
 						/*
