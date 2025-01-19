@@ -3,6 +3,7 @@ include_once 'db_objects/action_plan.class.php';
 class View_Families__Add extends View
 {
 	var $_family;
+	protected $_similar_families;
 
 	static function getMenuPermissionLevel()
 	{
