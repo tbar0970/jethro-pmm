@@ -12,7 +12,6 @@ Download the latest version of Jethro from the [releases page](https://github.co
 
 System requirements are:
 * MySQL 8.0 or above
-    * with [ONLY_FULL_GROUP_BY](https://dev.mysql.com/doc/refman/8.4/en/sql-mode.html#sqlmode_only_full_group_by) disabled
 * PHP 5.3.0 or above
     * with [gettext extension](https://www.php.net/manual/en/book.gettext.php) enabled
     * [GD library](https://www.php.net/manual/en/book.image.php) recommended, to manage the size of uploaded photos
