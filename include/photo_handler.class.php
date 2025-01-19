@@ -120,7 +120,6 @@ Class Photo_Handler {
 	public static function getPhotoData($type, $id)
 	{
 		$db = $GLOBALS['db'];
-		$SQL = $obj = NULL;
 		if ($type == 'person') {
 			$obj = $GLOBALS['system']->getDBObject('person', (int)$id);
 			if ($obj) {
@@ -133,25 +132,29 @@ Class Photo_Handler {
 						LEFT JOIN family_photo fp ON fp.familyid = f.id
 						WHERE p.id = '.(int)$obj->id.'
 						GROUP BY p.id';
+				return $GLOBALS['db']->queryOne($SQL);
 			}
 		} else if ($type == 'family') {
 			$obj = $GLOBALS['system']->getDBObject('family', (int)$id);
 			if ($obj) {
-				// for single-member families, treat person photo as family photo if family photo is missing
-				$SQL = 'SELECT COALESCE(fp.photodata, IF(count(p.id) = 1, pp.photodata, NULL)) as photodata
+				$SQL = 'SELECT fp.photodata, IF(count(p.id) = 1, SUM(p.id), NULL) onlyPersonId
 						FROM family f
 						LEFT JOIN family_photo fp ON fp.familyid = f.id
 						LEFT JOIN person p ON p.familyid = f.id AND p.status NOT IN (SELECT id FROM person_status where is_archived)
-						LEFT JOIN person_photo pp ON pp.personid = p.id
 						WHERE f.id = '.(int)$obj->id.'
 						GROUP BY f.id';
-			}
-
-		}
-		if ($obj) {
-			$res = $GLOBALS['db']->queryOne($SQL);
-			if ($res) {
-				return $res;
+				$res = $GLOBALS['db']->queryRow($SQL);
+				if ($res) {
+					if ($res['photodata']) {
+						return $res['photodata'];
+					} else if ($res['onlyPersonId'] == 1) {
+						// for single-member families, treat person photo as family photo if family photo is missing
+						$SQL = 'SELECT photodata
+								FROM person_photo
+								WHERE personid = '.$res['onlyPersonId'];
+						return $GLOBALS['db']->queryOne($SQL);
+					}
+				}
 			}
 		}
 	}
