@@ -111,7 +111,7 @@ class Person_Status extends db_object
 				$set[$detail['label']] = $id;
 			}
 		}
-		return array_get($set, $label);		
+		return array_get($set, $label);
 	}
 
 

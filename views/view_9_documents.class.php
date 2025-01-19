@@ -167,7 +167,7 @@ class View_Documents extends View
 			</div>
 			<div class="documents-body">
 				<?php $this->_dumpMessages(); ?>
-				<?php 
+				<?php
 				if (!empty($this->_editfile)) {
 					$this->printEditor();
 				} else {
@@ -385,7 +385,7 @@ class View_Documents extends View
 			$parentaction = build_url(Array('call'=>NULL,'view'=>'documents','dir'=>$this->getPrintedDir()));
 			?>
 			<h2>
-				<?php 
+				<?php
 				$title = $this->getPrintedDir();
 				if (empty($title)) $title = '(Top Level)';
 				echo 'Documents: '.$title;

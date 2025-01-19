@@ -250,7 +250,7 @@ class System_Controller
 	{
 		if (error_reporting() == 0) return; // the "@" shutup-operator was used
 		$send_email = true;
-		$showTechDetails = ifdef('SHOW_ERROR_DETAILS', (JETHRO_VERSION == 'DEV'));	
+		$showTechDetails = ifdef('SHOW_ERROR_DETAILS', (JETHRO_VERSION == 'DEV'));
 		$exit = false;
 		switch ($errno) {
 			case E_ERROR:

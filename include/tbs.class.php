@@ -752,7 +752,7 @@ function __construct($Options=null,$VarPrefix='',$FctPrefix='') {
 			}
 			if ($Err) $this->meth_Misc_Alert('with clsTinyButStrong() function','value \''.$Chrs.'\' is a bad tag delimitor definition.');
 		}
-	} 
+	}
 
 	// Set VarRef initial value
 	$this->ResetVarRef(true);
@@ -1047,7 +1047,7 @@ public function GetAttValue($Name, $delete = true) {
 		}
 
 		if ($delete) {
-			$this->Source = substr_replace($this->Source, '', $Loc->PosBeg, $Loc->PosEnd - $Loc->PosBeg + 1); 
+			$this->Source = substr_replace($this->Source, '', $Loc->PosBeg, $Loc->PosEnd - $Loc->PosBeg + 1);
 			$Pos = $Loc->PosBeg;
 		} else {
 			$Pos = $Loc->PosEnd;
@@ -1154,7 +1154,7 @@ public function ReplaceFields($fields, $blockName = false) {
 	$what = array();
 	$with = array();
 	foreach ($fields as $name => $prms) {
-		$what[] = $this->_ChrOpen . $name . $this->_ChrClose; 
+		$what[] = $this->_ChrOpen . $name . $this->_ChrClose;
 		if (is_array($prms)) {
 			// field replace
 			$lst = '';
@@ -1167,16 +1167,16 @@ public function ReplaceFields($fields, $blockName = false) {
 					} elseif (is_array($v)) {
 						foreach($v as $x) {
 							$lst .= ';' . $p . '=' . $x;
-						} 
+						}
 					} else {
 						$lst .= ';' . $p . '=' . $v;
 					}
 				}
 			}
-			$with[] = $this->_ChrOpen . $prefix . $name . $lst . $this->_ChrClose; 
+			$with[] = $this->_ChrOpen . $prefix . $name . $lst . $this->_ChrClose;
 		} else {
 			// simple string replace
-			$with[] = $prms; 
+			$with[] = $prms;
 		}
 	}
 	
@@ -1548,7 +1548,7 @@ function meth_Locator_Replace(&$Txt,&$Loc,&$Value,$SubStart) {
 						$x = call_user_func_array(array(&$Value,$n),$form['args']);
 					} else {
 						if (!isset($Loc->PrmLst['noerr'])) $this->meth_Misc_Alert($Loc,'\''.$n.'\' is a method and the current TBS settings do not allow to call methods on automatic fields.',true);
-						$x = '';	
+						$x = '';
 					}
 				} elseif (property_exists($Value,$n)) {
 					$x = &$Value->$n;
@@ -1576,7 +1576,7 @@ function meth_Locator_Replace(&$Txt,&$Loc,&$Value,$SubStart) {
 			if (!$this->meth_Misc_UserFctCheck($Loc->OnFrmInfo,'f',$ErrMsg,$ErrMsg,true)) {
 				unset($Loc->PrmLst['onformat']);
 				if (!isset($Loc->PrmLst['noerr'])) $this->meth_Misc_Alert($Loc,'(parameter onformat) '.$ErrMsg);
-				$Loc->OnFrmInfo = false; 
+				$Loc->OnFrmInfo = false;
 			}
 		} else {
 			$Loc->OnFrmArg[3] = &$this; // bugs.php.net/51174
@@ -1847,7 +1847,7 @@ function meth_Locator_Replace(&$Txt,&$Loc,&$Value,$SubStart) {
 			}
 		} else {
 			if (!isset($Loc->PrmLst['noerr'])) $this->meth_Misc_Alert($Loc,'parameter script with value \''.$x.'\' cannot be called because the current TBS settings do not allow to call scripts.',true);
-			$x = '';	
+			$x = '';
 		}
 		if ($x!=='') {
 			$this->_Subscript = $x;
@@ -2096,7 +2096,7 @@ function meth_Locator_PartAndRename(&$CurrVal, &$PrmLst) {
 					}
 				}
 			}
-		} 
+		}
 
 	}
 
@@ -2501,7 +2501,7 @@ function meth_Locator_FindParallel(&$Txt, $ZoneBeg, $ZoneEnd, $ConfId) {
 
 				}
 
-				$PosR = $locRE->PosEnd; 
+				$PosR = $locRE->PosEnd;
 
 			} else {
 				$PosR = $pROe;
@@ -2752,7 +2752,7 @@ function meth_Merge_BlockParallel(&$Txt,&$LocR,&$Src) {
 	for ($i=1 ; $i<=$LocR->SectionNbr ; $i++) {
 		if ($i>1) {
 			// Add txt source between the BDefs
-			$BlockRes[$i] = substr($Txt, $LocR->SectionLst[$i-1]->PosEnd + 1, $LocR->SectionLst[$i]->PosBeg - $LocR->SectionLst[$i-1]->PosEnd -1); 
+			$BlockRes[$i] = substr($Txt, $LocR->SectionLst[$i-1]->PosEnd + 1, $LocR->SectionLst[$i]->PosBeg - $LocR->SectionLst[$i-1]->PosEnd -1);
 		} else {
 			$BlockRes[$i] = '';
 		}
@@ -2921,7 +2921,7 @@ function meth_Merge_BlockSections(&$Txt,&$LocR,&$Src,&$RecSpe) {
 				$i = 1;
 				do {
 					$WhenBDef = &$LocR->WhenLst[$i];
-					$cond = $this->meth_Merge_SectionNormal($WhenBDef->WhenCond,$Src); // conditional expression for the current record 
+					$cond = $this->meth_Merge_SectionNormal($WhenBDef->WhenCond,$Src); // conditional expression for the current record
 					if ($this->f_Misc_CheckCondition($cond)) {
 						$x_when = $this->meth_Merge_SectionNormal($WhenBDef,$Src);
 						$SecSrc = ($WhenBDef->WhenBeforeNS) ? $x_when.$SecSrc : $SecSrc.$x_when;
@@ -3984,7 +3984,7 @@ function meth_Misc_DateFormat(&$Value, $Frm) {
 	// Now we try to get the timestamp
 	if (is_string($Value)) {
 		// Any string value is assumed to be a formated date.
-		// If you whant a string value to be a considered to a a time stamp, then use prefixe '@' accordding to the 
+		// If you whant a string value to be a considered to a a time stamp, then use prefixe '@' accordding to the
 		$x = strtotime($Value);
 		// In case of error return false (return -1 for PHP < 5.1.0)
 		if (($x===false) || ($x===-1)) {
@@ -4000,7 +4000,7 @@ function meth_Misc_DateFormat(&$Value, $Frm) {
 						// We take an arbitrary value in order to avoid formating error
 						$Value = 0; // '1970-01-01'
 						// echo $e->getMessage();
-					}                
+					}
 				} else {
 					// We take an arbirtary value in order to avoid formating error
 					$Value = 0; // '1970-01-01'
@@ -4011,7 +4011,7 @@ function meth_Misc_DateFormat(&$Value, $Frm) {
 		}
 	} else {
 		if (!is_numeric($Value)) {
-			// It’s not a timestamp, thus we return the non formated value 
+			// It’s not a timestamp, thus we return the non formated value
 			return $this->meth_Misc_ToStr($Value);
 		}
 	}
@@ -4436,7 +4436,7 @@ static function f_Misc_GetFile(&$Res, &$File, $LastFile='', $IncludePath=false, 
 // Load the content of a file into the text variable.
 
 	$Res = '';
-	$fd = self::f_Misc_TryFile($File, false); 
+	$fd = self::f_Misc_TryFile($File, false);
 	if ($fd===false) {
 		if (is_array($IncludePath)) {
 			foreach ($IncludePath as $d) {
@@ -4826,7 +4826,7 @@ static function f_Loc_EnlargeToTag(&$Txt,&$Loc,$TagStr,$RetInnerSrc) {
 		$TagO = self::f_Loc_Enlarge_Find($Txt,$TagLst[$Ref],$TagFct[$Ref],$Loc->PosBeg-1,false,$LevelStop);
 		if ($TagO===false) return false;
 		$PosBeg = $TagO->PosBeg;
-		$LevelStop += -$TagO->RightLevel; // RightLevel=1 only if the tag is single and embeds $Loc, otherwise it is 0 
+		$LevelStop += -$TagO->RightLevel; // RightLevel=1 only if the tag is single and embeds $Loc, otherwise it is 0
 		if ($LevelStop>0) {
 			$TagC = self::f_Loc_Enlarge_Find($Txt,$TagLst[$Ref],$TagFct[$Ref],$Loc->PosEnd+1,true,-$LevelStop);
 			if ($TagC==false) return false;
@@ -4890,7 +4890,7 @@ static function f_Loc_Enlarge_Find($Txt, $Tag, $Fct, $Pos, $Forward, $LevelStop)
 			return false;
 		} else {
 			return (object) array('PosBeg'=>$p, 'PosEnd'=>$p, 'RightLevel'=> 0); // it's a trick
-		}	
+		}
 	}
 }
 

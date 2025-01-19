@@ -95,7 +95,7 @@ class View__Delete_Person extends View
 			?>
 			<p><?php echo _('Because this person has a user account, they cannot be deleted altogether. ')?></p>
 			<p><?php echo _('But they can be archived, and you can also cleanse their archived record, which will')?>
-			<?php 
+			<?php
 			echo self::EXPLANATION;
 			echo '</p>';
 			unset($buttons['delete']);
