@@ -243,6 +243,13 @@ class BadChangeGroup
  */
 class BadChange
 {
+	protected $time;
+	protected $personid;
+	protected $oldagebracket;
+	protected $newagebracket;
+	protected $histlines;
+	protected $persondetail;
+
 	/**
 	 * @param int $time
 	 * @param int $personid
