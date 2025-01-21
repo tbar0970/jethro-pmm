@@ -35,7 +35,8 @@ $GLOBALS['user_system']->setCLIScript();
 $GLOBALS['system'] = System_Controller::get();
 //error_reporting(E_ALL);
 
-$SQL = 'SELECT p.*, cfv.value_date AS expirydate ';
+$expiryDate = date('Y-m-d', strtotime($ini['REMINDER_OFFSET'].' day'));
+$SQL = 'SELECT p.*';
 if (!empty($ini['SUMMARY_RECIPIENT_STATUS'])) {
 	$SQL .= ', GROUP_CONCAT(supervisor.email SEPARATOR ";") as supervisor, GROUP_CONCAT(CONCAT(supervisor.first_name, " ", supervisor.last_name) SEPARATOR ", ") as supervisor_name ';
 } else if (!empty($ini['SUMMARY_RECIPIENT_EMAIL'])) {
@@ -57,7 +58,7 @@ if (!empty($ini['SUMMARY_RECIPIENT_STATUS'])) {
 			)';
 }
 $SQL .= '
-		WHERE cfv.value_date  = CURDATE() + INTERVAL '.(int)$ini['REMINDER_OFFSET'].' DAY
+		WHERE cfv.value_date = '.$expiryDate.'
 		AND p.status NOT IN (SELECT id FROM person_status WHERE is_archived)
 		GROUP BY p.id';
 $res = $GLOBALS['db']->queryAll($SQL);
@@ -87,7 +88,7 @@ foreach ($res as $person) {
 	$sentSomething = send_reminder($person);
 	if (!empty($person['supervisor'])) {
 		$summaryEntry = $person['first_name'].' '.$person['last_name'];
-		$summaryEntry .= ' ('.format_date($person['expirydate']).') ';
+		$summaryEntry .= ' ('.format_date($expiryDate).') ';
 		if (!$sentSomething) {
 			$summaryEntry .= " (NO CONTACT DETAILS)";
 		}
@@ -190,13 +191,9 @@ function replace_keywords($content, $person)
 	foreach($person as $k => $v) {
 		$keyword = '%'.strtoupper($k).'%';
 		if (FALSE !== strpos($content, $keyword)) {
-			if ($k == 'expirydate') {
-				$replacement = format_date($v);
-			} else {
-				$replacement = $dummy->getFormattedValue($k);
-			}
-			$content = str_replace($keyword, $replacement, $content);
+			$content = str_replace($keyword, $dummy->getFormattedValue($k), $content);
 		}
 	}
+	$content = str_replace('%expirydate%', format_date($expiryDate), $content);
 	return $content;
 }
