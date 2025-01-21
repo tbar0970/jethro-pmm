@@ -33,10 +33,6 @@ The steps to install are:
 
 Some documentation articles are hosted by [Easy Jethro](http://easyjethro.com.au/support/)
 
-## Technical Documentation
-
-* [Mailchimp Setup Guide](https://wiki.coastec.net.au/display/COAST/Configuring+Mailchimp+integration+in+Jethro) provided by Jeff Turner
-
 # Support and Discussion
 
 If you're having trouble with Jethro and think you might have found a bug, please [open an issue on github](https://github.com/tbar0970/jethro-pmm/issues/new).
