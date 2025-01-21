@@ -35,12 +35,12 @@ class Call_DTMF extends Call
 		//amplitude of wave file in the range 0-64
 		$amplitude = isset($amplitude) ? intval($amplitude) : 64;
 
-		//$upper_case and $lower_case specifies how letters in upper and 
+		//$upper_case and $lower_case specifies how letters in upper and
 		//lower case are treated. Either should have one of the following
 		//values: 'abcd', 'spell' or false.
 		//
-		//'abcd' means that letters specify the signals A, B, C, D (some phones 
-		//has special keys for these signals positioned to the right of the keys 
+		//'abcd' means that letters specify the signals A, B, C, D (some phones
+		//has special keys for these signals positioned to the right of the keys
 		//9, 6, 3, # respectively)
 		//
 		//'spell' means that letters spell numbers like in 1-800-CALL-NOW.
@@ -78,7 +78,7 @@ class Call_DTMF extends Call
 			$n = preg_replace('/[^0-9A-D#*,]/', '', $n);
 		}
 
-		//remove frequently used formatting characters 
+		//remove frequently used formatting characters
 		//that are not part of the actual number
 		$n = strtr($n, '+-()',
 					   '    ');
