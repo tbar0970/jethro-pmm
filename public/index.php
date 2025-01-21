@@ -2,7 +2,7 @@
 /*
  * JETHRO PMM
  *
- * This file is part of Jethro PMM - http://jethro-pmm.sourceforge.net
+ * This file is part of Jethro PMM - https://github.com/tbar0970/jethro-pmm
  *
  * Jethro PMM is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
