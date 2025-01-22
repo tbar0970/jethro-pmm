@@ -191,7 +191,12 @@ class db_object
 			}
 		}
 		if (isset($this->fields['history'])) {
-			$this->values['history'] = Array(time() => 'Created');
+			$created = 'Created';
+			$user = $GLOBALS['user_system']->getCurrentPerson();
+			if ($user) {
+				$created .= ' by '.$user['first_name'].' '.$user['last_name'].' (#'.$user['id'].')';
+			}
+			$this->values['history'] = Array(time() => $created);
 		}
 
 		$parent_class =  strtolower(get_parent_class($this));
