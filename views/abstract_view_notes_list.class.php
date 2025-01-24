@@ -1,5 +1,5 @@
 <?php
-class Abstract_View_Notes_List extends View
+abstract class Abstract_View_Notes_List extends View
 {
 	var $_reassigning = FALSE;
 	var $_notes = Array();
@@ -52,12 +52,6 @@ class Abstract_View_Notes_List extends View
 		}
 		// these will have changed
 		$this->_notes = $this->_getNotesToShow(array_get($_REQUEST, 'assignee'), array_get($_REQUEST, 'search'));
-	}
-
-
-	function getTitle()
-	{
-		return '';
 	}
 
 
