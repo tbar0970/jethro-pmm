@@ -687,6 +687,15 @@ function process_widget($name, $params, $index=NULL, $preserveEmpties=FALSE)
 			if (isset($rawVal)) {
 				require_once 'htmLawed.php';
 				$value = htmLawed($rawVal, array('deny_attribute' => '* -href', 'safe'=>1));
+
+				while (true) {
+					// Trim whitespace and paragraphs with a space from end
+					$trimmedValue = preg_replace('/<p>&nbsp;<\/p>$/', '', rtrim($value));
+					if ($trimmedValue == $value) {
+						break;
+					}
+					$value = $trimmedValue;
+				}
 			}
 			break;
 		case 'reference':
