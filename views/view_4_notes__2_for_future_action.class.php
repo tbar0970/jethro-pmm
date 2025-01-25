@@ -14,8 +14,9 @@ class View_Notes__For_Future_Action extends Abstract_View_Notes_List
 			$conds['subject'] = '%'.$search.'%';
 		}
 		if ($assigneeID) $conds['assignee'] = $assigneeID;
-		return $GLOBALS['system']->getDBObjectData('person_note', $conds, 'AND', '', TRUE) + $GLOBALS['system']->getDBObjectData('family_note', $conds, 'AND', '', TRUE);
-		uasort($notes, Array($this, '_compareNoteDates'));
+		$res = $GLOBALS['system']->getDBObjectData('person_note', $conds, 'AND', '', TRUE) + $GLOBALS['system']->getDBObjectData('family_note', $conds, 'AND', '', TRUE);
+		uasort($res, Array($this, '_compareNoteDates'));
+		return $res;
 	}
 
 
