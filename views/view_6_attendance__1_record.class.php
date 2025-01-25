@@ -114,9 +114,9 @@ class View_Attendance__Record extends View
 					if (!$set->haveLock() && !$set->acquireLock()) {
 						add_message("Unfortunately your lock on '".$set->getCohortName()."' has expired and been acquired by another user.  Please wait until they finish and try again.", 'error');
 					} else {
-						if ($set->processForm($i)) {
-							$set->save();
-						}
+						$set->processForm($i);
+						$set->save();
+
 						if ((int)$set->congregationid) {
 							Headcount::save('congregation', $this->_attendance_date, $set->congregationid, $_REQUEST['headcount']['congregation'][$set->congregationid]);
 						} else {
