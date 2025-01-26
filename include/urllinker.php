@@ -7,7 +7,7 @@
  *
  *  To the extent possible under law, Søren Løvborg has waived all copyright
  *  and related or neighboring rights to UrlLinker.
- *  http://creativecommons.org/publicdomain/zero/1.0/
+ *  https://creativecommons.org/publicdomain/zero/1.0/
  */
 
 /*

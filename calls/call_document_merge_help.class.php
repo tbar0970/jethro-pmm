@@ -12,7 +12,7 @@ class Call_document_merge_help extends Call
 				<div id="body">
 				<h1>Mail Merge in Jethro</h1><a id="top"></a>
 				<p>Jethro can merge person and family data into Microsoft office files (DOCX, XLS, PPTX) and OpenOffice/LibreOffice files (ODT, ODS, ODP).</p>
-				<p>Jethro uses the <a href="http://www.tinybutstrong.com/opentbs.php">TinyButStrong OpenTBS engine</a> to merge documents. </p>
+				<p>Jethro uses the <a href="https://www.tinybutstrong.com/opentbs.php">TinyButStrong OpenTBS engine</a> to merge documents. </p>
 
 				<h3>Sample Templates</h3>
 				<h4>For merging person-by-person</h4>

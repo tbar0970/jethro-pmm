@@ -40,7 +40,7 @@ Class Photo_Handler {
 					$fn = 'imagecreatefrom'.$ext;
 					$input_img = $fn($_FILES[$fieldName]['tmp_name']);
 					if (!$input_img) exit;
-					// Rotate the image as necessary - thanks http://php.net/manual/en/function.exif-read-data.php#110894
+					// Rotate the image as necessary - thanks https://www.php.net/manual/en/function.exif-read-data.php#110894
 					$exif = @exif_read_data($_FILES[$fieldName]['tmp_name']);
 					if (!empty($exif['Orientation'])) {
 						switch($exif['Orientation']) {

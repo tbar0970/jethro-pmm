@@ -3,7 +3,7 @@ class Call_vcf extends Call
 {
 	function run()
 	{
-		// Ref: http://en.wikipedia.org/wiki/VCard
+		// Ref: https://en.wikipedia.org/wiki/VCard
 		header('Content-type: text/vcf');
 		header('Content-Disposition: attachment; filename="contacts_'.date('Y-m-d_h:i').'.vcf"');
 		$GLOBALS['system']->includeDBClass('person');

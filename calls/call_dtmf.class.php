@@ -4,7 +4,7 @@
  * 
  * Call_DTMF class - plays DTMF tones for the submitted number
  *
- * Adapted from DTMF generator by Christian Schmidt at http://aggemam.dk/code/dtmf 
+ * Adapted from DTMF generator by Christian Schmidt at https://aggemam.dk/code/dtmf
  *
  * @author Tom Barrett <tom@tombarrett.id.au>
  * @version $Id: call_dtmf.class.php,v 1.4 2010/10/15 02:44:01 tbar0970 Exp $
