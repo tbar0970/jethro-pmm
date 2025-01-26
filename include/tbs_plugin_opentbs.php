@@ -9,8 +9,8 @@
  *
  * @version 1.10.7
  * @date 2022-05-03
- * @see     http://www.tinybutstrong.com/plugins.php
- * @author  Skrol29 http://www.tinybutstrong.com/onlyyou.html
+ * @see     https://www.tinybutstrong.com/plugins.php
+ * @author  Skrol29 https://www.tinybutstrong.com/onlyyou.html
  * @license LGPL-3.0
  */
 
@@ -7919,11 +7919,11 @@ class clsTbsXmlLoc {
 /*
 TbsZip version 2.16
 Date    : 2014-04-08
-Author  : Skrol29 (email: http://www.tinybutstrong.com/onlyyou.html)
+Author  : Skrol29 (email: https://www.tinybutstrong.com/onlyyou.html)
 Licence : LGPL
 This class is independent from any other classes and has been originally created for the OpenTbs plug-in
 for TinyButStrong Template Engine (TBS). OpenTbs makes TBS able to merge OpenOffice and Ms Office documents.
-Visit http://www.tinybutstrong.com
+Visit https://www.tinybutstrong.com
 */
 
 define('TBSZIP_DOWNLOAD',1);   // download (default)
