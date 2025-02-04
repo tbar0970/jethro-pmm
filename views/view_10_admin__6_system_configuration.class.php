@@ -530,9 +530,9 @@ class View_Admin__System_Configuration extends View {
 				<tr>
 					<th>ID</th>
 					<th>Label</th>
-					<th>Is Default?</th>
-					<th>Is Archived? <i class="clickable icon-question-sign icon-white" data-toggle="visible" data-target="#tooltip-status-archived"></i></th>
-					<th>Require<br />Congregation? <i class="clickable icon-question-sign icon-white" data-toggle="visible" data-target="#tooltip-status-congregation"></i></th>
+					<th>Default?</th>
+					<th>Indicates<br />Archived Person? <i class="clickable icon-question-sign icon-white" data-toggle="visible" data-target="#tooltip-status-archived"></i></th>
+					<th>Congregation<br />required? <i class="clickable icon-question-sign icon-white" data-toggle="visible" data-target="#tooltip-status-congregation"></i></th>
 					<th>In use? <i class="clickable icon-question-sign icon-white" data-toggle="visible" data-target="#tooltip-status-use"></i></th>
 					<th>Re-order</th>
 					<th>Delete? <i class="clickable icon-question-sign icon-white" data-toggle="visible" data-target="#tooltip-status-delete"></i></th>
@@ -562,7 +562,7 @@ class View_Admin__System_Configuration extends View {
 				</td>
 				<td><?php $ab->printFieldInterface('label', 'pstatus_'.$i.'_'); ?></td>
 				<td><input type="radio" name="pstatus_default_rank" value="<?php echo $i; ?>" <?php if ($details['is_default']) echo 'checked="checked"'; ?> /></td>
-				<td><?php $ab->printFieldInterface('is_archived', 'pstatus_'.$i.'_'); ?></td>
+				<td class="required-checkbox-col" data-error-message="Person Status Options: You must have at least one 'archived person' status"><?php $ab->printFieldInterface('is_archived', 'pstatus_'.$i.'_'); ?></td>
 				<td><?php $ab->printFieldInterface('require_congregation', 'pstatus_'.$i.'_'); ?></td>
 				<td><?php $ab->printFieldInterface('active', 'pstatus_'.$i.'_'); ?></td>
 				<td>
@@ -586,7 +586,7 @@ class View_Admin__System_Configuration extends View {
 		?>
 		</table>
 
-		<div class="help-block custom-field-tooltip" id="tooltip-status-archived" style="display: none;">Persons with an 'archived' status are omitted from most listings by default</div>
+		<div class="help-block custom-field-tooltip" id="tooltip-status-archived" style="display: none;">Archived persons are omitted from most listings by default. You must have at least one archived-person status. When a family is archived, the family members will be assigned the first archived-person status.</div>
 		<div class="help-block custom-field-tooltip" id="tooltip-status-congregation" style="display: none;">You can configure whether persons with a given status must be part of a congregation</div>
 		<div class="help-block custom-field-tooltip" id="tooltip-status-use" style="display: none;">Disused statuses cannot be selected when adding or editing persons, but may still apply to existing person records.</div>
 		<div class="help-block custom-field-tooltip" id="tooltip-status-delete" style="display: none;">You can only delete a status if it is not used by any person records.</div>
