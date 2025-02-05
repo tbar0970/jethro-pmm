@@ -444,8 +444,55 @@ class Person_Query extends DB_Object
 		</div>
 		<?php
 	}
+?>
 
-	if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
+        <h4>who <strong>have a family member</strong> in one or more of these groups:
+            <i class="clickable icon-question-sign" data-toggle="visible" data-target="#grouptooltip3"></i><div class="help-block custom-field-tooltip" id="grouptooltip3" style="display: none; font-weight: normal">For example, find the family of Youth Group members. In the "Show me" section, you may add 'Names of family member in the specified group' to see the family member who is in the picked group.</div>
+        </h4>
+        <div class="indent-left">
+
+
+			<?php
+            // Logic identical to 'include_groups' above, but with 'familymember' in field names
+			$gotGroups = Person_Group::printMultiChooser('include_familymember_groupids', array_get($params, 'include_familymember_groups', Array()), Array(), TRUE);
+
+			if ($gotGroups) {
+				?>
+                <div class="indent-left">
+                    <label class="checkbox" style="margin-top: 1ex">
+                        <input type="checkbox" name="enable_familymember_group_membership_status" value="1"
+                               data-toggle="visible" data-target="#familymember-membership-status"
+							<?php if (!empty($params['familymember_group_membership_status'])) echo 'checked="checked"'; ?>
+                        />
+                        with membership status of...
+                    </label>
+                    <span id="familymember-membership-status"
+							<?php if (empty($params['familymember_group_membership_status'])) echo 'style="display:none"'; ?>
+					>
+						<?php Person_Group::printMembershipStatusChooser('familymember_group_membership_status', array_get($params, 'familymember_group_membership_status'), true); ?>
+					</span>
+
+                    <label class="checkbox" style="margin-top: 1ex">
+                        <input type="checkbox" name="enable_familymember_group_join_date" value="1"
+                               data-toggle="visible" data-target="#familymember-group-join-dates"
+							<?php if (!empty($params['familymember_group_join_date_from'])) echo 'checked="checked"'; ?>
+                        />
+                        and joined the group between...
+                    </label>
+                    <span id="familymember-group-join-dates"
+								<?php if (empty($params['familymember_group_join_date_from'])) echo 'style="display:none"'; ?>
+						  >
+					<?php print_widget('familymember_group_join_date_from', Array('type' => 'date'), array_get($params, 'familymember_group_join_date_from')); ?>
+					and <?php print_widget('familymember_group_join_date_to', Array('type' => 'date'), array_get($params, 'familymember_group_join_date_to')); ?>
+					</span>
+                </div>
+				<?php
+			}
+			?>
+        </div>
+
+		<?php
+		if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
 		?>
 		<h4>who have a person/family note containing the phrase:</h4>
 		<div class="indent-left">
@@ -545,6 +592,7 @@ class Person_Query extends DB_Object
 
 					$options['all_members'] = 'Names of all their family members';
 					$options['adult_members'] = 'Names of their adult family members';
+					$options['familymember_group_members'] = 'Names of family member in the specified group';
 					if ($GLOBALS['system']->featureEnabled('PHOTOS')) {
 						$options['photo'] = 'Photo';
 					}
@@ -814,6 +862,16 @@ class Person_Query extends DB_Object
 			$params['exclude_group_membership_status'] = Array();
 		}
 
+        // FAMILY MEMBER GROUP RULES
+		$params['include_familymember_groups'] = array_remove_empties(array_get($_POST, 'include_familymember_groupids', Array()));
+		if (!empty($_REQUEST['enable_familymember_group_membership_status'])) {
+			$params['familymember_group_membership_status'] = array_get($_POST, 'familymember_group_membership_status');
+		} else {
+			$params['familymember_group_membership_status'] = Array();
+		}
+		$params['familymember_group_join_date_from'] = empty($_POST['enable_familymember_group_join_date']) ? NULL : process_widget('familymember_group_join_date_from', Array('type' => 'date'));
+		$params['familymember_group_join_date_to'] = empty($_POST['enable_familymember_group_join_date']) ? NULL : process_widget('familymember_group_join_date_to', Array('type' => 'date'));
+        
 
 		// NOTE RULES
 		$params['note_phrase'] = array_get($_POST, 'note_phrase');
@@ -1122,6 +1180,32 @@ class Person_Query extends DB_Object
 								WHERE ('.$include_groupids_clause.')';
 			$query['where'][] = 'p.id IN ('.$group_members_sql.')';
 		}
+        
+		if (!empty($params['include_familymember_groups'])) {
+            // "have a family member in one or more of these groups". E.g. family members (e.g. parents) of Youth Group members. #1104
+
+            // Logic identical to 'include_groups' above
+			$include_familymember_groupids_clause = $this->_getGroupAndCategoryRestrictionSQL(
+												$params['include_familymember_groups'],
+												array_get($params, 'familymember_group_join_date_from'),
+												array_get($params, 'familymember_group_join_date_to'),
+												array_get($params, 'familymember_group_membership_status'));
+
+            // subquery returning <personid, familymember_name> for every familymember in the <include_familymember_groups> groups.
+            // E.g. if little Jimmy (id 3) in Youth Group has parents with ids 1 and 2, this returns (1,"Jimmy"),(2,"Jimmy").
+            // Note, Jimmy himself is excluded, i.e. we treat "being the family member in the group" (Jimmy) as different to "having a family member in the group" (his parents), and assume we usually want the latter.
+			$familymember_group_members_sql = "SELECT p.id AS personid, concat(familyperson.first_name, ' ',familyperson.last_name) AS familymember_name
+								FROM person p
+								JOIN person familyperson USING (familyid)
+								JOIN person_group_membership pgm ON pgm.personid = familyperson.id
+								JOIN person_group pg ON pgm.groupid = pg.id
+								WHERE 
+								p.id <> familyperson.id
+								AND (".$include_familymember_groupids_clause.')';
+
+			$query['from'] .= ' JOIN ('.$familymember_group_members_sql.') familymember_in_required_group ON (familymember_in_required_group.personid = p.id)';
+//			$query['where'][] = 'familymember_in_required_group IN ('.$familymember_group_members_sql.')';
+		}
 
 		if (!empty($params['exclude_groups'])) {
 
@@ -1296,6 +1380,9 @@ class Person_Query extends DB_Object
 										) all_members ON all_members.familyid = p.familyid
 										   ';
 						$query['select'][] = 'all_members.names as `All Family Members`';
+						break;
+					case 'familymember_group_members':
+						$query['select'][] = 'GROUP_CONCAT(DISTINCT familymember_in_required_group.familymember_name SEPARATOR ", ")  as `Family Members In Group`';
 						break;
 					case 'adult_members':
 						/*
