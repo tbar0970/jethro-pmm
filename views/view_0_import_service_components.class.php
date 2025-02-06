@@ -4,6 +4,7 @@ class View__Import_Service_Components extends View
 {
 	private $errors = Array();
 	private $category = null;
+	protected $_captured_errors;
 
 	static function getMenuPermissionLevel()
 	{
