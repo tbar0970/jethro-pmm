@@ -85,6 +85,7 @@ class View_Documents extends View
 				foreach ($_FILES['replacefile']['error'] as $origname => $error) {
 					if (($error == UPLOAD_ERR_OK) && ($origname = Documents_Manager::validateFileName($origname))) {
 						$tmp_name = $_FILES["replacefile"]["tmp_name"][$origname];
+						$origname = urldecode($origname);
 						if (file_exists($this->_realdir.'/'.$origname)) {
 							if (move_uploaded_file($tmp_name, $this->_realdir.'/'.$origname)) {
 								if ($p = fileperms($this->_rootpath)) chmod($this->_realdir.'/'.$origname, $p);
@@ -105,6 +106,7 @@ class View_Documents extends View
 			}
 			if (!empty($_POST['renamefile'])) {
 				foreach ($_POST['renamefile'] as $origname => $newname) {
+					$origname = urldecode($origname);
 					if (($newname = Documents_Manager::validateFileName($newname)) && ($origname = Documents_Manager::validateFileName($origname))) {
 						if (file_exists($this->_realdir.'/'.$origname) && rename($this->_realdir.'/'.$origname, $this->_realdir.'/'.$newname)) {
 							$this->_addMessage("$origname renamed to $newname");
@@ -114,6 +116,7 @@ class View_Documents extends View
 			}
 			if (!empty($_POST['movefile'])) {
 				foreach ($_POST['movefile'] as $filename => $newdir) {
+					$filename = urldecode($filename);
 					if (($filename = Documents_Manager::validateFileName($filename)) && ($fulldir = Documents_Manager::validateDirPath($newdir))) {
 						if (rename($this->_realdir.'/'.$filename, $fulldir.'/'.$filename)) {
 							$this->_addMessage("\"$filename\" moved to folder \"$newdir\"");

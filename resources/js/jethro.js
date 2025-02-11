@@ -196,7 +196,7 @@ $(document).ready(function() {
 				.modal('show')
 				.on('shown', function() {
 					$(this).find('input#rename-file')
-								.attr('name', 'renamefile['+filename+']')
+								.attr('name', 'renamefile['+encodeURIComponent(filename)+']')
 								.attr('value', filename);
 					TBLib.selectBasename.apply($(this).find('input#rename-file').get(0));
 			});
@@ -206,7 +206,7 @@ $(document).ready(function() {
 			$('#replace-file-modal')
 				.modal('show')
 				.find('input#replace-file')
-					.attr('name', 'replacefile['+filename+']')
+					.attr('name', 'replacefile['+encodeURIComponent(filename)+']')
 				.end()
 				.find('span#replaced-filename')
 					.html(filename)
@@ -233,7 +233,7 @@ $(document).ready(function() {
 				.modal('show')
 				.on('shown', function() {
 							$(this).find('select#move-file')
-								.attr('name', 'movefile['+filename+']')
+								.attr('name', 'movefile['+encodeURIComponent(filename)+']')
 								.focus();
 			});
 		});
