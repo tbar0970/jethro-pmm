@@ -1165,7 +1165,7 @@ class Person_Query extends DB_Object
 		// GROUPING
 		$grouping_order = '';
 		$grouping_field = '';
-		if (empty($params['group_by'])) {
+		if (!$this->hasGroupingField($params)) {
 			$grouping_field = '';
 		} else if ($params['group_by'] == 'groupid') {
 			if (!empty($params['include_groups'])) {
@@ -1503,14 +1503,14 @@ class Person_Query extends DB_Object
 		}
 
 		$data = array();
-		$grouping_field = $params['group_by'];
+
 		if (!empty($_REQUEST['debug'])) {
 			bam($params);
 			bam($sql);
 		}
 
 
-		if (empty($grouping_field)) {
+		if (!$this->hasGroupingField($params)) {
 			$res = $db->queryAll($sql, null, null, true, true);
 			if (array_get($_REQUEST, 'debug') > 1) bam($res);
 			if ($format == 'array') {
@@ -2014,5 +2014,20 @@ class Person_Query extends DB_Object
 		if (!isset($params['rules'])) $params['rules'] = Array();
 
 		return $params;
+	}
+
+	/** Whether the person query has a *valid* group-by clause, i.e. if it's grouping by a custom field, check that the cf exists. */
+	private function hasGroupingField(array $params): bool
+	{
+		$grouping_field = $params['group_by'];
+		if (empty($grouping_field)) return false;
+		if ($grouping_field) {
+			if (0 === strpos($grouping_field, 'custom-')) {
+				$gb_bits = explode('-', $params['group_by']);
+				$field = $GLOBALS['system']->getDBObject('custom_field', end($gb_bits));
+				if (empty($field)) return false;
+			}
+		}
+		return true;
 	}
 }
