@@ -18,7 +18,6 @@ class Call_Documents extends Call
 			trigger_error("Illegal file directory requested");
 			exit;
 		}
-		echo "good";
 
 		Documents_Manager::serveFile(Documents_Manager::getRootPath().'/'.$_REQUEST['getfile']);
 	}
