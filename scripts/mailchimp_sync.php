@@ -8,7 +8,10 @@ as the persons returned by the Jethro report.  It requires
 merge vars in the Mailchimp list tagged as CONG, STATUS,
 GENDER and AGEBRACKET and it populates/updates them accordingly.
 ******************************************************************/
-
+if ((php_sapi_name() !== 'cli') && !defined('STDIN')) {
+	echo "This script must be run from the command line";
+	exit;
+}
 $fromDB = FALSE;
 $api_key = NULL;
 $syncs = Array();

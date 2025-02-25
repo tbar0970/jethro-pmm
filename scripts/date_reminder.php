@@ -12,6 +12,11 @@
  * @see date_reminder_sample.ini for config file format.
  */
 
+ if ((php_sapi_name() !== 'cli') && !defined('STDIN')) {
+	echo "This script must be run from the command line";
+	exit;
+ }
+
 if (empty($_SERVER['argv'][1]) || !is_readable($_SERVER['argv'][1])) {
 	echo "You must specify an ini file as the first argument \n";
 	echo "Eg:  php date_reminder.php my-config-file.ini \n";

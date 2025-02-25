@@ -29,7 +29,12 @@ TWO MESSAGES WILL BE SENT
 IMPROVEMENTS?
 When setting up a roster view there could be an option to include roster reminders. If including roster reminders then also the person (person id) or group (group id) who is/are the roster coordinator/s. And the time when you want the roster reminder to be sent (remembering that the server Jethro sits on may be operating in a different time-zone).
 ******************************************************************/
-//
+
+if ((php_sapi_name() !== 'cli') && !defined('STDIN')) {
+	echo "This script must be run from the command line";
+	exit;
+}
+
 //pull varialbes in from ini file
 //
 if (empty($_SERVER['argv'][1]) || !is_readable($_SERVER['argv'][1])) {

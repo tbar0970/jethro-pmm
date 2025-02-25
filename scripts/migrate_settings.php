@@ -7,7 +7,10 @@
  * in the browser to trigger the migration.  But sometimes it's conveient to be
  * able to do it (in bulk, pehaps) from the command line.
  */
-
+if ((php_sapi_name() !== 'cli') && !defined('STDIN')) {
+	echo "This script must be run from the command line";
+	exit;
+}
 ini_set('display_errors', 1);
 define('JETHRO_ROOT', dirname(dirname(__FILE__)));
 set_include_path(get_include_path().PATH_SEPARATOR.JETHRO_ROOT);
