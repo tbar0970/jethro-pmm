@@ -667,6 +667,10 @@ input[type="radio"] {
 	width: auto !important;
 	min-width: 50ex;
 }
+tr:first-child > td > .move-row-up,
+tr:last-child > td > .move-row-down {
+  visibility: hidden;
+}
 /* nested tables - see list of family members within single person view */
 .table td table {
 	width: 100%;
