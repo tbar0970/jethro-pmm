@@ -680,7 +680,7 @@ class View_Services__List_All extends View
 					<?php
 					$readings = array_get($data, 'readings');
 					if (empty($readings)) {
-						$readings = Array(Array('to_read' => 1));
+						$readings = Array(Array('to_read' => 1, 'to_preach' => 1));
 					}
 					foreach ($readings as $reading) {
 						?>
@@ -702,7 +702,7 @@ class View_Services__List_All extends View
 									<input type="hidden" name="bible_to_read[<?php echo $congid; ?>][<?php echo $date; ?>][]" value="<?php echo (int)array_get($reading, 'to_read'); ?>" />
 								</label>
 
-								<label title="to be preached on">
+								<label title="to be preached on" class="preserve-value">
 									P
 									<input type="checkbox" class="toggle-next-hidden bible-to-preach" />
 									<input type="hidden" name="bible_to_preach[<?php echo $congid; ?>][<?php echo $date; ?>][]" value="<?php echo (int)array_get($reading, 'to_preach'); ?>" />
