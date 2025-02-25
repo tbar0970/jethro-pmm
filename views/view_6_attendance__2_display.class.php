@@ -163,6 +163,11 @@ class View_Attendance__Display extends View
 				$this->_printResultSet($cohortid);
 			}
 		}
+		if ($GLOBALS['user_system']->havePerm(PERM_RUNREPORT)) {
+			?>
+			<div class="alert alert-info"><small><i class="icon-info-sign"></i> You can also use <a href="?view=persons__reports">Person Reports</a> to show and analyze attendance</div>
+			<?php
+		}
 	}
 
 	private function _printResultSet($cohortid)
@@ -628,5 +633,10 @@ class View_Attendance__Display extends View
 		?>
 		</form>
 		<?php
+		if ($GLOBALS['user_system']->havePerm(PERM_RUNREPORT)) {
+			?>
+			<div class="alert alert-info"><small><i class="icon-info-sign"></i> You can also use <a href="?view=persons__reports">Person Reports</a> to show and analyze attendance</div>
+			<?php
+		}
 	}
 }
