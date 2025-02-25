@@ -172,7 +172,7 @@ class Note_Template extends db_object
 		</table>
 		<small>When someone uses this template to add a note to a person, they will be prompted to enter values for these fields.<br />
 			Values for "independent" fields are saved only within the note itself. <br />
-			Values for "person" fields are will be saved within the note and will also update the corresponding
+			Values for "person" fields are saved within the note and will also update the corresponding
 			<a href="<?php build_url(Array('view' => 'admin__custom_fields')); ?>">custom field</a>
 			in the person record.</small>
 		<?php
