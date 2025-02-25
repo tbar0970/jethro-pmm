@@ -2090,7 +2090,6 @@ div.autosuggest ul li a .tl, div.autosuggest ul li a .tr {
 .attendance-config-submit {
 	vertical-align: bottom;
 	display: inline-block;
-	padding-bottom: 10px;
 }
 .attendance-config-table > tbody > tr > td, .attendance-config-table > tbody > tr > th {
 	line-height: 30px !important;
