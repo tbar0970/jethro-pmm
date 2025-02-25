@@ -793,9 +793,12 @@ class Person extends DB_Object
 				FROM person p
 				JOIN person_status ps ON p.status = ps.id';
 		if ($congregationid !== NULL) {
-			$sql .= ' WHERE congregationid = '.$congregationid;
+			$sql .= ' WHERE congregationid = '.(int)$congregationid;
 		}
-		$sql .= ' GROUP BY ps.id';
+		$sql .= ' 
+			GROUP BY ps.id
+			ORDER BY ps.`rank` ASC
+			';
 		$res = $GLOBALS['db']->queryAll($sql, NULL, NULL, true);
 		return $res;
 	}

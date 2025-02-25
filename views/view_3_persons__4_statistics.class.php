@@ -18,7 +18,7 @@ class View_Persons__Statistics extends View
 		$stats = Person::getStatusStats();
 		$columns = array_keys($stats);
 		?>
-		<table class="table table-striped table-hover table-auto-width">
+		<table class="table table-hover table-auto-width">
 			<thead>
 				<tr>
 					<th>Congregation</th>
@@ -31,21 +31,23 @@ class View_Persons__Statistics extends View
 			</thead>
 			<tbody>
 			<?php
-			$rows = Array('System-wide'=>Array(
-				'active'=>true,
-				'stats'=>$stats
-			));
 			$congs = $GLOBALS['system']->getDBObjectData('congregation');
 			$congObject = new Congregation();
 			foreach ($congs as $id => $cong) {
 				$congObject->populate($id, $cong);
 				$rows[$cong['name']] = Array(
 					'active'=>$congObject->isActive(),
-					'stats'=>Person::getStatusStats($id)
+					'stats'=>Person::getStatusStats($id),
+					'congid'=>$id
 				);
 			}
+			$rows['Whole System'] = Array(
+				'active'=>true,
+				'stats'=>$stats,
+				'congid'=>NULL
+			);
 			foreach ($rows as $name=>$row) {
-				?><tr class="<?php echo $row['active'] ? '' : 'archived'; ?>">
+				?><tr class="<?php echo $row['active'] ? '' : 'archived'; echo $row['congid'] ? '' : 'info';  ?>">
 					<td><?php echo ents($name); ?></td>
 					<?php
 					foreach ($columns as $status_name) {
