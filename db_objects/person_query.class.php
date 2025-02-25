@@ -2033,11 +2033,23 @@ class Person_Query extends DB_Object
 	function _getColClasses($heading)
 	{
 		$class_list = Array();
-		if (in_array($heading, Array('edit_link', 'view_link', 'note_link', 'checkbox'))) {
-			$class_list[] = 'no-print narrow';
-		}
-		if ($heading == 'checkbox') {
-			$class_list[] = 'selector narrow';
+		switch ($heading) {
+			case 'checkbox':
+				$class_list[] = 'selector';
+				// fallthrough
+			case 'edit_link':
+			case 'view_link':
+			case 'note_link':
+				$class_list[] = 'no-print';
+				$class_list[] = 'narrow';
+				break;
+			case 'p.age_bracketid':
+			case 'p.congregationid':
+			case 'p.status':
+			case 'p.first_name':
+			case 'p.last_name':
+			case 'f.family_name':
+				$class_list[] = 'nowrap';
 		}
 		$classes = empty($class_list) ? '' : ' class="'.implode(' ', $class_list).'"';
 		return $classes;
