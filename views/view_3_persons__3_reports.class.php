@@ -276,6 +276,7 @@ class View_Persons__Reports extends View
 		}
 
 		$res = $GLOBALS['db']->queryAll($sql);
+		if (empty($res)) return;
 
 		?>
 		<table class="table table-bordered table-condensed table-auto-width">
