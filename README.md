@@ -2,9 +2,9 @@
 
 Jethro Pastoral Ministry Manager is a web-based tool which helps churches keep track of people, families, groups, attendance, pastoral tasks, church services, rosters and documents.  Jethro doesn't force you to work in a particular way but gives you flexible, lightweight tools to support your own style of ministry.  
 
-The Jethro software is free and open source (GPL) and runs on a standard [LAMP](http://en.wikipedia.org/wiki/LAMP_%28software_bundle%29) web server.  Jethro's real advantages come to the fore when it's running on a proper web server, but it can also be run on a single PC using [XAMPP](XAMPP).
+The Jethro software is free and open source (GPL) and runs on a standard [LAMP](https://en.wikipedia.org/wiki/LAMP_%28software_bundle%29) web server.  Jethro's real advantages come to the fore when it's running on a proper web server, but it can also be run on a single PC using [XAMPP](XAMPP).
 
-Jethro PMM is the software that powers online services such as [Easy Jethro](http://easyjethro.com.au) who also offer a [demo system](http://easyjethro.com.au/demo/).
+Jethro PMM is the software that powers online services such as [Easy Jethro](https://easyjethro.com.au) who also offer a [demo system](https://easyjethro.com.au/demo/).
 
 # Download and install
 
@@ -31,7 +31,7 @@ The steps to install are:
 
 ## User Documentation
 
-Some documentation articles are hosted by [Easy Jethro](http://easyjethro.com.au/support/)
+Some documentation articles are hosted by [Easy Jethro](https://easyjethro.com.au/support/)
 
 # Support and Discussion
 
@@ -41,7 +41,7 @@ If you have an idea for a new feature, please [look if somebody has already requ
 
 General questions about Jethro and how to use it can also be done in github issues
 
-The Jethro developers try to respond to issues in a timely manner, but for real-time support you may need to sign up for a hosting service such as [Easy Jethro](http://easyjethro.com.au).
+The Jethro developers try to respond to issues in a timely manner, but for real-time support you may need to sign up for a hosting service such as [Easy Jethro](https://easyjethro.com.au).
  
 # Data Model
 The following is a high-level overview of the objects in Jethro and how they relate.
@@ -58,7 +58,7 @@ The following is a high-level overview of the objects in Jethro and how they rel
 * A **roster view** is a collection of roster roles which are viewed or edited together (eg all the roles for the evening service, or the 'preacher' roles for all services)
 * A **roster assignment** is when a person is assigned to a certain roster role for a particular service.
 
-An extensive list of Jethro's capabilities is available on the [Easy Jethro site](http://easyjethro.com.au/#features)
+An extensive list of Jethro's capabilities is available on the [Easy Jethro site](https://easyjethro.com.au/#features)
 
 # Naming
 
@@ -67,11 +67,11 @@ Jethro is designed to facilitate and encourage good team ministry, so its name c
 # Acknowledgements
 Jethro development has been sponsored or contributed to by several churches worldwide:
 * [Christ Church Inner West Anglican Community](http://cciw.org.au), Sydney, Australia (founding sponsor)
-* [Redlands Presbyterian Church](http://www.redlands.org.au/), Queensland, Australia (sponsor of service planning features)
-* [St Peter's Woolton](http://www.stpeters-woolton.org.uk), Liverpool, UK (sponsor of date field and photo features)
-* [Coast Evangelical Church](http://www.coastec.net.au)</a>, Forster, Australia (sponsor of group-membership statuses, attendance enhancements and more)
-* [St George North Anglican Church](http://snac.org.au)</a>, Sydney, Australia (contributor of vCard export)
+* [Redlands Presbyterian Church](https://redlands.org.au/), Queensland, Australia (sponsor of service planning features)
+* [St Peter's Woolton](https://www.stpeters-woolton.org.uk), Liverpool, UK (sponsor of date field and photo features)
+* [Coast Evangelical Church](https://www.coastec.net.au)</a>, Forster, Australia (sponsor of group-membership statuses, attendance enhancements and more)
+* [St George North Anglican Church](https://www.snac.org.au)</a>, Sydney, Australia (contributor of vCard export)
 * [Macquarie Anglican Church](http://www.macquarieanglican.org/)</a>, Sydney, Australia (contributor of note-search and SMS-family feature)
 * [Dalby Presbyterian Church](http://www.dpc.cc/)</a>, Queensland, Australia (sponsor of edit/delete note features and family photos)
-* [Professional Standards Unit](http://safeministry.org.au), Anglican Diocese of Sydney (sponsor of custom fields etc)
+* [Professional Standards Unit](https://safeministry.org.au), Anglican Diocese of Sydney (sponsor of custom fields etc)
 There are also several github contributors whose input is invaluable.

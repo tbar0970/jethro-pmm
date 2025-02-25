@@ -5,9 +5,9 @@
  *
  * @version 3.14.0 for PHP 5, 7, 8
  * @date    2022-09-25
- * @link    http://www.tinybutstrong.com Web site
- * @author  http://www.tinybutstrong.com/onlyyou.html
- * @license http://opensource.org/licenses/LGPL-3.0 LGPL-3.0
+ * @link    https://www.tinybutstrong.com/ Web site
+ * @author  https://www.tinybutstrong.com/onlyyou.html
+ * @license https://opensource.org/license/LGPL-3.0 LGPL-3.0
  *
  * This library is free software.
  * You can redistribute and modify it even for commercial usage,

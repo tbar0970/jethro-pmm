@@ -15,7 +15,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Jethro PMM.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Jethro PMM.  If not, see <https://www.gnu.org/licenses/>.
  *
  * index.php - first stop for every request
  *
