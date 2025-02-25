@@ -57,6 +57,7 @@ class Documents_Manager {
 	
 	public static function serveFile($filename)
 	{
+		$filename = realpath($filename); // resolve any trickiness like ../..
 		if (0 !== strpos($filename, self::getRootPath())) {
 			trigger_error("Illegal file path requested: $filename");
 			exit;
