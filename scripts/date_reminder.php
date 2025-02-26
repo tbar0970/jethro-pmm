@@ -40,7 +40,8 @@ $GLOBALS['user_system']->setCLIScript();
 $GLOBALS['system'] = System_Controller::get();
 //error_reporting(E_ALL);
 
-$SQL = 'SELECT p.*, cfv.value_date AS expirydate ';
+$expiryDate = date('Y-m-d', strtotime($ini['REMINDER_OFFSET'].' day'));
+$SQL = 'SELECT p.*';
 if (!empty($ini['SUMMARY_RECIPIENT_STATUS'])) {
 	$SQL .= ', GROUP_CONCAT(supervisor.email SEPARATOR ";") as supervisor, GROUP_CONCAT(CONCAT(supervisor.first_name, " ", supervisor.last_name) SEPARATOR ", ") as supervisor_name ';
 } else if (!empty($ini['SUMMARY_RECIPIENT_EMAIL'])) {
@@ -62,7 +63,7 @@ if (!empty($ini['SUMMARY_RECIPIENT_STATUS'])) {
 			)';
 }
 $SQL .= '
-		WHERE cfv.value_date  = CURDATE() + INTERVAL '.(int)$ini['REMINDER_OFFSET'].' DAY
+		WHERE cfv.value_date = "'.$expiryDate.'"
 		AND p.status NOT IN (SELECT id FROM person_status WHERE is_archived)
 		GROUP BY p.id';
 $res = $GLOBALS['db']->queryAll($SQL);
@@ -89,10 +90,10 @@ $summaries = Array();
 $supervisor_names = Array();
 foreach ($res as $person) {
 	if (empty($person['first_name'])) continue; // no matches = empty row
-	$sentSomething = send_reminder($person);
+	$sentSomething = send_reminder($person, $expiryDate);
 	if (!empty($person['supervisor'])) {
 		$summaryEntry = $person['first_name'].' '.$person['last_name'];
-		$summaryEntry .= ' ('.format_date($person['expirydate']).') ';
+		$summaryEntry .= ' ('.format_date($expiryDate).') ';
 		if (!$sentSomething) {
 			$summaryEntry .= " (NO CONTACT DETAILS)";
 		}
@@ -128,7 +129,7 @@ foreach ($summaries as $supervisors => $remindees) {
 }
 
 
-function send_reminder($person)
+function send_reminder($person, $expiryDate)
 {
 	global $ini;
 	
@@ -138,11 +139,11 @@ function send_reminder($person)
 			$toEmail = $person['email'];
 			if (!empty($ini['OVERRIDE_RECIPIENT'])) $toEmail = $ini['OVERRIDE_RECIPIENT'];
 
-			$content = replace_keywords($ini['EMAIL_BODY'], $person);
+			$content = replace_keywords($ini['EMAIL_BODY'], $person, $expiryDate);
 			$html = nl2br($content);
 
 			$message = Emailer::newMessage()
-			  ->setSubject(replace_keywords($ini['SUBJECT'], $person))
+			  ->setSubject(replace_keywords($ini['SUBJECT'], $person, $expiryDate))
 			  ->setFrom(array($ini['FROM_ADDRESS'] => $ini['FROM_NAME']))
 			  ->setTo(array($toEmail => $person['first_name'].' '.$person['last_name']))
 			  ->setBody($content)
@@ -165,7 +166,7 @@ function send_reminder($person)
 		if (strlen($person['mobile_tel'])) {
 			$toNumber = $person['mobile_tel'];
 			if (!empty($ini['OVERRIDE_RECIPIENT_SMS'])) $toNumber = $person['mobile_tel'] = $ini['OVERRIDE_RECIPIENT_SMS'];
-			$message = replace_keywords($ini['SMS_MESSAGE'], $person);
+			$message = replace_keywords($ini['SMS_MESSAGE'], $person, $expiryDate);
 			$res = SMS_Sender::sendMessage($message, Array($person), FALSE);
 			if (!$res['executed'] || (count($res['successes']) != 1)) {
 				echo "Failed to send SMS to ".$toNumber."\n";
@@ -187,7 +188,7 @@ function send_reminder($person)
 	return $sentSomething;
 }
 
-function replace_keywords($content, $person)
+function replace_keywords($content, $person, $expiryDate)
 {
 	static $dummy = NULL;
 	if (!$dummy) $dummy = new Person();
@@ -195,13 +196,9 @@ function replace_keywords($content, $person)
 	foreach($person as $k => $v) {
 		$keyword = '%'.strtoupper($k).'%';
 		if (FALSE !== strpos($content, $keyword)) {
-			if ($k == 'expirydate') {
-				$replacement = format_date($v);
-			} else {
-				$replacement = $dummy->getFormattedValue($k);
-			}
-			$content = str_replace($keyword, $replacement, $content);
+			$content = str_replace($keyword, $dummy->getFormattedValue($k), $content);
 		}
 	}
+	$content = str_replace('%EXPIRYDATE%', format_date($expiryDate), $content);
 	return $content;
 }
