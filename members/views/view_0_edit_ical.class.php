@@ -1,6 +1,8 @@
 <?php
 class View__Edit_Ical extends View
 {
+	protected $person;
+
 	function getTitle()
 	{
 		return 'Manage Roster iCal Feed';
