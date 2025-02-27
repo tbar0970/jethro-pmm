@@ -24,12 +24,8 @@ class View_Home extends View
 			Status_Upgrader::runHTML();
 		}
 
-		$num_cols = 1;
-		if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) $num_cols++;
-		if ($GLOBALS['user_system']->havePerm(PERM_VIEWROSTER)) $num_cols++;
-
 		?>
-		<div class="homepage homepage-<?php echo $num_cols; ?>-col">
+		<div class="homepage">
 
 		<div class="homepage-box search-forms">
 			<h3>
@@ -57,7 +53,7 @@ class View_Home extends View
 				<?php
 				if ($tasks) {
 					?>
-					<table class="table table-condensed table-striped table-hover clickable-rows" width="100%">
+					<table class="table table-condensed table-striped table-hover clickable-rows">
 						<thead>
 							<tr>
 								<th><?php echo _('For');?></th>
@@ -75,7 +71,7 @@ class View_Home extends View
 								$nameurl = '?view='.$view.'&'.$task['type'].'id='.$task[$task['type'].'id'];
 								?>
 								<tr>
-									<td class="narrow"><a href="<?php echo $nameurl; ?>"><i class="icon-<?php echo $icon; ?>"></i><?php echo ents($task['name']); ?></a></td>
+									<td class="narrow-gentle"><a href="<?php echo $nameurl; ?>"><i class="icon-<?php echo $icon; ?>"></i><?php echo ents($task['name']); ?></a></td>
 									<td><a href="<?php echo $url; ?>"><?php echo ents($task['subject']); ?></a></td>
 								</tr>
 								<?php

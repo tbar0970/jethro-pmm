@@ -219,17 +219,16 @@ class View__Mixed_Search extends View
 				<button type="submit" class="btn"><i class="icon-search"></i></button>
 			</span>
 			<div class="homepage-search-options soft">
-				<div class="pull-left">Search for:</div>
-				<div class="pull-left">
-				<label class="checkbox"><input type="radio" name="searchtype" <?php echo array_get($checked, '*'); ?> value="*" /> everything</label>
-				<label class="checkbox"><input type="radio" name="searchtype" <?php echo array_get($checked, 'f'); ?> value="f" /> families</label>
-				<label class="checkbox"><input type="radio" name="searchtype" <?php echo array_get($checked, 'p'); ?> value="p" /> persons</label>
-				</div>
-				<div class="pull-left">
-				<br />
-				<label class="checkbox"><input type="radio" name="searchtype" <?php echo array_get($checked, 'g'); ?> value="g" /> groups</label>
-				<label class="checkbox"><input type="radio" name="searchtype" <?php echo array_get($checked, 'r'); ?> value="r" /> reports</label>
-				</div>
+				<details>
+					<summary>Search for...</summary>
+					<div>
+						<label class="checkbox"><input type="radio" name="searchtype" <?php echo array_get($checked, '*'); ?> value="*" /> everything</label>
+						<label class="checkbox"><input type="radio" name="searchtype" <?php echo array_get($checked, 'f'); ?> value="f" /> families</label>
+						<label class="checkbox"><input type="radio" name="searchtype" <?php echo array_get($checked, 'p'); ?> value="p" /> persons</label>
+						<label class="checkbox"><input type="radio" name="searchtype" <?php echo array_get($checked, 'g'); ?> value="g" /> groups</label>
+						<label class="checkbox"><input type="radio" name="searchtype" <?php echo array_get($checked, 'r'); ?> value="r" /> reports</label>
+					</div>
+				</details>
 			</div>
 		</form>
 		<?php

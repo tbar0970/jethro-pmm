@@ -685,8 +685,13 @@ tr:last-child > td > .move-row-down {
 #body .no-padding td, #body .no-padding th {
 	padding: 0px !important;
 }
-/* WIDTH OF NARROW COLS IS IMPLEMENTED BY JETHRO.JS IN A SPECIAL WAY*/
+/* WIDTH OF "NARROW" COLS IS IMPLEMENTED BY JETHRO.JS IN A SPECIAL WAY*/
 td.narrow, th.narrow, .object-summary th {
+	white-space: nowrap;
+}
+/* this is used when the problem that the .narrow JS deals with is not applicable */
+td.narrow-gentle {
+	width: 1%;
 	white-space: nowrap;
 }
 .fill-me * {
@@ -1180,64 +1185,59 @@ img.person-photo {
 .homepage h3 span {
 	white-space: nowrap;
 }
-
-.homepage-3-col .homepage-box {
-	width: 31.3%;
-	margin-right: 3%;
-	float: left;
-	overflow-x: auto;
+.homepage {
+	display: flex;
+	flex-flow: row;
+	flex-wrap: wrap;
+	column-gap: 15px;
 }
-.homepage-2-col .homepage-box {
-	width: 46.6%;
-	margin-right: 2.1%;
+.homepage-box {
+	flex-grow: 1;
+	min-width: 200px;
+	order: 5;
 }
-
-.homepage .homepage-box.search-forms {
-	float: right;
-	margin-left: 0px;
-	margin-right: 0px;
-}
-
-@media (min-width: 641px) and (max-width: 900px) {
-	/* reduce homepage to 2 cols for portrait tablet and below */
-	.homepage-3-col .homepage-box {
-		width: 64%;
-		margin-right: 3%;
-		margin-left: 0px;
-		float: left;
-	}
-	#body .homepage .homepage-box.search-forms {
-		float: right;
-		width: 30%;
-	}
-}
-
-@media (max-width: 640px) {
-	/* reduce homepage to 1 col for landscape phone and below */
-	#body .homepage-box {
-		width: 100%;
-		margin: 0px;
-		float: none !important;
-	}
-	.homepage-box form {
-		margin-bottom: 0px;
-	}
-}
-@media (min-width:1300px) {
-	/* firefox sizes the homepage components AFTER the whole page has been sized, so they do not push out the overall box. */
-	#body .homepage {
-		min-width: 1300px;
-	}
-}
-form.homepage-search {
-	max-width: 400px;
+.homepage-box form {
+	margin-bottom: 0px;
 }
 .homepage-search span.input-append {
-	margin-bottom: 3px;
+	margin-bottom: 1px;
 }
-.homepage-search-options,.homepage-search-options *  {
-	font-size: 12px;
+
+.homepage-search-options, .homepage-search-options *  {
+	font-size: 11px;
 	margin: 0px;
+	max-width: 100%;
+}
+.homepage-search-options details {
+	margin-left: 2px;
+}
+.homepage-search-options details div {
+	display: flex;
+	flex-flow: row;
+	flex-wrap: wrap;
+}
+.homepage-search-options details label {
+	padding-left: 1em;
+}
+@media (min-width: 740px) {
+	.homepage .search-forms {
+		order: 10; /* make it last */
+		max-width: 400px;
+	}
+	.homepage .homepage-search-options details  {
+		max-width: 250px;
+	}
+	.homepage .homepage-search-options details label {
+		width: 28%;
+	}
+}
+@media (max-width: 739px) {
+	.homepage .search-forms {
+		/* make it first and 100% width */
+		width: 100%;
+		clear: both;
+		order: 1;
+	}
 }
 
 /*************** MEMBERS HOME PAGE ******************/
