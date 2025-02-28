@@ -139,7 +139,7 @@ class View_Groups__List_All extends View
 				<?php
 			} else {
 				?>
-				<a class="soft pull-right hidden-phone" href="<?php echo build_url(Array('show_archived' => 0)); ?>"><i class="icon-eye-close"></i><?php echo _('Exclude Archived')?>;</a>
+				<a class="soft pull-right hidden-phone" href="<?php echo build_url(Array('show_archived' => 0)); ?>"><i class="icon-eye-close"></i><?php echo _('Exclude Archived')?></a>
 				<?php
 			}
 
