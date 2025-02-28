@@ -1,0 +1,23 @@
+name: Lint
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [8.3, 8.4]
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.version }}
+          extensions: gd, gettext, curl
+
+      - name: Lint
+        run: php -l *.php calls/*.php db_objects/*.php hooks/**/*.php include/*.php members/*.php members/**/*.php public/*.php public/**/*.php scripts/*.php templates/*.php upgrades/*.php upgrades/**/*.php views/*.php
