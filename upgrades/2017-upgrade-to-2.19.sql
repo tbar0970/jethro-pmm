@@ -43,7 +43,7 @@ ALTER TABLE _person DROP COLUMN age_bracket;
 ALTER TABLE _person ADD COLUMN age_bracketid INT(11) DEFAULT NULL;
 ALTER TABLE _person ADD CONSTRAINT `person_age_bracket` FOREIGN KEY (`age_bracketid`) REFERENCES `age_bracket`(`id`) ON DELETE RESTRICT;
 
-UPDATE _person SET congregationid = NULL WHERE (congregationid = '' OR congregationid = '0');
+UPDATE _person SET congregationid = NULL WHERE congregationid = 0;
 
 CREATE TABLE _disused_action_plan_backup SELECT * from action_plan;
 CREATE TABLE _disused_person_query_backup SELECT * from person_query;
