@@ -46,7 +46,7 @@ class View_Groups extends View
 					<td><?php $this->_group->printFieldValue('categoryid'); ?>&nbsp;&nbsp;</td>
 					<th class="narrow hidden-phone"><?php echo _('Record Attendance?');?></th>
 					<td class="hidden-phone"><?php $this->_group->printFieldValue('attendance_recording_days'); ?></td>
-					<td class="align-right">
+					<td class="group-details-links">
 						<?php
 						if ($GLOBALS['user_system']->havePerm(PERM_EDITATTENDANCE) && $this->_group->getValue('attendance_recording_days')) {
 							?>
@@ -54,6 +54,11 @@ class View_Groups extends View
 							   href="?view=attendance__record&cohortids[]=g-<?php echo $this->_group->id; ?>">
 								<i class="icon-check"></i><?php echo _('Record attendance');?>
 							</a>
+							<?php
+						}
+						if ($GLOBALS['user_system']->havePerm(PERM_RUNREPORT)) {
+							?>
+							<a href="<?php echo build_url(Array('view' => 'persons__reports', 'queryid' => 0, 'configure' => 1)); ?>" data-toggle="modal"><i class="icon-plus-sign"></i><?php echo _('Create a new report for this group');?></a>
 							<?php
 						}
 						?>

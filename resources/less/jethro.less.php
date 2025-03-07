@@ -981,6 +981,7 @@ table.query-results tfoot * {
 	overflow: auto; /* clearfix */
 	margin-bottom: 1ex;
 }
+.group-details-links a,
 .group-members-links div {
 	float: right;
 	margin-left: 2em;
