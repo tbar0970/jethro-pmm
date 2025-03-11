@@ -962,17 +962,11 @@ class Person extends DB_Object
 	{
 		switch ($name) {
 			case 'photo':
+				$existing_photo_url = NULL;
 				if ($this->id && $GLOBALS['db']->queryOne('SELECT 1 FROM person_photo WHERE personid = '.(int)$this->id)) {
-					?>
-					<label class="checkbox remove-photo" title="Remove photo">
-						<input type="checkbox" name="<?php echo $prefix; ?>photo_remove">
-						Remove photo
-					</label>
-					<?php
+					$existing_photo_url = '?call=photo&personid='.(int)$this->id; 
 				}
-				?>
-				<input type="file" accept="image/*" max-bytes="<?php echo file_upload_max_size(); ?>" name="<?php echo $prefix; ?>photo" />
-				<?php
+				Photo_Handler::printChooser($prefix, $existing_photo_url);
 				break;
 			case 'familyid':
 				?>

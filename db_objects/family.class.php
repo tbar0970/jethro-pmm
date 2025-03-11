@@ -244,17 +244,11 @@ class family extends db_object
 	function printFieldInterface($name, $prefix='')
 	{
 		if ($name == 'photo') {
+			$existing_photo_url = NULL;
 			if ($this->id && $GLOBALS['db']->queryOne('SELECT 1 FROM family_photo WHERE familyid = '.(int)$this->id)) {
-				?>
-				<label class="checkbox remove-photo" title="Remove photo">
-					<input type="checkbox" name="photo_remove">
-					Remove photo
-				</label>
-				<?php
+				$existing_photo_url = '?call=photo&familyid='.(int)$this->id; 
 			}
-			?>
-			<input type="file" accept="image/*" name="photo" />
-			<?php
+			Photo_Handler::printChooser($prefix, $existing_photo_url);
 			return;
 		}
 

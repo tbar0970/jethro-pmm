@@ -702,6 +702,9 @@ td.narrow-gentle {
 .nowrap {
 	white-space: nowrap;
 }
+.inline {
+	display: inline;
+}
 .clickable, table.clickable-rows td, table.clickable-rows th, img.icon {
 	cursor: pointer;
 }
@@ -1113,8 +1116,27 @@ img.person-photo {
 	width: 170px;
 }
 
-.remove-photo:has(input:checked) + input {
+.photo-tools:has(.remove-photo input:checked) .replace-photo, .photo-tools:has(.remove-photo input:checked) img, .photo-tools:has(.remove-photo input:checked) .new-photo-name  {
+	display: none !important;
+}
+.photo-tools input[type=file] {
 	display: none;
+}
+.photo-tools {
+	height: 20px;
+	line-height: 20px;
+	padding: 4px 0px;
+}
+.photo-tools input.new-photo-name {
+	display: none;
+	margin-top: -4px;
+	margin-right: 12px;
+}
+.photo-tools img, .photo-tools label, .photo-tools {
+	margin: 0 12px 0 0 !important;
+	display: inline-block;
+	height: 20px;
+
 }
 
 /************** VIEW FAMILY ****************/

@@ -87,7 +87,7 @@ Class Photo_Handler {
 							$src_w = $orig_width;
 							$src_h = $orig_height;
 						}
-						$output_img = imagecreatetruecolor($new_width, $new_height);
+						$output_img = imagecreatetruecolor((int)$new_width, (int)$new_height);
 						imagecopyresampled($output_img, $input_img, 0, 0, $src_x, $src_y, $new_width, $new_height, $src_w, $src_h);
 						imagedestroy($input_img);
 					} else {
@@ -157,6 +157,37 @@ Class Photo_Handler {
 				return $res;
 			}
 		}
+	}
+
+	static function printChooser($prefix, $existing_photo_url)
+	{
+		if ($existing_photo_url) {
+				?>
+			<div class="photo-tools">
+				<img src="<?php echo $existing_photo_url; ?>" />
+				<input type="text" readonly="readonly" class="new-photo-name" value="" />
+				<label class="clickable replace-photo">
+					<input type="file" accept="image/*" max-bytes="<?php echo file_upload_max_size(); ?>" name="<?php echo $prefix; ?>photo"/>
+					<i class="icon-wrench"></i>Replace photo&hellip;
+				</label>
+				<label class="checkbox remove-photo" title="Remove photo">
+					<input type="checkbox" name="<?php echo $prefix; ?>photo_remove">
+					Remove photo
+				</label>
+			</div>
+			<?php
+		} else {
+			?>
+			<div class="photo-tools">
+				<input type="text" readonly="readonly" class="new-photo-name" value="" />
+				<label class="clickable">
+					<input type="file" accept="image/*" max-bytes="<?php echo file_upload_max_size(); ?>" name="<?php echo $prefix; ?>photo" />
+					<i class="icon-plus-sign"></i>Choose photo&hellip;
+				</label>
+			</div>
+			<?php
+
+		}		
 	}
 
 }

@@ -406,6 +406,13 @@ $(document).ready(function() {
 		}
 	}).change();
 
+	// PHOTO TOOLS
+	$('.photo-tools input[type=file]').change(function() {
+		var fn = this.files[0].name;
+		$(this).parents('.photo-tools').find('.new-photo-name').css('display', 'inline').val(fn);
+		$(this).parents('.photo-tools').find('img').remove();
+	})
+
 	// FAMILY PHOTOS
 
 	handleFamilyPhotosLayout();
