@@ -632,10 +632,12 @@ class Person extends DB_Object
 	private function _savePhoto()
 	{
 		$db =& $GLOBALS['db'];
-		if ($this->_photo_data) {
+		if ($this->_photo_data === FALSE) {
+			$this->_clearPhoto();
+		} else if ($this->_photo_data) {
 			$SQL = 'REPLACE INTO person_photo (personid, photodata)
 					VALUES ('.(int)$this->id.', '.$db->quote($this->_photo_data).')';
-			$res = $db->query($SQL);
+			$db->query($SQL);
 		}
 	}
 
@@ -960,6 +962,14 @@ class Person extends DB_Object
 	{
 		switch ($name) {
 			case 'photo':
+				if ($this->id && $GLOBALS['db']->queryOne('SELECT 1 FROM person_photo WHERE personid = '.(int)$this->id)) {
+					?>
+					<label class="checkbox remove-photo" title="Remove photo">
+						<input type="checkbox" name="<?php echo $prefix; ?>photo_remove">
+						Remove photo
+					</label>
+					<?php
+				}
 				?>
 				<input type="file" accept="image/*" max-bytes="<?php echo file_upload_max_size(); ?>" name="<?php echo $prefix; ?>photo" />
 				<?php

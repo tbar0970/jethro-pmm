@@ -10,6 +10,9 @@ Class Photo_Handler {
 
 	public static function getUploadedPhotoData($fieldName, $crop=NULL)
 	{
+		if (array_key_exists($fieldName.'_remove', $_POST)) {
+			return FALSE;
+		}
 		if ($crop === NULL) $crop = self::CROP_WIDTH;
 		if (!empty($_FILES[$fieldName]) && !empty($_FILES[$fieldName]['name'])) {
 			if (!empty($_FILES[$fieldName]['error'])) {

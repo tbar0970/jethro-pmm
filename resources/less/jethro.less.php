@@ -1113,6 +1113,9 @@ img.person-photo {
 	width: 170px;
 }
 
+.remove-photo:has(input:checked) + input {
+	display: none;
+}
 
 /************** VIEW FAMILY ****************/
 .details-box form {
