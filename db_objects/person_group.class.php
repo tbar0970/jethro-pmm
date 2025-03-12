@@ -128,7 +128,7 @@ class Person_Group extends db_object
 		return Array(
 			'_person_group.categoryid' => "`person_group_category` (`id`) ON DELETE SET NULL",
 		);
-	}	
+	}
 
 
 	/**
@@ -482,7 +482,7 @@ class Person_Group extends db_object
 			if ($groupsCache === NULL) $groupsCache = $GLOBALS['system']->getDBObjectData('person_group', Array('is_archived' => 0), 'OR', 'name');
 			$groups = $groupsCache;
 		} else {
-			$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('is_archived' => 0, 'id' => $value), 'OR', 'name');			
+			$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('is_archived' => 0, 'id' => $value), 'OR', 'name');
 		}
 
 		if (empty($groups)) {
