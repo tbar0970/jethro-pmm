@@ -539,7 +539,7 @@ class Person_Query extends DB_Object
 	}
 	?>
 
-		<h3>For each person found, show me...</h3>
+		<h3 id="showme">For each person found, show me...</h3>
 		<?php
 		$show_fields = array_get($params, 'show_fields', Array());
 		?>
