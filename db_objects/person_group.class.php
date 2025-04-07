@@ -50,7 +50,7 @@ class Person_Group extends db_object
 									'type' => 'select',
 									'options' => Array('No', 'Yes'),
 									'default' => 0,
-									'note' => 'Should members of this group be able to see each others\'s details in <a href="'.BASE_URL.'members">member portal</a>?',
+									'note' => 'Should members of this group be able to see each other\'s details in <a href="'.BASE_URL.'members">member portal</a>?',
 									'label' => 'Share member details?',
 								),
 		);
