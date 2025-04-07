@@ -1,6 +1,6 @@
 <?php
 
-class Status_Upgrader 
+class Status_Upgrader
 {
 
 	static $person_status;
@@ -31,7 +31,7 @@ class Status_Upgrader
 		if (self::$contact_id===false) trigger_error("Missing 'Contact' person_status", E_USER_ERROR);
 
 		self::fixPersonReports();
-		self::fixActionPlans();	
+		self::fixActionPlans();
 		Config_Manager::deleteSetting('NEEDS_1035_UPGRADE');
 
 	}
