@@ -1116,7 +1116,8 @@ class Person extends DB_Object
 		$this->setValue('remarks', '');
 		$this->setValue('gender', '');
 		$this->setValue('feed_uuid', '');
-		$this->setValue('status', reset($stats=Person_Status::getArchivedIDs)); // we use the top-ranked 'is_archived' status.
+		$stats = Person_Status::getArchivedIDs();
+		$this->setValue('status', reset($stats)); // we use the top-ranked 'is_archived' status.
 		$this->setValue('history', Array());
 		$this->_clearCustomValues();
 		$this->_clearPhoto();
