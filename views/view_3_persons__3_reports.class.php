@@ -230,8 +230,8 @@ class View_Persons__Reports extends View
 				</form>
 				<?php
 
-				$this->_listCustomReports();
 			}
+			$this->_listCustomReports();
 		}
 	}
 
