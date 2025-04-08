@@ -613,7 +613,11 @@ class Custom_Field extends db_object
 			}
 			echo '<a target="_blank" href="'.ents($url).'">'.ents($val).'</a>';
 		} else {
-			echo ents($this->formatValue($val));
+			$res = ents($this->formatValue($val));
+			if (in_array($this->getValue('type'), Array('date', 'select'))) {
+				$res = nbsp($res);
+			}
+			echo $res;
 		}
 	}
 
