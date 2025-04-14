@@ -1089,7 +1089,7 @@ class db_object
 			} else if ($field[0] == '(') {
 				if ($val === Array()) {
 					// We're checking if the value is a member of an empty set.
-					$prefix = '/* empty set check for '.$field.' */';
+					$prefix .= '/* empty set check for '.$field.' */ ';
 					$field = '1';
 					$operator = '=';
 					$val = '2';
