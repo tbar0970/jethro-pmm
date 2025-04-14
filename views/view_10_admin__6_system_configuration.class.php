@@ -620,6 +620,7 @@ class View_Admin__System_Configuration extends View {
 		if (!empty($_POST['person_status_submitted'])) {
 			$i = 0;
 			$saved_default = false;
+			$got_an_archived = false;
 			$rankMap = $_REQUEST['pstatus_ranking'];
 			foreach ($rankMap as $k => $v) {
 				if ($v == '') $rankMap[$k] = max($rankMap)+1;
@@ -660,6 +661,7 @@ class View_Admin__System_Configuration extends View {
 					}
 				}
 				$ab->releaseLock();
+				if ($ab->getValue('is_archived') && !in_array($ab->id, $to_delete)) $got_an_archived = TRUE;
 				$i++;
 			}
 			if (!$saved_default) {
@@ -669,6 +671,10 @@ class View_Admin__System_Configuration extends View {
 				// The interface should have prevented attempts to delete an in-use status.
 				// So we'll just rely on the foriegn key to catch anything dodgy here.
 				$s = new Person_status($id);
+				if (!$got_an_archived && ($s->getValue('is_archived'))) {
+					add_message("The person status '".$s->getValue('label')."' was not deleted, because you must have at least one status for archived persons", "error");
+					continue;
+				}
 				$s->delete();
 			}
 		}
