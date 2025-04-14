@@ -729,6 +729,12 @@ class db_object
 			<table class="history table table-full-width table-striped">
 			<?php
 			foreach ($value as $time => $detail) {
+				if (($detail == 'Created') && isset($this->fields['creator'])) {
+					// Add the creator name if we know it. Pre 2025 this wasn't saved in the history itself.
+					if ($creator = $GLOBALS['system']->getDBObject('person', $this->getValue('creator'))) {
+						$detail .= ' by '.$creator->toString();
+					}
+				}
 				?>
 				<tr>
 					<th class="narrow"><?php echo format_datetime($time); ?></th>
