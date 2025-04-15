@@ -255,8 +255,8 @@ class Person_Query extends DB_Object
 												'options' => Array(
 													'any' => 'filled in with any value',
 													'empty' => 'not filled in',
-													'exact' => 'with exact value within...',
-													'anniversary' => 'with exact value or anniversary within...',
+													'exact' => 'with exact value ...',
+													'anniversary' => 'with exact value or anniversary ...',
 												),
 												'attrs' => Array(
 													'data-toggle' => 'visible',
@@ -265,20 +265,20 @@ class Person_Query extends DB_Object
 												),
 											);
 									print_widget('params_custom_field_'.$fieldid.'_criteria', $cparams, array_get($value, 'criteria'));
-									$pts = Array('fixed' => '', 'relative' => '');
+									$pts = Array('fixed' => '', 'relative' => '', 'relative_directional' => '');
 									$pts[array_get($value, 'periodtype', 'fixed')] = 'checked="checked"';
 									?>
 									<div class="datefield-rule-period" data-select-rule-type="exact anniversary">
 										<label class="checkbox nowrap">
 											<input type="radio" name="params_custom_field_<?php echo $fieldid; ?>_periodtype" value="fixed" <?php echo $pts['fixed']; ?> />
-											the period from
+											within the period from
 											<?php print_widget('params_custom_field_'.$fieldid.'_from', Array('type' => 'date', 'allow_empty' => TRUE), array_get($value, 'from')); ?>
 											to
 											<?php print_widget('params_custom_field_'.$fieldid.'_to', Array('type' => 'date', 'allow_empty' => TRUE), array_get($value, 'to')); ?>
 										</label>
 										<label class="checkbox">
 											<input type="radio" name="params_custom_field_<?php echo $fieldid; ?>_periodtype" value="relative"<?php echo $pts['relative']; ?> />
-											the
+											within the
 											<?php print_widget('params_custom_field_'.$fieldid.'_periodlength', Array('type' => 'int'), array_get($value, 'periodlength', 14)); ?>
 											day period
 											<?php print_widget('params_custom_field_'.$fieldid.'_periodanchor',
@@ -288,6 +288,34 @@ class Person_Query extends DB_Object
 																		'before' => 'before',
 																		'ending' => 'ending on',
 																		'starting' => 'starting on',
+																		'after' => 'after',
+																	)
+													),
+													array_get($value, 'periodanchor', 'ending')
+											); ?>
+											the day the report is executed
+										</label>
+
+                                        <label class="checkbox">
+											<input type="radio" name="params_custom_field_<?php echo $fieldid; ?>_periodtype" value="relative_directional"<?php echo $pts['relative_directional']; ?> />
+											<?php print_widget('params_custom_field_'.$fieldid.'_perioddirection',
+												Array(
+													'type' => 'select',
+													'options' => Array(
+														'before' => 'before',
+														'after' => 'after',
+													)
+												),
+												array_get($value, 'perioddirection', 'before')
+											); ?>
+											the
+											<?php print_widget('params_custom_field_'.$fieldid.'_periodlength', Array('type' => 'int'), array_get($value, 'periodlength', 14)); ?>
+											day period
+											<?php print_widget('params_custom_field_'.$fieldid.'_periodanchor',
+													Array(
+														'type' => 'select',
+														'options' => Array(
+																		'before' => 'before',
 																		'after' => 'after',
 																	)
 													),
@@ -826,6 +854,7 @@ class Person_Query extends DB_Object
 							'periodtype' => $_REQUEST['params_custom_field_'.$fieldid.'_periodtype'],
 							'periodlength' => $_REQUEST['params_custom_field_'.$fieldid.'_periodlength'],
 							'periodanchor' => $_REQUEST['params_custom_field_'.$fieldid.'_periodanchor'],
+							'perioddirection' => $_REQUEST['params_custom_field_'.$fieldid.'_perioddirection'],
 							'from' => process_widget('params_custom_field_'.$fieldid.'_from', Array('type' => 'date')),
 							'to' => process_widget('params_custom_field_'.$fieldid.'_to', Array('type' => 'date')),
 						);
@@ -1077,41 +1106,63 @@ class Person_Query extends DB_Object
 
 						case 'exact':
 						case 'anniversary':
-
-							if (array_get($values, 'periodtype') == 'relative') {
+						    $valExp = 'pd'.$fieldid.'.value_date';
+							if (array_get($values, 'periodtype') == 'relative_directional') {
+                                // Given the current day, calculate a before/after offset, and allow dates before/after the offset
 								$length = $values['periodlength'];
 								if (!preg_match('/^[0-9]+$/', $length)) $length = 0;
-								$offsets = Array(
-									'before' => Array(-$length-1, -1),
-									'ending' => Array(-$length, 0),
-									'starting' => Array(0, $length),
-									'after' => Array(1, $length+1)
-								);
-								list($so, $eo) = $offsets[$values['periodanchor']];
-								if ($so > 0) $so = "+$so";
-								if ($eo > 0) $eo = "+$eo";
-								$from = date('Y-m-d', strtotime("{$so} days"));
-								$to = date('Y-m-d', strtotime("{$eo} days"));
-							} else {
-								$from = $values['from'];
-								$to = $values['to'];
-							}
-							$betweenExp = 'BETWEEN '.$db->quote($from).' AND '.$db->quote($to);
-							$valExp = 'pd'.$fieldid.'.value_date';
-							$w = Array();
-							$w[] = "$valExp NOT LIKE '-%' AND $valExp $betweenExp";
-							if ($values['criteria'] == 'anniversary') {
-								$qFromYear = $db->quote(substr($from, 0, 4));
-								$qToYear = $db->quote(substr($to, 0, 4));
 
-								$w[] = "$valExp LIKE '-%' AND (
+								$anchor = $values['periodanchor']; // offset direction
+                                if ($anchor == "before") {
+									$offsetday = date('Y-m-d', strtotime("-{$length} days"));
+								} else {
+									$offsetday = date('Y-m-d', strtotime("{$length} days"));
+								}
+								if ($values['perioddirection'] == "before") { // direction from offset to allow dates in
+                                    $condExp = '< '.$db->quote($offsetday);
+								} elseif ($values['perioddirection'] == "after") {
+									$condExp = '> '.$db->quote($offsetday);
+								}
+								$w = Array();
+								$w[] = "$valExp NOT LIKE '-%' AND $valExp $condExp";
+
+							} else {
+								if (array_get($values, 'periodtype') == 'relative') {
+									// A {from, to} range relative to the current day
+									$length = $values['periodlength'];
+									if (!preg_match('/^[0-9]+$/', $length)) $length = 0;
+									$offsets = Array(
+										'before' => Array(-$length - 1, -1),
+										'ending' => Array(-$length, 0),
+										'starting' => Array(0, $length),
+										'after' => Array(1, $length + 1)
+									);
+									list($so, $eo) = $offsets[$values['periodanchor']];
+									if ($so > 0) $so = "+$so";
+									if ($eo > 0) $eo = "+$eo";
+									$from = date('Y-m-d', strtotime("{$so} days"));
+									$to = date('Y-m-d', strtotime("{$eo} days"));
+								} else {
+									// A fixed {from, to} range
+									$from = $values['from'];
+									$to = $values['to'];
+								}
+								$betweenExp = 'BETWEEN '.$db->quote($from).' AND '.$db->quote($to);
+								$w = Array();
+								$w[] = "$valExp NOT LIKE '-%' AND $valExp $betweenExp";
+								if ($values['criteria'] == 'anniversary') {
+									$qFromYear = $db->quote(substr($from, 0, 4));
+									$qToYear = $db->quote(substr($to, 0, 4));
+
+									$w[] = "$valExp LIKE '-%' AND (
 											CONCAT($qFromYear, $valExp) $betweenExp
 											OR CONCAT($qToYear, $valExp) $betweenExp
 										)";
-								$w[] = "$valExp NOT LIKE '-%' AND (
+									$w[] = "$valExp NOT LIKE '-%' AND (
 											CONCAT($qFromYear, RIGHT($valExp, 6)) $betweenExp
 											OR CONCAT($qToYear, RIGHT($valExp, 6)) $betweenExp
 										)";
+								}
 							}
 							$customFieldWheres[] = '(('.implode("\n) OR (\n", $w).'))';
 							break;
