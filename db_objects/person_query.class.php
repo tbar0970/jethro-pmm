@@ -1108,7 +1108,7 @@ class Person_Query extends DB_Object
 						case 'anniversary':
 						    $valExp = 'pd'.$fieldid.'.value_date';
 							if (array_get($values, 'periodtype') == 'relative_directional') {
-                                // Given the current day, calculate a before/after offset, and allow dates before/after the offset
+								// Given the current day, calculate a before/after offset, and allow dates before/after the offset
 								$length = $values['periodlength'];
 								if (!preg_match('/^[0-9]+$/', $length)) $length = 0;
 
@@ -1119,7 +1119,7 @@ class Person_Query extends DB_Object
 									$offsetday = date('Y-m-d', strtotime("{$length} days"));
 								}
 								if ($values['perioddirection'] == "before") { // direction from offset to allow dates in
-                                    $condExp = '< '.$db->quote($offsetday);
+									$condExp = '< '.$db->quote($offsetday);
 								} elseif ($values['perioddirection'] == "after") {
 									$condExp = '> '.$db->quote($offsetday);
 								}
@@ -1155,8 +1155,8 @@ class Person_Query extends DB_Object
 									$qToYear = $db->quote(substr($to, 0, 4));
 
 									$w[] = "$valExp LIKE '-%' AND (
-											CONCAT($qFromYear, $valExp) $betweenExp
-											OR CONCAT($qToYear, $valExp) $betweenExp
+										CONCAT($qFromYear, $valExp) $betweenExp
+										OR CONCAT($qToYear, $valExp) $betweenExp
 										)";
 									$w[] = "$valExp NOT LIKE '-%' AND (
 											CONCAT($qFromYear, RIGHT($valExp, 6)) $betweenExp
