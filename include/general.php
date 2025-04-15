@@ -82,6 +82,7 @@ function bam($x)
 
 function format_datetime($d)
 {
+	if (empty($d)) return '';
 	if (!is_int($d)) {
 		if (0 === strpos($d, '0000-00-00')) return '';
 		$d = strtotime($d);
