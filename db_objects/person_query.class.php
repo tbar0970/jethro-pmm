@@ -1096,8 +1096,14 @@ class Person_Query extends DB_Object
 								$from = $values['from'];
 								$to = $values['to'];
 							}
-							$betweenExp = 'BETWEEN '.$db->quote($from).' AND '.$db->quote($to);
-							$valExp = 'pd'.$fieldid.'.value_date';
+						    $valExp = 'pd'.$fieldid.'.value_date';
+						    if ($from && $to) {
+								$betweenExp = 'BETWEEN '.$db->quote($from).' AND '.$db->quote($to);
+							} elseif ($from) {
+								$betweenExp = '>= '.$db->quote($from);
+							} elseif ($to) {
+								$betweenExp = '<= '.$db->quote($to);
+							}
 							$w = Array();
 							$w[] = "$valExp NOT LIKE '-%' AND $valExp $betweenExp";
 							if ($values['criteria'] == 'anniversary') {
