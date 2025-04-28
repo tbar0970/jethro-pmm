@@ -1,11 +1,11 @@
 <?php
 /*****************************************************************
-This script will send roster reminder emails
-set-up a cron-job to run the script ast follows
+This script will send roster reminder emails, SMSes or both, to people rostered on a configured roster in the upcoming 6 days. Typically this matches the upcoming Sunday, but if another day's allocations are found (e.g. Easter Friday), people are notified once about both.
+
+Set up a cron-job to run the script as follows:
 
 php /path/to/this/script/roster_reminder.php /path/to/ini/file/roster_reminder_sample.ini
 
-Note: This script will only work with roster views that are made public
 Where's the roster id number?  When you view a roster via the /jethro/public directory you'll see the roster id number in the url (eg. &roster_view=1)
 
 Use .ini file to set the following
