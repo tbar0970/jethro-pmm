@@ -43,9 +43,11 @@ $(document).ready(function() {
 			}
 		});
 	}
-	if ((navigator.userAgent.toLowerCase().indexOf('safari/') > -1)
-		&& ("standalone" in window.navigator)
-		&& !window.navigator.standalone) {
+	var ua = window.navigator.userAgent;
+	var iOS = !!ua.match(/iPad/i) || !!ua.match(/iPhone/i);
+	var webkit = !!ua.match(/WebKit/i);
+	var iOSSafari = iOS && webkit && !ua.match(/CriOS/i);
+	if (iOSSafari && !window.navigator.standalone) {
 		// we're in safari, but not in standalone mode, so show the tip
 		$('.a2hs-prompt').show();
 	}
