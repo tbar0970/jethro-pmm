@@ -146,7 +146,7 @@ class View_Home extends View
 		foreach ($frontpagereports as $reportid => $reportparams) {
 			$report = $GLOBALS['system']->getDBObject('person_query', $reportid);
 			?>
-			<div class="homepage homepage-1-col" style="clear:both;">
+			<div class="homepage-box">
 				<h3><?php echo $reportparams['name']; ?></h3>
 				<?php $report->printResults(); ?>
 			</div>
