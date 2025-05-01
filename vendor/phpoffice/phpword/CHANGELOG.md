@@ -1,7 +1,205 @@
-Change Log
-==========
+# Changelog
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
+
+## [0.18.0](https://github.com/PHPOffice/PHPWord/tree/0.18.0) (2021-02-12)
+
+[Full Changelog](https://github.com/PHPOffice/PHPWord/compare/0.17.0...0.18.0)
+
+### Enhancements
+- Add support for charts in template processor [\#2012](https://github.com/PHPOffice/PHPWord/pull/2012) ([dbarzin](https://github.com/dbarzin))
+- add/setting page element border style. [\#1986](https://github.com/PHPOffice/PHPWord/pull/1986) ([emnabs](https://github.com/emnabs))
+- allow to use customized pdf library [\#1983](https://github.com/PHPOffice/PHPWord/pull/1983) ([SailorMax](https://github.com/SailorMax))
+- feat: Update addHtml to handle style inheritance [\#1965](https://github.com/PHPOffice/PHPWord/pull/1965) ([Julien1138](https://github.com/Julien1138))
+- Add parsing of Shape node values [\#1924](https://github.com/PHPOffice/PHPWord/pull/1924) ([sven-ahrens](https://github.com/sven-ahrens))
+- Allow to redefine TCPDF object [\#1907](https://github.com/PHPOffice/PHPWord/pull/1907) ([SailorMax](https://github.com/SailorMax))
+- Enhancements to addHTML parser [\#1902](https://github.com/PHPOffice/PHPWord/pull/1902) ([lubosdz](https://github.com/lubosdz))
+- Make Default Paper Configurable [\#1851](https://github.com/PHPOffice/PHPWord/pull/1851) ([oleibman](https://github.com/oleibman))
+- Implement various missing features for the ODT writer [\#1796](https://github.com/PHPOffice/PHPWord/pull/1796) ([oleibman](https://github.com/oleibman))
+- Added support for "cloudConvert" images [\#1794](https://github.com/PHPOffice/PHPWord/pull/1794) ([ErnestStaug](https://github.com/ErnestStaug))
+- Add support for several features for the RTF writer [\#1775](https://github.com/PHPOffice/PHPWord/pull/1775) ([oleibman](https://github.com/oleibman))
+- Add font style for Field elements [\#1774](https://github.com/PHPOffice/PHPWord/pull/1774) ([oleibman](https://github.com/oleibman))
+- Add support for ListItemRun in HTML writer [\#1766](https://github.com/PHPOffice/PHPWord/pull/1766) ([stefan-91](https://github.com/stefan-91))
+- Improvements in RTF writer [\#1755](https://github.com/PHPOffice/PHPWord/pull/1755) ([oleibman](https://github.com/oleibman))
+- Allow a closure to be passed with image replacement tags [\#1716](https://github.com/PHPOffice/PHPWord/pull/1716) ([mbardelmeijer](https://github.com/mbardelmeijer))
+- Add Option for Dynamic Chart Legend Position [\#1699](https://github.com/PHPOffice/PHPWord/pull/1699) ([Stephan212](https://github.com/Stephan212))
+- Add parsing of HTML checkbox input field [\#1832](https://github.com/PHPOffice/PHPWord/pull/1832) ([Matze2010](https://github.com/Matze2010))
+
+### Bug fixes
+- Fix image stroke in libreoffice 7.x [\#1992](https://github.com/PHPOffice/PHPWord/pull/1992) ([Adizbek](https://github.com/Adizbek))
+- Fix deprecated warning for non-hexadecimal number [\#1988](https://github.com/PHPOffice/PHPWord/pull/1988) ([Ciki](https://github.com/Ciki))
+- Fix limit not taken into account when adding image in template [\#1967](https://github.com/PHPOffice/PHPWord/pull/1967) ([jsochor](https://github.com/jsochor))
+- Add null check when setComplexValue is not found [\#1936](https://github.com/PHPOffice/PHPWord/pull/1936) ([YannikFirre](https://github.com/YannikFirre))
+- Some document have non-standard locale code [\#1824](https://github.com/PHPOffice/PHPWord/pull/1824) ([ErnestStaug](https://github.com/ErnestStaug))
+- Fixes PHPDoc @param and @return types for several Converter methods [\#1818](https://github.com/PHPOffice/PHPWord/pull/1818) ([caugner](https://github.com/caugner))
+- Update the regexp to avoid catastrophic backtracking [\#1809](https://github.com/PHPOffice/PHPWord/pull/1809) ([juzser](https://github.com/juzser))
+- Fix PHPUnit tests on develop branch [\#1771](https://github.com/PHPOffice/PHPWord/pull/1771) ([mdupont](https://github.com/mdupont))
+- TemplateProcessor cloneBlock wrongly clones images [\#1763](https://github.com/PHPOffice/PHPWord/pull/1763) ([alarai](https://github.com/alarai))
+
+### Miscellaneous
+- Compatibility with PHP 7.4, PHP 8.0 and migrate to Laminas Escaper [\#1946](https://github.com/PHPOffice/PHPWord/pull/1946) ([liborm85](https://github.com/liborm85))
+- Remove legacy PHPOffice/Common package, fix PHP 8.0 compatibility [\#1996](https://github.com/PHPOffice/PHPWord/pull/1996) ([liborm85](https://github.com/liborm85))
+- Improve Word2007 Test Coverage [\#1858](https://github.com/PHPOffice/PHPWord/pull/1858) ([oleibman](https://github.com/oleibman))
+- Fix typo in docs. Update templates-processing.rst [\#1952](https://github.com/PHPOffice/PHPWord/pull/1952) ([mnvx](https://github.com/mnvx))
+- Fix documentation and method name for FootnoteProperties [\#1776](https://github.com/PHPOffice/PHPWord/pull/1776) ([mdupont](https://github.com/mdupont))
+- fix: documentation about paragraph indentation [\#1764](https://github.com/PHPOffice/PHPWord/pull/1764) ([mdupont](https://github.com/mdupont))
+- Update templates-processing.rst [\#1745](https://github.com/PHPOffice/PHPWord/pull/1745) ([igronus](https://github.com/igronus))
+- Unused variables $rows, $cols in sample [\#1877](https://github.com/PHPOffice/PHPWord/pull/1877) ([ThanasisMpalatsoukas](https://github.com/ThanasisMpalatsoukas))
+- Add unit test for NumberingStyle [\#1744](https://github.com/PHPOffice/PHPWord/pull/1744) ([Manunchik](https://github.com/Manunchik))
+- Add unit test for PhpWord Settings [\#1743](https://github.com/PHPOffice/PHPWord/pull/1743) ([Manunchik](https://github.com/Manunchik))
+- Add unit test for Media elements [\#1742](https://github.com/PHPOffice/PHPWord/pull/1742) ([Manunchik](https://github.com/Manunchik))
+- Update templates processing docs [\#1729](https://github.com/PHPOffice/PHPWord/pull/1729) ([hcdias](https://github.com/hcdias))
+
+v0.17.0 (01 oct 2019)
+----------------------
+### Added
+- Add methods setValuesFromArray and cloneRowFromArray to the TemplateProcessor @geraldb-nicat #670
+- Set complex type in template @troosan #1565
+- implement support for section vAlign @troosan #1569
+- ParseStyle for border-color @Gllrm0 #1551
+- Html writer auto invert text color @SailorMax #1387
+- Add RightToLeft table presentation. @troosan #1550
+- Add support for page vertical alignment. @troosan #672 #1569
+- Adding setNumId method for ListItem style @eweso #1329
+- Add support for basic fields in RTF writer. @Samuel-BF #1717
+
+### Fixed
+- Fix HTML border-color parsing. @troosan #1551 #1570
+- Language::validateLocale should pass with locale 'zxx'. @efpapado #1558
+- can't align center vertically with the text @ter987 #672
+- fix parsing of border-color and add test @troosan #1570
+- TrackChange doesn't handle all return types of \DateTime::createFromFormat(...) @superhaggis #1584
+- To support PreserveText inside sub container @bhattnishant #1637
+- No nested w:pPr elements in ListItemRun. @waltertamboer #1628
+- Ensure that entity_loader disable variable is re-set back to the original setting @seamuslee001 #1585
+
+### Miscellaneous
+- Use embedded http server to test loading of remote images @troosan #1544
+- Change private to protected to be able extending class Html @SpinyMan #1646
+- Fix apt-get crash in Travis CI for PHP 5.3 @mdupont #1707
+
+v0.16.0 (30 dec 2018)
+----------------------
+### Added
+- Add getVariableCount method in TemplateProcessor. @nicoder #1272
+- Add setting Chart Title and Legend visibility @Tom-Magill #1433
+- Add ability to pass a Style object in Section constructor @ndench #1416
+- Add support for hidden text @Alexmg86 #1527
+- Add support for setting images in TemplateProcessor @SailorMax #1170
+- Add "Plain Text" type to SDT (Structured Document Tags) @morrisdj #1541
+- Added possibility to index variables inside cloned block in TemplateProcessor @JPBetley #817
+- Added possibility to replace variables inside cloned block with values in TemplateProcessor @DIDoS #1392
+
+### Fixed
+- Fix regex in `cloneBlock` function @nicoder #1269
+- HTML Title Writer loses text when Title contains a TextRun instead a string. @begnini #1436
+- Fix regex in fixBrokenMacros, make it less greedy @MuriloSo @brainwood @yurii-sio2 #1502 #1345
+- 240 twips are being added to line spacing, should not happen when using lineRule fixed @troosan #1509 #1505
+- Adding table layout to the generated HTML @aarangara #1441
+- Fix loading of Sharepoint document @Garrcomm #1498
+- RTF writer: Round getPageSizeW and getPageSizeH to avoid decimals @Patrick64 #1493
+- Fix parsing of Office 365 documents @Timanx #1485
+- For RTF writers, sizes should should never have decimals @Samuel-BF #1536
+- Style Name Parsing fails if document generated by a non-english word version @begnini #1434
+
+### Miscellaneous
+- Get rid of duplicated code in TemplateProcessor @abcdmitry #1161
+
+v0.15.0 (14 Jul 2018)
+----------------------
+### Added
+- Parsing of `align` HTML attribute - @troosan #1231
+- Parse formatting inside HTML lists - @troosan @samimussbach #1239 #945 #1215 #508
+- Parsing of CSS `direction` instruction, HTML `lang` attribute, formatting inside table cell - @troosan #1273 #1252 #1254
+- Add support for Track changes @Cip @troosan #354 #1262
+- Add support for fixed Table Layout @aoloe @ekopach @troosan #841 #1276
+- Add support for Cell Spacing @dox07 @troosan #1040
+- Add parsing of formatting inside lists @atomicalnet @troosan #594
+- Added support for Vertically Raised or Lowered Text (w:position) @anrikun @troosan #640
+- Add support for MACROBUTTON field @phryneas @troosan #1021
+- Add support for Hyphenation @Trainmaster #1282 (Document: `autoHyphenation`, `consecutiveHyphenLimit`, `hyphenationZone`, `doNotHyphenateCaps`, Paragraph: `suppressAutoHyphens`)
+- Added support for Floating Table Positioning (tblpPr) @anrikun #639
+- Added support for Image text wrapping distance @troosan #1310
+- Added parsing of CSS line-height and text-indent in HTML reader @troosan #1316
+- Added the ability to enable gridlines and axislabels on charts @FrankMeyer #576
+- Add support for table indent (tblInd) @Trainmaster #1343
+- Added parsing of internal links in HTML reader @lalop #1336
+- Several improvements to charts @JAEK-S #1332
+- Add parsing of html image in base64 format @jgpATs2w #1382
+- Added Support for Indentation & Tabs on RTF Writer. @smaug1985 #1405
+- Allows decimal numbers in HTML line-height style @jgpATs2w #1413
+
+### Fixed
+- Fix reading of docx default style - @troosan #1238
+- Fix the size unit of when parsing html images - @troosan #1254
+- Fixed HTML parsing of nested lists - @troosan #1265
+- Save PNG alpha information when using remote images. @samsullivan #779
+- Fix parsing of `<w:br/>` tag. @troosan #1274
+- Bookmark are not writton as internal link in html writer @troosan #1263
+- It should be possible to add a Footnote in a ListItemRun @troosan #1287 #1287
+- Fix colspan and rowspan for tables in HTML Writer @mattbolt #1292
+- Fix parsing of Heading and Title formating @troosan @gthomas2 #465
+- Fix Dateformat typo, fix hours casing, add Month-Day-Year formats @ComputerTinker #591
+- Support reading of w:drawing for documents produced by word 2011+ @gthomas2 #464 #1324
+- Fix missing column width in ODText writer @potofcoffee #413
+- Disable entity loader before parsing XML to avoid XXE injection @Tom4t0 #1427
+
+### Changed
+- Remove zend-stdlib dependency @Trainmaster #1284
+- The default unit for `\PhpOffice\PhpWord\Style\Image` changed from `px` to `pt`.
+
+### Miscellaneous
+- Drop GitHub pages, switch to coveralls for code coverage analysis @czosel #1360
+
+v0.14.0 (29 Dec 2017)
+----------------------
+This release fixes several bugs and adds some new features.
+This version brings compatibility with PHP 7.0 & 7.1
+
+### Added
+- Possibility to control the footnote numbering - @troosan #1068
+- Image creation from string - @troosan #937
+- Introduced the `\PhpOffice\PhpWord\SimpleType\NumberFormat` simple type. - @troosan
+- Support for ContextualSpacing - @postHawk #1088
+- Possiblity to hide spelling and/or grammatical errors - @troosan #542
+- Possiblity to set default document language as well as changing the language for each text element - @troosan #1108
+- Support for Comments - @troosan #1067
+- Support for paragraph textAlignment - @troosan #1165
+- Add support for HTML underline tag <u> in addHtml - @zNightFalLz #1186
+- Add support for HTML <br> in addHtml - @anrikun @troosan #659
+- Allow to change cell width unit - guillaume-ro-fr #986
+- Allow to change the line height rule @troosan
+- Implement PageBreak for odt writer @cookiekiller #863 #824
+- Allow to force an update of all fields on opening a document - @troosan #951
+- Allow adding a CheckBox in a TextRun - @irond #727
+- Add support for HTML img tag - @srggroup #934
+- Add support for password protection for docx - @mariahaubner #1019
+
+### Fixed
+- Loosen dependency to Zend
+- Images are not being printed when generating PDF - @hubertinio #1074 #431
+- Fixed some PHP 7 warnings - @	likeuntomurphy #927
+- Fixed PHP 7.2 compatibility (renamed `Object` class names to `ObjectElement`) - @SailorMax #1185
+- Fixed Word 97 reader - @alsofronie @Benpxpx @mario-rivera #912 #920 #892
+- Fixed image loading over https - @troosan #988
+- Impossibility to set different even and odd page headers - @troosan #981
+- Fixed Word2007 reader where unnecessary paragraphs were being created - @donghaobo #1043 #620
+- Fixed Word2007 reader where margins were not being read correctly - @slowprog #885 #1008
+- Impossible to add element PreserveText in Section - @rvanlaak #452
+- Added missing options for numbering format - @troosan #1041
+- Fixed impossibility to set a different footer for first page - @ctrlaltca #1116, @aoloe #875
+- Fixed styles not being applied by HTML writer, better pdf output - @sarke #1047 #500 #1139
+- Fixed read docx error when document contains image from remote url - @FBnil #1173 #1176
+- Padded the $args array to remove error - @kaigoh #1150, @reformed #870
+- Fix incorrect image size between windows and mac - @bskrtich #874
+- Fix adding HTML table to document - @mogilvie @arivanbastos #324
+- Fix parsing on/off values (w:val="true|false|1|0|on|off") - @troosan #1221 #1219
+- Fix error on Empty Dropdown Entry - @ComputerTinker #592
+
+### Deprecated
+- PhpWord->getProtection(), get it from the settings instead PhpWord->getSettings()->getDocumentProtection();
+
+
 
 v0.13.0 (31 July 2016)
 -------------------
@@ -22,6 +220,7 @@ Manual installation feature has been dropped since the release. Please, use [Com
 - Improved error message for the case when `autoload.php` is not found. - @RomanSyroeshko #371
 - Renamed the `align` option of `NumberingLevel`, `Frame`, `Table`, and `Paragraph` styles into `alignment`. - @RomanSyroeshko
 - Improved performance of `TemplateProcessor::setValue()`. - @kazitanvirahsan #614, #617
+- Fixed some HTML tags not rendering any output (p, header & table) - #257, #324 - @twmobius and @garethellis
 
 ### Deprecated
 - `getAlign` and `setAlign` methods of `NumberingLevel`, `Frame`, `Table`, and `Paragraph` styles.

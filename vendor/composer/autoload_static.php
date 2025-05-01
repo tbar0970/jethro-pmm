@@ -4,23 +4,20 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit891505eecbb5aad96b1421acd9fecb83
+class ComposerStaticInit668951f013ecf9e9bdeb011109bca843
 {
     public static $files = array (
         '2c102faa651ef8ea5874edb585946bce' => __DIR__ . '/..' . '/swiftmailer/swiftmailer/lib/swift_required.php',
     );
 
     public static $prefixLengthsPsr4 = array (
-        'Z' => 
-        array (
-            'Zend\\Validator\\' => 15,
-            'Zend\\Stdlib\\' => 12,
-            'Zend\\Escaper\\' => 13,
-        ),
         'P' => 
         array (
             'PhpOffice\\PhpWord\\' => 18,
-            'PhpOffice\\Common\\' => 17,
+        ),
+        'L' => 
+        array (
+            'Laminas\\Escaper\\' => 16,
         ),
         'D' => 
         array (
@@ -29,25 +26,13 @@ class ComposerStaticInit891505eecbb5aad96b1421acd9fecb83
     );
 
     public static $prefixDirsPsr4 = array (
-        'Zend\\Validator\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/zendframework/zend-validator/src',
-        ),
-        'Zend\\Stdlib\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/zendframework/zend-stdlib/src',
-        ),
-        'Zend\\Escaper\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/zendframework/zend-escaper/src',
-        ),
         'PhpOffice\\PhpWord\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpoffice/phpword/src/PhpWord',
         ),
-        'PhpOffice\\Common\\' => 
+        'Laminas\\Escaper\\' => 
         array (
-            0 => __DIR__ . '/..' . '/phpoffice/common/src/Common',
+            0 => __DIR__ . '/..' . '/laminas/laminas-escaper/src',
         ),
         'DrewM\\MailChimp\\' => 
         array (
@@ -57,15 +42,14 @@ class ComposerStaticInit891505eecbb5aad96b1421acd9fecb83
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
-        'PclZip' => __DIR__ . '/..' . '/pclzip/pclzip/pclzip.lib.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit891505eecbb5aad96b1421acd9fecb83::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit891505eecbb5aad96b1421acd9fecb83::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit891505eecbb5aad96b1421acd9fecb83::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit668951f013ecf9e9bdeb011109bca843::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit668951f013ecf9e9bdeb011109bca843::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit668951f013ecf9e9bdeb011109bca843::$classMap;
 
         }, null, ClassLoader::class);
     }
