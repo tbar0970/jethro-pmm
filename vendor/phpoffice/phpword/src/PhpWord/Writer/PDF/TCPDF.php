@@ -10,8 +10,8 @@
  * file that was distributed with this source code. For the full list of
  * contributors, visit https://github.com/PHPOffice/PHPWord/contributors.
  *
- * @link        https://github.com/PHPOffice/PhpWord
- * @copyright   2010-2016 PHPWord contributors
+ * @see         https://github.com/PHPOffice/PhpWord
+ * @copyright   2010-2018 PHPWord contributors
  * @license     http://www.gnu.org/licenses/lgpl.txt LGPL version 3
  */
 
@@ -24,7 +24,7 @@ use PhpOffice\PhpWord\Writer\WriterInterface;
  *
  * @deprecated 0.13.0 Use `DomPDF` or `MPDF` instead.
  *
- * @link http://www.tcpdf.org/
+ * @see  http://www.tcpdf.org/
  * @since 0.11.0
  */
 class TCPDF extends AbstractRenderer implements WriterInterface
@@ -37,10 +37,23 @@ class TCPDF extends AbstractRenderer implements WriterInterface
     protected $includeFile = 'tcpdf.php';
 
     /**
+     * Gets the implementation of external PDF library that should be used.
+     *
+     * @param string $orientation Page orientation
+     * @param string $unit Unit measure
+     * @param string $paperSize Paper size
+     *
+     * @return \TCPDF implementation
+     */
+    protected function createExternalWriterInstance($orientation, $unit, $paperSize)
+    {
+        return new \TCPDF($orientation, $unit, $paperSize);
+    }
+
+    /**
      * Save PhpWord to file.
      *
      * @param string $filename Name of the file to save as
-     * @return vois
      */
     public function save($filename = null)
     {
@@ -51,25 +64,25 @@ class TCPDF extends AbstractRenderer implements WriterInterface
         $orientation = 'P';
 
         // Create PDF
-        $pdf = new \TCPDF($orientation, 'pt', $paperSize);
+        $pdf = $this->createExternalWriterInstance($orientation, 'pt', $paperSize);
         $pdf->setFontSubsetting(false);
         $pdf->setPrintHeader(false);
         $pdf->setPrintFooter(false);
-        $pdf->addPage();
-        $pdf->setFont($this->getFont());
+        $pdf->AddPage();
+        $pdf->SetFont($this->getFont());
         $pdf->writeHTML($this->getContent());
 
         // Write document properties
         $phpWord = $this->getPhpWord();
         $docProps = $phpWord->getDocInfo();
-        $pdf->setTitle($docProps->getTitle());
-        $pdf->setAuthor($docProps->getCreator());
-        $pdf->setSubject($docProps->getSubject());
-        $pdf->setKeywords($docProps->getKeywords());
-        $pdf->setCreator($docProps->getCreator());
+        $pdf->SetTitle($docProps->getTitle());
+        $pdf->SetAuthor($docProps->getCreator());
+        $pdf->SetSubject($docProps->getSubject());
+        $pdf->SetKeywords($docProps->getKeywords());
+        $pdf->SetCreator($docProps->getCreator());
 
         //  Write to file
-        fwrite($fileHandle, $pdf->output($filename, 'S'));
+        fwrite($fileHandle, $pdf->Output($filename, 'S'));
 
         parent::restoreStateAfterSave($fileHandle);
     }
