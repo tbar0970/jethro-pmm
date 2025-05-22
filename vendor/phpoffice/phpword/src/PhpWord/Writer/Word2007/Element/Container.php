@@ -10,17 +10,17 @@
  * file that was distributed with this source code. For the full list of
  * contributors, visit https://github.com/PHPOffice/PHPWord/contributors.
  *
- * @link        https://github.com/PHPOffice/PHPWord
- * @copyright   2010-2016 PHPWord contributors
+ * @see         https://github.com/PHPOffice/PHPWord
+ * @copyright   2010-2018 PHPWord contributors
  * @license     http://www.gnu.org/licenses/lgpl.txt LGPL version 3
  */
 
 namespace PhpOffice\PhpWord\Writer\Word2007\Element;
 
-use PhpOffice\Common\XMLWriter;
 use PhpOffice\PhpWord\Element\AbstractContainer as ContainerElement;
 use PhpOffice\PhpWord\Element\AbstractElement as Element;
 use PhpOffice\PhpWord\Element\TextBreak as TextBreakElement;
+use PhpOffice\PhpWord\Shared\XMLWriter;
 
 /**
  * Container element writer (section, textrun, header, footnote, cell, etc.)
@@ -38,8 +38,6 @@ class Container extends AbstractElement
 
     /**
      * Write element.
-     *
-     * @return void
      */
     public function write()
     {
@@ -48,7 +46,7 @@ class Container extends AbstractElement
             return;
         }
         $containerClass = substr(get_class($container), strrpos(get_class($container), '\\') + 1);
-        $withoutP = in_array($containerClass, array('TextRun', 'Footnote', 'Endnote', 'ListItemRun')) ? true : false;
+        $withoutP = in_array($containerClass, array('TextRun', 'Footnote', 'Endnote', 'ListItemRun'));
         $xmlWriter = $this->getXmlWriter();
 
         // Loop through elements
@@ -73,7 +71,7 @@ class Container extends AbstractElement
     /**
      * Write individual element
      *
-     * @param \PhpOffice\Common\XMLWriter $xmlWriter
+     * @param \PhpOffice\PhpWord\Shared\XMLWriter $xmlWriter
      * @param \PhpOffice\PhpWord\Element\AbstractElement $element
      * @param bool $withoutP
      * @return string
