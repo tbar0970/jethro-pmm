@@ -391,7 +391,8 @@ class family extends db_object
 				if ($this->getValue('status') == 'archived') {
 					// Status has just been changed to 'archived' so archive members too
 					// We use the top-ranked is_archived status
-					$archived_status = reset(Person_Status::getArchivedIDs());
+					$archived_statuses = Person_Status::getArchivedIDs();
+					$archived_status = reset($archived_statuses);
 					$members = $this->getMemberData();
 					if (!empty($members)) {
 						$member = null;
