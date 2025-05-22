@@ -542,6 +542,103 @@ class Person extends DB_Object
 
 	}
 
+	/**
+	 * Find a person who matches the details given.
+	 * @param array $match_data - keys can be first_name, last_name, mobile_tel, email
+	 * @return Array(personid => (bool)$certain)
+	 */
+	public static function getMatchingPerson($match_data)
+	{
+		$keys = Array('first_name', 'last_name', 'email', 'mobile_tel');
+		foreach ($keys as $k) {
+			if (isset($match_data[$k])) $match_data[$k] = trim($match_data[$k]);
+			if (empty($match_data[$k])) unset($match_data[$k]);
+		}
+		if (!empty($match_data['mobile_tel'])) {
+			$match_data['mobile_tel'] = preg_replace('/[^0-9]/', '', array_get($match_data, 'mobile_tel', ''));
+		}
+		$db = JethroDB::get();
+
+		$s = $w = Array();
+		// 10 points for every col that positively matches
+		foreach ($match_data as $k => $v) {
+			$s[] = 'IF ('.$k.' = '.$db->quote($v).', 10, 0)';
+			$w[$k] = '('.$k.' = '.$db->quote($v).')';
+		}
+		// 4 points if the email/mobile is blank so can't mis-match
+		if (!empty($match_data['email'])) {
+			$s[] = 'IF (email = "", 4, 0)';
+		}
+		if (!empty($match_data['mobile_tel'])) {
+			$s[] = 'IF (mobile_tel = "", 4, 0)';
+		}
+		$SQL = 'SELECT ('.implode(' + ', $s).') as match_rating,
+				p.id, p.first_name, p.last_name, p.email, p.mobile_tel
+				FROM person p
+				WHERE (
+					'.implode(' OR ', $w).'
+				)
+				ORDER BY match_rating DESC
+				LIMIT 2';
+		$res = $db->queryAll($SQL, null, null, false, false);
+		$top = reset($res);
+		$second_hit = next($res);
+		if ($top && (!$second_hit || ($second_hit['match_rating'] < $top['match_rating']))) {
+			bam("Got one stand-out");
+			// There is one stand-out result
+			$DIFFERENT = -1;
+			$MATCH = 1;
+			$UNKNOWN = 0;
+			foreach ($keys as $k) {
+				$cmp[$k] = self::_compareMatch(array_get($match_data, $k), $top[$k]);
+			}
+			bam($cmp);
+			if ($cmp['last_name'] == $MATCH) {
+				if ($cmp['first_name'] == $MATCH) {
+					if (($cmp['mobile_tel'] != $DIFFERENT) && ($cmp['email'] != $DIFFERENT)) {
+						// Match on both names and no clash on contact details = certain.
+						return Array($top['id'] => TRUE);
+					} else if (($cmp['mobile_tel'] = $MATCH) || ($cmp['email'] == $MATCH)) {
+						// One contact detail is different, but 3 other fields have a positive match = probable
+						return Array($top['id'] => FALSE);
+					} else {
+						// Contact details must both mis-match = no match
+						return Array(NULL => NULL);
+					}
+				} else {
+					// First name is not a match, we will need some convincing
+					if (($cmp['mobile_tel'] == $MATCH) || ($cmp['email'] == $MATCH)) {
+						// First name is different but a positive match on 1+ contact fields
+						return Array($top['id'] => FALSE);
+					} else {
+						return Array(NULL => NULL);
+					}
+				}
+			} else if ($cmp['last_name'] == $UNKNOWN) {
+				if (($cmp['first_name'] == $MATCH) && ($cmp['email']+$cmp['mobile_tel'] > 0)) {
+					// firstname and at least one contact field has positive match, and there are no mis-matches = probable
+					return Array($top['id'] => FALSE);
+				}
+			}
+		}
+		bam("bottomed out");
+		return Array(NULL => NULL);
+	}
+
+	private static function _compareMatch($x, $y) {
+		$x = $x || '';
+		$y = $y || '';
+		$x = strtolower($x);
+		$y = strtolower($y);
+		if (($x != '') && ($y != '') && ($x != $y)) {
+			return -1; // truly different
+		}
+		if (($x != '') && ($y != '') && ($x == $y)) {
+			return 1; // truly the same
+		}
+		return 0; // one must be blank, can't be sure.
+	}	
+
 	public function save($update_family=TRUE)
 	{
 		$GLOBALS['system']->doTransaction('BEGIN');
