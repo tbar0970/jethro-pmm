@@ -146,23 +146,25 @@ class View__Mixed_Search extends View
 			}
 
 		}
+		$archivedStatuses = Person_Status::getArchivedIDs();
 		if (!empty($this->_person_data)) {
 			$lastFamilyID = 0;
 			$indent = '';
 			foreach ($this->_person_data as $id => $values) {
-				if (in_array($values['status'], Person_Status::getArchivedIDs()) !== $archivedStatus) continue;
+				$this_person_archived = in_array($values['status'], Person_Status::getArchivedIDs());
+				if ($this_person_archived !== $archivedStatus) continue;
 				if ($lastFamilyID != $values['familyid']) $indent = '';
 				if (isset($this->_family_data[$values['familyid']])) {
-					$this->_printFamilyRow($values['familyid'], $this->_family_data[$values['familyid']]);
+					$this->_printFamilyRow($values['familyid'], $this->_family_data[$values['familyid']]);	
 					unset($this->_family_data[$values['familyid']]);
 					$indent = '&nbsp;&nbsp;&nbsp;&nbsp;';
 				}
 				
-				$class = ($values['status'] == 'archived') ? 'class="archived"' : '';
+				$class = $this_person_archived ? 'class="archived"' : '';
 				?>
 				<tr <?php echo $class; ?>>
 					<td>
-						<?php 
+						<?php //bam($values);
 						echo $indent;
 						echo '<i class="icon-user"></i> ';
 						echo ents($values['first_name']).' '.ents($values['last_name']); 
