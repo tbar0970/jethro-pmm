@@ -55,6 +55,8 @@ define('DB_TYPE', 'mysql');
 // 2-FACTOR AUTH SETTINGS - These can also be configured in the web interface,
 // but you may want to define them here to lock them down.
 ///////////////////////////////////////////////////////////////////////////
+// Whether to 2FA. Setting to false always turned it off. Setting to true still requires other parameters defined for 2FA to be applied.
+define('2FA_ENABLED', true);
 
 // Allow users to tick a box to bypass 2-factor auth for this many days
 //define('2FA_TRUST_DAYS','30');
