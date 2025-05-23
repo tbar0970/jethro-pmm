@@ -25,10 +25,11 @@ Class Photo_Handler {
 				}
 			}
 
+			$file = $_FILES[$fieldName]['tmp_name'];
 			if (!in_array($_FILES[$fieldName]['type'], Array('image/jpeg', 'image/gif', 'image/png', 'image/jpg'))) {
 				add_message("The uploaded photo was not of a permitted type and has not been saved.  Photos must be JPEG, GIF or PNG", 'error');
 				return NULL;
-			} else if (!is_uploaded_file($_FILES[$fieldName]['tmp_name'])) {
+			} else if (!is_uploaded_file($file)) {
 				trigger_error("Security error with file upload", E_USER_ERROR);
 				return NULL;
 			} else {
@@ -41,10 +42,10 @@ Class Photo_Handler {
 				}
 				if (function_exists('imagepng')) {
 					$fn = 'imagecreatefrom'.$ext;
-					$input_img = $fn($_FILES[$fieldName]['tmp_name']);
+					$input_img = $fn($file);
 					if (!$input_img) exit;
 					// Rotate the image as necessary - thanks https://www.php.net/manual/en/function.exif-read-data.php#110894
-					$exif = @exif_read_data($_FILES[$fieldName]['tmp_name']);
+					$exif = @exif_read_data($file);
 					if (!empty($exif['Orientation'])) {
 						switch($exif['Orientation']) {
 							case 8:
@@ -93,10 +94,17 @@ Class Photo_Handler {
 					} else {
 						$output_img = $input_img;
 					}
-					imagejpeg($output_img, $_FILES[$fieldName]['tmp_name'], 90);
+
+					if (function_exists('imageavif')) {
+						imageavif($output_img, $file, 90);
+					} else if (function_exists('imagewebp')) {
+						imagewebp($output_img, $file, 90);
+					} else {
+						imagejpeg($output_img, $file, 90);
+					}
 				}
-				$res = file_get_contents($_FILES[$fieldName]['tmp_name']);
-				unlink($_FILES[$fieldName]['tmp_name']);
+				$res = file_get_contents($file);
+				unlink($file);
 				return $res;
 			}
 		}
