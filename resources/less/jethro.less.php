@@ -1047,7 +1047,6 @@ img.person-photo {
 	border: 1px solid @jethroDarkest;
 	padding: 15px 10px 10px 10px;
 	position: relative;
-	z-index: 50;
 	background: @jethroLight;
 	border-radius: 5px;
 	margin-bottom: 15px;

@@ -309,9 +309,9 @@ class Person extends DB_Object
 				$links[] = '<a data-action="copy" data-target="#mobile-'.$this->id.'"><i class="icon-copy"></i> Copy number</a>';
 
 				?>
-				<span class="dropdown nowrap" style="position: absolute; z-index:999">
+				<span class="dropdown nowrap">
 					<a class="dropdown-toggle mobile-tel" id="mobile-<?php echo $this->id; ?>" data-toggle="dropdown" href="#"><?php echo ents($this->getFormattedValue('mobile_tel')); ?></a>
-					<ul class="dropdown-menu" role="menu" aria-labelledby="mobile-<?php echo $this->id; ?>">
+					<ul class="dropdown-menu" role="menu" aria-labelledby="mobile-<?php echo $this->id; ?>" style="z-index:9999">
 					<?php
 					foreach ($links as $l) {
 						?>
