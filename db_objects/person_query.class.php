@@ -867,15 +867,48 @@ class Person_Query extends DB_Object
 		foreach ($this->_custom_fields as $fieldid => $fieldDetails) {
 			if (in_array($fieldid, array_get($_REQUEST, 'enable_custom_field', Array()))) {
 				switch ($this->_custom_fields[$fieldid]['type']) {
-					case 'date':
-						$params['custom_fields'][$fieldid] = Array(
-							'criteria' => $_REQUEST['params_custom_field_'.$fieldid.'_criteria'],
-							'periodtype' => $_REQUEST['params_custom_field_'.$fieldid.'_periodtype'],
-							'periodlength' => $_REQUEST['params_custom_field_'.$fieldid.'_periodlength'],
-							'periodanchor' => $_REQUEST['params_custom_field_'.$fieldid.'_periodanchor'],
-							'from' => process_widget('params_custom_field_'.$fieldid.'_from', Array('type' => 'date')),
-							'to' => process_widget('params_custom_field_'.$fieldid.'_to', Array('type' => 'date')),
-						);
+                    case 'date':
+                        /* The 'date custom field' search parameters changed when #1199 was implemented. Before, we had:
+                                [criteria] => any | empty | exact | anniversary
+                                [periodtype] => fixed | relative
+                                [periodlength] => <integer>
+                                [periodanchor] => before | ending | starting | after
+                                [from] => (YYYY)?-MM-DD
+                                [to] => (YYYY)?-MM-DD
+                           E.g. a relative period 14 days before 'now' could be represented as {periodtype:relative, periodlength:14, periodanchor:before}
+                           Since #1199, we have:
+                                [criteria] => any | empty | exact | anniversary | not
+                                [from] => (YYYY)?-MM-DD | relativePeriodRegex
+                                [to] => (YYYY)?-MM-DD | relativePeriodRegex
+                            where relativePeriodRegex is e.g. -1ymd for '1 year ago', '+1y3m2d' for '1 year, 3 months and 2 days in the future'.
+                            Ultimately we should write an upgrade script to convert, e.g. {periodtype:relative, periodanchor:before, periodlength:14} to {from:-ym14d, to:-0y0m0d}, and drop the period* params for good. Until then, there's this logic to detect old-style params and handle them separately.
+                        */
+						$old_datesearch_params = (isset($_REQUEST['params_custom_field_'.$fieldid.'_periodtype']));
+                        if ($old_datesearch_params) {
+							foreach (['criteria', 'periodtype', 'periodlength', 'periodanchor', 'from', 'to'] as $key) {
+								$param = 'params_custom_field_'.$fieldid.'_'.$key;
+								if (isset($_REQUEST[$param])) {
+									if ($key === 'to' or $key === 'from') {
+										$val = process_widget('params_custom_field_'.$fieldid.'_to', Array('type' => 'date'));
+									} else {
+										$val = $_REQUEST[$param];
+									}
+									$params['custom_fields'][$fieldid][$key] = $val;
+								} else {
+									trigger_error("Person query date custom field param is missing the ".ents($param)." parameter");
+								}
+							}
+						} else {
+							foreach (['criteria', 'from', 'to'] as $key) {
+								$param = 'params_custom_field_'.$fieldid.'_'.$key;
+								if (isset($_REQUEST[$param])) {
+									$val = $_REQUEST[$param];
+									$params['custom_fields'][$fieldid][$key] = $val;
+								} else {
+									trigger_error("Person query date custom field param is missing the ".ents($param)." parameter");
+								}
+							}
+						}
 						break;
 					case 'select':
 					case 'text':
@@ -1131,9 +1164,9 @@ class Person_Query extends DB_Object
 								$matches = Array();
 								if ($v == '*') {
 									$$k = NULL;
-								} else if (preg_match(("/([-+])(\d+)y(\d+)m(\d+)d/"), $v, $matches)) {
+								} else if (preg_match(("/([-+])(\d+)?y(\d+)?m(\d+)?d/"), $v, $matches, PREG_UNMATCHED_AS_NULL)) {
 									// relative date - convert it to an absolute now.
-									$$k = date('Y-m-d', strtotime($matches[1].$matches[2].' years '.$matches[3].' months '.$matches[4].' days'));
+									$$k = date('Y-m-d', strtotime($matches[1].($matches[2] ?? 0).' years '.($matches[3] ?? 0).' months '.($matches[4] ?? 0).' days'));
 								} else {
 									// absolute date
 									$$k = $v;
@@ -1147,9 +1180,11 @@ class Person_Query extends DB_Object
 								$betweenExp = '>= '.$db->quote($from);
 							} elseif ($to) {
 								$betweenExp = '<= '.$db->quote($to);
+							} else {
+                                $betweenExp = "IS NOT NULL";
 							}
 							$w = Array();
-							$w[] = "$valExp NOT LIKE '-%' AND $valExp $betweenExp";
+                            $w[] = "$valExp NOT LIKE '-%' AND $valExp $betweenExp";
 							if ($values['criteria'] == 'anniversary') {
 								$qFromYear = $db->quote(substr($from, 0, 4));
 								$qToYear = $db->quote(substr($to, 0, 4));

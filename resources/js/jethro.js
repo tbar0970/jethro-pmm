@@ -189,7 +189,7 @@ $(document).ready(function() {
 				menu.find('input[name=drp_exact_y]').val(matches[1]);
 				JethroDateRangePicker.updateDisplayValue(this, 'exact');
 				break;
-			case (!!(matches = this.value.match(/([-+])(\d+)y(\d+)m(\d+)d/))):
+			case (!!(matches = this.value.match(/([-+])(\d+)?y(\d+)?m(\d+)?d/))):
 				menu.find('input[name=drp_relative_direction]').val(matches[1]);
 				menu.find('input[name=drp_relative_d]').val(matches[4]);
 				menu.find('input[name=drp_relative_m]').val(matches[3]);
@@ -1979,7 +1979,7 @@ JethroDateRangePicker.updateDisplayValue = function(selectElt, valueType)
 			selectElt.options[0].innerHTML = d.getDate()+' '+d.toLocaleString('default', { month: 'short' })+' '+d.getFullYear();
 			break;
 		case 'relative':
-			var matches = selectElt.options[0].value.match(/([-+])(\d+)y(\d+)m(\d+)d/);
+			var matches = selectElt.options[0].value.match(/([-+])(\d+)?y(\d+)?m(\d+)?d/);
 			if (matches) {
 				var l = '';
 				if (matches[2]>0) l += matches[2]+' years ';
