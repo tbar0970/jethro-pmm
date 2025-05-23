@@ -304,10 +304,12 @@ class Person extends DB_Object
 					$msg = SMS_Sender::canSend() ? 'SMS via my device' : 'SMS';
 					$links[] = '<a href="sms:'.ents($value).'"><i class="icon-envelope"></i> '.$msg.'</a>';
 				}
+				$internationalNumber = preg_replace('/[^0-9]/', '', SMS_INTERNATIONAL_PREFIX).substr($value, strlen(SMS_LOCAL_PREFIX));
+				$links[] = '<a href="https://wa.me/'.$internationalNumber.'" target="_whatsapp"><i class="icon-comment"></i> Send WhatsApp</a>';
 				$links[] = '<a data-action="copy" data-target="#mobile-'.$this->id.'"><i class="icon-copy"></i> Copy number</a>';
 
 				?>
-				<span class="dropdown nowrap">
+				<span class="dropdown nowrap" style="position: absolute; z-index:999">
 					<a class="dropdown-toggle mobile-tel" id="mobile-<?php echo $this->id; ?>" data-toggle="dropdown" href="#"><?php echo ents($this->getFormattedValue('mobile_tel')); ?></a>
 					<ul class="dropdown-menu" role="menu" aria-labelledby="mobile-<?php echo $this->id; ?>">
 					<?php
