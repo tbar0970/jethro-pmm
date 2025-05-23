@@ -2163,39 +2163,41 @@ class Person_Query extends DB_Object
 		if (!isset($params['rules'])) $params['rules'] = Array();
 
 		// Convert the old 'periodtype=relative/fixed' to new format.
-		foreach ($params['custom_fields'] as $k => &$rule) {
-			if (array_get($rule, 'periodtype') == 'relative') {
-				$days = $rule['periodlength'];
-				$months = 0;
-				$years = floor($days / 365); // never mind leap years
-				$days = $days % 365;
-				switch ($rule['periodanchor']) {
-					case 'ending':
-						$rule['to'] = '-0y0m0d';
-						$rule['from'] = '-'.$years.'y0m'.$days.'d';
-						break;
-					case 'before':
-						$rule['to'] = '-0y0m1d';
-						$rule['from'] = '-'.$years.'y0m'.($days+1).'d';
-						break;
-					case 'starting':
-						$rule['from'] = '+0y0m0d';
-						$rule['to'] = '+'.$years.'y0m'.($days).'d';
-						break;
-					case 'after':
-						$rule['from'] = '+0y0m1d';
-						$rule['to'] = '+'.$years.'y0m'.($days+1).'d';
-						break;
+		if (!empty($params['custom_fields'])) {
+			foreach ($params['custom_fields'] as $k => &$rule) {
+				if (array_get($rule, 'periodtype') == 'relative') {
+					$days = $rule['periodlength'];
+					$months = 0;
+					$years = floor($days / 365); // never mind leap years
+					$days = $days % 365;
+					switch ($rule['periodanchor']) {
+						case 'ending':
+							$rule['to'] = '-0y0m0d';
+							$rule['from'] = '-'.$years.'y0m'.$days.'d';
+							break;
+						case 'before':
+							$rule['to'] = '-0y0m1d';
+							$rule['from'] = '-'.$years.'y0m'.($days+1).'d';
+							break;
+						case 'starting':
+							$rule['from'] = '+0y0m0d';
+							$rule['to'] = '+'.$years.'y0m'.($days).'d';
+							break;
+						case 'after':
+							$rule['from'] = '+0y0m1d';
+							$rule['to'] = '+'.$years.'y0m'.($days+1).'d';
+							break;
+					}
+				} else if (array_get($rule, 'periodtype') == 'fixed') {
+					// make open-ended values explicit.
+					if (empty($rule['from'])) $rule['from'] = '*';
+					if (empty($rule['from'])) $rule['to'] = '*';
 				}
-			} else if (array_get($rule, 'periodtype') == 'fixed') {
-				// make open-ended values explicit.
-				if (empty($rule['from'])) $rule['from'] = '*';
-				if (empty($rule['from'])) $rule['to'] = '*';
-			}
 
-			unset($rule['periodtype']); // Now captured with special values for 'from' and 'to'.
-			unset($rule['periodlength']); 
-			unset($rule['periodanchor']); 
+				unset($rule['periodtype']); // Now captured with special values for 'from' and 'to'.
+				unset($rule['periodlength']); 
+				unset($rule['periodanchor']); 
+			}
 		}
 
 		return $params;
