@@ -47,7 +47,7 @@ class View_Documents extends View
 				<?php
 			} else {
 				?>
-				<p><a target="_new" href="?call=documents&getfile=<?php echo ents($f); ?>"><i class="icon-picture"></i><?php echo ents(basename($f)); ?></a></p>
+				<p><a target="_new" href="?call=documents&getfile=<?php echo urlencode($f); ?>"><i class="icon-picture"></i><?php echo ents(basename($f)); ?></a></p>
 				<?php
 			}
 		}

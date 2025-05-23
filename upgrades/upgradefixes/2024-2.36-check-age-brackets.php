@@ -5,6 +5,10 @@
  * If affected persons are found, the script points people to a new Jethro page which will fix the problem.
  * This script makes no changes directly, as user input is required.
  ******************************************************************/
+if ((php_sapi_name() !== 'cli') && !defined('STDIN')) {
+	echo "This script must be run from the command line";
+	exit;
+}
 
 const SINGLE_PERSON = "single person affected";
 const MULTIPLE_PERSONS = "multiple persons affected";

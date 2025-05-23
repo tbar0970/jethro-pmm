@@ -146,23 +146,25 @@ class View__Mixed_Search extends View
 			}
 
 		}
+		$archivedStatuses = Person_Status::getArchivedIDs();
 		if (!empty($this->_person_data)) {
 			$lastFamilyID = 0;
 			$indent = '';
 			foreach ($this->_person_data as $id => $values) {
-				if (in_array($values['status'], Person_Status::getArchivedIDs()) !== $archivedStatus) continue;
+				$this_person_archived = in_array($values['status'], Person_Status::getArchivedIDs());
+				if ($this_person_archived !== $archivedStatus) continue;
 				if ($lastFamilyID != $values['familyid']) $indent = '';
 				if (isset($this->_family_data[$values['familyid']])) {
-					$this->_printFamilyRow($values['familyid'], $this->_family_data[$values['familyid']]);
+					$this->_printFamilyRow($values['familyid'], $this->_family_data[$values['familyid']]);	
 					unset($this->_family_data[$values['familyid']]);
 					$indent = '&nbsp;&nbsp;&nbsp;&nbsp;';
 				}
 				
-				$class = ($values['status'] == 'archived') ? 'class="archived"' : '';
+				$class = $this_person_archived ? 'class="archived"' : '';
 				?>
 				<tr <?php echo $class; ?>>
 					<td>
-						<?php 
+						<?php //bam($values);
 						echo $indent;
 						echo '<i class="icon-user"></i> ';
 						echo ents($values['first_name']).' '.ents($values['last_name']); 
@@ -219,17 +221,16 @@ class View__Mixed_Search extends View
 				<button type="submit" class="btn"><i class="icon-search"></i></button>
 			</span>
 			<div class="homepage-search-options soft">
-				<div class="pull-left">Search for:</div>
-				<div class="pull-left">
-				<label class="checkbox"><input type="radio" name="searchtype" <?php echo array_get($checked, '*'); ?> value="*" /> everything</label>
-				<label class="checkbox"><input type="radio" name="searchtype" <?php echo array_get($checked, 'f'); ?> value="f" /> families</label>
-				<label class="checkbox"><input type="radio" name="searchtype" <?php echo array_get($checked, 'p'); ?> value="p" /> persons</label>
-				</div>
-				<div class="pull-left">
-				<br />
-				<label class="checkbox"><input type="radio" name="searchtype" <?php echo array_get($checked, 'g'); ?> value="g" /> groups</label>
-				<label class="checkbox"><input type="radio" name="searchtype" <?php echo array_get($checked, 'r'); ?> value="r" /> reports</label>
-				</div>
+				<details>
+					<summary>Search for...</summary>
+					<div>
+						<label class="checkbox"><input type="radio" name="searchtype" <?php echo array_get($checked, '*'); ?> value="*" /> everything</label>
+						<label class="checkbox"><input type="radio" name="searchtype" <?php echo array_get($checked, 'f'); ?> value="f" /> families</label>
+						<label class="checkbox"><input type="radio" name="searchtype" <?php echo array_get($checked, 'p'); ?> value="p" /> persons</label>
+						<label class="checkbox"><input type="radio" name="searchtype" <?php echo array_get($checked, 'g'); ?> value="g" /> groups</label>
+						<label class="checkbox"><input type="radio" name="searchtype" <?php echo array_get($checked, 'r'); ?> value="r" /> reports</label>
+					</div>
+				</details>
 			</div>
 		</form>
 		<?php

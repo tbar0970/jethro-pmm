@@ -304,12 +304,14 @@ class Person extends DB_Object
 					$msg = SMS_Sender::canSend() ? 'SMS via my device' : 'SMS';
 					$links[] = '<a href="sms:'.ents($value).'"><i class="icon-envelope"></i> '.$msg.'</a>';
 				}
+				$internationalNumber = preg_replace('/[^0-9]/', '', SMS_INTERNATIONAL_PREFIX).substr($value, strlen(SMS_LOCAL_PREFIX));
+				$links[] = '<a href="https://wa.me/'.$internationalNumber.'" target="_whatsapp"><i class="icon-comment"></i> Send WhatsApp</a>';
 				$links[] = '<a data-action="copy" data-target="#mobile-'.$this->id.'"><i class="icon-copy"></i> Copy number</a>';
 
 				?>
 				<span class="dropdown nowrap">
 					<a class="dropdown-toggle mobile-tel" id="mobile-<?php echo $this->id; ?>" data-toggle="dropdown" href="#"><?php echo ents($this->getFormattedValue('mobile_tel')); ?></a>
-					<ul class="dropdown-menu" role="menu" aria-labelledby="mobile-<?php echo $this->id; ?>">
+					<ul class="dropdown-menu" role="menu" aria-labelledby="mobile-<?php echo $this->id; ?>" style="z-index:9999">
 					<?php
 					foreach ($links as $l) {
 						?>
@@ -534,6 +536,103 @@ class Person extends DB_Object
 
 	}
 
+	/**
+	 * Find a person who matches the details given.
+	 * @param array $match_data - keys can be first_name, last_name, mobile_tel, email
+	 * @return Array(personid => (bool)$certain)
+	 */
+	public static function getMatchingPerson($match_data)
+	{
+		$keys = Array('first_name', 'last_name', 'email', 'mobile_tel');
+		foreach ($keys as $k) {
+			if (isset($match_data[$k])) $match_data[$k] = trim($match_data[$k]);
+			if (empty($match_data[$k])) unset($match_data[$k]);
+		}
+		if (!empty($match_data['mobile_tel'])) {
+			$match_data['mobile_tel'] = preg_replace('/[^0-9]/', '', array_get($match_data, 'mobile_tel', ''));
+		}
+		$db = JethroDB::get();
+
+		$s = $w = Array();
+		// 10 points for every col that positively matches
+		foreach ($match_data as $k => $v) {
+			$s[] = 'IF ('.$k.' = '.$db->quote($v).', 10, 0)';
+			$w[$k] = '('.$k.' = '.$db->quote($v).')';
+		}
+		// 4 points if the email/mobile is blank so can't mis-match
+		if (!empty($match_data['email'])) {
+			$s[] = 'IF (email = "", 4, 0)';
+		}
+		if (!empty($match_data['mobile_tel'])) {
+			$s[] = 'IF (mobile_tel = "", 4, 0)';
+		}
+		$SQL = 'SELECT ('.implode(' + ', $s).') as match_rating,
+				p.id, p.first_name, p.last_name, p.email, p.mobile_tel
+				FROM person p
+				WHERE (
+					'.implode(' OR ', $w).'
+				)
+				ORDER BY match_rating DESC
+				LIMIT 2';
+		$res = $db->queryAll($SQL, null, null, false, false);
+		$top = reset($res);
+		$second_hit = next($res);
+		if ($top && (!$second_hit || ($second_hit['match_rating'] < $top['match_rating']))) {
+			bam("Got one stand-out");
+			// There is one stand-out result
+			$DIFFERENT = -1;
+			$MATCH = 1;
+			$UNKNOWN = 0;
+			foreach ($keys as $k) {
+				$cmp[$k] = self::_compareMatch(array_get($match_data, $k), $top[$k]);
+			}
+			bam($cmp);
+			if ($cmp['last_name'] == $MATCH) {
+				if ($cmp['first_name'] == $MATCH) {
+					if (($cmp['mobile_tel'] != $DIFFERENT) && ($cmp['email'] != $DIFFERENT)) {
+						// Match on both names and no clash on contact details = certain.
+						return Array($top['id'] => TRUE);
+					} else if (($cmp['mobile_tel'] = $MATCH) || ($cmp['email'] == $MATCH)) {
+						// One contact detail is different, but 3 other fields have a positive match = probable
+						return Array($top['id'] => FALSE);
+					} else {
+						// Contact details must both mis-match = no match
+						return Array(NULL => NULL);
+					}
+				} else {
+					// First name is not a match, we will need some convincing
+					if (($cmp['mobile_tel'] == $MATCH) || ($cmp['email'] == $MATCH)) {
+						// First name is different but a positive match on 1+ contact fields
+						return Array($top['id'] => FALSE);
+					} else {
+						return Array(NULL => NULL);
+					}
+				}
+			} else if ($cmp['last_name'] == $UNKNOWN) {
+				if (($cmp['first_name'] == $MATCH) && ($cmp['email']+$cmp['mobile_tel'] > 0)) {
+					// firstname and at least one contact field has positive match, and there are no mis-matches = probable
+					return Array($top['id'] => FALSE);
+				}
+			}
+		}
+		bam("bottomed out");
+		return Array(NULL => NULL);
+	}
+
+	private static function _compareMatch($x, $y) {
+		$x = $x || '';
+		$y = $y || '';
+		$x = strtolower($x);
+		$y = strtolower($y);
+		if (($x != '') && ($y != '') && ($x != $y)) {
+			return -1; // truly different
+		}
+		if (($x != '') && ($y != '') && ($x == $y)) {
+			return 1; // truly the same
+		}
+		return 0; // one must be blank, can't be sure.
+	}	
+
 	public function save($update_family=TRUE)
 	{
 		$GLOBALS['system']->doTransaction('BEGIN');
@@ -624,10 +723,12 @@ class Person extends DB_Object
 	private function _savePhoto()
 	{
 		$db =& $GLOBALS['db'];
-		if ($this->_photo_data) {
+		if ($this->_photo_data === FALSE) {
+			$this->_clearPhoto();
+		} else if ($this->_photo_data) {
 			$SQL = 'REPLACE INTO person_photo (personid, photodata)
 					VALUES ('.(int)$this->id.', '.$db->quote($this->_photo_data).')';
-			$res = $db->query($SQL);
+			$db->query($SQL);
 		}
 	}
 
@@ -779,13 +880,18 @@ class Person extends DB_Object
 		<?php
 	}
 
-	static function getStatusStats()
+	static function getStatusStats($congregationid=NULL)
 	{
-		$dummy = new Person();
 		$sql = 'SELECT ps.label as status, count(p.id)
 				FROM person p
-				JOIN person_status ps ON p.status = ps.id
-				GROUP BY ps.id';
+				JOIN person_status ps ON p.status = ps.id';
+		if ($congregationid !== NULL) {
+			$sql .= ' WHERE congregationid = '.(int)$congregationid;
+		}
+		$sql .= ' 
+			GROUP BY ps.id
+			ORDER BY ps.`rank` ASC
+			';
 		$res = $GLOBALS['db']->queryAll($sql, NULL, NULL, true);
 		return $res;
 	}
@@ -947,9 +1053,11 @@ class Person extends DB_Object
 	{
 		switch ($name) {
 			case 'photo':
-				?>
-				<input type="file" accept="image/*" max-bytes="<?php echo file_upload_max_size(); ?>" name="<?php echo $prefix; ?>photo" />
-				<?php
+				$existing_photo_url = NULL;
+				if ($this->id && $GLOBALS['db']->queryOne('SELECT 1 FROM person_photo WHERE personid = '.(int)$this->id)) {
+					$existing_photo_url = '?call=photo&personid='.(int)$this->id; 
+				}
+				Photo_Handler::printChooser($prefix, $existing_photo_url);
 				break;
 			case 'familyid':
 				?>
@@ -1099,7 +1207,8 @@ class Person extends DB_Object
 		$this->setValue('remarks', '');
 		$this->setValue('gender', '');
 		$this->setValue('feed_uuid', '');
-		$this->setValue('status', reset($stats=Person_Status::getArchivedIDs)); // we use the top-ranked 'is_archived' status.
+		$stats = Person_Status::getArchivedIDs();
+		$this->setValue('status', reset($stats)); // we use the top-ranked 'is_archived' status.
 		$this->setValue('history', Array());
 		$this->_clearCustomValues();
 		$this->_clearPhoto();

@@ -53,7 +53,7 @@ class View__Delete_Person extends View
 		} else if (!empty($_POST['confirm_archiveclean'])) {
 			// archive and anononmize the person
 			if (!$this->_person->acquireLock()) {
-				add_message('This person cannot be deleted because somebody else holds the lock.  Try again later.', 'error');
+				add_message('This person cannot be archived because somebody else holds the lock.  Try again later.', 'error');
 				redirect('persons', Array('personid' => $this->_person->id)); // exits
 			}
 			$message = $this->_person->toString().' has been archived and cleaned';
@@ -65,6 +65,17 @@ class View__Delete_Person extends View
 				redirect('persons', Array('personid' => $this->_person->id)); // exits
 			}
 
+		} else if (!empty($_POST['confirm_archive'])) {
+			if (!$this->_person->acquireLock()) {
+				add_message('This person cannot be archived because somebody else holds the lock.  Try again later.', 'error');
+				redirect('persons', Array('personid' => $this->_person->id)); // exits
+			}
+			$message = $this->_person->toString().' has been archived';
+			$stats = Person_Status::getArchivedIDs();
+			$this->_person->setValue('status', reset($stats)); // we use the top-ranked 'is_archived' status.
+			$this->_person->save();
+			add_message($message, 'success');
+			redirect('persons', Array('personid' => $this->_person->id)); // exits
 		}
 	}
 
@@ -102,9 +113,9 @@ class View__Delete_Person extends View
 		} else if (Roster_Role_Assignment::hasAssignments($this->_person->id) || $this->_person->hasAttendance()) {
 			?>
 			<p><?php echo _('Deleting this person is not recommended since they have roster assignments and/or attendance records, and deleting them will affect historical statistics.')?></p>
-			<p>
-				<?php
-				echo _('It is recommended that you archive them instead.  You can also cleanse their archived record, which will');
+			<p><?php echo _('It is recommended that you archive them instead.'); ?>
+			<p><?php 
+				echo _('You can also cleanse their archived record, which will');
 				echo self::EXPLANATION;
 				?>
 			</p>

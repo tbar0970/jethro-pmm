@@ -89,7 +89,7 @@ class JethroDB extends PDO
 	 * Quote and escape a value ready for use in SQL
 	 * @param string$string
 	 * @param mixed $paramtype
-	 * @return string
+	 * @return string|false
 	 */
 	public function quote($string, $paramtype = NULL)
 	{

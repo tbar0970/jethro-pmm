@@ -3,6 +3,12 @@
  * This script can be used to send emails to people who have recently
  * been assigned a note.  It should be configured to run every 5 minutes by cron.
  */
+
+ if ((php_sapi_name() !== 'cli') && !defined('STDIN')) {
+	echo "This script must be run from the command line";
+	exit;
+}
+
 $VERBOSE = in_array('--verbose', $_SERVER['argv']);
 $DRYRUN = in_array('--dry-run', $_SERVER['argv']);
 $minutes = 5;

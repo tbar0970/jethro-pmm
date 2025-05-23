@@ -1,6 +1,6 @@
 {
     "require": {
-       "phpoffice/phpword": "v0.13.*",
+       "phpoffice/phpword": "v0.18.*",
        "swiftmailer/swiftmailer" : "@stable",
        "drewm/mailchimp-api" : "@stable"
     },

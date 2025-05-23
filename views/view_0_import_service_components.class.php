@@ -4,6 +4,7 @@ class View__Import_Service_Components extends View
 {
 	private $errors = Array();
 	private $category = null;
+	protected $_captured_errors;
 
 	static function getMenuPermissionLevel()
 	{
@@ -18,7 +19,6 @@ class View__Import_Service_Components extends View
 			$GLOBALS['system']->doTransaction('BEGIN');
 			$GLOBALS['system']->includeDBClass('service_component');
 			$comp = new Service_Component();
-			ini_set("auto_detect_line_endings", "1");
 			$fp = fopen($_FILES['datafile']['tmp_name'], 'r');
 			if (!$fp) {
 				trigger_error("Your data file could not be read.  Please check the file and try again");

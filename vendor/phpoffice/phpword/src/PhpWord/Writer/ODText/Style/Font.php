@@ -10,8 +10,8 @@
  * file that was distributed with this source code. For the full list of
  * contributors, visit https://github.com/PHPOffice/PHPWord/contributors.
  *
- * @link        https://github.com/PHPOffice/PHPWord
- * @copyright   2010-2016 PHPWord contributors
+ * @see         https://github.com/PHPOffice/PHPWord
+ * @copyright   2010-2018 PHPWord contributors
  * @license     http://www.gnu.org/licenses/lgpl.txt LGPL version 3
  */
 
@@ -26,8 +26,6 @@ class Font extends AbstractStyle
 {
     /**
      * Write style.
-     *
-     * @return void
      */
     public function write()
     {
@@ -36,6 +34,14 @@ class Font extends AbstractStyle
             return;
         }
         $xmlWriter = $this->getXmlWriter();
+
+        $stylep = (method_exists($style, 'getParagraph')) ? $style->getParagraph() : null;
+        if ($stylep instanceof \PhpOffice\PhpWord\Style\Paragraph) {
+            $temp1 = clone $stylep;
+            $temp1->setStyleName($style->getStyleName());
+            $temp2 = new \PhpOffice\PhpWord\Writer\ODText\Style\Paragraph($xmlWriter, $temp1);
+            $temp2->write();
+        }
 
         $xmlWriter->startElement('style:style');
         $xmlWriter->writeAttribute('style:name', $style->getStyleName());
@@ -55,7 +61,7 @@ class Font extends AbstractStyle
 
         // Color
         $color = $style->getColor();
-        $xmlWriter->writeAttributeIf($color != '', 'fo:color', '#' . $color);
+        $xmlWriter->writeAttributeIf($color != '', 'fo:color', '#' . \PhpOffice\PhpWord\Shared\Converter::stringToRgb($color));
 
         // Bold & italic
         $xmlWriter->writeAttributeIf($style->isBold(), 'fo:font-weight', 'bold');
@@ -77,9 +83,21 @@ class Font extends AbstractStyle
         $xmlWriter->writeAttributeIf($style->isSmallCaps(), 'fo:font-variant', 'small-caps');
         $xmlWriter->writeAttributeIf($style->isAllCaps(), 'fo:text-transform', 'uppercase');
 
+        //Hidden text
+        $xmlWriter->writeAttributeIf($style->isHidden(), 'text:display', 'none');
+
         // Superscript/subscript
         $xmlWriter->writeAttributeIf($style->isSuperScript(), 'style:text-position', 'super');
         $xmlWriter->writeAttributeIf($style->isSubScript(), 'style:text-position', 'sub');
+
+        if ($style->isNoProof()) {
+            $xmlWriter->writeAttribute('fo:language', 'zxx');
+            $xmlWriter->writeAttribute('style:language-asian', 'zxx');
+            $xmlWriter->writeAttribute('style:language-complex', 'zxx');
+            $xmlWriter->writeAttribute('fo:country', 'none');
+            $xmlWriter->writeAttribute('style:country-asian', 'none');
+            $xmlWriter->writeAttribute('style:country-complex', 'none');
+        }
 
         // @todo Foreground-Color
 

@@ -820,6 +820,23 @@ TBLib.handleFormSubmit = function()
 	});
 	if (!ok) return false;
 
+	// For situations where there's a table column containing checkboxes and the user must tick at least one of them.
+	// Mark up each cell as follows.
+	// <td class="required-checkbox-col" data-error-message="You must select at least one XYZ">
+	var rcc = $(this).find('td.required-checkbox-col');
+	if (rcc.length) {
+		var checkedBoxes = rcc.find('input[type=checkbox]:checked');
+		if (!checkedBoxes.length) {
+			rcc.find('input[type=checkbox]').get(0).scrollIntoView();
+			var msg = "You must select one checkbox in this column";
+			if (rcc.attr('data-error-message')) msg = rcc.attr('data-error-message');
+			alert(msg);
+			rcc.find('input[type=checkbox]').get(0).focus();
+			ok = false;
+			return false;
+		}
+	}
+
 	if ($(this).hasClass('disable-submit-buttons')) {
 		$(this).find('input[type=submit]').attr('disabled', 'disabled');
 	}

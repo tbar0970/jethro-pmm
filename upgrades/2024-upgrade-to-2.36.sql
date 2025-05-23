@@ -1,7 +1,7 @@
 /* Issue #1040 - Setting to hide age brackets in members area */
 INSERT INTO setting
-(rank, symbol, type, value, note)
-SELECT rank+1, 'MEMBERS_SEE_AGE_BRACKET', type, 1, 'Should members be able to see and edit the age bracket field?'
+(`rank`, symbol, type, value, note)
+SELECT `rank`+1, 'MEMBERS_SEE_AGE_BRACKET', type, 1, 'Should members be able to see and edit the age bracket field?'
 FROM setting
 WHERE symbol = 'MEMBERS_SHARE_ADDRESS';
 
@@ -161,16 +161,16 @@ INNER JOIN
   (SELECT *,
           (row_number() OVER (PARTITION BY assignment_date,
                                            roster_role_id
-                              ORDER BY rank ASC) - 1) AS correctrank
+                              ORDER BY `rank` ASC) - 1) AS correctrank
    FROM roster_role_assignment
    ) a ON rra.assignment_date = a.assignment_date
 AND rra.roster_role_id = a.roster_role_id
 AND rra.personid = a.personid
-SET rra.rank = a.correctrank
-WHERE rra.rank != a.correctrank;
+SET rra.`rank` = a.correctrank
+WHERE rra.`rank` != a.correctrank;
 
 -- Relating to the #1078 fix above: ensure that every role (roster_role_id) assigned on a given date (assignment_date) has a distinct rank.
-ALTER TABLE roster_role_assignment ADD CONSTRAINT unique_role_assignment UNIQUE (assignment_date, roster_role_id, rank);
+ALTER TABLE roster_role_assignment ADD CONSTRAINT unique_role_assignment UNIQUE (assignment_date, roster_role_id, `rank`);
 
 -- Issue #890 - default value for configurable order for attendance recording
 INSERT INTO setting (`rank`, heading, symbol, note, type, value)

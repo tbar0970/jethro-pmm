@@ -191,7 +191,12 @@ class db_object
 			}
 		}
 		if (isset($this->fields['history'])) {
-			$this->values['history'] = Array(time() => 'Created');
+			$created = 'Created';
+			$user = $GLOBALS['user_system']->getCurrentPerson();
+			if ($user) {
+				$created .= ' by '.$user['first_name'].' '.$user['last_name'].' (#'.$user['id'].')';
+			}
+			$this->values['history'] = Array(time() => $created);
 		}
 
 		$parent_class =  strtolower(get_parent_class($this));
@@ -724,6 +729,12 @@ class db_object
 			<table class="history table table-full-width table-striped">
 			<?php
 			foreach ($value as $time => $detail) {
+				if (($detail == 'Created') && isset($this->fields['creator'])) {
+					// Add the creator name if we know it. Pre 2025 this wasn't saved in the history itself.
+					if ($creator = $GLOBALS['system']->getDBObject('person', $this->getValue('creator'))) {
+						$detail .= ' by '.$creator->toString();
+					}
+				}
 				?>
 				<tr>
 					<th class="narrow"><?php echo format_datetime($time); ?></th>
@@ -1089,7 +1100,7 @@ class db_object
 			} else if ($field[0] == '(') {
 				if ($val === Array()) {
 					// We're checking if the value is a member of an empty set.
-					$prefix = '/* empty set check for '.$field.' */';
+					$prefix .= '/* empty set check for '.$field.' */ ';
 					$field = '1';
 					$operator = '=';
 					$val = '2';

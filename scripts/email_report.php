@@ -12,9 +12,13 @@ You can adjust the format of the report, or the membership of the recipient grou
 With a bit of work this script could be modified to send multiple different reports.
 TODO - there may be issues with formatting if a report is grouped into multiple tables?
 ******************************************************************/
-//
+
+if ((php_sapi_name() !== 'cli') && !defined('STDIN')) {
+	echo "This script must be run from the command line";
+	exit;
+}
+
 //read the ini file
-//
 if (empty($_SERVER['argv'][1]) || !is_readable($_SERVER['argv'][1])) {
 	echo "You must specify an ini file as the first argument \n";
 	echo "Eg:  php email_report.php email_report_sample.ini \n";

@@ -108,10 +108,10 @@ class Person_Status extends db_object
 		if (empty($set)) {
 			$x = $GLOBALS['system']->getDBObjectData('person_status', Array());
 			foreach ($x as $id => $detail) {
-				$set[$detail['label']] = $id;
+				$set[strtolower($detail['label'])] = $id;
 			}
 		}
-		return array_get($set, $label);		
+		return array_get($set, strtolower($label));		
 	}
 
 

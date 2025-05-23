@@ -667,6 +667,13 @@ input[type="radio"] {
 	width: auto !important;
 	min-width: 50ex;
 }
+#body .table-no-borders td, #body .table-no-borders th {
+	border-width: 0px !important;
+}
+tr:first-child > td > .move-row-up,
+tr:last-child > td > .move-row-down {
+  visibility: hidden;
+}
 /* nested tables - see list of family members within single person view */
 .table td table {
 	width: 100%;
@@ -681,8 +688,13 @@ input[type="radio"] {
 #body .no-padding td, #body .no-padding th {
 	padding: 0px !important;
 }
-/* WIDTH OF NARROW COLS IS IMPLEMENTED BY JETHRO.JS IN A SPECIAL WAY*/
+/* WIDTH OF "NARROW" COLS IS IMPLEMENTED BY JETHRO.JS IN A SPECIAL WAY*/
 td.narrow, th.narrow, .object-summary th {
+	white-space: nowrap;
+}
+/* this is used when the problem that the .narrow JS deals with is not applicable */
+td.narrow-gentle {
+	width: 1%;
 	white-space: nowrap;
 }
 .fill-me * {
@@ -692,6 +704,9 @@ td.narrow, th.narrow, .object-summary th {
 
 .nowrap {
 	white-space: nowrap;
+}
+.inline {
+	display: inline;
 }
 .clickable, table.clickable-rows td, table.clickable-rows th, img.icon {
 	cursor: pointer;
@@ -865,6 +880,13 @@ table.object-summary>tbody>tr>td>table>tbody>tr:first-child td {
 .year-box {
 	width: 6.5ex !important;
 }
+
+input[type=number]::-webkit-outer-spin-button, 
+input[type=number]::-webkit-inner-spin-button {
+    -webkit-appearance: inner-spin-button !important;
+	opacity: 1;	
+}
+
 @media (min-width: 1px) {
 	/* support for media queries roughly equivalent for support for such things as the placeholder attr */
 	.msie-only {
@@ -953,6 +975,21 @@ table.query-results tfoot * {
 	color: @grayLight !important;
 }
 
+.date-range-picker .dropdown-menu {
+	background: white; 
+	padding: 10px; 
+	min-width: 500px;
+	margin-top: 8px;
+}
+.date-range-picker td {
+	border-width: 0px !important;
+}
+.date-range-picker .relative input[type=number] {
+	width: 4.5ex !important;
+}
+
+
+
 
 /************** USER ACCOUNT ****************/
 .bitmask-boxes div {
@@ -972,6 +1009,7 @@ table.query-results tfoot * {
 	overflow: auto; /* clearfix */
 	margin-bottom: 1ex;
 }
+.group-details-links a,
 .group-members-links div {
 	float: right;
 	margin-left: 2em;
@@ -1009,8 +1047,6 @@ img.person-photo {
 	border: 1px solid @jethroDarkest;
 	padding: 15px 10px 10px 10px;
 	position: relative;
-	z-index: 50;
-	overflow: hidden;
 	background: @jethroLight;
 	border-radius: 5px;
 	margin-bottom: 15px;
@@ -1104,6 +1140,28 @@ img.person-photo {
 	width: 170px;
 }
 
+.photo-tools:has(.remove-photo input:checked) .replace-photo, .photo-tools:has(.remove-photo input:checked) img, .photo-tools:has(.remove-photo input:checked) .new-photo-name  {
+	display: none !important;
+}
+.photo-tools input[type=file] {
+	display: none;
+}
+.photo-tools {
+	height: 20px;
+	line-height: 20px;
+	padding: 4px 0px;
+}
+.photo-tools input.new-photo-name {
+	display: none;
+	margin-top: -4px;
+	margin-right: 12px;
+}
+.photo-tools img, .photo-tools label, .photo-tools {
+	margin: 0 12px 0 0 !important;
+	display: inline-block;
+	height: 20px;
+
+}
 
 /************** VIEW FAMILY ****************/
 .details-box form {
@@ -1176,64 +1234,59 @@ img.person-photo {
 .homepage h3 span {
 	white-space: nowrap;
 }
-
-.homepage-3-col .homepage-box {
-	width: 31.3%;
-	margin-right: 3%;
-	float: left;
-	overflow-x: auto;
+.homepage {
+	display: flex;
+	flex-flow: row;
+	flex-wrap: wrap;
+	column-gap: 15px;
 }
-.homepage-2-col .homepage-box {
-	width: 46.6%;
-	margin-right: 2.1%;
+.homepage-box {
+	flex-grow: 1;
+	min-width: 200px;
+	order: 5;
 }
-
-.homepage .homepage-box.search-forms {
-	float: right;
-	margin-left: 0px;
-	margin-right: 0px;
-}
-
-@media (min-width: 641px) and (max-width: 900px) {
-	/* reduce homepage to 2 cols for portrait tablet and below */
-	.homepage-3-col .homepage-box {
-		width: 64%;
-		margin-right: 3%;
-		margin-left: 0px;
-		float: left;
-	}
-	#body .homepage .homepage-box.search-forms {
-		float: right;
-		width: 30%;
-	}
-}
-
-@media (max-width: 640px) {
-	/* reduce homepage to 1 col for landscape phone and below */
-	#body .homepage-box {
-		width: 100%;
-		margin: 0px;
-		float: none !important;
-	}
-	.homepage-box form {
-		margin-bottom: 0px;
-	}
-}
-@media (min-width:1300px) {
-	/* firefox sizes the homepage components AFTER the whole page has been sized, so they do not push out the overall box. */
-	#body .homepage {
-		min-width: 1300px;
-	}
-}
-form.homepage-search {
-	max-width: 400px;
+.homepage-box form {
+	margin-bottom: 0px;
 }
 .homepage-search span.input-append {
-	margin-bottom: 3px;
+	margin-bottom: 1px;
 }
-.homepage-search-options,.homepage-search-options *  {
-	font-size: 12px;
+
+.homepage-search-options, .homepage-search-options *  {
+	font-size: 11px;
 	margin: 0px;
+	max-width: 100%;
+}
+.homepage-search-options details {
+	margin-left: 2px;
+}
+.homepage-search-options details div {
+	display: flex;
+	flex-flow: row;
+	flex-wrap: wrap;
+}
+.homepage-search-options details label {
+	padding-left: 1em;
+}
+@media (min-width: 740px) {
+	.homepage .search-forms {
+		order: 10; /* make it last */
+		max-width: 400px;
+	}
+	.homepage .homepage-search-options details  {
+		max-width: 250px;
+	}
+	.homepage .homepage-search-options details label {
+		width: 28%;
+	}
+}
+@media (max-width: 739px) {
+	.homepage .search-forms {
+		/* make it first and 100% width */
+		width: 100%;
+		clear: both;
+		order: 1;
+	}
 }
 
 /*************** MEMBERS HOME PAGE ******************/
@@ -2086,7 +2139,6 @@ div.autosuggest ul li a .tl, div.autosuggest ul li a .tr {
 .attendance-config-submit {
 	vertical-align: bottom;
 	display: inline-block;
-	padding-bottom: 10px;
 }
 .attendance-config-table > tbody > tr > td, .attendance-config-table > tbody > tr > th {
 	line-height: 30px !important;

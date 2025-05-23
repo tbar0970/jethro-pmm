@@ -7,7 +7,7 @@
  *
  *  To the extent possible under law, Søren Løvborg has waived all copyright
  *  and related or neighboring rights to UrlLinker.
- *  http://creativecommons.org/publicdomain/zero/1.0/
+ *  https://creativecommons.org/publicdomain/zero/1.0/
  */
 
 /*
@@ -78,7 +78,7 @@ function htmlEscapeAndLinkUrls($text, $target='')
                 // Prepend http:// if no scheme is specified
                 $completeUrl = $scheme ? $url : "http://$url";
 				$shortenedPath = $afterDomain;
-				if (strlen($shortenedPath) > 6) $shortenedPath = substr($shortenedPath, 0, 6).'…';
+				if (strlen($shortenedPath) > 25) $shortenedPath = substr($shortenedPath, 0, 25).'…';
                 $linkText = "$domain$port$shortenedPath";
             }
 

@@ -249,6 +249,8 @@ class System_Controller
 	public function _handleError($errno, $errstr, $errfile, $errline)
 	{
 		if (error_reporting() == 0) return; // the "@" shutup-operator was used
+		$PHP_8_SUPPRESSED = E_ERROR | E_CORE_ERROR | E_COMPILE_ERROR | E_USER_ERROR | E_RECOVERABLE_ERROR | E_PARSE;
+		if (error_reporting() == $PHP_8_SUPPRESSED) return; // the "@" shutup-operator was used
 		$send_email = true;
 		$showTechDetails = ifdef('SHOW_ERROR_DETAILS', (JETHRO_VERSION == 'DEV'));	
 		$exit = false;

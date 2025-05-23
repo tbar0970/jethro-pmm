@@ -10,14 +10,14 @@
  * file that was distributed with this source code. For the full list of
  * contributors, visit https://github.com/PHPOffice/PHPWord/contributors.
  *
- * @link        https://github.com/PHPOffice/PHPWord
- * @copyright   2010-2016 PHPWord contributors
+ * @see         https://github.com/PHPOffice/PHPWord
+ * @copyright   2010-2018 PHPWord contributors
  * @license     http://www.gnu.org/licenses/lgpl.txt LGPL version 3
  */
 
 namespace PhpOffice\PhpWord\Writer\Word2007\Part;
 
-use PhpOffice\Common\XMLWriter;
+use PhpOffice\PhpWord\Shared\XMLWriter;
 use PhpOffice\PhpWord\Style;
 use PhpOffice\PhpWord\Style\Numbering as NumberingStyle;
 use PhpOffice\PhpWord\Style\NumberingLevel;
@@ -97,9 +97,8 @@ class Numbering extends AbstractPart
     /**
      * Write level.
      *
-     * @param \PhpOffice\Common\XMLWriter $xmlWriter
+     * @param \PhpOffice\PhpWord\Shared\XMLWriter $xmlWriter
      * @param \PhpOffice\PhpWord\Style\NumberingLevel $level
-     * @return void
      */
     private function writeLevel(XMLWriter $xmlWriter, NumberingLevel $level)
     {
@@ -138,9 +137,8 @@ class Numbering extends AbstractPart
      *
      * @since 0.11.0
      *
-     * @param \PhpOffice\Common\XMLWriter $xmlWriter
+     * @param \PhpOffice\PhpWord\Shared\XMLWriter $xmlWriter
      * @param \PhpOffice\PhpWord\Style\NumberingLevel $level
-     * @return void
      * @todo Use paragraph style writer
      */
     private function writeParagraph(XMLWriter $xmlWriter, NumberingLevel $level)
@@ -171,9 +169,8 @@ class Numbering extends AbstractPart
      *
      * @since 0.11.0
      *
-     * @param \PhpOffice\Common\XMLWriter $xmlWriter
+     * @param \PhpOffice\PhpWord\Shared\XMLWriter $xmlWriter
      * @param \PhpOffice\PhpWord\Style\NumberingLevel $level
-     * @return void
      * @todo Use font style writer
      */
     private function writeFont(XMLWriter $xmlWriter, NumberingLevel $level)

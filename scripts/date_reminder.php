@@ -12,6 +12,11 @@
  * @see date_reminder_sample.ini for config file format.
  */
 
+ if ((php_sapi_name() !== 'cli') && !defined('STDIN')) {
+	echo "This script must be run from the command line";
+	exit;
+ }
+
 if (empty($_SERVER['argv'][1]) || !is_readable($_SERVER['argv'][1])) {
 	echo "You must specify an ini file as the first argument \n";
 	echo "Eg:  php date_reminder.php my-config-file.ini \n";
@@ -58,7 +63,7 @@ if (!empty($ini['SUMMARY_RECIPIENT_STATUS'])) {
 			)';
 }
 $SQL .= '
-		WHERE cfv.value_date = '.$expiryDate.'
+		WHERE cfv.value_date = "'.$expiryDate.'"
 		AND p.status NOT IN (SELECT id FROM person_status WHERE is_archived)
 		GROUP BY p.id';
 $res = $GLOBALS['db']->queryAll($SQL);
@@ -85,7 +90,7 @@ $summaries = Array();
 $supervisor_names = Array();
 foreach ($res as $person) {
 	if (empty($person['first_name'])) continue; // no matches = empty row
-	$sentSomething = send_reminder($person);
+	$sentSomething = send_reminder($person, $expiryDate);
 	if (!empty($person['supervisor'])) {
 		$summaryEntry = $person['first_name'].' '.$person['last_name'];
 		$summaryEntry .= ' ('.format_date($expiryDate).') ';
@@ -124,7 +129,7 @@ foreach ($summaries as $supervisors => $remindees) {
 }
 
 
-function send_reminder($person)
+function send_reminder($person, $expiryDate)
 {
 	global $ini;
 	
@@ -134,11 +139,11 @@ function send_reminder($person)
 			$toEmail = $person['email'];
 			if (!empty($ini['OVERRIDE_RECIPIENT'])) $toEmail = $ini['OVERRIDE_RECIPIENT'];
 
-			$content = replace_keywords($ini['EMAIL_BODY'], $person);
+			$content = replace_keywords($ini['EMAIL_BODY'], $person, $expiryDate);
 			$html = nl2br($content);
 
 			$message = Emailer::newMessage()
-			  ->setSubject(replace_keywords($ini['SUBJECT'], $person))
+			  ->setSubject(replace_keywords($ini['SUBJECT'], $person, $expiryDate))
 			  ->setFrom(array($ini['FROM_ADDRESS'] => $ini['FROM_NAME']))
 			  ->setTo(array($toEmail => $person['first_name'].' '.$person['last_name']))
 			  ->setBody($content)
@@ -161,7 +166,7 @@ function send_reminder($person)
 		if (strlen($person['mobile_tel'])) {
 			$toNumber = $person['mobile_tel'];
 			if (!empty($ini['OVERRIDE_RECIPIENT_SMS'])) $toNumber = $person['mobile_tel'] = $ini['OVERRIDE_RECIPIENT_SMS'];
-			$message = replace_keywords($ini['SMS_MESSAGE'], $person);
+			$message = replace_keywords($ini['SMS_MESSAGE'], $person, $expiryDate);
 			$res = SMS_Sender::sendMessage($message, Array($person), FALSE);
 			if (!$res['executed'] || (count($res['successes']) != 1)) {
 				echo "Failed to send SMS to ".$toNumber."\n";
@@ -183,7 +188,7 @@ function send_reminder($person)
 	return $sentSomething;
 }
 
-function replace_keywords($content, $person)
+function replace_keywords($content, $person, $expiryDate)
 {
 	static $dummy = NULL;
 	if (!$dummy) $dummy = new Person();
@@ -194,6 +199,6 @@ function replace_keywords($content, $person)
 			$content = str_replace($keyword, $dummy->getFormattedValue($k), $content);
 		}
 	}
-	$content = str_replace('%expirydate%', format_date($expiryDate), $content);
+	$content = str_replace('%EXPIRYDATE%', format_date($expiryDate), $content);
 	return $content;
 }

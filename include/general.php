@@ -82,6 +82,7 @@ function bam($x)
 
 function format_datetime($d)
 {
+	if (empty($d)) return '';
 	if (!is_int($d)) {
 		if (0 === strpos($d, '0000-00-00')) return '';
 		$d = strtotime($d);
@@ -392,7 +393,7 @@ function print_widget($name, $params, $value)
 				if ($height > 0) $style = 'height: '.($height*1.7).'em';
 				$classes .= ' multi-select';
 				// the empty onclick below is to make labels work on iOS
-				// see http://stackoverflow.com/questions/5421659/html-label-command-doesnt-work-in-iphone-browser
+				// see https://stackoverflow.com/questions/5421659/html-label-command-doesnt-work-in-iphone-browser
 				?>
 				<div class="<?php echo $classes; ?>" style="<?php echo $style; ?>" tabindex="0" onclick="" <?php echo $attrs; ?> >
 					<?php
@@ -552,7 +553,7 @@ function print_widget($name, $params, $value)
 			foreach ($params['options'] as $k => $v) {
 				$checked_exp = (($value & (int)$k) == $k) ? 'checked="checked"' : '';
 				// the empty onclick below is to make labels work on iOS
-				// see http://stackoverflow.com/questions/5421659/html-label-command-doesnt-work-in-iphone-browser
+				// see https://stackoverflow.com/questions/5421659/html-label-command-doesnt-work-in-iphone-browser
 				?>
 				<label class="checkbox" onclick="">
 					<input type="checkbox" name="<?php echo ents($name); ?>[]" value="<?php echo ents($k); ?>" <?php echo $checked_exp; ?>>
@@ -687,6 +688,15 @@ function process_widget($name, $params, $index=NULL, $preserveEmpties=FALSE)
 			if (isset($rawVal)) {
 				require_once 'htmLawed.php';
 				$value = htmLawed($rawVal, array('deny_attribute' => '* -href', 'safe'=>1));
+
+				while (true) {
+					// Trim whitespace and paragraphs with a space from end
+					$trimmedValue = preg_replace('/<p>&nbsp;<\/p>$/', '', rtrim($value));
+					if ($trimmedValue == $value) {
+						break;
+					}
+					$value = $trimmedValue;
+				}
 			}
 			break;
 		case 'reference':
@@ -909,7 +919,7 @@ function email_link_extras()
 
 /**
  * Get a string that's as random as possible
- * From http://stackoverflow.com/questions/1182584/secure-random-number-generation-in-php
+ * From https://stackoverflow.com/questions/1182584/secure-random-number-generation-in-php
  *
  * @param int $chars	Number of characters required
  * @param array $set	Optional array of valid chars. Defaults to a-zA-Z0-9
@@ -941,7 +951,7 @@ function generate_random_string($chars=16, $set=NULL)
 
 		// MS-Windows platform?
 		if (@class_exists('COM')) {
-			// http://msdn.microsoft.com/en-us/library/aa388176(VS.85).aspx
+			// https://msdn.microsoft.com/en-us/library/aa388176(VS.85).aspx
 			try {
 				$CAPI_Util = new COM('CAPICOM.Utilities.1');
 				$pr_bits .= $CAPI_Util->GetRandom($chars,0);

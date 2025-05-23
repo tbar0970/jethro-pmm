@@ -1,12 +1,36 @@
 <?php
-class Abstract_View_Notes_List extends View
+abstract class Abstract_View_Notes_List extends View
 {
 	var $_reassigning = FALSE;
 	var $_notes = Array();
 
+	static function getMenuPermissionLevel()
+	{
+		return PERM_VIEWMYNOTES;
+	}
+
 	function _compareNoteDates($a, $b)
 	{
 		return $a['action_date'] > $b['action_date'] ? 1 : -1;
+	}
+	
+	protected function _getNotes($conds)
+	{
+		$conds['status'] = 'pending';
+
+		$assigneeID = array_get($_REQUEST, 'assignee');
+		if ($assigneeID) {
+			$conds['assignee'] = $assigneeID;
+		}
+
+		$search = array_get($_REQUEST, 'search');
+		if ($search) {
+			$conds['subject'] = '%'.$search.'%';
+		}
+
+		$res = $GLOBALS['system']->getDBObjectData('person_note', $conds, 'AND', '', TRUE) + $GLOBALS['system']->getDBObjectData('family_note', $conds, 'AND', '', TRUE);
+		uasort($res, Array($this, '_compareNoteDates'));
+		return $res;
 	}
 
 	function processView()
@@ -28,12 +52,6 @@ class Abstract_View_Notes_List extends View
 		}
 		// these will have changed
 		$this->_notes = $this->_getNotesToShow(array_get($_REQUEST, 'assignee'), array_get($_REQUEST, 'search'));
-	}
-
-
-	function getTitle()
-	{
-		return '';
 	}
 
 

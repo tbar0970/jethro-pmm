@@ -4,9 +4,12 @@ class Call_Documents extends Call
 	function run()
 	{
 		$dirs = explode('|', MEMBER_FILES_DIRS);
+		
 		$dirOK = FALSE;
+		$filepath = realpath(Documents_Manager::getRootPath().'/'.$_REQUEST['getfile']);
 		foreach ($dirs as $dir) {
-			if (0 === strpos($_REQUEST['getfile'], $dir)) {
+			$fulldir = Documents_Manager::getRootPath().'/'.$dir;
+			if (0 === strpos($filepath, $fulldir)) {
 				$dirOK = TRUE;
 			}
 		}

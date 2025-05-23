@@ -1037,14 +1037,14 @@ class roster_view extends db_object
 		$SQL = 'UPDATE roster_role_assignment rra
 				INNER JOIN ( SELECT *,
 								(row_number() OVER (PARTITION BY assignment_date, roster_role_id
-													ORDER BY rank ASC) - 1) AS correctrank
+													ORDER BY `rank` ASC) - 1) AS correctrank
 							   FROM roster_role_assignment
 							) a
 							ON rra.assignment_date = a.assignment_date
 								AND rra.roster_role_id = a.roster_role_id
 								AND rra.personid = a.personid
-				SET rra.rank = a.correctrank
-				WHERE rra.rank != a.correctrank
+				SET rra.`rank` = a.correctrank
+				WHERE rra.`rank` <> a.correctrank
 				AND rra.roster_role_id IN ('.implode(',', $clean_role_ids).')';
 		$res = $GLOBALS['db']->query($SQL);
 
