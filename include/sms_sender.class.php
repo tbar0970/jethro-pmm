@@ -238,7 +238,7 @@ Class SMS_Sender
 			)
 		);
 		// To work with HTTP Server errors ourselves, override the system error_handler
-		set_error_handler(function($errno, $errstr, $errfile, $errline, array $errcontext) {
+		set_error_handler(function($errno, $errstr, $errfile, $errline, array $errcontext = null) {
 			// error was suppressed with the @-operator
 			if (0 === error_reporting()) {
 				return false;
