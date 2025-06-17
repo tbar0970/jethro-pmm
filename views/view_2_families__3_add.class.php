@@ -242,6 +242,8 @@ class View_Families__Add extends View
 							<div><?php $person->printFieldInterface('mobile_tel', 'members_0_'); ?></div>
 							<div><?php $person->printFieldInterface('email', 'members_0_'); ?></div>
 
+                            <label class="fullwidth"><?php echo _('Contact Remarks');?></label>
+                            <div class="fullwidth"><?php $person->printFieldInterface('remarks', 'members_0_'); ?></div>
 						<?php
 						$field = new Custom_Field();
 						foreach ($customFields as $fieldID => $fDetails) {
