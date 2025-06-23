@@ -237,7 +237,7 @@ class System_Controller
 			case 'ROLLBACK':
 				// Rollback always rolls back everything
 				@$GLOBALS['db']->rollback();
-				$this->_transaction_depth--;
+				$this->_transaction_depth = 0;
 		}
 	}
 
