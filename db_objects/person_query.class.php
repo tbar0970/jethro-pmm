@@ -1165,7 +1165,7 @@ class Person_Query extends DB_Object
 								if ($v == '*') {
 									$$k = NULL;
 								} else if (preg_match(("/([-+])(\d+)y(\d+)m(\d+)d/"), $v, $matches)) {
-                                    $sym=$matches[1]; // + or -
+									$sym=$matches[1]; // + or -
 									// relative date - convert it to an absolute now.
 									$$k = date('Y-m-d', strtotime($sym.$matches[2].' years '.$sym.$matches[3].' months '.$sym.$matches[4].' days'));
 								} else {
