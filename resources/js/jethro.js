@@ -189,7 +189,7 @@ $(document).ready(function() {
 				menu.find('input[name=drp_exact_y]').val(matches[1]);
 				JethroDateRangePicker.updateDisplayValue(this, 'exact');
 				break;
-			case (!!(matches = this.value.match(/([-+])(\d+)?y(\d+)?m(\d+)?d/))):
+			case (!!(matches = this.value.match(/([-+])(\d+)y(\d+)m(\d+)d/))):
 				menu.find('input[name=drp_relative_direction]').val(matches[1]);
 				menu.find('input[name=drp_relative_d]').val(matches[4]);
 				menu.find('input[name=drp_relative_m]').val(matches[3]);
@@ -246,9 +246,9 @@ $(document).ready(function() {
 				var v = {};
 				var drp = $(this).parents('.date-range-picker');
 				v['direction'] = drp.find('select[name=drp_relative_direction]').val()
-				v['y'] = drp.find('input[name=drp_relative_y]').val();
-				v['m'] = drp.find('input[name=drp_relative_m]').val();
-				v['d'] = drp.find('input[name=drp_relative_d]').val();
+				v['y'] = drp.find('input[name=drp_relative_y]').val() || "0";
+				v['m'] = drp.find('input[name=drp_relative_m]').val() || "0";
+				v['d'] = drp.find('input[name=drp_relative_d]').val() || "0";
 				toggle.options[0].value = v['direction']+v['y']+'y'+v['m']+'m'+v['d']+'d';
 				break;
 			case 'exact':
@@ -1979,7 +1979,7 @@ JethroDateRangePicker.updateDisplayValue = function(selectElt, valueType)
 			selectElt.options[0].innerHTML = d.getDate()+' '+d.toLocaleString('default', { month: 'short' })+' '+d.getFullYear();
 			break;
 		case 'relative':
-			var matches = selectElt.options[0].value.match(/([-+])(\d+)?y(\d+)?m(\d+)?d/);
+			var matches = selectElt.options[0].value.match(/([-+])(\d+)y(\d+)m(\d+)d/);
 			if (matches) {
 				var l = '';
 				if (matches[2]>0) l += matches[2]+' years ';
