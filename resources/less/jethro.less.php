@@ -1056,12 +1056,12 @@ img.person-photo {
 }
 @media(min-width:1100px) {
 	.person-details {
-		width: 860px;
+		width: auto;
 		margin-right: 0px;
 	}
 	/* person details 380 + family details 380 + photo 200px wide */
 	.view-person .details-box {
-		width: 415px;
+		width: auto;
 		overflow: auto;
 		float: left;
 		margin-right: 15px;
