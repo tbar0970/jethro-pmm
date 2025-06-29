@@ -246,9 +246,9 @@ $(document).ready(function() {
 				var v = {};
 				var drp = $(this).parents('.date-range-picker');
 				v['direction'] = drp.find('select[name=drp_relative_direction]').val()
-				v['y'] = drp.find('input[name=drp_relative_y]').val();
-				v['m'] = drp.find('input[name=drp_relative_m]').val();
-				v['d'] = drp.find('input[name=drp_relative_d]').val();
+				v['y'] = drp.find('input[name=drp_relative_y]').val() || "0";
+				v['m'] = drp.find('input[name=drp_relative_m]').val() || "0";
+				v['d'] = drp.find('input[name=drp_relative_d]').val() || "0";
 				toggle.options[0].value = v['direction']+v['y']+'y'+v['m']+'m'+v['d']+'d';
 				break;
 			case 'exact':
