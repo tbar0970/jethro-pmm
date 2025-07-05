@@ -51,7 +51,7 @@ abstract class Abstract_User_System
 
 	public function handle2FAMobileTelChange($person, $old_mobile)
 	{
-		trigger_error("Essential function not implemented", E_USER_ERROR);
+		throw new \RuntimeException("Essential function not implemented");
 		exit;
 	}
 
