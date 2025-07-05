@@ -79,7 +79,7 @@ class JethroDB extends PDO
 			$result = parent::__construct($dsn, $username, $password, $options);
 		} catch (PDOException $e) {
 			error_log((string)$e);
-			trigger_error('Could not connect to database - please check for mistakes in your Database configuration in conf.php, and check in MySQL that the database exists and the specified user has been granted access.', E_USER_ERROR);
+			throw new \RuntimeException('Could not connect to database - please check for mistakes in your Database configuration in conf.php, and check in MySQL that the database exists and the specified user has been granted access.');
 			exit();
 		}
 		return $result;
@@ -264,7 +264,7 @@ class JethroDB extends PDO
 			$sql = 'SET @current_user_id = ' . $userid;
 			$result = parent::query($sql);
 		} catch (PDOException $e) {
-			trigger_error('Failed to set user id in database', E_USER_ERROR);
+			throw new \RuntimeException('Failed to set user id in database');
 		}
 	}
 

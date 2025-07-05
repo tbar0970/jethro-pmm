@@ -189,7 +189,7 @@ Class SMS_Sender
 					$me = $GLOBALS['system']->getDBObject('person', $GLOBALS['user_system']->getCurrentUser('id'));
 				}
 				if (empty($me)) {
-					trigger_error("Your SMS config includes the _USER_MOBILE_ keyword but there is no current user, and no other senderID has been specified.  Exiting.", E_USER_ERROR);
+					throw new \RuntimeException("Your SMS config includes the _USER_MOBILE_ keyword but there is no current user, and no other senderID has been specified.  Exiting.");
 				}
 				if (!strlen($me->getValue('mobile_tel'))) {
 					return Array('executed' => FALSE, 'successes' => Array(), 'failures' => Array(), 'rawresponse' => '',
@@ -203,7 +203,7 @@ Class SMS_Sender
 		if (FALSE !== strpos($content, '_USER_EMAIL_')) {
 			$me = $GLOBALS['system']->getDBObject('person', $GLOBALS['user_system']->getCurrentUser('id'));
 			if (empty($me)) {
-				trigger_error("Your SMS config includes the _USER_EMAIL_ keyword but there is no current user!  Exiting.", E_USER_ERROR);
+				throw new \RuntimeException("Your SMS config includes the _USER_EMAIL_ keyword but there is no current user!  Exiting.");
 			}
 			$content = str_replace('_USER_EMAIL_', urlencode($me->getValue('email')), $content);
 		}
