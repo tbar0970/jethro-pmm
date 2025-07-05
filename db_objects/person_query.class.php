@@ -830,7 +830,7 @@ class Person_Query extends DB_Object
 				break;
 			case 'replace':
 				if (($this->getValue('owner') === NULL) && !$GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
-					trigger_error("You do not have permission to overwrite saved reports", E_USER_ERROR); exit;
+					throw new \RuntimeException("You do not have permission to overwrite saved reports"); exit;
 				}
 				$this->processFieldInterface('name');
 				if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
@@ -2045,11 +2045,11 @@ class Person_Query extends DB_Object
 		if (!($this->getValue('owner'))
 			&& (!$GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS))
 		) {
-			if ($throwErrors) trigger_error('You do not have permission to save shared reports', E_USER_ERROR);
+			if ($throwErrors) throw new \RuntimeException('You do not have permission to save shared reports');
 			return FALSE;
 		} else if (($this->getValue('owner')) && ($this->getValue('owner') != $GLOBALS['user_system']->getCurrentUser('id'))
 		) {
-			if ($throwErrors) trigger_error('Cannot save report that belongs to another user!', E_USER_ERROR);
+			if ($throwErrors) throw new \RuntimeException('Cannot save report that belongs to another user!');
 			return FALSE;
 		} else {
 			return TRUE;

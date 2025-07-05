@@ -34,11 +34,11 @@ class Documents_Manager {
 	{
 		$bits = explode('/', $path);
 		if (in_array('.', $bits) || in_array('..', $bits)) {
-			trigger_error('Dot or double-dot not allowed in directory parameter', E_USER_ERROR); //exits
+			throw new \RuntimeException('Dot or double-dot not allowed in directory parameter'); //exits
 		}
 		$res = self::getRootPath().implode('/', $bits);
 		if (!is_dir($res)) {
-			trigger_error("Specified folder does not exist", E_USER_ERROR); // exits
+			throw new \RuntimeException("Specified folder does not exist"); // exits
 		}
 		return $res;
 	}

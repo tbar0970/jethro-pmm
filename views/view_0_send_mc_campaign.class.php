@@ -63,7 +63,7 @@ class View__Send_MC_Campaign extends View
 			$zip = new ZipArchive();
 			$zip_name = str_replace('.tmp', '', tempnam(sys_get_temp_dir(), 'mailchimp_content-zip'));
 			if (!$zip->open($zip_name, ZipArchive::CREATE)) {
-				trigger_error("Could not create zip archive to submit to mailchimp", E_USER_ERROR);
+				throw new \RuntimeException("Could not create zip archive to submit to mailchimp");
 				exit;
 			}
 			foreach ($attachments as $name => $tmpname) {
