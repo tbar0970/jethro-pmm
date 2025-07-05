@@ -27,7 +27,7 @@ $ini = parse_ini_file($_SERVER['argv'][1]);
 define('JETHRO_ROOT', dirname(dirname(__FILE__)));
 set_include_path(get_include_path().PATH_SEPARATOR.JETHRO_ROOT);
 if (!is_readable(JETHRO_ROOT.'/conf.php')) {
-	trigger_error('Jethro configuration file not found.  You need to copy conf.php.sample to conf.php and edit it before Jethro can run', E_USER_ERROR);
+	throw new \RuntimeException('Jethro configuration file not found.  You need to copy conf.php.sample to conf.php and edit it before Jethro can run');
 	exit();
 }
 require_once JETHRO_ROOT.'/conf.php';
@@ -53,7 +53,7 @@ $SQL .= '
 if (!empty($ini['SUMMARY_RECIPIENT_STATUS'])) {
 	$map = array_flip(Person::getStatusOptions());
 	if (!isset($map[$ini['SUMMARY_RECIPIENT_STATUS']])) {
-		trigger_error($ini['SUMMARY_RECIPIENT_STATUS'].' is not a valid status in this system', E_USER_ERROR);
+		throw new \RuntimeException($ini['SUMMARY_RECIPIENT_STATUS'].' is not a valid status in this system');
 	}
 	$SQL .= '
 			LEFT JOIN _person supervisor ON (

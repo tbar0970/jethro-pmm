@@ -23,7 +23,7 @@ class View__Add_Planned_Absence extends View
 
 		if (array_get($_REQUEST, 'new_'.$this->_create_type.'_submitted')) {
 			if (array_diff($_REQUEST['personid'], array_keys($this->_getUsersFamilyMembers()))) {
-				trigger_error('Attempt to add absence for a person outside the users family', E_USER_ERROR);
+				throw new \RuntimeException('Attempt to add absence for a person outside the users family');
 				exit;
 			}
 
