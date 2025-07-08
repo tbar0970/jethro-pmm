@@ -205,20 +205,22 @@ class Attendance_Record_Set
 
 	function delete()
 	{
-		$db =& $GLOBALS['db'];
-		$sql = 'DELETE ar
+		// If group/congregation filters caused no persons to have attendance marked for this congregation, do nothing. #1241
+		if ($this->_persons) {
+			$db =& $GLOBALS['db'];
+			$sql = 'DELETE ar
 				FROM attendance_record ar
 				JOIN person p ON ar.personid = p.id
-				WHERE date = '.$db->quote($this->date).'
-					AND (ar.groupid = '.$db->quote((int)$this->groupid).')';
-		if ($this->congregationid) {
-			$sql .= '
-					AND (congregationid = '.$db->quote($this->congregationid).')
+				WHERE date = ' . $db->quote($this->date) . '
+					AND (ar.groupid = ' . $db->quote((int)$this->groupid) . ')';
+			if ($this->congregationid) {
+				$sql .= '
+					AND (congregationid = ' . $db->quote($this->congregationid) . ')
 					';
+			}
+			$sql .= '  AND personid IN (' . implode(',', array_map(array($db, 'quote'), array_keys($this->_persons))) . ')';
+			$res = $db->query($sql);
 		}
-		$sql .= '  AND personid IN ('.implode(',', array_map(Array($db, 'quote'), array_keys($this->_persons))).')';
-
-		$res = $db->query($sql);
 	}
 
 
