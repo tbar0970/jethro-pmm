@@ -118,9 +118,17 @@ class View_Attendance__Record extends View
 						$set->save();
 
 						if ((int)$set->congregationid) {
-							Headcount::save('congregation', $this->_attendance_date, $set->congregationid, $_REQUEST['headcount']['congregation'][$set->congregationid]);
+							// There will be no headcount for this congregation if no persons were in the congregation's set. #1241
+							if (isset($_REQUEST['headcount']['congregation'][$set->congregationid])) {
+								$congregation_headcount = $_REQUEST['headcount']['congregation'][$set->congregationid];
+								Headcount::save('congregation', $this->_attendance_date, $set->congregationid, $congregation_headcount);
+							}
 						} else {
-							Headcount::save('person_group', $this->_attendance_date, $set->groupid, $_REQUEST['headcount']['group'][$set->groupid]);
+							// There will be no headcount for this group if no persons were in the group's set. #1241
+							if (isset($_REQUEST['headcount']['group'][$set->groupid])) {
+								$group_headcount = $_REQUEST['headcount']['group'][$set->groupid];
+								Headcount::save('person_group', $this->_attendance_date, $set->groupid, $group_headcount);
+							}
 						}
 						$set->releaseLock();
 					}

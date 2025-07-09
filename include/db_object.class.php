@@ -22,7 +22,7 @@ class db_object
 	public function __construct($id=0)
 	{
 		if (!$this->checkPerm($this->_load_permission_level)) {
-			trigger_error('Current user has insufficient permission level to load a '.get_class($this).' object', E_USER_ERROR);
+			throw new \RuntimeException('Current user has insufficient permission level to load a '.get_class($this).' object');
 		}
 
 		$this->fields = Array();
@@ -176,7 +176,7 @@ class db_object
 	public function create()
 	{
 		if (!$this->checkPerm($this->_save_permission_level)) {
-			trigger_error('Current user has insufficient permission level to create a '.get_class($this).' object', E_USER_ERROR);
+			throw new \RuntimeException('Current user has insufficient permission level to create a '.get_class($this).' object');
 		}
 
 		$GLOBALS['system']->setFriendlyErrors(TRUE);
@@ -252,7 +252,7 @@ class db_object
 	public function createFromChild($child)
 	{
 		if (!$this->checkPerm($this->_save_permission_level)) {
-			trigger_error('Current user has insufficient permission level to create a '.get_class($this).' object', E_USER_ERROR);
+			throw new \RuntimeException('Current user has insufficient permission level to create a '.get_class($this).' object');
 		}
 		$this->populate($child->id, $child->values);
 		return $this->_createFinal();
@@ -341,7 +341,7 @@ class db_object
 	public function save()
 	{
 		if (!$this->checkPerm($this->_save_permission_level)) {
-			trigger_error('Current user has insufficient permission level to save a '.get_class($this).' object', E_USER_ERROR);
+			throw new \RuntimeException('Current user has insufficient permission level to save a '.get_class($this).' object');
 		}
 		$GLOBALS['system']->setFriendlyErrors(TRUE);
 		if (!$this->validateFields()) {
@@ -363,7 +363,7 @@ class db_object
 		// Add to the history, unless it's been explicly set as a value (see Person::archiveAndClean())
 		if (isset($this->fields['history']) && empty($this->_old_values['history'])) {
 			if (!isset($this->values['history']) || !is_array($this->values['history'])) {
-				trigger_error("History field is not an array - this should not be. Aborting.", E_USER_ERROR);
+				throw new \RuntimeException("History field is not an array - this should not be. Aborting.");
 				exit;
 			}
 			$changes = $this->_getChanges();
@@ -587,9 +587,9 @@ class db_object
 					}
 				}
 			}
-			trigger_error('Object has no property called '.$propName, E_USER_ERROR); exit;
+			throw new \RuntimeException('Object has no property called '.$propName); exit;
 		} else {
-			trigger_error('Call to undefined method '.$name, E_USER_ERROR); exit;
+			throw new \RuntimeException('Call to undefined method '.$name); exit;
 		}
 	}
 

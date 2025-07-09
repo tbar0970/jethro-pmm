@@ -25,7 +25,7 @@ class View__Delete_Person extends View
 		if ($_REQUEST['personid']) {
 			$this->_person = new Person((int)$_REQUEST['personid']);
 		}
-		if (empty($this->_person)) trigger_error("Person not found", E_USER_ERROR); // exits
+		if (empty($this->_person)) throw new \RuntimeException("Person not found"); // exits
 		$this->_staff_member = $GLOBALS['system']->getDBObject('staff_member', $this->_person->id);
 
 		$this->_notes = $GLOBALS['system']->getDBObjectData(

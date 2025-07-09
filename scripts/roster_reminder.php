@@ -46,7 +46,7 @@ ini_set('display_errors', 1);
 define('JETHRO_ROOT', dirname(dirname(__FILE__)));
 set_include_path(get_include_path().PATH_SEPARATOR.JETHRO_ROOT);
 if (!is_readable(JETHRO_ROOT.'/conf.php')) {
-	trigger_error('Jethro configuration file not found.  You need to copy conf.php.sample to conf.php and edit it before Jethro can run', E_USER_ERROR);
+	throw new \RuntimeException('Jethro configuration file not found.  You need to copy conf.php.sample to conf.php and edit it before Jethro can run');
 	exit(1);
 }
 
@@ -64,7 +64,7 @@ function getvar($name, $default = null) {
 	global $ini;	// Access the $ini array from the global scope
 	if (!isset($ini[$name])) {
 		if ($default === null) {
-			trigger_error("$name is required", E_USER_ERROR);
+			throw new \RuntimeException("$name is required");
 		} else {
 			return $default;
 		}
@@ -148,7 +148,9 @@ if ($sendsms) { // make the sms message!
 	define('OVERRIDE_USER_MOBILE', $smsfrom);
 	$sms_notification = "No SMS Notification was sent for " . $roster_name . ". There were no people assigned.\n";
 
-	ctype_digit($roster_coordinator_id) || trigger_error("ROSTER_COORDINATOR_ID must be an integer ID referencing a _person record", E_USER_ERROR);
+	if (!ctype_digit($roster_coordinator_id)) {
+		throw new \RuntimeException("ROSTER_COORDINATOR_ID must be an integer ID referencing a _person record");
+	}
 	$coordinator=new Person($roster_coordinator_id);
 	$sql = 'SELECT person.* FROM person WHERE person.id='.(int)$roster_coordinator_id;
 	$coordinator = $GLOBALS['db']->queryAll($sql);

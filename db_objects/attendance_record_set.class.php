@@ -205,20 +205,22 @@ class Attendance_Record_Set
 
 	function delete()
 	{
-		$db =& $GLOBALS['db'];
-		$sql = 'DELETE ar
+		// If group/congregation filters caused no persons to have attendance marked for this congregation, do nothing. #1241
+		if ($this->_persons) {
+			$db =& $GLOBALS['db'];
+			$sql = 'DELETE ar
 				FROM attendance_record ar
 				JOIN person p ON ar.personid = p.id
-				WHERE date = '.$db->quote($this->date).'
-					AND (ar.groupid = '.$db->quote((int)$this->groupid).')';
-		if ($this->congregationid) {
-			$sql .= '
-					AND (congregationid = '.$db->quote($this->congregationid).')
+				WHERE date = ' . $db->quote($this->date) . '
+					AND (ar.groupid = ' . $db->quote((int)$this->groupid) . ')';
+			if ($this->congregationid) {
+				$sql .= '
+					AND (congregationid = ' . $db->quote($this->congregationid) . ')
 					';
+			}
+			$sql .= '  AND personid IN (' . implode(',', array_map(array($db, 'quote'), array_keys($this->_persons))) . ')';
+			$res = $db->query($sql);
 		}
-		$sql .= '  AND personid IN ('.implode(',', array_map(Array($db, 'quote'), array_keys($this->_persons))).')';
-
-		$res = $db->query($sql);
 	}
 
 
@@ -788,7 +790,7 @@ class Attendance_Record_Set
 			$congregations = $GLOBALS['system']->getDBObjectData('congregation', Array('!attendance_recording_days' => 0), 'OR', 'meeting_time');
 			$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('!attendance_recording_days' => 0, 'is_archived' => 0), 'AND', 'category, name');
 			// need to preserve category too
-			uasort($groups, function($x,$y) {$r = strnatcmp($x["category"], $y["category"]); if ($r == 0) $r = strnatcmp($x["name"], $y["name"]); return $r;}); // to ensure natural sorting
+			uasort($groups, function($x,$y) {$r = strnatcmp($x["category"] ?? '', $y["category"] ?? ''); if ($r == 0) $r = strnatcmp($x["name"], $y["name"]); return $r;}); // to ensure natural sorting
 		}
 		$lastCategory = -1;
 		?>

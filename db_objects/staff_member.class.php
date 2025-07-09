@@ -490,7 +490,7 @@ class Staff_Member extends Person
 
 	function _insertRestrictions()
 	{
-		if (empty($this->id)) trigger_error("Don't have an ID, can't insert restrictions", E_USER_ERROR);
+		if (empty($this->id)) throw new \RuntimeException("Don't have an ID, can't insert restrictions");
 		foreach (Array('congregation', 'group') as $type) {
 			if (!empty($this->_restrictions[$type])) {
 				$rows = Array();

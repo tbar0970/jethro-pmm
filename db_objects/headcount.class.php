@@ -41,7 +41,7 @@ class Headcount
 		if ($entityType == 'c') $entityType = 'congregation';
 		if ($entityType == 'g') $entityType = 'person_group';
 		if (!in_array($entityType, Array('congregation', 'person_group'))) {
-			trigger_error('Unknown entity type '.$entityType, E_USER_ERROR);
+			throw new \RuntimeException('Unknown entity type '.$entityType);
 		}
 	}
 	public static function save($entitytype, $date, $entityid, $number)

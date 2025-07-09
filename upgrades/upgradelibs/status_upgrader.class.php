@@ -24,11 +24,11 @@ class Status_Upgrader
 			return;
 		}
 		self::$person_status = $db->queryAll('SELECT id, label FROM person_status', NULL, NULL, true);
-		if (self::$person_status === null) trigger_error('No person_status table in the database. If this is a pre-2.36 Jethro instance, please first run 2024-upgrade-to-2.36.sql', E_USER_ERROR);
+		if (self::$person_status === null) throw new \RuntimeException('No person_status table in the database. If this is a pre-2.36 Jethro instance, please first run 2024-upgrade-to-2.36.sql');
 		self::$archived_id = array_search("Archived", self::$person_status);
-		if (self::$archived_id===false) trigger_error("Missing 'Archived' person_status", E_USER_ERROR);
+		if (self::$archived_id===false) throw new \RuntimeException("Missing 'Archived' person_status");
 		self::$contact_id = array_search("Contact", self::$person_status);
-		if (self::$contact_id===false) trigger_error("Missing 'Contact' person_status", E_USER_ERROR);
+		if (self::$contact_id===false) throw new \RuntimeException("Missing 'Contact' person_status");
 
 		self::fixPersonReports();
 		self::fixActionPlans();	

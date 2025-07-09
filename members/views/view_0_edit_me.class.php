@@ -39,7 +39,7 @@ class View__Edit_Me extends View
 			}
 		}
 		
-		if (!empty($_POST)) {
+		if ($this->EditMeFormSubmitted()) {
 			if ($this->canEditFamily()) {
 				$this->family->processForm();
 				$this->family->save();
@@ -124,5 +124,22 @@ class View__Edit_Me extends View
 	{
 		return $person->id == $GLOBALS['user_system']->getCurrentMember('id');
 	}
+
+    /**
+     * Examine $_POST to see if it contains what we expect from the edit_me form being submitted. This will not be true if the initial request was unauthenticated and User_System served up the login form instead - then $_POST will contain just 'email' and 'password', and we can't proceed. See #1243.
+     * @return bool Whether to process the form as if submitted
+     */
+    public function EditMeFormSubmitted(): bool
+    {
+        if (empty($_POST)) return false;
+
+        // This is pretty ugly. We have no single parameter we can check that we (edit_me) definitely set, but we will have a bunch of person_* params, each of which will have a csrf token. So if we see any of those, proceed.
+        foreach (array_keys($_POST) as $key) {
+            if (preg_match('/^person_.*token$/', $key)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
 }
