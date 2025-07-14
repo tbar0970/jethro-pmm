@@ -46,7 +46,7 @@ class View__Edit_Me extends View
 			}
 		}
 		
-		if (!empty($_POST)) {
+		if (array_get($_POST, 'family_details_submitted')) {
 			if ($this->canEditFamily()) {
 				$this->family->processForm();
 				$this->family->save();
@@ -107,6 +107,7 @@ class View__Edit_Me extends View
 
 			?>
 			<form method="post" enctype="multipart/form-data">
+			<input type="hidden" name="family_details_submitted" value="1" />
 			<h3>Family Details</h3>
 			<?php
 			if ($this->canEditFamily()) {

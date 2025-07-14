@@ -2,3 +2,4 @@
 /files/
 conf.php
 .idea/
+.php-cs-fixer.cache
