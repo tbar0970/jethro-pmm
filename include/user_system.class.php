@@ -307,6 +307,9 @@ class User_System extends Abstract_User_System
 	 */
 	private function _require2FA($user_details)
 	{
+		// Allow 2FA to be forcibly turned off regardless of admin settings e.g. for dev environments
+		if (defined('2FA_ENABLED') && constant('2FA_ENABLED')==False) return FALSE;
+
 		if (!empty($_COOKIE['Jethro2FATrust'])) {
 			$db = $GLOBALS['db'];
 			$SQL = 'SELECT * FROM 2fa_trust
