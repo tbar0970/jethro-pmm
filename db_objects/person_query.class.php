@@ -870,11 +870,8 @@ class Person_Query extends DB_Object
 					case 'date':
 						$params['custom_fields'][$fieldid] = Array(
 							'criteria' => $_REQUEST['params_custom_field_'.$fieldid.'_criteria'],
-							'periodtype' => $_REQUEST['params_custom_field_'.$fieldid.'_periodtype'],
-							'periodlength' => $_REQUEST['params_custom_field_'.$fieldid.'_periodlength'],
-							'periodanchor' => $_REQUEST['params_custom_field_'.$fieldid.'_periodanchor'],
-							'from' => process_widget('params_custom_field_'.$fieldid.'_from', Array('type' => 'date')),
-							'to' => process_widget('params_custom_field_'.$fieldid.'_to', Array('type' => 'date')),
+							'from' => $_REQUEST['params_custom_field_'.$fieldid.'_from'],
+							'to' => $_REQUEST['params_custom_field_'.$fieldid.'_to'],
 						);
 						break;
 					case 'select':
@@ -959,6 +956,7 @@ class Person_Query extends DB_Object
 		$res = Array();
 		switch ($this->_field_details[$field]['type']) {
 			case 'datetime':
+				// todo: add fancy date range support here
 				$res['from'] = process_widget('params_'.str_replace('.', '_', $field).'_from', Array('type' => 'date'));
 				$res['to'] = process_widget('params_'.str_replace('.', '_', $field).'_to', Array('type' => 'date'));
 				break;
@@ -1133,11 +1131,13 @@ class Person_Query extends DB_Object
 									$$k = NULL;
 								} else if (preg_match(("/([-+])(\d+)y(\d+)m(\d+)d/"), $v, $matches)) {
 									// relative date - convert it to an absolute now.
-									$$k = date('Y-m-d', strtotime($matches[1].$matches[2].' years '.$matches[3].' months '.$matches[4].' days'));
+									$sym=$matches[1]; // + or -
+									$$k = date('Y-m-d', strtotime($sym.($matches[2] ?? 0).' years '.$sym.($matches[3] ?? 0).' months '.$sym.($matches[4] ?? 0).' days'));
 								} else {
 									// absolute date
 									$$k = $v;
 								}
+								//bam("$k date $v = ".$$k);
 							}
 
 						    $valExp = 'pd'.$fieldid.'.value_date';
@@ -1147,6 +1147,10 @@ class Person_Query extends DB_Object
 								$betweenExp = '>= '.$db->quote($from);
 							} elseif ($to) {
 								$betweenExp = '<= '.$db->quote($to);
+							} else {
+								// from unlimited to unlimited
+								$betweenExp = ' IS NOT NULL';
+
 							}
 							$w = Array();
 							$w[] = "$valExp NOT LIKE '-%' AND $valExp $betweenExp";
