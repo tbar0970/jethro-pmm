@@ -190,7 +190,7 @@ $(document).ready(function() {
 				JethroDateRangePicker.updateDisplayValue(this, 'exact');
 				break;
 			case (!!(matches = this.value.match(/([-+])(\d+)y(\d+)m(\d+)d/))):
-				menu.find('input[name=drp_relative_direction]').val(matches[1]);
+				menu.find('select[name=drp_relative_direction]').val(matches[1]);
 				menu.find('input[name=drp_relative_d]').val(matches[4]);
 				menu.find('input[name=drp_relative_m]').val(matches[3]);
 				menu.find('input[name=drp_relative_y]').val(matches[2]);
@@ -246,20 +246,17 @@ $(document).ready(function() {
 				var v = {};
 				var drp = $(this).parents('.date-range-picker');
 				v['direction'] = drp.find('select[name=drp_relative_direction]').val()
-				v['y'] = drp.find('input[name=drp_relative_y]').val();
-				v['m'] = drp.find('input[name=drp_relative_m]').val();
-				v['d'] = drp.find('input[name=drp_relative_d]').val();
+				v['y'] = drp.find('input[name=drp_relative_y]').val() || "0"
+				v['m'] = drp.find('input[name=drp_relative_m]').val() || "0"
+				v['d'] = drp.find('input[name=drp_relative_d]').val() || "0"
+				// todo: zeros
 				toggle.options[0].value = v['direction']+v['y']+'y'+v['m']+'m'+v['d']+'d';
 				break;
 			case 'exact':
 				var drp = $(this).parents('.date-range-picker');
-				var d = new Date(
-					drp.find('input[name=drp_exact_y]').val(),
-					drp.find('select[name=drp_exact_m]').val()-1,
-					drp.find('input[name=drp_exact_d]').val(),
-					0,0,0
-				);
-				toggle.options[0].value = d.toISOString().substring(0,10);
+				toggle.options[0].value = drp.find('input[name=drp_exact_y]').val() + '-'
+							+ drp.find('select[name=drp_exact_m]').val().padStart(2,0) + '-'
+							+ drp.find('input[name=drp_exact_d]').val().padStart(2,0);
 				break;
 		}
 		JethroDateRangePicker.updateDisplayValue(toggle, selectedType);
