@@ -135,7 +135,7 @@ class View_Documents extends View
 				if ($filename = Documents_Manager::validateFileName($_POST['savefile'])) {
 					if (!Documents_Manager::isHTML($filename)) {
 						// Append .html if entered filename has missing or non-HTML extension
-						$filename.+".html";
+						$filename .= ".html";
 					}
 					if (!empty($_POST['isnew']) && file_exists($this->_realdir.'/'.$filename)) {
 						trigger_error("$filename already exists in this folder.  Please choose another name.");
