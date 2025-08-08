@@ -697,7 +697,10 @@ class roster_view extends db_object
 						$details['readonly'] = true;
 						$show_lock_fail_msg = true;
 						$lockHolder = $role->getLockHolder('assignments');
-						$lockholders[$lockHolder['userid']] ??= $lockHolder;
+						// Use ??= null coalescing when we drop php 7.2
+						if (!isset($lockholders[$lockHolder['userid']])) {
+							$lockholders[$lockHolder['userid']] = $lockHolder;
+						}
 					}
 					if (!$role->canEditAssignments()) {
 						$details['readonly'] = true;
@@ -1174,13 +1177,16 @@ class roster_view extends db_object
 	 */
 	public function printLockHoldMessage(array $lockholders): void
 	{
-		$lockHoldersStr =
-			implode(' and ', array_map(
-				fn($lockowner, $userid) => $lockowner['first_name'] !== null ? "{$lockowner['first_name']} {$lockowner['last_name']} ({$userid})" : "user $userid",
-				$lockholders,
-				array_keys($lockholders)
-			));
-        // If more than one person holds locks of differing expiries, the longest expiry is most relevant.
+		$lockHoldersStr = implode(' and ', array_map(
+			function($lockowner, $userid) {
+				return $lockowner['first_name'] !== null
+					? "{$lockowner['first_name']} {$lockowner['last_name']} ({$userid})"
+					: "user $userid";
+			},
+			$lockholders,
+			array_keys($lockholders)
+		));
+		// If more than one person holds locks of differing expiries, the longest expiry is most relevant.
 		$maxLockExpiry = array_reduce($lockholders, function ($carry, $lockholder) {
 			return $lockholder['expires'] > $carry ? $lockholder['expires'] : $carry;
 		}, PHP_INT_MIN);

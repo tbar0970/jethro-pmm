@@ -14,7 +14,10 @@ class View_Home extends View
 	{
 		if (ifdef('NEEDS_1086_CHECK')) {
 			if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
-				require_once 'views/view_0_fix_age_brackets.class.php';
+				if (PHP_VERSION_ID >= 70400) {
+					// This code requires php 7.4+ but isn't particularly essential, so let's not break on 7.2. Issue #1245
+					require_once 'views/view_0_fix_age_brackets.class.php';
+				}
 				$x = new View__Fix_Age_Brackets();
 				$x->printInvitation();
 			}
