@@ -170,37 +170,6 @@ function redirect($view, $params=Array(), $hash='')
 	exit;
 }
 
-/**
- * If a session cookie HTTP header is to be sent, alter it to make sure it includes the right details
- * Specifically, this is to make sure we have SameSite=Lax even under PHP5.
- */
-function upgrade_session_cookie()
-{
-	$headers_list = headers_list();
-	$header_was_deleted = FALSE;
-	foreach ($headers_list as $i => $header) {
-		if (FALSE !== strpos($header, session_name())) {
-			// There is a session cookie header waiting to be sent. Remove it, and add a better one.
-			$path = parse_url(BASE_URL, PHP_URL_PATH);
-			$domain = parse_url(BASE_URL, PHP_URL_HOST);
-			header_remove('Set-Cookie');
-			unset($headers_list[$i]);
-			$header_was_deleted = TRUE;
-			header("Set-Cookie: ".session_name()."=".session_id()."; path=".$path."; HttpOnly; SameSite=Lax");
-			break;
-		}
-	}
-	if ($header_was_deleted) {
-		foreach ($headers_list as $header) {
-			if (FALSE !== strpos($header, 'Set-Cookie:')) {
-				// Since the call to header_remove above will have deleted ALL Set-Cookie headers, we will reinstate
-				// Any Set-Cookie headers that are not related to the Session ID.
-				header($header, false);
-			}
-		}
-	}
-}
-
 
 function add_message($msg, $class='success', $html=FALSE)
 {
