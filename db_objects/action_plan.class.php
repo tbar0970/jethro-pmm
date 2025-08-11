@@ -538,7 +538,7 @@ class Action_Plan extends DB_Object
 		}
 		foreach (array_get($actions, 'groups_remove', Array()) as $groupid) {
 			$group = $GLOBALS['system']->getDBObject('person_group', $groupid);
-			$group->removeMembers($personids);
+			if ($group) $group->removeMembers($personids);
 		}
 
 		$note_type = $subject_type.'_note';
