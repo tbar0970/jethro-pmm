@@ -1121,6 +1121,7 @@ class Person_Query extends DB_Object
 							break;
 
 						case 'exact':
+						case 'not':
 						case 'anniversary':
 
 							$from = $to = NULL;
@@ -1153,6 +1154,11 @@ class Person_Query extends DB_Object
 
 							}
 							$w = Array();
+							if ($values['criteria'] == 'not') {
+								// date is either unset or not in the specified range
+								$w[] = "$valExp IS NULL";
+								$betweenExp = 'NOT '.$betweenExp;
+							}
 							$w[] = "$valExp NOT LIKE '-%' AND $valExp $betweenExp";
 							if ($values['criteria'] == 'anniversary') {
 								$qFromYear = $db->quote(substr($from, 0, 4));

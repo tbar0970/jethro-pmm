@@ -263,6 +263,15 @@ $(document).ready(function() {
 
 	});
 
+	// When something in a datepicker is clicked (e.g. 'years') select the corresponding radio button ('relative date')
+	$('.date-range-picker .dropdown-menu').on('click', function(e) {
+		$(e.target)
+			.closest('tr')
+			.find('input[type="radio"]')
+			.prop('checked', true);
+	});
+
+
 
 	/************************ SEARCH CHOOSERS ************************/
 
