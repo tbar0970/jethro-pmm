@@ -72,9 +72,6 @@ class System_Controller
 
 	public function initErrorHandler()
 	{
-		$error_level = defined('E_DEPRECATED') ? (E_ALL & ~constant('E_DEPRECATED') /*& ~constant('E_STRICT')*/) : E_ALL;
-		error_reporting($error_level);
-
 		set_error_handler(Array($this, '_handleError'));
 		set_exception_handler(Array($this, '_handleException'));
 	}
@@ -288,6 +285,10 @@ class System_Controller
 				$bg = 'warning';
 				$title = 'NOTICE';
 				break;
+			case E_DEPRECATED:
+				// Log deprecations, but don't print anything to the browser. #1250
+				error_log("$errstr - Line $errline of $errfile");
+				return;
 			default:
 				$bg = 'info';
 				$title = 'SYSTEM ERROR';
