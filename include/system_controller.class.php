@@ -119,7 +119,7 @@ class System_Controller
 				require_once $this->_base_dir.'/views/'.$view_filename;
 				$view_perm = call_user_func(Array($view_classname, 'getMenuPermissionLevel'));
 				if (!empty($view_perm) && !$GLOBALS['user_system']->havePerm($view_perm)) {
-					trigger_error("You don't have permission to access this view", E_USER_ERROR); // exits
+					throw new \RuntimeException("You don't have permission to access this view"); // exits
 				}
 				$this->_view = new $view_classname();
 				$this->_view->processView();
@@ -387,11 +387,11 @@ class System_Controller
 	public static function checkConfigHealth()
 	{
 		if (REQUIRE_HTTPS && (FALSE === strpos(BASE_URL, 'https://'))) {
-			trigger_error("Configuration file error: If you set REQUIRE_HTTPS to true, your BASE_URL must start with https", E_USER_ERROR);
+			throw new \RuntimeException("Configuration file error: If you set REQUIRE_HTTPS to true, your BASE_URL must start with https");
 		}
 
 		if (substr(BASE_URL, -1) != '/') {
-			trigger_error("Configuration file error: Your BASE_URL must end with a slash", E_USER_ERROR);
+			throw new \RuntimeException("Configuration file error: Your BASE_URL must end with a slash");
 		}
 	}
 

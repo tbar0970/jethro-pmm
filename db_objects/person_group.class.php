@@ -186,7 +186,7 @@ class Person_Group extends db_object
 		list($statuses, $default_status) = self::getMembershipStatusOptionsAndDefault();
 		if ($membership_status === NULL) $membership_status = $default_status;
 		if (!isset($statuses[$membership_status])) {
-			trigger_error("Invalid membership status value '$membership_status'", E_USER_ERROR);
+			throw new \RuntimeException("Invalid membership status value '$membership_status'");
 			return FALSE;
 		}
 

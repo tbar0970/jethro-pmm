@@ -205,7 +205,7 @@ class User_System extends Abstract_User_System
 
 	public function havePerm($permission)
 	{
-		if (!is_int($permission)) trigger_error("Non-numeric permission level is invalid", E_USER_ERROR);
+		if (!is_int($permission)) throw new \RuntimeException("Non-numeric permission level is invalid");
 		if ($permission == 0) return true;
 		if (!empty($GLOBALS['JETHRO_INSTALLING'])) return true;
 		if (!array_key_exists($permission, $this->_permission_levels)) return false; // disabled feature
@@ -245,7 +245,7 @@ class User_System extends Abstract_User_System
 	public function printLogin()
 	{
 		if (!$this->hasUsers()) {
-			trigger_error("This system has no user accounts - it has not been installed properly", E_USER_ERROR);
+			throw new \RuntimeException("This system has no user accounts - it has not been installed properly");
 			exit;
 		}
 
