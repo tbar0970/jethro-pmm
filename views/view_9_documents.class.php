@@ -29,7 +29,7 @@ class View_Documents extends View
 	{
 		$this->_rootpath = Documents_Manager::getRootPath();
 		if (!is_dir($this->_rootpath)) {
-			trigger_error("Documents root path ".$this->_rootpath.' does not exist, please check your config file', E_USER_ERROR); // exits
+			throw new \RuntimeException("Documents root path ".$this->_rootpath.' does not exist, please check your config file'); // exits
 		}
 		$this->_realdir = $this->_rootpath;
 		$this->_messages = Array();
@@ -77,7 +77,7 @@ class View_Documents extends View
 						add_message("Your file could not be saved because the file is too big.", 'error');
 						return NULL;
 					} else {
-						trigger_error("Technical error uploading photo file: Error #".$error, E_USER_ERROR);
+						throw new \RuntimeException("Technical error uploading photo file: Error #".$error);
 					}
 				}
 			}
@@ -135,7 +135,7 @@ class View_Documents extends View
 				if ($filename = Documents_Manager::validateFileName($_POST['savefile'])) {
 					if (!Documents_Manager::isHTML($filename)) {
 						// Append .html if entered filename has missing or non-HTML extension
-						$filename.+".html";
+						$filename .= ".html";
 					}
 					if (!empty($_POST['isnew']) && file_exists($this->_realdir.'/'.$filename)) {
 						trigger_error("$filename already exists in this folder.  Please choose another name.");

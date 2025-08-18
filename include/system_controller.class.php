@@ -72,9 +72,6 @@ class System_Controller
 
 	public function initErrorHandler()
 	{
-		$error_level = defined('E_DEPRECATED') ? (E_ALL & ~constant('E_DEPRECATED') /*& ~constant('E_STRICT')*/) : E_ALL;
-		error_reporting($error_level);
-
 		set_error_handler(Array($this, '_handleError'));
 		set_exception_handler(Array($this, '_handleException'));
 	}
@@ -122,7 +119,7 @@ class System_Controller
 				require_once $this->_base_dir.'/views/'.$view_filename;
 				$view_perm = call_user_func(Array($view_classname, 'getMenuPermissionLevel'));
 				if (!empty($view_perm) && !$GLOBALS['user_system']->havePerm($view_perm)) {
-					trigger_error("You don't have permission to access this view", E_USER_ERROR); // exits
+					throw new \RuntimeException("You don't have permission to access this view"); // exits
 				}
 				$this->_view = new $view_classname();
 				$this->_view->processView();
@@ -237,7 +234,7 @@ class System_Controller
 			case 'ROLLBACK':
 				// Rollback always rolls back everything
 				@$GLOBALS['db']->rollback();
-				$this->_transaction_depth--;
+				$this->_transaction_depth = 0;
 		}
 	}
 
@@ -288,6 +285,10 @@ class System_Controller
 				$bg = 'warning';
 				$title = 'NOTICE';
 				break;
+			case E_DEPRECATED:
+				// Log deprecations, but don't print anything to the browser. #1250
+				error_log("$errstr - Line $errline of $errfile");
+				return;
 			default:
 				$bg = 'info';
 				$title = 'SYSTEM ERROR';
@@ -386,11 +387,11 @@ class System_Controller
 	public static function checkConfigHealth()
 	{
 		if (REQUIRE_HTTPS && (FALSE === strpos(BASE_URL, 'https://'))) {
-			trigger_error("Configuration file error: If you set REQUIRE_HTTPS to true, your BASE_URL must start with https", E_USER_ERROR);
+			throw new \RuntimeException("Configuration file error: If you set REQUIRE_HTTPS to true, your BASE_URL must start with https");
 		}
 
 		if (substr(BASE_URL, -1) != '/') {
-			trigger_error("Configuration file error: Your BASE_URL must end with a slash", E_USER_ERROR);
+			throw new \RuntimeException("Configuration file error: Your BASE_URL must end with a slash");
 		}
 	}
 

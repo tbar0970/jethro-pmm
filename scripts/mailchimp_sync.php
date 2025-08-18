@@ -38,7 +38,7 @@ $VERIFY_SSL = TRUE; // This must be true for prod systems. Can be turned off for
 define('JETHRO_ROOT', dirname(dirname(__FILE__)));
 set_include_path(get_include_path().PATH_SEPARATOR.JETHRO_ROOT);
 if (!is_readable(JETHRO_ROOT.'/conf.php')) {
-        trigger_error('Jethro configuration file not found.  You need to copy conf.php.sample to conf.php and edit it before Jethro can run', E_USER_ERROR);
+        throw new \RuntimeException('Jethro configuration file not found.  You need to copy conf.php.sample to conf.php and edit it before Jethro can run');
         exit();
 }
 
@@ -64,11 +64,11 @@ if ($fromDB) {
         if (empty($syncs)) exit;
         $api_key = ifdef('MAILCHIMP_API_KEY', '');
         if (!strlen($api_key)) {
-                trigger_error("API KEY not set in Jethro config", E_USER_ERROR);
+                throw new \RuntimeException("API KEY not set in Jethro config");
         }}
 
 if (empty($api_key)) {
-        trigger_error("API key not specified" , E_USER_ERROR);
+        throw new \RuntimeException("API key not specified" );
 }
 
 require_once 'vendor/autoload.php';
@@ -92,14 +92,14 @@ function run_mc_sync($mc, $report_id, $list_id)
         if (empty($list_id)) {
                 $lists = $mc->get('lists');
                 if (($lists == FALSE) || !$mc->success()) {
-                        trigger_error("[Syncing report $report_id]: Mailchimp API Error calling lists(): ".$mc->getLastError(), E_USER_ERROR);
+                        throw new \RuntimeException("[Syncing report $report_id]: Mailchimp API Error calling lists(): ".$mc->getLastError());
                 }
                 switch (count($lists['lists'])) {
                         case 1:
                                 $list_id = $lists['lists'][0]['id'];
                                 break;
                         case 0:
-                                trigger_error("[Syncing report $report_id] ]No lists found in mailchimp account - create one in mailchimp first", E_USER_ERROR);
+                                throw new \RuntimeException("[Syncing report $report_id] ]No lists found in mailchimp account - create one in mailchimp first");
                                 break;
                         default:
                                 echo "Several lists were found in your mailchimp account. \nPlease specify one of the following list IDs as the final command line argument: \n";
@@ -115,7 +115,7 @@ function run_mc_sync($mc, $report_id, $list_id)
         $vars = array();
         $vars_res = $mc->get('lists/'.$list_id.'/merge-fields');
         if (!$vars_res || !$mc->success()) {
-                trigger_error("[Syncing report $report_id to list $list_id] Mailchimp API Error calling lists/merge-fields: ".$mc->getLastError(), E_USER_ERROR);
+                throw new \RuntimeException("[Syncing report $report_id to list $list_id] Mailchimp API Error calling lists/merge-fields: ".$mc->getLastError());
         }
 
         foreach (array_get($vars_res, 'merge_fields', Array()) as $var_details) {
@@ -123,16 +123,16 @@ function run_mc_sync($mc, $report_id, $list_id)
         }
         $missing_vars = array_diff(Array('STATUS', 'CONG', 'AGEBRACKET', 'GENDER'), $vars);
         if (!empty($missing_vars)) {
-                trigger_error("[Syncing report $report_id to list $list_id] Your mailchimp list is missing the merge vars ".implode(', ', $missing_vars).'.  Set these up in Mailchimp then try again.', E_USER_ERROR);
+                throw new \RuntimeException("[Syncing report $report_id to list $list_id] Your mailchimp list is missing the merge vars ".implode(', ', $missing_vars).'.  Set these up in Mailchimp then try again.');
         }
 
         // Check that we have a report
         if (!(int)$report_id) {
-                trigger_error("No Report ID found - correct your config within ".__FILE__, E_USER_ERROR);
+                throw new \RuntimeException("No Report ID found - correct your config within ".__FILE__);
         }
         $report = $GLOBALS['system']->getDBObject('person_query', (int)$report_id);
         if (empty($report)) {
-                trigger_error("[Syncing report $report_id to list $list_id] Could not find report #$report_id - please check your config in ".__FILE__, E_USER_ERROR);
+                throw new \RuntimeException("[Syncing report $report_id to list $list_id] Could not find report #$report_id - please check your config in ".__FILE__);
         }
 
 
@@ -158,7 +158,7 @@ function run_mc_sync($mc, $report_id, $list_id)
         // Get the existing members of the mailchimp list
         $members_res = $mc->get('lists/'.$list_id.'/members', Array('count' => 10000), 60);
         if ((FALSE === $members_res) || !$mc->success()) {
-                trigger_error("Mailchimp API Error fetching list members: ".$mc->getLastError(), E_USER_ERROR);
+                throw new \RuntimeException("Mailchimp API Error fetching list members: ".$mc->getLastError());
         }
         $mc_members = Array();
         foreach ($members_res['members'] as $m) {
@@ -247,7 +247,7 @@ function run_mc_sync($mc, $report_id, $list_id)
                         }
                         if (time() - $started > 60*5) {
                                 $batch_id = $batch_res_summary['id'];
-                                trigger_error("[Syncing report $report_id to list $list_id] Batch $batch_id has been running for more than 5 minutes. Giving up.", E_USER_ERROR);
+                                throw new \RuntimeException("[Syncing report $report_id to list $list_id] Batch $batch_id has been running for more than 5 minutes. Giving up.");
                                 exit;
                         }
                         if ($DEBUG > 1) bam($batch_res_summary);
@@ -255,9 +255,9 @@ function run_mc_sync($mc, $report_id, $list_id)
                 }
 
                 if (empty($batch_res_summary)) {
-                        trigger_error("[Syncing report $report_id to list $list_id] Failed to get batch status", E_USER_ERROR);
+                        throw new \RuntimeException("[Syncing report $report_id to list $list_id] Failed to get batch status");
                 } else if ($batch_res_summary['status'] != 'finished') {
-                        trigger_error("[Syncing report $report_id to list $list_id] Batch did not finish", E_USER_ERROR);
+                        throw new \RuntimeException("[Syncing report $report_id to list $list_id] Batch did not finish");
                 } else {
                                                 $all_failures = Array();
                                                 if (($DEBUG > 1) || ($batch_res_summary['errored_operations'] > 0)) {
