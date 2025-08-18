@@ -43,9 +43,11 @@ $(document).ready(function() {
 			}
 		});
 	}
-	if ((navigator.userAgent.toLowerCase().indexOf('safari/') > -1)
-		&& ("standalone" in window.navigator)
-		&& !window.navigator.standalone) {
+	var ua = window.navigator.userAgent;
+	var iOS = !!ua.match(/iPad/i) || !!ua.match(/iPhone/i);
+	var webkit = !!ua.match(/WebKit/i);
+	var iOSSafari = iOS && webkit && !ua.match(/CriOS/i);
+	if (iOSSafari && !window.navigator.standalone) {
 		// we're in safari, but not in standalone mode, so show the tip
 		$('.a2hs-prompt').show();
 	}
@@ -171,6 +173,105 @@ $(document).ready(function() {
 	$('input.select-rule-toggle').click(function() {
 		$($(this).parents('tr')[0]).find('div.select-rule-options').css('display', (this.checked ? '' : 'none'));
 	});
+
+	$('.date-range-picker select.dropdown-toggle').each(function(event) {
+		var menu = $(this.parentNode).find('.dropdown-menu');
+		var radiosByVal = {};
+		menu.find('input[type=radio]').attr('checked', false).each(function() {
+			radiosByVal[this.value] = this;
+		});
+		var matches;
+		switch (true) {
+			case (!!(matches = this.value.match(/(\d\d\d\d)-(\d\d)-(\d\d)/))):
+				radiosByVal['exact'].checked = true;
+				menu.find('input[name=drp_exact_d]').val(matches[3]);
+				menu.find('select[name=drp_exact_m]').val(parseInt(matches[2], 10));
+				menu.find('input[name=drp_exact_y]').val(matches[1]);
+				JethroDateRangePicker.updateDisplayValue(this, 'exact');
+				break;
+			case (!!(matches = this.value.match(/([-+])(\d+)y(\d+)m(\d+)d/))):
+				menu.find('select[name=drp_relative_direction]').val(matches[1]);
+				menu.find('input[name=drp_relative_d]').val(matches[4]);
+				menu.find('input[name=drp_relative_m]').val(matches[3]);
+				menu.find('input[name=drp_relative_y]').val(matches[2]);
+				radiosByVal['relative'].checked = true;
+				JethroDateRangePicker.updateDisplayValue(this, 'relative');
+				break;
+			case this.value == '*':
+				radiosByVal['any'].checked = true;
+				JethroDateRangePicker.updateDisplayValue(this, 'any');
+				break;
+			default:
+				console.log("Did not diagnose value "+this.value);
+		}
+	});
+
+	$('.date-range-picker select.dropdown-toggle').on('mousedown', function(event) {
+		this.oldValue = this.value;
+		this.oldLabel = this.options[0].innerHTML;
+		this.options[0].innerHTML = 'Choose date option:'
+
+		var menu = $(this.parentNode).find('.dropdown-menu');
+		menu.show();
+
+		event.stopPropagation(); 
+		event.preventDefault(); 
+		return false;
+
+	});
+
+	$('.date-range-picker button.cancel').on('click', function(event) {
+		var menu = $(this).parents('.date-range-picker').find('.dropdown-menu');
+		menu.hide();
+		var toggle = $(this).parents('.date-range-picker').find('.dropdown-toggle').get(0);
+		toggle.options[0].innerHTML = toggle.oldLabel;
+
+		event.stopPropagation(); 
+		event.preventDefault(); 
+		return false;
+	});
+
+	$('.date-range-picker button.save').on('click', function(event) {
+		var menu = $(this).parents('.date-range-picker').find('.dropdown-menu');
+		menu.hide();
+		var toggle = $(this).parents('.date-range-picker').find('.dropdown-toggle').get(0);
+		toggle.options[0].innerHTML = toggle.oldLabel;
+		var selectedType = menu.find('input[type=radio]:checked').val();
+		switch (selectedType) {
+			case 'any':
+				toggle.options[0].value = '*';
+				toggle.options[0].innerHTML = 'any date';
+				break;
+			case 'relative':
+				var v = {};
+				var drp = $(this).parents('.date-range-picker');
+				v['direction'] = drp.find('select[name=drp_relative_direction]').val()
+				v['y'] = drp.find('input[name=drp_relative_y]').val() || "0"
+				v['m'] = drp.find('input[name=drp_relative_m]').val() || "0"
+				v['d'] = drp.find('input[name=drp_relative_d]').val() || "0"
+				// todo: zeros
+				toggle.options[0].value = v['direction']+v['y']+'y'+v['m']+'m'+v['d']+'d';
+				break;
+			case 'exact':
+				var drp = $(this).parents('.date-range-picker');
+				toggle.options[0].value = drp.find('input[name=drp_exact_y]').val() + '-'
+							+ drp.find('select[name=drp_exact_m]').val().padStart(2,0) + '-'
+							+ drp.find('input[name=drp_exact_d]').val().padStart(2,0);
+				break;
+		}
+		JethroDateRangePicker.updateDisplayValue(toggle, selectedType);
+
+	});
+
+	// When something in a datepicker is clicked (e.g. 'years') select the corresponding radio button ('relative date')
+	$('.date-range-picker .dropdown-menu').on('click', function(e) {
+		$(e.target)
+			.closest('tr')
+			.find('input[type="radio"]')
+			.prop('checked', true);
+	});
+
+
 
 	/************************ SEARCH CHOOSERS ************************/
 
@@ -1870,4 +1971,31 @@ function handleFamilyFormSubmit()
 		return false;
 	}
 	return true;
+}
+
+var JethroDateRangePicker = {};
+JethroDateRangePicker.updateDisplayValue = function(selectElt, valueType)
+{
+	switch (valueType) {
+		case 'any':
+			selectElt.options[0].innerHTML = 'any date';
+			break;
+		case 'exact':
+			var d = new Date(Date.parse(selectElt.options[0].value.replace(/-/g, '/')));
+			selectElt.options[0].innerHTML = d.getDate()+' '+d.toLocaleString('default', { month: 'short' })+' '+d.getFullYear();
+			break;
+		case 'relative':
+			var matches = selectElt.options[0].value.match(/([-+])(\d+)y(\d+)m(\d+)d/);
+			if (matches) {
+				var l = '';
+				if (matches[2]>0) l += matches[2]+' years ';
+				if (matches[3]>0) l += matches[3]+' months ';
+				if (matches[4]>0) l += matches[4]+' days ';
+				if (l.length) l += (matches[1] == '-') ? 'before' : 'after';
+				l += ' the report date';
+				selectElt.options[0].innerHTML = l;
+			} else {
+				selectElt.options[0].innerHTML = '!Error!';
+			}
+	}
 }

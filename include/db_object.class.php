@@ -22,7 +22,7 @@ class db_object
 	public function __construct($id=0)
 	{
 		if (!$this->checkPerm($this->_load_permission_level)) {
-			trigger_error('Current user has insufficient permission level to load a '.get_class($this).' object', E_USER_ERROR);
+			throw new \RuntimeException('Current user has insufficient permission level to load a '.get_class($this).' object');
 		}
 
 		$this->fields = Array();
@@ -176,7 +176,7 @@ class db_object
 	public function create()
 	{
 		if (!$this->checkPerm($this->_save_permission_level)) {
-			trigger_error('Current user has insufficient permission level to create a '.get_class($this).' object', E_USER_ERROR);
+			throw new \RuntimeException('Current user has insufficient permission level to create a '.get_class($this).' object');
 		}
 
 		$GLOBALS['system']->setFriendlyErrors(TRUE);
@@ -191,7 +191,12 @@ class db_object
 			}
 		}
 		if (isset($this->fields['history'])) {
-			$this->values['history'] = Array(time() => 'Created');
+			$created = 'Created';
+			$user = $GLOBALS['user_system']->getCurrentPerson();
+			if ($user) {
+				$created .= ' by '.$user['first_name'].' '.$user['last_name'].' (#'.$user['id'].')';
+			}
+			$this->values['history'] = Array(time() => $created);
 		}
 
 		$parent_class =  strtolower(get_parent_class($this));
@@ -247,7 +252,7 @@ class db_object
 	public function createFromChild($child)
 	{
 		if (!$this->checkPerm($this->_save_permission_level)) {
-			trigger_error('Current user has insufficient permission level to create a '.get_class($this).' object', E_USER_ERROR);
+			throw new \RuntimeException('Current user has insufficient permission level to create a '.get_class($this).' object');
 		}
 		$this->populate($child->id, $child->values);
 		return $this->_createFinal();
@@ -336,7 +341,7 @@ class db_object
 	public function save()
 	{
 		if (!$this->checkPerm($this->_save_permission_level)) {
-			trigger_error('Current user has insufficient permission level to save a '.get_class($this).' object', E_USER_ERROR);
+			throw new \RuntimeException('Current user has insufficient permission level to save a '.get_class($this).' object');
 		}
 		$GLOBALS['system']->setFriendlyErrors(TRUE);
 		if (!$this->validateFields()) {
@@ -358,7 +363,7 @@ class db_object
 		// Add to the history, unless it's been explicly set as a value (see Person::archiveAndClean())
 		if (isset($this->fields['history']) && empty($this->_old_values['history'])) {
 			if (!isset($this->values['history']) || !is_array($this->values['history'])) {
-				trigger_error("History field is not an array - this should not be. Aborting.", E_USER_ERROR);
+				throw new \RuntimeException("History field is not an array - this should not be. Aborting.");
 				exit;
 			}
 			$changes = $this->_getChanges();
@@ -582,9 +587,9 @@ class db_object
 					}
 				}
 			}
-			trigger_error('Object has no property called '.$propName, E_USER_ERROR); exit;
+			throw new \RuntimeException('Object has no property called '.$propName); exit;
 		} else {
-			trigger_error('Call to undefined method '.$name, E_USER_ERROR); exit;
+			throw new \RuntimeException('Call to undefined method '.$name); exit;
 		}
 	}
 
@@ -724,6 +729,12 @@ class db_object
 			<table class="history table table-full-width table-striped">
 			<?php
 			foreach ($value as $time => $detail) {
+				if (($detail == 'Created') && isset($this->fields['creator'])) {
+					// Add the creator name if we know it. Pre 2025 this wasn't saved in the history itself.
+					if ($creator = $GLOBALS['system']->getDBObject('person', $this->getValue('creator'))) {
+						$detail .= ' by '.$creator->toString();
+					}
+				}
 				?>
 				<tr>
 					<th class="narrow"><?php echo format_datetime($time); ?></th>
@@ -1089,7 +1100,7 @@ class db_object
 			} else if ($field[0] == '(') {
 				if ($val === Array()) {
 					// We're checking if the value is a member of an empty set.
-					$prefix = '/* empty set check for '.$field.' */';
+					$prefix .= '/* empty set check for '.$field.' */ ';
 					$field = '1';
 					$operator = '=';
 					$val = '2';

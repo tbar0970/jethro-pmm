@@ -667,6 +667,9 @@ input[type="radio"] {
 	width: auto !important;
 	min-width: 50ex;
 }
+#body .table-no-borders td, #body .table-no-borders th {
+	border-width: 0px !important;
+}
 tr:first-child > td > .move-row-up,
 tr:last-child > td > .move-row-down {
   visibility: hidden;
@@ -877,6 +880,13 @@ table.object-summary>tbody>tr>td>table>tbody>tr:first-child td {
 .year-box {
 	width: 6.5ex !important;
 }
+
+input[type=number]::-webkit-outer-spin-button, 
+input[type=number]::-webkit-inner-spin-button {
+    -webkit-appearance: inner-spin-button !important;
+	opacity: 1;	
+}
+
 @media (min-width: 1px) {
 	/* support for media queries roughly equivalent for support for such things as the placeholder attr */
 	.msie-only {
@@ -965,6 +975,21 @@ table.query-results tfoot * {
 	color: @grayLight !important;
 }
 
+.date-range-picker .dropdown-menu {
+	background: white; 
+	padding: 10px; 
+	min-width: 500px;
+	margin-top: 8px;
+}
+.date-range-picker td {
+	border-width: 0px !important;
+}
+.date-range-picker .relative input[type=number] {
+	width: 4.5ex !important;
+}
+
+
+
 
 /************** USER ACCOUNT ****************/
 .bitmask-boxes div {
@@ -984,6 +1009,7 @@ table.query-results tfoot * {
 	overflow: auto; /* clearfix */
 	margin-bottom: 1ex;
 }
+.group-details-links a,
 .group-members-links div {
 	float: right;
 	margin-left: 2em;
@@ -1021,8 +1047,6 @@ img.person-photo {
 	border: 1px solid @jethroDarkest;
 	padding: 15px 10px 10px 10px;
 	position: relative;
-	z-index: 50;
-	overflow: hidden;
 	background: @jethroLight;
 	border-radius: 5px;
 	margin-bottom: 15px;

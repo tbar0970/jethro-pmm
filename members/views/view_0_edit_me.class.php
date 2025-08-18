@@ -4,6 +4,7 @@ class View__Edit_Me extends View
 	private $family = NULL;
 	private $persons = Array();
 	private $hasAdult = FALSE;
+	private $hasHidden = FALSE;
 	private $person_fields = Array('gender', 'age_bracketid', 'email', 'mobile_tel', 'work_tel', 'photo');
 
 	public function __construct()
@@ -33,13 +34,19 @@ class View__Edit_Me extends View
 		$this->family = $GLOBALS['system']->getDBOBject('family', $GLOBALS['user_system']->getCurrentMember('familyid'));
 		foreach ($this->family->getMemberData() as $id => $member) {
 			$p = $GLOBALS['system']->getDBObject('person', $id);
-			$this->persons[$id] = $p;
-			if (in_array($p->getValue('age_bracketid'), Age_Bracket::getAdults())) {
-				$this->hasAdult = TRUE;
+			if ($p) {
+				$this->persons[$id] = $p;
+				if (in_array($p->getValue('age_bracketid'), Age_Bracket::getAdults())) {
+					$this->hasAdult = TRUE;
+				}
+			} else {
+				// Person object will be null if user lacks permission to view this family member
+				// (e.g. when user has congregation-restricted permissions and family member is in a different congregation). #1173
+				$this->hasHidden = TRUE;
 			}
 		}
 		
-		if (!empty($_POST)) {
+		if (array_get($_POST, 'family_details_submitted')) {
 			if ($this->canEditFamily()) {
 				$this->family->processForm();
 				$this->family->save();
@@ -88,9 +95,19 @@ class View__Edit_Me extends View
 				<p><i>If you need to change names or other details which are not listed in this form, please contact  <a href="mailto:<?php echo ents(MEMBER_REGO_HELP_EMAIL); ?>"><?php echo ents(MEMBER_REGO_HELP_EMAIL); ?></a>.</i></p>
 				<?php
 			}
-			
+
+			if ($this->hasHidden) {
+				?>
+				<div class="alert alert-info">
+					<strong>Note:</strong> Some family members are not shown here due to permission restrictions.
+					You can only view and edit family members from congregations and groups you have access to.
+				</div>
+				<?php
+			}
+
 			?>
 			<form method="post" enctype="multipart/form-data">
+			<input type="hidden" name="family_details_submitted" value="1" />
 			<h3>Family Details</h3>
 			<?php
 			if ($this->canEditFamily()) {

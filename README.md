@@ -11,21 +11,21 @@ Jethro PMM is the software that powers online services such as [Easy Jethro](htt
 Download the latest version of Jethro from the [releases page](https://github.com/tbar0970/jethro-pmm/releases)
 
 System requirements are:
+* Some kind of web server (apache/ngnix etc)
 * MySQL 8.0 or above
     * with [ONLY_FULL_GROUP_BY](https://dev.mysql.com/doc/refman/8.4/en/sql-mode.html#sqlmode_only_full_group_by) disabled
-* PHP 5.3.0 or above
+* PHP 7.0 or above
     * with [gettext extension](https://www.php.net/manual/en/book.gettext.php) enabled
+    * with [zip extension](https://www.php.net/manual/en/book.zip.php) enabled
+    * with [xmlwriter extension](https://www.php.net/manual/en/book.xmlwriter.php) enabled, to create DOCX files
     * [GD library](https://www.php.net/manual/en/book.image.php) recommended, to manage the size of uploaded photos
     * with [curl extension](https://www.php.net/manual/en/book.curl.php) enabled, if you intend to use the Mailchimp integration
-* Some web server (apache suggested)
 
 The steps to install are:
-
 1. Unzip the files into a web-accessible folder on your web server
 2. Create a mysql database and database user for your jethro system to use. If asked, choose utf8_unicode_ci as the character set and collation.
 3. Edit Jethro's configuration file conf.php and fill in the essential details (system name, URL, database details).  Further explanation can be found inside the file.
-4. Open the jethro system URL in your web browser
-    In your web browser, the Jethro installer will start automatically and will prompt you for details to create the initial user account.  When the installer completes, it will prompt you to log into the installed system.
+4. Open the Jethro system URL in your web browser.  The Jethro installer will start automatically and will prompt you for details to create the initial user account.  When the installer completes, it will prompt you to log into the installed system.
 
 # Documentation
 

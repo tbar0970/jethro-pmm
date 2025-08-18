@@ -21,7 +21,7 @@ Class Photo_Handler {
 					add_message("Your photo could not be saved because the file is too big (over ".self::maxUploadSize()."Mb). Please try a smaller image.", 'error');
 					return NULL;
 				} else {
-					trigger_error("Technical error uploading photo file: Error #".$err, E_USER_ERROR);
+					throw new \RuntimeException("Technical error uploading photo file: Error #".$err);
 				}
 			}
 
@@ -30,7 +30,7 @@ Class Photo_Handler {
 				add_message("The uploaded photo was not of a permitted type and has not been saved.  Photos must be JPEG, GIF or PNG", 'error');
 				return NULL;
 			} else if (!is_uploaded_file($file)) {
-				trigger_error("Security error with file upload", E_USER_ERROR);
+				throw new \RuntimeException("Security error with file upload");
 				return NULL;
 			} else {
 				$bits = explode('.', $_FILES[$fieldName]['name']);

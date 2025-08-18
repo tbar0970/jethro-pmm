@@ -369,15 +369,28 @@ class View_Admin__System_Configuration extends View {
 				$is_default = (int)($_POST['membership_status_default_rank'] == $i);
 				if (empty($_POST['membership_status_'.$i.'_id'])) {
 					if (!empty($_POST['membership_status_'.$i.'_label'])) {
-						$sql = 'INSERT INTO person_group_membership_status (label, `rank`, is_default)
-								VALUES ('.$db->quote($_POST['membership_status_'.$i.'_label']).', '.(int)$ranks[$i].','.$is_default.')';
+						$label = $_POST['membership_status_'.$i.'_label'];
+						$dupes = $db->queryRow('SELECT 1 FROM person_group_membership_status WHERE label = '.$db->quote($label));
+						if ($dupes) {
+							add_message("Did not save new group membership status option '".$label."' because there is already a group membership status option with that name", "warning");
+						} else {
+							$sql = 'INSERT INTO person_group_membership_status (label, `rank`, is_default)
+									VALUES ('.$db->quote($label).', '.(int)$ranks[$i].','.$is_default.')';
+						}
 					}
 				} else if (!in_array($_POST['membership_status_'.$i.'_id'], array_get($_POST, 'membership_status_delete', Array()))) {
-					$sql = 'UPDATE person_group_membership_status
-							SET label = '.$db->quote($_POST['membership_status_'.$i.'_label']).',
-							is_default = '.$is_default.',
-							`rank` = '.(int)$ranks[$i].'
-							WHERE id = '.(int)$_POST['membership_status_'.$i.'_id'];
+					$label = $_POST['membership_status_'.$i.'_label'];
+					$id = (int)$_POST['membership_status_'.$i.'_id'];
+					$dupes = $db->queryRow('SELECT 1 FROM person_group_membership_status WHERE label = '.$db->quote($label).' AND id != '.$id);
+					if ($dupes) {
+						add_message("Did not update group membership status option '".$label."' because there is already another group membership status option with that name", "warning");
+					} else {
+						$sql = 'UPDATE person_group_membership_status
+								SET label = '.$db->quote($label).',
+								is_default = '.$is_default.',
+								`rank` = '.(int)$ranks[$i].'
+								WHERE id = '.$id;
+					}
 				}
 				if ($sql) {
 					$res = $db->query($sql);
@@ -607,6 +620,7 @@ class View_Admin__System_Configuration extends View {
 		if (!empty($_POST['person_status_submitted'])) {
 			$i = 0;
 			$saved_default = false;
+			$got_an_archived = false;
 			$rankMap = $_REQUEST['pstatus_ranking'];
 			foreach ($rankMap as $k => $v) {
 				if ($v == '') $rankMap[$k] = max($rankMap)+1;
@@ -647,6 +661,7 @@ class View_Admin__System_Configuration extends View {
 					}
 				}
 				$ab->releaseLock();
+				if ($ab->getValue('is_archived') && !in_array($ab->id, $to_delete)) $got_an_archived = TRUE;
 				$i++;
 			}
 			if (!$saved_default) {
@@ -656,6 +671,10 @@ class View_Admin__System_Configuration extends View {
 				// The interface should have prevented attempts to delete an in-use status.
 				// So we'll just rely on the foriegn key to catch anything dodgy here.
 				$s = new Person_status($id);
+				if (!$got_an_archived && ($s->getValue('is_archived'))) {
+					add_message("The person status '".$s->getValue('label')."' was not deleted, because you must have at least one status for archived persons", "error");
+					continue;
+				}
 				$s->delete();
 			}
 		}

@@ -82,6 +82,7 @@ function bam($x)
 
 function format_datetime($d)
 {
+	if (empty($d)) return '';
 	if (!is_int($d)) {
 		if (0 === strpos($d, '0000-00-00')) return '';
 		$d = strtotime($d);
@@ -966,7 +967,7 @@ function generate_random_string($chars=16, $set=NULL)
 	}
 
 	if (empty($pr_bits)) {
-		trigger_error("Could not generate random string", E_USER_ERROR);
+		throw new \RuntimeException("Could not generate random string");
 	}
 
 	if (strlen($pr_bits) < $chars) {
@@ -996,7 +997,7 @@ function jethro_password_hash($str)
 		}
 		$res = crypt($str, $salt);
 		if (strlen($res) < 4) {
-			trigger_error("Crypt function returned invalid result $res for salt $salt", E_USER_ERROR);
+			throw new \RuntimeException("Crypt function returned invalid result $res for salt $salt");
 		}
 		return $res;
 	}

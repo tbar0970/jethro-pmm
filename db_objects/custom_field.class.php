@@ -613,7 +613,11 @@ class Custom_Field extends db_object
 			}
 			echo '<a target="_blank" href="'.ents($url).'">'.ents($val).'</a>';
 		} else {
-			echo ents($this->formatValue($val));
+			$res = ents($this->formatValue($val));
+			if (in_array($this->getValue('type'), Array('date', 'select'))) {
+				$res = nbsp($res);
+			}
+			echo $res;
 		}
 	}
 
@@ -626,6 +630,12 @@ class Custom_Field extends db_object
 	{
 		switch ($this->getValue('type')) {
 			case 'date':
+				if (preg_match('#([0-9]{4})/([0-9]{2})/([0-9]{2})#', $val, $matches)) {
+					if (($matches[2] < 12) && ($matches[3] < 31)) {
+						// It's a YYYY/MM/DD date - reformat it
+						$val = $matches[1].'-'.$matches[2].'-'.$matches[3];
+					}
+				}
 				if (!preg_match('/(([-0-9]{4})?-([0-9]{2}-[0-9]{2}))( (.*))?/', $val, $matches)) {
 					trigger_error("Badly formed date value '$val'. Dates must be YYYY-MM-DD");
 					return NULL;

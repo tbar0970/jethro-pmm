@@ -14,6 +14,11 @@ class View_Persons__Reports extends View
 		$GLOBALS['system']->includeDBClass('person_query');
 		if (isset($_REQUEST['queryid'])) {
 			$this->_query = new Person_Query($_REQUEST['queryid']);
+			if (!empty($_GET['groupid'])) {
+				$params = $this->_query->getValue('params');
+				$params['include_groups'] = Array($_GET['groupid']);
+				$this->_query->setValue('params', $params);
+			}
 		}
 		if ($this->_query && !empty($_REQUEST['delete'])) {
 			$can_delete = FALSE;
@@ -225,8 +230,8 @@ class View_Persons__Reports extends View
 				</form>
 				<?php
 
-				$this->_listCustomReports();
 			}
+			$this->_listCustomReports();
 		}
 	}
 

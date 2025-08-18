@@ -254,9 +254,10 @@ class Person_Query extends DB_Object
 												'type' => 'select',
 												'options' => Array(
 													'any' => 'filled in with any value',
-													'empty' => 'not filled in',
-													'exact' => 'with exact value within...',
-													'anniversary' => 'with exact value or anniversary within...',
+													'empty' => 'not filled in at all',
+													'exact' => 'with exact value within the period...',
+													'anniversary' => 'with exact value or anniversary within the period...',
+													'not' => 'withOUT a value within the period...',
 												),
 												'attrs' => Array(
 													'data-toggle' => 'visible',
@@ -265,38 +266,20 @@ class Person_Query extends DB_Object
 												),
 											);
 									print_widget('params_custom_field_'.$fieldid.'_criteria', $cparams, array_get($value, 'criteria'));
-									$pts = Array('fixed' => '', 'relative' => '');
-									$pts[array_get($value, 'periodtype', 'fixed')] = 'checked="checked"';
 									?>
-									<div class="datefield-rule-period" data-select-rule-type="exact anniversary">
-										<label class="checkbox nowrap">
-											<input type="radio" name="params_custom_field_<?php echo $fieldid; ?>_periodtype" value="fixed" <?php echo $pts['fixed']; ?> />
-											the period from
-											<?php print_widget('params_custom_field_'.$fieldid.'_from', Array('type' => 'date', 'allow_empty' => TRUE), array_get($value, 'from')); ?>
-											to
-											<?php print_widget('params_custom_field_'.$fieldid.'_to', Array('type' => 'date', 'allow_empty' => TRUE), array_get($value, 'to')); ?>
-										</label>
-										<label class="checkbox">
-											<input type="radio" name="params_custom_field_<?php echo $fieldid; ?>_periodtype" value="relative"<?php echo $pts['relative']; ?> />
-											the
-											<?php print_widget('params_custom_field_'.$fieldid.'_periodlength', Array('type' => 'int'), array_get($value, 'periodlength', 14)); ?>
-											day period
-											<?php print_widget('params_custom_field_'.$fieldid.'_periodanchor',
-													Array(
-														'type' => 'select',
-														'options' => Array(
-																		'before' => 'before',
-																		'ending' => 'ending on',
-																		'starting' => 'starting on',
-																		'after' => 'after',
-																	)
-													),
-													array_get($value, 'periodanchor', 'ending')
-											); ?>
-											the day the report is executed
-										</label>
-
+									<div class="datefield-rule-period" data-select-rule-type="exact anniversary not">
+										<table class="table-no-borders">
+											<tr>
+												<td class="narrow valign-middle">from</td>
+												<td><?php $this->_printDateRangeBoundaryChooser('params_custom_field_'.$fieldid.'_from', array_get($value, 'from')); ?></td>
+											</tr>
+											<tr>
+												<td class="narrow valign-middle">to</td>
+												<td><?php $this->_printDateRangeBoundaryChooser('params_custom_field_'.$fieldid.'_to', array_get($value, 'to')); ?></td>
+											</tr>
+										</table>
 									</div>
+
 									<?php
 									break;
 								case 'select':
@@ -539,7 +522,7 @@ class Person_Query extends DB_Object
 	}
 	?>
 
-		<h3>For each person found, show me...</h3>
+		<h3 id="showme">For each person found, show me...</h3>
 		<?php
 		$show_fields = array_get($params, 'show_fields', Array());
 		?>
@@ -763,6 +746,70 @@ class Person_Query extends DB_Object
 
 	}
 
+
+	private function _printDateRangeBoundaryChooser($fieldname, $value)
+	{
+		static $counter = 0;
+		$counter++;
+		
+		// NOTE: we just put the raw value as the value of the option element,
+		// and the javascript takes it from there - setting the visible label and populating all the inputs within the dropdown.
+		$textValue = '(Choose date)'; // Will be updated by JS if there is an existing value.
+		$exactDate = date('Y-m-d');
+		?>
+		<span class="dropdown date-range-picker" id="<?php echo $fieldname; ?>-picker">
+			<select name="<?php echo $fieldname; ?>" class="dropdown-toggle" data-toggle="dropdown">
+				<option value="<?php echo ents($value); ?>"><?php echo $textValue; ?></option>
+			</select>
+			<div class="dropdown-menu">
+			<table>
+				<tr>
+					<td>
+						<label class="radio nowrap">
+							<input type="radio" name="drp_<?php echo $counter; ?>_val-type" value="any">
+							<strong>any date</strong>
+						</label>
+					</td>
+					<td>(open ended)</td>
+				</tr>
+				<tr>
+					<td>
+						<label class="radio nowrap">
+						<input type="radio" name="drp_<?php echo $counter; ?>_val-type" value="exact">
+						<strong>exact date</strong>
+						</label>
+					</td>
+					<td><?php print_widget('drp_exact', Array('type'=>'date'), $exactDate); ?></td>
+				</tr>
+				<tr>
+					<td>
+						<label class="radio nowrap">
+							<input type="radio" name="drp_<?php echo $counter; ?>_val-type" value="relative">											
+							<strong>relative date</strong>
+						</label>
+					</td>
+					<td class="relative">
+						<input type="number" name="drp_relative_y"> years, <input  style="width: 4.5ex !important"  name="drp_relative_m" type="number"> months and <input name="drp_relative_d" type="number"> days 
+						<br />
+						<?php print_widget('drp_relative_direction',
+											Array(
+												'type'=>'select',
+												'options' => Array('-'=>'before', '+'=>'after')
+											),
+											null
+							);
+						?>
+						the report date
+					</td>
+				</tr>
+				</table>
+				<button type="button" class="btn cancel">Cancel</button>
+				<button type="button" class="btn btn-primary save">Save</button>																							
+			</div>
+		</span>	
+		<?php
+	}
+
 	function processForm($prefix='', $fields=NULL)
 	{
 		switch ($_POST['save_option']) {
@@ -783,7 +830,7 @@ class Person_Query extends DB_Object
 				break;
 			case 'replace':
 				if (($this->getValue('owner') === NULL) && !$GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
-					trigger_error("You do not have permission to overwrite saved reports", E_USER_ERROR); exit;
+					throw new \RuntimeException("You do not have permission to overwrite saved reports"); exit;
 				}
 				$this->processFieldInterface('name');
 				if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
@@ -823,11 +870,8 @@ class Person_Query extends DB_Object
 					case 'date':
 						$params['custom_fields'][$fieldid] = Array(
 							'criteria' => $_REQUEST['params_custom_field_'.$fieldid.'_criteria'],
-							'periodtype' => $_REQUEST['params_custom_field_'.$fieldid.'_periodtype'],
-							'periodlength' => $_REQUEST['params_custom_field_'.$fieldid.'_periodlength'],
-							'periodanchor' => $_REQUEST['params_custom_field_'.$fieldid.'_periodanchor'],
-							'from' => process_widget('params_custom_field_'.$fieldid.'_from', Array('type' => 'date')),
-							'to' => process_widget('params_custom_field_'.$fieldid.'_to', Array('type' => 'date')),
+							'from' => $_REQUEST['params_custom_field_'.$fieldid.'_from'],
+							'to' => $_REQUEST['params_custom_field_'.$fieldid.'_to'],
 						);
 						break;
 					case 'select':
@@ -912,6 +956,7 @@ class Person_Query extends DB_Object
 		$res = Array();
 		switch ($this->_field_details[$field]['type']) {
 			case 'datetime':
+				// todo: add fancy date range support here
 				$res['from'] = process_widget('params_'.str_replace('.', '_', $field).'_from', Array('type' => 'date'));
 				$res['to'] = process_widget('params_'.str_replace('.', '_', $field).'_to', Array('type' => 'date'));
 				break;
@@ -1076,29 +1121,44 @@ class Person_Query extends DB_Object
 							break;
 
 						case 'exact':
+						case 'not':
 						case 'anniversary':
 
-							if (array_get($values, 'periodtype') == 'relative') {
-								$length = $values['periodlength'];
-								if (!preg_match('/^[0-9]+$/', $length)) $length = 0;
-								$offsets = Array(
-									'before' => Array(-$length-1, -1),
-									'ending' => Array(-$length, 0),
-									'starting' => Array(0, $length),
-									'after' => Array(1, $length+1)
-								);
-								list($so, $eo) = $offsets[$values['periodanchor']];
-								if ($so > 0) $so = "+$so";
-								if ($eo > 0) $eo = "+$eo";
-								$from = date('Y-m-d', strtotime("{$so} days"));
-								$to = date('Y-m-d', strtotime("{$eo} days"));
-							} else {
-								$from = $values['from'];
-								$to = $values['to'];
+							$from = $to = NULL;
+							foreach (Array('from','to') as $k) {
+								$v = $values[$k];
+								$matches = Array();
+								if ($v == '*') {
+									$$k = NULL;
+								} else if (preg_match(("/([-+])(\d+)y(\d+)m(\d+)d/"), $v, $matches)) {
+									// relative date - convert it to an absolute now.
+									$sym=$matches[1]; // + or -
+									$$k = date('Y-m-d', strtotime($sym.($matches[2] ?? 0).' years '.$sym.($matches[3] ?? 0).' months '.$sym.($matches[4] ?? 0).' days'));
+								} else {
+									// absolute date
+									$$k = $v;
+								}
+								//bam("$k date $v = ".$$k);
 							}
-							$betweenExp = 'BETWEEN '.$db->quote($from).' AND '.$db->quote($to);
-							$valExp = 'pd'.$fieldid.'.value_date';
+
+						    $valExp = 'pd'.$fieldid.'.value_date';
+						    if ($from && $to) {
+								$betweenExp = 'BETWEEN '.$db->quote($from).' AND '.$db->quote($to);
+							} elseif ($from) {
+								$betweenExp = '>= '.$db->quote($from);
+							} elseif ($to) {
+								$betweenExp = '<= '.$db->quote($to);
+							} else {
+								// from unlimited to unlimited
+								$betweenExp = ' IS NOT NULL';
+
+							}
 							$w = Array();
+							if ($values['criteria'] == 'not') {
+								// date is either unset or not in the specified range
+								$w[] = "$valExp IS NULL";
+								$betweenExp = 'NOT '.$betweenExp;
+							}
 							$w[] = "$valExp NOT LIKE '-%' AND $valExp $betweenExp";
 							if ($values['criteria'] == 'anniversary') {
 								$qFromYear = $db->quote(substr($from, 0, 4));
@@ -1985,11 +2045,11 @@ class Person_Query extends DB_Object
 		if (!($this->getValue('owner'))
 			&& (!$GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS))
 		) {
-			if ($throwErrors) trigger_error('You do not have permission to save shared reports', E_USER_ERROR);
+			if ($throwErrors) throw new \RuntimeException('You do not have permission to save shared reports');
 			return FALSE;
 		} else if (($this->getValue('owner')) && ($this->getValue('owner') != $GLOBALS['user_system']->getCurrentUser('id'))
 		) {
-			if ($throwErrors) trigger_error('Cannot save report that belongs to another user!', E_USER_ERROR);
+			if ($throwErrors) throw new \RuntimeException('Cannot save report that belongs to another user!');
 			return FALSE;
 		} else {
 			return TRUE;
@@ -2111,6 +2171,44 @@ class Person_Query extends DB_Object
 			$params['group_by'] = 'p.age_bracketid';
 		}
 		if (!isset($params['rules'])) $params['rules'] = Array();
+
+		// Convert the old 'periodtype=relative/fixed' to new format.
+		if (!empty($params['custom_fields'])) {
+			foreach ($params['custom_fields'] as $k => &$rule) {
+				if (array_get($rule, 'periodtype') == 'relative') {
+					$days = $rule['periodlength'];
+					$months = 0;
+					$years = floor($days / 365); // never mind leap years
+					$days = $days % 365;
+					switch ($rule['periodanchor']) {
+						case 'ending':
+							$rule['to'] = '-0y0m0d';
+							$rule['from'] = '-'.$years.'y0m'.$days.'d';
+							break;
+						case 'before':
+							$rule['to'] = '-0y0m1d';
+							$rule['from'] = '-'.$years.'y0m'.($days+1).'d';
+							break;
+						case 'starting':
+							$rule['from'] = '+0y0m0d';
+							$rule['to'] = '+'.$years.'y0m'.($days).'d';
+							break;
+						case 'after':
+							$rule['from'] = '+0y0m1d';
+							$rule['to'] = '+'.$years.'y0m'.($days+1).'d';
+							break;
+					}
+				} else if (array_get($rule, 'periodtype') == 'fixed') {
+					// make open-ended values explicit.
+					if (empty($rule['from'])) $rule['from'] = '*';
+					if (empty($rule['from'])) $rule['to'] = '*';
+				}
+
+				unset($rule['periodtype']); // Now captured with special values for 'from' and 'to'.
+				unset($rule['periodlength']); 
+				unset($rule['periodanchor']); 
+			}
+		}
 
 		return $params;
 	}

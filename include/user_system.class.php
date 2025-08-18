@@ -135,6 +135,9 @@ class User_System extends Abstract_User_System
 		$_SESSION['last_activity_time'] = time();
 		include_once 'include/size_detector.class.php';
 		SizeDetector::processRequest();
+		session_write_close();
+		header('Location: '.build_url(Array())); // the login form was POSTed; we redirect so the subsequent page load is a clean GET request.
+		exit;
 	}
 
 
@@ -202,7 +205,7 @@ class User_System extends Abstract_User_System
 
 	public function havePerm($permission)
 	{
-		if (!is_int($permission)) trigger_error("Non-numeric permission level is invalid", E_USER_ERROR);
+		if (!is_int($permission)) throw new \RuntimeException("Non-numeric permission level is invalid");
 		if ($permission == 0) return true;
 		if (!empty($GLOBALS['JETHRO_INSTALLING'])) return true;
 		if (!array_key_exists($permission, $this->_permission_levels)) return false; // disabled feature
@@ -242,7 +245,7 @@ class User_System extends Abstract_User_System
 	public function printLogin()
 	{
 		if (!$this->hasUsers()) {
-			trigger_error("This system has no user accounts - it has not been installed properly", E_USER_ERROR);
+			throw new \RuntimeException("This system has no user accounts - it has not been installed properly");
 			exit;
 		}
 
@@ -304,6 +307,9 @@ class User_System extends Abstract_User_System
 	 */
 	private function _require2FA($user_details)
 	{
+		// Allow 2FA to be forcibly turned off regardless of admin settings e.g. for dev environments
+		if (defined('2FA_ENABLED') && constant('2FA_ENABLED')==False) return FALSE;
+
 		if (!empty($_COOKIE['Jethro2FATrust'])) {
 			$db = $GLOBALS['db'];
 			$SQL = 'SELECT * FROM 2fa_trust

@@ -10,15 +10,15 @@
  * file that was distributed with this source code. For the full list of
  * contributors, visit https://github.com/PHPOffice/PHPWord/contributors.
  *
- * @link        https://github.com/PHPOffice/PHPWord
- * @copyright   2010-2016 PHPWord contributors
+ * @see         https://github.com/PHPOffice/PHPWord
+ * @copyright   2010-2018 PHPWord contributors
  * @license     http://www.gnu.org/licenses/lgpl.txt LGPL version 3
  */
 
 namespace PhpOffice\PhpWord\Writer\Word2007\Part;
 
-use PhpOffice\Common\XMLWriter;
 use PhpOffice\PhpWord\Exception\Exception;
+use PhpOffice\PhpWord\Shared\XMLWriter;
 
 /**
  * Word2007 main relationship writer: _rels/.rels
@@ -49,11 +49,10 @@ class Rels extends AbstractPart
     /**
      * Write relationships.
      *
-     * @param \PhpOffice\Common\XMLWriter $xmlWriter
+     * @param \PhpOffice\PhpWord\Shared\XMLWriter $xmlWriter
      * @param array $xmlRels
      * @param array $mediaRels
      * @param int $relId
-     * @return void
      */
     protected function writeRels(XMLWriter $xmlWriter, $xmlRels = array(), $mediaRels = array(), $relId = 1)
     {
@@ -77,10 +76,9 @@ class Rels extends AbstractPart
     /**
      * Write media relationships.
      *
-     * @param \PhpOffice\Common\XMLWriter $xmlWriter
+     * @param \PhpOffice\PhpWord\Shared\XMLWriter $xmlWriter
      * @param int $relId
      * @param array $mediaRel
-     * @return void
      */
     private function writeMediaRel(XMLWriter $xmlWriter, $relId, $mediaRel)
     {
@@ -103,13 +101,11 @@ class Rels extends AbstractPart
      * Format:
      * <Relationship Id="rId..." Type="http://..." Target="....xml" TargetMode="..." />
      *
-     * @param \PhpOffice\Common\XMLWriter $xmlWriter
+     * @param \PhpOffice\PhpWord\Shared\XMLWriter $xmlWriter
      * @param int $relId Relationship ID
      * @param string $type Relationship type
      * @param string $target Relationship target
      * @param string $targetMode Relationship target mode
-     *
-     * @return void
      *
      * @throws \PhpOffice\PhpWord\Exception\Exception
      */
@@ -128,7 +124,7 @@ class Rels extends AbstractPart
             }
             $xmlWriter->endElement();
         } else {
-            throw new Exception("Invalid parameters passed.");
+            throw new Exception('Invalid parameters passed.');
         }
     }
 }

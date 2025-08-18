@@ -12,7 +12,7 @@ class roster_role_assignment extends db_object
 					personid		int(11) not null,
 					`rank`            int unsigned not null default 0,
 					assigner		int(11) not null,
-					assignedon		timestamp,
+					assignedon		timestamp NOT NULL default CURRENT_TIMESTAMP,
 					primary key (roster_role_id, assignment_date, personid),
 					constraint `rra_assiger` foreign key (assigner) references _person(id),
 					constraint `rra_personid` foreign key (personid) references _person(id) ON DELETE CASCADE,

@@ -89,7 +89,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 			foreach ($GLOBALS['system']->getDBObjectdata('congregation', Array()) as $cid => $cong) {
 				$params['options'][$cid] = $cong['name'];
 			}
-			echo '<tr><td>Set congregation to: </td><td>';
+			echo '<tr><td>Set '.$dummy->getFieldLabel('congregationid').' to: </td><td>';
 			print_widget('congregationid', $params, NULL);
 			echo '</td></tr>';
 
