@@ -176,7 +176,7 @@ printf($panel_header, 'basic', _('Basic Details'), 'active');
 			}
 			if ($family->getValue('address_street')) {
 				?>
-				<a href="?call=envelopes&personid=<?php echo $person->id; ?>" class="pull-right envelope-popup hidden-phone"><i class="icon-envelope"></i><?php echo _('Print Envelope')?></a>
+				<a href="?call=envelopes&personid=<?php echo $person->id; ?>" class="envelope-popup hidden-phone"><i class="icon-envelope"></i><?php echo _('Print Envelope')?></a>&nbsp;
 				<?php
 			}
 			if ($plan_chooser) {
