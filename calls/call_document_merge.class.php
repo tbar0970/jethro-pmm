@@ -26,7 +26,7 @@ class Call_Document_Merge extends Call
 					$ok = mkdir(self::getSavedTemplatesDir(), 0770, TRUE);
 				}
 				if ($ok) $ok = copy($file_info['tmp_name'], self::getSavedTemplatesDir().basename($file_info['name']));
-				if (!$ok) trigger_error("Problem saving template", E_USER_ERROR);
+				if (!$ok) throw new \RuntimeException("Problem saving template");
 
 			}
 			
