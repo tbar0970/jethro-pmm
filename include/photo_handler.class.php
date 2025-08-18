@@ -43,19 +43,21 @@ Class Photo_Handler {
 					$fn = 'imagecreatefrom'.$ext;
 					$input_img = $fn($_FILES[$fieldName]['tmp_name']);
 					if (!$input_img) exit;
-					// Rotate the image as necessary - thanks https://www.php.net/manual/en/function.exif-read-data.php#110894
-					$exif = @exif_read_data($_FILES[$fieldName]['tmp_name']);
-					if (!empty($exif['Orientation'])) {
-						switch($exif['Orientation']) {
-							case 8:
-								$input_img = imagerotate($input_img,90,0);
-								break;
-							case 3:
-								$input_img = imagerotate($input_img,180,0);
-								break;
-							case 6:
-								$input_img = imagerotate($input_img,-90,0);
-								break;
+					if (function_exists('exif_read_data')) {
+						// Rotate the image as necessary - thanks https://www.php.net/manual/en/function.exif-read-data.php#110894
+						$exif = @exif_read_data($_FILES[$fieldName]['tmp_name']);
+						if (!empty($exif['Orientation'])) {
+							switch($exif['Orientation']) {
+								case 8:
+									$input_img = imagerotate($input_img,90,0);
+									break;
+								case 3:
+									$input_img = imagerotate($input_img,180,0);
+									break;
+								case 6:
+									$input_img = imagerotate($input_img,-90,0);
+									break;
+							}
 						}
 					}
 					$orig_width = imagesx($input_img);
