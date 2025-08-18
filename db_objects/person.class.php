@@ -1047,6 +1047,8 @@ class Person extends DB_Object
 		}
 
 		$res = parent::processForm($prefix, $fields);
+
+		$GLOBALS['system']->setFriendlyErrors(TRUE);
 		if (empty($fields)) {
 			foreach ($this->getCustomFields() as $fieldid => $fieldDetails) {
 				$field = $GLOBALS['system']->getDBObject('custom_field', $fieldid);
@@ -1054,6 +1056,7 @@ class Person extends DB_Object
 			}
 		}
 		$this->_photo_data = Photo_Handler::getUploadedPhotoData($prefix.'photo');
+		$GLOBALS['system']->setFriendlyErrors(FALSE);
 		return $res;
 	}
 

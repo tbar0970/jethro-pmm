@@ -274,13 +274,17 @@ class System_Controller
 			case E_USER_NOTICE:
 				$send_email = false; // never send emails for E_USER_NOTICE
 				if ($this->_friendly_errors || (!headers_sent() && !$showTechDetails)) {
+					// we want to show a friendly-style message, so we'll add a message 
+					// to the queue, to be shown when appropriate (maybe after a redirect)
 					add_message('Error: '.$errstr, 'failure');
 					return;
 				} else if (!$showTechDetails) {
-					// if headers are sent, print it now - we don't want it on the next page load
+					// because this is just an E_USER_NOTICE, and we don't want to display tech details,
+					// we'll show it as a friendly message. But since the message queue has already been
+					// flushed, we'll go ahead and print it right now
 					print_message('Error: '.$errstr, 'failure');
 					return;
-				}
+				} // else we fall through to the normal _reportError() handling.
 				$bg = 'warning';
 				$title = 'NOTICE';
 				break;
