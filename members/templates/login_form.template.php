@@ -6,7 +6,7 @@
 <body id="login">
 	<form method="post" id="login-box" class="well disable-submit-buttons" action="<?php echo build_url(Array('logout' => NULL)); ?>" target="_top">
 		<input type="hidden" name="login_key" value="<?php echo $login_key; ?>" />
-		<?php 
+		<?php
 		require_once 'include/size_detector.class.php';
 		SizeDetector::printFormFields();
 		?>
