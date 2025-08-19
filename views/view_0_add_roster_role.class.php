@@ -17,7 +17,7 @@ class View__Add_Roster_Role extends View
 			$this->_role->processForm();
 			if ($this->_role->create()) {
 				add_message('Role added');
-				redirect('rosters__define_roster_roles', Array()); // exits		
+				redirect('rosters__define_roster_roles', Array()); // exits
 			}
 		}
 	}
