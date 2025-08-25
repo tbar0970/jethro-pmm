@@ -250,7 +250,7 @@ class View_Admin__Import extends View
 			$this->stage = 'begin';
 			return;
 		}
-		$map = fgetcsv($fp, 0, $separator, '"');
+		$map = fgetcsv($fp, 0, $separator, '"', "");
 		$sample_header = self::getSampleHeader();
 		foreach ($map as $k => $v) {
 			if ($v == '') continue;
@@ -280,7 +280,7 @@ class View_Admin__Import extends View
 		$current_existing_family_data = NULL;
 
 		$i = 0;
-		while ($rawrow = fgetcsv($fp, 0, $separator, '"')) {
+		while ($rawrow = fgetcsv($fp, 0, $separator, '"', "")) {
 			$i++;
 			$row = Array();
 			foreach ($map as $index => $fieldname) {
