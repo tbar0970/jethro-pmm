@@ -584,7 +584,8 @@ class family extends db_object
 				$currentid = 0;
 			}
 		} else if (is_array($currentval)) {
-			list($currentid, $currentname) = each ($currentval);
+			$currentid   = array_key_first($currentval);
+			$currentname = $currentval[$currentid];
 		}
 		$displayname = $currentid ? $currentname.' (#'.$currentid.')' : '';
 		?>
