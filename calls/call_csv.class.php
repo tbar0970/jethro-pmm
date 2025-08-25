@@ -40,7 +40,7 @@ class Call_csv extends Call
 			if ($header == 'feed_uuid') continue;
 			$headerrow[] = strtoupper($dummy->getFieldLabel($header));
 		}
-		fputcsv($fp, $headerrow);
+		fputcsv($fp, $headerrow, ",", '"', "");
 
 
 		foreach ($merge_data as $id => $row) {
@@ -58,7 +58,7 @@ class Call_csv extends Call
 					$outputrow[] = $v;
 				}
 			}
-			fputcsv($fp, $outputrow);
+			fputcsv($fp, $outputrow, ",", '"', "");
 		}
 		fclose($fp);
 	}

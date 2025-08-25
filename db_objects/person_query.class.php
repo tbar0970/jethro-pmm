@@ -1776,7 +1776,7 @@ class Person_Query extends DB_Object
 			}
 			if ($groupingname) $hr[] = 'GROUPING';
 
-			fputcsv($fp, $hr);
+			fputcsv($fp, $hr, ",", '"', "");
 			$headerprinted = TRUE;
 		}
 		foreach ($x as $row) {
@@ -1798,7 +1798,7 @@ class Person_Query extends DB_Object
 				}
 			}
 			if ($groupingname) $r[] = str_replace('"', '""', $groupingname);
-			fputcsv($fp, $r);
+			fputcsv($fp, $r, ",", '"', "");
 		}
 		fclose($fp);
 	}

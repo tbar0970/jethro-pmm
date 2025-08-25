@@ -336,7 +336,7 @@ class Installer
 				$fn = JETHRO_ROOT.'/locale/settings/'.$_REQUEST['locale'].'.csv';
 				if (file_exists($fn)) {
 					$fp = fopen($fn, 'r');
-					while ($row = fgetcsv($fp)) {
+					while ($row = fgetcsv($fp, 0, ",", '"', "")) {
 						Config_Manager::saveSetting($row[0], $row[1]);
 					}
 					fclose($fp);

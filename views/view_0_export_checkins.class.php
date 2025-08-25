@@ -22,10 +22,10 @@ class View__Export_Checkins extends View
 				header("Content-Disposition: attachment; filename=checkins.csv");
 				$fp = fopen('php://output', 'w');
 				$firstRow = reset($this->data);
-				fputcsv($fp, array_keys($firstRow));
+				fputcsv($fp, array_keys($firstRow), ",", '"', "");
 				foreach ($this->data as $d) {
 					$d['venueid'] = $this->venue->getValue('name');
-					fputcsv($fp, $d);
+					fputcsv($fp, $d, ",", '"', "");
 				}
 				fclose($fp);
 				exit;
