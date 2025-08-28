@@ -499,8 +499,8 @@ class service extends db_object
 	public function replaceItemKeywords($title, $iteminfo)
 	{
 		$title = str_replace('%title%', $iteminfo['title'], $title);
-		$title = str_replace('%alt_title%', $iteminfo['alt_title'], $title);
-		$title = str_replace('%ccli_number%', $iteminfo['ccli_number'], $title);
+        $title = str_replace('%alt_title%', $iteminfo['alt_title'] ?? "", $title);
+        $title = str_replace('%ccli_number%', $iteminfo['ccli_number'] ?? "", $title);
 		return $title;
 	}
 
