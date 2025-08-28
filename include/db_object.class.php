@@ -549,7 +549,7 @@ class db_object
 		if ($this->fields[$name]['type'] == 'int') {
 			if (!array_get($this->fields[$name], 'allow_empty', true) || ($value !== '')) {
 				$strval = (string)$value;
-				if (!filter_var($strval, FILTER_VALIDATE_INT)) {
+				if (filter_var($strval, FILTER_VALIDATE_INT) === false) {
 					trigger_error(ents($value).' is not a valid value for integer field "'.$name.'" and has not been set', E_USER_NOTICE);
 					return;
 				}
