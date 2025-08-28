@@ -196,8 +196,8 @@ class service extends db_object
 					$res[] = $br->toString($short);
 				}
 				return implode(', ', $res);
-			} else {
-				$bc = array_get($candidate_readings, $number-1);
+			} elseif (filter_var($number, FILTER_VALIDATE_INT) !== false) {
+				$bc = array_get($candidate_readings, (int)$number-1);
 				if ($bc) {
 					$br = new Bible_Ref($bc['bible_ref']);
 					return $br->toString();
