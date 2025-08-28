@@ -59,7 +59,7 @@ class Service_Component extends db_object
 									'width'		=> 80,
 									'initial_cap'	=> TRUE,
 									'placeholder' => '(Optional)',
-									'note' => 'How should this component be shown on the run sheet.  Can include replacements such as the component\'s %title%, %alt_title%, %ccli_number%, %SERVICE_TOPIC% or %NAME_OF_SOMEROSTERROLE%.  Leave blank to use the category\'s default.',
+									'note' => 'How should this component be shown on the run sheet.  Can include replacements such as the component\'s %title%, %alt_title%, %ccli_number%, and service fields like %SERVICE_TOPIC%. See <a target="service-comp-help" class="med-newwin" href="?call=service_comp_help_runsheet_format">help and examples</a>.  Leave blank to use the category\'s default.',
 									'heading_before' => 'Run Sheet Appearance',
 									'divider_before' => TRUE,
 									'label' => 'Run sheet format'
@@ -68,7 +68,7 @@ class Service_Component extends db_object
 									'type'		=> 'text',
 									'width'		=> 80,
 									'placeholder' => '(Optional)',
-									'note' => 'What to put in the run sheet\'s "personnel" column by default. Can include roster role keywords such as %SERVICE_LEADER%. Leave blank to use the category\'s default.',
+									'note' => 'What to put in the run sheet\'s "personnel" column by default. Can include roster role keywords such as %PREACHER%. See <a target="service-comp-help" class="med-newwin" href="?call=service_comp_help_personnel_format">help and examples</a>. Leave blank to use the category\'s default.',
 									),
 			'length_mins'		=> Array(
 									'type'		=> 'int',
@@ -96,7 +96,7 @@ class Service_Component extends db_object
 									'width'		=> 80,
 									'initial_cap'	=> TRUE,
 									'placeholder' => '(Optional)',
-									'note' => 'How should this component be listed in the service handout.  Can include replacements such as the component\'s %title%, %alt_title%, %ccli_number%, %SERVICE_TOPIC% or %NAME_OF_SOMEROSTERROLE%.  Leave blank to use the category\'s default.',
+									'note' => 'How should this component be listed in the service handout.  Can include replacements such as the component\'s %title%, %alt_title%, %ccli_number%, %SERVICE_TOPIC% or %NAME_OF_SOMEROSTERROLE%. See <a target="service-comp-help" class="med-newwin" href="?call=service_comp_help_handout_title_format">help and examples</a>. Leave blank to use the category\'s default.',
 
 								   ),
 			'show_on_slide'		=> Array(
