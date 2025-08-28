@@ -80,6 +80,8 @@ class View__Import_Service_Components extends View
 						$createdCount++;
 					}
 				}
+				$this->createAndAssociateTags($comp, $data);
+
 				$rowNum++;
 			}
 			if (empty($this->errors)) {
@@ -94,6 +96,29 @@ class View__Import_Service_Components extends View
 				$GLOBALS['system']->doTransaction('ROLLBACK');
 			}
 			fclose($fp);
+		}
+	}
+
+	/** Looks for columns starting with 'tag' (case-insensitive) e.g. "Tags" or "Tag 1", "Tag 2", and tags the imported song with those tags, creating them if necessary.
+	 * @param Service_Component $comp
+	 * @param array $data CSV row data
+	 * @return void
+	 */
+	private function createAndAssociateTags(Service_Component $comp, array $data)
+	{
+		foreach ($data as $header => $tagStr) {
+			if (stripos($header, 'tag') === 0) {   // case-insensitive "starts with"
+				$tagStr = trim($tagStr);
+				if (!empty($tagStr)) {
+					$tag = new Service_Component_Tag();
+					$tag->setValue('tag', $tagStr);
+					$tag->createIfNew();
+					$tagAssoc = new Service_Component_Tagging();
+					$tagAssoc->setValue('tagid', $tag->id);
+					$tagAssoc->setValue('componentid', $comp->id);
+					$tagAssoc->createIfNew();
+				}
+			}
 		}
 	}
 
