@@ -59,7 +59,7 @@ class View_services extends View
 								}
 							}
 
-							if (!in_array($v['categoryid'], $_REQUEST['copy_category_ids'])) {
+							if (isset($v['categoryid']) && !in_array($v['categoryid'], $_REQUEST['copy_category_ids'])) {
 								unset($newItems[$k]);
 							}
 						}
