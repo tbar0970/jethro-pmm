@@ -59,7 +59,7 @@ class Service_Component extends db_object
 									'width'		=> 80,
 									'initial_cap'	=> TRUE,
 									'placeholder' => '(Optional)',
-									'note' => 'How should this component be shown on the run sheet.  Can include replacements such as the component\'s %title%, %SERVICE_TOPIC% or %NAME_OF_SOMEROSTERROLE%.  Leave blank to use the category\'s default.',
+									'note' => 'How should this component be shown on the run sheet.  Can include replacements such as the component\'s %title%, %alt_title%, %ccli_number%, %SERVICE_TOPIC% or %NAME_OF_SOMEROSTERROLE%.  Leave blank to use the category\'s default.',
 									'heading_before' => 'Run Sheet Appearance',
 									'divider_before' => TRUE,
 									'label' => 'Run sheet format'
@@ -96,7 +96,7 @@ class Service_Component extends db_object
 									'width'		=> 80,
 									'initial_cap'	=> TRUE,
 									'placeholder' => '(Optional)',
-									'note' => 'How should this component be listed in the service handout.  Can include replacements such as the component\'s %title%, %SERVICE_TOPIC% or %NAME_OF_SOMEROSTERROLE%.  Leave blank to use the category\'s default.',
+									'note' => 'How should this component be listed in the service handout.  Can include replacements such as the component\'s %title%, %alt_title%, %ccli_number%, %SERVICE_TOPIC% or %NAME_OF_SOMEROSTERROLE%.  Leave blank to use the category\'s default.',
 
 								   ),
 			'show_on_slide'		=> Array(

@@ -259,7 +259,7 @@ class View_services extends View
 							<?php
 							if (!empty($item['runsheet_title_format'])) {
 								$title = $item['runsheet_title_format'];
-								$title = str_replace('%title%', $item['title'], $title);
+								$title = $this->service->replaceItemKeywords($title, $item);
 								$title = $this->service->replaceKeywords($title);
 							} else {
 								$title = $item['title'];
@@ -541,7 +541,7 @@ class View_services extends View
 							foreach ($comps as $compid => $comp) {
 								$runsheetTitle = $comp['runsheet_title_format'];
 								if (strlen($runsheetTitle)) {
-									$runsheetTitle = str_replace('%title%', $comp['title'], $runsheetTitle);
+									$runsheetTitle = $this->service->replaceItemKeywords($runsheetTitle, $comp);
 									$runsheetTitle = $this->service->replaceKeywords($runsheetTitle);
 								}
 								$comp['personnel'] = $this->service->replaceKeywords($comp['personnel']);
