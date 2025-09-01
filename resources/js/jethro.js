@@ -1,3 +1,30 @@
+var JethroDateRangePicker = {};
+JethroDateRangePicker.updateDisplayValue = function(selectElt, valueType)
+{
+	switch (valueType) {
+		case 'any':
+			selectElt.options[0].innerHTML = 'any date';
+			break;
+		case 'exact':
+			var d = new Date(Date.parse(selectElt.options[0].value.replace(/-/g, '/')));
+			selectElt.options[0].innerHTML = d.getDate()+' '+d.toLocaleString('default', { month: 'short' })+' '+d.getFullYear();
+			break;
+		case 'relative':
+			var matches = selectElt.options[0].value.match(/([-+])(\d+)y(\d+)m(\d+)d/);
+			if (matches) {
+				var l = '';
+				if (matches[2]>0) l += matches[2]+' years ';
+				if (matches[3]>0) l += matches[3]+' months ';
+				if (matches[4]>0) l += matches[4]+' days ';
+				if (l.length) l += (matches[1] == '-') ? 'before' : 'after';
+				l += ' the report date';
+				selectElt.options[0].innerHTML = l;
+			} else {
+				selectElt.options[0].innerHTML = '!Error!';
+			}
+	}
+}
+
 $(document).ready(function() {
 
 	if ($('.stop-js').length) return; /* Classname flag for big pages that don't want JS to run */
@@ -1971,31 +1998,4 @@ function handleFamilyFormSubmit()
 		return false;
 	}
 	return true;
-}
-
-var JethroDateRangePicker = {};
-JethroDateRangePicker.updateDisplayValue = function(selectElt, valueType)
-{
-	switch (valueType) {
-		case 'any':
-			selectElt.options[0].innerHTML = 'any date';
-			break;
-		case 'exact':
-			var d = new Date(Date.parse(selectElt.options[0].value.replace(/-/g, '/')));
-			selectElt.options[0].innerHTML = d.getDate()+' '+d.toLocaleString('default', { month: 'short' })+' '+d.getFullYear();
-			break;
-		case 'relative':
-			var matches = selectElt.options[0].value.match(/([-+])(\d+)y(\d+)m(\d+)d/);
-			if (matches) {
-				var l = '';
-				if (matches[2]>0) l += matches[2]+' years ';
-				if (matches[3]>0) l += matches[3]+' months ';
-				if (matches[4]>0) l += matches[4]+' days ';
-				if (l.length) l += (matches[1] == '-') ? 'before' : 'after';
-				l += ' the report date';
-				selectElt.options[0].innerHTML = l;
-			} else {
-				selectElt.options[0].innerHTML = '!Error!';
-			}
-	}
 }
