@@ -24,10 +24,10 @@ class View__Import_Service_Components extends View
 				trigger_error("Your data file could not be read.  Please check the file and try again");
 				return;
 			}
-			$toprow = fgetcsv($fp, 0, ",", '"');
+			$toprow = fgetcsv($fp, 0, ",", '"', "");
 			$rowNum = 1;
 			$all_ccli = Service_Component::getAllByCCLINumber();
-			while ($row = fgetcsv($fp, 0, ",", '"')) {
+			while ($row = fgetcsv($fp, 0, ",", '"', "")) {
 				$comp->populate(0, Array());
 				$this->_captureErrors();
 				$data = $this->getLabelledRow($toprow, $row);
