@@ -491,6 +491,19 @@ class service extends db_object
 		return $res;
 	}
 
+	/** Replaces service item keywords in a string, currently %title%, %alt_title% and %ccli_number%.
+	 * @param string $title
+	 * @param string[] $iteminfo Array of service item fields, populated by getItems()
+	 * @return string
+	 */
+	public function replaceItemKeywords($title, $iteminfo)
+	{
+		$title = str_replace('%title%', $iteminfo['title'], $title);
+		$title = str_replace('%alt_title%', $iteminfo['alt_title'], $title);
+		$title = str_replace('%ccli_number%', $iteminfo['ccli_number'], $title);
+		return $title;
+	}
+
 	public function replaceKeywords($text)
 	{
 		$matches = Array();
@@ -730,7 +743,7 @@ class service extends db_object
 					<td>
 						<?php
 						$title = $item['runsheet_title_format'];
-						$title = str_replace('%title%', $item['title'], $title);
+						$title = $this->replaceItemKeywords($title, $item);
 						$title = $this->replaceKeywords($title);
 						echo ents($title);
 						if ($item['note']) echo '<div class="smallprint"><small><i>'.nl2br(ents($item['note'])).'</i></small></div>';
@@ -774,7 +787,7 @@ class service extends db_object
 				<?php
 				echo ($num++).'. ';
 				$title = $i['handout_title_format'];
-				$title = str_replace('%title%', $i['title'], $title);
+				$title = $this->replaceItemKeywords($title, $i);
 				$title = $this->replaceKeywords($title);
 				echo ents($title);
 				?>
@@ -799,7 +812,7 @@ class service extends db_object
 		foreach ($items as $k => $i) {
 			if ($i['show_in_handout'] == '0') continue;
 				$title = $i['handout_title_format'];
-				$title = str_replace('%title%', $i['title'], $title);
+				$title = $this->replaceItemKeywords($title, $i);
 				$title = $this->replaceKeywords($title);
 				//$serviceContent[] = ents($title);
 			if ($i['show_in_handout'] == 'full') {
@@ -898,4 +911,5 @@ class service extends db_object
 		}
 		return strtotime($dateString);
 	}
+
 }
