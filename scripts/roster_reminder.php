@@ -128,7 +128,7 @@ ob_end_clean();
 $roster_lines = preg_split('/(?=\n")/',$roster_csv);
 $roster_array = array();
 foreach ($roster_lines as $line) {
-	$roster_array[] = str_getcsv($line);
+	$roster_array[] = str_getcsv($line, ",", '"', "");
 }
 $roster_date = '';
 if (count($roster_array) > 2) {

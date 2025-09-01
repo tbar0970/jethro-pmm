@@ -91,7 +91,7 @@ $table_rows = explode(PHP_EOL, $csv_string);
 //covert each row into an array
 $table_array = array();
 foreach ($table_rows as $line) {
-    $table_array[] = str_getcsv($line);
+    $table_array[] = str_getcsv($line, ",", '"', "");
 }
     $rows = (count($table_array)-1);
     $columns = count($table_array[0]);
