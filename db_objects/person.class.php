@@ -851,7 +851,8 @@ class Person extends DB_Object
 				$currentid = 0;
 			}
 		} else if (is_array($currentval)) {
-			list($currentid, $currentname) = each ($currentval);
+			$currentid   = array_key_first($currentval);
+			$currentname = $currentval[$currentid];
 		}
 		$displayname = $currentid ? $currentname.' (#'.$currentid.')' : '';
 		?>
