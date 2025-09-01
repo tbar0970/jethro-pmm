@@ -57,8 +57,9 @@ class View_services extends View
 								if ($comp) {
 									$newItems[$k]['personnel'] = $this->service->replaceKeywords($comp->getValue('personnel'));
 								}
+							} else {
+								$v['categoryid'] = '!'; // magic value to match filtering of ad hoc items
 							}
-
 							if (!in_array($v['categoryid'], $_REQUEST['copy_category_ids'])) {
 								unset($newItems[$k]);
 							}
@@ -432,10 +433,16 @@ class View_services extends View
 					</label>
 					<div class="controls">
 						<?php
+						$cats = $GLOBALS['system']->getDBOBjectData('service_component_category', Array());
+						foreach ($cats as $id => $c) {
+							$cat_options[$id] = $c['category_name'];
+						}
+						$cat_options['!'] = 'Ad hoc items';
 						$params = Array(
-							'type' => 'reference',
-							'references' => 'service_component_category',
-							'allow_multiple' => TRUE
+							'type' => 'select',
+							'options' => $cat_options,
+							'allow_multiple' => TRUE,
+							'height' => 5,
 						);
 						print_widget('copy_category_ids[]', $params, '*');
 						?>
