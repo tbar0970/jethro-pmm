@@ -30,10 +30,8 @@ class View__Import_Service_Components extends View
 			while ($row = fgetcsv($fp, 0, ",", '"')) {
 				$comp->populate(0, Array());
 				$this->_captureErrors();
-				$data = Array();
-				foreach ($row as $k => $v) {
-					$data[strtolower($toprow[$k])] = $v;
-				}
+				$data = $this->getLabelledRow($toprow, $row);
+
 				if (isset($data['content'])) {
 					$c = trim($data['content']);
 					$c = str_replace("\r", "", $c);
@@ -184,5 +182,36 @@ class View__Import_Service_Components extends View
 		$this->_captured_errors = Array();
 		restore_error_handler();
 		return $res;
+	}
+
+	/**
+	 * Given the top CSV row containing headers, and a particular data row, return an associative array mapping lowercase headers to the corresponding data row value. Records an error if $row has non-blank fields not known labelled in $toprow.
+	 * @param array $toprow E.g. ["Title", "Length_Mins"]
+	 * @param array $row  E.g. ["MySong", "0"]
+	 * @return array E.g. ["title" => "MySong", "length_mins" => "0"]
+	 */
+	private function getLabelledRow(array $toprow, array $row)
+	{
+		$rowlen = count($row);
+		$headerlen = count($toprow);
+		if (count($row) > count($toprow)) {
+			// More columns in this row than our header declared!
+			$excess = array_slice($row, count($toprow), null, false);
+			if ($excess) {
+				// What's in the 'excess' data columns?
+				$onlyBlanks = count(array_filter($excess, function($s) {
+					return trim($s) !== '';
+				})) === 0;
+				if (!$onlyBlanks) {
+					// The excess columns have non-blank data. Fail.
+					trigger_error('Row has '.count($row).' fields, when only '.count($toprow).' are expected.', E_USER_NOTICE);
+				}
+			}
+		}
+		$data = [];
+		for ($i=0; $i<min($rowlen, $headerlen); $i++) {
+			$data[strtolower($toprow[$i])] = $row[$i];
+		}
+		return $data;
 	}
 }
