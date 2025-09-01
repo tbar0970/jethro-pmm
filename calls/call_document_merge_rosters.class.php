@@ -11,7 +11,8 @@ class Call_Document_merge_rosters extends Call
 			trigger_error('Template file does not seem to have been uploaded');
 			return;
 		}
-		$extension = @strtolower(end(explode('.', $file_info['name'])));
+		$extension = strtolower(pathinfo($file_info['name'], PATHINFO_EXTENSION));
+
 		$source_file = $file_info['tmp_name'];
 		rename ($source_file, $source_file.'.'.$extension);
 		$source_file = $source_file.'.'.$extension;
