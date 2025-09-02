@@ -1,10 +1,11 @@
 <?php
 require_once 'abstract_view_add_object.class.php';
+
 class View__Import_Service_Components extends View
 {
 	private $errors = Array();
 	private $category = null;
-	protected $_captured_errors;
+	private $_captured_errors;
 	private $all_by_ccli;
 	private $all_by_title;
 
@@ -56,37 +57,42 @@ class View__Import_Service_Components extends View
 					$data['show_in_handout'] = $val;
 				}
 
-				if (($comp = $this->maybeLoadFromCCLINumber($data)) ||
-					($comp = $this->maybeLoadFromExistingIfTitleMatches($data))
-				) {
-					$comp->fromCSVRow($data);
+				$comp = $this->maybeLoadFromCCLINumber($data);
+				if (!$comp) $comp = $this->maybeLoadFromExistingIfTitleMatches($data);
+				if (!$comp) {
+					$comp = $this->createNew($data);
+					$new = true;
+				} else {
+					$new = false;
+				}
+
+				// Update/set fields from CSV
+				$comp->fromCSVRow($data);
+
+				if (!($errors = $this->_getErrors())) {
+					// If no errors, create/save
 					foreach ($_REQUEST['congregationids'] as $congid) {
 						$comp->addCongregation($congid);
 					}
-					$comp->save();
-					$updatedCount++;
-				} else {
-					$comp = new Service_Component();
-					$comp->populate(0, Array());
-					$data['categoryid'] = (int)$_REQUEST['categoryid'];
-					$comp->fromCSVRow($data);
-					if ($errors = $this->_getErrors()) {
-						$this->errors[$rowNum] = $errors;
-					} else {
-						foreach ($_REQUEST['congregationids'] as $congid) {
-							$comp->addCongregation($congid);
-						}
+					if ($new) {
 						$comp->create();
 						$createdCount++;
+					} else {
+						$comp->save();
+						$updatedCount++;
 					}
+				} else {
+					$this->errors[$rowNum] = $errors;
 				}
+
 				$rowNum++;
 			}
+
 			if (empty($this->errors)) {
 				$GLOBALS['system']->doTransaction('COMMIT');
 				add_message($createdCount.' songs created<br>'.
 					$updatedCount.' songs updated<br>'.
-					($rowNum-1).' CSV rows processed',
+					($rowNum - 1).' CSV rows processed',
 					'success', true);
 				redirect('services__component_library'); // exits
 			} else {
@@ -109,8 +115,9 @@ class View__Import_Service_Components extends View
 			foreach ($this->errors as $rowNum => $errs) {
 				echo 'Row #'.(int)$rowNum.': <ul><li>'
 					.implode('</li><li>', array_map(function ($err) { return ents($err); }, $errs))
-					.'</li></ul><hr>';
+					.'</li></ul>';
 			}
+            echo "<hr>";
 		}
 		
 		?>
@@ -238,9 +245,9 @@ class View__Import_Service_Components extends View
 		}
 		if (!empty($_REQUEST['dupe-ccli-match'])
 			&& !empty($data['ccli_number'])
-			&& isset($all_by_ccli[$data['ccli_number']])
+			&& isset($this->all_by_ccli[$data['ccli_number']])
 		) {
-			$matchedid = $all_by_ccli[$data['ccli_number']];
+			$matchedid = $this->all_by_ccli[$data['ccli_number']];
 			return new Service_Component($matchedid);
 		}
 		return null;
@@ -258,24 +265,41 @@ class View__Import_Service_Components extends View
 		}
 		if (!empty($_REQUEST['dupe-title-match'])
 			&& !empty($data['title'])
-			&& isset($all_by_title[$data['title']])
+			&& isset($this->all_by_title[$data['title']])
 		) {
-			list($alt, $id) = $all_by_title[$data['title']];
-			// If someone initially imports a song with a just Title, then edits the CSV to set Alt_Title and reimports, we want the existing record updated.
-			// However if Jethro has a song with Title and Alt_Title already set, and the CSV row matches the title not the Alt_Title, we want a new record created.
-			if ($alt) {
-				if ($alt == $data['alt_title']) {
-					// Matched both title and alt title.
-					return new Service_Component($id);
+			$titleMatches = $this->all_by_title[$data['title']];
+			foreach ($titleMatches as $titleMatch) {
+				$alt = $titleMatch['alt_title'] ?? null;
+				$id = $titleMatch['id'] ?? null;
+				// If someone initially imports a song with a just Title, then edits the CSV to set Alt_Title and reimports, we want the existing record updated.
+				// However if Jethro has a song with Title and Alt_Title already set, and the CSV row matches the title not the Alt_Title, we want a new record created.
+				if ($alt) {
+					if (strtolower($alt) === strtolower($data['alt_title'])) {
+						// Matched both title and alt title.
+						return new Service_Component($id);
+					} else {
+						// Matched the title, but the CSV has a different alt title to ours. Keep going - perhaps another song with the same title matches
+					}
 				} else {
-					// Matched the title, but the CSV has a different alt title to ours. Treat it as a different song.
-					return null;
+					// Title matched, and we don't have an alt title to compare, so it's a match
+					return new Service_Component($id);
 				}
-			} else {
-				// Title matched, and we don't have an alt title to compare, so it's a match
-				return new Service_Component($id);
 			}
+
 		}
 		return null;
 	}
+
+	/**
+	 * @param $data
+	 * @return Service_Component
+	 */
+	private function createNew(&$data)
+	{
+		$data['categoryid'] = (int)$_REQUEST['categoryid'];
+		$comp = new Service_Component();
+		$comp->populate(0, Array());
+		return $comp;
+	}
+
 }
