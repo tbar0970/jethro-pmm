@@ -210,7 +210,7 @@ class View__Import_Service_Components extends View
 		}
 		$data = [];
 		for ($i=0; $i<min($rowlen, $headerlen); $i++) {
-			$data[strtolower($toprow[$i])] = $row[$i];
+			$data[strtolower($toprow[$i])] = trim($row[$i]);
 		}
 		return $data;
 	}
