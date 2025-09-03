@@ -1,5 +1,5 @@
 <?php
-/* @var $comp  The service component object */
+/* @var Service_Component $comp  The service component object */
 ?>
 <h3>
 	<span class="pull-right">
