@@ -208,6 +208,14 @@ class Service_Component extends db_object
 		return $res;
 	}
 
+	public static function getAllByTitle()
+	{
+		$SQL = "SELECT title, alt_title, id
+				FROM service_component";
+		$res = $GLOBALS['db']->queryAll($SQL, null, null, true, false);
+		return $res;
+	}
+
 	protected function _printSummaryRows()
 	{
 		$oldFields = $this->fields;
