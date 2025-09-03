@@ -469,8 +469,7 @@ class service extends db_object
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
 		$res['select'][] = 'GROUP_CONCAT(CONCAT(sbr.bible_ref, "=", sbr.to_read, "=", sbr.to_preach) ORDER BY sbr.order_num SEPARATOR ";") as readings';
 		$res['from'] .= ' LEFT JOIN service_bible_reading sbr ON service.id = sbr.service_id';
-		$res['select'][] = 'IF (max(si.id) IS NULL, 0, 1) as has_items';
-		$res['from'] .= ' LEFT JOIN service_item si ON si.serviceid = service.id';
+		$res['select'][] = 'IF (EXISTS (SELECT 1 FROM service_item WHERE serviceid=service.id), 1, 0) AS has_items';
 		$res['group_by'] = 'service.id';
 		return $res;
 	}
