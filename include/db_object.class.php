@@ -549,12 +549,9 @@ class db_object
 		if ($this->fields[$name]['type'] == 'int') {
 			if (!array_get($this->fields[$name], 'allow_empty', true) || ($value !== '')) {
 				$strval = (string)$value;
-				for ($i=0; $i < strlen($strval); $i++) {
-					$char = $strval[$i];
-					if ((int)$char != $char) {
-						trigger_error(ents($value).' is not a valid value for integer field "'.$name.'" and has not been set', E_USER_NOTICE);
-						return;
-					}
+				if (!filter_var($strval, FILTER_VALIDATE_INT)) {
+					trigger_error(ents($value).' is not a valid value for integer field "'.$name.'" and has not been set', E_USER_NOTICE);
+					return;
 				}
 			}
 		}
