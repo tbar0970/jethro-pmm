@@ -42,6 +42,9 @@
                 });
                 $('#delete').on('click', function(e) {
                     e.preventDefault(); // prevent default link navigation
+                    if (!confirm('Are you sure you want to delete this service component?')) {
+                        return false;
+                    }
                     var id = $(this).attr('data-id');
                     // Disable the song, and if successful, re-render the #preview panel in which this template renders.
                     $.ajax({
