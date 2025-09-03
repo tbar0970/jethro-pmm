@@ -237,6 +237,44 @@ class Service_Component extends db_object
 		unset($this->fields['tags']);
 	}
 
+
+	public function printUsage() {
+		$res = $GLOBALS['db']->queryAll("SELECT service.id AS serviceid
+			, congregation.id AS congregationid
+			, congregation.name AS congregation
+			, service.date
+			, service.topic_title
+			FROM congregation JOIN service ON service.congregationid=congregation.id
+			JOIN service_item ON service_item.serviceid=service.id
+			WHERE componentid=".(int)$this->id);
+		if ($res) {
+?>
+			<table class="table object-summary">
+				<table style="width: 100%" class="table roster service-program table-hover">
+				<thead>
+					<tr>
+						<th>Date</th>
+						<th>Congregation</th>
+						<th>Service</th>
+					</tr>
+				</thead>
+				<tbody>
+<?php
+			foreach ($res as $row) {
+				echo
+					"<t~r>".
+					"<td>".format_date($row['date'])."</td>".
+					"<td>".$row['congregation']. "</td>".
+					"<td>"."<a href='/?view=services&date=". $row['date']. "&congregationid=". $row['congregationid']. "'>".ents($row['topic_title'])."</a></td>".
+					"</tr></a>";
+			}
+?>
+			</tbody>
+		</table>
+<?php
+		} else echo "Song not used";
+	}
+
 	public function printFieldValue($name, $value=NULL)
 	{
 		switch ($name) {

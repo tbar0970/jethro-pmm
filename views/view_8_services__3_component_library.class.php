@@ -121,10 +121,13 @@ class View_Services__Component_Library extends View
 				</div>
 			</div>
 			
-			<div class="span6 well well-small preview-pane anchor-bottom" id="preview">
+			<div class="span6 well well-small preview-pane" id="preview">
 				<p class="center"><i><br /><br />Select a component to view its details here</i></p>
 			</div>
-			
+			<div class="span6 well well-small preview-pane anchor-bottom" id="usage">
+				<p class="center"><i><br /><br />Select a component to view its usage here</i></p>
+			</div>
+
 			<script>
 				
 				$(document).ready(function() {
@@ -132,6 +135,7 @@ class View_Services__Component_Library extends View
 						$('#selected').attr('id', '');
 						$(this).attr('id', 'selected');
 						$('#preview').load("?call=service_comp_detail&id="+$(this).attr('data-id'));
+						$('#usage').load("?call=service_comp_usage&id="+$(this).attr('data-id'));
 					})
 				})
 			</script>
