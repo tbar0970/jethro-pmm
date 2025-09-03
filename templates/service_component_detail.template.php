@@ -9,7 +9,9 @@
 			<a href="<?php echo build_url(Array('call' => NULL, 'view' => '_edit_service_component', 'service_componentid' => $comp->id)); ?>"><i class="icon-wrench"></i>Edit</a> &nbsp;
 
             <?php if ($comp->values['congregationids']) { ?>
-                <a id="disable" data-id="<?php echo $comp->id; ?>" href=""><i class="icon-eye-close"></i>Disable</a> &nbsp;
+                <a id="disable" data-id="<?php echo $comp->id; ?>" href="" title="Disassociate song from all congregations"><i class="icon-eye-close"></i>Disable</a> &nbsp;
+            <?php } else { ?>
+                <a id="enable" href="<?php echo build_url(Array('call' => NULL, 'view' => '_edit_service_component', 'service_componentid' => $comp->id, 'hl' => "congregationids", 'hltext' => "Please choose congregations to enable this song for")); ?>" title="Associate song with congregation(s)"><i class="icon-eye-open"></i>Enable</a> &nbsp;
             <?php } ?>
 
             <?php if ($comp->canDelete()) { ?>
