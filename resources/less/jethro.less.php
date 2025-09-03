@@ -2520,6 +2520,17 @@ div#send-sms-modal div.results {
 	vertical-align: middle;
 }
 
+/* for callout "pay attention to this" text. Used by highlightControlGroup() */
+.floating-box {
+	display: inline-block;           /* Shrink to content */
+	padding: 0.5em 1em;              /* Space around text */
+	background: transparent;                /* Box color */
+	border-radius: 4px;              /* Rounded corners */
+	box-shadow: 0 4px 12px rgba(0,0,0,0.25); /* Floating shadow */
+	font-size: 1rem;
+	margin: 1em 1em 1em 5em;
+}
+
 /************ PRINT **************/
 @media print {
 	#jethro-overall-width, #jethro-overall-width-inner {
