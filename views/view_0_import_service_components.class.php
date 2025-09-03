@@ -106,9 +106,10 @@ class View__Import_Service_Components extends View
 	{
 		if ($this->errors) {
 			echo 'Errors found: <br />';
-			foreach ($this->errors as $rowNum => $errors) {
-				echo 'Row #'.$rowNum.':';
-				echo '<ul><li>'.implode('</li></li>', $errors).'</li></ul>';
+			foreach ($this->errors as $rowNum => $errs) {
+				echo 'Row #'.(int)$rowNum.': <ul><li>'
+					.implode('</li><li>', array_map(function ($err) { return ents($err); }, $errs))
+					.'</li></ul><hr>';
 			}
 		}
 		
