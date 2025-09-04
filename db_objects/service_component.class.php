@@ -515,4 +515,33 @@ class Service_Component extends db_object
 		$this->values['congregationids'] = array_unique($this->values['congregationids']);
 	}
 
+    /**
+     * Whether this service component can be deleted. Service components cannot be deleted if any service items refer to them.
+     * @param $trigger_messages If true, reasons why the component cannot be deleted will be logged, and can be retrieved with dump_messages().
+    * @return bool
+     */
+	public function canDelete($trigger_messages=FALSE)
+	{
+        $hasItem = (boolean)$GLOBALS['db']->queryOne("SELECT EXISTS (
+            SELECT 1
+                FROM service
+                JOIN service_item ON service_item.serviceid=service.id
+                WHERE componentid=".$this->id.
+            ") AS items_exist;");
+		$hasPerm = $GLOBALS['user_system']->havePerm(PERM_SERVICECOMPS);
+        if ($trigger_messages) {
+            if ($hasItem) add_message(_("Cannot delete service component because it is used in services"), "error");
+            if (!$hasPerm) add_message(_("Cannot delete service component because the caller lacks permission"), "error");
+        }
+        return !$hasItem && $hasPerm;
+	}
+
+    /**
+     * Disable a service component, which is currently done by disassociating all congregations.
+     */
+    public function disable():bool {
+        $this->values['congregationids'] = [];
+        return $this->save();
+    }
+
 }
