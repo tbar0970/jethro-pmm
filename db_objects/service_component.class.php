@@ -194,7 +194,7 @@ class Service_Component extends db_object
 		}
 		if ($keyword) {
 			$qk = $GLOBALS['db']->quote("%{$keyword}%");
-			$res['where'] .= ' '.$logic.' (service_component.title LIKE '.$qk.' OR alt_title LIKE '.$qk.' OR service_component.ccli_number = '.$GLOBALS['db']->quote($keyword).' OR content_html LIKE '.$qk.')';
+			$res['where'] .= ' '.$logic.' (service_component.title LIKE '.$qk.' OR alt_title LIKE '.$qk.' OR cast(service_component.ccli_number AS char) = '.$GLOBALS['db']->quote($keyword).' OR content_html LIKE '.$qk.')';
 		}
 
 		return $res;
