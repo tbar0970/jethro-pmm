@@ -174,7 +174,7 @@ class View_Services__Component_Library extends View
                         console.log("No service_componentid param");
                     }
 
-                    $('.service-comps tr').click(function() {
+                    $('.service-comps tr:has(td)').click(function() {
                         $('#selected').removeAttr('id');
                         $(this).attr('id', 'selected');
                         let componentId = $(this).attr('data-id');
