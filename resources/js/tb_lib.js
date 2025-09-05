@@ -82,7 +82,9 @@ $(document).ready(function() {
 		var myLinks = t.find('a, input');
 		if (!myLinks.length) {
 			childLinks = $(this).parent('tr').find('a');
-			self.location = childLinks[0].href;
+			if (childLinks.length) {
+				self.location = childLinks[0].href;
+			}
 		} else if (myLinks.filter('a').length == 1) {
 			self.location = myLinks[0].href;
 		}
