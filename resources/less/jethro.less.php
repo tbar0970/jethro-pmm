@@ -1729,6 +1729,15 @@ table.service-details td table td input {
 	height: 12px !important;
 	line-height: 12px !important;
 }
+
+/* When editing a service schedule, The 'delete this service' and 'delete all services' buttons must render as just an icon, without button decoration */
+#body table.service-program tr td button {
+    background-color: transparent;
+    border: 0px;
+    margin: 0px;
+    padding: 0px;
+}
+
 #body table.service-program tr.insert-space td button {
 	height: 10px !important;
 	width: 16px !important;
