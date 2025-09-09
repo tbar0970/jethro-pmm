@@ -389,13 +389,11 @@ function print_widget($name, $params, $value)
 				$height = array_get($params, 'height', min(count($params['options']), 4));
 				if (count($params['options']) < 4) $height = 0;
 				if (substr($name, -2) != '[]') $name .= '[]';
-				$style = '';
-				if ($height > 0) $style = 'height: '.($height*1.7).'em';
 				$classes .= ' multi-select';
 				// the empty onclick below is to make labels work on iOS
 				// see https://stackoverflow.com/questions/5421659/html-label-command-doesnt-work-in-iphone-browser
 				?>
-				<div class="<?php echo $classes; ?>" style="<?php echo $style; ?>" tabindex="0" onclick="" <?php echo $attrs; ?> >
+				<div class="<?php echo $classes; ?>" tabindex="0" onclick="" <?php echo $attrs; ?> >
 					<?php
 					foreach ($params['options'] as $k => $v) {
 						$checked_exp = in_array("$k", $our_val, true) ? ' checked="checked"' : '';
