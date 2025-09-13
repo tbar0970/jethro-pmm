@@ -281,7 +281,7 @@ function print_widget($name, $params, $value)
 			} else {
 				if ($params['type']=='email') $classes .= " valid-email";
 				$width_exp = empty($params['width']) ? '' : 'size="'.$params['width'].'"';
-				$regex_exp = empty($params['regex']) ? '' : 'regex="'.ents(trim($params['regex'], '/ ')).'"';
+				$regex_exp = empty($params['regex']) ? '' : 'regex="'.ents(trim($params['regex'], '/ ')).'"' . 'pattern="'.ents(trim($params['regex'], '/ ')).'"';
 				$placeholder_exp = empty($params['placeholder']) ? '' : 'placeholder="'.ents($params['placeholder']).'"';
 				$autocomplete_exp = isset($params['autocomplete']) ? 'autocomplete='.($params['autocomplete'] ? 'on' : 'new-password').'"' : '';
 				?>
