@@ -924,6 +924,31 @@ TBLib.handleFormSubmit = function()
 		}
 	}
 
+	// For when there are a set of labels that must not be duplicated, e.g. Age Brackets on the general config page.
+	// Mark up the parent <tbody> of the labels as follows.
+	//   <tbody class="required-noduplicates" data-noduplicates-fieldkey="age_bracket">
+	// where 'data-fieldkey' is the prefix that the set of labels. E.g. 'age_bracket' for fields 'age_bracket_1_label', 'age_bracket_2_label' etc.
+
+	$(this).find('.required-noduplicates').each(function () {
+		var fieldkey = $(this).data("noduplicates-fieldkey");
+		// Loop through the rows, and break if we see the same label twice
+		labelids = {};
+		$(this).find("tr").each(function () {
+			// each tr will have '$fieldkey_1_id' and '$fieldkey_1_label'
+			var idField = $(this).find(`td input[name^="${fieldkey}_"][name$="_id"]`);
+			var labelField = $(this).find(`td input[name^="${fieldkey}_"][name$="_label"]`);
+			if (!idField.val() && labelField.val() == '') return true; // ignore new, blank labels, because the backend ignores them too
+			if (labelids[labelField.val()]) {
+				TBLib.markErroredInput(labelField, `Duplicate label '${labelField.val()}'`);
+				ok = false;
+				return false;
+			} else {
+				labelids[labelField.val()] = idField; // remember seen label
+			}
+		});
+	});
+	if (!ok) return false;
+
 	if ($(this).hasClass('disable-submit-buttons')) {
 		$(this).find('input[type=submit]').attr('disabled', 'disabled');
 	}
