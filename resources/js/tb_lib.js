@@ -26,15 +26,16 @@ $(document).ready(function() {
 	});
 
 	//// VALIDATION ////
-	$('input.bible-ref').change(TBLib.handleBibleRefBlur);
+	$('input.bible-ref').change(TBLib.validateBibleRefInput);
 	$('input.valid-email').change(TBLib.handleEmailBlur);
 	$('input.day-box').change(TBLib.handleDayBoxBlur);
 	$('input.year-box').change(TBLib.handleYearBoxBlur);
+	$('input.phone-number').change(TBLib.handlePhoneNumberBoxBlur);
 	$('textarea[maxlength]').keypress(function() {
 		var m = parseInt($(this).attr('maxlength'), 10);
 		return ((m < 1) || (this.value.length <= m));
 	});
-	$('input[regex]').change(TBLib.handleRegexInputBlur);
+	$('input[regex]').change(TBLib.validateRegexInput);
 	$('.optional .compulsory').removeClass('compulsory');
 	$('form').submit(TBLib.handleFormSubmit);
 	$('form.disable-submit-buttons input[type=submit]').click(function() {
@@ -187,10 +188,11 @@ $(document).ready(function() {
 	$('input[data-require-fields]').click(function() {
 		var ok = true;
 
+		// data-require-fields attribute identifies the required form element with a jquery selector, e.g. '#add_existing_group [name=groupid]'
+		// Evaluate the value of data-require-fields to get the required form element.
 		$($(this).attr('data-require-fields')).each(function() {
 			if (!this.value) {
-				alert('A mandatory field has been left blank');
-				TBLib.markErroredInput(this);
+				TBLib.markErroredInput(this, 'This field is required');
 				ok = false;
 				return;
 			}
@@ -455,74 +457,147 @@ TBLib.selectBasename = function() {
 	}
 }
 
-TBLib.invalidRegexInput = null;
-TBLib.handleRegexInputBlur = function()
+TBLib.validateRegexInput = function()
 {
-	if (r = this.getAttribute('regex')) {
-		$(this).parents('.control-group').removeClass('error');
-		var ro = new RegExp(r, 'i');
-		if ((this.value != '') && !ro.test(this.value)) {
-			this.focus();
-			$(this).parents('.control-group').addClass('error');
-			alert('The value of the highlighted field is not valid');
-			TBLib.invalidRegexInput = this;
-			setTimeout('TBLib.invalidRegexInput.select()', 100);
-			return false;
+	const value = this.value.trim();
+	let valid = true;
+
+	if (value === '') {
+		// empty input is valid
+	} else {
+		if (r = $(this).attr('regex')) {
+			var ro = new RegExp(r, 'i');
+			if (!ro.test(this.value)) {
+				TBLib.markErroredInput(this, 'Invalid value - does not match the required pattern');
+				return false;
+			}
+		}
+		if (valid) {
+			TBLib.clearErroredInput(this);
+		}
+		return valid;
+	}
+}
+
+TBLib.validateBibleRefInput = function()
+{
+	const value = this.value.trim();
+	let valid = true;
+
+	if (value === '') {
+		// empty input is valid
+	} else {
+		var re=/^(genesis|gen|genes|exodus|exod|ex|leviticus|levit|lev|numbers|nums|num|deuteronomy|deut|joshua|josh|judges|judg|ruth|1samuel|1sam|2samuel|2sam|1kings|1ki|2kings|2ki|1chronicles|1chron|1chr|2chronicles|2chron|2chr|ezra|nehemiah|nehem|neh|esther|esth|est|job|psalms|psalm|pss|ps|proverbs|prov|pr|ecclesiastes|eccles|eccl|ecc|song|sng|sg|songsol|songofsolomon|songofsongs|songofsong|sos|songofsol|isaiah|isa|jeremiah|jerem|jer|lamentations|lam|ezekiel|ezek|daniel|dan|hosea|hos|joel|jl|jo|amos|am|obadiah|obad|obd|ob|jonah|jon|micah|mic|nahum|nah|habakkuk|hab|zephaniah|zeph|haggai|hag|zechariah|zech|zec|malachi|mal|matthew|mathew|matt|mat|mark|mk|luke|lk|john|jn|actsoftheapostles|acts|ac|romans|rom|1corinthians|1cor|2corinthians|2cor|galatians|gal|ephesians|eph|philippians|phil|colossians|col|1thessalonians|1thess|1thes|2thessalonians|2thess|2thes|1timothy|1tim|2timothy|2tim|titus|tit|ti|philemon|hebrews|heb|james|jam|1peter|1pet|2peter|2pet|1john|1jn|2john|2jn|3john|3jn|jude|revelation|rev)(([0-9]+)([\-\:.]))?(([0-9]+)([\-\:.]))?(([0-9]+)([\-\:.]))?([0-9]+)(,[0-9]+(-[0-9]+)?)?$/gi;
+
+		if (!this.value.replace(/ /g, '').match(re)) {
+			TBLib.markErroredInput(this, 'Invalid bible reference - ' + this.value.replace(/ /g, ''));
+			valid = false;
 		}
 	}
-	return true;
-}
-
-TBLib.invalidBibleBox = null;
-TBLib.handleBibleRefBlur = function()
-{
-	var re=/^(genesis|gen|genes|exodus|exod|ex|leviticus|levit|lev|numbers|nums|num|deuteronomy|deut|joshua|josh|judges|judg|ruth|1samuel|1sam|2samuel|2sam|1kings|1ki|2kings|2ki|1chronicles|1chron|1chr|2chronicles|2chron|2chr|ezra|nehemiah|nehem|neh|esther|esth|est|job|psalms|psalm|pss|ps|proverbs|prov|pr|ecclesiastes|eccles|eccl|ecc|song|sng|sg|songsol|songofsolomon|songofsongs|songofsong|sos|songofsol|isaiah|isa|jeremiah|jerem|jer|lamentations|lam|ezekiel|ezek|daniel|dan|hosea|hos|joel|jl|jo|amos|am|obadiah|obad|obd|ob|jonah|jon|micah|mic|nahum|nah|habakkuk|hab|zephaniah|zeph|haggai|hag|zechariah|zech|zec|malachi|mal|matthew|mathew|matt|mat|mark|mk|luke|lk|john|jn|actsoftheapostles|acts|ac|romans|rom|1corinthians|1cor|2corinthians|2cor|galatians|gal|ephesians|eph|philippians|phil|colossians|col|1thessalonians|1thess|1thes|2thessalonians|2thess|2thes|1timothy|1tim|2timothy|2tim|titus|tit|ti|philemon|hebrews|heb|james|jam|1peter|1pet|2peter|2pet|1john|1jn|2john|2jn|3john|3jn|jude|revelation|rev)(([0-9]+)([\-\:.]))?(([0-9]+)([\-\:.]))?(([0-9]+)([\-\:.]))?([0-9]+)(,[0-9]+(-[0-9]+)?)?$/gi;
-	this.value = this.value.trim();
-	if (this.value == '') return true;
-	if (!this.value.replace(/ /g, '').match(re)) {
-		this.focus();
-		alert("Invalid bible reference - "+this.value.replace(/ /g, ''));
-		TBLib.invalidBibleBox = this;
-		setTimeout('TBLib.invalidBibleBox.select()', 100);
-		return false;
+	if (valid) {
+		TBLib.clearErroredInput(this);
 	}
-	return true;
+	return valid;
 }
 
-TBLib.invalidDayBox = null;
-TBLib.handleDayBoxBlur = function()
-{
-	if (this.value == '') return true;
-	var intVal = parseInt(this.value, 10);
-	if (isNaN(intVal) || (intVal < 1) || (intVal > 31)) {
-		$(this).parents('.control-group').addClass('error');
-		this.focus();
-		alert('Day of month must be between 1 and 31');
-		TBLib.invalidDayBox = this;
-		setTimeout('TBLib.invalidDayBox.select()', 100);
-		return false;
+TBLib.handleDayBoxBlur = function () {
+	const value = this.value.trim();
+	let valid = true;
+
+	if (value === '') {
+		// empty input is valid
+	} else {
+		const intVal = parseInt(value, 10);
+		if (isNaN(intVal) || intVal < 1 || intVal > 31) {
+			TBLib.markErroredInput(this, 'Day of month must be between 1 and 31');
+			valid = false;
+		}
 	}
-	$(this).parents('.control-group').removeClass('error');
-	return true;
-}
+	if (valid) {
+		TBLib.clearErroredInput(this);
+	}
+	return valid;
+};
 
-TBLib.invalidYearBox = null;
 TBLib.handleYearBoxBlur = function()
 {
-	if (this.value == '') return true;
-	var intVal = parseInt(this.value, 10);
-	if (isNaN(intVal) || (intVal < 1900) || (intVal > 3000)) {
-		$(this).parents('.control-group').addClass('error');
-		this.focus();
-		alert('Year must be between 1900 and 3000');
-		TBLib.invalidYearBox = this;
-		setTimeout('TBLib.invalidYearBox.select()', 100);
-		return false;
+	const value = this.value.trim();
+	let valid = true;
+
+	if (value === '') {
+		// empty input is valid
+	} else {
+		const intVal = parseInt(value, 10);
+		if (isNaN(intVal) || (intVal < 1900) || (intVal > 3000)) {
+			TBLib.markErroredInput(this, 'Year must be between 1900 and 3000');
+			valid = false;
+		}
 	}
-	$(this).parents('.control-group').removeClass('error');
-	return true;
+	if (valid) {
+		TBLib.clearErroredInput(this);
+	}
+	return valid;
 }
 
+TBLib.handleEmailBlur = function()
+{
+	const value = this.value.trim();
+	let valid = true;
+
+	if (value === '') {
+		// empty input is valid
+	} else {
+		var rx = /^[^@]+@\w+([\.-]\w+)+$/;
+		if (!this.value.match(rx)) {
+			TBLib.markErroredInput(this, 'This field must contain a valid email address, or be blank');
+			valid = false;
+		}
+	}
+	if (valid) {
+		TBLib.clearErroredInput(this);
+	}
+	return valid;
+}
+
+TBLib.handlePhoneNumberBoxBlur = function()
+{
+	const value = this.value.trim();
+	let valid = true;
+
+	if (value === '') {
+		// empty input is valid
+	} else {
+		// var rx = /^[^@]+@\w+([\.-]\w+)+$/;
+
+		if (value.match(/[A-Za-z]/)) {
+			TBLib.markErroredInput(this, 'Phone numbers cannot contain letters');
+			return false;
+		}
+
+		const numVal = value.replace(/[^0-9]/g, '');
+		var validLengths = $(this).attr('validlengths').split(',');
+		var lengthOK = false;
+		var digitOptions = '';
+		for (var j=0; j < validLengths.length; j++) {
+			if (numVal.length == validLengths[j]) lengthOK = true;
+			if (j == 0) {
+				digitOptions = validLengths[0];
+			} else if (j < (validLengths.length - 1)) {
+				digitOptions += ', '+validLengths[j];
+			} else {
+				digitOptions += ' or '+validLengths[j];
+			}
+		}
+		if (!lengthOK) {
+			TBLib.markErroredInput(this, 'This phone number must have '+digitOptions+' digits');
+			valid = false;
+		}
+	}
+	if (valid) {
+		TBLib.clearErroredInput(this);
+	}
+	return valid;
+}
 
 TBLib.medLinkPopupWindow = null;
 TBLib.handleMedPopupLinkClick = function(elt)
@@ -651,13 +726,44 @@ TBLib.cancelValidation = function()
 	TBLib.doTBLibValidation = false;
 }
 
-TBLib.markErroredInput = function(input) {
-	if ($(input).parents('.control-group').length) {
-		$(input).parents('.control-group').addClass('error');
-	} else {
-		$(input).parents(':first').addClass('control-group').addClass('error');
+/* Highlights the given input field to indicate it contains invalid input, printing 'msg' explanation of the problem below. */
+TBLib.markErroredInput = function(input, msg) {
+	let cg = $(input).closest('.control-group');
+
+	if (!cg.length) {
+		cg = $(input).parent().addClass('control-group'); // fallback: add to parent
+	}
+	cg.addClass('error');
+	errblock = cg.find(`[id="err-${input.name}"]`);
+	if (!errblock.length) {
+		errblock = $(`<p class="error help-block" id="err-${input.name}"></p>`);
+		errblock.text(msg);
+		$(input).parent().append(errblock);
+	}
+
+	$(input).focus();
+	// Only scroll if the element is outside the viewport
+	const cgOffset = cg.offset();
+	if (cgOffset) {
+		const winTop = $(window).scrollTop();
+		const winBottom = winTop + $(window).height();
+		const cgTop = cgOffset.top;
+		const cgBottom = cgTop + cg.outerHeight();
+
+		if (cgTop < winTop || cgBottom > winBottom) {
+			$('html, body').animate({
+				scrollTop: Math.max(0, cgTop - 20)
+			}, 300);
+		}
 	}
 }
+
+TBLib.clearErroredInput = function(input) {
+	let cg = $(input).closest('.control-group');
+	errblock = cg.find(`[id="err-${input.name}"]`);
+	errblock.remove();
+	cg.removeClass('error');
+};
 
 TBLib.handleFormSubmit = function()
 {
@@ -670,78 +776,42 @@ TBLib.handleFormSubmit = function()
 	var compulsoryInputs = ($(this).find('input.compulsory, select.compulsory, textarea.compulsory'));
 	for (var i=0; i < compulsoryInputs.size(); i++) {
 		if ((compulsoryInputs.get(i).value == '') && (!compulsoryInputs.get(i).disabled)) {
-			TBLib.markErroredInput(compulsoryInputs.get(i));
-			compulsoryInputs.get(i).focus();
-			alert('A mandatory field has been left blank');
-			compulsoryInputs.get(i).focus();
+			TBLib.markErroredInput(compulsoryInputs.get(i), 'This field is required');
 			return false;
 		}
 	}
-	var multiOK = true;
+	var ok = true;
 	$('.compulsory.multi-select').each(function() {
 		if ($(this).find('input:checked').length==0) {
-			TBLib.markErroredInput(this);
-			alert('A mandatory field has been left blank');
-			this.focus();
-			multiOK = false;
+			TBLib.markErroredInput(this, 'This field is required');
+			ok = false;
 			return false;
 		}
 	})
-	if (!multiOK) return false;
+	if (!ok) return false;
 
 	// Check phone numbers are OK
-	var phoneInputs = ($(this).find('input.phone-number'));
-	for (var i=0; i < phoneInputs.size(); i++) {
-		with (phoneInputs.get(i)) {
-			if (value == '') continue;
-			if (value.match(/[A-Za-z]/)) {
-				TBLib.markErroredInput(phoneInputs.get(i));
-				alert('Phone numbers cannot contain letters');
-				phoneInputs.get(i).focus();
-				return false;
-			}
-			var numVal = value.replace(/[^0-9]/g, '');
-			var validLengths = getAttribute('validlengths').split(',');
-			var lengthOK = false;
-			var digitOptions = '';
-			for (var j=0; j < validLengths.length; j++) {
-				if (numVal.length == validLengths[j]) lengthOK = true;
-				if (j == 0) {
-					digitOptions = validLengths[0];
-				} else if (j < (validLengths.length - 1)) {
-					digitOptions += ', '+validLengths[j];
-				} else {
-					digitOptions += ' or '+validLengths[j];
-				}
-			}
-			if (!lengthOK) {
-				TBLib.markErroredInput(phoneInputs.get(i));
-				alert('The highlighted phone number must have '+digitOptions+' digits');
-				phoneInputs.get(i).focus();
-				return false;
-			}
-		}
-	}
-	// Check passwords
-	var passwordsOK = true;
+	$(this).find('input.phone-number').each(function() {
+		ok = TBLib.handlePhoneNumberBoxBlur.apply(this);
+		return ok;
+	});
+	if (!ok) return false;
+
 	$(this).find('input[type=password]').each(function() {
 		if (this.name.substr(-1) == '1' && this.value != '') {
 			var other = $('input[name='+this.name.substring(0,this.name.length-1)+'2]');
 			if (other.length == 1) {
 				if (other.get(0).value != this.value) {
-					TBLib.markErroredInput(this);
-					alert('The passwords you have entered don\'t match - please re-enter');
+					TBLib.markErroredInput(this, 'The passwords you have entered don\'t match - please re-enter');
 					this.select();
-					passwordsOK = false;
+					ok = false;
 					return;
 				}
 			}
 			var minLength = $(this).attr('data-minlength');
 			if (minLength && (this.value.length < minLength)) {
-				TBLib.markErroredInput(this);
-				alert('The password you entered is too short - it must be at least '+minLength+' characters');
-				this.select();
-				passwordsOK = false;
+				TBLib.markErroredInput(this, 'The password you entered is too short - it must be at least '+minLength+' characters');
+				ok = false;
 				return;
 			}
 			var num_nums = 0;
@@ -751,74 +821,47 @@ TBLib.handleFormSubmit = function()
 				if (this.value[i].match(/[A-Za-z]/)) num_letters++;
 			}
 			if (num_nums < 2 || num_letters < 2) {
-				TBLib.markErroredInput(this);
-				this.select();
-				alert('The password you entered is too simple - passwords must contain at least 2 letters and 2 numbers');
-				passwordsOK = false;
+				TBLib.markErroredInput(this, 'The password you entered is too simple - passwords must contain at least 2 letters and 2 numbers');
+				ok = false;
 			}
 		}
 	});
-	if (!passwordsOK) return false;
+	if (!ok) return false;
 
 	// Check regexps
-	var regexesOK = true;
-	$(this).find('input').each(function() {
-		if (r = this.getAttribute('regex')) {
-			var ro = new RegExp(r, 'i');
-			if ((this.value != '') && !ro.test(this.value)) {
-				TBLib.markErroredInput(this);
-				alert('The value of the highlighted field is not valid');
-				this.focus();
-				regexesOK = false;
-				return false;
-			}
-		}
+	$(this).find('input[regex]').each(function () {
+		ok = TBLib.validateRegexInput.apply(this);
+		return ok;
 	});
-	if (!regexesOK) return false;
-
-	var ok = true;
+	if (!ok) return false;
 
 	$(this).find('input.bible-ref').each(function() {
-		if (!TBLib.handleBibleRefBlur.apply(this)) {
-			ok = false;
-			return false;
-		}
+		ok = TBLib.validateBibleRefInput.apply(this);
+		return ok;
 	});
 	if (!ok) return false;
 
 	$(this).find('input.day-box').each(function() {
-		if (!TBLib.handleDayBoxBlur.apply(this)) {
-			ok = false;
-			return false;
-		}
-		if ((this.value == '') && $(this).siblings('select').val() != '') {
+		ok = TBLib.handleDayBoxBlur.apply(this); // validates value is an int, 1-31, or blank.
+		if (ok && (this.value == '') && $(this).siblings('select').val() != '') {
 			var req = $(this).siblings('.optional-year').length ? 'day and month' : 'day, month and year';
-			$(this).parents('.control-group').addClass('error');
-			this.select();
-			alert('The highlighted date field is incomplete - you must enter '+req+', or leave it completely blank');
-			TBLib.invalidDateField = this;
-			setTimeout('TBLib.invalidDateField.select()', 100);
+			TBLib.markErroredInput(this, `Date field is incomplete. You must enter ${req} or leave it completely blank`);
 			ok = false;
-			return false;
 		}
+		return ok;
 	});
 	if (!ok) return false;
 
 	$(this).find('input.year-box').each(function() {
-		if (!TBLib.handleYearBoxBlur.apply(this)) {
-			ok = false;
-			return false;
+		ok = TBLib.handleYearBoxBlur.apply(this);
+		if (ok) {
+			var myDayBox = $(this).siblings('.day-box');
+			if ((this.value == '') && !$(this).hasClass('optional-year') && (myDayBox.val() != '')) {
+				TBLib.markErroredInput(this, `Date field is incomplete. You must enter day, month and year or leave it completely blank`);
+				ok = false;
+			}
 		}
-		var myDayBox = $(this).siblings('.day-box');
-		if ((this.value == '') && !$(this).hasClass('optional-year') && (myDayBox.val() != '')) {
-			$(this).parents('.control-group').addClass('error');
-			this.select();
-			alert('The highlighted date field is incomplete - you must enter day, month and year or leave it completely blank');
-			TBLib.invalidDateField = this;
-			setTimeout('TBLib.invalidDateField.select()', 100);
-			ok = false;
-			return false;
-		}
+		return ok;
 	});
 	if (!ok) return false;
 
@@ -829,7 +872,7 @@ TBLib.handleFormSubmit = function()
 	if (rcc.length) {
 		var checkedBoxes = rcc.find('input[type=checkbox]:checked');
 		if (!checkedBoxes.length) {
-			rcc.find('input[type=checkbox]').get(0).scrollIntoView();
+			// Note: can't use TBLib.markErroredInput here, as it highlights all the rows, and can't highlight the problematic column.
 			var msg = "You must select one checkbox in this column";
 			if (rcc.attr('data-error-message')) msg = rcc.attr('data-error-message');
 			alert(msg);
@@ -846,20 +889,6 @@ TBLib.handleFormSubmit = function()
 	return true;
 }
 
-TBLib.invalidEmailField = null;
-TBLib.handleEmailBlur = function()
-{
-	var rx = /^[^@]+@\w+([\.-]\w+)+$/
-	this.value = this.value.trim();
-	if (this.value != '' && !this.value.match(rx)) {
-		this.focus();
-		alert('This field must contain a valid email address');
-		TBLib.invalidEmailField = this;
-		setTimeout('TBLib.invalidEmailField.select();', 100);
-		return false;
-	}
-	return true;
-}
 
 TBLib.handleSelectAllClick = function()
 {
