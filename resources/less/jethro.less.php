@@ -738,7 +738,9 @@ tr:last-child .insert-row-below {
 	font-style: italic;
 	color: @gray;
 }
-
+.error.help-inline, .error.help-block {
+    font-size: 14px;
+}
 #body .soft, .soft { /* low-key links */
 	font-size: 85%;
 	padding-top: 1px;
