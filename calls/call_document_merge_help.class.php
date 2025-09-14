@@ -20,25 +20,25 @@ class Call_document_merge_help extends Call
 					<tr>
 						<td>Simple list of people in a table</td>
 						<td class="nowrap">
-							<a href="./resources/merge_samples/example_list_of_people.ods">ODS</a> &nbsp;
-							<a href="./resources/merge_samples/example_list_of_people.xlsx">XLSX</a> &nbsp;
-							<a href="./resources/merge_samples/example_list_of_people.odt">ODT</a> &nbsp;
-							<a href="./resources/merge_samples/example_list_of_people.docx">DOCX</a>
+							<a href="<?php echo BASE_URL; ?>/resources/merge_samples/example_list_of_people.ods">ODS</a> &nbsp;
+							<a href="<?php echo BASE_URL; ?>/resources/merge_samples/example_list_of_people.xlsx">XLSX</a> &nbsp;
+							<a href="<?php echo BASE_URL; ?>/resources/merge_samples/example_list_of_people.odt">ODT</a> &nbsp;
+							<a href="<?php echo BASE_URL; ?>/resources/merge_samples/example_list_of_people.docx">DOCX</a>
 						</td>
 					</tr>
 					<tr>
 						<td>Nametags, A4, 3x7 per page</td>
 						<td>
-							<a href="./resources/merge_samples/example_nametags_7x3.docx">DOCX</a>
-							<a href="./resources/merge_samples/example_nametags_7x3.odt">ODT</a>
+							<a href="<?php echo BASE_URL; ?>/resources/merge_samples/example_nametags_7x3.docx">DOCX</a>
+							<a href="<?php echo BASE_URL; ?>/resources/merge_samples/example_nametags_7x3.odt">ODT</a>
 						</td>
 					</tr>
 					<tr>
 						<td>Attendance list, with birthdays highlighted
 							<br /><small><i>This also shows date of birth (a custom field) and whether they have had a birthday in the past week. The ODS version uses conditional formatting to omit dividing lines between members of the same family.</i></small></td>
 						<td>
-							<a href="./resources/merge_samples/example_attendance_sheet.ods">ODS</a> &nbsp;
-							<a href="./resources/merge_samples/example_attendance_sheet.xlsx">XLSX</a>
+							<a href="<?php echo BASE_URL; ?>/resources/merge_samples/example_attendance_sheet.ods">ODS</a> &nbsp;
+							<a href="<?php echo BASE_URL; ?>/resources/merge_samples/example_attendance_sheet.xlsx">XLSX</a>
 						</td>
 					</tr>
 				</table>
@@ -47,15 +47,15 @@ class Call_document_merge_help extends Call
 					<tr>
 						<td>Mailing labels, A4, 3x7 per page</td>
 						<td>
-							<a href="./resources/merge_samples/example_mailing_labels_7x3.docx">DOCX</a>
-							<a href="./resources/merge_samples/example_mailing_labels_7x3.odt">ODT</a>
+							<a href="<?php echo BASE_URL; ?>/resources/merge_samples/example_mailing_labels_7x3.docx">DOCX</a>
+							<a href="<?php echo BASE_URL; ?>/resources/merge_samples/example_mailing_labels_7x3.odt">ODT</a>
 						</td>
 					</tr>
 					<tr>
 						<td>Family attendance sheet</td>
 						<td>
-							<a href="./resources/merge_samples/example_family_attendance.ods">ODS</a> &nbsp;
-							<a href="./resources/merge_samples/example_family_attendance.xlsx">XLSX</a>
+							<a href="<?php echo BASE_URL; ?>/resources/merge_samples/example_family_attendance.ods">ODS</a> &nbsp;
+							<a href="<?php echo BASE_URL; ?>/resources/merge_samples/example_family_attendance.xlsx">XLSX</a>
 						</td>
 					</tr>
 				</table>
@@ -145,8 +145,8 @@ class Call_document_merge_help extends Call
 				</ul>
 
 				<p>Example Attendance-Specific Template 3 uses this concept:			
-							<a href="./resources/merge_samples/example_monthly_attendance2.ods">ODS</a> &nbsp;
-							<a href="./resources/merge_samples/example_monthly_attendance2.xlsx">XLSX</a> &nbsp;
+							<a href="<?php echo BASE_URL; ?>/resources/merge_samples/example_monthly_attendance2.ods">ODS</a> &nbsp;
+							<a href="<?php echo BASE_URL; ?>/resources/merge_samples/example_monthly_attendance2.xlsx">XLSX</a> &nbsp;
 				</p>
 				
 				<p><b>Special considerations</b></p>
@@ -176,14 +176,14 @@ class Call_document_merge_help extends Call
 				<p>Note: Columns with a total of zero are included.</p>
 				<p>
 				<b>Example Attendance-Specific Templates</b>:<br />  Example 1:
-							<a href="./resources/merge_samples/example_monthly_attendance.ods">ODS</a> &nbsp;
-							<a href="./resources/merge_samples/example_monthly_attendance.xlsx">XLSX</a><br>
+							<a href="<?php echo BASE_URL; ?>/resources/merge_samples/example_monthly_attendance.ods">ODS</a> &nbsp;
+							<a href="<?php echo BASE_URL; ?>/resources/merge_samples/example_monthly_attendance.xlsx">XLSX</a><br>
 				Example 2:
-							<a href="./resources/merge_samples/example_monthly_attendance1.ods">ODS</a> &nbsp;
-							<a href="./resources/merge_samples/example_monthly_attendance1.xlsx">XLSX</a><br>
+							<a href="<?php echo BASE_URL; ?>/resources/merge_samples/example_monthly_attendance1.ods">ODS</a> &nbsp;
+							<a href="<?php echo BASE_URL; ?>/resources/merge_samples/example_monthly_attendance1.xlsx">XLSX</a><br>
 				Example 3:
-							<a href="./resources/merge_samples/example_monthly_attendance2.ods">ODS</a> &nbsp;
-							<a href="./resources/merge_samples/example_monthly_attendance2.xlsx">XLSX</a> &nbsp;
+							<a href="<?php echo BASE_URL; ?>/resources/merge_samples/example_monthly_attendance2.ods">ODS</a> &nbsp;
+							<a href="<?php echo BASE_URL; ?>/resources/merge_samples/example_monthly_attendance2.xlsx">XLSX</a> &nbsp;
 				</p>
 
 				<h3>Extra Fields for Rosters Page</h3>
@@ -210,11 +210,11 @@ class Call_document_merge_help extends Call
 				<p>
 				<b>Example Roster-specific Templates</b>:<br />
 				Sign-in sheets: 
-							<a href="./resources/merge_samples/example_roster_sign_in_out_sheet.ods">ODS</a> &nbsp;
-							<a href="./resources/merge_samples/example_roster_sign_in_out_sheet.xlsx">XLSX</a><br>
+							<a href="<?php echo BASE_URL; ?>/resources/merge_samples/example_roster_sign_in_out_sheet.ods">ODS</a> &nbsp;
+							<a href="<?php echo BASE_URL; ?>/resources/merge_samples/example_roster_sign_in_out_sheet.xlsx">XLSX</a><br>
 				Roster: 
-							<a href="./resources/merge_samples/example_roster.ods">ODS</a> &nbsp;
-							<a href="./resources/merge_samples/example_roster.xlsx">XLSX</a> &nbsp;
+							<a href="<?php echo BASE_URL; ?>/resources/merge_samples/example_roster.ods">ODS</a> &nbsp;
+							<a href="<?php echo BASE_URL; ?>/resources/merge_samples/example_roster.xlsx">XLSX</a> &nbsp;
 				</p>
 				<p>
 				<b>Handy hint</b>:<br />
