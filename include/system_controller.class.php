@@ -385,17 +385,6 @@ class System_Controller
 		return in_array(strtoupper($feature), $enabled_features);
 	}
 
-	public static function checkConfigHealth()
-	{
-		if (REQUIRE_HTTPS && (FALSE === strpos(BASE_URL, 'https://'))) {
-			throw new \RuntimeException("Configuration file error: If you set REQUIRE_HTTPS to true, your BASE_URL must start with https");
-		}
-
-		if (substr(BASE_URL, -1) != '/') {
-			throw new \RuntimeException("Configuration file error: Your BASE_URL must end with a slash");
-		}
-	}
-
 	public function setGlobalHeaders()
 	{
         	if (session_id()) {

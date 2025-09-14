@@ -26,7 +26,8 @@ define('BASE_URL', 'http://example.com/jethro/');
 
 // Whether the system must be accessed by HTTPS.
 // If this is true, the BASE_URL above must begin with https://
-define('REQUIRE_HTTPS', FALSE);
+// No longer used - Jethro will run wherever it finds itself.
+// define('REQUIRE_HTTPS', FALSE);
 
 ///////////////////////////////////////////////////////////////////////////
 // OPTIONAL DATABASE SETTINGS -
