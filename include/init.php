@@ -46,6 +46,9 @@ if (defined('SESSION_TIMEOUT_MINS')) {
 	@ini_set('session.gc_maxlifetime', SESSION_TIMEOUT_MINS*60);
 }
 
+// Default BASE_URL to '' i.e. script-relative.
+if (!defined('BASE_URL')) define('BASE_URL', '');
+
 // If max length is set, set the cookie timeout - this will allow sessions to outlast browser invocations
 $expiryTime = defined('SESSION_MAXLENGTH_MINS') ? SESSION_MAXLENGTH_MINS * 60 : NULL;
 session_set_cookie_params($expiryTime, '/'.get_baseurl_path());

@@ -800,6 +800,29 @@ function get_baseurl_path()
 	return trim((parse_url(BASE_URL, PHP_URL_PATH) ?? ''), '/');
 }
 
+/**
+ * Infer Jethro's base URL from the request.
+ */
+function base_url()
+{
+    // Detect scheme
+    $https = (
+        (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
+        (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443) ||
+        (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+    );
+    $scheme = $https ? 'https' : 'http';
+
+    // Detect host (with proxy awareness)
+    $host = $_SERVER['HTTP_X_FORWARDED_HOST'] ?? $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'];
+
+    // Detect base path (the directory your app runs from)
+    $scriptDir = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/');
+
+    // Build base URL (no trailing slash if at root)
+    return $scheme . '://' . $host . ($scriptDir !== '' ? $scriptDir : '');
+}
+
 function speed_log($bam=FALSE)
 {
 	$fn = $bam ? 'bam' : 'error_log';
