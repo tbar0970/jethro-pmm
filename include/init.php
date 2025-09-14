@@ -48,7 +48,7 @@ if (defined('SESSION_TIMEOUT_MINS')) {
 
 // If max length is set, set the cookie timeout - this will allow sessions to outlast browser invocations
 $expiryTime = defined('SESSION_MAXLENGTH_MINS') ? SESSION_MAXLENGTH_MINS * 60 : NULL;
-session_set_cookie_params($expiryTime, parse_url(BASE_URL, PHP_URL_PATH));
+session_set_cookie_params($expiryTime, '/'.get_baseurl_path());
 if (session_id() == '') {
 	session_name('JethroSess');
 	session_start();

@@ -106,7 +106,7 @@ class View_Rosters__Display_Roster_Assignments extends View
 			if ($viewid) {
 				if (!$this->_editing) {
 					echo '<div class="no-print margin-below">';
-					echo '<a target="print-roster" class="med-newwin nowrap" href="'.BASE_URL.'?call=display_roster&viewid='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'"><i class="icon-print"></i>Show printable version</a> &nbsp; ';
+					echo '<a target="print-roster" class="med-newwin nowrap" href="?call=display_roster&viewid='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'"><i class="icon-print"></i>Show printable version</a> &nbsp; ';
 					echo '<a href="?call=email&print_modal=1&roster_view='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'" target="_append" class="nowrap"><i class="icon-email">@</i>Email all assignees</a> &nbsp; ';
 
 					if (SMS_Sender::canSend()) {
@@ -115,10 +115,10 @@ class View_Rosters__Display_Roster_Assignments extends View
 
 					}
 					if ($this->_view->getValue('visibility') != '') {
-						echo '<a target="_rosterview"  class="nowrap" href="'.BASE_URL.'members/?view=rosters&roster_view='.$this->_view->id.'"><i class="icon-share"></i>View in members area</a> &nbsp; ';
+						echo '<a target="_rosterview"  class="nowrap" href="'.BASE_URL.'/members/?view=rosters&roster_view='.$this->_view->id.'"><i class="icon-share"></i>View in members area</a> &nbsp; ';
 					}
 					if ($this->_view->getValue('visibility') == 'public') {
-						$url = BASE_URL.'public/?view=display_roster&roster_view='.$this->_view->id;
+						$url = BASE_URL.'/public/?view=display_roster&roster_view='.$this->_view->id;
 						if (PUBLIC_ROSTER_SECRET) $url .= '&secret='.PUBLIC_ROSTER_SECRET;
 						echo '<a  class="nowrap" target="_rosterview" href="'.$url.'"><i class="icon-share"></i>View in public site</a> &nbsp; ';
 					}
@@ -154,7 +154,7 @@ class View_Rosters__Display_Roster_Assignments extends View
 								print_hidden_field('end_date', $this->_end_date);
 								?>
 								<input class="compulsory" type="file" name="source_document" />
-								<span class="smallprint"><a target="roster-merge-help" class="med-newwin" href="<?php echo BASE_URL; ?>index.php?call=document_merge_help"><i class="icon-print"></i>Help and examples</a><br></span>
+								<span class="smallprint"><a target="roster-merge-help" class="med-newwin" href="?call=document_merge_help"><i class="icon-print"></i>Help and examples</a><br></span>
 							</div>
 							<div class="modal-footer">
 								<input type="submit" class="btn" value="Go" />

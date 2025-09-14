@@ -23,7 +23,7 @@ class View_Display_Role_Description extends View
 	{
 		if ($this->_role) {
 			?>
-			<a class="soft pull-right no-print" href="<?php echo BASE_URL;?>?view=_edit_roster_role&roster_roleid=<?php echo $this->_role->id; ?>"><i class="icon-wrench"></i>Edit</a>
+			<a class="soft pull-right no-print" href="?view=_edit_roster_role&roster_roleid=<?php echo $this->_role->id; ?>"><i class="icon-wrench"></i>Edit</a>
 			<?php
 			echo $this->_role->getValue('details');
 		} else {
