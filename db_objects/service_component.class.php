@@ -382,7 +382,7 @@ class Service_Component extends db_object
 				?>
 				<tr>
 					<td><?php print_widget('tags[]', $params, $tagid); ?></td>
-					<td><img src="<?php echo BASE_URL; ?>resources/img/cross_red.png" class="icon delete-row" title="Delete this tag from the list" /></td>
+					<td><img src="<?php echo BASE_URL; ?>/resources/img/cross_red.png" class="icon delete-row" title="Delete this tag from the list" /></td>
 				</tr>
 				<?php
 			}
@@ -394,7 +394,7 @@ class Service_Component extends db_object
 						<?php print_widget('tags[]', $params, NULL); ?>
 						<input style="display: none" placeholder="Type new tag here" type="text" name="new_tags[]" />
 					</td>
-					<td><img src="<?php echo BASE_URL; ?>resources/img/cross_red.png" class="icon delete-row" title="Delete this tag from the list" /></td>
+					<td><img src="<?php echo BASE_URL; ?>/resources/img/cross_red.png" class="icon delete-row" title="Delete this tag from the list" /></td>
 				</tr>
 			</table>
 			<p class="help-inline"><a href="?view=_manage_service_component_tags">Manage tag library</a></p>
