@@ -27,21 +27,6 @@ error_reporting($error_level);
 require_once JETHRO_ROOT.'/include/general.php';
 strip_all_slashes();
 
-if (php_sapi_name() != 'cli') {
-	// Make sure we're at the correct URL
-	$do_redirect = FALSE;
-	if (REQUIRE_HTTPS && !defined('IS_PUBLIC') && empty($_SERVER['HTTPS'])) {
-		$do_redirect = TRUE;
-	}
-	if (strpos(array_get($_SERVER, 'HTTP_HOST', array_get($_SERVER, 'SERVER_NAME', '')).$_SERVER['REQUEST_URI'], str_replace(Array('http://', 'https://'), '', BASE_URL)) !== 0) {
-		$do_redirect = TRUE;
-	}
-	if ($do_redirect) {
-		header('Location: '.build_url(Array()));
-		exit();
-	}
-}
-
 // Set up the DB
 require_once JETHRO_ROOT .'/include/jethrodb.php';
 JethroDB::init(ifdef('DB_MODE', 'PRIVATE'));
