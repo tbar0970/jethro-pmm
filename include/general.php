@@ -777,14 +777,27 @@ function build_url($params)
 			$vars[$i] = $v;
 		}
 	}
-	$protocol = (REQUIRE_HTTPS || !empty($_REQUEST['HTTPS'])) ? 'https://' : 'http://';
-	$ubits = parse_url(BASE_URL);
-	$path = (0 === strpos($_SERVER['PHP_SELF'], $ubits['path'])) ? $_SERVER['PHP_SELF'] : $ubits['path'];
-	if (!empty($ubits['port'])) {
-		return $protocol.str_replace('index.php', '', $ubits['host'].':'.$ubits['port'].$path).'?'.http_build_query($vars);
+	if ($queryparams = http_build_query($vars)) {
+		return get_baseurl_path().'?'.$queryparams;
 	} else {
-		return $protocol.str_replace('index.php', '', $ubits['host'].$path).'?'.http_build_query($vars);
+		return get_baseurl_path();
 	}
+}
+
+/**
+ * Get the path segment of Jethro's URL, without slashes. E.g. given BASE_URL:
+ *  - 'https://jethro.mychurch.org'   returns ''
+ *  - 'https://jethro.mychurch.org/'   returns ''
+ *  - 'https://jethro.mychurch.org//'   returns ''
+ *  - 'https://mychurch.org/jethro'   returns ''
+ *  - '/'   returns ''
+ *  - '/'   returns ''
+ *  - '/'   returns ''
+ * @return string
+ */
+function get_baseurl_path()
+{
+	return trim((parse_url(BASE_URL, PHP_URL_PATH) ?? ''), '/');
 }
 
 function speed_log($bam=FALSE)
