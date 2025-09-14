@@ -130,7 +130,7 @@ class View__Import_Service_Components extends View
 					</label>
 					<div class="controls">
 						<input type="file" name="datafile" />
-						(<a href="resources/sample_service_comp_import.csv">Sample file</a>)
+						(<a href="<?php echo BASE_URL; ?>/resources/sample_service_comp_import.csv">Sample file</a>)
 					</div>
 				</div>
 				<div class="control-group">

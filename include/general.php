@@ -292,7 +292,7 @@ function print_widget($name, $params, $value)
 			static $includedCK = false;
 			if (!$includedCK) {
 				?>
-				<script src="<?php echo BASE_URL.'resources/ckeditor/ckeditor.js'; ?>"></script>
+				<script src="<?php echo BASE_URL.'/resources/ckeditor/ckeditor.js'; ?>"></script>
 				<?php
 			}
 			$ckParams = 'disableNativeSpellChecker: false,
