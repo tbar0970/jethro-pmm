@@ -354,7 +354,7 @@ class System_Controller
 			$content .= "REQUEST: \n".print_r($safe_request,1)."\n\n";
 			$content .= "BACKTRACE:\n";
 			$content .= print_r($bt, 1);
-			@mail(constant('ERRORS_EMAIL_ADDRESS'), 'Jethro Error from '.BASE_URL, $content);
+			@mail(constant('ERRORS_EMAIL_ADDRESS'), 'Jethro Error from '.base_url(), $content);
 		}
 		if ($send_email) error_log("$errstr - Line $errline of $errfile");
 	}
