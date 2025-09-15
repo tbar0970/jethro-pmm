@@ -83,7 +83,7 @@ class Call_Document_merge_rosters extends Call
 							$people[] = array('date' => $date, 'name' => $value);
 						}
 						break;
-					}	
+					}
 				}
 				require_once 'include/tbs.class.php';
 				include_once 'include/tbs_plugin_opentbs.php';
@@ -91,10 +91,10 @@ class Call_Document_merge_rosters extends Call
 					date_default_timezone_set('UTC');
 				}
 				$TBS = new clsTinyButStrong;
-				$TBS->Plugin(TBS_INSTALL, OPENTBS_PLUGIN); 
+				$TBS->Plugin(TBS_INSTALL, OPENTBS_PLUGIN);
 				$TBS->SetOption('noerr', TRUE);
 				$TBS->LoadTemplate($source_file, OPENTBS_ALREADY_UTF8);
-				$TBS->ResetVarRef(false); 
+				$TBS->ResetVarRef(false);
 				$TBS->VarRef['system_name'] = ifdef('SYSTEM_NAME', '');
 				$TBS->VarRef['timezone'] = ifdef('TIMEZONE', '');
 				$TBS->VarRef['username'] = $_SESSION['user']['username'];
