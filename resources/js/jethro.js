@@ -1208,7 +1208,7 @@ JethroServicePlanner.init = function() {
     $("#service-comps tbody tr").draggable({
 		containment: "#service-planner",
 		helper: "clone",
-		cursor: "move",
+		cursor: "grabbing",
 		start: function(event, ui) {
 			$('#service-plan').addClass('comp-dragging');
 			ui.helper.remove();
@@ -1232,7 +1232,8 @@ JethroServicePlanner.init = function() {
 		JethroServicePlanner.addFromComponent($(this));
 	})
 
-	$("#service-comps td, #service-plan td").css('cursor', 'default').disableSelection();
+	$("#service-comps tbody").css('cursor', 'grab').disableSelection();
+	$(" #service-plan tbody").css('cursor', 'move').disableSelection();
 
 	// SERVICE PLAN TABLE:
 	JethroServicePlanner.setDroppable($("#service-plan tbody tr"));
