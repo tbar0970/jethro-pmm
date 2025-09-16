@@ -43,49 +43,63 @@ class View_services extends View
 						return;
 					}
 
-					if (!empty($_REQUEST['copy_service_id'])) {
-						$fromService = new Service((int)$_REQUEST['copy_service_id']);
-						if (!$fromService) {
-							trigger_error("Service ".(int)$_REQUEST['copy_service_id']." not found - could not copy");
-							return;
-						}
-						$newItems = $fromService->getItems();
-						foreach ($newItems as $k => $v) {
-							$newItems[$k]['personnel'] = '';
-							if (!empty($v['componentid'])) {
-								$comp = $GLOBALS['system']->getDBObject('service_component', $v['componentid']);
-								if ($comp) {
-									$newItems[$k]['personnel'] = $this->service->replaceKeywords($comp->getValue('personnel'));
+					if (!empty($_REQUEST['action'])) {
+						$action = $_REQUEST['action'];
+						switch ($action) {
+							case "copy":
+								if (!empty($_REQUEST['copy_service_id'])) {
+									$fromService = new Service((int)$_REQUEST['copy_service_id']);
+									if (!$fromService) {
+										trigger_error("Service ".(int)$_REQUEST['copy_service_id']." not found - could not copy");
+										return;
+									}
+									$newItems = $fromService->getItems();
+									foreach ($newItems as $k => $v) {
+										$newItems[$k]['personnel'] = '';
+										if (!empty($v['componentid'])) {
+											$comp = $GLOBALS['system']->getDBObject('service_component', $v['componentid']);
+											if ($comp) {
+												$newItems[$k]['personnel'] = $this->service->replaceKeywords($comp->getValue('personnel'));
+											}
+										} else {
+											$v['categoryid'] = '!'; // magic value to match filtering of ad hoc items
+										}
+										if (!in_array($v['categoryid'], $_REQUEST['copy_category_ids'])) {
+											unset($newItems[$k]);
+										}
+									}
+									$this->service->saveItems($newItems);
+									// Retain lock and stay in editing mode
 								}
-							} else {
-								$v['categoryid'] = '!'; // magic value to match filtering of ad hoc items
-							}
-							if (!in_array($v['categoryid'], $_REQUEST['copy_category_ids'])) {
-								unset($newItems[$k]);
-							}
+								break;
+							case "save":
+								$newItems = Array();
+								foreach (array_get($_POST, 'componentid', Array()) as $rank => $compid) {
+									$newItem = Array(
+										'componentid' => $compid,
+										'title' => $_POST['title'][$rank],
+										'personnel' => array_get($_POST['personnel'], $rank),
+										'show_in_handout' => $_POST['show_in_handout'][$rank],
+										'length_mins' => $_POST['length_mins'][$rank],
+										'note' => trim($_POST['note'][$rank]),
+										'heading_text' => trim($_POST['heading_text'][$rank]),
+									);
+									$newItems[] = $newItem;
+								}
+								$this->service->saveItems($newItems);
+								$this->service->saveComments(process_widget('service_comments', Array('type' => 'html')));
+								$this->service->releaseLock('items');
+								redirect("services", Array( "date" => $this->date, "congregationid" => $this->congregationid, '*' => NULL));  // Redirecting clears &editing=1
+								break;
+							case "cancel":
+								$this->service->releaseLock('items');
+								redirect("services", Array("date" => $this->date, "congregationid" => $this->congregationid, '*' => NULL));  // Redirecting clears &editing=1
+								break;
+							default:
+								trigger_error("No 'action' parameter found");
+								break;
 						}
-						$this->service->saveItems($newItems);
-						// Retain lock and stay in editing mode
-					}
 
-					if (!empty($_REQUEST['save_service'])) {
-						$newItems = Array();
-						foreach (array_get($_POST, 'componentid', Array()) as $rank => $compid) {
-							$newItem = Array(
-								'componentid' => $compid,
-								'title' => $_POST['title'][$rank],
-								'personnel' => array_get($_POST['personnel'], $rank),
-								'show_in_handout' => $_POST['show_in_handout'][$rank],
-								'length_mins' => $_POST['length_mins'][$rank],
-								'note'        => trim($_POST['note'][$rank]),
-								'heading_text'     => trim($_POST['heading_text'][$rank]),
-							);
-							$newItems[] = $newItem;
-						}
-						$this->service->saveItems($newItems);
-						$this->service->saveComments(process_widget('service_comments', Array('type' => 'html')));
-						$this->service->releaseLock('items');
-						$this->editing = FALSE;
 					}
 				}
 			}
@@ -224,7 +238,6 @@ class View_services extends View
 			</h3>
 			<form method="post" id="service-planner-form" data-lock-length="<?php echo db_object::getLockLength() ?>">
 			<div id="service-plan-container">
-			<input type="hidden" name="save_service" value="1" />
 			<table class="table table-bordered table-hover table-condensed no-autofocus" id="service-plan" data-starttime="<?php echo $startTime; ?>">
 				<thead>
 					<tr>
@@ -348,7 +361,8 @@ class View_services extends View
 				</tfoot>
 			</table>
 			</div>
-			<button type="submit" class="btn">Save</button>
+			<button type="submit" name="action" value="save" action="submit" class="btn">Save</button>
+			<button type="submit" name="action" value="cancel" class="btn">Cancel</button>
 			</form>
  		</div>
 
@@ -450,8 +464,8 @@ class View_services extends View
 				</div>
 			</div>
 			<div class="modal-footer">
-				<input class="btn" type="submit" value="Copy items" />
-				<input class="btn" type="button" value="Cancel" data-dismiss="modal" />
+				<button type="submit" name="action" value="copy" action="submit" class="btn">Copy items</button>
+				<input class="btn" type="button" value="Cancel" data-dismiss="modal"/>
 			</div>
 			</form>
 		</div>
