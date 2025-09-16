@@ -64,7 +64,6 @@ class View_services extends View
 										}
 									} else {
 										$v['categoryid'] = '!'; // magic value to match filtering of ad hoc items
->>>>>>> Conflict 1 of 3 ends
 									}
 									if (!in_array($v['categoryid'], $_REQUEST['copy_category_ids'])) {
 										unset($newItems[$k]);
