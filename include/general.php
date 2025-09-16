@@ -279,6 +279,7 @@ function print_widget($name, $params, $value)
 				><?php echo ents($value); ?></textarea>
 				<?php
 			} else {
+				if ($params['type']=='email') $classes .= " valid-email";
 				$width_exp = empty($params['width']) ? '' : 'size="'.$params['width'].'"';
 				$regex_exp = empty($params['regex']) ? '' : 'regex="'.ents(trim($params['regex'], '/ ')).'"';
 				$placeholder_exp = empty($params['placeholder']) ? '' : 'placeholder="'.ents($params['placeholder']).'"';
