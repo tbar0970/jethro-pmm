@@ -322,7 +322,7 @@ class System_Controller
 			if ($showTechDetails || !$send_email) {
 				?>
 				<h4><?php echo $title; ?></h4>
-				<p><?php echo $errstr; ?></p>
+				<p><?php echo ents($errstr); ?></p>
 				<?php
 			} else {
 				echo _('An error occurred. Please contact your system administrator for help.');
