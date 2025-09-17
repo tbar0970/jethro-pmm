@@ -194,7 +194,12 @@ class Service_Component extends db_object
 		}
 		if ($keyword) {
 			$qk = $GLOBALS['db']->quote("%{$keyword}%");
-			$res['where'] .= ' '.$logic.' (service_component.title LIKE '.$qk.' OR alt_title LIKE '.$qk.' OR service_component.ccli_number = '.$GLOBALS['db']->quote($keyword).' OR content_html LIKE '.$qk.')';
+			$res['where'] .= ' '.$logic.' (service_component.title LIKE '.$qk.' OR alt_title LIKE '.$qk.' OR content_html LIKE '.$qk;
+			if (filter_var($keyword, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]])  !== false) {
+				// Add CCLI search if $keyword is a positive integer
+				$res['where'] .= ' OR cast(service_component.ccli_number AS char) = '.$GLOBALS['db']->quote($keyword);
+			}
+			$res['where'] .= ')';
 		}
 
 		return $res;
