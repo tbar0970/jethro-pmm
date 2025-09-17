@@ -213,11 +213,15 @@ class Service_Component extends db_object
 		return $res;
 	}
 
+	/**
+     * Return existing songs grouped by Title.
+	 * @return array Song atl_title and id grouped by title, e.g. ["'All who love and serve your city" => [{alt_title => "AHB-562i", id => 1001}, {alt_title => "AHB-562ii", id => 1002}]
+	 */
 	public static function getAllByTitle()
 	{
 		$SQL = "SELECT title, alt_title, id
 				FROM service_component";
-		$res = $GLOBALS['db']->queryAll($SQL, null, null, true, false);
+		$res = $GLOBALS['db']->queryAll($SQL, null, null, true, false, true);
 		return $res;
 	}
 
