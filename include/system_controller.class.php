@@ -316,6 +316,7 @@ class System_Controller
 
 		$showTechDetails = ifdef('SHOW_ERROR_DETAILS', (JETHRO_VERSION == 'DEV'));
 		if ($bg) {
+			if (!headers_sent()) http_response_code(500);
 			?>
 			<div class="alert<?php if(isset($bg)){ echo" alert-".$bg;} ?>">
 			<?php

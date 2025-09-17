@@ -1070,3 +1070,9 @@ function parse_size($size) {
     return round($size);
   }
 }
+
+function error_response(int $code, string $message): void {
+	http_response_code($code);
+	echo ents($message);
+	exit;
+}
