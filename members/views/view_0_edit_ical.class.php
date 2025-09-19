@@ -46,7 +46,7 @@ class View__Edit_Ical extends View
 	{
 		$uuid = $this->person->getValue('feed_uuid');
 		if ($uuid) {
-			$url = BASE_URL.'public/?call=roster_ical&uuid='.rawurlencode($uuid);
+			$url = BASE_URL.'/public/?call=roster_ical&uuid='.rawurlencode($uuid);
 			?>
 			<p>Your personalised roster assignments iCal feed is available at <br />
 				<span class="input-append"><input id="ical-url" type="text" class="span8" autoselect="autoselect" readonly="readonly" value="<?php echo $url; ?>" />

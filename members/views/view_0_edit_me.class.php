@@ -122,7 +122,7 @@ class View__Edit_Me extends View
 
 				$sm = new Staff_Member($person->id);
 				if ($sm && $sm->requires2FA()) {
-					echo '<p><i>This person has a control centre account, so their details can only be edited via the <a href="'.BASE_URL.'?view=persons&personid='.(int)$person->id.'">control centre</a></i></p>';
+					echo '<p><i>This person has a control centre account, so their details can only be edited via the <a href="?view=persons&personid='.(int)$person->id.'">control centre</a></i></p>';
 				} else if ($this->canEditFamily() || $this->isMe($person)) {
 					$person->printForm('person_'.$person->id, $this->person_fields);
 				}
