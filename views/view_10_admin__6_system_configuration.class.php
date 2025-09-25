@@ -95,9 +95,11 @@ class View_Admin__System_Configuration extends View {
 							if (Config_Manager::allowSettingInFile($symbol) && constant($symbol)) {
 								// Don't show the value here - sensitive
 								print_message('This setting has been set in the system config file', 'warning');
+								if ($details['note']) echo '<p class="smallprint">'.ents($details['note']).'</p>';
 							} else {
 								$this->printValue($symbol, $details);
 								print_message('This setting has been set in the system config file. To make it editable here, remove it from the config file.', 'warning');
+								if ($details['note']) echo '<p class="smallprint">'.ents($details['note']).'</p>';
 							}
 						} else {
 							$this->printWidget($symbol, $details);
