@@ -145,9 +145,13 @@ $(document).ready(function() {
 	});
 
 	$('a.ccli-lookup').click(function() {
-		var title = $('[name=title]').val();
-		if (title == '') return false;
-		var url = this.href.replace('__TITLE__', title);
+		var searchterm = $('[name=ccli_number]').val();
+		if (!searchterm || searchterm==0) searchterm = $('[name=title]').val();
+		if (!searchterm) {
+			alert('Fill in either Title or CCLI Number');
+			return false;
+		}
+		var url = this.href.replace('__TITLE__', searchterm);
 		var ccliWindow = window.open(url, 'ccli', 'height='+(screen.height-100)+',width='+(screen.width/2)+',left='+(screen.width/2)+',top=0location=no,menubar=no,titlebar=no,toolbar=no,resizable=yes,statusbar=no,scrollbars=yes');
 		if (!ccliWindow) {
 			alert('Jethro tried but could not open a popup window - you probably have a popup blocker enabled.  Please disable your popup blocker for this site, reload the page and try again.');
