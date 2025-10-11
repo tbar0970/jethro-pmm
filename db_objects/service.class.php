@@ -200,7 +200,7 @@ class service extends db_object
 				$bc = array_get($candidate_readings, $number-1);
 				if ($bc) {
 					$br = new Bible_Ref($bc['bible_ref']);
-					return $br->toString();
+					return $br->toString($short);
 				} else {
 					return '';
 				}
