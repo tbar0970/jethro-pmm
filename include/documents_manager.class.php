@@ -47,7 +47,7 @@ class Documents_Manager {
 	// Else triggers an error and returns empty string
 	public static function validateDirName($name) {
 		$name = str_replace(' ', '_', $name);
-		if (!preg_match('/[-_A-Za-z0-9&]+/', $name)) {
+		if (!preg_match('/^[-_A-Za-z0-9&]+$/', $name)) {
 			trigger_error("Invalid folder name");
 			return '';
 		}
