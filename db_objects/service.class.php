@@ -184,6 +184,7 @@ class service extends db_object
 	function getValue($field)
 	{
 		if (0 === strpos($field, 'bible_')) {
+			// If modified, update help text in call_service_comp_help_runsheet_format.class.php
 			// eg bible_read_1  or bible_preach_all
 			$bits = explode('_', $field);
 			@list($bible, $type, $number) = $bits;
@@ -515,6 +516,7 @@ class service extends db_object
 
 	public function getKeywordReplacement($keyword)
 	{
+		// If modified, update help text in call_service_comp_help_runsheet_format.class.php
 		if (0 === strpos($keyword, 'NAME_OF_')) {
 			$role_title = substr($keyword, strlen('NAME_OF_'));
 			return $this->getPersonnelByRoleTitle($role_title);
@@ -542,6 +544,21 @@ class service extends db_object
 		return $this->getPersonnelByRoleTitle($keyword);
 	}
 
+	/**
+	 * Get roster role info. Used to generate keywords in help text.
+	 */
+	static function getPersonnelRoleTitles() {
+		$sql = "select id, title, UPPER(REPLACE(rr.title, ' ', '_')) AS title_uppercase from roster_role rr ORDER BY id";
+		$tokens = JethroDB::get()->queryAll($sql);
+		return $tokens;
+	}
+
+	/**
+	 * @param $role_title Uppercase role title with underscores replacing whitespace, e.g. 'SOUND'. End with '_n' to get the Nth person, e.g. 'SOUND_1' = first assigned Sound person.
+	 * @param $first_name_only
+	 * @param $index Return the $index'th person in $role_title.
+	 * @return string Comma-separated name(s) of person/people serving as $role_title for this service.
+	 */
 	function getPersonnelByRoleTitle($role_title, $first_name_only=FALSE, $index=NULL)
 	{
 		$sql = 'SELECT roster_role_id, first_name, last_name
