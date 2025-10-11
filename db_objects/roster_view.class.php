@@ -573,7 +573,7 @@ class roster_view extends db_object
 	{
 		if ($member['role_id']) {
 			if (ifdef('PUBLIC_AREA_ENABLED', 1)) {
-				echo '<a class="med-popup" href="'.BASE_URL.'/public/?view=display_role_description&role='.(int)$member['role_id'].'">';
+				echo '<a class="med-popup" href="'.BASE_URL.'/public/?view=_roster_role_description&role='.(int)$member['role_id'].'">';
 			} else {
 				echo '<a class="med-popup" href="'.BASE_URL.'?view=rosters__define_roster_roles&roster_roleid='.(int)$member['role_id'].'">';
 			}
@@ -944,7 +944,7 @@ class roster_view extends db_object
 				<?php
 				if ($details['role_id']) {
 					if ($public) {
-						echo '<a class="med-popup" href="?view=display_role_description&role='.(int)$details['role_id'].'">';
+						echo '<a class="med-popup" href="?view=_roster_role_description&role='.(int)$details['role_id'].'">';
 					} else {
 						echo '<a class="med-popup" href="'.BASE_URL.'?view=rosters__define_roster_roles&roster_roleid='.(int)$details['role_id'].'">';
 					}
