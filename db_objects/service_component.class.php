@@ -241,6 +241,44 @@ class Service_Component extends db_object
 		unset($this->fields['tags']);
 	}
 
+
+	public function printUsage() {
+		$res = $GLOBALS['db']->queryAll("SELECT service.id AS serviceid
+			, congregation.id AS congregationid
+			, congregation.name AS congregation
+			, service.date
+			, service.topic_title
+			FROM congregation JOIN service ON service.congregationid=congregation.id
+			JOIN service_item ON service_item.serviceid=service.id
+			WHERE componentid=".(int)$this->id);
+		if ($res) {
+?>
+			<table class="table object-summary">
+				<table style="width: 100%" class="table roster service-program table-hover">
+				<thead>
+					<tr>
+						<th>Date</th>
+						<th>Congregation</th>
+						<th>Service</th>
+					</tr>
+				</thead>
+				<tbody>
+<?php
+			foreach ($res as $row) {
+				echo
+					"<t~r>".
+					"<td>".format_date($row['date'])."</td>".
+					"<td>".$row['congregation']. "</td>".
+					"<td>"."<a href='/?view=services&date=". $row['date']. "&congregationid=". $row['congregationid']. "'>".ents($row['topic_title'])."</a></td>".
+					"</tr></a>";
+			}
+?>
+			</tbody>
+		</table>
+<?php
+		} else echo "Song not used";
+	}
+
 	public function printFieldValue($name, $value=NULL)
 	{
 		switch ($name) {
@@ -480,5 +518,34 @@ class Service_Component extends db_object
 		$this->values['congregationids'][] = $newCong;
 		$this->values['congregationids'] = array_unique($this->values['congregationids']);
 	}
+
+    /**
+     * Whether this service component can be deleted. Service components cannot be deleted if any service items refer to them.
+     * @param $trigger_messages If true, reasons why the component cannot be deleted will be logged, and can be retrieved with dump_messages().
+    * @return bool
+     */
+	public function canDelete($trigger_messages=FALSE)
+	{
+        $hasItem = (boolean)$GLOBALS['db']->queryOne("SELECT EXISTS (
+            SELECT 1
+                FROM service
+                JOIN service_item ON service_item.serviceid=service.id
+                WHERE componentid=".$this->id.
+            ") AS items_exist;");
+		$hasPerm = $GLOBALS['user_system']->havePerm(PERM_SERVICECOMPS);
+        if ($trigger_messages) {
+            if ($hasItem) add_message(_("Cannot delete service component because it is used in services"), "error");
+            if (!$hasPerm) add_message(_("Cannot delete service component because the caller lacks permission"), "error");
+        }
+        return !$hasItem && $hasPerm;
+	}
+
+    /**
+     * Disable a service component, which is currently done by disassociating all congregations.
+     */
+    public function disable():bool {
+        $this->values['congregationids'] = [];
+        return $this->save();
+    }
 
 }
