@@ -276,7 +276,7 @@ class Service_Component extends db_object
 			</tbody>
 		</table>
 <?php
-		} else echo "Song not used";
+		} else echo "Not used";
 	}
 
 	public function printFieldValue($name, $value=NULL)
@@ -341,7 +341,7 @@ class Service_Component extends db_object
 					'order_by'			=> 'meeting_time',
 					'allow_empty'		=> TRUE,
 					'allow_multiple'	=> TRUE,
-					'note'				=> 'If a component is no longer used by any congregation, unselect all options',
+					'note'				=> 'To disable a component altogether, unselect all congregations',
 				);
 				$this->fields['tags'] = Array();
 				if (empty($this->id)) {
