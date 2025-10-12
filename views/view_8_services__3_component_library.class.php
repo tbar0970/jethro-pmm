@@ -124,10 +124,9 @@ class View_Services__Component_Library extends View
 			<div class="span6 well well-small preview-pane" id="preview">
 				<p class="center"><i><br /><br />Select a component to view its details here</i></p>
 			</div>
-			<div class="span6 well well-small preview-pane anchor-bottom" id="usage">
+			<div class="span6 well well-small preview-pane anchor-bottom pull-right" id="usage">
 				<p class="center"><i><br /><br />Select a component to view its usage here</i></p>
 			</div>
-
 			<script>
 
                 function updateURL(componentId) {
