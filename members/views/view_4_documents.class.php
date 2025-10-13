@@ -34,6 +34,7 @@ class View_Documents extends View
 
 	private function _printDir($dir)
 	{
+		if (!$dir) $dir=".";
 		$files = glob($dir.'/*');
 		foreach ($files as $f) {
 			if (is_dir($f)) {
