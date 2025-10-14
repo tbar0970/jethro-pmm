@@ -21,8 +21,11 @@ define('DB_DATABASE', '');
 define('DB_USERNAME', '');
 define('DB_PASSWORD', '');
 
-// The URL jethro will be running at.  NB The final slash is important!!
-define('BASE_URL', 'http://example.com/jethro/');
+// If your Jethro PHP-FPM runs as a dedicated OS user ('jethro'), you can also enable socket-based authentication in MySQL:
+//   create user if not exists 'jethro'@'localhost' identified with unix_socket;
+// ..and use it by specifying DB_DSN instead of DB_PASSWORD:
+// define('DB_USERNAME', 'jethro');
+// define('DB_DSN', "mysql:dbname=jethro");
 
 // Whether the system must be accessed by HTTPS.
 // If this is true, the BASE_URL above must begin with https://
