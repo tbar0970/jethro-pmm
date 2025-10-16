@@ -241,7 +241,7 @@ class Person extends DB_Object
 	protected function _getInsertTableName()
 	{
 		return '_person';
-	}	
+	}
 
 	/**
 	 *

@@ -249,7 +249,7 @@ class System_Controller
 		$PHP_8_SUPPRESSED = E_ERROR | E_CORE_ERROR | E_COMPILE_ERROR | E_USER_ERROR | E_RECOVERABLE_ERROR | E_PARSE;
 		if (error_reporting() == $PHP_8_SUPPRESSED) return; // the "@" shutup-operator was used
 		$send_email = true;
-		$showTechDetails = ifdef('SHOW_ERROR_DETAILS', (JETHRO_VERSION == 'DEV'));	
+		$showTechDetails = ifdef('SHOW_ERROR_DETAILS', (JETHRO_VERSION == 'DEV'));
 		$exit = false;
 		switch ($errno) {
 			case E_ERROR:
