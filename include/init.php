@@ -61,13 +61,18 @@ if (defined('SESSION_TIMEOUT_MINS')) {
 	@ini_set('session.gc_maxlifetime', SESSION_TIMEOUT_MINS*60);
 }
 
-// If max length is set, set the cookie timeout - this will allow sessions to outlast browser invocations
-$expiryTime = defined('SESSION_MAXLENGTH_MINS') ? SESSION_MAXLENGTH_MINS * 60 : NULL;
-session_set_cookie_params($expiryTime, parse_url(BASE_URL, PHP_URL_PATH));
 if (session_id() == '') {
+  	// If max length is set, set the cookie timeout - this will allow sessions to outlast browser invocations
+  	$expiryTime = defined('SESSION_MAXLENGTH_MINS') ? SESSION_MAXLENGTH_MINS * 60 : NULL;
+  	session_set_cookie_params([
+  		'lifetime'=> $expiryTime,
+ 		'path'     => '/'.get_baseurl_path(),
+		'httponly' => true,
+  		'samesite' => 'Lax'
+  		]);
 	session_name('JethroSess');
-	session_start();
-	upgrade_session_cookie();
+    session_start();
+
 }
 
 if (defined('TIMEZONE') && constant('TIMEZONE')) {
