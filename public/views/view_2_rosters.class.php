@@ -1,5 +1,5 @@
 <?php
-class View_Display_Roster extends View
+class View_Rosters extends View
 {
 	var $_roster_view = null;
 
@@ -22,7 +22,7 @@ class View_Display_Roster extends View
 		if ($this->_roster_view) {
 			return $this->_roster_view->getValue('name');
 		} else {
-			return 'Display Roster';
+			return 'Roster';
 		}
 	}
 
