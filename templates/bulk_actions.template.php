@@ -63,7 +63,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 	if ($GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
 		?>
 		<span class="bulk-action" id="remove-from-group">
-			<input type="submit" class="btn " value="Go" data-set-form-action="<?php echo BASE_URL; ?>?view=_edit_group&action=remove_members&groupid=<?php echo $groupid; ?>" />
+			<input type="submit" class="btn " value="Go" data-set-form-action="?view=_edit_group&action=remove_members&groupid=<?php echo $groupid; ?>" />
 		</span>
 
 
@@ -114,7 +114,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 
 			?>
 			</table>
-			<input type="submit" class="btn" onclick="return confirm('Are you sure you want to bulk-update these persons?')" value="Go" data-set-form-action="<?php echo BASE_URL; ?>?view=_persons_bulk_update&backto=<?php echo urlencode(http_build_query($_GET)); ?>" />
+			<input type="submit" class="btn" onclick="return confirm('Are you sure you want to bulk-update these persons?')" value="Go" data-set-form-action="?view=_persons_bulk_update&backto=<?php echo urlencode(http_build_query($_GET)); ?>" />
 		</div>
 
 		<?php
@@ -153,7 +153,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 						<?php
 					}
 					?>
-					<input type="submit" class="btn " value="Go" data-require-fields="#<?php echo $verb; ?>_existing_group [name=groupid]" data-set-form-action="<?php echo BASE_URL; ?>?view=_edit_group&action=add_members" />
+					<input type="submit" class="btn " value="Go" data-require-fields="#<?php echo $verb; ?>_existing_group [name=groupid]" data-set-form-action="?view=_edit_group&action=add_members" />
 				</div>
 				</p>
 
@@ -189,7 +189,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 						}
 						?>
 							<input type="hidden" name="new_person_group_submitted" value="1" />
-							<input type="submit" class="btn " value="Go" data-require-fields="<?php echo $verb; ?>_new_group [name=name]" data-set-form-action="<?php echo BASE_URL; ?>?view=groups__add" />
+							<input type="submit" class="btn " value="Go" data-require-fields="<?php echo $verb; ?>_new_group [name=name]" data-set-form-action="?view=groups__add" />
 						</td>
 					</tr>
 				</table>
@@ -208,7 +208,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 			?>
 			<div class="control-group">
 				<div class="controls">
-					<input type="submit" name="new_note_submitted" class="btn " value="Go" data-set-form-action="<?php echo BASE_URL; ?>?view=_add_note_to_person" />
+					<input type="submit" name="new_note_submitted" class="btn " value="Go" data-set-form-action="?view=_add_note_to_person" />
 				</div>
 			</div>
 		</div>
@@ -220,7 +220,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 			<label class="radio"><input class="compulsory" type="radio" name="email_type" value="person" id="email_type_person" checked="checked" /><?php echo _('the selected persons')?></label>
 			<label class="radio"><input type="radio" name="email_type" value="family" id="email_type_family" /><?php echo _('the adults in the selected persons&#8217; families')?></label></p>
 			<label class="checkbox"><input type="checkbox" name="method" value="public" id="method-public" /><?php echo _('Allow recipients to see each other&#8217;s email addresses')?></label>
-			<input type="submit" class="btn " value="Go" data-set-form-target="hidden" data-set-form-action="<?php echo BASE_URL; ?>?call=email" />
+			<input type="submit" class="btn " value="Go" data-set-form-target="hidden" data-set-form-action="?call=email" />
 		</div>
 	<?php
 	if (SMS_Sender::canSend()) {
@@ -274,10 +274,10 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 	?>
 		<div class="bulk-action well" id="export">
 			Download Person data:
-			<input type="submit" class="btn " value="CSV" data-set-form-action="<?php echo BASE_URL; ?>?call=csv&merge_type=person" />
-			<input type="submit" class="btn" value="vCard" data-set-form-action="<?php echo BASE_URL; ?>?call=vcf" />
+			<input type="submit" class="btn " value="CSV" data-set-form-action="?call=csv&merge_type=person" />
+			<input type="submit" class="btn" value="vCard" data-set-form-action="?call=vcf" />
 			&nbsp;&nbsp;Download Family data:
-			<input type="submit" class="btn " value="CSV" data-set-form-action="<?php echo BASE_URL; ?>?call=csv&merge_type=family" />
+			<input type="submit" class="btn " value="CSV" data-set-form-action="?call=csv&merge_type=family" />
 		</div>
     <?php
 	if (version_compare(PHP_VERSION, '5.2', '>=') && !SizeDetector::isNarrow()) {
@@ -299,18 +299,18 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 						<label class="checkbox"><input type="checkbox" name="save_template" value="1" />Save template for next time</label>
 					</div>
 					<p class="help-inline">
-						<a target="roster-merge-help" class="med-newwin" href="<?php echo BASE_URL; ?>index.php?call=document_merge_help"><i class="icon-help"></i>Help and examples</a>
+						<a target="roster-merge-help" class="med-newwin" href="?call=document_merge_help"><i class="icon-help"></i>Help and examples</a>
 						&nbsp;
-						<button type="submit" class="btn btn-mini muted" name="preview_keywords" onclick="$('input[name=source_document]').removeClass('compulsory')" data-set-form-target="_blank" data-set-form-action="<?php echo BASE_URL; ?>index.php?call=document_merge">Preview all tags</button>
+						<button type="submit" class="btn btn-mini muted" name="preview_keywords" onclick="$('input[name=source_document]').removeClass('compulsory')" data-set-form-target="_blank" data-set-form-action="?call=document_merge">Preview all tags</button>
 					</p>
 					<?php
 				} else {
 					?>
 					<input class="compulsory" type="file" name="source_document" />
 					<p class="help-inline">
-						<a target="roster-merge-help" class="med-newwin" href="<?php echo BASE_URL; ?>index.php?call=document_merge_help"><i class="icon-help"></i>Help and examples</a>
+						<a target="roster-merge-help" class="med-newwin" href="?call=document_merge_help"><i class="icon-help"></i>Help and examples</a>
 						&nbsp;
-						<button type="submit" class="btn btn-mini muted" name="preview_keywords" onclick="$('input[name=source_document]').removeClass('compulsory')" data-set-form-target="_blank" data-set-form-action="<?php echo BASE_URL; ?>index.php?call=document_merge">Preview all tags</button>
+						<button type="submit" class="btn btn-mini muted" name="preview_keywords" onclick="$('input[name=source_document]').removeClass('compulsory')" data-set-form-target="_blank" data-set-form-action="?call=document_merge">Preview all tags</button>
 					</p>
 					<label class="checkbox"><input type="checkbox" name="save_template" value="1" />Save template for next time</label>
 					<?php
@@ -362,7 +362,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 			<?php if (!empty($_REQUEST['queryid'])) print_hidden_field('queryid', $_REQUEST['queryid']); ?>
 			<div class="control-group">
 				<div class="controls">
-					<input type="submit" class="btn " value="Go" data-set-form-action="<?php echo BASE_URL; ?>index.php?call=document_merge" />
+					<input type="submit" class="btn " value="Go" data-set-form-action="?call=document_merge" />
 				</div>
 			</div>
 
@@ -385,7 +385,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 				<input type="radio" name="addressee" value="adults" id="addressee_adults" />
 				<?php echo _('adult members of the selected persons&#8217; families (eg &#8220;Bert and Marjorie Citizen&#8221;)')?>
 			</label>
-			<input type="submit" class="btn " value="Go" data-set-form-target="envelope" data-set-form-action="<?php echo BASE_URL; ?>?call=envelopes" />
+			<input type="submit" class="btn " value="Go" data-set-form-target="envelope" data-set-form-action="?call=envelopes" />
 		</div>
 	<?php
 	if ($plan_chooser) {
@@ -394,7 +394,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 		<?php echo $plan_chooser; ?>
 		<p><?php echo _('Reference date for plans:')?> <?php print_widget('plan_reference_date', Array('type' => 'date'), NULL); ?>
 		&nbsp;
-		<input type="submit" value="Go" data-set-form-action="<?php echo BASE_URL; ?>?view=_execute_plans" /></p>
+		<input type="submit" value="Go" data-set-form-action="?view=_execute_plans" /></p>
 		</div>
 		<?php
 	}
