@@ -184,6 +184,7 @@ class service extends db_object
 	function getValue($field)
 	{
 		if (0 === strpos($field, 'bible_')) {
+			// If modified, update help text in call_service_comp_help_runsheet_format.class.php
 			// eg bible_read_1  or bible_preach_all
 			$bits = explode('_', $field);
 			@list($bible, $type, $number) = $bits;
@@ -196,11 +197,11 @@ class service extends db_object
 					$res[] = $br->toString($short);
 				}
 				return implode(', ', $res);
-			} else {
-				$bc = array_get($candidate_readings, $number-1);
+			} elseif (filter_var($number, FILTER_VALIDATE_INT) !== false) {
+				$bc = array_get($candidate_readings, (int)$number-1);
 				if ($bc) {
 					$br = new Bible_Ref($bc['bible_ref']);
-					return $br->toString();
+					return $br->toString($short);
 				} else {
 					return '';
 				}
@@ -387,8 +388,7 @@ class service extends db_object
 					$res = Array();
 					foreach ($this->getItems(FALSE, $compCatID) as $item) {
 						$line = nbsp(ents($item['title']));
-						if (!$printableMode && (strlen($item['ccli_number']) + strlen($item['comments']) > 0)) {
-							
+						if (!$printableMode && (strlen($item['ccli_number'] ?? '') + strlen($item['comments'] ?? '') > 0) && $this->checkPerm(PERM_VIEWSERVICE)) {
 							// yuck, but oh well...
 							ob_start();
 							$dummy_comp = new Service_Component();
@@ -400,8 +400,12 @@ class service extends db_object
 							$compid = $item['componentid'];
 							$line .= ' <i class="clickable icon-info-sign" data-toggle="visible" data-target="#compdetail'.$compid.'-'.$this->id.'"></i>';
 							$line .= '<table class="help-block custom-field-tooltip" id="compdetail'.$compid.'-'.$this->id.'"><tr><td class="narrow">CCLI #:</td><td>'.$ccli_code.'</td>';
-							$line .= '<td class="narrow"><a title="Edit this component" href="'.BASE_URL.'?view=_edit_service_component&service_componentid='.$compid.'"><i class="icon-wrench"></i></a></td></tr>';
-							$line .= '<tr><td>Comments:</td><td colspan="2">'.linkUrlsInTrustedHtml(nl2br($item['comments'])).'</td></tr></table>';
+							$line .= '<td class="narrow">';
+							if ($this->checkPerm(PERM_SERVICECOMPS)) {
+								$line .= '<a title="Edit this component" href="'.BASE_URL.'?view=_edit_service_component&service_componentid='.$compid.'"><i class="icon-wrench"></i></a>';
+							}
+							$line .= '</td></tr>';
+							$line .= '<tr><td>Comments:</td><td colspan="2">'.linkUrlsInTrustedHtml(nl2br($item['comments'] ?? '')).'</td></tr></table>';
 						}
 						$res[] = $line;
 					}
@@ -469,8 +473,7 @@ class service extends db_object
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
 		$res['select'][] = 'GROUP_CONCAT(CONCAT(sbr.bible_ref, "=", sbr.to_read, "=", sbr.to_preach) ORDER BY sbr.order_num SEPARATOR ";") as readings';
 		$res['from'] .= ' LEFT JOIN service_bible_reading sbr ON service.id = sbr.service_id';
-		$res['select'][] = 'IF (si.id IS NULL, 0, 1) as has_items';
-		$res['from'] .= ' LEFT JOIN service_item si ON si.serviceid = service.id AND si.`rank` = 0 ';
+		$res['select'][] = 'IF (EXISTS (SELECT 1 FROM service_item WHERE serviceid=service.id), 1, 0) AS has_items';
 		$res['group_by'] = 'service.id';
 		return $res;
 	}
@@ -491,6 +494,19 @@ class service extends db_object
 		return $res;
 	}
 
+	/** Replaces service item keywords in a string, currently %title%, %alt_title% and %ccli_number%.
+	 * @param string $title
+	 * @param string[] $iteminfo Array of service item fields, populated by getItems()
+	 * @return string
+	 */
+	public function replaceItemKeywords($title, $iteminfo)
+	{
+		$title = str_replace('%title%', $iteminfo['title'], $title);
+        $title = str_replace('%alt_title%', $iteminfo['alt_title'] ?? "", $title);
+        $title = str_replace('%ccli_number%', $iteminfo['ccli_number'] ?? "", $title);
+		return $title;
+	}
+
 	public function replaceKeywords($text)
 	{
 		$matches = Array();
@@ -503,6 +519,7 @@ class service extends db_object
 
 	public function getKeywordReplacement($keyword)
 	{
+		// If modified, update help text in call_service_comp_help_runsheet_format.class.php
 		if (0 === strpos($keyword, 'NAME_OF_')) {
 			$role_title = substr($keyword, strlen('NAME_OF_'));
 			return $this->getPersonnelByRoleTitle($role_title);
@@ -530,6 +547,21 @@ class service extends db_object
 		return $this->getPersonnelByRoleTitle($keyword);
 	}
 
+	/**
+	 * Get roster role info. Used to generate keywords in help text.
+	 */
+	static function getPersonnelRoleTitles() {
+		$sql = "select id, title, UPPER(REPLACE(rr.title, ' ', '_')) AS title_uppercase from roster_role rr ORDER BY id";
+		$tokens = JethroDB::get()->queryAll($sql);
+		return $tokens;
+	}
+
+	/**
+	 * @param $role_title Uppercase role title with underscores replacing whitespace, e.g. 'SOUND'. End with '_n' to get the Nth person, e.g. 'SOUND_1' = first assigned Sound person.
+	 * @param $first_name_only
+	 * @param $index Return the $index'th person in $role_title.
+	 * @return string Comma-separated name(s) of person/people serving as $role_title for this service.
+	 */
 	function getPersonnelByRoleTitle($role_title, $first_name_only=FALSE, $index=NULL)
 	{
 		$sql = 'SELECT roster_role_id, first_name, last_name
@@ -730,7 +762,7 @@ class service extends db_object
 					<td>
 						<?php
 						$title = $item['runsheet_title_format'];
-						$title = str_replace('%title%', $item['title'], $title);
+						$title = $this->replaceItemKeywords($title, $item);
 						$title = $this->replaceKeywords($title);
 						echo ents($title);
 						if ($item['note']) echo '<div class="smallprint"><small><i>'.nl2br(ents($item['note'])).'</i></small></div>';
@@ -774,7 +806,7 @@ class service extends db_object
 				<?php
 				echo ($num++).'. ';
 				$title = $i['handout_title_format'];
-				$title = str_replace('%title%', $i['title'], $title);
+				$title = $this->replaceItemKeywords($title, $i);
 				$title = $this->replaceKeywords($title);
 				echo ents($title);
 				?>
@@ -799,7 +831,7 @@ class service extends db_object
 		foreach ($items as $k => $i) {
 			if ($i['show_in_handout'] == '0') continue;
 				$title = $i['handout_title_format'];
-				$title = str_replace('%title%', $i['title'], $title);
+				$title = $this->replaceItemKeywords($title, $i);
 				$title = $this->replaceKeywords($title);
 				//$serviceContent[] = ents($title);
 			if ($i['show_in_handout'] == 'full') {
@@ -898,4 +930,5 @@ class service extends db_object
 		}
 		return strtotime($dateString);
 	}
+
 }

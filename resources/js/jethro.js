@@ -1,3 +1,30 @@
+var JethroDateRangePicker = {};
+JethroDateRangePicker.updateDisplayValue = function(selectElt, valueType)
+{
+	switch (valueType) {
+		case 'any':
+			selectElt.options[0].innerHTML = 'any date';
+			break;
+		case 'exact':
+			var d = new Date(Date.parse(selectElt.options[0].value.replace(/-/g, '/')));
+			selectElt.options[0].innerHTML = d.getDate()+' '+d.toLocaleString('default', { month: 'short' })+' '+d.getFullYear();
+			break;
+		case 'relative':
+			var matches = selectElt.options[0].value.match(/([-+])(\d+)y(\d+)m(\d+)d/);
+			if (matches) {
+				var l = '';
+				if (matches[2]>0) l += matches[2]+' years ';
+				if (matches[3]>0) l += matches[3]+' months ';
+				if (matches[4]>0) l += matches[4]+' days ';
+				if (l.length) l += (matches[1] == '-') ? 'before' : 'after';
+				l += ' the report date';
+				selectElt.options[0].innerHTML = l;
+			} else {
+				selectElt.options[0].innerHTML = '!Error!';
+			}
+	}
+}
+
 $(document).ready(function() {
 
 	if ($('.stop-js').length) return; /* Classname flag for big pages that don't want JS to run */
@@ -118,9 +145,13 @@ $(document).ready(function() {
 	});
 
 	$('a.ccli-lookup').click(function() {
-		var title = $('[name=title]').val();
-		if (title == '') return false;
-		var url = this.href.replace('__TITLE__', title);
+		var searchterm = $('[name=ccli_number]').val();
+		if (!searchterm || searchterm==0) searchterm = $('[name=title]').val();
+		if (!searchterm) {
+			alert('Fill in either Title or CCLI Number');
+			return false;
+		}
+		var url = this.href.replace('__TITLE__', searchterm);
 		var ccliWindow = window.open(url, 'ccli', 'height='+(screen.height-100)+',width='+(screen.width/2)+',left='+(screen.width/2)+',top=0location=no,menubar=no,titlebar=no,toolbar=no,resizable=yes,statusbar=no,scrollbars=yes');
 		if (!ccliWindow) {
 			alert('Jethro tried but could not open a popup window - you probably have a popup blocker enabled.  Please disable your popup blocker for this site, reload the page and try again.');
@@ -190,7 +221,7 @@ $(document).ready(function() {
 				JethroDateRangePicker.updateDisplayValue(this, 'exact');
 				break;
 			case (!!(matches = this.value.match(/([-+])(\d+)y(\d+)m(\d+)d/))):
-				menu.find('input[name=drp_relative_direction]').val(matches[1]);
+				menu.find('select[name=drp_relative_direction]').val(matches[1]);
 				menu.find('input[name=drp_relative_d]').val(matches[4]);
 				menu.find('input[name=drp_relative_m]').val(matches[3]);
 				menu.find('input[name=drp_relative_y]').val(matches[2]);
@@ -246,25 +277,31 @@ $(document).ready(function() {
 				var v = {};
 				var drp = $(this).parents('.date-range-picker');
 				v['direction'] = drp.find('select[name=drp_relative_direction]').val()
-				v['y'] = drp.find('input[name=drp_relative_y]').val();
-				v['m'] = drp.find('input[name=drp_relative_m]').val();
-				v['d'] = drp.find('input[name=drp_relative_d]').val();
+				v['y'] = drp.find('input[name=drp_relative_y]').val() || "0"
+				v['m'] = drp.find('input[name=drp_relative_m]').val() || "0"
+				v['d'] = drp.find('input[name=drp_relative_d]').val() || "0"
+				// todo: zeros
 				toggle.options[0].value = v['direction']+v['y']+'y'+v['m']+'m'+v['d']+'d';
 				break;
 			case 'exact':
 				var drp = $(this).parents('.date-range-picker');
-				var d = new Date(
-					drp.find('input[name=drp_exact_y]').val(),
-					drp.find('select[name=drp_exact_m]').val()-1,
-					drp.find('input[name=drp_exact_d]').val(),
-					0,0,0
-				);
-				toggle.options[0].value = d.toISOString().substring(0,10);
+				toggle.options[0].value = drp.find('input[name=drp_exact_y]').val() + '-'
+							+ drp.find('select[name=drp_exact_m]').val().padStart(2,0) + '-'
+							+ drp.find('input[name=drp_exact_d]').val().padStart(2,0);
 				break;
 		}
 		JethroDateRangePicker.updateDisplayValue(toggle, selectedType);
 
 	});
+
+	// When something in a datepicker is clicked (e.g. 'years') select the corresponding radio button ('relative date')
+	$('.date-range-picker .dropdown-menu').on('click', function(e) {
+		$(e.target)
+			.closest('tr')
+			.find('input[type="radio"]')
+			.prop('checked', true);
+	});
+
 
 
 	/************************ SEARCH CHOOSERS ************************/
@@ -1175,7 +1212,7 @@ JethroServicePlanner.init = function() {
     $("#service-comps tbody tr").draggable({
 		containment: "#service-planner",
 		helper: "clone",
-		cursor: "move",
+		cursor: "grabbing",
 		start: function(event, ui) {
 			$('#service-plan').addClass('comp-dragging');
 			ui.helper.remove();
@@ -1199,7 +1236,8 @@ JethroServicePlanner.init = function() {
 		JethroServicePlanner.addFromComponent($(this));
 	})
 
-	$("#service-comps td, #service-plan td").css('cursor', 'default').disableSelection();
+	$("#service-comps tbody").css('cursor', 'grab').disableSelection();
+	$(" #service-plan tbody").css('cursor', 'move').disableSelection();
 
 	// SERVICE PLAN TABLE:
 	JethroServicePlanner.setDroppable($("#service-plan tbody tr"));
@@ -1965,31 +2003,4 @@ function handleFamilyFormSubmit()
 		return false;
 	}
 	return true;
-}
-
-var JethroDateRangePicker = {};
-JethroDateRangePicker.updateDisplayValue = function(selectElt, valueType)
-{
-	switch (valueType) {
-		case 'any':
-			selectElt.options[0].innerHTML = 'any date';
-			break;
-		case 'exact':
-			var d = new Date(Date.parse(selectElt.options[0].value.replace(/-/g, '/')));
-			selectElt.options[0].innerHTML = d.getDate()+' '+d.toLocaleString('default', { month: 'short' })+' '+d.getFullYear();
-			break;
-		case 'relative':
-			var matches = selectElt.options[0].value.match(/([-+])(\d+)y(\d+)m(\d+)d/);
-			if (matches) {
-				var l = '';
-				if (matches[2]>0) l += matches[2]+' years ';
-				if (matches[3]>0) l += matches[3]+' months ';
-				if (matches[4]>0) l += matches[4]+' days ';
-				if (l.length) l += (matches[1] == '-') ? 'before' : 'after';
-				l += ' the report date';
-				selectElt.options[0].innerHTML = l;
-			} else {
-				selectElt.options[0].innerHTML = '!Error!';
-			}
-	}
 }

@@ -1056,12 +1056,14 @@ img.person-photo {
 }
 @media(min-width:1100px) {
 	.person-details {
-		width: 860px;
+		width: auto;
+		min-width: 860px;
 		margin-right: 0px;
 	}
 	/* person details 380 + family details 380 + photo 200px wide */
 	.view-person .details-box {
-		width: 415px;
+		width: auto;
+		min-width: 415px;
 		overflow: auto;
 		float: left;
 		margin-right: 15px;
@@ -1727,6 +1729,15 @@ table.service-details td table td input {
 	height: 12px !important;
 	line-height: 12px !important;
 }
+
+/* When editing a service schedule, The 'delete this service' and 'delete all services' buttons must render as just an icon, without button decoration */
+#body table.service-program tr td button {
+    background-color: transparent;
+    border: 0px;
+    margin: 0px;
+    padding: 0px;
+}
+
 #body table.service-program tr.insert-space td button {
 	height: 10px !important;
 	width: 16px !important;
@@ -2507,6 +2518,17 @@ div#send-sms-modal div.results {
 
 #body .action-plan .fields td {
 	vertical-align: middle;
+}
+
+/* for callout "pay attention to this" text. Used by highlightControlGroup() */
+.floating-box {
+	display: inline-block;           /* Shrink to content */
+	padding: 0.5em 1em;              /* Space around text */
+	background: transparent;                /* Box color */
+	border-radius: 4px;              /* Rounded corners */
+	box-shadow: 0 4px 12px rgba(0,0,0,0.25); /* Floating shadow */
+	font-size: 1rem;
+	margin: 1em 1em 1em 5em;
 }
 
 /************ PRINT **************/

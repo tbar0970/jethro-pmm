@@ -18,7 +18,11 @@ class View_Documents extends View
 
 	function printView()
 	{
-		$dirs = explode('|', MEMBER_FILES_DIRS);
+		$dirs = array_remove_empties(explode('|', MEMBER_FILES_DIRS));
+		if (empty($dirs)) { // prevent issue #1334
+			echo 'No files to show';
+			return;
+		}
 		chdir(Documents_Manager::getRootPath());
 		if (count($dirs) > 1) {
 			foreach ($dirs as $dir) {

@@ -19,6 +19,7 @@ System requirements are:
     * with [xmlwriter extension](https://www.php.net/manual/en/book.xmlwriter.php) enabled, to create DOCX files
     * [GD library](https://www.php.net/manual/en/book.image.php) recommended, to manage the size of uploaded photos
     * with [curl extension](https://www.php.net/manual/en/book.curl.php) enabled, if you intend to use the Mailchimp integration
+    * with [exif extension](https://www.php.net/manual/en/book.exif.php) enabled, if you would like to automatically rotate images
 
 The steps to install are:
 1. Unzip the files into a web-accessible folder on your web server

@@ -13,7 +13,7 @@ class Call_Sample_Import extends Call
 
 		require_once JETHRO_ROOT.'/views/view_10_admin__7_import.class.php';
 		$header = View_Admin__Import::getSampleHeader();
-		fputcsv($fp, $header);
+		fputcsv($fp, $header, ",", '"', "");
 
 		$congs = $GLOBALS['system']->getDBObjectData('congregation');
 		foreach ($congs as $id => $detail) {
@@ -180,7 +180,7 @@ class Call_Sample_Import extends Call
 			foreach (Array_get($row, 'groups', Array()) as $g) {
 				$out[] = $g;
 			}
-			fputcsv($fp, $out);
+			fputcsv($fp, $out, ",", '"', "");
 		}
 
 

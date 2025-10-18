@@ -34,11 +34,11 @@ class Documents_Manager {
 	{
 		$bits = explode('/', $path);
 		if (in_array('.', $bits) || in_array('..', $bits)) {
-			trigger_error('Dot or double-dot not allowed in directory parameter', E_USER_ERROR); //exits
+			throw new \RuntimeException('Dot or double-dot not allowed in directory parameter'); //exits
 		}
 		$res = self::getRootPath().implode('/', $bits);
 		if (!is_dir($res)) {
-			trigger_error("Specified folder does not exist", E_USER_ERROR); // exits
+			throw new \RuntimeException("Specified folder does not exist"); // exits
 		}
 		return $res;
 	}
@@ -47,7 +47,7 @@ class Documents_Manager {
 	// Else triggers an error and returns empty string
 	public static function validateDirName($name) {
 		$name = str_replace(' ', '_', $name);
-		if (!preg_match('/[-_A-Za-z0-9&]+/', $name)) {
+		if (!preg_match('/^[-_A-Za-z0-9&]+$/', $name)) {
 			trigger_error("Invalid folder name");
 			return '';
 		}

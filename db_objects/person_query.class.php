@@ -830,7 +830,7 @@ class Person_Query extends DB_Object
 				break;
 			case 'replace':
 				if (($this->getValue('owner') === NULL) && !$GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
-					trigger_error("You do not have permission to overwrite saved reports", E_USER_ERROR); exit;
+					throw new \RuntimeException("You do not have permission to overwrite saved reports"); exit;
 				}
 				$this->processFieldInterface('name');
 				if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
@@ -870,11 +870,8 @@ class Person_Query extends DB_Object
 					case 'date':
 						$params['custom_fields'][$fieldid] = Array(
 							'criteria' => $_REQUEST['params_custom_field_'.$fieldid.'_criteria'],
-							'periodtype' => $_REQUEST['params_custom_field_'.$fieldid.'_periodtype'],
-							'periodlength' => $_REQUEST['params_custom_field_'.$fieldid.'_periodlength'],
-							'periodanchor' => $_REQUEST['params_custom_field_'.$fieldid.'_periodanchor'],
-							'from' => process_widget('params_custom_field_'.$fieldid.'_from', Array('type' => 'date')),
-							'to' => process_widget('params_custom_field_'.$fieldid.'_to', Array('type' => 'date')),
+							'from' => $_REQUEST['params_custom_field_'.$fieldid.'_from'],
+							'to' => $_REQUEST['params_custom_field_'.$fieldid.'_to'],
 						);
 						break;
 					case 'select':
@@ -959,6 +956,7 @@ class Person_Query extends DB_Object
 		$res = Array();
 		switch ($this->_field_details[$field]['type']) {
 			case 'datetime':
+				// todo: add fancy date range support here
 				$res['from'] = process_widget('params_'.str_replace('.', '_', $field).'_from', Array('type' => 'date'));
 				$res['to'] = process_widget('params_'.str_replace('.', '_', $field).'_to', Array('type' => 'date'));
 				break;
@@ -1123,6 +1121,7 @@ class Person_Query extends DB_Object
 							break;
 
 						case 'exact':
+						case 'not':
 						case 'anniversary':
 
 							$from = $to = NULL;
@@ -1133,11 +1132,13 @@ class Person_Query extends DB_Object
 									$$k = NULL;
 								} else if (preg_match(("/([-+])(\d+)y(\d+)m(\d+)d/"), $v, $matches)) {
 									// relative date - convert it to an absolute now.
-									$$k = date('Y-m-d', strtotime($matches[1].$matches[2].' years '.$matches[3].' months '.$matches[4].' days'));
+									$sym=$matches[1]; // + or -
+									$$k = date('Y-m-d', strtotime($sym.($matches[2] ?? 0).' years '.$sym.($matches[3] ?? 0).' months '.$sym.($matches[4] ?? 0).' days'));
 								} else {
 									// absolute date
 									$$k = $v;
 								}
+								//bam("$k date $v = ".$$k);
 							}
 
 						    $valExp = 'pd'.$fieldid.'.value_date';
@@ -1147,8 +1148,17 @@ class Person_Query extends DB_Object
 								$betweenExp = '>= '.$db->quote($from);
 							} elseif ($to) {
 								$betweenExp = '<= '.$db->quote($to);
+							} else {
+								// from unlimited to unlimited
+								$betweenExp = ' IS NOT NULL';
+
 							}
 							$w = Array();
+							if ($values['criteria'] == 'not') {
+								// date is either unset or not in the specified range
+								$w[] = "$valExp IS NULL";
+								$betweenExp = 'NOT '.$betweenExp;
+							}
 							$w[] = "$valExp NOT LIKE '-%' AND $valExp $betweenExp";
 							if ($values['criteria'] == 'anniversary') {
 								$qFromYear = $db->quote(substr($from, 0, 4));
@@ -1766,7 +1776,7 @@ class Person_Query extends DB_Object
 			}
 			if ($groupingname) $hr[] = 'GROUPING';
 
-			fputcsv($fp, $hr);
+			fputcsv($fp, $hr, ",", '"', "");
 			$headerprinted = TRUE;
 		}
 		foreach ($x as $row) {
@@ -1788,7 +1798,7 @@ class Person_Query extends DB_Object
 				}
 			}
 			if ($groupingname) $r[] = str_replace('"', '""', $groupingname);
-			fputcsv($fp, $r);
+			fputcsv($fp, $r, ",", '"', "");
 		}
 		fclose($fp);
 	}
@@ -2035,11 +2045,11 @@ class Person_Query extends DB_Object
 		if (!($this->getValue('owner'))
 			&& (!$GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS))
 		) {
-			if ($throwErrors) trigger_error('You do not have permission to save shared reports', E_USER_ERROR);
+			if ($throwErrors) throw new \RuntimeException('You do not have permission to save shared reports');
 			return FALSE;
 		} else if (($this->getValue('owner')) && ($this->getValue('owner') != $GLOBALS['user_system']->getCurrentUser('id'))
 		) {
-			if ($throwErrors) trigger_error('Cannot save report that belongs to another user!', E_USER_ERROR);
+			if ($throwErrors) throw new \RuntimeException('Cannot save report that belongs to another user!');
 			return FALSE;
 		} else {
 			return TRUE;

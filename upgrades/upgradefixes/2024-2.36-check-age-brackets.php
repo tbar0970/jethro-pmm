@@ -53,8 +53,10 @@ if (!empty($groupedchanges)) {
 		$allaffected = array_unique(array_merge(...$allaffected));
 		print("Warning: ".count($allaffected)." people MAY have been incorrectly turned into Adults by bug https://github.com/tbar0970/jethro-pmm/issues/1086:".PHP_EOL);
 	}
-	foreach ($allaffected as $affected) {
-		print($affected.PHP_EOL);
+	if (!empty($allaffected)) {
+		foreach ($allaffected as $affected) {
+			print($affected.PHP_EOL);
+		}
 	}
 	print("Please log in to Jethro to fix this - ".build_url(Array('view' => '_fix_age_brackets')).PHP_EOL);
 }

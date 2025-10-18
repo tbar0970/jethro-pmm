@@ -59,7 +59,7 @@ class Service_Component extends db_object
 									'width'		=> 80,
 									'initial_cap'	=> TRUE,
 									'placeholder' => '(Optional)',
-									'note' => 'How should this component be shown on the run sheet.  Can include replacements such as the component\'s %title%, %SERVICE_TOPIC% or %NAME_OF_SOMEROSTERROLE%.  Leave blank to use the category\'s default.',
+									'note' => 'How should this component be shown on the run sheet.  Can include replacements such as the component\'s %title%, %alt_title%, %ccli_number%, and service fields like %SERVICE_TOPIC%. See <a target="service-comp-help" class="med-newwin" href="?call=service_comp_help_runsheet_format">help and examples</a>.  Leave blank to use the category\'s default.',
 									'heading_before' => 'Run Sheet Appearance',
 									'divider_before' => TRUE,
 									'label' => 'Run sheet format'
@@ -68,7 +68,7 @@ class Service_Component extends db_object
 									'type'		=> 'text',
 									'width'		=> 80,
 									'placeholder' => '(Optional)',
-									'note' => 'What to put in the run sheet\'s "personnel" column by default. Can include roster role keywords such as %SERVICE_LEADER%. Leave blank to use the category\'s default.',
+									'note' => 'What to put in the run sheet\'s "personnel" column by default. Can include roster role keywords such as %PREACHER%. See <a target="service-comp-help" class="med-newwin" href="?call=service_comp_help_personnel_format">help and examples</a>. Leave blank to use the category\'s default.',
 									),
 			'length_mins'		=> Array(
 									'type'		=> 'int',
@@ -96,7 +96,7 @@ class Service_Component extends db_object
 									'width'		=> 80,
 									'initial_cap'	=> TRUE,
 									'placeholder' => '(Optional)',
-									'note' => 'How should this component be listed in the service handout.  Can include replacements such as the component\'s %title%, %SERVICE_TOPIC% or %NAME_OF_SOMEROSTERROLE%.  Leave blank to use the category\'s default.',
+									'note' => 'How should this component be listed in the service handout.  Can include replacements such as the component\'s %title%, %alt_title%, %ccli_number%, %SERVICE_TOPIC% or %NAME_OF_SOMEROSTERROLE%. See <a target="service-comp-help" class="med-newwin" href="?call=service_comp_help_handout_title_format">help and examples</a>. Leave blank to use the category\'s default.',
 
 								   ),
 			'show_on_slide'		=> Array(
@@ -194,7 +194,12 @@ class Service_Component extends db_object
 		}
 		if ($keyword) {
 			$qk = $GLOBALS['db']->quote("%{$keyword}%");
-			$res['where'] .= ' '.$logic.' (service_component.title LIKE '.$qk.' OR alt_title LIKE '.$qk.' OR content_html LIKE '.$qk.')';
+			$res['where'] .= ' '.$logic.' (service_component.title LIKE '.$qk.' OR alt_title LIKE '.$qk.' OR content_html LIKE '.$qk;
+			if (filter_var($keyword, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]])  !== false) {
+				// Add CCLI search if $keyword is a positive integer
+				$res['where'] .= ' OR cast(service_component.ccli_number AS char) = '.$GLOBALS['db']->quote($keyword);
+			}
+			$res['where'] .= ')';
 		}
 
 		return $res;
@@ -205,6 +210,18 @@ class Service_Component extends db_object
 		$SQL = 'SELECT ccli_number, id
 				FROM service_component';
 		$res = $GLOBALS['db']->queryAll($SQL, null, null, true, false);
+		return $res;
+	}
+
+	/**
+     * Return existing songs grouped by Title.
+	 * @return array Song atl_title and id grouped by title, e.g. ["'All who love and serve your city" => [{alt_title => "AHB-562i", id => 1001}, {alt_title => "AHB-562ii", id => 1002}]
+	 */
+	public static function getAllByTitle()
+	{
+		$SQL = "SELECT title, alt_title, id
+				FROM service_component";
+		$res = $GLOBALS['db']->queryAll($SQL, null, null, true, false, true);
 		return $res;
 	}
 
@@ -222,6 +239,44 @@ class Service_Component extends db_object
 		parent::_printSummaryRows();
 		unset($this->fields['congregationids']);
 		unset($this->fields['tags']);
+	}
+
+
+	public function printUsage() {
+		$res = $GLOBALS['db']->queryAll("SELECT service.id AS serviceid
+			, congregation.id AS congregationid
+			, congregation.name AS congregation
+			, service.date
+			, service.topic_title
+			FROM congregation JOIN service ON service.congregationid=congregation.id
+			JOIN service_item ON service_item.serviceid=service.id
+			WHERE componentid=".(int)$this->id);
+		if ($res) {
+?>
+			<table class="table object-summary">
+				<table style="width: 100%" class="table roster service-program table-hover">
+				<thead>
+					<tr>
+						<th>Date</th>
+						<th>Congregation</th>
+						<th>Service</th>
+					</tr>
+				</thead>
+				<tbody>
+<?php
+			foreach ($res as $row) {
+				echo
+					"<t~r>".
+					"<td>".format_date($row['date'])."</td>".
+					"<td>".$row['congregation']. "</td>".
+					"<td>"."<a href='/?view=services&date=". $row['date']. "&congregationid=". $row['congregationid']. "'>".ents($row['topic_title'])."</a></td>".
+					"</tr></a>";
+			}
+?>
+			</tbody>
+		</table>
+<?php
+		} else echo "Not used";
 	}
 
 	public function printFieldValue($name, $value=NULL)
@@ -286,7 +341,7 @@ class Service_Component extends db_object
 					'order_by'			=> 'meeting_time',
 					'allow_empty'		=> TRUE,
 					'allow_multiple'	=> TRUE,
-					'note'				=> 'If a component is no longer used by any congregation, unselect all options',
+					'note'				=> 'To disable a component altogether, unselect all congregations',
 				);
 				$this->fields['tags'] = Array();
 				if (empty($this->id)) {
@@ -463,5 +518,34 @@ class Service_Component extends db_object
 		$this->values['congregationids'][] = $newCong;
 		$this->values['congregationids'] = array_unique($this->values['congregationids']);
 	}
+
+    /**
+     * Whether this service component can be deleted. Service components cannot be deleted if any service items refer to them.
+     * @param $trigger_messages If true, reasons why the component cannot be deleted will be logged, and can be retrieved with dump_messages().
+    * @return bool
+     */
+	public function canDelete($trigger_messages=FALSE)
+	{
+        $hasItem = (boolean)$GLOBALS['db']->queryOne("SELECT EXISTS (
+            SELECT 1
+                FROM service
+                JOIN service_item ON service_item.serviceid=service.id
+                WHERE componentid=".$this->id.
+            ") AS items_exist;");
+		$hasPerm = $GLOBALS['user_system']->havePerm(PERM_SERVICECOMPS);
+        if ($trigger_messages) {
+            if ($hasItem) add_message(_("Cannot delete service component because it is used in services"), "error");
+            if (!$hasPerm) add_message(_("Cannot delete service component because the caller lacks permission"), "error");
+        }
+        return !$hasItem && $hasPerm;
+	}
+
+    /**
+     * Disable a service component, which is currently done by disassociating all congregations.
+     */
+    public function disable():bool {
+        $this->values['congregationids'] = [];
+        return $this->save();
+    }
 
 }

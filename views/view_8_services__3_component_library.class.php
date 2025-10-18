@@ -121,25 +121,67 @@ class View_Services__Component_Library extends View
 				</div>
 			</div>
 			
-			<div class="span6 well well-small preview-pane anchor-bottom" id="preview">
+			<div class="span6 well well-small preview-pane" id="preview">
 				<p class="center"><i><br /><br />Select a component to view its details here</i></p>
 			</div>
-			
+			<div class="span6 well well-small preview-pane anchor-bottom pull-right" id="usage">
+				<p class="center"><i><br /><br />Select a component to view its usage here</i></p>
+			</div>
 			<script>
-				
-				$(document).ready(function() {
-					$('.service-comps tr').click(function() {
-						$('#selected').attr('id', '');
-						$(this).attr('id', 'selected');
-						$('#preview').load("?call=service_comp_detail&id="+$(this).attr('data-id'));
-					})
-				})
-			</script>
+
+                function updateURL(componentId) {
+                    // Update the URL query parameter without reloading the page
+                    var url = new URL(window.location.href);
+                    url.searchParams.set('service_componentid', componentId);
+                    history.replaceState({}, '', url.toString());
+                }
+
+                function loadComponent(componentId) {
+                    // console.log("Selected service component:", componentId);
+                    $('#preview').load("?call=service_comp_detail&id="+componentId);
+                    $('#usage').load("?call=service_comp_usage&id="+componentId);
+                    updateURL(componentId);
+                }
+
+                // Activate the tab containing the component, and then load its details
+                function selectTabAndLoad(componentId) {
+                    var $row = $('.service-comps tr[data-id="' + componentId + '"]');
+                    if ($row.length) {
+                        // mark as selected
+                        $('.service-comps tr#selected').removeAttr('id');
+                        $row.attr('id', 'selected');
+
+                        // find the tab pane that contains this row and activate its tab
+                        var $pane = $row.closest('.tab-pane');
+                        if ($pane.length) {
+                            var paneId = $pane.attr('id'); // e.g. "cat12"
+                            // show the corresponding tab header
+                            $('ul.nav-tabs a[href="#' + paneId + '"]').tab('show');
+                        }
+                    }
+
+                    // Load the component details (after ensuring the tab is shown)
+                    loadComponent(componentId);
+                }
+
+                $(document).ready(function() {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.has("service_componentid")) {
+                        let serviceComponentId = urlParams.get("service_componentid");
+                        selectTabAndLoad(serviceComponentId);
+                    } else {
+                        console.log("No service_componentid param");
+                    }
+
+                    $('.service-comps tr:has(td)').click(function() {
+                        $('#selected').removeAttr('id');
+                        $(this).attr('id', 'selected');
+                        let componentId = $(this).attr('data-id');
+                        selectTabAndLoad(componentId);
+                    });
+                });
+            </script>
 
 			<?php
-
 	}
-
-	
 }
-

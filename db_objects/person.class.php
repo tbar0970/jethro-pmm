@@ -843,7 +843,8 @@ class Person extends DB_Object
 				$currentid = 0;
 			}
 		} else if (is_array($currentval)) {
-			list($currentid, $currentname) = each ($currentval);
+			$currentid   = array_key_first($currentval);
+			$currentname = $currentval[$currentid];
 		}
 		$displayname = $currentid ? $currentname.' (#'.$currentid.')' : '';
 		?>
@@ -1034,11 +1035,13 @@ class Person extends DB_Object
 	{
 		// Extra CSRF protection because mobile number is sensitive.
 		if (($this->id) && (array_get($_REQUEST, $prefix.'token') != $_SESSION['person_form_token'][$this->id])) {
-			trigger_error("Synchroniser token mismatch - person could not be saved", E_USER_ERROR);
+			throw new \RuntimeException("Synchroniser token mismatch - person could not be saved");
 			return FALSE;
 		}
 
 		$res = parent::processForm($prefix, $fields);
+
+		$GLOBALS['system']->setFriendlyErrors(TRUE);
 		if (empty($fields)) {
 			foreach ($this->getCustomFields() as $fieldid => $fieldDetails) {
 				$field = $GLOBALS['system']->getDBObject('custom_field', $fieldid);
@@ -1046,6 +1049,7 @@ class Person extends DB_Object
 			}
 		}
 		$this->_photo_data = Photo_Handler::getUploadedPhotoData($prefix.'photo');
+		$GLOBALS['system']->setFriendlyErrors(FALSE);
 		return $res;
 	}
 

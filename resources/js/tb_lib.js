@@ -82,7 +82,9 @@ $(document).ready(function() {
 		var myLinks = t.find('a, input');
 		if (!myLinks.length) {
 			childLinks = $(this).parent('tr').find('a');
-			self.location = childLinks[0].href;
+			if (childLinks.length) {
+				self.location = childLinks[0].href;
+			}
 		} else if (myLinks.filter('a').length == 1) {
 			self.location = myLinks[0].href;
 		}
@@ -419,9 +421,51 @@ $(document).ready(function() {
 			return false;
 		}
 	})
+
+	highlightControlGroupFromUrlParams();
 });
 
+/**
+ * Highlight a particular edit-mode form element ('.control-group'), with a text callout saying what needs to happen. 'hl' URL param identifies the form element, and 'hltext' supplies the help text.
+ */
+function highlightControlGroupFromUrlParams() {
+	const params = new URLSearchParams(window.location.search);
+	const cgSelector = params.get('hl');        // Control group field ID (id, not selector).
+	const helpText = params.get('hltext');    // text to display
+	if (!cgSelector || !helpText) return; // nothing to do
+	highlightControlGroup(cgSelector, helpText);
+}
 
+function highlightControlGroup(cgId, helpText) {
+	try {
+		const $target =  $(`.control-group#field-${cgId}`);
+		if ($target.length == 0) return;
+
+		// Float our control group left and our help text right
+		$target.addClass('pull-left');
+
+		let firstChild = $target.find(".controls").children(":first-child");
+		// Focus the input element, disabling autofocus if present
+		firstChild.focus();
+		$('.autofocus').removeClass('autofocus');
+		$('<span class="floating-box pull-right"></span>')
+			.text(helpText)
+			.insertBefore(firstChild);
+		// If help text was floating to the right, move it to below (change help-inline to help-block), to make way for our help text.
+		$target.find('.help-inline').each(function() {
+			$(this).removeClass('help-inline').addClass('help-block');
+		});
+		// Clear float so later elements don't float right
+		$target.after("<div style=\"clear: both;\"></div>");
+
+		// Scroll to element
+		$('html, body').animate({
+			scrollTop: $target.first().offset().top - 200
+		}, 300);
+	} catch (e) {
+		console.error('Invalid selector in hl parameter:', cgId);
+	}
+}
 
 window.DATA_CHANGED = false;
 function setupUnsavedWarnings()

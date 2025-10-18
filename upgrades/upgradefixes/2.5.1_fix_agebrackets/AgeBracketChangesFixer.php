@@ -61,13 +61,13 @@ class AgeBracketChangesFixer
 			$firstlines = array_map(function ($changeinfo) {
 				return $changeinfo->getHistLines()[0];
 			}, $badchange);
-			if (count(array_unique($firstlines)) != 1) trigger_error("First lines in history are expected to always be 'Updated by ...", E_USER_ERROR);
+			if (count(array_unique($firstlines)) != 1) throw new \RuntimeException("First lines in history are expected to always be 'Updated by ...");
 			$oldagebracket = array_values(array_unique($firstlines))[0];
 			if (preg_match('/Updated by (.+) \(#(\d+)\)/', $oldagebracket, $matches)) {
 				$updater = $matches[1];
 				$updaterid = $matches[2];
 			} else {
-				trigger_error('First line of change, '.$firstlines[1].' does not match expected /Updated by ... (#...)/ regex.', E_USER_ERROR);
+				throw new \RuntimeException('First line of change, '.$firstlines[1].' does not match expected /Updated by ... (#...)/ regex.');
 			}
 			// Get the other fields changed (e.g. 'Status'), that the user was trying to set, when they accidentally set 'Age bracket'
 			$other_changed_fieldnames = array_values(array_map(function ($personinfo) use ($adult) {

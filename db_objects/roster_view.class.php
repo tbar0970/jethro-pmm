@@ -697,7 +697,10 @@ class roster_view extends db_object
 						$details['readonly'] = true;
 						$show_lock_fail_msg = true;
 						$lockHolder = $role->getLockHolder('assignments');
-						$lockholders[$lockHolder['userid']] ??= $lockHolder;
+						// Use ??= null coalescing when we drop php 7.2
+						if (!isset($lockholders[$lockHolder['userid']])) {
+							$lockholders[$lockHolder['userid']] = $lockHolder;
+						}
 					}
 					if (!$role->canEditAssignments()) {
 						$details['readonly'] = true;
@@ -877,6 +880,8 @@ class roster_view extends db_object
 
 		<?php
 		if ($editing) {
+			$this->printDefineMoreServicesMessage($end_date);
+
 			?>
 			<input type="submit" class="btn" value="Save" accesskey="s" />
 			</form>
@@ -1174,17 +1179,39 @@ class roster_view extends db_object
 	 */
 	public function printLockHoldMessage(array $lockholders): void
 	{
-		$lockHoldersStr =
-			implode(' and ', array_map(
-				fn($lockowner, $userid) => $lockowner['first_name'] !== null ? "{$lockowner['first_name']} {$lockowner['last_name']} ({$userid})" : "user $userid",
-				$lockholders,
-				array_keys($lockholders)
-			));
-        // If more than one person holds locks of differing expiries, the longest expiry is most relevant.
+		$lockHoldersStr = implode(' and ', array_map(
+			function($lockowner, $userid) {
+				return $lockowner['first_name'] !== null
+					? "{$lockowner['first_name']} {$lockowner['last_name']} ({$userid})"
+					: "user $userid";
+			},
+			$lockholders,
+			array_keys($lockholders)
+		));
+		// If more than one person holds locks of differing expiries, the longest expiry is most relevant.
 		$maxLockExpiry = array_reduce($lockholders, function ($carry, $lockholder) {
 			return $lockholder['expires'] > $carry ? $lockholder['expires'] : $carry;
 		}, PHP_INT_MIN);
 		$lockExpiresStr = (new DateTime($maxLockExpiry))->format('H:i');
 		print_message("Some of the roles in this roster are currently being edited by $lockHoldersStr.  To edit assignments for these roles, wait until the other user finishes or their lock expires (at $lockExpiresStr), then try again.", 'failure');
+	}
+
+	/**
+	 * If a user appears to be wanting to edit roster assignments in weeks when no service is defined yet, print an informative message.
+	 */
+	private function printDefineMoreServicesMessage($search_end_date): void
+	{
+		$congs = $this->getCongregations();
+		if (is_null($search_end_date)) return;  // should never happen
+		if (empty($congs)) return;  // should never happen
+		$sql = "select max(date) from service where congregationid in (".implode(',', $congs).")";
+		$lastServiceDate = $GLOBALS['db']->queryOne($sql);
+		if (new DateTime($search_end_date) > new DateTime($lastServiceDate)) {
+			if ($GLOBALS['user_system']->havePerm(PERM_BULKSERVICE)) {
+				print_message("Services must be defined for later weeks (under Services→List All) before rosters assignments can be made to them", 'warning');
+			} else {
+				print_message("There are no services defined beyond $lastServiceDate to assign rosters on", 'warning');
+			}
+		}
 	}
 }

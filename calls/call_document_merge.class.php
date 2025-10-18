@@ -26,7 +26,7 @@ class Call_Document_Merge extends Call
 					$ok = mkdir(self::getSavedTemplatesDir(), 0770, TRUE);
 				}
 				if ($ok) $ok = copy($file_info['tmp_name'], self::getSavedTemplatesDir().basename($file_info['name']));
-				if (!$ok) trigger_error("Problem saving template", E_USER_ERROR);
+				if (!$ok) throw new \RuntimeException("Problem saving template");
 
 			}
 			
@@ -397,7 +397,7 @@ class Call_Document_Merge extends Call
 			trigger_error('Template file does not seem to have been uploaded');
 			return;
 		}
-		$extension = @strtolower(end(explode('.', $source_file['name'])));
+		$extension = strtolower(pathinfo($source_file['name'], PATHINFO_EXTENSION));
 		$source_file = $source_file['tmp_name'];
 		$merged_file = dirname($source_file).'/jethro_merged_'.time().session_id();
 

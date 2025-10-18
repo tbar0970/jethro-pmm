@@ -1,22 +1,16 @@
 <?php
-
-/**
- * Renders the details panel of a Song, in the Service Component Library.
- */
-class Call_Service_Comp_Detail extends Call
+class Call_Service_Comp_Usage extends Call
 {
 	function run()
 	{
-		$GLOBALS['system']->includeDBClass('service_component');
 		$GLOBALS['system']->initErrorHandler();
-		/** @var Service_Component $comp */
 		$comp = $GLOBALS['system']->getDBObject('service_component', (int)$_REQUEST['id']);
 		if ($comp) {
 			if (!empty($_REQUEST['head'])) {
 				?>
 				<html>
 					<head>
-						<title>Jethro PMM - Service Component Detail</title>
+						<title>Jethro PMM - Service Component Use</title>
 						<?php include 'templates/head.template.php'; ?>
 
 					</head>
@@ -24,7 +18,7 @@ class Call_Service_Comp_Detail extends Call
 						<div id="body">
 						<?php
 			}
-			include 'templates/service_component_detail.template.php';
+			include 'templates/service_component_usage.template.php';
 			if (!empty($_REQUEST['head'])) {
 				?>
 						</div>
@@ -36,5 +30,4 @@ class Call_Service_Comp_Detail extends Call
 			echo 'Component not found';
 		}
 	}
-
 }
