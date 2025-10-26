@@ -66,6 +66,12 @@ class Member_User_System extends Abstract_User_System
 				$this->_error = 'Login form expired.  Please try again.';
 				return;
 			}
+			if ($this->_isArchivedMember($_POST['email'])) {
+				// Archived persons cannot log in to the Members section.
+				// Note that this is independent of staff member 'active' flag. Someone with an inactive staff account can still use the members interface.
+				$this->_error = 'This account has been archived.  Please contact the <a href="'.SYSADMIN_HREF.'">system administrator</a>.';
+				return;
+			}
 			$user_details = $this->_findAuthMember($_POST['email'], $_POST['password']);
 			if (is_null($user_details)) {
 				$this->_error = 'Incorrect email address or password';
@@ -372,6 +378,20 @@ If you didn't request an account, you can just ignore this email";
 		if ($staff_member->requires2FA()) {
 			throw new \RuntimeException("Attempt to change 2FA user's mobile number via the members interface");
 		}
+	}
+
+	/**
+	 * @return bool Whether the Person with the indicated email is in an archived status.
+	 */
+	private function _isArchivedMember($email)
+	{
+		$db =& $GLOBALS['db'];
+		$sql = 'SELECT ps.is_archived
+			FROM _person p
+			JOIN person_status ps ON ps.id = p.status
+			WHERE email = '.$db->quote($email);
+		$res = $db->queryOne($sql);
+		return $res;
 	}
 
 }
