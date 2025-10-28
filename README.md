@@ -14,7 +14,7 @@ System requirements are:
 * Some kind of web server (apache/ngnix etc)
 * MySQL 8.0 or above
     * with [ONLY_FULL_GROUP_BY](https://dev.mysql.com/doc/refman/8.4/en/sql-mode.html#sqlmode_only_full_group_by) disabled
-* PHP 7.0 or above
+* PHP 8.1 or above
     * with [gettext extension](https://www.php.net/manual/en/book.gettext.php) enabled
     * with [zip extension](https://www.php.net/manual/en/book.zip.php) enabled
     * with [xmlwriter extension](https://www.php.net/manual/en/book.xmlwriter.php) enabled, to create DOCX files
