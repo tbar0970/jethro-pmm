@@ -23,6 +23,10 @@ class JethroDB extends PDO
 	 */
 	public static function init($mode = '')
 	{
+		if (ifdef('DB_DSN')) {
+			$GLOBALS['db'] = new JethroDB(DB_DSN, DB_USERNAME, ifdef('DB_PASSWORD', ifdef('DB_PASSWORD', null)));
+			return;
+		}
 		$mode = strtoupper($mode);
 		if ($oldDsn = ifdef($mode . '_DSN')) {
 			// legacy config
