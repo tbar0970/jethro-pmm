@@ -1174,6 +1174,109 @@ JethroServiceProgram.copyServiceDetails = function(sourceCell, targetCell) {
 
 
 
+// Implements 'Copy from previous' previewing when editing a service
+var JethroServicePlannerCopier = (function($) {
+	// private variables
+	var $serviceSelect;
+	var $preview;
+
+	// -----------------------------
+	// Private helpers
+	// -----------------------------
+
+	function renderPreview(items) {
+		$preview.empty();
+		var newtable = "<table class='table table-bordered  table-condensed no-autofocus'>";
+		$.each(items, function(_, it) {
+			newtable += "<tr data-componentid='" + (it.categoryid ? it.categoryid : '!') +
+				"' class='service-item'><td class='item'>" +
+				it.title + "</td></tr>";
+		});
+		newtable += "</table>";
+		$preview.append(newtable);
+	}
+
+	function loadCopiedServicePreview(serviceId) {
+		if (!serviceId) {
+			$preview.html('<em>Preview will appear here after selecting a previous service.</em>');
+			return;
+		}
+		var url = '?call=service_plan_runsheet&serviceid=' + encodeURIComponent(serviceId);
+		$.getJSON(url, function(data) {
+			if (Array.isArray(data)) {
+				renderPreview(data);
+				updateCopiedServicePreviewSelectedItems();
+			} else {
+				$preview.html('<em>Unable to load preview.</em>');
+			}
+		}).fail(function() {
+			$preview.html('<em>Error loading preview.</em>');
+		});
+	}
+
+
+	// Update visibility of preview rows based on selected category checkboxes
+	function updateCopiedServicePreviewSelectedItems() {
+		var checked = $('input[name="copy_category_ids[]"]:checked').map(function() {
+			return String($(this).val());
+		}).get();
+
+		var $rows = $preview.find('tr[data-componentid]');
+		if ($rows.length === 0) return;
+
+		if (checked.length === 0) {
+			$rows.addClass("muted");
+			return;
+		}
+
+		$rows.each(function() {
+			var $r = $(this);
+			var compid = String($r.data('componentid'));
+			if (checked.indexOf(compid) !== -1) {
+				$r.removeClass("muted");
+			} else {
+				$r.addClass("muted");;
+			}
+		});
+	}
+
+	// 'Copy from previous' Helper Public API
+	return {
+		init: function() {
+			$serviceSelect = $('[name=copy_service_id]'); // Which previous service to (maybe) copy
+			$preview = $('#copy-previous-preview');   // Previewer div
+
+			// 'Items to copy' checkboxes change handler
+			$('input[name="copy_category_ids[]"]').on('change', function() {
+				updateCopiedServicePreviewSelectedItems();
+			});
+
+			if ($serviceSelect.length) {
+				// 'Service to copy from' select-list change handler
+				$serviceSelect.on('change', function() {
+					loadCopiedServicePreview($(this).val());
+				});
+				// Preload the default selected service
+				if ($serviceSelect.val()) {
+					loadCopiedServicePreview($serviceSelect.val());
+				}
+			}
+
+			// When the 'Copy from previous' modal opens, auto-focus the 'Service to copy from' select list
+			$('#copy-previous-modal').on('shown', function () {
+				$('[name="copy_service_id"]').focus();
+			});
+		}
+	};
+
+})(jQuery);
+
+
+
+
+
+
+
 var JethroServicePlanner = {};
 
 JethroServicePlanner.draggedComp = null;
