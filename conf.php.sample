@@ -21,12 +21,14 @@ define('DB_DATABASE', '');
 define('DB_USERNAME', '');
 define('DB_PASSWORD', '');
 
-// The URL jethro will be running at.  NB The final slash is important!!
-define('BASE_URL', 'http://example.com/jethro/');
+// The URL jethro will be running at. Only needs to be set if Jethro is running behind a proxy without
+// X-Forwarded-Proto + X-Forwarded-Host, or running scripts/task_reminder.php, where the base URL cannot be inferred
+// define('BASE_URL', 'https://example.com/jethro/');
 
 // Whether the system must be accessed by HTTPS.
 // If this is true, the BASE_URL above must begin with https://
-define('REQUIRE_HTTPS', FALSE);
+// No longer used - Jethro will run wherever it finds itself.
+// define('REQUIRE_HTTPS', FALSE);
 
 ///////////////////////////////////////////////////////////////////////////
 // OPTIONAL DATABASE SETTINGS -

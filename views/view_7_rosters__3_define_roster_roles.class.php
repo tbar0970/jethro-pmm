@@ -83,7 +83,7 @@ class View_Rosters__Define_Roster_Roles extends View
 						<td>
 							<?php
 							if (!empty($rdetails['volunteer_group'])) {
-								echo '<a target="jethro" href="'.BASE_URL.'?view=groups&groupid='.$rdetails['volunteer_group'].'">'.ents($rdetails['volunteer_group_name'].' (#'.$rdetails['volunteer_group'].')').'</a>';
+								echo '<a target="jethro" href="?view=groups&groupid='.$rdetails['volunteer_group'].'">'.ents($rdetails['volunteer_group_name'].' (#'.$rdetails['volunteer_group'].')').'</a>';
 							}
 							?>
 						</td>

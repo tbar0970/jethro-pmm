@@ -160,7 +160,7 @@ class View__Generate_Service_Documents extends View
 			echo '</ul>';
 			$fn_bits = explode('.', basename($this->_filename));
 			$zipname = reset($fn_bits).'_'.$this->_service_date;
-			$allHref = BASE_URL.'?call=documents&zipname='.$zipname;
+			$allHref = '?call=documents&zipname='.$zipname;
 			foreach ($this->_generated_files as $path => $label) {
 				$allHref .= '&zipfile[]='.self::_cleanDirName($path);
 			}

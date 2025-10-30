@@ -216,7 +216,7 @@ class View_Documents extends View
 					</div>
 					<div class="modal-body">
 						<input type="file" name="newfile[]" multiple="multiple" max-bytes="<?php echo file_upload_max_size(); ?>" />
-						<p class="upload-progress hide">Uploading...<br /><img src="resources/img/progress.gif" /></p>
+						<p class="upload-progress hide">Uploading...<br /><img src="<?php echo BASE_URL; ?>/resources/img/progress.gif" /></p>
 					</div>
 					<div class="modal-footer">
 						<button type="submit" class="btn" accesskey="s">Go</button>
@@ -232,7 +232,7 @@ class View_Documents extends View
 					</div>
 					<div class="modal-body">
 						<input type="file" id="replace-file" name="replacefile[X]" max-bytes="<?php echo file_upload_max_size(); ?>" />
-						<p class="upload-progress hide">Uploading...<br /><img src="resources/img/progress.gif" /></p>
+						<p class="upload-progress hide">Uploading...<br /><img src="<?php echo BASE_URL; ?>/resources/img/progress.gif" /></p>
 					</div>
 					<div class="modal-footer">
 						<button type="submit" class="btn" accesskey="s">Go</button>
@@ -401,20 +401,20 @@ class View_Documents extends View
 					?>
 					<form class="min" method="post" target="_parent" action="<?php echo $parentaction ?>">
 						<input type="hidden" name="deletefolder" value="1" />
-						<input type="image" title="Delete this folder" class="confirm-title" src="resources/img/folder_delete.png" />
+						<input type="image" title="Delete this folder" class="confirm-title" src="<?php echo BASE_URL; ?>/resources/img/folder_delete.png" />
 					</form>
 					<?php
 				}
 				?>
-				<a href="#rename-folder-modal" data-toggle="modal"><img title="Rename this folder" src="resources/img/folder_edit.png"/></a>
+				<a href="#rename-folder-modal" data-toggle="modal"><img title="Rename this folder" src="<?php echo BASE_URL; ?>/resources/img/folder_edit.png"/></a>
 				<?php
 			}
 			?>
-				<a href="#add-folder-modal" data-toggle="modal"><img title="Add new sub-folder" data-togl src="resources/img/folder_add.png" /></a>
+				<a href="#add-folder-modal" data-toggle="modal"><img title="Add new sub-folder" data-togl src="<?php echo BASE_URL; ?>/resources/img/folder_add.png" /></a>
 
-				<a href="<?php echo build_url(Array('editfile' => '_new_')); ?>"><img title="Edit new HTML document" src="resources/img/document_new.png" /></a>
+				<a href="<?php echo build_url(Array('editfile' => '_new_')); ?>"><img title="Edit new HTML document" src="<?php echo BASE_URL; ?>/resources/img/document_new.png" /></a>
 
-				<a href="#upload-file-modal" data-toggle="modal"><img title="Upload new file" src="resources/img/document_upload.png" /></a>
+				<a href="#upload-file-modal" data-toggle="modal"><img title="Upload new file" src="<?php echo BASE_URL; ?>/resources/img/document_upload.png" /></a>
 			</div><!-- .document-icons -->
 
 			<?php
@@ -464,7 +464,7 @@ class View_Documents extends View
 				<tr>
 					<td class="filename middle">
 						<a href="<?php echo build_url(array('call'=>null, 'view' => 'documents', 'dir' => $this->getPrintedDir().'/'.$dirname)); ?>" target="_parent">
-						<img src="resources/img/folder.png" style="margin-right: 5px" /><?php echo ents($dirname); ?></a>
+						<img src="<?php echo BASE_URL; ?>/resources/img/folder.png" style="margin-right: 5px" /><?php echo ents($dirname); ?></a>
 					</td>
 					<td class="file-detail">&nbsp;</td>
 					<td class="file-detail"><?php echo format_datetime($dirinfo[$dirname]['mtime']); ?></td>

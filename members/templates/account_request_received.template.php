@@ -24,7 +24,7 @@
 			?>
 			</p>
 			
-			<a class="btn btn-lnk" href="<?php echo BASE_URL; ?>members">&laquo; Back to login form</a>
+			<a class="btn btn-lnk" href="<?php echo BASE_URL; ?>/members">&laquo; Back to login form</a>
 			
 		</div>
 	</form>

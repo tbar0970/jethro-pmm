@@ -33,7 +33,7 @@ class View_Home extends View
 		<div class="homepage-box search-forms">
 			<h3>
 				<a class="pull-right hide-phone"
-				   href="javascript:if (sp = prompt('Search <?php echo SYSTEM_NAME; ?> for: ')) window.location='<?php echo BASE_URL; ?>?view=_mixed_search&search='+sp"
+				   href="javascript:if (sp = prompt('Search <?php echo SYSTEM_NAME; ?> for: ')) window.location='?view=_mixed_search&search='+sp"
 				   onclick="prompt('To create a search-jethro button in your browser, save the following code as a bookmark/favourite: ', this.href); return false"
 				>
 					<small class="hidden-phone"><i class="icon-bookmark"></i>Bookmark</small>
