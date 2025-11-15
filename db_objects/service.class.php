@@ -409,7 +409,7 @@ class service extends db_object
 						}
 						$res[] = $line;
 					}
-			    		echo implode('<br />', $res);		
+			    		echo implode('<br />', $res);
   							
 					} else {
 					parent::printFieldvalue($fieldname);
