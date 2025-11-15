@@ -67,6 +67,6 @@ class Member extends DB_Object
 						LEFT JOIN congregation c ON member.congregationid = c.id
 						JOIN age_bracket ab on ab.id = member.age_bracketid ';
 		return $res;
-	}	
+	}
 
 }

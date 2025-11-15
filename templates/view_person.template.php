@@ -476,7 +476,7 @@ if (isset($tabs['rosters'])) {
 	$GLOBALS['system']->includeDBClass('roster_role_assignment');
 	$assignments = Roster_Role_Assignment::getUpcomingAssignments($person->id, '99 weeks');
 	$absences = $GLOBALS['system']->getDBObjectData(
-											'planned_absence', 
+											'planned_absence',
 											Array('personid' => $person->id, '>=end_date' => date('Y-m-d')),
 											'start_date'
 									);
@@ -570,7 +570,7 @@ if (isset($tabs['rosters'])) {
 	} else {
 		?>
 		<p><i><?php $person->printFieldValue('name'); ?> has no upcoming planned absences</i></p>
-		<?php	
+		<?php
 	}
 
 	echo $panel_footer;

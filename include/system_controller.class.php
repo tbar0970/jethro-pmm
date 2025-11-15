@@ -249,7 +249,7 @@ class System_Controller
 		$PHP_8_SUPPRESSED = E_ERROR | E_CORE_ERROR | E_COMPILE_ERROR | E_USER_ERROR | E_RECOVERABLE_ERROR | E_PARSE;
 		if (error_reporting() == $PHP_8_SUPPRESSED) return; // the "@" shutup-operator was used
 		$send_email = true;
-		$showTechDetails = ifdef('SHOW_ERROR_DETAILS', (JETHRO_VERSION == 'DEV'));	
+		$showTechDetails = ifdef('SHOW_ERROR_DETAILS', (JETHRO_VERSION == 'DEV'));
 		$exit = false;
 		switch ($errno) {
 			case E_ERROR:
@@ -271,7 +271,7 @@ class System_Controller
 			case E_USER_NOTICE:
 				$send_email = false; // never send emails for E_USER_NOTICE
 				if ($this->_friendly_errors || (!headers_sent() && !$showTechDetails)) {
-					// we want to show a friendly-style message, so we'll add a message 
+					// we want to show a friendly-style message, so we'll add a message
 					// to the queue, to be shown when appropriate (maybe after a redirect)
 					add_message('Error: '.$errstr, 'failure');
 					return;
