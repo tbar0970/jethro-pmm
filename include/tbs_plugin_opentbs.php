@@ -68,7 +68,7 @@ define('OPENTBS_RELATIVE_CELLS','clsOpenTBS.RelativeCells');
 define('OPENTBS_MAKE_OPTIMIZED_TEMPLATE','clsOpenTBS.MakeOptimizedTemplate');
 define('OPENTBS_GET_CELLS','clsOpenTBS.GetCells');
 define('OPENTBS_SET_CELLS','clsOpenTBS.SetCells');
-define('OPENTBS_FIRST',1); // 
+define('OPENTBS_FIRST',1); //
 define('OPENTBS_GO',2);    // = TBS_GO
 define('OPENTBS_ALL',4);   // = TBS_ALL
 // Types of file to select
@@ -658,7 +658,7 @@ class clsOpenTBS extends clsTbsZip {
 			$tag = "[$name;ope=changepic;tagpos=inside;$prms_flat]";
 
 			$nbr = false;
-			$TBS =& $this->TBS; 
+			$TBS =& $this->TBS;
 			$TBS->Source = str_replace($code, $tag, $TBS->Source, $nbr); // argument $nbr supported buy PHP >= 5
 			if ($nbr!==0) $TBS->MergeField($name, $file);
 
@@ -730,7 +730,7 @@ class clsOpenTBS extends clsTbsZip {
 			case 'ods': case 'odp':
 				$this->ExtInfo['main'];
 				break;
-			case 'xlsx': case 'pptx': 
+			case 'xlsx': case 'pptx':
 				return false;
 				break;
 			}
@@ -746,7 +746,7 @@ class clsOpenTBS extends clsTbsZip {
 				$this->MsWord_InitHeaderFooter();
 				foreach ($this->MsWord_HeaderFooter as $info) {
 					$res[] = $info['file'];
-				}				
+				}
 				break;
 			case 'odt':
 				$res[] = 'styles.xml';
@@ -760,7 +760,7 @@ class clsOpenTBS extends clsTbsZip {
 				$FileName = $this->CdFileLst[$this->TbsCurrIdx];
 				if ($this->MsExcel_SheetIsIt($FileName) ) $res[] = $FileName;
 				break;
-			case 'pptx': 
+			case 'pptx':
 				// Headers and footers are in the selected sheet or slide.
 				$FileName = $this->CdFileLst[$this->TbsCurrIdx];
 				if ($this->MsPowerpoint_SlideIsIt($FileName) ) $res[] = $FileName;
@@ -1515,7 +1515,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 			if ($this->ExtType==='odf') {
 				$Loc->Prop['otbsDim'] = $this->TbsPicGetDim_ODF($Txt, $Loc->PosBeg, false, $Loc->PosBeg, $FieldLen);
 			} else {
-				if (strpos($att,'v:imagedata')!==false) { 
+				if (strpos($att,'v:imagedata')!==false) {
 					$Loc->Prop['otbsDim'] = $this->TbsPicGetDim_OpenXML_vml($Txt, $Loc->PosBeg, false, $Loc->PosBeg, $FieldLen);
 				} else {
 					$Loc->Prop['otbsDim'] = $this->TbsPicGetDim_OpenXML_dml($Txt, $Loc->PosBeg, false, $Loc->PosBeg, $FieldLen, $PicLoc);
@@ -1539,7 +1539,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 			}
 
 			// Set the picture file to empty
-			$this->FileReplace($InternalPicPath, '', TBSZIP_STRING, false);		
+			$this->FileReplace($InternalPicPath, '', TBSZIP_STRING, false);
 
 		}
 		
@@ -1884,7 +1884,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 			if ( ($loc_el !== false) && ($loc_el->Name === 'text:conditional-text') ) {
 				$loc_el->FindEndTag();
 				$Loc->PosBeg = $loc_el->PosBeg;
-				$Loc->PosEnd = $loc_el->PosEnd; 
+				$Loc->PosEnd = $loc_el->PosEnd;
 			}
 			
 		}
@@ -1989,7 +1989,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 				}
 			}
 		} else {
-			// A string is given => 
+			// A string is given =>
 			$parts = explode('*', $files);
 			$last = count($parts) - 1;
 			if ($last == 0) {
@@ -2330,7 +2330,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 			// At this point, $Ext may have special value '' or 'zip' (no extension in the the template file from a local file or stream file).
 		}
 	
-		$Frm = $this->Ext_DeductFormatFromExt($Ext);       
+		$Frm = $this->Ext_DeductFormatFromExt($Ext);
 		if ($Frm===false) {
 			$Frm = $this->Ext_DeductFormatFromContents($Ext); // may force $Ext to a valid extension
 		}
@@ -2378,7 +2378,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 				'tbs:listitem' => 'text:list-item', // ODT+ODP
 			);
 			if ($set_option) {
-				$TBS->SetOption('parallel_conf', 'tbs:table', 
+				$TBS->SetOption('parallel_conf', 'tbs:table',
 					array(
 						'parent' => 'table:table',
 						'ignore' => array('table:covered-table-cell', 'table:table-header-rows'),
@@ -2416,9 +2416,9 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 					'tbs:drawgroup' => array(&$this, 'MsWord_GetDraw'),
 					'tbs:drawitem' => 'wps:wsp',
 					'tbs:listitem' => 'w:p',
-				);  
+				);
 				if ($set_option) {
-					$TBS->SetOption('parallel_conf', 'tbs:table', 
+					$TBS->SetOption('parallel_conf', 'tbs:table',
 						array(
 							'parent' => 'w:tbl',
 							'ignore' => array('w:tblPr', 'w:tblGrid'),
@@ -2844,7 +2844,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 
 		if ($debug) echo "\n* XML_GetNextCellLoc : currRow = $currRow, currCol = $currCol | targetRow = $targetRow, targetCol = $targetCol | currRowOk = ".var_export($currRowOk,true).", currColOk = ".var_export($currColOk,true);
 		
-		// Reach the asked row 
+		// Reach the asked row
 		if ($debug) echo "\n  * Search Row : loop";
 		while ( $currRowOk && ($currRow < $targetRow) ) {
 			if ($debug) echo "\n  * Search Row #{$currRow}, r_pos=$r_pos : ";
@@ -2896,7 +2896,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 			}
 		}
 		
-		// Reach the asked cell 
+		// Reach the asked cell
 		if ($debug) echo "\n  * Search Col : loop : currColOk=" . var_export($currColOk, true) . ", currCol=$currCol, targetCol=$targetCol";
 		$cellLoc = false;
 		while ($currColOk && ($currCol < $targetCol)) {
@@ -2951,7 +2951,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 			$cellLoc->RepeatMax = 1;
 		}
 			
-		$cellLoc->RowOk   = $currRowOk; // true if the row did exists, false if the row has been added by the function 
+		$cellLoc->RowOk   = $currRowOk; // true if the row did exists, false if the row has been added by the function
 		$cellLoc->cellRow = $targetRow; // row num in the sheet
 		$cellLoc->cellCol = $targetCol; // col num in the sheet
 
@@ -3009,7 +3009,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 					return false;
 				}
 				$rank++;
-			} 
+			}
 		}
 
 		if ($WithRow) {
@@ -3081,7 +3081,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 				$cells = '';
 				$in_delim = false; // true if we are inside the delimited string
 				$is_cell = true;   // true if wee reading the cell part
-				$is_xslx = false;  // true if is seems to be an XLSX syntax 
+				$is_xslx = false;  // true if is seems to be an XLSX syntax
 				$new = false;      // true if it is a new range defintion (XLSX ranges can be multi-range)
 			}
 			
@@ -3115,7 +3115,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 						} else {
 							// It's a single delim. Note that the bound delim are not kept.
 							$in_delim = false;
-						}	
+						}
 					} else {
 						$sheet = $x . $sheet;
 					}
@@ -3525,7 +3525,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 	 * Return the absolute path of file $RelativePath which is relative to the full path $RelativeTo.
 	 * For example:
 	 * '../file_a.xml' relatively to 'dir1/dir2/file_b.xml' is 'dir1/file_a.xml'
-	 */    
+	 */
 	function OpenXML_GetAbsolutePath($RelativePath, $RelativeTo) {
 		
 		// May be reltaive to the root
@@ -3851,7 +3851,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 					$ok = true;
 				}
 			}
-		}		
+		}
 
 		// Add missing extensions
 		$x = '';
@@ -4139,7 +4139,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 				$res['leg_p'] = $p1;
 				$res['leg_l'] = $p2 - $p1;
 				$p = $p2;
-			} 
+			}
 		}
 
 		// Data X & Y, we assume that (X or Category) are always first and (Y or Value) are always second
@@ -4226,7 +4226,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 			
 			if (isset($this->OpenXmlCharts[$ref])) {
 				$chart = &$this->OpenXmlCharts[$ref];
-				$this->OpenXmlCharts[$ChartRef] = &$chart; 
+				$this->OpenXmlCharts[$ChartRef] = &$chart;
 				// For debug
 				$chart['parent_idx'] = $idx;
 			} else {
@@ -4303,7 +4303,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 					$coord_2 .= '<c:pt idx="'.$i.'"><c:v>'.htmlspecialchars($y, ENT_NOQUOTES).'</c:v></c:pt>';
 				}
 				$i++;
-			} 
+			}
 			$coord_1 = '<c:ptCount val="'.$i.'"/>'.$coord_1;
 			$coord_2 = '<c:ptCount val="'.$i.'"/>'.$coord_2; // yes, the count is the same as coord_1 whenever missing values
 
@@ -4350,7 +4350,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 				$name = false;
 				$title = false;
 				$descr = false;
-				// DOCX <w:drawing> can embeds <wp:inline> if inline with text, or <wp:anchor> otherwise                
+				// DOCX <w:drawing> can embeds <wp:inline> if inline with text, or <wp:anchor> otherwise
 				$parent = clsTbsXmlLoc::FindStartTag($Txt, 'w:drawing', $t->PosBeg, false);
 				if ($parent===false) {
 					// PPTX
@@ -4415,8 +4415,8 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 		// Replace Reference values with Literal values
 		if ($ok) {
 			$this->XML_DeleteElements($Txt, array('c:numCache', 'c:strCache'), true);
-			$Txt = str_replace('c:strRef>', 'c:strLit>', $Txt); 
-			$Txt = str_replace('c:numRef>', 'c:numLit>', $Txt); 
+			$Txt = str_replace('c:strRef>', 'c:strLit>', $Txt);
+			$Txt = str_replace('c:numRef>', 'c:numLit>', $Txt);
 		}
 	
 	}
@@ -4553,7 +4553,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 		} else {
 			if ($no_err) {
 				return false;
-			} else {	
+			} else {
 				return $this->RaiseError("(ChartDelCategory) '$ChartRef' : unable to find categories '" . implode(', ', array_keys($glob_remain_cat)) . "' in the chart ".$ref.".");
 			}
 		}
@@ -5168,9 +5168,9 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 	function MsExcel_ChangeCellValue(&$Loc, &$Value) {
 	
 		switch ($Loc->PrmLst['cellok']) {
-		case 'tbs:num': 
-		case 'tbs:curr': 
-		case 'tbs:percent': 
+		case 'tbs:num':
+		case 'tbs:curr':
+		case 'tbs:percent':
 		case 'xlsxNum':
 			if (is_numeric($Value)) {
 				// we have to check contents in order to avoid Excel errors. Note that value '0.00000000000000' makes an Excel error.
@@ -5242,7 +5242,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 			$o->stateR = ($o->state===false) ? 'visible' : $o->state;
 			$o->file  = false;
 			$this->MsExcel_Sheets[$i] = $o;
-			$rels[$o->rid] =& $this->MsExcel_Sheets[$i]; 
+			$rels[$o->rid] =& $this->MsExcel_Sheets[$i];
 			$i++;
 			$p = $loc->PosEnd;
 		}
@@ -5440,7 +5440,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 
 		$p = 0;
 		while ( $el = clsTbsXmlLoc::FindElement($Txt, 'definedName', $p, true) ) {
-			$name = $el->GetAttLazy('name'); // forbidden in range name : ", ', ' ', 
+			$name = $el->GetAttLazy('name'); // forbidden in range name : ", ', ' ',
 			$ref = $el->GetInnerSrc();
 			$this->OtbsSheetRangeNames[$name] = $this->Sheet_GetRangeInfo($ref);
 			$p = $el->PosEnd;
@@ -5510,7 +5510,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 					break;
 				case 'inlineStr': // inline string
 					$x = $v; break;
-				case 'str': // formula returning a string				
+				case 'str': // formula returning a string
 					$x = $v; break;
 				case 'd': // date
 					$t = ($v-25569.0) * 86400.0; // unix: 1 means 01/01/1970, xlsx: 1 means 01/01/1900
@@ -5685,7 +5685,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 
 		$del_lst = array();
 		$del_lst2 = array();
-		$first_kept = false; // Name of the first slide, to be kept 
+		$first_kept = false; // Name of the first slide, to be kept
 		foreach ($this->OpenXmlSlideLst as $i=>$s) {
 			$ref = 'i:'.($i+1);
 			if (isset($this->OtbsSheetSlidesDelete[$ref]) && $this->OtbsSheetSlidesDelete[$ref] ) {
@@ -5764,7 +5764,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 	 * <mc:Fallback> entities may contains duplicated TBS fields and this may corrupt the merging.
 	 * This function delete such entities if they seems to contain TBS fields. This make the DOCX content less compatible with previous Word versions.
 	 * https://wiki.openoffice.org/wiki/OOXML/Markup_Compatibility_and_Extensibility
-	 */ 
+	 */
 	function MsWord_CleanFallbacks(&$Txt) {
 		
 		$p = 0;
@@ -5797,7 +5797,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 			$pb = strrpos(substr($Txt,0,$p) , '<');
 			if ($pb===false) return false;
 			if (substr($Txt, $pb, $b_len)===$b) {
-				$Txt = substr_replace($Txt, '', $pb, $pe - $pb + 1); 
+				$Txt = substr_replace($Txt, '', $pb, $pe - $pb + 1);
 				$p = $pb;
 				$nbr_del++;
 			} else {
@@ -5939,7 +5939,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 		$loc1 = clsTbsXmlLoc::FindStartTagHavingAtt($Txt, 'w:type="page"', $Pos, $Forward);
 		$loc2 = clsTbsXmlLoc::FindStartTag($Txt, 'w:pageBreakBefore', $Pos, $Forward);
 
-		// Define the position of start for the corresponding paragraph 
+		// Define the position of start for the corresponding paragraph
 		if ( ($loc1===false) && ($loc2===false) ) {
 			if ($Forward) {
 				// End of the last paragraph of the document.
@@ -6004,7 +6004,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 	 * Alias of block: 'tbs:section'
 	 * In Docx, section-breaks <w:sectPr> can be saved in the last <w:p> of the section, or just after the last <w:p> of the section.
 	 * In practice, there is always at least one sectin-break and only the last section-break is saved outside the <w:p>.
-	 */ 
+	 */
 	function MsWord_GetSection($Tag, $Txt, $Pos, $Forward, $LevelStop) {
 
 		// First we check if the TBS tag is inside a <w:p> and if this <w:p> has a <w:sectPr>
@@ -6068,7 +6068,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 		
 		// Is there a different header/footer for odd an even pages ?
 		$idx = $this->FileGetIdx('word/settings.xml');
-		if ($idx!==false) {		
+		if ($idx!==false) {
 			$Txt = $this->TbsStoreGet($idx, 'GetHeaderFooterFile');
 			$types_ok['even'] = (strpos($Txt, '<w:evenAndOddHeaders/>')!==false);
 			unset($Txt);
@@ -6718,7 +6718,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 				}
 			}
 
-			$p = ($Forward) ? $loc->PosEnd : $loc->PosBeg; 
+			$p = ($Forward) ? $loc->PosEnd : $loc->PosBeg;
 
 		}
 
@@ -6832,14 +6832,14 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 			$data = array();
 			if ($NewValues===false) $this->OpenDoc_ChartDelSeries($Txt, $s_info);
 		} elseif ( $s_use_cat && isset($NewValues[0]) && isset($NewValues[1]) && is_array($NewValues[0]) && is_array($NewValues[1]) ) {
-			// syntax 2: $NewValues = array( array('cat1','cat2',...), array(val1,val2,...) );		
+			// syntax 2: $NewValues = array( array('cat1','cat2',...), array(val1,val2,...) );
 			$k = $NewValues[0];
 			$v = $NewValues[1];
 			$data = array();
 			foreach($k as $i=>$x) $data[$x] = isset($v[$i]) ? $v[$i] : false;
 			unset($k, $v);
 		} else {
-			// syntax 1: $NewValues = array( 'cat1'=>val1, 'cat2'=>val2, ... );		
+			// syntax 1: $NewValues = array( 'cat1'=>val1, 'cat2'=>val2, ... );
 			$data = $NewValues;
 		}
 		unset($NewValues);
@@ -6952,10 +6952,10 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 					$img_href = ($el) ? $el->GetAttLazy('xlink:href') : false; // "./ObjectReplacements/Object 1"
 					$img_src  = ($el) ? $el->GetSrc('xlink:href') : false;
 
-					$el = clsTbsXmlLoc::FindElement($src, 'svg:title', 0); // Caption is "Altenative (text only)" in ODT 
+					$el = clsTbsXmlLoc::FindElement($src, 'svg:title', 0); // Caption is "Altenative (text only)" in ODT
 					$title = ($el) ? $el->GetInnerSrc() : '';
 
-					$el = clsTbsXmlLoc::FindElement($src, 'svg:desc', 0); // 
+					$el = clsTbsXmlLoc::FindElement($src, 'svg:desc', 0); //
 					$descr = ($el) ? $el->GetInnerSrc() : '';
 
 					if (substr($href,0,2)=='./') $href = substr($href, 2);
@@ -7012,7 +7012,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 		// Find series declarations
 		$p = 0;
 		$s_idx = 0;
-		$series = array();	
+		$series = array();
 		while ($elSeries = clsTbsXmlLoc::FindElement($Txt, 'chart:series', $p)) {
 			
 			// List of column's nums for other values
@@ -7248,7 +7248,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 				}
 			}
 			$p_row = $elRow->PosEnd;
-		}		
+		}
 
 		// Save the file if modified
 		if ($del_nb > 0) {
@@ -7262,7 +7262,7 @@ If they are blank spaces, line beaks, or other unexpected characters, then you h
 		} else {
 			if ($no_err) {
 				return false;
-			} else {	
+			} else {
 				return $this->RaiseError("(ChartDelCategory) : unable to find categories '" . implode(', ', array_keys($remain_cat)) . "' in the chart ".$this->_ChartCaption.".");
 			}
 		}
@@ -7556,7 +7556,7 @@ class clsTbsXmlLoc {
 	public $PosEnd;      // Position of the char '>' of the start tag or the end tag, depending on whether the end tag has beend seached or not ($pET_PosBeg === false).
 	public $SelfClosing; // null|false|true, null means unknown.
 	public $Txt;         // (by reference) Source of the contents where the locator is placed.
-	public $Name = ''; 
+	public $Name = '';
 	public $Exists;      // False means it is a phantom element
 
 	public $pST_PosEnd = false; // Position of the end of the start tag ('>')
@@ -7785,7 +7785,7 @@ class clsTbsXmlLoc {
 		$this->SelfClosing = false;
 		$this->pST_PosEnd = $this->PosEnd - 1;
 		$this->pET_PosBeg = $this->pST_PosEnd + strlen($inner) + 1;
-		$this->PosEnd = $this->pST_PosEnd + strlen($end) - 1;		
+		$this->PosEnd = $this->pST_PosEnd + strlen($end) - 1;
 	}
 	
 	// Return true is the ending position is a self-closing.
@@ -8516,7 +8516,7 @@ class clsTbsZip {
 			$d = 0;
 			// the specification says the signature may or may not be present
 			if ($s=='h:08074b50') {
-				$b .= $this->_ReadData(4); 
+				$b .= $this->_ReadData(4);
 				$d = 4;
 				$x['desc_bin'] = $b;
 				$x['desc_sign'] = $s;
@@ -8804,10 +8804,10 @@ class clsTbsZip {
 				header('Expires: 0');
 				header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
 				header('Cache-Control: public');
-				header('Content-Description: File Transfer'); 
+				header('Content-Description: File Transfer');
 				header('Content-Transfer-Encoding: binary');
 				$Len = $this->_EstimateNewArchSize();
-				if ($Len!==false) header('Content-Length: '.$Len); 
+				if ($Len!==false) header('Content-Length: '.$Len);
 			}
 		} else {
 			return $this->RaiseError('Method Flush is called with a unsupported render option.');
@@ -8990,9 +8990,9 @@ class clsTbsZip {
 		$date  = $this->_MsDos_Date($now);
 		$time  = $this->_MsDos_Time($now);
 		$len_n = strlen($Ref['name']);
-		$purp  = 2048 ; // purpose // +8 to indicates that there is an extended local header 
+		$purp  = 2048 ; // purpose // +8 to indicates that there is an extended local header
 
-		// Header for file in the data section 
+		// Header for file in the data section
 		$b = 'PK'.chr(03).chr(04).str_repeat(' ',26); // signature
 		$this->_PutDec($b,20,4,2); //vers = 20
 		$this->_PutDec($b,$purp,6,2); // purp

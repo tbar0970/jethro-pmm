@@ -26,7 +26,7 @@ class View_Services__List_All extends View
 		$cs = $GLOBALS['system']->getDBObjectData('congregation', Array('!meeting_time' => ''), 'OR', 'meeting_time');
 		foreach ($cs as $id => $details) {
 			$this->_cong_options[$id] = $details['name'];
-		}		
+		}
 		
 		// Get the congregations and make sure they're in order
 		if (!empty($_REQUEST['congregations'])) {
@@ -506,7 +506,7 @@ class View_Services__List_All extends View
 				if (($this->_insert_date) && ($last_date < $this->_insert_date) && ($this->_insert_date < $date)) {
 					// They have explicitly asked for a new service on a certain date
 					$this->_printNewServiceRow($new_service_i++, $this->_insert_date);
-				} else {					
+				} else {
 					$last_date_plus_week = date('Y-m-d', strtotime($last_date.' +1 week'));
 					while ($last_date_plus_week < $date) {
 						// it's been more than a week since the last service
@@ -614,7 +614,7 @@ class View_Services__List_All extends View
 						<td id="insert-congs">
 							<?php
 							print_widget(
-									"insert_service_congregationids", 
+									"insert_service_congregationids",
 									Array('type' => 'select', 'allow_multiple' => true, 'options' => $this->_cong_options),
 									$this->_congregations
 							);
