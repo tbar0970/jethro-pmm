@@ -41,20 +41,26 @@ class View_Rosters extends View
 			exit;
 		} else {
 
-			?>
-			<ul>
-			<?php
 			$views = $GLOBALS['system']->getDBObjectData('roster_view', Array('visibility' => 'public'), 'AND', 'name');
-			foreach ($views as $id => $detail) {
+			if ($views) {
 				?>
-				<li><a href="<?php echo build_url(Array('roster_view' => $id)); ?>"><?php echo ents($detail['name']); ?></a></li>
+				<ul>
+				<?php
+				foreach ($views as $id => $detail) {
+					?>
+					<li><a href="<?php echo build_url(Array('roster_view' => $id)); ?>"><?php echo ents($detail['name']); ?></a></li>
+					<?php
+				}
+				?>
+				</ul>
+				<hr />
+				<a href="<?php echo build_url(Array('view' => '_roster_role_description')) ?>">View Roster Role Descriptions</a>
+				<?php
+			} else {
+				?>
+				<i>There are no roster views to show</i>
 				<?php
 			}
-			?>
-			</ul>
-			<hr />
-			<a href="<?php echo build_url(Array('view' => '_roster_role_description')) ?>">View Roster Role Descriptions</a>
-			<?php
 		}
 
 	}

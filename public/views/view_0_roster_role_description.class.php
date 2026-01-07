@@ -27,6 +27,13 @@ class View__Roster_Role_Description extends View
 			print_message("Please contact your church admin to get the private URL for rosters", "error");
 			return;
 		}
+		$views = $GLOBALS['system']->getDBObjectData('roster_view', Array('visibility' => 'public'), 'AND', 'name');
+		if (empty($views)) {
+			// If no public views, don't show any public role descriptions
+			print_message("There are no role descriptions available for public viewing", 'error');
+			return;
+		}
+
 		if ($this->_role) {
 			?>
 			<?php
