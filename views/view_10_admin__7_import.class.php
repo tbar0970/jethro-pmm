@@ -57,11 +57,12 @@ class View_Admin__Import extends View
 
 	private function _printBeginView()
 	{
-		$text = _('This page allows you to import persons, families, groups and notes from a spreadsheet containing one person per row.  You can upload a CSV file or paste tab-separated text.
-			The data must be formatted like this sample file.  (Correct column headers are important, but column order is flexible). 
-			Jethro treats successive rows as members of the same family, unless (a) the family name or family details are different or (b) there is a blank row in between.
-			Along with the person and family details, a "note" column allows you to add a note to the person record, and "group" columns allow you to add the person to new or existing groups. 
-			If you choose the "update" option below, Jethro will try to update existing persons/families rather than creating new ones.  If an existing person is matched by an import row, surrounding rows may be imported as new members of that family if applicable.');
+		$text = _('This page allows you to import persons, families, groups and notes from spreadsheet data containing one person per row.  
+			The data must be formatted like this sample file.  (Column order is flexible, but correct column headers are important.) 
+			Jethro treats consecutive rows as members of the same family, unless (a) the family name or family details are different or (b) there is a blank row in between. 			If you select the option to update existing persons, and an import row matches an existing person, surrounding rows will be imported as new members of the same family if applicable.
+			A <code>note</code> column allows you to add a note to the person record.
+			You can add multiple <code>group</code> columns containing the name of groups to add the person to. 
+			You can also tell Jethro to search within the column content to determine a group to add to, by using a header such as <code>groupif{men\'s events}!{women\'s}[men\'s events team]</code>.');
 		$s = _('sample file');
 		$text = str_replace($s, '<a href="?call=sample_import">'.$s.'</a>', $text);
 		$text = '<p class="text">'.str_replace("\n", '</p><p class="text">', $text);
@@ -254,9 +255,11 @@ class View_Admin__Import extends View
 		$sample_header = self::getSampleHeader();
 		foreach ($map as $k => $v) {
 			if ($v == '') continue;
-			$v = self::_stringToKey($v);
-			if (!in_array($v, $sample_header)) {
-				add_message("Unrecognised column \"".$v.'" will be ignored', 'warning');
+			if (0 !== strpos($v, 'groupif')) {
+				$v = self::_stringToKey($v);
+				if (!in_array($v, $sample_header)) {
+					add_message("Unrecognised column \"".$v.'" will be ignored', 'warning');
+				}
 			}
 			$map[$k] = $v;
 			if ($cfid = array_get($custom_fields, $v)) {
@@ -284,22 +287,50 @@ class View_Admin__Import extends View
 			$i++;
 			$row = Array();
 			foreach ($map as $index => $fieldname) {
+				$cell_group = NULL;
 				if ($fieldname == 'group') {
+					// Cell value is the exact group name
 					if (strlen($g = array_get($rawrow, $index, ''))) {
-						$row['_groups'][] = $g;
-						$gk = self::_stringToKey($g);
-						if (!isset($this->_sess['matched_groups'][$gk])) {
-							if ($gp = Person_Group::findByName($g)) {
-								$this->_sess['matched_groups'][$gk] = $gp->id;
-							} else {
-								$this->_sess['new_groups'][$gk] = $g;
-							}
+						$cell_group = $g;
+					}
+				} else if (preg_match("/groupif(\{([^}]+)\})?(!\{([^}]+)\})?\[([^]]+)\]/m", $fieldname, $matches)) {
+					$search_phrase = array_get($matches, 2);
+					$exclude_phrase = array_get($matches, 4);
+					$test_val = array_get($rawrow, $index, '');
+					$include = FALSE;
+					if (strlen($search_phrase) == 0) {
+						// groupif[toilet cleaners] means put them in 'toilet cleaners' if the cell has any non-empty value
+						$include = (strlen($test_val) > 0);
+					} else {
+						// groupif{cleaning}[toilet cleaners] - if the cell contains 'cleaning', put them in 'toilet cleaners'
+						$include = (FALSE !== strpos($test_val, $search_phrase));
+					}
+					if ($exclude_phrase) {
+						// groupif{men's ministry}!{women's}[men's ministry team] - if it contains 'men's ministry' but NOT 'women's ...
+						if (FALSE !== strpos($test_val, $exclude_phrase)) {
+							$include = FALSE;
 						}
 					}
+					if ($include) {
+						$cell_group = $matches[5];
+					}
+
 				} else if ($fieldname == 'note') {
 					if (strlen($n = array_get($rawrow, $index, ''))) $row['_note'] = $n;
 				} else {
 					$row[$fieldname] = trim(array_get($rawrow, $index, ''));
+				}
+				if ($cell_group) { // there is a group to add the person to, based on this cell
+					$row['_groups'][] = $cell_group;
+					$gk = self::_stringToKey($cell_group);
+					if (!isset($this->_sess['matched_groups'][$gk])) {
+						if ($gp = Person_Group::findByName($cell_group)) {
+							$this->_sess['matched_groups'][$gk] = $gp->id;
+						} else {
+							$this->_sess['new_groups'][$gk] = $cell_group;
+						}
+					}
+
 				}
 			}
 

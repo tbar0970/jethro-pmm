@@ -736,6 +736,8 @@ tr:last-child .insert-row-below {
 	margin-top: 1px;
 	padding: 0;
 	font-style: italic;
+}
+code {
 	color: @gray;
 }
 
