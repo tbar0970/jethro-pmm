@@ -100,7 +100,7 @@ class Roster_Role extends db_object
 	{
 		switch ($name) {
 			case 'details':
-				echo '<a class="pull-right" target="publicrole" href="'.BASE_URL.'/public/?view=display_role_description&role='.$this->id.'"><i class="icon-share"></i>View in public area</a>';
+				echo '<a class="pull-right" target="publicrole" href="'.BASE_URL.'/public/?view=_roster_role_description&role='.$this->id.'"><i class="icon-share"></i>View in public area</a>';
 				echo '<div class="text">'.$this->getValue($name).'</div>';
 				break;
 			case 'volunteer_group':

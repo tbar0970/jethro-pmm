@@ -1,5 +1,5 @@
 <?php
-class View_Display_Role_Description extends View
+class View__Roster_Role_Description extends View
 {
 	var $_role = null;
 
@@ -15,7 +15,7 @@ class View_Display_Role_Description extends View
 		if ($this->_role) {
 			return 'Roster Role: '.$this->_role->getFormattedValue('congregationid').' '.$this->_role->getValue('title');
 		} else {
-			return 'Display Role Description';
+			return 'Roster Roles';
 		}
 	}
 
@@ -23,7 +23,6 @@ class View_Display_Role_Description extends View
 	{
 		if ($this->_role) {
 			?>
-			<a class="soft pull-right no-print" href="<?php echo BASE_URL;?>?view=_edit_roster_role&roster_roleid=<?php echo $this->_role->id; ?>"><i class="icon-wrench"></i>Edit</a>
 			<?php
 			echo $this->_role->getValue('details');
 		} else {
