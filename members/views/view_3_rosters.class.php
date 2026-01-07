@@ -46,10 +46,13 @@ class View_Rosters extends View
 				<i>This system does not yet have any rosters configured.</i>
 				<?php
 			}
+			?>
+			<a href="?view=_roster_role_description">View Roster Role Descriptions</a>
+
+			<?php
 			$person = new Person($GLOBALS['user_system']->getCurrentPerson('id'));
 			$family = $person->getFamily();
 			$fmembers = $family->getMemberData();
-
 			?>
 			<h3>Planned absences for <?php $family->printFieldValue('family_name'); ?> family</h3>
 			<?php
