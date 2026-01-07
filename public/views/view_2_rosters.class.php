@@ -22,7 +22,7 @@ class View_Rosters extends View
 		if ($this->_roster_view) {
 			return $this->_roster_view->getValue('name');
 		} else {
-			return 'Roster';
+			return 'Rosters';
 		}
 	}
 
@@ -52,6 +52,8 @@ class View_Rosters extends View
 			}
 			?>
 			</ul>
+			<hr />
+			<a href="?view=_roster_role_description">View Roster Role Descriptions</a>
 			<?php
 		}
 

@@ -63,7 +63,7 @@ class View__Roster_Role_Description extends View
 
 			if (!$printed) {
 				?>
-				<p><i>No roles to show</i></p>
+				<p><i>No role descriptions to show</i></p>
 				<?php
 			}
 
