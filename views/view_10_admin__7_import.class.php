@@ -287,16 +287,16 @@ class View_Admin__Import extends View
 			$i++;
 			$row = Array();
 			foreach ($map as $index => $fieldname) {
-				$cell_group = NULL;
+				$cell_group = NULL; // group name relevant to this cell's data
 				if ($fieldname == 'group') {
 					// Cell value is the exact group name
 					if (strlen($g = array_get($rawrow, $index, ''))) {
 						$cell_group = $g;
 					}
 				} else if (preg_match("/groupif(\{([^}]+)\})?(!\{([^}]+)\})?\[([^]]+)\]/m", $fieldname, $matches)) {
-					$search_phrase = array_get($matches, 2);
-					$exclude_phrase = array_get($matches, 4);
-					$test_val = array_get($rawrow, $index, '');
+					$search_phrase = strtolower(array_get($matches, 2));
+					$exclude_phrase = strtolower(array_get($matches, 4));
+					$test_val = strtolower(array_get($rawrow, $index, ''));
 					$include = FALSE;
 					if (strlen($search_phrase) == 0) {
 						// groupif[toilet cleaners] means put them in 'toilet cleaners' if the cell has any non-empty value
