@@ -21,6 +21,12 @@ class View__Roster_Role_Description extends View
 
 	function printView()
 	{
+		if (defined('PUBLIC_ROSTER_SECRET')
+					&& strlen(PUBLIC_ROSTER_SECRET)
+					&& (array_get($_REQUEST, 'secret') != PUBLIC_ROSTER_SECRET)) {
+			print_message("Please contact your church admin to get the private URL for rosters", "error");
+			return;
+		}
 		if ($this->_role) {
 			?>
 			<?php

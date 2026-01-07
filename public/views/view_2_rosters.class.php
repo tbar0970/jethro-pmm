@@ -53,7 +53,7 @@ class View_Rosters extends View
 			?>
 			</ul>
 			<hr />
-			<a href="?view=_roster_role_description">View Roster Role Descriptions</a>
+			<a href="<?php echo build_url(Array('view' => '_roster_role_description')) ?>">View Roster Role Descriptions</a>
 			<?php
 		}
 
