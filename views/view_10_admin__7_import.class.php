@@ -321,6 +321,7 @@ class View_Admin__Import extends View
 					$row[$fieldname] = trim(array_get($rawrow, $index, ''));
 				}
 				if ($cell_group) { // there is a group to add the person to, based on this cell
+					$cell_group = trim($cell_group);
 					$row['_groups'][] = $cell_group;
 					$gk = self::_stringToKey($cell_group);
 					if (!isset($this->_sess['matched_groups'][$gk])) {
