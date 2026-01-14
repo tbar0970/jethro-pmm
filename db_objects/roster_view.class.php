@@ -1206,11 +1206,13 @@ class roster_view extends db_object
 		if (empty($congs)) return;  // should never happen
 		$sql = "select max(date) from service where congregationid in (".implode(',', $congs).")";
 		$lastServiceDate = $GLOBALS['db']->queryOne($sql);
-		if (new DateTime($search_end_date) > new DateTime($lastServiceDate)) {
+
+		if ((strtotime($search_end_date) - strtotime($lastServiceDate)) > 6*24*60*60) {
+			// the last service is 6 or more days before the end of the end of the search window
 			if ($GLOBALS['user_system']->havePerm(PERM_BULKSERVICE)) {
-				print_message("Services must be defined for later weeks (under Services→List All) before rosters assignments can be made to them", 'warning');
+				print_message("To create roster assignments beyond ".format_date($lastServiceDate).", first add service details in the Services→List All page", 'warning');
 			} else {
-				print_message("There are no services defined beyond $lastServiceDate to assign rosters on", 'warning');
+				print_message("There are not yet any services defined beyond ".format_date($lastServiceDate), 'warning');
 			}
 		}
 	}
