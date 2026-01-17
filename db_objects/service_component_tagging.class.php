@@ -40,4 +40,24 @@ class Service_Component_Tagging extends db_object
 		$res['select'][] = 'sct.tag';
 		return $res;
 	}
+
+	/**
+	 * Create a new Service_Component-Tag relationship if one doesn't exist
+	 * @return bool Whether it was newly created
+	 */
+	public function createIfNew()
+	{
+		$db = $GLOBALS['db'];
+		$sql = 'SELECT id
+			FROM service_component_tagging 
+			WHERE tagid = '.$db->quote($this->getValue('tagid')).'
+			AND componentid = '.$db->quote($this->getValue('componentid'));
+		$id = $db->queryOne($sql);
+		if (!(int)$id) {
+			return $this->create();
+		} else {
+			$this->id = $id;
+			return FALSE;
+		}
+	}
 }
