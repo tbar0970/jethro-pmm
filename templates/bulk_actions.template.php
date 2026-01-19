@@ -1,4 +1,5 @@
 <?php
+include_once 'include/size_detector.class.php';
 $in_group = (array_get($_REQUEST, 'view') == 'groups') && (!empty($_REQUEST['groupid']) || !empty($_REQUEST['person_groupid']));
 $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'));
 ?>

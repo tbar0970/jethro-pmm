@@ -284,15 +284,24 @@ class View_Persons__Reports extends View
 		if (empty($res)) return;
 
 		?>
+		<form method="post" enctype="multipart/form-data" action="" class="bulk-person-action">
 		<table class="table table-bordered table-condensed table-auto-width">
 			<thead>
 				<tr>
 				<?php
 				$headers = array_keys($res[0]);
 				foreach ($headers as $h) {
-					?>
-					<th><?php echo ents($h); ?></th>
-					<?php
+					echo '<th>';
+					switch ($h) {
+						case 'view_person_link':
+						case 'edit_person_link':
+						case 'person_action_checkbox':
+							// blank headers for action columns
+							break;
+						default:
+							echo ents($h);
+					}
+					echo '</th>';				
 				}
 				?>
 			</thead>
@@ -303,7 +312,21 @@ class View_Persons__Reports extends View
 				<tr>
 				<?php
 				foreach ($row as $k => $v) {
-					echo '<td>'.ents($v).'</td>';
+					echo '<td>';
+					switch ($k) {
+						case 'view_person_link':
+							echo '<a href="?view=persons&personid='.(int)$v.'">'._('View').'</a>';
+							break;
+						case 'edit_person_link':
+							echo '<a href="?view=_edit_person&personid='.(int)$v.'&back_to=">'._('Edit').'</a>';
+							break;
+						case 'person_action_checkbox':
+							echo '<input name="personid[]" type="checkbox" value="'.(int)$v.'">';
+							break;
+						default:
+							echo ents($v);
+					}
+					echo '</td>';
 				}
 				?>
 				</tr>
@@ -323,6 +346,12 @@ class View_Persons__Reports extends View
 				</tr>
 			</tfoot>
 		</table>
+		<?php
+		if (isset($res[0]['person_action_checkbox'])) {
+			include 'templates/bulk_actions.template.php';
+		}
+		?>
+		</form>
 		<?php
 	}
 
