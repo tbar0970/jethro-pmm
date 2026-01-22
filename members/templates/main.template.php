@@ -27,7 +27,7 @@ if (empty($_REQUEST['raw'])) {
 						</a>
 						<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="user-menu">
 							<li><a href="?view=_change_password">Change Password</a></li>
-							<li><a href="<?php echo BASE_URL; ?>members/?logout=1" data-method="post">Log out</a></li>
+							<li><a href="<?php echo BASE_URL; ?>/members/?logout=1" data-method="post">Log out</a></li>
 						</ul>
 						</span>
 					</div>				

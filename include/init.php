@@ -27,21 +27,6 @@ error_reporting($error_level);
 require_once JETHRO_ROOT.'/include/general.php';
 strip_all_slashes();
 
-if (php_sapi_name() != 'cli') {
-	// Make sure we're at the correct URL
-	$do_redirect = FALSE;
-	if (REQUIRE_HTTPS && !defined('IS_PUBLIC') && empty($_SERVER['HTTPS'])) {
-		$do_redirect = TRUE;
-	}
-	if (strpos(array_get($_SERVER, 'HTTP_HOST', array_get($_SERVER, 'SERVER_NAME', '')).$_SERVER['REQUEST_URI'], str_replace(Array('http://', 'https://'), '', BASE_URL)) !== 0) {
-		$do_redirect = TRUE;
-	}
-	if ($do_redirect) {
-		header('Location: '.build_url(Array()));
-		exit();
-	}
-}
-
 // Set up the DB
 require_once JETHRO_ROOT .'/include/jethrodb.php';
 JethroDB::init(ifdef('DB_MODE', 'PRIVATE'));
@@ -61,9 +46,12 @@ if (defined('SESSION_TIMEOUT_MINS')) {
 	@ini_set('session.gc_maxlifetime', SESSION_TIMEOUT_MINS*60);
 }
 
+// Default BASE_URL to '' i.e. script-relative.
+if (!defined('BASE_URL')) define('BASE_URL', '');
+
 // If max length is set, set the cookie timeout - this will allow sessions to outlast browser invocations
 $expiryTime = defined('SESSION_MAXLENGTH_MINS') ? SESSION_MAXLENGTH_MINS * 60 : NULL;
-session_set_cookie_params($expiryTime, parse_url(BASE_URL, PHP_URL_PATH));
+session_set_cookie_params($expiryTime, '/'.get_baseurl_path());
 if (session_id() == '') {
 	session_name('JethroSess');
 	session_start();

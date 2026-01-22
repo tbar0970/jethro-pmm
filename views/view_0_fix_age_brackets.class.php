@@ -93,7 +93,7 @@ class View__Fix_Age_Brackets extends View
 									?>
                                     <tr>
                                         <td>
-                                            <a href="/?view=persons&personid=<?= $change->getPersonid() ?>"><?= $change->getPersonName() ?></a>
+                                            <a href="?view=persons&personid=<?= $change->getPersonid() ?>"><?= $change->getPersonName() ?></a>
                                         </td>
                                         <td><?= $change->getOldagebracket() ?></td>
                                         <td><?= $change->getNewagebracket() ?></td>
