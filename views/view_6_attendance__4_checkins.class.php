@@ -38,7 +38,7 @@ class View_Attendance__Checkins extends View
 		foreach ($venues as $venueID => $vData) {
 			$venue->populate($venueID, $vData);
 			$class = $venue->getValue('is_archived') ? 'class="archived"' : '';
-			$publicURL = BASE_URL.'public/?view=check_in&venueid='.$venueID;
+			$publicURL = BASE_URL.'/public/?view=check_in&venueid='.$venueID;
 			$QRURL = str_replace('__URL__', urlencode($publicURL), QR_CODE_GENERATOR_URL);
 			?>
 			<tr <?php echo $class; ?>>
