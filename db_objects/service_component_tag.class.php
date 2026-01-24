@@ -23,4 +23,24 @@ class Service_Component_Tag extends db_object
 		return $this->values['tag'];
 	}
 
+	/**
+	 * Save this (new) tag to the database IF there isn't already a tag with the same name.
+	 * @return bool Whether it was newly created
+	 */
+	public function createIfNew()
+	{
+		$db = $GLOBALS['db'];
+		$sql = 'SELECT id
+			FROM service_component_tag
+			WHERE tag = '.$db->quote($this->getValue('tag'));
+		$id = $db->queryOne($sql);
+		if (!(int)$id) {
+			return $this->create();
+		} else {
+			$this->id = $id;
+			return FALSE;
+		}
+	}
+
+
 }
