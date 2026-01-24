@@ -84,7 +84,7 @@ function format_datetime($d)
 {
 	if (empty($d)) return '';
 	if (!is_int($d)) {
-		if (0 === strpos($d, '0000-00-00')) return '';
+		if (str_starts_with($d, '0000-00-00')) return '';
 		$d = strtotime($d);
 	}
 	if ($d == -1) return '';
@@ -367,7 +367,7 @@ function print_widget($name, $params, $value)
 					<?php
 					foreach ($params['options'] as $k => $v) {
 						$checked_exp = in_array("$k", $our_val, true) ? ' checked="checked"' : '';
-						$disabled_exp = (!empty($params['disabled_prefix']) && (strpos($k, $params['disabled_prefix']) === 0)) ? ' disabled="disabled" ' : '';
+						$disabled_exp = (!empty($params['disabled_prefix']) && str_starts_with($k, $params['disabled_prefix'])) ? ' disabled="disabled" ' : '';
 						?>
 						<label class="checkbox" title="<?php echo ents($v); ?>">
 							<input type="checkbox" name="<?php echo $name; ?>" value="<?php echo $k; ?>" <?php echo $checked_exp.$disabled_exp; ?>>
@@ -403,7 +403,7 @@ function print_widget($name, $params, $value)
 					}
 					foreach (array_get($params, 'options', Array()) as $k => $v) {
 						$selected_exp = in_array("$k", $our_val, true) ? ' selected="selected"' : '';
-						$disabled_exp = (!empty($params['disabled_prefix']) && (strpos($k, $params['disabled_prefix']) === 0)) ? ' disabled="disabled" ' : '';
+						$disabled_exp = (!empty($params['disabled_prefix']) && str_starts_with($k, $params['disabled_prefix'])) ? ' disabled="disabled" ' : '';
 						?>
 						<option value="<?php echo $k; ?>"<?php echo $selected_exp.$disabled_exp; ?>><?php echo ents($v); ?></option>
 						<?php

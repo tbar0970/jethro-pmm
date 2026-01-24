@@ -183,7 +183,7 @@ class service extends db_object
 
 	function getValue($field)
 	{
-		if (0 === strpos($field, 'bible_')) {
+		if (str_starts_with($field, 'bible_')) {
 			// If modified, update help text in call_service_comp_help_runsheet_format.class.php
 			// eg bible_read_1  or bible_preach_all
 			$bits = explode('_', $field);
@@ -288,7 +288,7 @@ class service extends db_object
 				break;
 
 			default:
-				if (strpos($fieldname, 'comps_') === 0) {
+				if (str_starts_with($fieldname, 'comps_')) {
 					$compCatID = (int)substr($fieldname, 6);
 					$res = Array();
 					foreach ($this->getItems(FALSE, $compCatID) as $item) {
@@ -383,7 +383,7 @@ class service extends db_object
 				echo implode($separator, $bits);
 				break;
 			default:
-				if (strpos($fieldname, 'comps_') === 0) {
+				if (str_starts_with($fieldname, 'comps_')) {
 					$compCatID = (int)substr($fieldname, 6);
 					$res = Array();
 					foreach ($this->getItems(FALSE, $compCatID) as $item) {
@@ -520,14 +520,14 @@ class service extends db_object
 	public function getKeywordReplacement($keyword)
 	{
 		// If modified, update help text in call_service_comp_help_runsheet_format.class.php
-		if (0 === strpos($keyword, 'NAME_OF_')) {
+		if (str_starts_with($keyword, 'NAME_OF_')) {
 			$role_title = substr($keyword, strlen('NAME_OF_'));
 			return $this->getPersonnelByRoleTitle($role_title);
 
 		} else if (substr($keyword, -10) == '_FIRSTNAME') {
 			return $this->getPersonnelByRoleTitle(substr($keyword, 0, -10), TRUE);
 
-		} else if (0 === strpos($keyword, 'SERVICE_')) {
+		} else if (str_starts_with($keyword, 'SERVICE_')) {
 			$service_field = strtolower(substr($keyword, strlen('SERVICE_')));
 			if (in_array($service_field, Array('topic', 'format'))) {
 				$service_field .= '_title';
