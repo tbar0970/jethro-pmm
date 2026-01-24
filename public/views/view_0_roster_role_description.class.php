@@ -1,5 +1,5 @@
 <?php
-class View_Display_Role_Description extends View
+class View__Roster_Role_Description extends View
 {
 	var $_role = null;
 
@@ -15,15 +15,27 @@ class View_Display_Role_Description extends View
 		if ($this->_role) {
 			return 'Roster Role: '.$this->_role->getFormattedValue('congregationid').' '.$this->_role->getValue('title');
 		} else {
-			return 'Display Role Description';
+			return 'Roster Roles';
 		}
 	}
 
 	function printView()
 	{
+		if (defined('PUBLIC_ROSTER_SECRET')
+					&& strlen(PUBLIC_ROSTER_SECRET)
+					&& (array_get($_REQUEST, 'secret') != PUBLIC_ROSTER_SECRET)) {
+			print_message("Please contact your church admin to get the private URL for rosters", "error");
+			return;
+		}
+		$views = $GLOBALS['system']->getDBObjectData('roster_view', Array('visibility' => 'public'), 'AND', 'name');
+		if (empty($views)) {
+			// If no public views, don't show any public role descriptions
+			print_message("There are no role descriptions available for public viewing", 'error');
+			return;
+		}
+
 		if ($this->_role) {
 			?>
-			<a class="soft pull-right no-print" href="<?php echo BASE_URL;?>?view=_edit_roster_role&roster_roleid=<?php echo $this->_role->id; ?>"><i class="icon-wrench"></i>Edit</a>
 			<?php
 			echo $this->_role->getValue('details');
 		} else {
@@ -64,7 +76,7 @@ class View_Display_Role_Description extends View
 
 			if (!$printed) {
 				?>
-				<p><i>No roles to show</i></p>
+				<p><i>No role descriptions to show</i></p>
 				<?php
 			}
 

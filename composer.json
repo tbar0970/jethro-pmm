@@ -7,7 +7,7 @@
 	"config": {
 		"platform-check" : false,
 		"platform": {
-			"php" : "5.3.23"
+			"php" : "7.0.0"
 		}
 	}
 }

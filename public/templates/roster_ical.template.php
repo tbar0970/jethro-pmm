@@ -69,7 +69,7 @@ SUMMARY:<?php echo $alloc['title']; ?>
 DESCRIPTION:Roster assignment: <?php
             if ($alloc['cong'] )
             echo $alloc['title'] . ', ' . $alloc['cong'] . ', ' . SYSTEM_NAME;
-?>\n\n<?php echo 'Role description: ' . BASE_URL . '/public/?view=display_role_description&role=' . $alloc['id'] . ' ';
+?>\n\n<?php echo 'Role description: ' . BASE_URL . '/public/?view=_roster_role_description&role=' . $alloc['id'] . ' ';
 ?> \n\nNote that start/end time is approximate.
 END:VEVENT
 <?php
