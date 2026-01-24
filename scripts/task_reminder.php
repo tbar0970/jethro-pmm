@@ -22,6 +22,7 @@ if (!is_readable(JETHRO_ROOT.'/conf.php')) {
 require_once JETHRO_ROOT.'/conf.php';
 define('DB_MODE', 'PRIVATE');
 require_once JETHRO_ROOT.'/include/init.php';
+if (!BASE_URL) throw new \RuntimeException('Please define a non-blank BASE_URL in conf.php');
 
 if (ifdef('TASK_NOTIFICATION_ENABLED', FALSE) == FALSE) {
 	if ($VERBOSE) echo "Task notification is disabled in conf.php - exiting \n";

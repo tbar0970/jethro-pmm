@@ -153,7 +153,7 @@ class View_Families__Contact_List extends View
 						$src = '?call=photo&familyid='.$family['familyid'];
 					}
 				} else {
-					$src = BASE_URL.'resources/img/unknown_family.gif';
+					$src = BASE_URL.'/resources/img/unknown_family.gif';
 				}
 				?>
 				<td rowspan="<?php echo $rowSpan; ?>" style="padding: 5px">

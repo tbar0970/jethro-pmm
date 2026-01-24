@@ -1,1 +1,0 @@
-select status, count(*) from person group by status;
