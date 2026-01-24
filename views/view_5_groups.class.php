@@ -83,9 +83,13 @@ class View_Groups extends View
 						<?php
 						if ($GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
 							?>
-							<a data-method="post" class="double-confirm-title link-collapse" title="<?php echo _('Delete group');?>"
+							<a data-method="post" class="confirm-title link-collapse" title="<?php echo _('Archive this group');?>"
+							   href="?view=_edit_group&action=archive&groupid=<?php echo $this->_group->id; ?>">
+								<i class="icon-folder-close"></i><?php echo _('Archive');?>
+							</a> &nbsp;
+							<a data-method="post" class="double-confirm-title link-collapse" title="<?php echo _('Delete this group');?>"
 							   href="?view=_edit_group&action=delete&groupid=<?php echo $this->_group->id; ?>">
-								<i class="icon-trash"></i><?php echo _('Delete group');?>
+								<i class="icon-trash"></i><?php echo _('Delete');?>
 							</a>
 							<?php
 						}

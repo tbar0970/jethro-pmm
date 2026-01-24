@@ -7,12 +7,12 @@
 	</title>
 	<meta name="robots" content="noindex, nofollow">
 	<meta name="mobile-web-app-capable" content="yes">
-	<link rel="apple-touch-icon" href="resources/img/iphone-icon.png"/>
+	<link rel="apple-touch-icon" href="<?php echo BASE_URL; ?>/resources/img/iphone-icon.png"/>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0<?php
 		if (FALSE === strpos(array_get($_SERVER, 'HTTP_USER_AGENT', ''), 'iPad')) echo ', user-scalable=no';
 		?>">
 	<!--[if IE]>
-	<link type="text/css" rel="stylesheet" href="<?php echo BASE_URL; ?>resources/css/jethro_msie.css" />
+	<link type="text/css" rel="stylesheet" href="<?php echo BASE_URL; ?>/resources/css/jethro_msie.css" />
 	<![endif]-->
 <?php
 
@@ -33,8 +33,8 @@ if (file_exists(JETHRO_ROOT.'/'.$customCSSFile)) {
 	// Load LESS and build CSS in the browser.
 	// NB we use an older version of LESS (1.7.5) because bootstrap 2.3 is not compatible with the latest LESS.
 	?>
-	<link rel="stylesheet/less" type="text/css" href="<?php echo BASE_URL; ?>resources/less/jethro.less.php" />
-	<link type="text/css" rel="stylesheet" href="<?php echo BASE_URL; ?>resources/css/jquery-ui.css" />
+	<link rel="stylesheet/less" type="text/css" href="<?php echo BASE_URL; ?>/resources/less/jethro.less.php" />
+	<link type="text/css" rel="stylesheet" href="<?php echo BASE_URL; ?>/resources/css/jquery-ui.css" />
 	<script>
 		less = {
 		  env: "<?php echo $devMode ? "development" : "production"; ?>",
@@ -46,7 +46,7 @@ if (file_exists(JETHRO_ROOT.'/'.$customCSSFile)) {
 } else {
 	// use packaged combined CSS
 	?>
-	<link type="text/css" rel="stylesheet" href="<?php echo BASE_URL; ?>resources/css/jethro-<?php echo JETHRO_VERSION; ?>.css" />
+	<link type="text/css" rel="stylesheet" href="<?php echo BASE_URL; ?>/resources/css/jethro-<?php echo JETHRO_VERSION; ?>.css" />
 	<?php
 }
 
@@ -54,18 +54,18 @@ if (file_exists(JETHRO_ROOT.'/'.$customCSSFile)) {
 
 if (JETHRO_VERSION == 'DEV') {
 	?>
-	<script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/jquery.js?t=<?php echo time(); ?>"></script>
-	<script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/bootstrap.js?t=<?php echo time(); ?>"></script>
-	<script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/tb_lib.js?t=<?php echo time(); ?>"></script>
-	<script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/jethro.js?t=<?php echo time(); ?>"></script>
-	<script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/bsn_autosuggest.js?t=<?php echo time(); ?>"></script>
-	<script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/jquery-ui.js?t=<?php echo time(); ?>"></script>
-	<script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/jquery.ui.touch-punch.min.js?t=<?php echo time(); ?>"></script>
-	<script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/stupidtable.min.js?t=<?php echo time(); ?>"></script>
+	<script type="text/javascript" src="<?php echo BASE_URL; ?>/resources/js/jquery.js?t=<?php echo time(); ?>"></script>
+	<script type="text/javascript" src="<?php echo BASE_URL; ?>/resources/js/bootstrap.js?t=<?php echo time(); ?>"></script>
+	<script type="text/javascript" src="<?php echo BASE_URL; ?>/resources/js/tb_lib.js?t=<?php echo time(); ?>"></script>
+	<script type="text/javascript" src="<?php echo BASE_URL; ?>/resources/js/jethro.js?t=<?php echo time(); ?>"></script>
+	<script type="text/javascript" src="<?php echo BASE_URL; ?>/resources/js/bsn_autosuggest.js?t=<?php echo time(); ?>"></script>
+	<script type="text/javascript" src="<?php echo BASE_URL; ?>/resources/js/jquery-ui.js?t=<?php echo time(); ?>"></script>
+	<script type="text/javascript" src="<?php echo BASE_URL; ?>/resources/js/jquery.ui.touch-punch.min.js?t=<?php echo time(); ?>"></script>
+	<script type="text/javascript" src="<?php echo BASE_URL; ?>/resources/js/stupidtable.min.js?t=<?php echo time(); ?>"></script>
 	<?php
 } else {
 	?>
-	<script type="text/javascript" src="<?php echo BASE_URL; ?>resources/js/jethro-<?php echo JETHRO_VERSION; ?>.js"></script>
+	<script type="text/javascript" src="<?php echo BASE_URL; ?>/resources/js/jethro-<?php echo JETHRO_VERSION; ?>.js"></script>
 	<?php
 }
 
