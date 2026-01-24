@@ -136,7 +136,7 @@ class User_System extends Abstract_User_System
 		include_once 'include/size_detector.class.php';
 		SizeDetector::processRequest();
 		session_write_close();
-		header('Location: '.build_url(Array())); // the login form was POSTed; we redirect so the subsequent page load is a clean GET request.
+		header('Location: /'.build_url(Array())); // the login form was POSTed; we redirect so the subsequent page load is a clean GET request.
 		exit;
 	}
 
