@@ -746,26 +746,26 @@ function build_url($params)
 		}
 	}
 	if ($queryparams = http_build_query($vars)) {
-		return '/'.get_baseurl_path().'/?'.$queryparams;
+		return get_url_pathprefix().'/?'.$queryparams;
 	} else {
-		return '/'.get_baseurl_path().'/';
+		return get_url_pathprefix().'/';
 	}
 }
 
 /**
- * Get the path segment of Jethro's URL, without slashes. E.g. given BASE_URL:
+ * Get the path segment of Jethro's URL, without slashes.
  *  - 'https://jethro.mychurch.org'   returns ''
  *  - 'https://jethro.mychurch.org/'   returns ''
  *  - 'https://jethro.mychurch.org//'   returns ''
- *  - 'https://mychurch.org/jethro'   returns ''
- *  - '/'   returns ''
- *  - '/'   returns ''
- *  - '/'   returns ''
+ *  - 'https://mychurch.org/jethro'   returns '/jethro'
+ *  - 'https://mychurch.org/jethro/'   returns '/jethro'
  * @return string
  */
-function get_baseurl_path()
+function get_url_pathprefix()
 {
-	return trim((parse_url(BASE_URL, PHP_URL_PATH) ?? ''), '/');
+	return rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+    // Note that this cannot return '/', because its value becomes BASE_URL which gets prepended to '/resources/...' in many places.
+//    return rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/');
 }
 
 /**
@@ -785,7 +785,7 @@ function base_url()
     $host = $_SERVER['HTTP_X_FORWARDED_HOST'] ?? $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'];
 
     // Detect base path (the directory your app runs from)
-    $scriptDir = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/');
+    $scriptDir = get_url_pathprefix();
 
     // Build base URL (no trailing slash if at root)
     return $scheme . '://' . $host . ($scriptDir !== '' ? $scriptDir : '');
