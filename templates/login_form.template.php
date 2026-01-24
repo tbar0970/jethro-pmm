@@ -75,7 +75,7 @@
 		?>
 
 		</div>
-		<div class="a2hs-prompt"><p><b>You can install Jethro on your mobile device!</b></p><p>Click the &nbsp;<img src="resources/img/safari-share.png" />&nbsp; icon below<br />and scroll down to "add to home screen"</p><i class="icon-arrow-down icon-white"></i></div>
+		<div class="a2hs-prompt"><p><b>You can install Jethro on your mobile device!</b></p><p>Click the &nbsp;<img src="<?php echo BASE_URL; ?>/resources/img/safari-share.png" />&nbsp; icon below<br />and scroll down to "add to home screen"</p><i class="icon-arrow-down icon-white"></i></div>
 	</form>
 </body>
 </html>

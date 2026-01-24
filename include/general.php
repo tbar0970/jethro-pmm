@@ -248,8 +248,9 @@ function print_widget($name, $params, $value)
 				><?php echo ents($value); ?></textarea>
 				<?php
 			} else {
+				if ($params['type']=='email') $classes .= " valid-email";
 				$width_exp = empty($params['width']) ? '' : 'size="'.$params['width'].'"';
-				$regex_exp = empty($params['regex']) ? '' : 'regex="'.ents(trim($params['regex'], '/ ')).'"';
+				$regex_exp = empty($params['regex']) ? '' : 'regex="'.ents(trim($params['regex'], '/ ')).'"' . 'pattern="'.ents(trim($params['regex'], '/ ')).'"';
 				$placeholder_exp = empty($params['placeholder']) ? '' : 'placeholder="'.ents($params['placeholder']).'"';
 				$autocomplete_exp = isset($params['autocomplete']) ? 'autocomplete='.($params['autocomplete'] ? 'on' : 'new-password').'"' : '';
 				?>
@@ -261,7 +262,7 @@ function print_widget($name, $params, $value)
 			static $includedCK = false;
 			if (!$includedCK) {
 				?>
-				<script src="<?php echo BASE_URL.'resources/ckeditor/ckeditor.js'; ?>"></script>
+				<script src="<?php echo BASE_URL.'/resources/ckeditor/ckeditor.js'; ?>"></script>
 				<?php
 			}
 			$ckParams = 'disableNativeSpellChecker: false,
@@ -358,13 +359,11 @@ function print_widget($name, $params, $value)
 				$height = array_get($params, 'height', min(count($params['options']), 4));
 				if (count($params['options']) < 4) $height = 0;
 				if (substr($name, -2) != '[]') $name .= '[]';
-				$style = '';
-				if ($height > 0) $style = 'height: '.($height*1.7).'em';
 				$classes .= ' multi-select';
 				// the empty onclick below is to make labels work on iOS
 				// see https://stackoverflow.com/questions/5421659/html-label-command-doesnt-work-in-iphone-browser
 				?>
-				<div class="<?php echo $classes; ?>" style="<?php echo $style; ?>" tabindex="0" onclick="" <?php echo $attrs; ?> >
+				<div class="<?php echo $classes; ?>" tabindex="0" onclick="" <?php echo $attrs; ?> >
 					<?php
 					foreach ($params['options'] as $k => $v) {
 						$checked_exp = in_array("$k", $our_val, true) ? ' checked="checked"' : '';
@@ -746,14 +745,50 @@ function build_url($params)
 			$vars[$i] = $v;
 		}
 	}
-	$protocol = (REQUIRE_HTTPS || !empty($_REQUEST['HTTPS'])) ? 'https://' : 'http://';
-	$ubits = parse_url(BASE_URL);
-	$path = (0 === strpos($_SERVER['PHP_SELF'], $ubits['path'])) ? $_SERVER['PHP_SELF'] : $ubits['path'];
-	if (!empty($ubits['port'])) {
-		return $protocol.str_replace('index.php', '', $ubits['host'].':'.$ubits['port'].$path).'?'.http_build_query($vars);
+	if ($queryparams = http_build_query($vars)) {
+		return '/'.get_baseurl_path().'?'.$queryparams;
 	} else {
-		return $protocol.str_replace('index.php', '', $ubits['host'].$path).'?'.http_build_query($vars);
+		return '/'.get_baseurl_path();
 	}
+}
+
+/**
+ * Get the path segment of Jethro's URL, without slashes. E.g. given BASE_URL:
+ *  - 'https://jethro.mychurch.org'   returns ''
+ *  - 'https://jethro.mychurch.org/'   returns ''
+ *  - 'https://jethro.mychurch.org//'   returns ''
+ *  - 'https://mychurch.org/jethro'   returns ''
+ *  - '/'   returns ''
+ *  - '/'   returns ''
+ *  - '/'   returns ''
+ * @return string
+ */
+function get_baseurl_path()
+{
+	return trim((parse_url(BASE_URL, PHP_URL_PATH) ?? ''), '/');
+}
+
+/**
+ * Infer Jethro's base URL from the request.
+ */
+function base_url()
+{
+    // Detect scheme
+    $https = (
+        (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
+        (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443) ||
+        (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+    );
+    $scheme = $https ? 'https' : 'http';
+
+    // Detect host (with proxy awareness)
+    $host = $_SERVER['HTTP_X_FORWARDED_HOST'] ?? $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'];
+
+    // Detect base path (the directory your app runs from)
+    $scriptDir = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/');
+
+    // Build base URL (no trailing slash if at root)
+    return $scheme . '://' . $host . ($scriptDir !== '' ? $scriptDir : '');
 }
 
 function speed_log($bam=FALSE)
