@@ -1079,7 +1079,7 @@ function error_response(int $code, string $message): void {
 
 /** Return $path if it is an existing subdirectory of $base, or false otherwise.
  * @param $base Directory we want to be relative to. May not contain '..'.
- * @param $path Path to check. E.g. 'foo' returns 'foo', '/foo' returns 'foo'. '' return false. '../' returns false.
+ * @param $path Path to check. E.g. 'foo' returns 'foo', '/foo' returns 'foo'. '' returns false. '../' returns false.
  * @return false|string
  */
 function safe_subdirectory($base, $path) {
