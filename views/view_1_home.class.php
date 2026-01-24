@@ -100,46 +100,70 @@ class View_Home extends View
 			<?php
 		}
 
-		if ($GLOBALS['user_system']->havePerm(PERM_VIEWROSTER)) {
+		if ($GLOBALS['user_system']->havePerm(PERM_VIEWSERVICE) || $GLOBALS['user_system']->havePerm(PERM_VIEWROSTER)) {
 			?>
-			<div class="homepage-box my-roster">
-				<h3>
+			<div class="homepage-box upcoming">
 				<?php
-				if (ifdef('ROSTER_FEEDS_ENABLED', 0)) {
-					?>
-					<a href="?view=_manage_ical" class="pull-right"><small><i class="icon-rss"></i><span class="hidden-phone">Subscribe</span></small></a>
-					<?php
+				if ($GLOBALS['user_system']->havePerm(PERM_VIEWSERVICE)) {
+					$cutoff = date('Y-m-d', strtotime('+7 days'));
+					$services = $GLOBALS['system']->getDBObjectData(
+									'service', 
+									Array('-date' => Array(date('Y-m-d'), $cutoff))
+									);
+					if ($services) {
+						?>
+						<h3>Upcoming services</h3>
+						<ul class="services">
+						<?php
+						$service = new Service();
+						foreach ($services as $sid => $sdata) {
+							$service->load($sid, $sdata);
+							$url = build_url(Array('view'=>'services', 'date'=>$sdata['date'], 'congregationid'=>$sdata['congregationid']));
+							echo '<li><a href="'.$url.'">'.ents($service->toString()).'</a></li>';
+						}
+						?>
+						</ul>
+						<?php
+					}
 				}
-				?>
-					Upcoming roster
-				</h3>
-				<?php
-				$GLOBALS['system']->includeDBClass('roster_role_assignment');
-				$rallocs = Roster_Role_Assignment::getUpcomingAssignments($GLOBALS['user_system']->getCurrentUser('id'));
-				if ($rallocs) {
-					foreach ($rallocs as $date => $allocs) {
-						 ?>
-						 <h5><?php echo date('j M', strtotime($date)); ?></h5>
-						 <?php
-						 foreach ($allocs as $alloc) {
-							  echo $alloc['cong'].' '.$alloc['title'].'<br />';
-						 }
+				if ($GLOBALS['user_system']->havePerm(PERM_VIEWROSTER)) {
+					?>
+					<h3>
+					<?php
+					if (ifdef('ROSTER_FEEDS_ENABLED', 0)) {
+						?>
+						<a href="?view=_manage_ical" class="pull-right"><small><i class="icon-rss"></i><span class="hidden-phone">Subscribe</span></small></a>
+						<?php
 					}
 					?>
-					<div class="pull-right"><a href="./?view=persons&personid=<?php echo $GLOBALS['user_system']->getCurrentUser('id'); ?>#rosters">See all</a></div>
+						Upcoming roster
+					</h3>
 					<?php
-				} else {
-					?>
-					<p><i>None</i></p>
-					<?php
+					$GLOBALS['system']->includeDBClass('roster_role_assignment');
+					$rallocs = Roster_Role_Assignment::getUpcomingAssignments($GLOBALS['user_system']->getCurrentUser('id'));
+					if ($rallocs) {
+						foreach ($rallocs as $date => $allocs) {
+							?>
+							<h5><?php echo date('j M', strtotime($date)); ?></h5>
+							<?php
+							foreach ($allocs as $alloc) {
+								echo $alloc['cong'].' '.$alloc['title'].'<br />';
+							}
+						}
+						?>
+						<div class="pull-right"><a href="./?view=persons&personid=<?php echo $GLOBALS['user_system']->getCurrentUser('id'); ?>#rosters">See all</a></div>
+						<?php
+					} else {
+						?>
+						<p><i>None</i></p>
+						<?php
+					}
 				}
 				?>
-			 </div>
+			</div>
 			<?php
 		}
-		?>
-		</div>
-		<?php
+
 		$reportVals = Array('all');
 		if ($GLOBALS['user_system']->havePerm(PERM_RUNREPORT)) {
 			$reportVals[] = 'auth';
