@@ -1080,3 +1080,33 @@ function error_response(int $code, string $message): void {
 	echo ents($message);
 	exit;
 }
+
+/** Return $path if it is an existing subdirectory of $base, or false otherwise.
+ * @param $base Directory we want to be relative to. May not contain '..'.
+ * @param $path Path to check. E.g. 'foo' returns 'foo', '/foo' returns 'foo'. '' returns false. '../' returns false.
+ * @return false|string
+ */
+function safe_subdirectory($base, $path) {
+    $base = rtrim(realpath($base), DIRECTORY_SEPARATOR);
+    if ($base === false) return false;
+    if ($path === '') return false;
+
+    // Build full path
+    $full = ($path[0] === DIRECTORY_SEPARATOR)
+            ? $base . $path
+            : $base . DIRECTORY_SEPARATOR . $path;
+
+    $realpath = realpath($full);
+    if ($realpath === false) return false;
+
+    // Ensure result is inside base
+    if (strncmp($realpath, $base . DIRECTORY_SEPARATOR, strlen($base) + 1) !== 0 &&
+            $realpath !== $base) {
+        return false;
+    }
+
+    // Return relative portion (false if same directory)
+    return $realpath === $base
+            ? false
+            : substr($realpath, strlen($base) + 1);
+}

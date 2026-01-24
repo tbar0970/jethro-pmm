@@ -212,9 +212,10 @@ define('2FA_ENABLED', true);
 //define('SERVICE_DOCS_TO_EXPAND_DIRS', 'Templates/To_Expand');
 
 // To make certain document folders visible within the members interface,
-// add their paths here.
+// add their paths here. Paths, if relative, are relative to DOCUMENTS_ROOT_PATH
 // Separate multiple entries with pipe (|).
-// define('MEMBER_FILES_DIRS', 'Member_Files');
+// Note: generally this should be left unset. Use the 'Member Visible Folders' config setting instead.
+// define('MEMBER_FILES_DIRS', '/path/to/member/files/');
 
 // How to contact the system administrator (probably the person editing this file)
 // either mailto:someone@domain.com or http://somedomain.com/info-page
