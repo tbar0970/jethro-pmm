@@ -740,7 +740,9 @@ tr:last-child .insert-row-below {
 code {
 	color: @gray;
 }
-
+.error.help-inline, .error.help-block {
+    font-size: 14px;
+}
 #body .soft, .soft { /* low-key links */
 	font-size: 85%;
 	padding-top: 1px;
@@ -1271,6 +1273,11 @@ img.person-photo {
 }
 .homepage-search-options details label {
 	padding-left: 1em;
+}
+.homepage .upcoming .services li a {
+	display: block;
+	padding-top: 0.5ex;
+	padding-bottom: 0.5ex;
 }
 @media (min-width: 740px) {
 	.homepage .search-forms {

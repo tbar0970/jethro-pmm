@@ -106,7 +106,7 @@ class roster_view extends db_object
 									'type'		=> 'select',
 									'options'	=> Array('' => 'Private', 'members' => 'Show in members area', 'public' => 'Show in public area'),
 									'default'	=> 0,
-									'note' => 'Whether this roster view is visible in the <a href="'.BASE_URL.'/public/">public area</a> and/or to church members via the <a href="'.BASE_URL.'members/">members area</a>',
+									'note' => 'Whether this roster view is visible in the <a href="'.BASE_URL.'/public/">public area</a> and/or to church members via the <a href="'.BASE_URL.'/members/">members area</a>',
 								),
 			'show_on_run_sheet' => Array(
 									'type'	=> 'select',
@@ -122,7 +122,7 @@ class roster_view extends db_object
 	{
 		$this->fields['members'] = Array(); // fake field for interface purposes
 		if ($this->id) {
-			$url = BASE_URL.'public/?view=display_roster&roster_view='.$this->id;
+			$url = BASE_URL.'/public/?view=display_roster&roster_view='.$this->id;
 			if (defined('PUBLIC_ROSTER_SECRET') && strlen(PUBLIC_ROSTER_SECRET)) {
 				$url .= '&secret='.PUBLIC_ROSTER_SECRET;
 			}
@@ -575,7 +575,7 @@ class roster_view extends db_object
 			if (ifdef('PUBLIC_AREA_ENABLED', 1)) {
 				echo '<a class="med-popup" href="'.BASE_URL.'/public/?view=_roster_role_description&role='.(int)$member['role_id'].'">';
 			} else {
-				echo '<a class="med-popup" href="'.BASE_URL.'?view=rosters__define_roster_roles&roster_roleid='.(int)$member['role_id'].'">';
+				echo '<a class="med-popup" href="?view=rosters__define_roster_roles&roster_roleid='.(int)$member['role_id'].'">';
 			}
 			echo ents($member['role_title']);
 			echo '</a>';
@@ -597,9 +597,9 @@ class roster_view extends db_object
 					if ($asn['absenceid']) {
 						echo ' <span class="label label-important" title="Planned absence: '.ents($asn['absence_comment']).'">!</i></span>';
 					}
-					if (('' === $asn['email'])) echo ' <img class="visible-desktop" src="'.BASE_URL.'resources/img/no_email.png" title="No Email Address" />';
+					if (('' === $asn['email'])) echo ' <img class="visible-desktop" src="'.BASE_URL.'/resources/img/no_email.png" title="No Email Address" />';
 					if (('' === $asn['mobile']) && SMS_Sender::canSend()) {
-						echo ' <img class="visible-desktop" src="'.BASE_URL.'resources/img/no_phone.png" title="No Mobile" />';
+						echo ' <img class="visible-desktop" src="'.BASE_URL.'/resources/img/no_phone.png" title="No Mobile" />';
 					}
 					echo '</span>';
 
@@ -841,9 +841,9 @@ class roster_view extends db_object
 									if (strlen(strval($vs['absenceid']))) {
 										$n .= ' <a href="'.$href.'#rosters" class="label label-important" title="Planned absence: '.ents($vs['absence_comment']).'">!</i></a>';
 									}
-									if (('' === $vs['email'])) $n .= ' <img class="visible-desktop" src="'.BASE_URL.'resources/img/no_email.png" title="No Email Address" />';
+									if (('' === $vs['email'])) $n .= ' <img class="visible-desktop" src="'.BASE_URL.'/resources/img/no_email.png" title="No Email Address" />';
 									if (('' === $vs['mobile']) && SMS_Sender::canSend()) {
-										$n .= ' <img class="visible-desktop" src="'.BASE_URL.'resources/img/no_phone.png" title="No Mobile" />';
+										$n .= ' <img class="visible-desktop" src="'.BASE_URL.'/resources/img/no_phone.png" title="No Mobile" />';
 					                }
 									$n .= '</span>';
 									$names[] = $n;
@@ -946,7 +946,7 @@ class roster_view extends db_object
 					if ($public) {
 						echo '<a class="med-popup" href="?view=_roster_role_description&role='.(int)$details['role_id'].'">';
 					} else {
-						echo '<a class="med-popup" href="'.BASE_URL.'?view=rosters__define_roster_roles&roster_roleid='.(int)$details['role_id'].'">';
+						echo '<a class="med-popup" href="?view=rosters__define_roster_roles&roster_roleid='.(int)$details['role_id'].'">';
 					}
 					echo ents($details['role_title']);
 					echo '</a>';

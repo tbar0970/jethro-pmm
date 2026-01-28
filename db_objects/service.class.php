@@ -402,7 +402,7 @@ class service extends db_object
 							$line .= '<table class="help-block custom-field-tooltip" id="compdetail'.$compid.'-'.$this->id.'"><tr><td class="narrow">CCLI #:</td><td>'.$ccli_code.'</td>';
 							$line .= '<td class="narrow">';
 							if ($this->checkPerm(PERM_SERVICECOMPS)) {
-								$line .= '<a title="Edit this component" href="'.BASE_URL.'?view=_edit_service_component&service_componentid='.$compid.'"><i class="icon-wrench"></i></a>';
+								$line .= '<a title="Edit this component" href="?view=_edit_service_component&service_componentid='.$compid.'"><i class="icon-wrench"></i></a>';
 							}
 							$line .= '</td></tr>';
 							$line .= '<tr><td>Comments:</td><td colspan="2">'.linkUrlsInTrustedHtml(nl2br($item['comments'] ?? '')).'</td></tr></table>';

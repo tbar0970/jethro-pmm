@@ -1,4 +1,4 @@
-Title,Alt_Title,Length_Mins,Runsheet_Title_Format,Handout_Title_Format,Show_in_handout,CCLI_Number,Credits,Content
+Title,Alt_Title,Length_Mins,Runsheet_Title_Format,Handout_Title_Format,Show_in_handout,CCLI_Number,Credits,Content,Tag 1,Tag 2
 Amazing Grace,Original version,3,,,title,2762836,"Words by John Newton 1779
 Music: ""New Britain"" (Trad)","Amazing grace! How sweet the sound
 That saved a wretch like me!
@@ -33,7 +33,7 @@ Will be forever mine.
 When we've been there ten thousand years,
 Bright shining as the sun,
 We've no less days to sing God's praise
-Than when we'd first begun."
+Than when we'd first begun.",Traditional,
 Crown him with many crowns,Diademata,3,,,full,23938,"Words by Matthew Bridges & Godfrey Thring
 Music: ""Diademata"" by George Elvey 1868","Crown Him with many crowns,
 The Lamb upon His throne.
@@ -114,4 +114,4 @@ Ineffably sublime.
 All hail, Redeemer, hail!
 For Thou has died for me;
 Thy praise and glory shall not fail
-Throughout eternity."
+Throughout eternity.",,Hymn

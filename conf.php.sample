@@ -21,15 +21,20 @@ define('DB_DATABASE', '');
 define('DB_USERNAME', '');
 define('DB_PASSWORD', '');
 
-// If your Jethro PHP-FPM runs as a dedicated OS user ('jethro'), you can also enable socket-based authentication in MySQL:
-//   create user if not exists 'jethro'@'localhost' identified with unix_socket;
-// ..and use it by specifying DB_DSN instead of DB_PASSWORD:
+// Advanced: If your Jethro PHP-FPM runs as a dedicated OS user ('jethro'), you can enable socket-based authentication in MySQL:
+//     create user if not exists 'jethro'@'localhost' identified with unix_socket;
+// then use socket-based auth for Jethro by specifying DB_DSN instead of DB_PASSWORD as follows:
 // define('DB_USERNAME', 'jethro');
 // define('DB_DSN', "mysql:dbname=jethro");
 
+// The URL jethro will be running at. Only needs to be set if Jethro is running behind a proxy without
+// X-Forwarded-Proto + X-Forwarded-Host, or running scripts/task_reminder.php, where the base URL cannot be inferred
+// define('BASE_URL', 'https://example.com/jethro/');
+
 // Whether the system must be accessed by HTTPS.
 // If this is true, the BASE_URL above must begin with https://
-define('REQUIRE_HTTPS', FALSE);
+// No longer used - Jethro will run wherever it finds itself.
+// define('REQUIRE_HTTPS', FALSE);
 
 ///////////////////////////////////////////////////////////////////////////
 // OPTIONAL DATABASE SETTINGS -
@@ -213,9 +218,10 @@ define('2FA_ENABLED', true);
 //define('SERVICE_DOCS_TO_EXPAND_DIRS', 'Templates/To_Expand');
 
 // To make certain document folders visible within the members interface,
-// add their paths here.
+// add their paths here. Paths, if relative, are relative to DOCUMENTS_ROOT_PATH
 // Separate multiple entries with pipe (|).
-// define('MEMBER_FILES_DIRS', 'Member_Files');
+// Note: generally this should be left unset. Use the 'Member Visible Folders' config setting instead.
+// define('MEMBER_FILES_DIRS', '/path/to/member/files/');
 
 // How to contact the system administrator (probably the person editing this file)
 // either mailto:someone@domain.com or http://somedomain.com/info-page

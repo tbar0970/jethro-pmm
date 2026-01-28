@@ -90,6 +90,18 @@ class View__Edit_Group extends Abstract_View_Edit_Object
 				}
 				break;
 
+			case 'archive':
+				if (array_get($_POST, 'action') == 'archive') { // must be POSTed
+					$GLOBALS['user_system']->checkPerm(PERM_EDITGROUP);
+					$name = $this->_edited_object->toString();
+					$this->_edited_object->setValue('is_archived', 1);
+					if ($this->_edited_object->save()) {
+						add_message('Group "'.$name.'" has been archived');
+						redirect('groups__list_all', Array('groupid' => NULL, 'action' => NULL)); // exits
+					}
+				}
+				break;
+
 			case 'delete':
 				if (array_get($_POST, 'action') == 'delete') { // must be POSTed
 					$GLOBALS['user_system']->checkPerm(PERM_EDITGROUP);
