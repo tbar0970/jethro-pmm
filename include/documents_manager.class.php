@@ -10,6 +10,30 @@ class Documents_Manager {
 		}
 	}
 
+	/**
+     * Get directories that Members should be able to access, and that exist. Paths are either absolute or relative to DOCUMENTS_ROOT_PATH.
+	 */
+	public static function getMemberFilesDirs(): array
+	{
+		$dirs = array();
+		if (defined('MEMBER_VISIBLE_FOLDERS')) {
+			foreach (explode('|', MEMBER_VISIBLE_FOLDERS) as $dir) {
+				// Enforce relativeness and existence
+				if ($reldir = safe_subdirectory(DOCUMENTS_ROOT_PATH, $dir)) {
+					$dirs[] = $reldir;
+				}
+			}
+		}
+		// For backwards-compatibility. Note we don't check for existence, again for backwards-compatibility.
+		if (defined('MEMBER_FILES_DIRS')) {
+			foreach (array_remove_empties(explode('|', MEMBER_FILES_DIRS)) as $dir) {
+				$dirs[] = $dir;
+			}
+		}
+		return array_unique($dirs);
+	}
+
+
 	// If $filename is an acceptable filename (extension not prohibited, no leading dot, no slashes)
 	// returns it intact; else triggers an error and returns blank string
 	public static function validateFileName($filename) {
