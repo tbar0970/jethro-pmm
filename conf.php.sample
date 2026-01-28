@@ -21,6 +21,12 @@ define('DB_DATABASE', '');
 define('DB_USERNAME', '');
 define('DB_PASSWORD', '');
 
+// Advanced: If your Jethro PHP-FPM runs as a dedicated OS user ('jethro'), you can enable socket-based authentication in MySQL:
+//     create user if not exists 'jethro'@'localhost' identified with unix_socket;
+// then use socket-based auth for Jethro by specifying DB_DSN instead of DB_PASSWORD as follows:
+// define('DB_USERNAME', 'jethro');
+// define('DB_DSN', "mysql:dbname=jethro");
+
 // The URL jethro will be running at. Only needs to be set if Jethro is running behind a proxy without
 // X-Forwarded-Proto + X-Forwarded-Host, or running scripts/task_reminder.php, where the base URL cannot be inferred
 // define('BASE_URL', 'https://example.com/jethro/');
