@@ -1308,12 +1308,13 @@ class Person_Query extends DB_Object
 
 		// GROUPING
 		$grouping_order = '';
-		$grouping_field = '';
+		$grouping_field = ''; // this will be the first SELECT col and used for grouping in PHP rendering; not actually used in SQL GROUP_BY
 		if (!$this->hasGroupingField($params)) {
 			$grouping_field = '';
 		} else if ($params['group_by'] == 'groupid') {
 			if (!empty($params['include_groups'])) {
-				$grouping_field = 'CONCAT(pg.name, '.$db->quote(' (#').', pg.id, '.$db->quote(')').'), ';
+				// Construct a markdown-style link to the group: [group name](URL)
+				$grouping_field = 'CONCAT("[", pg.name, "](?view=groups&groupid=", pg.id, ")"), ';
 				$query['from'] .= ' JOIN person_group_membership pgm ON p.id = pgm.personid
 									JOIN person_group pg ON pg.id = pgm.groupid
 									';
@@ -1882,7 +1883,12 @@ class Person_Query extends DB_Object
 	function _printResultSetHtml($x, $heading)
 	{
 		if ($heading) {
-			echo '<h3>'.$heading.'</h3>';
+			if (preg_match("/\[([^]]+)\]\(([^)]+)\)/", $heading, $matches)) {
+				// decode the markdown-style link
+				echo '<h3><a href="'.ents($matches[2]).'">'.ents($matches[1]).'</a></h3>';
+			} else {
+				echo '<h3>'.ents($heading).'</h3>';
+			}
 		}
 		if (empty($x)) {
 			?>
