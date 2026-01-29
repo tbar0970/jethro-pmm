@@ -746,9 +746,9 @@ function build_url($params)
 		}
 	}
 	if ($queryparams = http_build_query($vars)) {
-		return '/'.get_baseurl_path().'?'.$queryparams;
+		return '/'.get_baseurl_path().'/?'.$queryparams;
 	} else {
-		return '/'.get_baseurl_path();
+		return '/'.get_baseurl_path().'/';
 	}
 }
 
