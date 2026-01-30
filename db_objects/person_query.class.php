@@ -1883,7 +1883,7 @@ class Person_Query extends DB_Object
 	function _printResultSetHtml($x, $heading)
 	{
 		if ($heading) {
-			if (preg_match("/\[([^]]+)\]\(([^)]+)\)/", $heading, $matches)) {
+			if (preg_match("/\[([^]]+)\]\((\?view=[^)]+)\)/", $heading, $matches)) {
 				// decode the markdown-style link
 				echo '<h3><a href="'.ents($matches[2]).'">'.ents($matches[1]).'</a></h3>';
 			} else {
