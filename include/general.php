@@ -731,6 +731,7 @@ function format_value($value, $params)
 	}
 }
 
+// Build a root-relative URL with the given params.
 function build_url($params)
 {
 	if (array_get($params, '*', 1) == NULL) {
@@ -745,27 +746,53 @@ function build_url($params)
 			$vars[$i] = $v;
 		}
 	}
+
 	if ($queryparams = http_build_query($vars)) {
-		return '/'.get_baseurl_path().'/?'.$queryparams;
+		return get_url_pathprefix().'?'.$queryparams;
 	} else {
-		return '/'.get_baseurl_path().'/';
+		return get_url_pathprefix();
 	}
 }
 
 /**
- * Get the path segment of Jethro's URL, without slashes. E.g. given BASE_URL:
+ * * Get the relative 'base URL' path below which Jethro lives, e.g. '' or '/jethro'. No trailing slash. This is the default value for BASE_URL, and is used to link to root-relative resources. Unlike get_url_pathprefix, there is no '/members' or '/public' part - just the base.
  *  - 'https://jethro.mychurch.org'   returns ''
  *  - 'https://jethro.mychurch.org/'   returns ''
  *  - 'https://jethro.mychurch.org//'   returns ''
- *  - 'https://mychurch.org/jethro'   returns ''
- *  - '/'   returns ''
- *  - '/'   returns ''
- *  - '/'   returns ''
+ *  - 'https://mychurch.org/jethro/'   returns '/jethro'
+ *  - 'https://mychurch.org/jethro/members/'   returns '/jethro'
+ *  - 'https://mychurch.org/jethro/public/'   returns '/jethro'
  * @return string
  */
-function get_baseurl_path()
+function get_relative_baseurl()
 {
-	return trim((parse_url(BASE_URL, PHP_URL_PATH) ?? ''), '/');
+    // SCRIPT_NAME is the path part of the URL, e.g. /index.php or /jethro/index.php, or /jethro/members/index.php
+    $parts = explode('/', $_SERVER['SCRIPT_NAME']);
+    end($parts);  // Move internal pointer to the end (likely 'index.php').
+    $lastdir=prev($parts); // Get path segment before 'index.php'
+    if ($lastdir == 'members' or $lastdir == 'public') $lastdir=prev($parts); // Look one earlier than /members / /public
+    if (empty($lastdir)) return '';
+    else return '/'.$lastdir;
+    // Note that this cannot return '/', because its value becomes BASE_URL which gets prepended to '/resources/...' in many places.
+//    return rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/');
+}
+
+/**
+ * Get the path segment of the current request URL, with a trailing slash - e.g. '/' or '/jethro/'. This includes the '/members/' or '/public/' part, if present in the requesting URL (unlike get_relative_baseurl). Used to construct form actions.
+ *  - 'https://jethro.mychurch.org/'    returns '/'
+ *  - https://jethro.mychurch.org//'    returns '/'
+ *  - 'https://jethro.mychurch.org/members'   returns '/members/'
+ *  - 'https://jethro.mychurch.org/public'   returns '/public/'
+ *  - 'https://mychurch.org/jethro/'    returns '/jethro/'
+ *  - 'https://mychurch.org/jethro/members/'   returns '/jethro/members/'
+ *  - 'https://mychurch.org/jethro/public/'   returns '/jethro/public/'
+ * @return string
+ */
+function get_url_pathprefix()
+{
+    $relbase = get_relative_baseurl(); // e.g. '' or '/jethro'
+    $subdir = dirname(substr($_SERVER['SCRIPT_NAME'], strlen($relbase))); // e.g. '/', '/members' or '/public'
+    return rtrim($relbase.$subdir, '/').'/'; // e.g. '/members/', '/public/', '/jethro/', '/jethro/members/', '/jethro/members/public/'
 }
 
 /**
@@ -785,7 +812,7 @@ function base_url()
     $host = $_SERVER['HTTP_X_FORWARDED_HOST'] ?? $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'];
 
     // Detect base path (the directory your app runs from)
-    $scriptDir = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/');
+    $scriptDir = get_relative_baseurl();
 
     // Build base URL (no trailing slash if at root)
     return $scheme . '://' . $host . ($scriptDir !== '' ? $scriptDir : '');
