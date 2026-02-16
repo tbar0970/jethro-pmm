@@ -176,6 +176,49 @@ class Person_Group extends db_object
 		$comps['select'][] = 'pgm.created as joined_group';
 		return $person->_getInstancesData($comps);
 	}
+	
+	function getPossibleSubgroups($member_ids)
+	{
+		$db =& $GLOBALS['db'];
+		$sql = 'SELECT pgm.personid, pgm.groupid, pg.name FROM person_group_membership pgm
+			JOIN _person_group pg ON pg.id = pgm.groupid
+			WHERE pgm.groupid != '.$this->id.' AND pg.categoryid';
+		
+		$categoryid = $this->getValue('categoryid');
+		$sql .= $categoryid !== null ? ' = '.$categoryid : ' IS NULL';
+		
+		$groups = [];
+		foreach ($db->queryAll($sql) as $membership) {
+			$group_id = $membership['groupid'];
+			if (empty($groups[$group_id])) {
+				$groups[$group_id] = [
+					'name' => $membership['name'],
+					'people' => []
+				];
+			}
+			$groups[$group_id]['people'][] = $membership['personid'];
+		}
+		
+		$subgroups = [];
+		foreach ($groups as $id => $group) {
+			if (count($group['people']) == 1) {
+				// If the group only has one person, they will have already been mentioned by name
+				continue;
+			}
+			
+			$only_contains_members = true;
+			foreach ($group['people'] as $person_id) {
+				if (!in_array($person_id, $member_ids)) {
+					$only_contains_members = false;
+					break;
+				}
+			}
+			if ($only_contains_members) {
+				$subgroups[$group['name']] = implode(',', $group['people']);
+			}
+		}
+		return $subgroups;
+	}
 
 	function addMember($personid, $membership_status=NULL, $overwrite_existing=FALSE)
 	{
