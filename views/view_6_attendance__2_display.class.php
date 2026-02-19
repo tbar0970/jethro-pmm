@@ -156,6 +156,10 @@ class View_Attendance__Display extends View
 	{
 		$GLOBALS['system']->includeDBClass('attendance_record_set');
 		$GLOBALS['system']->includeDBClass('person');
+		
+		?>
+		<form method="post" action="" class="bulk-person-action" enctype="multipart/form-data">
+		<?php
 
 		if (!empty($this->cohortids)) {
 			foreach ($this->cohortids as $cohortid) {
@@ -163,6 +167,10 @@ class View_Attendance__Display extends View
 				$this->_printResultSet($cohortid);
 			}
 		}
+		include 'templates/bulk_actions.template.php';
+		?>
+		</form>
+		<?php
 		if ($GLOBALS['user_system']->havePerm(PERM_RUNREPORT)) {
 			?>
 			<div class="alert alert-info"><small><i class="icon-info-sign"></i> You can also use <a href="?view=persons__reports">Person Reports</a> to show and analyze attendance</div>
@@ -208,7 +216,6 @@ class View_Attendance__Display extends View
 		$headcounts = Headcount::fetchRange(($congid ? 'congregation' : 'person_group'), $congid ? $congid : $groupid, $this->start_date, $this->end_date);
 		$dummy = new Person();
 		?>
-		<form method="post" action="" class="bulk-person-action" enctype="multipart/form-data">
 		<table class="table table-hover table-auto-width nowrap table-bordered table-condensed">
 			<thead>
 				<tr>
@@ -332,10 +339,7 @@ class View_Attendance__Display extends View
 			?>
 			</tfoot>
 		</table>
-		<?php
-		include 'templates/bulk_actions.template.php';
-		?>
-		</form>
+
 		<?php
 	}
 	
