@@ -1970,7 +1970,10 @@ class Person_Query extends DB_Object
 								break;
 							case 'checkbox':
 								?>
-								<input name="personid[]" type="checkbox" value="<?php echo $row[$label]; ?>" class="no-print" />
+								<input 
+									name="personid[]" type="checkbox" value="<?php echo $row[$label]; ?>" class="no-print" 
+									<?php if (!empty($_REQUEST['bulk_action'])) echo 'checked="checked"'; ?>
+								/>
 								<?php
 								break;
 							case 'photo':
@@ -2066,6 +2069,7 @@ class Person_Query extends DB_Object
 	function save()
 	{
 		if ($this->id == 'TEMP') {
+			//bam("Saving to session"); exit;
 			$_SESSION['saved_query'] = serialize($this);
 			return TRUE;
 		} else if (!$this->canSave(TRUE)) {

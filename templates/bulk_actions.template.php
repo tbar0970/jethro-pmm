@@ -2,6 +2,7 @@
 include_once 'include/size_detector.class.php';
 $in_group = (array_get($_REQUEST, 'view') == 'groups') && (!empty($_REQUEST['groupid']) || !empty($_REQUEST['person_groupid']));
 $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'));
+$selected = Array(array_get($_REQUEST, 'bulk_action', '') => 'selected="selected"'); // email, sms or merge
 ?>
 
 <div class="form-horizontal bulk-actions">
@@ -31,18 +32,18 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 					<?php
 				}
 				?>
-					<option value="email"><?php echo _('Send email')?></option>
+					<option value="email" <?php echo array_get($selected, 'email', ''); ?>><?php echo _('Send email')?></option>
 				<?php
 				if (SMS_Sender::canSend()) {
 					?>
-					<option value="smshttp"><?php echo _('Send SMS')?></option>
+					<option value="smshttp" <?php echo array_get($selected, 'sms', ''); ?>><?php echo _('Send SMS')?></option>
 					<?php
 				}
 				?>
 					<option value="export"><?php echo _('Export...')?></option>
 				<?php
 				if (version_compare(PHP_VERSION, '5.2', '>=') && !SizeDetector::isNarrow()) {
-					echo '<option value="document-merge">'._('Mail merge a document')."</option>\n";
+					echo '<option value="document-merge" '.array_get($selected, 'merge', '').'>'._('Mail merge a document')."</option>\n";
 				}
 				?>
 				<option value="envelopes"><?php echo _('Print envelopes')?></option>

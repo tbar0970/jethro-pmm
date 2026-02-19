@@ -389,9 +389,9 @@ $(document).ready(function() {
 		var selectedInputs = $('#'+this.value+' input, #'+this.value+' select, #'+this.value+' textarea');
 		selectedInputs
 				.attr('disabled', false)
-				.filter(':visible:first').focus();
+				.filter('[type!=radio]:visible:first').focus();
 		selectedInputs.filter('[data-toggle=enable]').attr('disabled', false).change();
-	});
+	}).change();;
 
 	$('form.bulk-person-action').submit(function(event) {
 		var checkboxes = document.getElementsByName('personid[]');
