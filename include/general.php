@@ -780,7 +780,7 @@ function get_relative_baseurl()
 /**
  * Get the path segment of the current request URL, with a trailing slash - e.g. '/' or '/jethro/'. This includes the '/members/' or '/public/' part, if present in the requesting URL (unlike get_relative_baseurl). Used to construct form actions.
  *  - 'https://jethro.mychurch.org/'    returns '/'
- *  - https://jethro.mychurch.org//'    returns '/'
+ *  - 'https://jethro.mychurch.org//'    returns '/'
  *  - 'https://jethro.mychurch.org/members'   returns '/members/'
  *  - 'https://jethro.mychurch.org/public'   returns '/public/'
  *  - 'https://mychurch.org/jethro/'    returns '/jethro/'
