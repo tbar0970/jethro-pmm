@@ -1,4 +1,4 @@
-<?php 
+<?php
 @session_start();
 include 'size_detector.class.php';
 SizeDetector::processRequest();

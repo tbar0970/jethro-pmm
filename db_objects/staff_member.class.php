@@ -420,7 +420,7 @@ class Staff_Member extends Person
 			if (!empty($rs)) return TRUE;
 		}
 		return FALSE;
-	}	
+	}
 	
 	function create()
 	{
@@ -438,9 +438,9 @@ class Staff_Member extends Person
 		if (!($GLOBALS['user_system']->reverifyCurrentUser(array_get($_POST, 'my_current_password')))) {
 			add_message("Password for current user was incorrect.  Account details not saved", 'error');
 			return FALSE;
-		}	
+		}
 		return parent::createFromChild($person);
-	}	
+	}
 
 
 	function _createFinal()
