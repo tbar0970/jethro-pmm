@@ -125,6 +125,12 @@ class Roster_Role extends db_object
 					foreach ($group->getMembers($params) as $id => $details) {
 						$this->_volunteers[$id] = $details['first_name'].' '.$details['last_name'];
 					}
+					
+					if ($this->getValue('assign_multiple')) {
+						foreach ($group->getPossibleSubgroups(array_keys($this->_volunteers)) as $groupname => $member_ids) {
+							$this->_volunteers[$member_ids] = $groupname;
+						}
+					}
 				}
 			}
 		}
