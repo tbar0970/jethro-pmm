@@ -254,7 +254,7 @@ class Roster_Role extends db_object
 	public static function allowPublicDescriptions()
 	{
 		if (!ifdef('PUBLIC_AREA_ENABLED', 1)) {
-			// Public area is disabled altoger
+			// Public area is disabled altogether
 			return FALSE;
 		}
 		if (ifdef('PUBLIC_ROSTER_SECRET')) {
