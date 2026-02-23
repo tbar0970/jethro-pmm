@@ -937,13 +937,22 @@ class roster_view extends db_object
 			<th class="<?php echo $th_class; ?>">
 				<?php
 				if ($details['role_id']) {
+					$href = '';
 					if ($public) {
-						echo '<a class="med-popup" href="?view=_roster_role_description&role='.(int)$details['role_id'].'">';
+						if (PUBLIC_AREA_ENABLED) {
+							$href = BASE_URL.'/public/?view=_roster_role_description&role=';
+						}
 					} else {
-						echo '<a class="med-popup" href="?view=rosters__define_roster_roles&roster_roleid='.(int)$details['role_id'].'">';
+						$href = '?view=rosters__define_roster_roles&roster_roleid=';
+					}
+					
+					if ($href) {
+						echo '<a class="med-popup" href="'.$href.$details['role_id'].'">';
 					}
 					echo ents($details['role_title']);
-					echo '</a>';
+					if ($href) {
+						echo '</a>';
+					}
 				} else {
 					if (!$public) echo '<a href="?view=services__list_all">';
 					echo ents($dummy_service->getFieldLabel($details['service_field'], true));
