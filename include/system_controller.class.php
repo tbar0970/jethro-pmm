@@ -156,7 +156,7 @@ class System_Controller
 		foreach ($_SESSION['views'][$this->_base_dir] as $name => $data) {
 			if ($name[0] == '_') continue;
 			$class = '';
-			if (($current_view == $name) || (strpos($current_view, $name.'__') === 0)) $class = 'active';
+			if ($current_view == $name || str_starts_with($current_view, $name.'__')) $class = 'active';
 			if (empty($data['children'])) {
 				// deliberately - only leaf nodes can be navigated to directly
 				?>
@@ -372,7 +372,7 @@ class System_Controller
 		while ($dir && ($hook_file = readdir($dir))) {
 			if (is_dir(JETHRO_ROOT.'/hooks/'.$hook_file)) continue;
 			if ($hook_file[0] == '.') continue;
-			if (0 === strpos($hook_file, 'sample.')) continue;
+			if (str_starts_with($hook_file, 'sample.')) continue;
 			require_once 'hooks/'.$hook_name.'/'.$hook_file;
 			$class_name = str_replace('.class.php', '', $hook_file);
 			call_user_func(Array($class_name, 'run'), $params);
