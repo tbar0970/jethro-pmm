@@ -903,6 +903,7 @@ class service extends db_object
 		}
 	}
 
+	// This is used in printable run sheets.
 	public function printRunSheetPersonnelTable()
 	{
 		$rosterViews = Roster_View::getForRunSheet($this->getValue('congregationid'));

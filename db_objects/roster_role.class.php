@@ -100,7 +100,9 @@ class Roster_Role extends db_object
 	{
 		switch ($name) {
 			case 'details':
-				echo '<a class="pull-right" target="publicrole" href="'.BASE_URL.'/public/?view=_roster_role_description&role='.$this->id.'"><i class="icon-share"></i>View in public area</a>';
+				$url = BASE_URL.'/public/?view=_roster_role_description&role='.$this->id;
+				if (PUBLIC_ROSTER_SECRET) $url .= '&secret='.PUBLIC_ROSTER_SECRET;
+				echo '<a class="pull-right" target="publicrole" href="'.$url.	'"><i class="icon-share"></i>View in public area</a>';
 				echo '<div class="text">'.$this->getValue($name).'</div>';
 				break;
 			case 'volunteer_group':
@@ -244,6 +246,28 @@ class Roster_Role extends db_object
 			}
 		}
 		return TRUE;
+	}
+
+	/**
+	 * Whether to allow role descriptions to be viewed in the public area.
+	 */
+	public static function allowPublicDescriptions()
+	{
+		if (!ifdef('PUBLIC_AREA_ENABLED', 1)) {
+			// Public area is disabled altoger
+			return FALSE;
+		}
+		if (ifdef('PUBLIC_ROSTER_SECRET')) {
+			// A secret is used in public roster URLs, so allow descriptions
+			return TRUE;
+		}
+		$views = $GLOBALS['system']->getDBObjectData('roster_view', Array('visibility' => 'public'), 'AND', 'name');
+		if (!empty($views)) {
+			// There is at least one public roster view, so allow public descriptions
+			return TRUE;
+		}
+		// Otherwise, since there is no secret code, and no public roster views, don't allow public descriptions.
+		return FALSE;
 	}
 
 }

@@ -521,6 +521,7 @@ class roster_view extends db_object
 		return $asns;
 	}
 
+	// This is used in public/printable run sheets
 	function printSingleViewTable($service, $columns=2, $includeServiceFields=FALSE)
 	{
 		$showBlanks = ($this->getValue('show_on_run_sheet') == 1);
@@ -546,7 +547,7 @@ class roster_view extends db_object
 				foreach ($ourMembers as $member) {
 					if (($i % $totalRows) == $rowNum) {
 						?>
-						<th><?php $this->_printOutputLabel($member, $service); ?></th>
+						<th><?php $this->_printOutputLabel($member, $service, TRUE); ?></th>
 						<td>
 							<?php $this->_printOutputValue($member, $service, array_get($asns, $member['role_id'], Array()), 0); ?>
 						</td>
@@ -563,11 +564,14 @@ class roster_view extends db_object
 		<?php
 	}
 
-	private function _printOutputLabel($member, $service)
+	private function _printOutputLabel($member, $service, $publicLinks=FALSE)
 	{
 		if ($member['role_id']) {
-			if (ifdef('PUBLIC_AREA_ENABLED', 1)) {
-				echo '<a class="med-popup" href="'.BASE_URL.'/public/?view=_roster_role_description&role='.(int)$member['role_id'].'">';
+			if ($publicLinks && Roster_Role::allowPublicDescriptions()) {
+				// $publicLinks is true for 'printable' run sheets, which may get viewed by non-logged-in people
+				$url = BASE_URL.'/public/?view=_roster_role_description&role='.(int)$member['role_id'];
+				if (PUBLIC_ROSTER_SECRET) $url .= '&secret='.PUBLIC_ROSTER_SECRET;
+				echo '<a class="med-popup" href="'.$url.'">';
 			} else {
 				echo '<a class="med-popup" href="?view=rosters__define_roster_roles&roster_roleid='.(int)$member['role_id'].'">';
 			}
@@ -927,6 +931,16 @@ class roster_view extends db_object
 		// print role/field headings
 		$dummy_service = new Service();
 		$last_congid = NULL;
+		$role_href = '';
+		if ($public && Roster_Role::allowPublicDescriptions()) {
+			// $public is true for 'printable' rosters, even if not in the public area
+			$role_href = BASE_URL.'/public/?view=_roster_role_description';
+			if (PUBLIC_ROSTER_SECRET) $role_href .= '&secret='.PUBLIC_ROSTER_SECRET;			
+			$role_href .= '&role=';
+		} else {
+			$role_href = '?view=rosters__define_roster_roles&roster_roleid=';
+		}
+
 		foreach ($this->_members as $id => $details) {
 			$th_class = '';
 			if ($details['congregationid'] != $last_congid) {
@@ -937,20 +951,11 @@ class roster_view extends db_object
 			<th class="<?php echo $th_class; ?>">
 				<?php
 				if ($details['role_id']) {
-					$href = '';
-					if ($public) {
-						if (PUBLIC_AREA_ENABLED) {
-							$href = BASE_URL.'/public/?view=_roster_role_description&role=';
-						}
-					} else {
-						$href = '?view=rosters__define_roster_roles&roster_roleid=';
-					}
-					
-					if ($href) {
-						echo '<a class="med-popup" href="'.$href.$details['role_id'].'">';
+					if ($role_href) {
+						echo '<a class="med-popup" href="'.$role_href.$details['role_id'].'">';
 					}
 					echo ents($details['role_title']);
-					if ($href) {
+					if ($role_href) {
 						echo '</a>';
 					}
 				} else {
