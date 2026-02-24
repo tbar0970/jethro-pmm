@@ -150,7 +150,7 @@ class Call_Document_Merge extends Call
 						foreach ($data as $line) {
 							foreach ($line as $k => $v) {
 								echo '[person.'.$k.'] = '.$v."\n";
-							}	
+							}
 							echo "\n";
 						}
 						foreach ($List_of_lists as $i => $a) {
@@ -158,7 +158,7 @@ class Call_Document_Merge extends Call
 							foreach ($a as $line) {
 								foreach ($line as $k => $v) {
 									echo '['.$i.'.'.$k.'] = '.$v."\n";
-								}	
+								}
 								echo "\n";
 							}
 						}
@@ -167,7 +167,7 @@ class Call_Document_Merge extends Call
 						foreach ($data as $line) {
 							foreach ($line as $k => $v) {
 								echo '[family.'.$k.'] = '.$v."\n";
-							}	
+							}
 							echo "\n";
 						}
 					}
@@ -301,8 +301,8 @@ class Call_Document_Merge extends Call
 		}
 		switch ($data_type) {
 			case 'attendance_tabular':
-				foreach ($headerrow as $Hash) { 
-					$lastrow[$Hash] = ''; 
+				foreach ($headerrow as $Hash) {
+					$lastrow[$Hash] = '';
 				}
 				$dat = 1;
 				foreach ($dates as $date) {

@@ -46,9 +46,9 @@ class Abstract_View_Edit_Object extends View
 			?>
 			<script>window.opener.location.reload();window.close();</script>
 			<?php
-			exit;			
+			exit;
 		} else {
-			redirect($this->_on_success_view, Array($this->_editing_type.'id' => $this->_edited_object->id)); // exits	
+			redirect($this->_on_success_view, Array($this->_editing_type.'id' => $this->_edited_object->id)); // exits
 		}
 	}
 
@@ -110,9 +110,9 @@ class Abstract_View_Edit_Object extends View
 			?>
 			<form method="post" enctype="multipart/form-data" data-lock-length="<?php echo db_object::getLockLength() ?>" id="edit-<?php echo $this->_editing_type; ?>" class="<?php echo $this->_form_classnames; ?>">
 				<input type="hidden" name="edit_object_submitted" value="1" />
-				<?php 
+				<?php
 				if ($then = array_get($_REQUEST, 'then')) print_hidden_field('then', $then);
-				$this->_edited_object->printForm(); 
+				$this->_edited_object->printForm();
 				?>
 				<hr />
 				<div class="form form-horizontal"><div class="control-group"><div class="controls">

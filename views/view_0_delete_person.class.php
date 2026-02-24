@@ -106,7 +106,7 @@ class View__Delete_Person extends View
 			?>
 			<p><?php echo _('Because this person has a user account, they cannot be deleted altogether. ')?></p>
 			<p><?php echo _('But they can be archived, and you can also cleanse their archived record, which will')?>
-			<?php 
+			<?php
 			echo self::EXPLANATION;
 			echo '</p>';
 			unset($buttons['delete']);
@@ -114,7 +114,7 @@ class View__Delete_Person extends View
 			?>
 			<p><?php echo _('Deleting this person is not recommended since they have roster assignments and/or attendance records, and deleting them will affect historical statistics.')?></p>
 			<p><?php echo _('It is recommended that you archive them instead.'); ?>
-			<p><?php 
+			<p><?php
 				echo _('You can also cleanse their archived record, which will');
 				echo self::EXPLANATION;
 				?>

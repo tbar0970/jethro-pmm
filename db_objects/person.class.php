@@ -241,7 +241,7 @@ class Person extends DB_Object
 	protected function _getInsertTableName()
 	{
 		return '_person';
-	}	
+	}
 
 	/**
 	 *
@@ -639,7 +639,7 @@ class Person extends DB_Object
 			return 1; // truly the same
 		}
 		return 0; // one must be blank, can't be sure.
-	}	
+	}
 
 	public function save($update_family=TRUE)
 	{
@@ -1067,7 +1067,7 @@ class Person extends DB_Object
 			case 'photo':
 				$existing_photo_url = NULL;
 				if ($this->id && $GLOBALS['db']->queryOne('SELECT 1 FROM person_photo WHERE personid = '.(int)$this->id)) {
-					$existing_photo_url = '?call=photo&personid='.(int)$this->id; 
+					$existing_photo_url = '?call=photo&personid='.(int)$this->id;
 				}
 				Photo_Handler::printChooser($prefix, $existing_photo_url);
 				break;
