@@ -2107,3 +2107,19 @@ function handleFamilyFormSubmit()
 	}
 	return true;
 }
+
+/************************* GROUPS ************************/
+$(document).ready(function() {
+	const form = document.querySelector('#edit-roster_role')
+	if (!form) {
+		return
+	}
+	
+	document.querySelector('select[name=assign_multiple]').addEventListener('change', updateVolunteerTeams)
+	updateVolunteerTeams()
+})
+
+function updateVolunteerTeams() {
+	const assign_multiple = document.querySelector('select[name=assign_multiple]').value == '1'
+	document.querySelector('#field-volunteer_teams').hidden = !assign_multiple
+}

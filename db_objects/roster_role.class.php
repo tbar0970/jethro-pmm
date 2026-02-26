@@ -105,6 +105,12 @@ class Roster_Role extends db_object
 				echo '<a class="pull-right" target="publicrole" href="'.$url.	'"><i class="icon-share"></i>View in public area</a>';
 				echo '<div class="text">'.$this->getValue($name).'</div>';
 				break;
+			case 'volunteer_teams':
+				echo implode(', ', array_map(function ($val) {
+					$group = new Person_group($val);
+					return '<a href="?view=groups&groupid='.(int)$val.'">'.ents($group->getValue('name')).'</a>';
+				}, $this->getValue($name)));
+				break;
 			case 'volunteer_group':
 				if ($val = $this->getValue($name)) {
 					$group = new Person_group($val);
@@ -114,6 +120,82 @@ class Roster_Role extends db_object
 			default:
 				parent::printFieldValue($name, $value);
 		}
+	}
+	
+	function printForm($prefix='', $fields=NULL)
+	{
+		$this->fields = array_slice($this->fields, 0, 5) + [
+			'volunteer_teams' => [
+				'type' => 'reference',
+				'references' => 'person_group',
+				'order_by' => 'name',
+				'allow_empty' => true,
+				'allow_multiple' => true,
+				'note' => 'Groups that can have all of their members assigned at once to this role'
+			]
+		] + $this->fields;
+		parent::printForm($prefix, $fields);
+		unset($this->fields['volunteer_teams']);
+	}
+
+	function processForm($prefix='', $fields=NULL)
+	{
+		parent::processForm($prefix, $fields);
+		
+		$this->values['volunteer_teams'] = $this->getValue('assign_multiple') ? ($_POST['volunteer_teams'] ?? []) : [];
+	}
+
+	public function load($id)
+	{
+		$res = parent::load($id);
+		if ($this->id) {
+			$db = $GLOBALS['db'];
+			$SQL = 'SELECT person_group_id FROM roster_role_volunteer_team WHERE roster_role_id = '.$db->quote($this->id);
+			$this->values['volunteer_teams'] = $db->queryCol($SQL);
+		}
+		return $res;
+	}
+
+	public function save()
+	{
+		$res = parent::save();
+		if ($res) {
+			$this->_saveVolunteerTeams();
+		}
+		return $res;
+	}
+
+	private function _saveVolunteerTeams()
+	{
+		$db = $GLOBALS['db'];
+		$db->exec('DELETE FROM roster_role_volunteer_team WHERE roster_role_id = '.$db->quote($this->id));
+		
+		$sets = [];
+		foreach ($this->values['volunteer_teams'] as $group_id) {
+			$sets[] = '('.$db->quote($this->id).', '.$db->quote($group_id).')';
+		}
+		if (!empty($sets)) {
+			$SQL = 'INSERT INTO roster_role_volunteer_team
+					(roster_role_id, person_group_id)
+					VALUES
+					'.implode(",\n", $sets);
+			$db->exec($SQL);
+		}
+	}
+
+	function printSummary()
+	{
+		$this->fields = array_slice($this->fields, 0, 4) + [
+			'volunteer_teams' => [
+				'type' => 'reference',
+				'references' => 'person_group',
+				'order_by' => 'name',
+				'allow_empty' => true,
+				'allow_multiple' => true
+			]
+		] + $this->fields;
+		parent::printSummary();
+		unset($this->fields['volunteer_teams']);
 	}
 
 	function _getVolunteers()
