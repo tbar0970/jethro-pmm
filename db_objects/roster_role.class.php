@@ -211,6 +211,16 @@ class Roster_Role extends db_object
 					}
 				}
 			}
+			
+			foreach ($this->getValue('volunteer_teams') as $team) {
+				$group = $GLOBALS['system']->getDBObject('person_group', $team);
+				if ($group) {
+					$members = $group->getMembers();
+					if ($members) {
+						$this->_volunteers['team'.implode(',', array_keys($members))] = 'Volunteer Team: '.$group->getValue('name');
+					}
+				}
+			}
 		}
 		return $this->_volunteers;
 	}

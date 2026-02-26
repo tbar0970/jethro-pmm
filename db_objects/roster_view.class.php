@@ -1004,15 +1004,24 @@ class roster_view extends db_object
 			if (!empty($_POST['assignees'][$roleid])) {
 				foreach ($_POST['assignees'][$roleid] as $date => $assignee) {
 					if (!is_array($assignee)) $assignee = Array($assignee);
-					foreach ($assignee as $rank => $new_personid) {
-						$new_personid = (int)$new_personid;
-						if (empty($new_personid)) continue;
-						if (isset($to_delete[$date][$roleid][$rank]) && $to_delete[$date][$roleid][$rank]['personid'] == $new_personid) {
-							// unchanged allocation - leave it as is
-							unset($to_delete[$date][$roleid][$rank]);
+					$rank = 0;
+					foreach ($assignee as $assignee_value) {
+						if (str_starts_with($assignee_value, 'team')) {
+							$new_personids = explode(',', substr($assignee_value, 4));
 						} else {
-							// new allocation
-							$to_add[] = '('.(int)$roleid.', '.$GLOBALS['db']->quote($date).', '.(int)$new_personid.', '.(int)$rank.', '.(int)$GLOBALS['user_system']->getCurrentUser('id').')';
+							$new_personids = [$assignee_value];
+						}
+						foreach ($new_personids as $new_personid) {
+							$new_personid = (int)$new_personid;
+							if (empty($new_personid)) continue;
+							if (isset($to_delete[$date][$roleid][$rank]) && $to_delete[$date][$roleid][$rank]['personid'] == $new_personid) {
+								// unchanged allocation - leave it as is
+								unset($to_delete[$date][$roleid][$rank]);
+							} else {
+								// new allocation
+								$to_add[] = '('.(int)$roleid.', '.$GLOBALS['db']->quote($date).', '.(int)$new_personid.', '.(int)$rank.', '.(int)$GLOBALS['user_system']->getCurrentUser('id').')';
+							}
+							$rank += 1;
 						}
 					}
 				}
