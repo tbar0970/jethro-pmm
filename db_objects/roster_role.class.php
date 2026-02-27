@@ -217,7 +217,11 @@ class Roster_Role extends db_object
 				if ($group) {
 					$members = $group->getMembers();
 					if ($members) {
-						$this->_volunteers['team'.implode(',', array_keys($members))] = 'Volunteer Team: '.$group->getValue('name');
+					    $memberNames = implode(', ', array_map(fn ($details) => $details['first_name'].' '.$details['last_name'], $members));
+					    if (strlen($memberNames) > 30) {
+					    	$memberNames = substr($memberNames, 0, 27).'...';
+					    }
+						$this->_volunteers['team'.implode(',', array_keys($members))] = 'Team: '.$group->getValue('name').' ('.$memberNames.')';
 					}
 				}
 			}
