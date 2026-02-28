@@ -2115,11 +2115,11 @@ $(document).ready(function() {
 		return
 	}
 	
-	document.querySelector('select[name=assign_multiple]').addEventListener('change', updateVolunteerTeams)
-	updateVolunteerTeams()
+	document.querySelector('select[name=assign_multiple]').addEventListener('change', updateTeams)
+	updateTeams()
 })
 
-function updateVolunteerTeams() {
+function updateTeams() {
 	const assign_multiple = document.querySelector('select[name=assign_multiple]').value == '1'
-	document.querySelector('#field-volunteer_teams').hidden = !assign_multiple
+	document.querySelector('#field-teams').hidden = !assign_multiple
 }
