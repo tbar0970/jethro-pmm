@@ -46,6 +46,12 @@ class Roster_Role extends db_object
 									'default'		=> '1',
 									'note'			=> 'When a role is no longer to be used, mark it as inactive'
 							   ),
+			'assign_multiple'	=> Array(
+									'type'			=> 'select',
+									'options'		=> Array(1 => 'Yes', 0 => 'No'),
+									'default'		=> 0,
+									'note'			=> 'Whether multiple people can be assigned to this role on a given date'
+							   ),
 			'volunteer_group'		=> Array(
 									'type'		=> 'reference',
 									'references' => 'person_group',
@@ -54,12 +60,6 @@ class Roster_Role extends db_object
 									'allow_empty'	=> true,
 									'note'			=> 'Group of individuals who can be assigned to this role. If blank, any person can be assigned'
 								   ),
-			'assign_multiple'	=> Array(
-									'type'			=> 'select',
-									'options'		=> Array(1 => 'Yes', 0 => 'No'),
-									'default'		=> 0,
-									'note'			=> 'Whether multiple people can be assigned to this role on a given date'
-							   ),
 			'details'		=> Array(
 									'type'		=> 'html',
 									'label'		=> 'Role description',
