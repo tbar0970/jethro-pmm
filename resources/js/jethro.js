@@ -680,6 +680,17 @@ $(document).ready(function() {
 			}
 		})
 	}
+	
+	// Allow plus/minus key events to increase/decrease number fields
+	document.querySelectorAll('input[type="number"]').forEach(input => {
+		input.addEventListener('keydown', event => {
+			if (['-', '+'].includes(event.key) && input.value) {
+				event.preventDefault()
+				
+				input.value = parseInt(input.value) + (event.key == '-' ? -1 : 1)
+			}
+		})
+	})
 });
 
 
