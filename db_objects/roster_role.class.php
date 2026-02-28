@@ -84,6 +84,8 @@ class Roster_Role extends db_object
 			$GLOBALS['system']->includeDBClass('person_group');
 			$value = array_get($this->values, $name);
 			Person_Group::printChooser($prefix.$name, $value, array(), null, '(None)');
+		} else if ($name == 'teams') {
+			Person_Group::printMultiChooser('teams', $this->values['teams']);
 		} else {
 			if ($name == 'active') {
 				$memberships = $this->getViewMemberships();
@@ -174,6 +176,9 @@ class Roster_Role extends db_object
 		
 		$sets = [];
 		foreach ($this->values['teams'] as $group_id) {
+			if (!$group_id) {
+				continue;
+			}
 			$sets[] = '('.$db->quote($this->id).', '.$db->quote($group_id).')';
 		}
 		if (!empty($sets)) {
