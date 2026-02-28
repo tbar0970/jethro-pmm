@@ -49,9 +49,10 @@ class Roster_Role extends db_object
 			'volunteer_group'		=> Array(
 									'type'		=> 'reference',
 									'references' => 'person_group',
+									'label'		=> 'Volunteers Group',
 									'order_by'	=> 'name',
 									'allow_empty'	=> true,
-									'note'			=> 'If no volunteer group is chosen, any person in the system can be allocated to this role'
+									'note'			=> 'Group of individuals who can be assigned to this role. If blank, any person can be assigned'
 								   ),
 			'assign_multiple'	=> Array(
 									'type'			=> 'select',
@@ -128,10 +129,11 @@ class Roster_Role extends db_object
 			'volunteer_teams' => [
 				'type' => 'reference',
 				'references' => 'person_group',
+				'label'		=> 'Team Groups',
 				'order_by' => 'name',
 				'allow_empty' => true,
 				'allow_multiple' => true,
-				'note' => 'Groups that can have all of their members assigned at once to this role'
+				'note' => 'Groups whose members can be assigned to this role as a set, eg. \'Band 1\''
 			]
 		] + $this->fields;
 		parent::printForm($prefix, $fields);
