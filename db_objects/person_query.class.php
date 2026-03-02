@@ -1301,7 +1301,7 @@ class Person_Query extends DB_Object
 			$operator = ($params['attendance_operator'] == '>') ? '>' : '<'; // nb whitelist because it will be used in the query directly
 			$query['where'][] = '(SELECT SUM(present)/COUNT(*)*100
 									FROM attendance_record
-									WHERE date >= '.$GLOBALS['db']->quote($min_date).'
+									WHERE date > '.$GLOBALS['db']->quote($min_date).'
 									AND groupid = '.(int)$groupid.'
 									AND personid = p.id) '.$operator.' '.(int)$params['attendance_percent'];
 		}
