@@ -176,6 +176,31 @@ if (is_readable($confFile)) {
 		display: none;
 	}
 }
+#login-body.member-login h3 {
+	margin-bottom: 10px !important;
+}
+#member-login-options {
+	display: flex;
+	white-space: nowrap;
+}
+#member-login-left {
+	padding: 0 1em 0 0;
+	flex-grow: 10;
+}
+#member-login-left input[type=password] {
+		margin-bottom: 0; 
+		width: 100px !important; 
+		flex-grow:1 
+}
+#member-login-right {
+	padding: 0 0 0 1em;
+	border-left: 2px solid #bbb;
+}
+#member-login-left .input-append {
+	display: flex;
+	margin-bottom: 0px !important;
+}
+
 
 
 /********** OVERALL PAGE ************/
@@ -634,7 +659,7 @@ form.min {
 #body .valign-middle, #body table.valign-middle td, #body table.valign-middle th {
 	vertical-align: middle;
 }
-#body .valign-top, #body table.valign-top td {
+#body .valign-top, #body table.valign-top td, .valign-top td {
 	vertical-align: top !important;
 }
 
