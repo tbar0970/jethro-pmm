@@ -70,6 +70,8 @@ class Member_User_System extends Abstract_User_System
 			if (is_null($user_details)) {
 				$this->_error = 'Incorrect email address or password';
 				return;
+			} else if ($user_details === FALSE) {
+				$this->_error = 'Sorry, your account has been archived';
 			} else {
 				// Log the member in
 				$this->_setAuthMember($user_details);
@@ -338,18 +340,24 @@ If you didn't request an account, you can just ignore this email";
 	 * (Matches member-area AND control-centre passwords).
 	 * @param string $email		Find a person with this record
 	 * @param string $password	Find a person with this member_password
-	 * @return array	Person details
+	 * @return mixed. Array of matching person details, or FALSE if only an archived person was found, or NULL if no persons match the username/password 
 	 */
 	private function _findAuthMember($email, $password)
 	{
 		$db =& $GLOBALS['db'];
-		$sql = 'SELECT p.*, sm.password
+		$sql = 'SELECT p.*, sm.password, ps.is_archived as status_archived
 				FROM _person p
 				LEFT JOIN staff_member sm ON sm.id = p.id
+				JOIN person_status ps ON ps.id = p.status
 				WHERE p.email  = '.$db->quote($email).'
 					AND ((member_password IS NOT NULL) OR (sm.password IS NOT NULL))';
 		$res = $db->queryAll($sql);
+		$found_archived = FALSE;
 		foreach ($res as $row) {
+			if ($row['status_archived']) {
+				$found_archived = TRUE;
+				continue;
+			}
 			if (jethro_password_verify($password, $row['member_password'])) {
 				unset($row['member_password']);
 				unset($row['history']);
@@ -362,6 +370,7 @@ If you didn't request an account, you can just ignore this email";
 				return $row;
 			}
 		}
+		if ($found_archived) return FALSE;
 		return NULL;
 	}
 
