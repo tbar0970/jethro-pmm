@@ -39,7 +39,6 @@ class View_Persons__Reports extends View
 		if (!empty($_POST['query_submitted'])) {
 			$this->_query->processForm();
 			if ($this->_query->id) {
-				bam("Saving with id ".$this->_query->id);
 				$this->_query->save();
 			} else {
 				$this->_query->create();
@@ -177,8 +176,6 @@ class View_Persons__Reports extends View
 							</tr>
 							<?php
 						}
-					} else {
-						echo "<tr><td>"; bam($_SESSION);
 					}
 
 					$staff_members = $GLOBALS['system']->getDBObjectData('staff_member');
