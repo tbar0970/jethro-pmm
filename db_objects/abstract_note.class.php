@@ -236,8 +236,7 @@ class Abstract_Note extends DB_Object
 	 * @return boolean	True if the current user is allowed to delete this note
 	 */
 	public function canBeDeleted() {
-		return ($this->getValue('status') !== 'pending')
-			&& ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN));
+		return $GLOBALS['user_system']->havePerm(PERM_SYSADMIN);
 	}
 
 	/**
