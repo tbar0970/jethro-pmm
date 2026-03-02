@@ -8,7 +8,7 @@ AND NOT EXISTS (
 	select 1 from setting s2 where s2.symbol='MEMBER_VISIBLE_FOLDERS'
 );
 
--- #1380 - allow for groups to have parent groups
+-- #1380 - allow for 'team groups' to be configured for a roster role.
 CREATE TABLE `roster_role_team` (
 	`roster_role_id` INT NOT NULL,
 	`person_group_id` INT NOT NULL,
