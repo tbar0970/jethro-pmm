@@ -135,7 +135,7 @@ class Roster_Role extends db_object
 				'order_by' => 'name',
 				'allow_empty' => true,
 				'allow_multiple' => true,
-				'note' => 'Groups whose members can be assigned to this role as a set, eg. \'Band 1\''
+				'note' => 'Groups whose members can be assigned to this role as a batch, eg. \'Band 1\''
 			]
 		] + $this->fields;
 		parent::printForm($prefix, $fields);
