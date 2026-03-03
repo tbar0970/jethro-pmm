@@ -232,7 +232,7 @@ class Person_Query extends DB_Object
 				?>
 					<tr>
 						<td>
-							<label class="checkbox">
+							<label class="checkbox nowrap">
 								<input autofocus="1" type="checkbox" name="enable_custom_field[]"
 									   value="<?php echo $fieldid; ?>"
 									   id="enable_custom_<?php echo $fieldid; ?>"
@@ -289,6 +289,7 @@ class Person_Query extends DB_Object
 													'any' => 'filled in with any value',
 													'empty' => 'not filled in',
 													'contains' => 'with value that contains',
+													'not' => 'NOT containing',
 												),
 												'attrs' => Array(
 													'data-toggle' => 'visible',
@@ -302,7 +303,7 @@ class Person_Query extends DB_Object
 										'options' => $dummyField->getOptions(),
 										'allow_multiple' => true,
 										'attrs' => Array(
-											'data-select-rule-type' => 'contains'
+											'data-select-rule-type' => 'contains not'
 										)
 									);
 									if (!empty($fieldDetails['params']['allow_other'])) {
@@ -322,6 +323,7 @@ class Person_Query extends DB_Object
 													'any' => 'filled in with any value',
 													'empty' => 'not filled in',
 													'equal' => 'with value equal to',
+													'not-equal' => 'with value NOT equal to',
 												),
 												'attrs' => Array(
 													'data-toggle' => 'visible',
@@ -333,7 +335,7 @@ class Person_Query extends DB_Object
 									$vparams = Array(
 										'type' => 'text',
 										'attrs' => Array(
-											'data-select-rule-type' => 'equal'
+											'data-select-rule-type' => 'equal not-equal'
 										)
 									);
 									print_widget(
@@ -1194,14 +1196,25 @@ class Person_Query extends DB_Object
 								// No options were picked for a select list custom field. Same as 'empty' ('not filled in')
 								$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NULL AND pd'.$fieldid.'.value_text IS NULL)';
 							}
-								break;
-							case 'any':
+							break;
+						case 'not':
+							if ($values['val']) {
+								$ids = implode(',', array_map(Array($db, 'quote'), $values['val']));
+								$xrule = '(pd'.$fieldid.'.value_optionid NOT IN ('.$ids.'))';
+								$customFieldWheres[] = $xrule;
+							} else {
+								// No options were picked for a select list custom field. Same as 'filled in with any value'
 								$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NOT NULL OR pd'.$fieldid.'.value_text IS NOT NULL)';
-								break;
-							case 'empty':
-								$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NULL AND pd'.$fieldid.'.value_text IS NULL)';
-								break;
-						}
+							}
+							break;
+
+						case 'any':
+							$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NOT NULL OR pd'.$fieldid.'.value_text IS NOT NULL)';
+							break;
+						case 'empty':
+							$customFieldWheres[] = '(pd'.$fieldid.'.value_optionid IS NULL AND pd'.$fieldid.'.value_text IS NULL)';
+							break;
+					}
 					break;
 
 				case 'text':
@@ -1209,6 +1222,9 @@ class Person_Query extends DB_Object
 					switch (array_get($values, 'criteria', 'equals')) {
 						case 'equal':
 							$customFieldWheres[] = '(pd'.$fieldid.'.value_text = '.$db->quote($values['val']).')';
+							break;
+						case 'not-equal':
+							$customFieldWheres[] = '(pd'.$fieldid.'.value_text <> '.$db->quote($values['val']).')';
 							break;
 						case 'any':
 							$customFieldWheres[] = '(pd'.$fieldid.'.value_text IS NOT NULL)';
