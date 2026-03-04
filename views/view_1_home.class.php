@@ -163,6 +163,9 @@ class View_Home extends View
 			</div>
 			<?php
 		}
+		?>
+		</div>
+		<?php
 
 		$reportVals = Array('all');
 		if ($GLOBALS['user_system']->havePerm(PERM_RUNREPORT)) {
