@@ -28,6 +28,10 @@ The steps to install are:
 3. Edit Jethro's configuration file conf.php and fill in the essential details (system name, URL, database details).  Further explanation can be found inside the file.
 4. Open the Jethro system URL in your web browser.  The Jethro installer will start automatically and will prompt you for details to create the initial user account.  When the installer completes, it will prompt you to log into the installed system.
 
+You might like to download and load some [sample data](https://easyjethro.com.au/demo/jethro_demodata.zip) (this can
+be seen running at https://easyjethro.com.au/demo/). The jethro_demodata file is SQL which can be loaded into MySQL. See
+[here](https://github.com/tbar0970/jethro-pmm/pull/1398) for further instructions.
+
 # Documentation
 
 ## User Documentation
