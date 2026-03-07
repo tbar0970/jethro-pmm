@@ -1033,6 +1033,7 @@ class roster_view extends db_object
 				if (in_array($roleid, $roles)) { // don't delete any allocations for read-only roles!!
 					foreach ($role_allocs as $rank => $person_details) {
 						if ($person_details['assigneehidden']) continue;
+						if (!isset($_POST['assignees'][$roleid][$date])) continue; // cell was read-only, don't delete
 						$del_clauses[] = '(roster_role_id = '.(int)$roleid.' AND assignment_date = '.$GLOBALS['db']->quote($date).' AND `rank` = '.(int)$rank.')';
 					}
 				}
