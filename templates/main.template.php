@@ -85,7 +85,7 @@
 						<li id="user-detail-in-nav" class="dropdown">
 							<a href="#" class="dropdown-toggle" data-toggle="dropdown"><b>User:</b> <?php echo $GLOBALS['user_system']->getCurrentUser('first_name').' '.$GLOBALS['user_system']->getCurrentUser('last_name'); ?> <i class="caret"></i></a>
 							<ul class="dropdown-menu">
-								<li><a href="?view=persons&personid=<?php echo $GLOBALS['user_system']->getCurrentUser('id'); ?>"><?php echo _('View my details'); ?></a</li>
+								<li><a href="?view=persons&personid=<?php echo $GLOBALS['user_system']->getCurrentUser('id'); ?>"><?php echo _('View my details'); ?></a></li>
 								<li><a href="?view=_edit_me"><?php echo _('Edit my account')?></a></li>
 								<li>
 									<a href="./?logout=1" data-method="post"><?php echo _('Log out')?></a>
