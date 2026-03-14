@@ -586,7 +586,6 @@ class Person extends DB_Object
 		$top = reset($res);
 		$second_hit = next($res);
 		if ($top && (!$second_hit || ($second_hit['match_rating'] < $top['match_rating']))) {
-			bam("Got one stand-out");
 			// There is one stand-out result
 			$DIFFERENT = -1;
 			$MATCH = 1;
@@ -594,7 +593,6 @@ class Person extends DB_Object
 			foreach ($keys as $k) {
 				$cmp[$k] = self::_compareMatch(array_get($match_data, $k), $top[$k]);
 			}
-			bam($cmp);
 			if ($cmp['last_name'] == $MATCH) {
 				if ($cmp['first_name'] == $MATCH) {
 					if (($cmp['mobile_tel'] != $DIFFERENT) && ($cmp['email'] != $DIFFERENT)) {
@@ -623,7 +621,6 @@ class Person extends DB_Object
 				}
 			}
 		}
-		bam("bottomed out");
 		return Array(NULL => NULL);
 	}
 
