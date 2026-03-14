@@ -1056,19 +1056,35 @@ class roster_view extends db_object
 		// Just to be safe, we'll just do this for the roles in this roster view.
 		$clean_role_ids = Array();
 		foreach ($roles as $roleid) $clean_role_ids[] = (int)$roleid; // paranoia pays.
+		// Two-pass rank cleanup to avoid a transient unique key violation.
+		// A single UPDATE can fail if MySQL processes rows in an order that briefly
+		// creates a duplicate rank (e.g. setting rank 4->3 before rank 3->2).
+		// Pass 1 shifts out-of-place ranks up by a large offset to vacate their
+		// target slots; pass 2 sets the final correct values.
+		$rank_offset = 100000;
+		$role_ids_sql = implode(',', $clean_role_ids);
+		$date_range_sql = 'assignment_date BETWEEN '.$GLOBALS['db']->quote($start_date).' AND '.$GLOBALS['db']->quote($end_date);
 		$SQL = 'UPDATE roster_role_assignment rra
 				INNER JOIN ( SELECT *,
 								(row_number() OVER (PARTITION BY assignment_date, roster_role_id
 													ORDER BY `rank` ASC) - 1) AS correctrank
 							   FROM roster_role_assignment
+							   WHERE '.$date_range_sql.'
 							) a
 							ON rra.assignment_date = a.assignment_date
 								AND rra.roster_role_id = a.roster_role_id
 								AND rra.personid = a.personid
-				SET rra.`rank` = a.correctrank
+				SET rra.`rank` = a.correctrank + '.$rank_offset.'
 				WHERE rra.`rank` <> a.correctrank
-				AND rra.roster_role_id IN ('.implode(',', $clean_role_ids).')';
-		$res = $GLOBALS['db']->query($SQL);
+				AND rra.'.$date_range_sql.'
+				AND rra.roster_role_id IN ('.$role_ids_sql.')';
+		$GLOBALS['db']->query($SQL);
+		$SQL = 'UPDATE roster_role_assignment
+				SET `rank` = `rank` - '.$rank_offset.'
+				WHERE `rank` >= '.$rank_offset.'
+				AND '.$date_range_sql.'
+				AND roster_role_id IN ('.$role_ids_sql.')';
+		$GLOBALS['db']->query($SQL);
 
 		$this->releaseLocks();
 		unset($roleid);
