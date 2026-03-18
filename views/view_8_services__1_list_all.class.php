@@ -490,17 +490,15 @@ class View_Services__List_All extends View
 			<tbody>
 			<?php
 			// Print rows for existing services
-			if (empty($this->_grouped_services)) {
-				$last_date = date('Y-m-d', strtotime($this->_start_date.' -8 days'));
-			} else {
-				$last_date = key(array_reverse($this->_grouped_services));
-			}
+			$first_date = $this->_grouped_services ? key($this->_grouped_services) : NULL;
+			$last_date = $first_date ?: date('Y-m-d', strtotime($this->_start_date.' -8 days'));
 			$last_cong = count($this->_congregations) -1;
 			$this_sunday = date('Y-m-d', strtotime('Sunday'));
-			if ($this->_grouped_services) {
-				$last_date = key($this->_grouped_services);
-			}
 			$new_service_i = 0;
+			// Handle insert date that falls before all existing services
+			if ($this->_insert_date && $first_date && $this->_insert_date < $first_date) {
+				$this->_printNewServiceRow($new_service_i++, $this->_insert_date);
+			}
 			foreach ($this->_grouped_services as $date => $services) {
 				// first, print a blank one if necessary
 				if (($this->_insert_date) && ($last_date < $this->_insert_date) && ($this->_insert_date < $date)) {
