@@ -670,12 +670,18 @@ class View_Services__List_All extends View
 
 	function _printServiceEditCell($congid, $date, $data)
 	{
+		$f_topic  = "topic_title[$congid][$date]";
+		$f_format = "format_title[$congid][$date]";
+		$f_notes  = "notes[$congid][$date]";
+		$f_refs   = "bible_refs[$congid][$date][]";
+		$f_read   = "bible_to_read[$congid][$date][]";
+		$f_preach = "bible_to_preach[$congid][$date][]";
 		?>
 		<table class="service-details">
 			<tr>
 				<th>Topic</th>
 				<td class="topic">
-					<input type="text" name="topic_title[<?php echo $congid; ?>][<?php echo $date; ?>]" value="<?php echo ents(array_get($data, 'topic_title')); ?>" />
+					<input type="text" name="<?php echo $f_topic; ?>" value="<?php echo ents(array_get($data, 'topic_title')); ?>" />
 				</td>
 			</tr>
 			<tr>
@@ -691,7 +697,7 @@ class View_Services__List_All extends View
 						?>
 						<tr>
 							<td>
-								<input type="text" name="bible_refs[<?php echo $congid; ?>][<?php echo $date; ?>][]" class="bible-ref" value="<?php echo ents($this->_formatBible(array_get($reading, 'bible_ref', ''), FALSE)); ?>" />
+								<input type="text" name="<?php echo $f_refs; ?>" class="bible-ref" value="<?php echo ents($this->_formatBible(array_get($reading, 'bible_ref', ''), FALSE)); ?>" />
 							</td>
 							<td class="bible-options">
 
@@ -704,13 +710,13 @@ class View_Services__List_All extends View
 									the hidden field when the checkbox is clicked */
 									?>
 									<input type="checkbox"  class="toggle-next-hidden" />
-									<input type="hidden" name="bible_to_read[<?php echo $congid; ?>][<?php echo $date; ?>][]" value="<?php echo (int)array_get($reading, 'to_read'); ?>" />
+									<input type="hidden" name="<?php echo $f_read; ?>" value="<?php echo (int)array_get($reading, 'to_read'); ?>" />
 								</label>
 
 								<label title="to be preached on" class="preserve-value">
 									P
 									<input type="checkbox" class="toggle-next-hidden bible-to-preach" />
-									<input type="hidden" name="bible_to_preach[<?php echo $congid; ?>][<?php echo $date; ?>][]" value="<?php echo (int)array_get($reading, 'to_preach'); ?>" />
+									<input type="hidden" name="<?php echo $f_preach; ?>" value="<?php echo (int)array_get($reading, 'to_preach'); ?>" />
 								</label>
 
 								<img src="<?php echo BASE_URL; ?>/resources/img/arrow_up_thin_black.png" class="icon move-row-up" title="Move up" />
@@ -727,13 +733,13 @@ class View_Services__List_All extends View
 			<tr>
 				<th>Format</th>
 				<td class="format">
-					<input type="text" name="format_title[<?php echo $congid; ?>][<?php echo $date; ?>]" value="<?php echo array_get($data, 'format_title'); ?>" />
+					<input type="text" name="<?php echo $f_format; ?>" value="<?php echo array_get($data, 'format_title'); ?>" />
 					<i class="icon-chevron-down clickable toggle-next-tr <?php if (!empty($data['notes'])) echo 'got-notes'; ?>" title="Show notes" ></i>
 				</td>
 			</tr>
 			<tr class="hide">
 				<th>Notes</th>
-				<td><textarea class="full-width-input" name="notes[<?php echo $congid; ?>][<?php echo $date; ?>]"><?php echo ents(array_get($data, 'notes')); ?></textarea></td>
+				<td><textarea class="full-width-input" name="<?php echo $f_notes; ?>"><?php echo ents(array_get($data, 'notes')); ?></textarea></td>
 			</tr>
 		</table>
 		<?php
