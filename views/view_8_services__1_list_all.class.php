@@ -531,7 +531,7 @@ class View_Services__List_All extends View
 			<?php echo _("Use the fields below to enter a topic, format and/or Bible readings for each service. <br />For each Bible reading, use the checkboxes to indicate if it is to be read, to be preached on, or both."); ?>
 		</p>
 		<form method="post" class="warn-unsaved" data-lock-length="<?php echo db_object::getLockLength(); ?>">
-<input type="hidden" name="program_submitted" value="1" />
+		<input type="hidden" name="program_submitted" value="1" />
 		<!-- the following hidden fields preserve the value of an image input whose click
 		     is intercepted by a confirm-shift popup -->
 		<input type="hidden" name="delete_single" value="" id="delete_single" />
@@ -580,7 +580,7 @@ class View_Services__List_All extends View
 				}
 
 				// Now print the service we actually have
-				$class_clause = ($date == $this_sunday) ? 'class="hovered"' : '';
+				$row_classes = 'existing-service-row' . ($date == $this_sunday ? ' hovered' : '');
 				?>
 				<tr class="insert-space">
 					<td>
@@ -597,9 +597,10 @@ class View_Services__List_All extends View
 				?>
 				</tr>
 
-				<tr <?php echo $class_clause; ?>>
+				<tr class="<?php echo $row_classes; ?>">
 					<td class="service-date">
 						<!-- Static display; hidden when the date widget is open -->
+						<span class="drag-handle" title="Drag to reorder">&#8286;</span>
 						<span class="service-date-display">
 							<strong><?php echo date('j M y', strtotime($date)); ?></strong>
 						</span>
