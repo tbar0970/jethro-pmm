@@ -1158,7 +1158,28 @@ JethroServiceProgram.init = function() {
 		$('#populate-services').click(function() {
 			var placeholder = prompt('Enter a topic to apply to all empty services:');
 			if (placeholder) $('[name^="topic_title"][value=]').val(placeholder);
-		})
+		});
+
+		// Toggle the date cell between read-only display and editable widget.
+		// Uses delegated binding so it works for rows added after page load.
+		$('#service-program-editor').on('click', '.service-date-edit-toggle', function() {
+			var $td = $(this).closest('td.service-date');
+			var $display = $td.find('.service-date-display');
+			var $widget  = $td.find('.service-date-widget');
+			if ($widget.is(':visible')) {
+				// Close: sync the display text from the widget values, then crossfade back.
+				// Read the selected month label directly from the <option> text so we don't
+				// need to maintain a separate month-name array.
+				var d = parseInt($widget.find('.day-box').val(), 10);
+				var m = $widget.find('.month-box option:selected').text();
+				var y = $widget.find('.year-box').val().slice(-2);
+				if (d && m && y) { $display.find('strong').text(d + ' ' + m + ' ' + y); }
+				$widget.fadeOut(150, function() { $display.fadeIn(150); });
+			} else {
+				// Open: crossfade to the date widget and focus its first input
+				$display.fadeOut(150, function() { $widget.fadeIn(150).find('input:first').focus(); });
+			}
+		});
 };
 	/*
 	function cancelShiftConfirmPopup()
