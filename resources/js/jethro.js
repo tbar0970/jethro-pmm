@@ -1158,7 +1158,87 @@ JethroServiceProgram.init = function() {
 		$('#populate-services').click(function() {
 			var placeholder = prompt('Enter a topic to apply to all empty services:');
 			if (placeholder) $('[name^="topic_title"][value=]').val(placeholder);
-		})
+		});
+
+		// Toggle the date cell between read-only display and editable widget.
+		// Uses delegated binding so it works for rows added after page load.
+		$('#service-program-editor').on('click', '.service-date-edit-toggle', function() {
+			var $td = $(this).closest('td.service-date');
+			var $display = $td.find('.service-date-display');
+			var $widget  = $td.find('.service-date-widget');
+			if ($widget.is(':visible')) {
+				// Close: sync the display text from the widget values, then crossfade back.
+				// Read the selected month label directly from the <option> text so we don't
+				// need to maintain a separate month-name array.
+				var d = parseInt($widget.find('.day-box').val(), 10);
+				var m = $widget.find('.month-box option:selected').text();
+				var y = $widget.find('.year-box').val().slice(-2);
+				if (d && m && y) { $display.find('strong').text(d + ' ' + m + ' ' + y); }
+				$widget.fadeOut(150, function() { $display.fadeIn(150); });
+			} else {
+				// Open: crossfade to the date widget and focus its first input
+				$display.fadeOut(150, function() { $widget.fadeIn(150).find('input:first').focus(); });
+			}
+		});
+
+		var $draggedInsertRow = null;
+		$('#service-program-editor tbody').sortable({
+			items: 'tr.existing-service-row',
+			handle: '.drag-handle',
+			axis: 'y',
+			revert: 100,
+			cursor: 'grabbing',
+			helper: function(e, item) {
+				// Build a floating table that shows both the insert-space row and the service row
+				var $insertRow = item.prev('.insert-space');
+				var $table = $('<table style="border-collapse:collapse;background:#fff;opacity:0.9"/>');
+				if ($insertRow.length) {
+					$table.append($insertRow.clone());
+				}
+				var $clone = item.clone();
+				// Fix column widths so the helper doesn't collapse
+				$clone.find('td').each(function(i) {
+					$(this).width(item.find('td').eq(i).width());
+				});
+				$table.append($clone);
+				return $table;
+			},
+			start: function(e, ui) {
+				$draggedInsertRow = ui.item.prev('.insert-space');
+				// Hide the insert-space row so there is no gap above the sortable placeholder
+				$draggedInsertRow.hide();
+			},
+			change: function(e, ui) {
+				// If the placeholder has landed directly below an .insert-space row, bump it
+				// above that row — dropping between an insert-space and its service row would
+				// strand the insert-space when we reattach the dragged row's own insert-space.
+				var $prev = ui.placeholder.prev();
+				if ($prev.hasClass('insert-space')) {
+					$prev.before(ui.placeholder);
+				}
+			},
+			stop: function(e, ui) {
+				// Always reattach and show the insert-space row, whether or not position changed
+				if ($draggedInsertRow && $draggedInsertRow.length) {
+					ui.item.before($draggedInsertRow);
+					$draggedInsertRow.show();
+				}
+				$draggedInsertRow = null;
+			},
+			update: function(e, ui) {
+				// Auto-open the date widget to prompt for the new date (fires after stop, only when moved)
+				var $td = ui.item.find('td.service-date');
+				var $display = $td.find('.service-date-display');
+				var $widget  = $td.find('.service-date-widget');
+				// Blank the day so the user must confirm or enter a new date
+				$widget.find('.day-box').val('');
+				if (!$widget.is(':visible')) {
+					$display.fadeOut(150, function() {
+						$widget.fadeIn(150).find('input:first').focus();
+					});
+				}
+			}
+		});
 };
 	/*
 	function cancelShiftConfirmPopup()

@@ -108,14 +108,53 @@ class View_Services__List_All extends View
 
 	private function _handleProgramSave()
 	{
-		// Update and/or create services on existing dates
+		// Design: date changes are handled in two phases so that swaps and any other
+		// permutation of moves resolve without conflict, and without needing to know
+		// about other rows' moves in advance.
+		//
+		// Phase 1 (save loop): every service whose date is changing is moved to a
+		//   unique far-future temp date (2999-01-xx) and written to the DB immediately.
+		//   Writing to temp dates avoids uniqueness constraint violations: if two services
+		//   are swapping dates, writing either one directly to its target would clash with
+		//   the other service still sitting there. Temp dates sidestep this by vacating
+		//   all original slots before any service occupies a new one.
+		//
+		// Phase 2 (resolution loop): each service is moved from its temp date to its
+		//   intended final date. A clash at this point means a genuinely non-moving
+		//   service occupies the target, which is a real conflict; the service is
+		//   returned to its original date and an error is shown.
+		//
+		// Example — swapping 2026-04-05 ↔ 2026-04-12:
+		//   Phase 1: Apr 5 service  → 2999-01-01  (Apr 5  slot now free)
+		//            Apr 12 service → 2999-01-02  (Apr 12 slot now free)
+		//   Phase 2: 2999-01-01    → 2026-04-12  (no clash: Apr 12 freed in phase 1)
+		//            2999-01-02    → 2026-04-05  (no clash: Apr 5  freed in phase 1)
+
 		$dummy = new Service();
+		// $temp_moves[temp_date][congid] = ['original' => original_date, 'target' => target_date]
+		// 'original' is retained so the service can be restored if phase 2 finds a conflict.
+		$temp_moves = Array();
+		$temp_counter = 0;
+
+		// Phase 1: save form fields and park date-changing services at temp dates.
 		foreach ($this->_grouped_services as $date => $date_services) {
+			// row_date[$date] is the editable date widget submitted for this row.
+			// Example: row_date[2026-04-05] = '2026-04-12'
+			$new_date = process_widget('row_date['.$date.']', Array('type' => 'date')) ?: $date;
+
 			foreach ($this->_congregations as $congid) {
 				if (isset($date_services[$congid])) {
 					// update the existing service
-					$dummy->populate($date_services[$congid]['id'], $date_services[$congid]);
+					$id = $date_services[$congid]['id'];
+					$dummy->populate($id, $date_services[$congid]);
 					if ($dummy->acquireLock()) {
+						if ($new_date !== $date) {
+							// Park at a unique temp date; record original and target for phase 2.
+							// Example: Apr 5 service → 2999-01-01
+							$temp = sprintf('2999-%02d-%02d', 1, ++$temp_counter);
+							$dummy->setValue('date', $temp);
+							$temp_moves[$temp][$congid] = Array('original' => $date, 'target' => $new_date);
+						}
 						$this->_processServiceCell($congid, $date, $dummy);
 						$dummy->save();
 						$dummy->releaseLock();
@@ -131,6 +170,32 @@ class View_Services__List_All extends View
 
 					if (!$service->create()) {
 						add_message('New '.$service->toString().' could not be created', 'error');
+					}
+				}
+			}
+		}
+
+		// Phase 2: move each service from its temp date to its final destination.
+		// All original slots have been freed in phase 1, so swaps resolve automatically.
+		// Example: 2999-01-01 → 2026-04-12  (free: Apr 12 moved to 2999-01-02 in phase 1)
+		//          2999-01-02 → 2026-04-05  (free: Apr 5  moved to 2999-01-01 in phase 1)
+		foreach ($temp_moves as $temp => $cong_map) {
+			foreach ($cong_map as $congid => $move) {
+				$services = $GLOBALS['system']->getDBObjectData('service', Array('date' => $temp, 'congregationid' => $congid), 'AND');
+				foreach ($services as $id => $details) {
+					$svc = $GLOBALS['system']->getDBObject('service', $id);
+					if ($svc && $svc->acquireLock()) {
+						// A clash here means a non-moving service occupies the target — a genuine conflict.
+						// Example: a third service permanently on 2026-04-12 that isn't being moved.
+						$clashes = $GLOBALS['system']->getDBObjectData('service', Array('date' => $move['target'], 'congregationid' => $congid), 'AND');
+						if ($clashes) {
+							add_message('Cannot move '.format_date($move['original']).' service to '.format_date($move['target']).' — a service already exists then for that congregation', 'error');
+							$svc->setValue('date', $move['original']); // restore to original date
+						} else {
+							$svc->setValue('date', $move['target']);
+						}
+						$svc->save();
+						$svc->releaseLock();
 					}
 				}
 			}
@@ -515,7 +580,7 @@ class View_Services__List_All extends View
 				}
 
 				// Now print the service we actually have
-				$class_clause = ($date == $this_sunday) ? 'class="hovered"' : '';
+				$row_classes = 'existing-service-row' . ($date == $this_sunday ? ' hovered' : '');
 				?>
 				<tr class="insert-space">
 					<td>
@@ -532,20 +597,35 @@ class View_Services__List_All extends View
 				?>
 				</tr>
 
-				<tr <?php echo $class_clause; ?>>
-					<td class="service-date"><strong><?php echo date('j M y', strtotime($date)); ?></strong><br />
-					<button type="button" name="delete_all_date" value="<?php echo $date; ?>" class="confirm-shift" title="Delete all services on this date">
-						<img  src="<?php echo BASE_URL; ?>/resources/img/cross_red.png" />
-					</button>
+				<tr class="<?php echo $row_classes; ?>">
+					<td class="service-date">
+						<!-- Static display; hidden when the date widget is open -->
+						<span class="drag-handle" title="Drag to reorder">&#8286;</span>
+						<span class="service-date-display">
+							<strong><?php echo date('j M y', strtotime($date)); ?></strong>
+						</span>
+						<!-- Editable date widget; hidden by default, toggled open by the pencil button.
+							 Keyed by original date so the save handler can match it to the right row. -->
+						<span class="service-date-widget" style="display:none">
+							<?php print_widget('row_date['.$date.']', Array('type' => 'date', 'month_format' => 'M'), $date); ?>
+						</span>
+						<!-- Pencil icon (✎); clicking toggles between display and edit mode (see jethro.js) -->
+						<button type="button" class="service-date-edit-toggle" title="Edit date">&#9998;</button>
+						<br />
+						<button type="button" name="delete_all_date" value="<?php echo $date; ?>" class="confirm-shift" title="Delete all services on this date">
+							<img src="<?php echo BASE_URL; ?>/resources/img/cross_red.png" />
+						</button>
 					</td>
 					<?php
 				foreach ($this->_congregations as $i => $congid) {
+					$service_data = array_get($services, $congid, Array());
+					$service_id = array_get($service_data, 'id', NULL);
 					?>
 					<td class="left-tools">
 						<?php if ($i != 0) echo '<img src="'.BASE_URL.'/resources/img/arrow_left_heavy_blue.png" class="clickable copy-left" title="Click to copy this service\'s details to the previous congregation" />'; ?>
 					</td>
 					<td class="service">
-						<?php $this->_printServiceEditCell($congid, $date, array_get($services, $congid, Array())); ?>
+						<?php $this->_printServiceEditCell($congid, $date, $service_data); ?>
 					</td>
 					<td class="right-tools">
 						<?php
@@ -670,12 +750,18 @@ class View_Services__List_All extends View
 
 	function _printServiceEditCell($congid, $date, $data)
 	{
+		$f_topic  = "topic_title[$congid][$date]";
+		$f_format = "format_title[$congid][$date]";
+		$f_notes  = "notes[$congid][$date]";
+		$f_refs   = "bible_refs[$congid][$date][]";
+		$f_read   = "bible_to_read[$congid][$date][]";
+		$f_preach = "bible_to_preach[$congid][$date][]";
 		?>
 		<table class="service-details">
 			<tr>
 				<th>Topic</th>
 				<td class="topic">
-					<input type="text" name="topic_title[<?php echo $congid; ?>][<?php echo $date; ?>]" value="<?php echo ents(array_get($data, 'topic_title')); ?>" />
+					<input type="text" name="<?php echo $f_topic; ?>" value="<?php echo ents(array_get($data, 'topic_title')); ?>" />
 				</td>
 			</tr>
 			<tr>
@@ -691,7 +777,7 @@ class View_Services__List_All extends View
 						?>
 						<tr>
 							<td>
-								<input type="text" name="bible_refs[<?php echo $congid; ?>][<?php echo $date; ?>][]" class="bible-ref" value="<?php echo ents($this->_formatBible(array_get($reading, 'bible_ref', ''), FALSE)); ?>" />
+								<input type="text" name="<?php echo $f_refs; ?>" class="bible-ref" value="<?php echo ents($this->_formatBible(array_get($reading, 'bible_ref', ''), FALSE)); ?>" />
 							</td>
 							<td class="bible-options">
 
@@ -704,13 +790,13 @@ class View_Services__List_All extends View
 									the hidden field when the checkbox is clicked */
 									?>
 									<input type="checkbox"  class="toggle-next-hidden" />
-									<input type="hidden" name="bible_to_read[<?php echo $congid; ?>][<?php echo $date; ?>][]" value="<?php echo (int)array_get($reading, 'to_read'); ?>" />
+									<input type="hidden" name="<?php echo $f_read; ?>" value="<?php echo (int)array_get($reading, 'to_read'); ?>" />
 								</label>
 
 								<label title="to be preached on" class="preserve-value">
 									P
 									<input type="checkbox" class="toggle-next-hidden bible-to-preach" />
-									<input type="hidden" name="bible_to_preach[<?php echo $congid; ?>][<?php echo $date; ?>][]" value="<?php echo (int)array_get($reading, 'to_preach'); ?>" />
+									<input type="hidden" name="<?php echo $f_preach; ?>" value="<?php echo (int)array_get($reading, 'to_preach'); ?>" />
 								</label>
 
 								<img src="<?php echo BASE_URL; ?>/resources/img/arrow_up_thin_black.png" class="icon move-row-up" title="Move up" />
@@ -727,13 +813,13 @@ class View_Services__List_All extends View
 			<tr>
 				<th>Format</th>
 				<td class="format">
-					<input type="text" name="format_title[<?php echo $congid; ?>][<?php echo $date; ?>]" value="<?php echo array_get($data, 'format_title'); ?>" />
+					<input type="text" name="<?php echo $f_format; ?>" value="<?php echo array_get($data, 'format_title'); ?>" />
 					<i class="icon-chevron-down clickable toggle-next-tr <?php if (!empty($data['notes'])) echo 'got-notes'; ?>" title="Show notes" ></i>
 				</td>
 			</tr>
 			<tr class="hide">
 				<th>Notes</th>
-				<td><textarea class="full-width-input" name="notes[<?php echo $congid; ?>][<?php echo $date; ?>]"><?php echo ents(array_get($data, 'notes')); ?></textarea></td>
+				<td><textarea class="full-width-input" name="<?php echo $f_notes; ?>"><?php echo ents(array_get($data, 'notes')); ?></textarea></td>
 			</tr>
 		</table>
 		<?php

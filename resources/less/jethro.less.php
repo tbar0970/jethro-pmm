@@ -1792,6 +1792,25 @@ table.service-details td table td input {
 	margin-bottom: 0px !important;
 }
 
+/* Pencil toggle button that switches a service date cell between read-only and editable */
+#body table.service-program .service-date-edit-toggle {
+	color: #aaa;
+	padding: 0 2px;
+	font-size: 1em;
+	vertical-align: middle;
+}
+#body table.service-program .service-date-edit-toggle:hover { color: #333; }
+
+/* Six-dot grip used as a drag handle to reorder service rows */
+#body table.service-program .drag-handle {
+	cursor: grab;
+	color: #ccc;
+	padding: 0 4px 0 0;
+	font-size: 1.1em;
+	vertical-align: middle;
+}
+#body table.service-program .drag-handle:hover { color: #555; }
+
 
 /*********** NOTES **************/
 .notes-history-entry small {
