@@ -104,8 +104,9 @@ require_once JETHRO_ROOT.'/db_objects/roster_view.class.php';
 //get the roster information using the roster view id
 //
 $view = $GLOBALS['system']->getDBObject('roster_view', $roster_id);
-$start_date = date("Y-m-d");
-$end_date = date('Y-m-d', strtotime("+6 day"));
+$start_date_offset = (int)getvar('START_DATE_OFFSET', 0);
+$start_date = date('Y-m-d', strtotime("+$start_date_offset day"));
+$end_date = date('Y-m-d', strtotime("+" . ($start_date_offset + 6) . " day"));
 
 
 //
