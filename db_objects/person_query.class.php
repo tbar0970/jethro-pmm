@@ -1701,7 +1701,7 @@ class Person_Query extends DB_Object
 
 		if ($format == 'array') {
 			return $data;
-		} 
+		}
 	}
 
 	function _printResultGroups($res, $params, $format)
@@ -2231,8 +2231,8 @@ class Person_Query extends DB_Object
 				}
 
 				unset($rule['periodtype']); // Now captured with special values for 'from' and 'to'.
-				unset($rule['periodlength']); 
-				unset($rule['periodanchor']); 
+				unset($rule['periodlength']);
+				unset($rule['periodanchor']);
 			}
 		}
 
