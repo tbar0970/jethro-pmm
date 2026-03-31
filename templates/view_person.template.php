@@ -42,17 +42,17 @@ if ($GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
 			<div class="modal-header">
 				<h4><?php echo _('Add ')?> <?php $person->printFieldValue('name'); ?><?php echo _(' to a group');?></h4>
 			</div>
-			<div class="modal-body">
+			<div class="modal-body" style="height: 50vh">
 				<?php
 				$GLOBALS['system']->includeDBClass('person_group');
 				echo _('Add as a ');
 				Person_Group::printMembershipStatusChooser('membership_status');
 				echo _(' of ');
-				$can_add_group = Person_Group::printChooser('groupid', 0, array_keys($groups));
+				$can_add_group = Person_Group::printChooser('groupid', 0);
 				?>
 			</div>
 			<div class="modal-footer">
-				<input type="submit" class="btn" value="Go" accesskey="s" onclick="if (!$('[name=groupid]').val()) { alert('<?php echo _('Choose a group first'); ?>'); return false; }" />
+				<input type="submit" class="btn" value="Go" accesskey="s" onclick="if (!parseInt($('[name=groupid]').val())) { alert('<?php echo _('Choose a group first'); ?>'); return false; }" />
 				<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
 			</div>
 		</form>

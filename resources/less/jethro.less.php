@@ -13,6 +13,7 @@
 @import "bootstrap.less";
 @import "responsive.less";
 @import "../css/jquery-ui.min.css";
+@import "../css/treeview.css?v2";
 
 /* Fix for less v2 and bootstrap 2 - see https://stackoverflow.com/questions/26628309/less-v2-does-not-compile-twitters-bootstrap-2-x */
 #grid {
@@ -2011,6 +2012,14 @@ li div.delete-list-item, li div.delete-chosen-person {
 	position: relative;
 	top: 0.5em;
 	margin-top: -4px;
+}
+
+/***********GROUP CHOOSER ********** */
+span.group-chooser-container {
+	display: inline-block;
+}
+.group-chooser-multi.active select, .group-chooser.active {
+	outline: 2px solid rgb(0,94,204);
 }
 
 /********* DOCUMENTS ************/

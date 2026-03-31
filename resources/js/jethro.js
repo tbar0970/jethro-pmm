@@ -232,8 +232,6 @@ $(document).ready(function() {
 				radiosByVal['any'].checked = true;
 				JethroDateRangePicker.updateDisplayValue(this, 'any');
 				break;
-			default:
-				console.log("Did not diagnose value "+this.value);
 		}
 	});
 
@@ -691,11 +689,133 @@ $(document).ready(function() {
 			}
 		})
 	})
+
+	JethroGroupChooser.onPageLoad();
 });
 
-
-
 /*** SEARCH CHOOSERS ****/
+
+var JethroGroupChooser = {};
+JethroGroupChooser.containerIndex = 0;
+JethroGroupChooser.groupTrees = {};
+
+JethroGroupChooser.onPageLoad = function() {
+	$('div.group-chooser-multi').each(JethroGroupChooser.initMultiChooser);
+
+	$('select.group-chooser, div.group-chooser-multi').mousedown(function(event) {
+		event.stopPropagation();
+		event.preventDefault();
+		var treeContainer = JethroGroupChooser.getTreeContainer(this);
+		if ($(this).hasClass('active')) {
+			$(this).removeClass('active');
+			treeContainer.hide(400);
+		} else {
+			$('.custom-treeview-wrapper').hide(400); // close any open ones
+			$('.group-chooser-multi, select.group-chooser').removeClass('active');
+			$(this).addClass('active');
+
+			// the selectbox might have a margin-bottom. We don't want a gap before the treeContainer.
+			// so we add a negative margin to the treeContainer, if necessary, to compensate.
+			const selectBoxStyle = window.getComputedStyle(this);
+			treeContainer.css('margin-top', ((parseInt(selectBoxStyle.marginBottom) * -1)+2)+"px");
+			treeContainer.show(400, function() {
+				$(this).find('input[type=text]:visible').focus();
+			});
+			$(document).on('mousedown', function(event) {
+				if ($(event.target).closest('.custom-treeview-wrapper').length == 0) {
+					$('.custom-treeview-wrapper').hide(400); // close any open ones
+					$('.group-chooser-multi, select.group-chooser').removeClass('active');
+				}
+			})
+		}
+		return false;
+	});
+}
+
+// This runs on page load to setup the TreeView for multi group choosers.
+JethroGroupChooser.initMultiChooser = function() {
+	var selectContainer = $(this);
+	var containerID = this.id+'-container';
+	var ourOptions = JethroGroupChooser.groupTrees[$(this).attr('data-allow-category-select')];
+	const tree1 = new Treeview({
+		containerId: containerID,
+		data: ourOptions,
+		searchEnabled: true,
+		checkboxSelectionEnabled: true,
+		initiallyExpanded: false,
+		multiSelectEnabled: true,
+		showChildrenOnSearch: true,
+		showExpandCollapseAllButtons: true,
+		searchPlaceholder: "Search groups...",
+		onSelectionChange: (selectedNodesData) => {
+			if (selectedNodesData.length == 0) {
+				selectedNodesData = [{id:0,name:"--Choose--"}];
+			}
+			var name = selectContainer.find('select:first').attr('name');
+			var html = '';
+			var opt = document.createElement('option');
+			for (var i=0; i < selectedNodesData.length; i++) {
+				opt.innerText = selectedNodesData[i].name; // this is to escape entities etc
+				html += '<select name="'+name+'"><option value="'+selectedNodesData[i].id+'">'+opt.innerHTML+'</option></select>'
+			}
+			selectContainer.html(html);
+		}
+	});
+
+	$(this).find('option').each(function() {
+		if (this.value != 0) {
+			tree1.selectNodeById(this.value);
+			tree1.expandToShowSelected();
+		}
+	});
+	$('#'+containerID).hide();
+}
+
+// This runs when a group chooser is clicked.
+// For single choosers, this sets up the TreeView on the fly
+// because sometimes single choosers are inside an expanding table
+JethroGroupChooser.getTreeContainer = function(selectBox)
+{
+	var treeContainer = $(selectBox).parents('.group-chooser-container').find('.custom-treeview-wrapper');
+	if (!treeContainer.attr('id')) {
+
+		var ourOptionElt = $(selectBox).find('option').get(0);
+		// construct a unique ID - the select box may not have a unique name/id
+		JethroGroupChooser.containerIndex++;
+		treeContainer.attr('id', 'group_chooser_container_'+JethroGroupChooser.containerIndex);
+		var ourOptions = JethroGroupChooser.groupTrees[$(selectBox).attr('data-allow-category-select')];
+		const tree1 = new Treeview({
+			containerId: treeContainer.attr('id'),
+			data: ourOptions,
+			searchEnabled: true,
+			initiallyExpanded: false,
+			multiSelectEnabled: false,
+			searchPlaceholder: "Search groups...",
+			showChildrenOnSearch: true,
+			showExpandCollapseAllButtons: true,
+			onSelectionChange: (selectedNodesData) => {
+				if (selectedNodesData.length > 0) {
+					ourOptionElt.value = selectedNodesData[0].id;
+					ourOptionElt.innerText = selectedNodesData[0].name;
+				} else {
+					ourOptionElt.value = '';
+					ourOptionElt.innerText = '---';
+				}
+				ourOptionElt.parentNode.selectedIndex = 0;
+				treeContainer.hide();
+			}
+		});
+		if (selectBox.tagName == 'SELECT') {
+			if (selectBox.options[0].value > 0) {
+				tree1.selectNodeById(selectBox.options[0].value);
+				tree1.expandToShowSelected();
+			}
+		}
+	}
+
+	return treeContainer;
+}
+
 
 var JethroSearchChooserMulti = {};
 

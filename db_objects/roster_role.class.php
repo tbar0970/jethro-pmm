@@ -83,7 +83,7 @@ class Roster_Role extends db_object
 		if (($name == 'volunteer_group') && (empty($this->id) || $this->haveLock())) {
 			$GLOBALS['system']->includeDBClass('person_group');
 			$value = array_get($this->values, $name);
-			Person_Group::printChooser($prefix.$name, $value, array(), null, '(None)');
+			Person_Group::printChooser($prefix.$name, $value, '(None)');
 		} else if ($name == 'teams') {
 			Person_Group::printMultiChooser('teams', $this->values['teams']);
 		} else {

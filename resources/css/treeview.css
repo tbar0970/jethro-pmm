@@ -1,0 +1,206 @@
+/* treeview.css  - https://github.com/stefaneichert/quercus.js 
+  with modifications. */
+
+/* Base container for the treeview instance */
+.custom-treeview-wrapper {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 5px;
+    border-radius: 5px;
+    max-width: 600px;
+    margin: 2px auto;
+    box-sizing: border-box; 
+    max-height: 35vh;
+    overflow: auto;
+    display: none;
+	position: absolute;
+	z-index: 9999;
+	box-shadow: 3px 3px 10px rgba(0,0,0,.2);    
+}
+
+/* Wrapper for search input and clear button */
+.treeview-search-input-wrapper {
+    position: relative;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+}
+
+/* Search input specific to the library */
+.treeview-search-input {
+    width: 100%;
+    padding: 8px 30px 8px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.9em !important;
+    height: 15px !important;
+}
+.custom-treeview-wrapper .btn-mini {
+    height: 24px !important;
+    color: #444;
+}
+
+/* Styling for the clear button */
+.treeview-search-clear {
+    position: absolute;
+    right: 8px; /* Position from the right edge of the wrapper */
+    top: 50%; /* Vertically center */
+    transform: translateY(-50%); /* Adjust for true vertical centering */
+    cursor: pointer;
+    color: #888;
+    font-size: 1.2em; /* Slightly larger 'x' */
+    border: none;
+    padding: 0;
+    line-height: 1; /* Ensure consistent vertical alignment */
+    display: none; /* Hidden by default, shown by JS when text is present */
+}
+
+.treeview-search-clear:hover {
+    color: #555;
+}
+
+
+/* Tree structure styling */
+.custom-treeview-wrapper ul {
+    list-style: none;
+    padding-left: 20px; /* Indent children */
+    margin: 0;
+}
+.custom-treeview-wrapper > ul {
+    padding-left: 0px; /* don't indent the top level ul */
+}
+
+.custom-treeview-wrapper li > ul { /* Only nested ULs get collapse animation */
+    height: 0;
+    overflow: hidden;
+    transition: height 0.3s ease-out;
+}
+
+.custom-treeview-wrapper li {
+    margin: 2px 0;
+    position: relative;
+    font-size: 0.95em;
+    color: #333;
+    cursor: default; /* Default cursor for the LI, actual clickables get specific cursors */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Wrapper for expander icon and text (flexbox container) */
+.custom-treeview-wrapper .treeview-node-content {
+    display: flex; /* Use flexbox for icon and text alignment */
+    align-items: center; /* Vertically align icon and text */
+    padding-left: 0;
+    cursor: pointer; /* Cursor for the clickable node content */
+    user-select: none; /* Prevent text selection on node content */
+    padding: 2px 0; /* Small vertical padding for clickable area */
+}
+
+/* Style for non-selectable nodes */
+.custom-treeview-wrapper .treeview-node-content.not-selectable {
+    cursor: default; /* Change cursor to default */
+    opacity: 0.6; /* Dim the text to indicate it's not interactive */
+}
+
+/* Style the actual text span for the node name */
+.custom-treeview-wrapper .treeview-node-text {
+    flex-grow: 1; /* Allow text to take remaining space */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.custom-treeview-wrapper .treeview-node-content:has(+ ul) {
+    font-weight: bold; /* bold headings for non-leaves */
+}
+
+/* Styling for the explicit expander icon element */
+.treeview-expander {
+    display: inline-block;
+    width: 20px; /* Space for the icon */
+    text-align: center;
+    color: #666;
+    font-weight: bold;
+    cursor: pointer; /* Separate cursor for expander */
+    user-select: none;
+    flex-shrink: 0; /* Prevent icon from shrinking */
+    font-size: 130%;
+    transition: transform 0.2s ease-in-out; /* Smooth transition for icon */
+    position: relative;
+    top: -3px;
+}
+
+/* Styling for the placeholder span for leaf nodes */
+.treeview-expander-placeholder {
+    display: inline-block;
+    width: 20px; /* Same width as expander for consistent alignment */
+    flex-shrink: 0;
+}
+
+/* .custom-treeview-wrapper .treeview-node-content:hover { /* Hover on the content wrapper */
+/*    background-color: #e0e0e0; */
+/* } */
+
+.custom-treeview-wrapper li * {
+    transition: background-color 0.2s ease-in-out;
+}
+
+.custom-treeview-wrapper li.selected > .treeview-node-content { /* Apply selected style to the content wrapper */
+    background-color: rgba(100, 149, 237, 0.22);
+    color: #0056b3;
+    border-radius: 3px;
+}
+
+
+/* For search results */
+.custom-treeview-wrapper li.hidden {
+    display: none !important;
+}
+.custom-treeview-wrapper li.highlight {
+    box-shadow: none !important;
+}
+
+/* Apply highlight to the node content wrapper */
+.custom-treeview-wrapper li.highlight > .treeview-node-content {
+    font-style: italic;
+    color: rgb(29, 106, 18);
+    border-radius: 3px;
+}
+
+/* Reset styles for ALL descendant <li> elements of a highlighted <li> */
+.custom-treeview-wrapper li.highlight li {
+    font-style: normal;
+    color: #333;
+    background-color: transparent;
+}
+
+/* Ensure that if a nested LI is also a match, it still gets its own highlight. */
+.custom-treeview-wrapper li.highlight li.highlight > .treeview-node-content {
+    font-style: italic;
+    color: rgb(29, 106, 18);
+}
+.treeview-button-container {
+    text-align: right;
+}
+
+.treeview-search-input-wrapper {
+    flex-grow: 1;
+}
+
+.treeview-checkbox {
+    margin-right: 5px !important; /* Space between checkbox and expander/text */
+    margin-top: 0px !important;
+    flex-shrink: 0; /* Prevent checkbox from shrinking */
+    cursor: pointer;
+    transform: scale(1.1); /* Slightly larger checkbox */
+}
+.not-selectable .treeview-checkbox {
+    display: none;
+}
+.treeview-controls-container {
+    display: flex;
+}
+
+.custom-treeview-wrapper .btn {
+    white-space: nowrap;
+}

@@ -450,103 +450,139 @@ class Person_Group extends db_object
 
 	static function printMultiChooser($name, $value, $exclude_groups=Array(), $allow_category_select=FALSE)
 	{
-		?>
-		<table class="expandable">
-		<?php
-		foreach ($value as $id) {
+		static $gotGroups = NULL;
+		static $groupsTreeCache = Array(0 => NULL, 1 => NULL);
+		if ($groupsTreeCache[(int)$allow_category_select] === NULL) {
+			// Save the groups tree in a JS variable for the treeselect to use
+			$cats = $GLOBALS['system']->getDBObjectData('person_group_category', Array(), 'OR', 'name');
+			$cats[0] = Array('name' => 'Uncategorised groups', 'parent_category' => NULL);
+			$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('is_archived' => 0, 'id' => $value), 'OR', 'name');
+			$groupsTreeCache[(int)$allow_category_select] = self::_getGroupTree($cats, $groups, $allow_category_select);
+			$gotGroups = !empty($groups);
 			?>
-			<tr>
-				<td>
-					<?php Person_Group::printChooser($name.'[]', $id, $exclude_groups, $allow_category_select); ?>
-				</td>
-			</tr>
+			<script>JethroGroupChooser.groupTrees[<?php echo (int)$allow_category_select; ?>] = <?php echo json_encode($groupsTreeCache[$allow_category_select]); ?>;</script>
 			<?php
 		}
-		?>
-			<tr>
-				<td>
-					<?php $gotGroups = Person_Group::printChooser($name.'[]', 0, $exclude_groups, $allow_category_select); ?>
-				</td>
-			</tr>
-		</table>
-		<?php
-		return $gotGroups;
-	}
-
-	static function printChooser($fieldname, $value, $exclude_groups=Array(), $allow_category_select=FALSE, $empty_text='(Choose)')
-	{
-		static $cats = NULL;
-		static $groupsCache = NULL;
-		if ($cats === NULL) $cats = $GLOBALS['system']->getDBObjectData('person_group_category', Array(), 'OR', 'name');
-		if ($value === NULL) {
-			if ($groupsCache === NULL) $groupsCache = $GLOBALS['system']->getDBObjectData('person_group', Array('is_archived' => 0), 'OR', 'name');
-			$groups = $groupsCache;
-		} else {
-			$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('is_archived' => 0, 'id' => $value), 'OR', 'name');			
-		}
-
-		if (empty($groups)) {
+		if (!$gotGroups) {
 			?><i>There are no groups in the system yet</i> &nbsp;<?php
 			return FALSE;
 		}
+
+
+		$chosen = Array();
+		if (count(array_filter($value)) == 0) {
+			$chosen = Array(0 => Array('name' => '--Choose--'));
+		} else {
+			// For each of our selected groups/categories, we print a select box contining a single option.
+			// The treeselect JS handles the rest.
+			// There's a bit of faffing to look up names of selected groups AND categories, intermingled.
+			$chosen = array_flip(array_filter($value)); // got our array keys in place...
+			$catids = $groupids = Array();
+			foreach ($chosen as $val => $x) {
+				if (is_string($val) && ($val[0] == 'c')) {
+					$catids[] = substr($val, 1);
+				} else {
+					$groupids[] = $val;
+				}
+			}
+			$allData = $GLOBALS['system']->getDBOBjectData('person_group', Array('(id'=>$groupids));
+			$allData['c0'] = Array('name' => 'Uncategorised Groups (all)');
+			foreach ($GLOBALS['system']->getDBOBjectData('person_group_category', Array('(id'=>$catids)) as $k => $v) {
+				$allData['c'.$k] = $v;
+			}
+			foreach ($chosen as $val => $x) {
+				$chosen[$val] = $allData[$val];
+			}
+		}
+
 		?>
-		<select name="<?php echo $fieldname; ?>">
-			<option value=""><?php echo ents($empty_text); ?></option>
+		<div class="dropdown group-chooser-container">
+			<div class="group-chooser-multi" data-allow-category-select="<?php echo (int)$allow_category_select; ?>" id="<?php echo ents($name); ?>">
 			<?php
-			self::_printChooserOptions($cats, $groups, $value, $allow_category_select);
-			if ($allow_category_select) {
-				$sel = ($value === 'c0') ? ' selected="selected"' : '';
+			foreach ($chosen as $gid => $gdetail) {
 				?>
-				<option value="c0" class="strong"<?php echo $sel; ?>>Uncategorised Groups (ALL)</option>
-				<?php
-				self::_printChooserGroupOptions($groups, 0, $value);
-			} else {
-				?>
-				<optgroup label="Uncategorised Groups">
-				<?php self::_printChooserGroupOptions($groups, 0, $value); ?>
-				</optgroup>
+				<select name="<?php echo ents($name);?>[]">
+					<option selected value="<?php echo ents($gid); ?>">
+						<?php echo ents($gdetail['name']); ?>
+					</option>
+				</select>
 				<?php
 			}
 			?>
-		</select>
+			</div>
+			<div class="custom-treeview-wrapper" id="<?php echo ents($name); ?>-container"></div>
+		</div>
 		<?php
-
 		return TRUE;
 	}
 
-	private static function _printChooserOptions($cats, $groups, $value, $allow_category_select=FALSE, $parentcatid=0, $prefix='')
-	{
-		foreach ($cats as $cid => $cat) {
-			if ($cat['parent_category'] != $parentcatid) continue;
-			if ($allow_category_select) {
-				$sel = ($value === 'c'.$cid) ? ' selected="selected"' : '';
-				?>
-				<option value="c<?php echo $cid; ?>" class="strong"<?php echo $sel; ?>><?php echo $prefix.ents($cat['name']); ?> (ALL)</option>
-				<?php
-				self::_printChooserGroupOptions($groups, $cid, $value, $prefix.'&nbsp;&nbsp;&nbsp;');
-				self::_printChooserOptions($cats, $groups, $value, $allow_category_select, $cid, $prefix.'&nbsp;&nbsp;');
-			} else {
-				?>
-				<optgroup label="<?php echo $prefix.ents($cat['name']); ?>">
-				<?php
-				self::_printChooserGroupOptions($groups, $cid, $value);
-				self::_printChooserOptions($cats, $groups, $value, $allow_category_select, $cid, $prefix.'&nbsp;&nbsp;');
-				?>
-				</optgroup>
-				<?php
-			}
-		}
-	}
 
-	private static function _printChooserGroupOptions($groups, $catid, $value, $prefix='')
+	static function printChooser($fieldname, $value, $empty_text='(Choose)')
 	{
-		foreach ($groups as $gid => $group) {
-			if ($group['categoryid'] != $catid) continue;
-			$sel = ($gid == $value) ? ' selected="selected"' : '';
+		static $groups = NULL;
+		static $gotGroups = NULL;
+		static $groupsTreeCache = Array(0 => NULL, 1 => NULL);
+		if ($groupsTreeCache[0] === NULL) {
+			// Save the groups tree in a JS variable for the treeselect to use
+			$cats = $GLOBALS['system']->getDBObjectData('person_group_category', Array(), 'OR', 'name');
+			$cats[0] = Array('name' => 'Uncategorised groups', 'parent_category' => NULL);
+			$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('is_archived' => 0, 'id' => $value), 'OR', 'name');
+			$groupsTreeCache[0] = self::_getGroupTree($cats, $groups, 0);
+			$gotGroups = !empty($groups);
 			?>
-			<option value="<?php echo (int)$gid; ?>"<?php echo $sel; ?>><?php echo $prefix.ents($group['name']); ?></option>
+			<script>JethroGroupChooser.groupTrees[0] = <?php echo json_encode($groupsTreeCache[0]); ?>;</script>
 			<?php
 		}
+
+		if (!$gotGroups) {
+			?><i>There are no groups in the system yet</i> &nbsp;<?php
+			return FALSE;
+		}
+
+		?>
+		<span class="dropdown group-chooser-container">
+		<select class="group-chooser" name="<?php echo ents($fieldname);?>" data-allow-category-select="0">
+			<option selected value="<?php echo (int)$value; ?>">
+				<?php 
+				if ($value) {
+					if (isset($groups[$value])) {
+						echo ents($groups[$value]['name']);
+					} else {
+						echo ents('!! Error: Group #'.(int)$value." not found");
+					}
+				} else {
+					echo ents($empty_text);
+				}
+				?>
+			</option>
+		</select>
+		<div class="custom-treeview-wrapper" id=""></div>
+		</span>
+		<?php
+		return TRUE;
+	}
+
+	private static function _getGroupTree($cats, $groups, $allow_category_select, $parentcatid=NULL)
+	{
+		$res = Array();
+		foreach ($cats as $cid => $cat) {
+			if ($cat['parent_category'] !== $parentcatid) continue;
+			$entry = Array(
+				'id' => 'c'.$cid,
+				'name' => $cat['name'].($allow_category_select ? ' (ALL)' : ''),
+				'selectable' => (bool)$allow_category_select,
+				'children' => self::_getGroupTree($cats, $groups, $allow_category_select, $cid)
+			);
+			foreach ($groups as $gid => $group) {
+				if ($group['categoryid'] != $cid) continue;
+				$entry['children'][] = Array(
+					'id' => $gid,
+					'name' => $group['name'],
+				);
+			}
+			$res[] = $entry;
+		}
+		return $res;
 	}
 
 	public function canRecordAttendanceOn($date)
