@@ -73,6 +73,9 @@ class View_Persons__Reports extends View
 	{
 		if (!empty($_REQUEST['configure'])) {
 			// PRINT THE FORM TO CONFIGURE THE REPORT
+			foreach (Person_Query::formatValidationErrors($this->_query->getValidationErrors()) as $message) {
+				print_message($message, 'warning');
+			}
 			?>
 			<form method="post" class="form-horizontal" action="<?php echo build_url(Array('configure' => NULL)); ?>">
 				<input type="hidden" name="query_submitted" value="1" />

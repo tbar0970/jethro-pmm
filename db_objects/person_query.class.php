@@ -16,6 +16,8 @@ class Person_Query extends DB_Object
 
 	private $_custom_fields = Array();
 
+	private $_bad_params = Array();
+
 	const CUSTOMFIELDVAL_SEP = '__next__';
 	const CUSTOMFIELD_PREFIX = 'CUSTOMFIELD---';
 
@@ -1059,12 +1061,270 @@ class Person_Query extends DB_Object
 	}
 
 
+	function getValidationErrors(): array
+	{
+		$params = $this->_convertParams($this->getValue('params'));
+		if (empty($params)) return Array();
+		list(, $badParams) = $this->validateQueryParams($params);
+		return $badParams;
+	}
+
+
+	// Validates query params against current database state, returning a two-element array:
+	//   [$cleanParams, $badParams]
+	//
+	// $cleanParams is $params with all invalid references removed.
+	// $badParams mirrors $params in structure, but contains only the invalid references —
+	// each key present in $badParams corresponds to the same key in $params, and its value
+	// contains only the entries that were invalid (e.g. deleted custom fields, deleted groups,
+	// deleted select options). For scalar params (sort_by, attendance_groupid) the bad value
+	// is carried across directly. For custom field select options, the entry is
+	// ['criteria' => ..., 'val' => [<bad option ids>]] rather than TRUE, to preserve context.
+	//
+	// $badParams can be passed to formatValidationErrors() to produce human-readable messages.
+	function validateQueryParams(array $params): array
+	{
+		$db =& $GLOBALS['db'];
+		$badParams = Array();
+
+		// CUSTOM FIELD FILTERS
+		foreach (array_keys(array_get($params, 'custom_fields', Array())) as $fieldid) {
+			if (!isset($this->_custom_fields[$fieldid])) {
+				$badParams['custom_fields'][$fieldid] = TRUE;
+				unset($params['custom_fields'][$fieldid]);
+			}
+		}
+
+		// CUSTOM FIELD SELECT OPTIONS
+		$needed_option_ids = Array();
+		foreach (array_get($params, 'custom_fields', Array()) as $fieldid => $values) {
+			if ($this->_custom_fields[$fieldid]['type'] == 'select'
+				&& in_array(array_get($values, 'criteria', 'contains'), Array('contains', 'not'))
+				&& !empty($values['val'])) {
+				foreach ($values['val'] as $optionid) {
+					if ($optionid != 0) $needed_option_ids[] = (int)$optionid; // 0 = 'other' pseudo-option
+				}
+			}
+		}
+		$existing_option_ids = empty($needed_option_ids) ? Array() :
+			$db->queryCol('SELECT id FROM custom_field_option WHERE id IN ('.implode(',', array_unique($needed_option_ids)).')');
+		foreach (array_get($params, 'custom_fields', Array()) as $fieldid => $values) {
+			if ($this->_custom_fields[$fieldid]['type'] != 'select') continue;
+			if (!in_array(array_get($values, 'criteria', 'contains'), Array('contains', 'not'))) continue;
+			if (empty($values['val'])) continue;
+			$bad_options = Array();
+			foreach ($values['val'] as $key => $optionid) {
+				if ($optionid != 0 && !in_array((int)$optionid, $existing_option_ids)) {
+					$bad_options[] = $optionid;
+					unset($params['custom_fields'][$fieldid]['val'][$key]);
+				}
+			}
+			if ($bad_options) {
+				$badParams['custom_fields'][$fieldid] = Array('criteria' => $values['criteria'], 'val' => $bad_options, 'name' => $this->_custom_fields[$fieldid]['name']);
+				if (empty($params['custom_fields'][$fieldid]['val'])) {
+					// All options were invalid; remove the whole filter to avoid flipping its meaning
+					unset($params['custom_fields'][$fieldid]);
+				}
+			}
+		}
+
+		// RULE FIELD FILTERS (person_status, congregation, age_bracket, address_state)
+		$rule_entity_tables = Array(
+			'p.status'         => 'person_status',
+			'p.congregationid' => 'congregation',
+			'p.age_bracketid'  => 'age_bracket',
+		);
+		foreach ($rule_entity_tables as $field => $table) {
+			$values = (array)array_get($params['rules'], $field, Array());
+			if (empty($values)) continue;
+			$int_ids = array_map('intval', $values);
+			$existing = array_map('intval', $db->queryCol('SELECT id FROM '.$table.' WHERE id IN ('.implode(',', array_unique($int_ids)).')'));
+			$bad = array_values(array_diff($int_ids, $existing));
+			if ($bad) {
+				$badParams['rules'][$field] = $bad;
+				$good = array_values(array_intersect($int_ids, $existing));
+				if ($good) {
+					$params['rules'][$field] = $good;
+				} else {
+					unset($params['rules'][$field]);
+				}
+			}
+		}
+		$state_values = (array)array_get($params['rules'], 'f.address_state', Array());
+		if (!empty($state_values)) {
+			$state_setting = $db->queryOne("SELECT value FROM setting WHERE symbol='ADDRESS_STATE_OPTIONS'");
+			$valid_states = $state_setting ? explode(',', $state_setting) : Array();
+			$bad_states = array_values(array_diff($state_values, $valid_states));
+			if ($bad_states) {
+				$badParams['rules']['f.address_state'] = $bad_states;
+				$good_states = array_values(array_intersect($state_values, $valid_states));
+				if ($good_states) {
+					$params['rules']['f.address_state'] = $good_states;
+				} else {
+					unset($params['rules']['f.address_state']);
+				}
+			}
+		}
+
+		// CUSTOM FIELD DISPLAY COLUMNS
+		foreach ($params['show_fields'] as $key => $field) {
+			if (0 === strpos($field, self::CUSTOMFIELD_PREFIX)) {
+				$fieldid = substr($field, strlen(self::CUSTOMFIELD_PREFIX));
+				if (!isset($this->_custom_fields[$fieldid])) {
+					$badParams['show_fields'][] = $field;
+					unset($params['show_fields'][$key]);
+				}
+			}
+		}
+
+		// CUSTOM FIELD SORT
+		$sortCustomField = NULL;
+		if (substr(array_get($params, 'sort_by', ''), 0, 7) == 'date---') {
+			$sortCustomField = substr($params['sort_by'], 8);
+		} else if (0 === strpos(array_get($params, 'sort_by', ''), self::CUSTOMFIELD_PREFIX)) {
+			$sortCustomField = substr($params['sort_by'], strlen(self::CUSTOMFIELD_PREFIX));
+		}
+		if ($sortCustomField !== NULL && !isset($this->_custom_fields[$sortCustomField])) {
+			$badParams['sort_by'] = $params['sort_by'];
+			$params['sort_by'] = 'p.last_name';
+		}
+
+		// GROUP FILTERS
+		$needed_group_ids = Array();
+		$needed_cat_ids = Array();
+		foreach (Array('include_groups', 'exclude_groups', 'include_familymember_groups') as $param_key) {
+			foreach (array_get($params, $param_key, Array()) as $id) {
+				if (substr($id, 0, 1) == 'c') {
+					$needed_cat_ids[] = (int)substr($id, 1);
+				} else {
+					$needed_group_ids[] = (int)$id;
+				}
+			}
+		}
+		if (!empty($params['attendance_groupid']) && $params['attendance_groupid'] != '__cong__') {
+			$needed_group_ids[] = (int)$params['attendance_groupid'];
+		}
+
+		$existing_group_ids = empty($needed_group_ids) ? Array() :
+			$db->queryCol('SELECT id FROM person_group WHERE id IN ('.implode(',', array_unique($needed_group_ids)).')');
+		$existing_cat_ids = empty($needed_cat_ids) ? Array() :
+			$db->queryCol('SELECT id FROM person_group_category WHERE id IN ('.implode(',', array_unique($needed_cat_ids)).')');
+
+		foreach (Array('include_groups', 'exclude_groups', 'include_familymember_groups') as $param_key) {
+			if (empty($params[$param_key])) continue;
+			foreach ($params[$param_key] as $key => $id) {
+				if (substr($id, 0, 1) == 'c') {
+					if (!in_array((int)substr($id, 1), $existing_cat_ids)) {
+						$badParams[$param_key][] = $id;
+						unset($params[$param_key][$key]);
+					}
+				} else {
+					if (!in_array((int)$id, $existing_group_ids)) {
+						$badParams[$param_key][] = $id;
+						unset($params[$param_key][$key]);
+					}
+				}
+			}
+			$params[$param_key] = array_values($params[$param_key]);
+		}
+
+		if (!empty($params['attendance_groupid']) && $params['attendance_groupid'] != '__cong__') {
+			if (!in_array((int)$params['attendance_groupid'], $existing_group_ids)) {
+				$badParams['attendance_groupid'] = $params['attendance_groupid'];
+				$params['attendance_groupid'] = '';
+			}
+		}
+
+		return Array($params, $badParams);
+	}
+
+
+	// Converts $badParams (as returned by validateQueryParams) into an array of
+	// human-readable warning strings, one per invalid reference. Each message names
+	// the deleted entity, its ID, and the consequence for report results (e.g. filters
+	// skipped, column absent, sort order changed). Safe to call with an empty array.
+	static function formatValidationErrors(array $badParams): array
+	{
+		$messages = Array();
+
+		// Deleted custom field options (filter results may be incomplete)
+		foreach (array_get($badParams, 'custom_fields', Array()) as $fieldid => $val) {
+			if (is_array($val)) {
+				foreach ($val['val'] as $optionid) {
+					$messages[] = sprintf('Custom field "%s" option (ID %s) used by this report has been deleted. Search results may be incorrect', $val['name'], $optionid);
+				}
+			}
+		}
+
+		// Deleted custom fields used as filters (results may be incomplete)
+		$bad_cf_filter_ids = Array();
+		foreach (array_get($badParams, 'custom_fields', Array()) as $fieldid => $val) {
+			if ($val === TRUE) $bad_cf_filter_ids[$fieldid] = TRUE;
+		}
+		foreach (array_keys($bad_cf_filter_ids) as $id) {
+			$messages[] = sprintf('A custom field this report filtered on (ID %s) has been deleted. Search results may be incorrect', $id);
+		}
+
+		// Deleted custom fields used as display columns (column will be absent)
+		$bad_cf_column_ids = Array();
+		foreach (array_get($badParams, 'show_fields', Array()) as $field) {
+			$cfid = substr($field, strlen(self::CUSTOMFIELD_PREFIX));
+			if (!isset($bad_cf_filter_ids[$cfid])) $bad_cf_column_ids[$cfid] = TRUE;
+		}
+		foreach (array_keys($bad_cf_column_ids) as $id) {
+			$messages[] = sprintf('A custom field this reported displayed (ID %s) as a column has been deleted', $id);
+		}
+
+		// Deleted custom field used as sort (sort order has changed)
+		if (!empty($badParams['sort_by'])) {
+			$messages[] = sprintf('A custom field this report sorted results by (ID %s) has been deleted', substr($badParams['sort_by'], strlen(self::CUSTOMFIELD_PREFIX)));
+		}
+
+		// Groups and group categories
+		$group_param_consequences = Array(
+			'include_groups'              => 'report may return fewer results than intended',
+			'exclude_groups'              => 'report may return more results than intended',
+			'include_familymember_groups' => 'report may return fewer results than intended',
+		);
+		foreach ($group_param_consequences as $param_key => $consequence) {
+			foreach (array_get($badParams, $param_key, Array()) as $id) {
+				if (substr($id, 0, 1) == 'c') {
+					$messages[] = sprintf('A group category (ID %s) this report filtered on has been deleted — %s', (int)substr($id, 1), $consequence);
+				} else {
+					$messages[] = sprintf('A group (ID %s) this report filtered on has been deleted — %s', (int)$id, $consequence);
+				}
+			}
+		}
+		if (!empty($badParams['attendance_groupid'])) {
+			$messages[] = sprintf('A group (ID %s) used for the attendance filter has been deleted. Search results may be incorrect', (int)$badParams['attendance_groupid']);
+		}
+
+		// Rule field filters (person_status, congregation, age_bracket, address_state)
+		$rule_entity_labels = Array(
+			'p.status'         => 'person status',
+			'p.congregationid' => 'congregation',
+			'p.age_bracketid'  => 'age bracket',
+		);
+		foreach ($rule_entity_labels as $field => $label) {
+			foreach (array_get(array_get($badParams, 'rules', Array()), $field, Array()) as $id) {
+				$messages[] = sprintf('A %s (ID %s) this report filtered on has been deleted. Search results may be incorrect', $label, $id);
+			}
+		}
+		foreach (array_get(array_get($badParams, 'rules', Array()), 'f.address_state', Array()) as $state) {
+			$messages[] = sprintf('An address state ("%s") this report filtered on has been removed from the configured state options. Search results may be incorrect', $state);
+		}
+
+		return $messages;
+	}
+
+
 	function getSQL($custom_select_fields=NULL)
 	{
 		$db =& $GLOBALS['db'];
 
 		$params = $this->_convertParams($this->getValue('params'));
 		if (empty($params)) return null;
+		list($params, $this->_bad_params) = $this->validateQueryParams($params);
 		$query = Array();
 		$query['from'] = 'person p
 						JOIN family f ON p.familyid = f.id
@@ -1661,6 +1921,12 @@ class Person_Query extends DB_Object
 
 		$sql = $this->getSQL();
 		if (is_null($sql)) return;
+
+		if ($format == 'html' && $this->_bad_params) {
+			foreach (self::formatValidationErrors($this->_bad_params) as $message) {
+				print_message($message, 'warning');
+			}
+		}
 
 		if ($format == 'html' && in_array('checkbox', $params['show_fields'])) {
 			echo '<form method="post" enctype="multipart/form-data" class="bulk-person-action">';
