@@ -2032,6 +2032,49 @@ function setDateField(prefix, value)
 	document.getElementsByName(prefix+'_d')[0].value = parseInt(valueBits[2], 10);
 }
 
+// Prevent double-submission of POST forms, which on slow connections can cause
+// race conditions where the second request arrives after the first has already
+// changed server state (e.g. deleting a person or marking a note complete),
+// making the record invisible to the second request and producing a fatal
+// error.
+//
+// The not(':data-set-form-target') exclusion is for 'bulk action' forms that
+// target a popup/iframe; namely:
+//  1. Email (target="hidden") — sends a bulk email to selected people, submits
+//     into a hidden iframe so the main page stays active              
+//  2. Document merge preview (target="_blank") — previews mail-merge tags for
+//     selected people, opens in a new tab                              
+//  3. Envelopes (target="envelope") — prints envelopes for selected people,
+//     submits into an envelope-sized popup window           
+// Those form don't navigate away and the user may legitimately submit again.
+//
+$(document).ready(function() {
+	$('form[method=post]').not(':has([data-set-form-target])').on('submit', function(e) {
+		// An explanation of the first 4 lines:
+		// Some forms have multiple <input type=submit> buttons doing different
+		// things. For example, the "delete person" form has:
+		//
+		//   <input type="submit" name="confirm_archive" value="Archive only">
+		//   <input type="submit" name="confirm_archiveclean" value="Archive and
+		// Clean">
+		//   <input type="submit" name="confirm_delete" value="Delete altogether">
+		//
+		// If we disable submit buttons when one is clicked, that disabling happens
+		// immediately, before the POST. The POST will not include form params
+		// of disabled fields, and so we lose the
+		// &confirm_delete=Delete+altogether param which the server relies on to
+		// determine the operation.
+		//
+		// The workaround is to preserve that &confirm_delete= param in a hidden
+		// field, so the receiver still can tell what action was taken.
+		var submitter = e.originalEvent && e.originalEvent.submitter;
+		if (submitter && submitter.name) {
+			$(this).append($('<input type="hidden">').attr('name', submitter.name).val($(submitter).val()));
+		}
+		$(this).find('input[type=submit], button[type=submit]').prop('disabled', true);
+	});
+});
+
 // Allow certain submit buttons to target their form to an envelope-sized popup or hidden frame.
 // Used in envelopes bulk action
 $(document).ready(function() {
