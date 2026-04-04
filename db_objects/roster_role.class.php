@@ -196,6 +196,7 @@ class Roster_Role extends db_object
 			'teams' => [
 				'type' => 'reference',
 				'references' => 'person_group',
+				'label' => 'Team Groups',
 				'order_by' => 'name',
 				'allow_empty' => true,
 				'allow_multiple' => true
