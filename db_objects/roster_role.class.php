@@ -85,7 +85,7 @@ class Roster_Role extends db_object
 			$value = array_get($this->values, $name);
 			Person_Group::printChooser($prefix.$name, $value, '(None)');
 		} else if ($name == 'teams') {
-			Person_Group::printMultiChooser('teams', $this->values['teams']);
+			Person_Group::printMultiChooser('teams', $this->values['teams'] ?? []);
 		} else {
 			if ($name == 'active') {
 				$memberships = $this->getViewMemberships();
