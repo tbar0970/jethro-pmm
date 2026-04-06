@@ -78,12 +78,12 @@ $(document).ready(function() {
 		history.back();
 	});
 
-	// Ability to click anywhere on a table row to activate the link within it
+	// Ability to click anywhere on a table row to activate the first link within it
 	$('table.clickable-rows td').click(function(e) {
 		var t = $(this);
 		var myLinks = t.find('a, input');
 		if (!myLinks.length) {
-			childLinks = $(this).parent('tr').find('a');
+			childLinks = $(this).parent('tr').find('td>a[href!=#]');
 			if (childLinks.length) {
 				self.location = childLinks[0].href;
 			}
