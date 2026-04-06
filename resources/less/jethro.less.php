@@ -2018,6 +2018,11 @@ li div.delete-list-item, li div.delete-chosen-person {
 span.group-chooser-container {
 	display: inline-block;
 }
+.group-chooser-multi {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
 .group-chooser-multi.active select, .group-chooser.active {
 	outline: 2px solid rgb(0,94,204);
 }
