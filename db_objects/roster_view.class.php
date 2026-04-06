@@ -882,6 +882,7 @@ class roster_view extends db_object
 
 			?>
 			<input type="submit" class="btn" value="Save" accesskey="s" />
+			<a class="btn confirm-title" href="<?php echo build_url(Array('viewing' => 1)); ?>" title="Discard your changes">Cancel</a>
 			</form>
 			<?php
 		}
