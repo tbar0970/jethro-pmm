@@ -192,10 +192,11 @@ class Roster_Role extends db_object
 
 	function printSummary()
 	{
-		$this->fields = array_slice($this->fields, 0, 4) + [
+		$this->fields = array_slice($this->fields, 0, 5) + [
 			'teams' => [
 				'type' => 'reference',
 				'references' => 'person_group',
+				'label' => 'Team Groups',
 				'order_by' => 'name',
 				'allow_empty' => true,
 				'allow_multiple' => true
