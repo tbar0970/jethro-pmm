@@ -475,11 +475,26 @@ if (isset($tabs['rosters'])) {
 
 	$GLOBALS['system']->includeDBClass('roster_role_assignment');
 	$assignments = Roster_Role_Assignment::getUpcomingAssignments($person->id, '99 weeks');
+	$absences_choice = array_get($_REQUEST, 'absences'); // "all" or "upcoming"
+	if ($absences_choice) {
+		$_SESSION['person_absences_choice'] = $absences_choice;
+	} else {
+		$absences_choice = array_get($_SESSION, 'person_absences_choice', 'upcoming');
+	}
+	if (array_get($_REQUEST, 'absences') == 'all') {
+		$absences_heading = _('All planned absences');
+		$absences_filter = Array();
+	} else {
+		$absences_heading = _('Upcoming planned absences');
+		$absences_filter = Array('>=end_date' => date('Y-m-d'));
+
+	}
 	$absences = $GLOBALS['system']->getDBObjectData(
 											'planned_absence', 
-											Array('personid' => $person->id, '>=end_date' => date('Y-m-d')),
+											Array('personid' => $person->id)+$absences_filter,
 											'start_date'
 									);
+	
 	
 	?>
 	<h4>Upcoming roster assignments</h4>
@@ -528,13 +543,24 @@ if (isset($tabs['rosters'])) {
 	?>
 	<h4>
 		<?php
+		if ($absences_choice == "all") {
+			?>
+			<a class="pull-right" href="<?php echo build_url(Array('absences' => 'upcoming')); ?>#rosters"><i class="icon-eye-open"></i>Show upcoming only</a>
+			<?php
+		} else {
+			?>
+			<a class="pull-right" href="<?php echo build_url(Array('absences' => 'all')); ?>#rosters"><i class="icon-eye-open"></i>Show past absences</a>
+			<?php
+		}
 		if ($GLOBALS['user_system']->havePerm(PERM_EDITROSTER)) {
 			?>
 			<a class="pull-right" href="?view=_add_planned_absence&personid=<?php echo $person->id; ?>"><i class="icon-plus-sign"></i>Add</a>
 			<?php
 		}
+
+		echo $absences_heading; 
 		?>
-		Planned absences</h4>
+	</h4>
 	<?php
 	if ($absences) {
 		?>
