@@ -320,7 +320,7 @@ class View_Services__List_All extends View
 				$last_cong = count($this->_congregations) -1;
 				foreach ($this->_grouped_services as $date => $services) {
 					?>
-					<tr<?php if ($date == date('Y-m-d', strtotime('Sunday'))) echo ' class="roster-next"'; ?>>
+					<tr<?php if ($date <= date('Y-m-d', strtotime('+6 days'))) echo ' class="roster-next"'; ?>>
 						<th class="roster-date"><?php echo date('j M y', strtotime($date)); ?></th>
 					<?php
 					foreach ($this->_congregations as $i => $congid) {
