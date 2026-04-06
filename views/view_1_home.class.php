@@ -105,7 +105,7 @@ class View_Home extends View
 			<div class="homepage-box upcoming">
 				<?php
 				if ($GLOBALS['user_system']->havePerm(PERM_VIEWSERVICE)) {
-					$cutoff = date('Y-m-d', strtotime('+7 days'));
+					$cutoff = date('Y-m-d', strtotime('+6 days'));
 					$services = $GLOBALS['system']->getDBObjectData(
 									'service', 
 									Array('-date' => Array(date('Y-m-d'), $cutoff))
