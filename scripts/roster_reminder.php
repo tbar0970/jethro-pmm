@@ -131,8 +131,8 @@ foreach ($roster_lines as $line) {
 	$roster_array[] = str_getcsv($line, ",", '"', "");
 }
 $roster_date = '';
+$rds = Array();
 if (count($roster_array) > 2) {
-	$rds = Array();
 	$roster_date_index = array_search('Date', $roster_array[1]);
 	if ($roster_date_index !== FALSE) {
 		for ($i=2; $i < count($roster_array); $i++) {
