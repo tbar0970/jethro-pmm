@@ -845,7 +845,6 @@ table.custom-field-tooltip {
 }
 select, input, textarea,div.editor {
 	width: auto;
-	max-width: 97%;
 }
 .full-width-input {
 	width: 99.5%;
