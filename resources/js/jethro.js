@@ -714,10 +714,10 @@ JethroGroupChooser.onPageLoad = function() {
 			$('.group-chooser-multi, select.group-chooser').removeClass('active');
 			$(this).addClass('active');
 
-			// the selectbox might have a margin-bottom. We don't want a gap before the treeContainer.
-			// so we add a negative margin to the treeContainer, if necessary, to compensate.
 			const selectBoxStyle = window.getComputedStyle(this);
 			treeContainer.css('margin-top', ((parseInt(selectBoxStyle.marginBottom) * -1)+2)+"px");
+			var availableHeight = window.innerHeight - this.getBoundingClientRect().bottom - 10;
+			treeContainer.css('max-height', availableHeight + 'px');
 			treeContainer.show(400, function() {
 				$(this).find('input[type=text]:visible').focus();
 			});

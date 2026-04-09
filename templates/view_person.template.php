@@ -42,13 +42,13 @@ if ($GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
 			<div class="modal-header">
 				<h4><?php echo _('Add ')?> <?php $person->printFieldValue('name'); ?><?php echo _(' to a group');?></h4>
 			</div>
-			<div class="modal-body" style="height: 50vh">
+			<div class="modal-body" style="overflow: visible">
 				<?php
 				$GLOBALS['system']->includeDBClass('person_group');
-				echo _('Add as a ');
-				Person_Group::printMembershipStatusChooser('membership_status');
-				echo _(' of ');
+				echo _('Add to ');
 				$can_add_group = Person_Group::printChooser('groupid', 0);
+				echo _(' as a ');
+				Person_Group::printMembershipStatusChooser('membership_status');
 				?>
 			</div>
 			<div class="modal-footer">
