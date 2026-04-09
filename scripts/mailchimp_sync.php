@@ -135,6 +135,13 @@ function run_mc_sync($mc, $report_id, $list_id)
                 throw new \RuntimeException("[Syncing report $report_id to list $list_id] Could not find report #$report_id - please check your config in ".__FILE__);
         }
 
+        $validationErrors = $report->getValidationErrors();
+        if (!empty($validationErrors)) {
+                foreach (Person_Query::formatValidationErrors($validationErrors) as $message) {
+                        echo "[Syncing report $report_id to list $list_id] Validation error: $message\n";
+                }
+                exit(1);
+        }
 
         // BUSINESS TIME
 
