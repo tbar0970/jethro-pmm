@@ -2241,12 +2241,12 @@ function handleFamilyFormSubmit()
 
 /************************* GROUPS ************************/
 $(document).ready(function() {
-	const form = document.querySelector('#edit-roster_role')
-	if (!form) {
+	const select = document.querySelector('select[name=assign_multiple]')
+	if (!select) {
 		return
 	}
 	
-	document.querySelector('select[name=assign_multiple]').addEventListener('change', updateTeams)
+	select.addEventListener('change', updateTeams)
 	updateTeams()
 })
 
