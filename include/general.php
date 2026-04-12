@@ -796,9 +796,9 @@ function get_url_pathprefix()
 }
 
 /**
- * Infer Jethro's base URL from the request.
+ * Infer Jethro's absolute base URL from the request.
  */
-function base_url()
+function baseurl_absolute()
 {
     // Detect scheme
     $https = (

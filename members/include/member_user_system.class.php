@@ -87,7 +87,7 @@ class Member_User_System extends Abstract_User_System
 				WHERE id = '.(int)$person['id'];
 		$res = $GLOBALS['db']->exec($SQL);
 
-		$url = BASE_URL.'/members/?email='.rawurlencode($person['email']).'&verify='.rawurlencode($hash);
+		$url = baseurl_absolute().'/members/?email='.rawurlencode($person['email']).'&verify='.rawurlencode($hash);
 
 		$body = "Hi %s,
 
@@ -139,8 +139,8 @@ If you didn't request an account, you can just ignore this email";
 				  ->setSubject("Member Account request from multi-family email")
 				  ->setFrom(array(MEMBER_REGO_EMAIL_FROM_ADDRESS => SYSTEM_NAME.' Jethro System'))
 				  ->setTo(MEMBER_REGO_FAILURE_EMAIL)
-				  ->setBody("Hi, \n\nThis is an automated message from the Jethro system at ".BASE_URL.".\n\n"
-						  ."Somebody has used the form at ".BASE_URL."/members to request member-access to this Jethro system. \n\n"
+				  ->setBody("Hi, \n\nThis is an automated message from the Jethro system at ".baseurl_absolute().".\n\n"
+						  ."Somebody has used the form at ".baseurl_absolute()."/members to request member-access to this Jethro system. \n\n"
 						  ."The email address they specified was ".$_REQUEST['email']." but this address belongs to SEVERAL persons from DIFFERENT families.  It therefore can't be used for member access.\n\n"
 						  ."Please look up this email address in Jethro and contact the relevant persons to help them solve this problem.\n\n");
 
@@ -159,8 +159,8 @@ If you didn't request an account, you can just ignore this email";
 				  ->setSubject("Member Account request from unknown email")
 				  ->setFrom(array(MEMBER_REGO_EMAIL_FROM_ADDRESS => SYSTEM_NAME.' Jethro System'))
 				  ->setTo(MEMBER_REGO_FAILURE_EMAIL)
-				  ->setBody("Hi, \n\nThis is an automated message from the Jethro system at ".BASE_URL.".\n\n"
-						  ."Somebody has used the form at ".BASE_URL."/members to request member-access to this Jethro system. \n\n"
+				  ->setBody("Hi, \n\nThis is an automated message from the Jethro system at ".baseurl_absolute().".\n\n"
+						  ."Somebody has used the form at ".baseurl_absolute()."/members to request member-access to this Jethro system. \n\n"
 						  ."The email address they specified was ".$_REQUEST['email']." but there is no current person record in the Jethro system with that address. (There could be an archived record).\n\n"
 						  ."If you believe this person is a church member, please add their email address to their person record and then ask them to try registering again.\n\n");
 

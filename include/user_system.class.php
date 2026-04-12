@@ -514,7 +514,7 @@ class User_System extends Abstract_User_System
 		$emails = $GLOBALS['db']->queryCol($SQL);
 		if (empty($emails)) return;
 
-		$text = "Hi, \n\nThis is an automated message to System Administrators, sent from the Jethro system at ".BASE_URL.".\n\n";
+		$text = "Hi, \n\nThis is an automated message to System Administrators, sent from the Jethro system at ".baseurl_absolute().".\n\n";
 		$text .= $message;
 
 		$message = Emailer::newMessage()
