@@ -764,7 +764,7 @@ function build_url($params)
  *  - 'https://mychurch.org/jethro/public/'   returns '/jethro'
  * @return string
  */
-function get_relative_baseurl()
+function baseurl_relative()
 {
     // SCRIPT_NAME is the path part of the URL, e.g. /index.php or /jethro/index.php, or /jethro/members/index.php
     $parts = explode('/', $_SERVER['SCRIPT_NAME']);
@@ -790,7 +790,7 @@ function get_relative_baseurl()
  */
 function get_url_pathprefix()
 {
-    $relbase = get_relative_baseurl(); // e.g. '' or '/jethro'
+    $relbase = baseurl_relative(); // e.g. '' or '/jethro'
     $subdir = dirname(substr($_SERVER['SCRIPT_NAME'], strlen($relbase))); // e.g. '/', '/members' or '/public'
     return rtrim($relbase.$subdir, '/').'/'; // e.g. '/members/', '/public/', '/jethro/', '/jethro/members/', '/jethro/members/public/'
 }
@@ -812,7 +812,7 @@ function baseurl_absolute()
     $host = $_SERVER['HTTP_X_FORWARDED_HOST'] ?? $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'];
 
     // Detect base path (the directory your app runs from)
-    $scriptDir = get_relative_baseurl();
+    $scriptDir = baseurl_relative();
 
     // Build base URL (no trailing slash if at root)
     return $scheme . '://' . $host . ($scriptDir !== '' ? $scriptDir : '');

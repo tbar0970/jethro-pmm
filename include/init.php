@@ -47,14 +47,14 @@ if (defined('SESSION_TIMEOUT_MINS')) {
 }
 
 // Infer BASE_URL from the request, if it hasn't been set manually.
-if (!defined('BASE_URL')) define('BASE_URL', get_relative_baseurl());
+if (!defined('BASE_URL')) define('BASE_URL', baseurl_relative());
 
 if (session_id() == '') {
   	// If max length is set, set the cookie timeout - this will allow sessions to outlast browser invocations
   	$expiryTime = defined('SESSION_MAXLENGTH_MINS') ? SESSION_MAXLENGTH_MINS * 60 : NULL;
   	session_set_cookie_params([
   		'lifetime'=> $expiryTime,
- 		'path'     => get_relative_baseurl() . '/',
+ 		'path'     => baseurl_relative() . '/',
 		'httponly' => true,
   		'samesite' => 'Lax'
   		]);
