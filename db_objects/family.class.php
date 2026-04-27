@@ -1,5 +1,4 @@
 <?php
-include_once 'include/db_object.class.php';
 include_once 'include/size_detector.class.php';
 class family extends db_object
 {
