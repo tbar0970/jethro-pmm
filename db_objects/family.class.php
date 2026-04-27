@@ -1,6 +1,6 @@
 <?php
 include_once 'include/size_detector.class.php';
-class family extends db_object
+class Family extends DB_Object
 {
 	protected $_save_permission_level = PERM_EDITPERSON;
 	private $_photo_data = NULL;
