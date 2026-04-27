@@ -1,7 +1,7 @@
 <?php
 class View_Rosters extends View
 {
-	var $_roster_view = null;
+	var ?Roster_View $_roster_view = null;
 
 	function processView()
 	{

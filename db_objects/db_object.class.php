@@ -1,6 +1,6 @@
 <?php
 
-class db_object
+class DB_Object
 {
 
 	public $id = NULL;
@@ -28,7 +28,7 @@ class db_object
 
 		$this->fields = Array();
 		$parent_class = get_parent_class($this);
-		while ($parent_class && $parent_class != 'db_object') {
+		while ($parent_class && $parent_class != 'DB_Object') {
 			$new_fields = call_user_func(Array($parent_class, '_getFields'));
 			foreach ($new_fields as $i => $v) {
 				$new_fields[$i]['table_name'] = strtolower($parent_class);
@@ -200,8 +200,8 @@ class db_object
 			$this->values['history'] = Array(time() => $created);
 		}
 
-		$parent_class =  strtolower(get_parent_class($this));
-		if ($parent_class != 'db_object') {
+		$parent_class =  get_parent_class($this);
+		if ($parent_class != 'DB_Object') {
 			/* @var DB_Object $parent_obj */
 			$parent_obj = new $parent_class();
 			$parent_obj->populate(0, $this->values);
@@ -264,10 +264,11 @@ class db_object
 	protected function _getTableNames()
 	{
 		$res = strtolower(get_class($this));
-		$parent_class = strtolower(get_parent_class($this));
-		while ($parent_class != 'db_object') {
-			$res  = '('.$res.' JOIN '.$parent_class.' on '.$res.'.id = '.$parent_class.'.id)';
-			$parent_class = strtolower(get_parent_class($parent_class));
+		$parent_class = get_parent_class($this);
+		while ($parent_class != 'DB_Object') {
+			$parent_class_table = strtolower($parent_class);
+			$res  = '('.$res.' JOIN '.$parent_class_table.' on '.$res.'.id = '.$parent_class_table.'.id)';
+			$parent_class = get_parent_class($parent_class);
 		}
 		return $res;
 	}
@@ -390,8 +391,8 @@ class db_object
 			}
 		}
 
-		$parent_class = strtolower(get_parent_class($this));
-		if ($parent_class != 'db_object') {
+		$parent_class = get_parent_class($this);
+		if ($parent_class != 'DB_Object') {
 			$parent_obj = new $parent_class($this->id);
 			$parent_obj->populate($this->id, $this->values);
 			if (!$parent_obj->save()) {
