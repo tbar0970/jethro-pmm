@@ -1,5 +1,5 @@
 <?php
-class Attendance_Record extends db_object
+class Attendance_Record extends DB_Object
 {
 	// NB This class only exists for the following SQL
 	// See Attendance_Record_Set for CRUD functionality of this table

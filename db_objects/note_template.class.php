@@ -1,5 +1,5 @@
 <?php
-class Note_Template extends db_object
+class Note_Template extends DB_Object
 {
 	public $_save_permission_level = PERM_SYSADMIN;
 

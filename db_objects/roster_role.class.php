@@ -1,5 +1,5 @@
 <?php
-class Roster_Role extends db_object
+class Roster_Role extends DB_Object
 {
 	protected $_load_permission_level = NULL;
 	protected $_save_permission_level = PERM_MANAGEROSTERS;
@@ -109,13 +109,13 @@ class Roster_Role extends db_object
 				break;
 			case 'teams':
 				echo implode(', ', array_map(function ($val) {
-					$group = new Person_group($val);
+					$group = new Person_Group($val);
 					return '<a href="?view=groups&groupid='.(int)$val.'">'.ents($group->getValue('name')).'</a>';
 				}, $this->getValue($name)));
 				break;
 			case 'volunteer_group':
 				if ($val = $this->getValue($name)) {
-					$group = new Person_group($val);
+					$group = new Person_Group($val);
 					echo '<a href="?view=groups&groupid='.(int)$val.'">'.ents($group->getValue('name')).'</a>';
 				}
 				break;

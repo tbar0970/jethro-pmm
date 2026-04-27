@@ -1,7 +1,7 @@
 <?php
 include_once 'include/bible_ref.class.php';
 include_once 'db_objects/service.class.php';
-class roster_view extends db_object
+class Roster_View extends DB_Object
 {
 	private $_members = Array();
 	private $_members_to_set = Array();
@@ -712,7 +712,7 @@ class roster_view extends db_object
 				print_message("There are some roles in this roster which you are not able to edit because they refer to a volunteer group you do not have access to.");
 			}
 			?>
-			<form id="roster" method="post" class="warn-unsaved bubble-option-props" data-lock-length="<?php echo db_object::getLockLength() ?>">
+			<form id="roster" method="post" class="warn-unsaved bubble-option-props" data-lock-length="<?php echo DB_Object::getLockLength() ?>">
 			<?php
 		}
 		if (!$public) {

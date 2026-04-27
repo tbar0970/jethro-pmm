@@ -1,5 +1,5 @@
 <?php
-class roster_role_assignment extends db_object
+class Roster_Role_Assignment extends DB_Object
 {
 	// NB This class only exists for the following SQL
 	// It has no ID

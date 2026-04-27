@@ -46,7 +46,7 @@ class View_Home extends View
 			</h3>
 			<?php
 			require_once 'views/view_0_mixed_search.class.php';
-			View__mixed_search::printSearchForm();
+			View__Mixed_Search::printSearchForm();
 			?>
 		</div>
 
@@ -143,7 +143,7 @@ class View_Home extends View
 						Upcoming roster
 					</h3>
 					<?php
-					$GLOBALS['system']->includeDBClass('roster_role_assignment');
+					$GLOBALS['system']->includeDBClass('Roster_Role_Assignment');
 					$rallocs = Roster_Role_Assignment::getUpcomingAssignments($GLOBALS['user_system']->getCurrentUser('id'));
 					if ($rallocs) {
 						foreach ($rallocs as $date => $allocs) {

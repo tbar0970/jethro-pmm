@@ -1,5 +1,5 @@
 <?php
-class roster_view_service_field extends db_object
+class Roster_View_Service_Field extends DB_Object
 {
 	// NB This class only exists for the following SQL
 	// It has no ID

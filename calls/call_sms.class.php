@@ -1,5 +1,5 @@
 <?php
-class Call_sms extends Call
+class Call_SMS extends Call
 {
   function run()
   {

@@ -1,5 +1,5 @@
 <?php
-class Custom_Field_Value extends db_object
+class Custom_Field_Value extends DB_Object
 {
 	function getInitSQL($table_name=NULL) {
 		return '
