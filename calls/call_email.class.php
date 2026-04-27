@@ -1,5 +1,5 @@
 <?php
-class Call_email extends Call
+class Call_Email extends Call
 {
 	function run()
 	{
