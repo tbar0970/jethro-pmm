@@ -1,5 +1,5 @@
 <?php
-class Venue extends db_object
+class Venue extends DB_Object
 {
 	/**
 	 * Instances of this class represent venues at which people can check in.

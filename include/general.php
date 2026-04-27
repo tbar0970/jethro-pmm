@@ -234,7 +234,7 @@ function print_widget($name, $params, $value)
 			break;
 		case 'bibleref':
 			require_once 'bible_ref.class.php';
-			$br = new bible_ref($value);
+			$br = new Bible_Ref($value);
 			$value = $br->toShortString();
 			$params['class'] = 'bible-ref';
 			// fall through
@@ -643,7 +643,7 @@ function process_widget($name, $params, $index=NULL, $preserveEmpties=FALSE)
 		case 'bibleref':
 			if (!empty($rawVal)) {
 				require_once 'bible_ref.class.php';
-				$br = new bible_ref($rawVal);
+				$br = new Bible_Ref($rawVal);
 				if ($br->toString()) $value = $br->toCode();
 			}
 			break;
@@ -720,7 +720,7 @@ function format_value($value, $params)
 			break;
 		case 'bibleref':
 			require_once 'bible_ref.class.php';
-			$br = new bible_ref($value);
+			$br = new Bible_Ref($value);
 			return $br->toShortString();
 			break;
 		case 'phone':

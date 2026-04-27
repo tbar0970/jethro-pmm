@@ -1,6 +1,6 @@
 <?php
 
-class Call_Service_slides extends Call
+class Call_Service_Slides extends Call
 {
 	function run()
 	{

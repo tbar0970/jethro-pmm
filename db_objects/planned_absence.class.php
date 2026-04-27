@@ -1,5 +1,5 @@
 <?php
-class Planned_Absence extends db_object
+class Planned_Absence extends DB_Object
 {
 	protected $_load_permission_level = PERM_VIEWROSTER;
 	protected $_save_permission_level = PERM_EDITROSTER;

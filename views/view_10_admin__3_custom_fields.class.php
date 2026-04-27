@@ -17,7 +17,7 @@ class View_Admin__Custom_Fields extends View
 	{
 		$fields = $GLOBALS['system']->getDBObjectData('custom_field', Array(), 'OR', 'rank');
 		foreach ($fields as $id => $details) {
-			$x = new Custom_field($id);
+			$x = new Custom_Field($id);
 			if (!$x->acquireLock()) {
 				$this->fields = NULL;
 				add_message("Somebody else is currently editing the custom fields.  Please try again later", 'error');
