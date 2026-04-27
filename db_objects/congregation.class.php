@@ -1,5 +1,4 @@
 <?php
-include_once 'include/db_object.class.php';
 class Congregation extends db_object
 {
 	protected static function _getFields()
