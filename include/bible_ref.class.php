@@ -1,5 +1,5 @@
 <?php
-class bible_ref
+class Bible_Ref
 {
 	private $med_names = Array(
 		'genesis',
@@ -469,7 +469,7 @@ class bible_ref
 				<td><?php echo $str; ?></td>
 				<td><?php echo $x->toString(TRUE); ?></td>
 				<td><?php echo $x->toCode(); ?></td>
-				<td><?php $y = new Bible_ref($x->toCode()); echo $y->toString(TRUE); ?></td>
+				<td><?php $y = new Bible_Ref($x->toCode()); echo $y->toString(TRUE); ?></td>
 			</tr>
 			<?php
 		}

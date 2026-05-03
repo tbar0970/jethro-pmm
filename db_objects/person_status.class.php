@@ -1,5 +1,5 @@
 <?php
-class Person_Status extends db_object
+class Person_Status extends DB_Object
 {
 	protected $_load_permission_level = 0;
 	protected $_save_permission_level = 0;

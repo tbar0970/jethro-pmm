@@ -1,6 +1,6 @@
 <?php
 
-class call_service_comp_help_personnel_format extends Call
+class Call_Service_Comp_Help_Personnel_Format extends Call
 {
 	function run()
 	{

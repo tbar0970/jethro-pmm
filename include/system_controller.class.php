@@ -194,7 +194,7 @@ class System_Controller
 	public function includeDBClass($classname)
 	{
 		$classname = strtolower($classname);
-		require_once dirname(__FILE__).'/db_object.class.php';
+		require_once 'db_objects/db_object.class.php';
 		require_once 'db_objects/'.$classname.'.class.php';
 	}
 
