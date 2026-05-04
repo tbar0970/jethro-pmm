@@ -10,7 +10,7 @@ AND NOT EXISTS (
 
 -- The following is in 2.38-RC2 but not RC1
 -- #1380 - allow for 'team groups' to be configured for a roster role.
-CREATE TABLE `roster_role_team` (
+CREATE TABLE IF NOT EXISTS `roster_role_team` (
 	`roster_role_id` INT NOT NULL,
 	`person_group_id` INT NOT NULL,
 	PRIMARY KEY (roster_role_id, person_group_id),
