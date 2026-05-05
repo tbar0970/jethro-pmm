@@ -36,7 +36,7 @@ class System_Controller
 		$path_sep = defined('PATH_SEPARATOR') ? PATH_SEPARATOR : ((FALSE === strpos($_ENV['OS'], 'Win')) ? ';' : ':');
 		ini_set('include_path', ini_get('include_path').$path_sep.$this->_base_dir);
 
-		if (!isset($_SESSION['views'][$base_dir]) || isset($_REQUEST['regen'])) {
+		if (!isset($_SESSION['views'][$base_dir]) || $this->viewsAreStale($base_dir) || isset($_REQUEST['regen'])) {
 			$scanned_views = Array();
 			$raw_filenames = glob($this->_base_dir.'/views/*.class.php');
 			natsort($raw_filenames);
@@ -68,7 +68,25 @@ class System_Controller
 				}
 			}
 			$_SESSION['views'][$base_dir] = $scanned_views;
+			$_SESSION['views_deps_hash'][$base_dir] = $this->getViewHash();
 		}
+	}
+
+	/** Get a hash representing Jethro state our views depend on. Currently our views depend on globally enabled features, and our user's permissions.
+	 * @return string A hash
+	 */
+	private function getViewHash(): string {
+        $currentUser = $GLOBALS['user_system']->getCurrentUser();
+        return sha1(ENABLED_FEATURES . ($currentUser ? $currentUser['permissions'] : ''));
+	}
+
+	/**
+	 * @param string $base_dir
+	 * @return bool Whether the views cached in $_SESSION['views'] are out of date, not reflecting currently enabled features or our permissions.
+	 */
+	private function viewsAreStale(string $base_dir): bool {
+		$stored = $_SESSION['views_deps_hash'][$base_dir] ?? null;
+		return $stored !== $this->getViewHash();
 	}
 
 	public function initErrorHandler()
