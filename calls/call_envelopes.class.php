@@ -54,7 +54,7 @@ class Call_Envelopes extends Call
 				}
 			} else {
 				$person = $GLOBALS['system']->getDBObject('person', (int)$_REQUEST['personid']);
-				$family = $GLOBALS['system']->getDBObject('family', $person->getValue('familyid'));
+				$family = $person->getFamily();
 				$env->addAddress($person->toString()."\n".$family->getPostalAddress());
 			}
 		}

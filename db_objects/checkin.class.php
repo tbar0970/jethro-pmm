@@ -1,5 +1,5 @@
 <?php
-class checkin extends db_object
+class Checkin extends DB_Object
 {
 	/**
 	 * Instances of this class form a record of somebody checking in at a given venue.

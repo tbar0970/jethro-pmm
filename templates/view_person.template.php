@@ -473,7 +473,7 @@ if (isset($tabs['rosters'])) {
 
 	printf($panel_header, 'rosters', _('Rosters'), '');
 
-	$GLOBALS['system']->includeDBClass('roster_role_assignment');
+	$GLOBALS['system']->includeDBClass('Roster_Role_Assignment');
 	$assignments = Roster_Role_Assignment::getUpcomingAssignments($person->id, '99 weeks');
 	$absences_choice = array_get($_REQUEST, 'absences'); // "all" or "upcoming"
 	if ($absences_choice) {

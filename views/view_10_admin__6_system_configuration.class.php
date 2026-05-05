@@ -674,7 +674,7 @@ class View_Admin__System_Configuration extends View {
 			foreach ($to_delete as $id) {
 				// The interface should have prevented attempts to delete an in-use status.
 				// So we'll just rely on the foriegn key to catch anything dodgy here.
-				$s = new Person_status($id);
+				$s = new Person_Status($id);
 				if (!$got_an_archived && ($s->getValue('is_archived'))) {
 					add_message("The person status '".$s->getValue('label')."' was not deleted, because you must have at least one status for archived persons", "error");
 					continue;

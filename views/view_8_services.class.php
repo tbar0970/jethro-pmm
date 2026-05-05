@@ -266,7 +266,7 @@ class View_services extends View
 					</span>
 				Run Sheet
 			</h3>
-			<form method="post" id="service-planner-form" data-lock-length="<?php echo db_object::getLockLength() ?>">
+			<form method="post" id="service-planner-form" data-lock-length="<?php echo DB_Object::getLockLength() ?>">
 			<div id="service-plan-container">
 			<table class="table table-bordered table-hover table-condensed no-autofocus" id="service-plan" data-starttime="<?php echo $startTime; ?>">
 				<thead>

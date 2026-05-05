@@ -1,6 +1,6 @@
 <?php
 require_once 'include/odf_tools.class.php';
-class Call_csv extends Call
+class Call_CSV extends Call
 {
 	function run()
 	{

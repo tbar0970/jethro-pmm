@@ -1,6 +1,5 @@
 <?php
-include_once 'include/db_object.class.php';
-class Note_Template extends db_object
+class Note_Template extends DB_Object
 {
 	public $_save_permission_level = PERM_SYSADMIN;
 
@@ -34,8 +33,8 @@ class Note_Template extends db_object
 
 	/**
 	 * Print the form for CONFIGURING this note template.
-	 * @see DB_Object::printForm()
 	 * @param string $prefix
+	 *@see DB_Object::printForm()
 	 */
 	function printForm($prefix='', $fields=NULL)
 	{
@@ -46,9 +45,9 @@ class Note_Template extends db_object
 
 	/**
 	 * Process the form for CONFIGURING this note template.
-	 * @see DB_Object::processForm()
 	 * @param string $prefix
 	 * @param array|NULL $fields
+	 *@see DB_Object::processForm()
 	 */
 	function processForm($prefix='', $fields=NULL) {
 		$this->fields['fields'] = Array();

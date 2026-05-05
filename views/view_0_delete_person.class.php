@@ -33,7 +33,7 @@ class View__Delete_Person extends View
 											Array('personid' => $this->_person->id, 'status' => 'pending'),
 											'AND'
 			  	  );
-		$family = $GLOBALS['system']->getDBObject('family', $this->_person->getValue('familyid'));
+		$family = $this->_person->getFamily();
 		$members = $family->getMemberData();
 		if (count($members) == 1) {
 			$fnotes = $GLOBALS['system']->getDBObjectData(
