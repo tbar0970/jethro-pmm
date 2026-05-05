@@ -5,7 +5,7 @@ $groupid = array_get($_REQUEST, 'groupid', array_get($_REQUEST, 'person_groupid'
 $selected = Array(array_get($_REQUEST, 'bulk_action', '') => 'selected="selected"'); // email, sms or merge
 ?>
 
-<div class="form-horizontal bulk-actions">
+<div class="form-horizontal bulk-actions pull-left">
 	<?php echo _('With selected persons:')?>
 		<select id="bulk-action-chooser" class="no-autofocus">
 			<option><?php echo _('-- Choose Action --')?></option>

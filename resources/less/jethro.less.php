@@ -1213,6 +1213,8 @@ img.person-photo {
 	row-gap: 10px;
 	box-sizing: border-box;
 	margin-bottom: 10px;
+	padding-bottom: 8px;
+	border-bottom: 1px solid #dddddd;
  }
 .family-member {
 	box-sizing: border-box;
