@@ -1079,6 +1079,7 @@ img.person-photo {
 	background: @jethroLight;
 	border-radius: 5px;
 	margin-bottom: 15px;
+	display: flow-root;
 }
 .view-person .details-box {
 	width: 500px;
