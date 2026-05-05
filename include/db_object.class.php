@@ -10,6 +10,7 @@ class db_object
 	protected $_old_values = Array();
 	protected $_held_locks = Array();
 	protected $_acquirable_locks = Array();
+	protected $_populated_partial = FALSE;
 
 	protected $_tmp = Array();
 
@@ -201,6 +202,7 @@ class db_object
 
 		$parent_class =  strtolower(get_parent_class($this));
 		if ($parent_class != 'db_object') {
+			/* @var DB_Object $parent_obj */
 			$parent_obj = new $parent_class();
 			$parent_obj->populate(0, $this->values);
 			if (!$parent_obj->create()) {
@@ -314,9 +316,9 @@ class db_object
 				} else {
 					$this->values[$name] = unserialize($this->values[$name]);
 				}
-					
 			}
 		}
+		$this->_populated_partial = FALSE;
 	}
 
 
@@ -340,6 +342,9 @@ class db_object
 
 	public function save()
 	{
+		if (!empty($this->_populated_partial)) {
+			throw new \RuntimeException(get_class($this).' was populated from partial data (missing serialise fields) and cannot be saved. Use new '.get_class($this).'($id) instead of populate().');
+		}
 		if (!$this->checkPerm($this->_save_permission_level)) {
 			throw new \RuntimeException('Current user has insufficient permission level to save a '.get_class($this).' object');
 		}
@@ -451,8 +456,21 @@ class db_object
 	{
 		$this->values = $this->_old_values = Array();
 		$this->id = 0;
+		$this->_populated_partial = FALSE;
 	}
 
+	/**
+	 * Hydrate this object from an array of field values, typically from a
+	 * batch query result. Only fields present in $values are set;
+	 * serialise-type fields are deserialized automatically if passed as
+	 * strings.
+	 *
+	 * Note: populate()'ed objects are cheap to construct ('history' and
+	 * other serialized fields omitted) and intended for read-only use. Be
+	 * careful save()'ing a populate()'ed object. as serialized fields like
+	 * 'history' are not loaded, and saving would wipe them. Instead call
+	 * new ClassName($id), which calls load() from the constructor.
+	 */
 	public function populate($id, $values)
 	{
 		$this->_old_values = Array();
@@ -467,6 +485,15 @@ class db_object
 		}
 		$this->_held_locks = Array();
 		$this->_acquirable_locks = Array();
+
+		// Flag this object as read-only / partially populated, so save() rejects it.
+		$this->_populated_partial = FALSE;
+		foreach ($this->fields as $fieldname => $details) {
+			if ($details['type'] === 'serialise' && !array_key_exists($fieldname, $values)) {
+				$this->_populated_partial = TRUE;
+				break;
+			}
+		}
 	}
 
 	public function canDelete($trigger_messages=FALSE)
