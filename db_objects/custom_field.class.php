@@ -421,9 +421,14 @@ class Custom_Field extends db_object
 	public function create()
 	{
 		$GLOBALS['system']->doTransaction('BEGIN');
-		parent::create();
+		$res = parent::create();
+		if (!$res) {
+			$GLOBALS['system']->doTransaction('ROLLBACK');
+			return FALSE;
+		}
 		$this->_saveOptions();
 		$GLOBALS['system']->doTransaction('COMMIT');
+		return TRUE;
 	}
 
 	/**
@@ -436,9 +441,14 @@ class Custom_Field extends db_object
 		if ($this->getValue('type') !== 'text') {
 			$this->setValue('searchable', 0);
 		}
-		parent::save();
+		$res = parent::save();
+		if (!$res) {
+			$GLOBALS['system']->doTransaction('ROLLBACK');
+			return FALSE;
+		}
 		$this->_saveOptions();
 		$GLOBALS['system']->doTransaction('COMMIT');
+		return TRUE;
 	}
 
 	/**

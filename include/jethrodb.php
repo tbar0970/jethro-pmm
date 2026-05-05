@@ -185,7 +185,7 @@ class JethroDB extends PDO
 			if (null !== $shift_array) {
 				$colnum = count($row);
 				if ($colnum < 2) {
-					return new Exception('rekey feature requires at least 2 columns');
+					throw new Exception('rekey feature requires at least 2 columns');
 				}
 				$shift_array = (!$force_array && $colnum == 2);
 			}

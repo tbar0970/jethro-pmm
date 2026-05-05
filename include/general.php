@@ -640,7 +640,7 @@ function process_widget($name, $params, $index=NULL, $preserveEmpties=FALSE)
 			if (!empty($rawVal)) {
 				require_once 'bible_ref.class.php';
 				$br = new bible_ref($rawVal);
-				if ($br->book) $value = $br->toCode();
+				if ($br->toString()) $value = $br->toCode();
 			}
 			break;
 		case 'bitmask':

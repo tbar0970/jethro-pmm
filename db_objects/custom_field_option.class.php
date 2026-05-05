@@ -40,11 +40,12 @@ class Custom_Field_Option extends db_object
 	function delete()
 	{
 		$GLOBALS['system']->doTransaction('BEGIN');
-		parent::delete();
+		$res = parent::delete();
 
 		// delete data here
 
 		$GLOBALS['system']->doTransaction('COMMIT');
+		return $res;
 	}
 
 	function printFieldInterface($fieldname, $prefix='')
