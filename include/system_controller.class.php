@@ -37,7 +37,7 @@ class System_Controller
 		ini_set('include_path', ini_get('include_path').$path_sep.$this->_base_dir);
 
 		if (!isset($_SESSION['views'][$base_dir]) || isset($_REQUEST['regen'])) {
-			$_SESSION['views'][$base_dir] = Array();
+			$scanned_views = Array();
 			$raw_filenames = glob($this->_base_dir.'/views/*.class.php');
 			natsort($raw_filenames);
 			foreach ($raw_filenames as $filename) {
@@ -59,14 +59,15 @@ class System_Controller
 					}
 					if ($showView) {
 						if (preg_match('/^view_([0-9.]*)_(.*)__([0-9]*)_(.*)\.class\.php/', $filename, $matches)) {
-							$_SESSION['views'][$base_dir][$matches[2]]['children'][$matches[4]]['filename'] = $filename;
+							$scanned_views[$matches[2]]['children'][$matches[4]]['filename'] = $filename;
 						} else if (preg_match('/^view_([0-9.]*)_(.*)\.class\.php/', $filename, $matches)) {
 							if ($matches[1] == 0) $matches[2] = '_'.$matches[2];
-							$_SESSION['views'][$base_dir][$matches[2]]['filename'] = $filename;
+							$scanned_views[$matches[2]]['filename'] = $filename;
 						}
 					}
 				}
 			}
+			$_SESSION['views'][$base_dir] = $scanned_views;
 		}
 	}
 
