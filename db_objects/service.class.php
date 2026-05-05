@@ -371,14 +371,7 @@ class service extends db_object
 					$bits[] = ents($this->values['format_title']);
 				}
 				if (!empty($this->values['notes'])) {
-					$x = '<small>';
-					if ($fieldname == 'summary_inline') {
-						$x .= str_replace("\n", ' / ', ents($this->values['notes']));
-					} else {
-						$x .= nl2br(ents($this->values['notes']));
-					}
-					$x .= '</small>';
-					$bits[] = $x;
+					$bits[] = '<small>'.str_replace("\n", ' / ', ents($this->values['notes'])).'</small>';
 				}
 				echo implode($separator, $bits);
 				break;
