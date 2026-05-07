@@ -177,9 +177,6 @@ if ($sendsms) { // make the sms message!
 
 			}
 			$smsroster .= "\n";
-			if ((int)$debug==1){
-			 $assignees=Array();
-			}
 		}
 
 		$assignees = array_merge($assignees, $coordinator);
@@ -192,6 +189,10 @@ if ($sendsms) { // make the sms message!
 		if ($debug) {
 			bam($sms_message);
 			bam("Debug mode - no messages sent");
+			$recipientNames = array_map(function($a) {
+				return $a['first_name'] . ' ' . $a['last_name'] . ' (' . $a['mobile_tel'] . ')';
+			}, $assignees);
+			bam("Recipients: " . implode(', ', $recipientNames));
 			exit;
 		}
 		if (strlen($sms_message) > SMS_MAX_LENGTH) {
@@ -303,10 +304,20 @@ if ($sendemail) {
 		$no_emails = array_unique($no_emails);
 		//send the emails
 
-		//if DEBUG then echo the email content
+		//if DEBUG then echo the email content and recipients, then exit without sending
 		if ((int)$debug==1){
 			echo "Sending the following message:\n\n";
 			echo $longstring."\n\n";
+			echo "Recipients:\n";
+			foreach ($assignees as $a) {
+				if (!empty($a['email'])) {
+					echo "  " . $a['first_name'] . ' ' . $a['last_name'] . ' <' . $a['email'] . ">\n";
+				} else {
+					echo "  " . $a['first_name'] . ' ' . $a['last_name'] . " (no email)\n";
+				}
+			}
+			echo "\nDebug mode - no messages sent\n";
+			exit;
 		}
 		//
 		//send using built in email class
