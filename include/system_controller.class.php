@@ -53,9 +53,10 @@ class System_Controller
 					include_once($this->_base_dir.'/views/'.$filename);
 					$showView = TRUE;
 					if ($view_perm = call_user_func(Array($classname, 'getMenuPermissionLevel'))) {
-						$showView = !empty($GLOBALS['user_system']) && $GLOBALS['user_system']->havePerm($view_perm);
-					} else if ($view_feature = call_user_func(Array($classname, 'getMenuRequiredFeature'))) {
-						$showView = $this->featureEnabled($view_feature);
+						$showView &= !empty($GLOBALS['user_system']) && $GLOBALS['user_system']->havePerm($view_perm);
+					}
+					if ($view_feature = call_user_func(Array($classname, 'getMenuRequiredFeature'))) {
+						$showView &= $this->featureEnabled($view_feature);
 					}
 					if ($showView) {
 						if (preg_match('/^view_([0-9.]*)_(.*)__([0-9]*)_(.*)\.class\.php/', $filename, $matches)) {
