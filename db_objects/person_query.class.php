@@ -1962,12 +1962,19 @@ class Person_Query extends DB_Object
 			}
 		}
 
+		// NB: bulk_actions.template.php (included below) overwrites the local
+		// $params with a print_widget() options array, so capture this first.
+		$needNoteModal = ($format == 'html')
+			&& in_array('note_link', $params['show_fields'])
+			&& $GLOBALS['user_system']->havePerm(PERM_EDITNOTE);
 		if ($res && ($format == 'html') && in_array('checkbox', $params['show_fields'])) {
 			echo '<div class="no-print">';
 			include 'templates/bulk_actions.template.php';
 			echo '</div>';
 			echo '</form>';
 		}
+
+		if ($needNoteModal) print_note_modal_once();
 
 		if ($format == 'array') {
 			return $data;
@@ -2183,6 +2190,18 @@ class Person_Query extends DB_Object
 			return;
 		}
 		$headers = array_keys(reset($x));
+		$noteNames = Array();
+		$refreshAfterNote = FALSE;
+		if (in_array('note_link', $headers) && $GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
+			foreach ($GLOBALS['system']->getDBObjectData('person', Array('id' => array_keys($x)), 'AND') as $pid => $pdata) {
+				$noteNames[$pid] = trim($pdata['first_name'].' '.$pdata['last_name']);
+			}
+			// If the report shows a Notes column, the page should reload after
+			// adding a note so the new note appears (see data-refresh handling
+			// in the note-modal submit handler in resources/js/jethro.js, and
+			// docs/docs/developer/reference/note-modal.mdx).
+			$refreshAfterNote = in_array('Notes', $headers);
+		}
 		?>
 		<table class="table table-striped table-condensed table-hover table-min-width clickable-rows query-results">
 			<thead>
@@ -2246,11 +2265,10 @@ class Person_Query extends DB_Object
 								<?php
 								break;
 							case 'note_link':
-								// if notes are shown on this report, we want to refresh after adding a new one
-								$then = in_array('Notes', $headers) ? '&then=refresh_opener' : '';
 								if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
+									$noteName = isset($noteNames[$row[$label]]) ? $noteNames[$row[$label]] : 'Person #'.$row[$label];
 									?>
-									<a class="med-popup no-print" href="?view=_add_note_to_person&personid=<?php echo $row[$label].$then ?>"><i class="icon-pencil"></i>Add&nbsp;Note</a>
+									<a class="note-link no-print" href="?view=_add_note_to_person&personid=<?php echo $row[$label]; ?>" data-toggle="note-modal" data-personid="<?php echo $row[$label]; ?>" data-name="<?php echo ents($noteName); ?>"<?php if ($refreshAfterNote) echo ' data-refresh="1"'; ?>><i class="icon-pencil"></i>Add&nbsp;Note</a>
 									<?php
 								}
 								break;
