@@ -2563,13 +2563,24 @@ td.run-sheet-comments * {
 
 
 /*************** SMS MESSAGING ************************/
-button.sms-success, #body tr.sms-success .mobile-tel, #body tr.sms-success .mobile-tel:hover {
+a.sms-success, #body tr.sms-success .mobile-tel, #body tr.sms-success .mobile-tel:hover {
 	background: #d8e9cb; /* Old browsers */
 	background: -moz-linear-gradient(top, #d8e9cb 0%, #abdc88 99%, #abdc88 99%, #d8e9cb 100%); /* FF3.6-15 */
 	background: -webkit-linear-gradient(top, #d8e9cb 0%,#abdc88 99%,#abdc88 99%,#d8e9cb 100%); /* Chrome10-25,Safari5.1-6 */
 	background: linear-gradient(to bottom, #d8e9cb 0%,#abdc88 99%,#abdc88 99%,#d8e9cb 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#d8e9cb', endColorstr='#d8e9cb',GradientType=0 ); /* IE6-9 */
 	background-position: 0 0 !important;
+}
+.note-modal {
+	width: calc(100vw - 2rem);
+	max-width: 700px;
+	left: 0;
+	right: 0;
+	margin-left: auto;
+	margin-right: auto;
+}
+#body tr.note-success .note-link {
+	background-color: #d8e9cb !important;
 }
 #body tr.sms-failure .mobile-tel, #body tr.sms-failure .mobile-tel:hover {
 	background-image: linear-gradient(linear, 0 0, 0 100%, from(#ff9c9c), to(#d22c2c)) !important;
