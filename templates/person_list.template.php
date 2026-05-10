@@ -115,9 +115,16 @@ if ($show_actions) {
 				<?php
 			}
 			if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE) && !SizeDetector::isNarrow()) {
+				$note_name = ents($details['first_name'].' '.$details['last_name']);
 				?>
-				<a <?php echo $link_class; ?> href="?view=_add_note_to_person&personid=<?php echo $id; ?>"><i class="icon-pencil"></i><?php echo _('Add Note')?></a>
+				<a class="note-link" href="#add-note-modal" data-toggle="note-modal" data-personid="<?php echo $id; ?>" data-name="<?php echo $note_name; ?>"><i class="icon-pencil"></i><?php echo _('Add Note')?></a>
 				<?php
+				static $printedNoteModal = false;
+				if (!$printedNoteModal) {
+					include_once JETHRO_ROOT.'/include/note_modal.php';
+					printNoteModal();
+					$printedNoteModal = true;
+				}
 			}
 			?>
 			</td>

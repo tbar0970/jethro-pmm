@@ -1125,6 +1125,84 @@ JethroSMS.init = function() {
 	});
 }
 
+// -----------------------------------------------------------------------
+// Note modal — open handler
+// -----------------------------------------------------------------------
+$(document).on('click', '[data-toggle="note-modal"]', function(e) {
+	var $this = $(this),
+		$target = $('#add-note-modal'),
+		option = $target.data('modal') ? 'toggle' : {};
+
+	$('#add-note-modal .note-recipient-name').html($this.attr('data-name'));
+	$('#note_personid').val($this.attr('data-personid'));
+	// Reset form for reuse
+	$('#add-note-modal input[name=subject]').val('');
+	$('#add-note-modal textarea[name=details]').val('');
+	$('#add-note-modal select[name=status]').val('no_action');
+	$('#add-note-modal .results').html('').hide();
+
+	e.preventDefault();
+	$target.modal(option).one('hide', function() {
+		$this.focus();
+	})
+	$target.on('shown', function() {
+		$('#add-note-modal input[name=subject]').focus();
+	});
+});
+
+// -----------------------------------------------------------------------
+// Note modal — submit handler
+// -----------------------------------------------------------------------
+$(document).on('click', '#add-note-modal .note-submit', function(e) {
+	e.preventDefault();
+	var $modal = $('#add-note-modal');
+	var $results = $modal.find('.results');
+	var $btn = $(this);
+
+	var subject = $modal.find('input[name=subject]').val();
+	if (!subject) {
+		alert('Please enter a subject');
+		return false;
+	}
+
+	$btn.prop('disabled', true).html('Saving...');
+	$results.hide();
+
+	var data = {
+		personid: $('#note_personid').val(),
+		subject: subject,
+		details: $modal.find('textarea[name=details]').val(),
+		status: $modal.find('select[name=status]').val(),
+		ajax: 1
+	};
+
+	$.ajax({
+		type: 'POST',
+		dataType: 'JSON',
+		url: '?call=note',
+		data: data,
+		error: function() {
+			alert('Server error while saving note');
+			$btn.prop('disabled', false).html('Save Note');
+		},
+		success: function(data) {
+			if (data.error) {
+				$results.html('<div class="alert alert-error">' + data.error + '</div>').show();
+				$btn.prop('disabled', false).html('Save Note');
+			} else {
+				var personId = $('#note_personid').val();
+				$('tr[data-personid=' + personId + ']').addClass('note-success');
+				$btn.html('<i class="icon-ok"></i> Saved').addClass('btn-success');
+				setTimeout(function() {
+					$modal.modal('hide');
+					$btn.html('Save Note').removeClass('btn-success').prop('disabled', false);
+				}, 1000);
+			}
+		}
+	});
+	return false;
+});
+
 JethroSMS.focusedTextbox = null;
 JethroSMS.personListenerInited = false;
 

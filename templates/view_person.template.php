@@ -234,6 +234,12 @@ if (isset($tabs['notes'])) {
 	$add_note_html = null;
 	if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
 		$add_note_html = '<a href="?view=_add_note_to_person&personid='.ents($person->id).'"><i class="icon-plus-sign"></i>'._('Add Note').'</a>';
+		static $printedNoteModal = false;
+		if (!$printedNoteModal) {
+			include_once JETHRO_ROOT.'/include/note_modal.php';
+			printNoteModal();
+			$printedNoteModal = true;
+		}
 	}
 	if (empty($notes)) {
 		if ($add_note_html) {
