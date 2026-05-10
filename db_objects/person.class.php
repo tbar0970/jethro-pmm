@@ -298,10 +298,10 @@ class Person extends DB_Object
 				if (SMS_Sender::canSend()) {
 					$msg = _('SMS via Jethro');
 					$links[] = '<a href="#send-sms-modal" data-toggle="sms-modal" data-personid="' . $this->id . '" data-name="' . $person_name . '"><i class="icon-envelope"></i> '.$msg.'</a>';
-					static $printedModal = FALSE;
-					if (!$printedModal) {
+					static $printedSmsModal = FALSE;
+					if (!$printedSmsModal) {
 						SMS_Sender::printModal();
-						$printedModal = TRUE;
+						$printedSmsModal = TRUE;
 					}
 				}
 				if (FALSE !== strpos(array_get($_SERVER, 'HTTP_USER_AGENT', ''), 'Macintosh')) {

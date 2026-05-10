@@ -77,6 +77,7 @@ class View_Attendance__Display extends View
 				}
 			}
 		}
+		if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) print_note_modal_once();
 	}
 
 	private function _printParams()
@@ -260,7 +261,7 @@ class View_Attendance__Display extends View
 						echo '<td class="'.$class.'">'.$letter.'</td>';
 					}
 				}
-				$this->_printActionsAndSelector($personid);
+				$this->_printActionsAndSelector($personid, $record['first_name'].' '.$record['last_name']);
 				?>
 
 				</tr>
@@ -343,7 +344,7 @@ class View_Attendance__Display extends View
 		<?php
 	}
 	
-	private function _printActionsAndSelector($personid)
+	private function _printActionsAndSelector($personid, $name)
 	{
 		?>
 		<td class="narrow action-cell">
@@ -356,7 +357,7 @@ class View_Attendance__Display extends View
 		}
 		if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
 			?>
-			<a class="med-popup" href="?view=_add_note_to_person&personid=<?php echo $personid; ?>"><i class="icon-pencil"></i><?php echo _('Add Note');?></a>
+			<a class="note-link" href="?view=_add_note_to_person&personid=<?php echo $personid; ?>" data-toggle="note-modal" data-personid="<?php echo $personid; ?>" data-name="<?php echo ents($name); ?>"><i class="icon-pencil"></i><?php echo _('Add Note');?></a>
 			<?php
 		}
 		?>
@@ -537,7 +538,7 @@ class View_Attendance__Display extends View
 					$group_status = $details['group_status'];
 				}
                 echo "\n".'<input type="hidden" name="data2['.$personid.'][]" value="'.$letters.';'.$group_status.'">';
-				$this->_printActionsAndSelector($personid);
+				$this->_printActionsAndSelector($personid, $details['first_name'].' '.$details['last_name']);
 				?>	
 				</tr>
 				<?php
