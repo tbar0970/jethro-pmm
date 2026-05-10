@@ -37,6 +37,24 @@ function array_remove_empties($ar)
 	return $res;
 }
 
+/**
+ * Print the shared "Add Note" modal dialog (templates/note_modal.template.php)
+ * once per page.
+ *
+ * Call from any view or template that renders an "Add Note" modal trigger
+ * (a[data-toggle="note-modal"]), ideally at a point after any enclosing
+ * table/form has closed. The modal has a single fixed id, so it may only
+ * appear once per request; the static guard makes further calls no-ops.
+ * See docs/docs/developer/reference/note-modal.mdx.
+ */
+function print_note_modal_once()
+{
+	static $printed = FALSE;
+	if ($printed) return;
+	$printed = TRUE;
+	include JETHRO_ROOT.'/templates/note_modal.template.php';
+}
+
 function stripslashes_array(&$array, $strip_keys=false) {
 	if(is_string($array)) return stripslashes($array);
 	$keys_to_replace = Array();
