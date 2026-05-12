@@ -2565,6 +2565,37 @@ div#send-sms-modal div.results {
 	margin: 1em 1em 1em 5em;
 }
 
+
+/*************** SCRIPTURE VERSES *****************/
+
+.scripture-styles .v {
+	font-size: .7em;
+	font-weight: bold;
+	vertical-align: super;
+	line-height: 0;
+}
+
+
+.scripture-styles .v::after {
+	content: "\00a0";
+}
+
+.scripture-styles .s1 {
+	font-style: italic;
+}
+.scripture-styles .q1 {
+	margin-left: 0;
+}
+.scripture-styles .q2 {
+	margin-left: 1.5em;
+}
+.scripture-styles .q3 {
+	margin-left: 3em;
+}
+.scripture-styles .q4 {
+	margin-left: 4.5em;
+}
+
 /************ PRINT **************/
 @media print {
 	#jethro-overall-width, #jethro-overall-width-inner {
