@@ -124,6 +124,11 @@ class call_service_comp_help_runsheet_format extends Call
 							<code>%SERVICE_BIBLE_PREACH_ALL%</code> expands to
 							<code>Psalm 111</code>
 						</p>
+						<p>
+							Add <code>_CONTENT</code> to fetch the full passage text instead of just the reference:
+							<code>%SERVICE_BIBLE_READ_1_CONTENT%</code> — fetches and displays the passage
+							using the preferred Bible translation (set in System Configuration).
+						</p>
 					</td>
 				</tr>
 				</tbody>
