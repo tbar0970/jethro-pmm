@@ -177,6 +177,20 @@ define('2FA_ENABLED', true);
 // define('SMTP_PASSWORD', '');
 
 
+///////////////////////////////////////////////////////////////////////////
+// BIBLE REF LOOKUP SETTINGS - optional integration with https://api.bible to 
+// automatically fetch Bible Reading passages in service handouts.
+//
+// API key obtainable after registering on https://api.bible
+// define('BIBLE_API_APIKEY', '........-Cn');
+//
+// Base URL for the API.Bible REST API (used for fetching Bible passage text).
+// Defaults to the standard API.Bible endpoint if not set.
+// define('BIBLE_API_URL', 'https://rest.api.bible/v1');
+
+// Timeout in seconds for API.Bible REST API requests. Defaults to 10 if not set.
+// define('BIBLE_API_TIMEOUT', 10);
+
 
 ///////////////////////////////////////////////////////////////////////////
 // ADVANCED SETTINGS - These are not available within the web interface

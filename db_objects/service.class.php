@@ -522,9 +522,45 @@ class service extends db_object
 		} else if (substr($keyword, -10) == '_FIRSTNAME') {
 			return $this->getPersonnelByRoleTitle(substr($keyword, 0, -10), TRUE);
 
-		} else if (str_starts_with($keyword, 'SERVICE_')) {
-			$service_field = strtolower(substr($keyword, strlen('SERVICE_')));
-			if (in_array($service_field, Array('topic', 'format'))) {
+		} else if (str_starts_with((string) $keyword, 'SERVICE_')) {
+			$service_field = strtolower(substr((string) $keyword, strlen('SERVICE_')));
+
+			// Handle %SERVICE_BIBLE_READ_N_CONTENT% tokens:
+			// resolve the underlying reference, then fetch the passage text via API
+			// using the preferred translation from the BIBLE_PREFERRED setting.
+			if (preg_match('/^bible_(read|preach)_(\d+|all)_content$/', $service_field, $m)) {
+				if ($GLOBALS['system']->featureEnabled('BIBLE_API')) {
+					$baseServiceField = "bible_{$m[1]}_{$m[2]}";
+					$reference = $this->getValue($baseServiceField);
+					if ($reference && ($reference !== '')) {
+						require_once JETHRO_ROOT . '/include/bibleapi.php';
+						$translation = defined('BIBLE_TRANSLATION_PREFERRED') ? constant('BIBLE_TRANSLATION_PREFERRED') : null;
+						if ($m[2] === 'all') {
+							// Comma-separated list of references — fetch each
+							$references = array_map('trim', explode(',', $reference));
+							$output = '';
+							foreach ($references as $ref) {
+								if ($ref !== '') {
+									$result = fetchBiblePassage($ref, $translation);
+									if ($result !== null) {
+										[$text, $attribution] = $result;
+										$output .= "<h5>".$ref."</h5>" . $text . $attribution;
+									}
+								}
+							}
+							return $output;
+						}
+						$result = fetchBiblePassage($reference, $translation);
+						if ($result !== null) {
+							[$text, $attribution] = $result;
+							return $text . $attribution;
+						}
+					}
+				}
+				return '';
+			}
+
+			if (in_array($service_field, ['topic', 'format'])) {
 				$service_field .= '_title';
 			}
 			if ((substr($service_field, 0, 5) == 'bible') || isset($this->fields[$service_field])) {
@@ -808,8 +844,8 @@ class service extends db_object
 			</h4>
 			<?php
 			if ($i['show_in_handout'] == 'full') {
-				echo $i['content_html'];
-				?>
+                echo $this->keywordsInBody($i['content_html']) ? $this->replaceKeywords($i['content_html']) : $i['content_html'];
+                ?>
 				<small>
 					<?php echo nl2br(ents($i['credits'])); ?>
 				</small>
@@ -817,6 +853,14 @@ class service extends db_object
 			}
 		}
 	}
+
+    /** @return Whether a service component HTML body contains a single %.*_CONTENT% token (i.e. bible readings) which is the only case in which we allow substitution.
+     */
+    private function keywordsInBody(string $content): bool
+    {
+        $stripped = trim(strip_tags($content));
+        return preg_match('/^%[A-Z0-9_]+_CONTENT%$/i', $stripped) === 1;
+    }
 
 	public function getServiceContent()
 	{
@@ -830,7 +874,8 @@ class service extends db_object
 				$title = $this->replaceKeywords($title);
 				//$serviceContent[] = ents($title);
 			if ($i['show_in_handout'] == 'full') {
-				$itemContent = $i['content_html'];
+                $itemContent = $this->keywordsInBody($i['content_html']) ? $this->replaceKeywords($i['content_html']) : $i['content_html'];
+
 				$itemCredit = nl2br(ents($i['credits']));
 			}
 			else {

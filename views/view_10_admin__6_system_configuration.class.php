@@ -35,6 +35,9 @@ class View_Admin__System_Configuration extends View {
 				case '2FA_REQUIRED_PERMS':
 					$this->process2FARequiredPermsField();
 					break;
+                case 'BIBLE_TRANSLATION_PREFERRED':
+                    $this->processBibleTranslationPreferredOptions();
+                    break;
 				default:
 					if (isset($_REQUEST[$symbol])) {
 						list($params, $value, $multi) = self::getParamsAndValue($symbol, $details);
@@ -238,6 +241,10 @@ class View_Admin__System_Configuration extends View {
 			case '2FA_REQUIRED_PERMS':
 				$this->print2FARequiredPermsField();
 				break;
+
+            case 'BIBLE_TRANSLATION_PREFERRED':
+                $this->printBibleTranslationPreferredOptions();
+                break;
 			default:
 				list($params, $value, $multi) = self::getParamsAndValue($symbol, $details);
 				if ($multi) {
@@ -684,6 +691,28 @@ class View_Admin__System_Configuration extends View {
 		}
 
 	}
+    private function printBibleTranslationPreferredOptions(): void
+    {
+		require_once JETHRO_ROOT.'/include/bibleapi.php';
+		$translations = getBibleTranslations();
+		$current = defined('BIBLE_TRANSLATION_PREFERRED') ? constant('BIBLE_TRANSLATION_PREFERRED') : null;
+		?>
+		<select name="BIBLE_TRANSLATION_PREFERRED">
+			<?php foreach ($translations as $id => $info): ?>
+				<option value="<?php echo ents($id); ?>" <?php if ($id === $current) echo 'selected="selected"'; ?>>
+					<?php echo ents($info['abbreviation'] . ' — ' . $info['name']); ?>
+				</option>
+			<?php endforeach; ?>
+		</select>
+		<?php
+    }
+
+    private function processBibleTranslationPreferredOptions(): void
+    {
+		if (isset($_REQUEST['BIBLE_TRANSLATION_PREFERRED'])) {
+			Config_Manager::saveSetting('BIBLE_TRANSLATION_PREFERRED', $_REQUEST['BIBLE_TRANSLATION_PREFERRED']);
+		}
+    }
 
 }
 
