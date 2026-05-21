@@ -38,7 +38,7 @@ include_once 'urllinker.php';
 		<?php
 	}
 	?>
-	<i class="icon-<?php echo $type == 'family' ? 'home' : 'user'; ?>"></i>
+	<i class="icon-pencil"></i>
 	<blockquote>
 		<p class="subject"><?php echo ents($entry['subject']); ?></p>
 	<?php
