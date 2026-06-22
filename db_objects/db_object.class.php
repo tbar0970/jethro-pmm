@@ -28,7 +28,7 @@ class db_object
 
 		$this->fields = Array();
 		$parent_class = get_parent_class($this);
-		while ($parent_class != 'db_object') {
+		while ($parent_class && $parent_class != 'db_object') {
 			$new_fields = call_user_func(Array($parent_class, '_getFields'));
 			foreach ($new_fields as $i => $v) {
 				$new_fields[$i]['table_name'] = strtolower($parent_class);
