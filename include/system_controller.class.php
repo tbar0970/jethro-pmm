@@ -77,8 +77,8 @@ class System_Controller
 	 * @return string A hash
 	 */
 	private function getViewHash(): string {
-        $currentUser = $GLOBALS['user_system']->getCurrentUser();
-        return sha1(ENABLED_FEATURES . ($currentUser ? $currentUser['permissions'] : ''));
+		$currentUser = $GLOBALS['user_system']->getCurrentUser();
+		return sha1(ifdef('ENABLED_FEATURES', '') . ($currentUser ? $currentUser['permissions'] : ''));
 	}
 
 	/**
