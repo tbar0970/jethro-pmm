@@ -1,3 +1,4 @@
+bun.lock
 /conf.php
 # /conf.php anchors conf.php to allow devbox.d/web/conf.php and others
 devbox.d/bin/devbox
@@ -7,4 +8,7 @@ devbox.d/nginx/nginx*.conf
 /files/
 .idea/
 /nbproject/
+node_modules/
 .php-cs-fixer.cache
+resources/css/jethro-*-DEV.css
+resources/js/jethro-*-DEV.js
