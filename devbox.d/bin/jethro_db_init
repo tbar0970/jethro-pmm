@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+#? Usage: jethro_db_init
+#?
+#? Create (or wipe and recreate) a 'jethro' database and user account
+#? in the Devbox MariaDB.
+#?
+#? Non-interactive (e.g. from process-compose): existing databases are
+#? left untouched.
+#? Interactive: prompts before wiping an existing database.
+#?
+#? Environment:
+#?   DB        Database name (default: jethro)
+#?   DB_USER   Database user (default: jethro)
+#?   DB_PASS   Database password (default: jethro)
+
+set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/jethrodb.sh"
+
+DB=${DB:-jethro}
+DB_USER=${DB_USER:-jethro}
+DB_PASS=${DB_PASS:-jethro}
+
+main() {
+	if (( $# )); then help; fi
+	validate_working
+	confirm_wipe
+	create_user_and_dropcreate_db
+	echo
+	echo "Connect with: devbox run mariadb"
+}
+
+confirm_wipe() {
+
+	if [[ -n $(mariadb_as_root -sNBe "show databases like '${DB}';") ]]; then
+		if [[ ! -t 0 ]]; then
+			# Non-interactive, probably invoked via process-compose - don't wipe the database
+			echo "$DB exists; not modifying"
+			exit
+		fi
+		if [[ ! -v AUTOCONFIRM ]]; then
+			read -p "Database '${DB}' (in the devbox MariaDB) exists. Wipe? (Y/n) " yesno
+			if [[ $yesno =~ [nN] ]]; then exit 1; fi
+			echo
+		fi
+	fi
+}
+
+create_user_and_dropcreate_db() {
+	# Mariadb's 'root' account initializes with no password set, and is only accessible
+	# via socket auth as the 'root' user. mariadb_as_root handles this without sudo.
+	# (MariaDB is initialized with mariadb-install-db --auth-root-authentication-method=normal in .devbox/virtenv/mariadb//setup_db.sh -- see https://mariadb.com/docs/server/clients-and-utilities/deployment-tools/mariadb-install-db for details).
+	# set -x
+	mariadb_as_root -v <<-EOF
+	DROP USER IF EXISTS '$DB_USER'@'localhost';
+	CREATE USER IF NOT EXISTS 'jethro'@'localhost' IDENTIFIED BY 'jethro';
+	CREATE USER IF NOT EXISTS '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASS';
+	DROP DATABASE IF EXISTS $DB;
+	CREATE DATABASE $DB CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+	GRANT ALL PRIVILEGES ON $DB.* TO '$DB_USER'@'localhost';
+	GRANT ALL PRIVILEGES ON $DB.* TO 'jethro'@'localhost'; -- jethro can access everything
+	FLUSH PRIVILEGES;
+	EOF
+
+	echo "Database user created: $DB_USER"
+	echo "Database created: $DB"
+}
+
+
+main "$@"

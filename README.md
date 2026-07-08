@@ -32,6 +32,11 @@ You might like to download and load some [sample data](https://easyjethro.com.au
 be seen running at https://easyjethro.com.au/demo/). The jethro_demodata file is SQL which can be loaded into MySQL. See
 [here](https://github.com/tbar0970/jethro-pmm/pull/1398) for further instructions.
 
+# Development
+
+Jethro source distribution comes with [Devbox](https://www.jetify.com/docs/devbox) scripts for quickly launching a local development environment, see DEVELOPMENT_DEVBOX.md.
+
+
 # Documentation
 
 ## User Documentation
