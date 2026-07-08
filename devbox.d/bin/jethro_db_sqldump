@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+#? Usage: jethro_db_sqldump --newdb=TARGET [--db=SOURCE]
+#?
+#? Dump the --db database to stdout, renamed for the --newdb target database.
+#? Pipe to gzip to recreate tests/functional/testdata/demodata.sql.gz.
+#?
+#? Options:
+#?   --db     Source database (default: jethro_functest)
+#?   --newdb  Target database name (required)
+
+set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/jethrodb.sh"
+
+parse_opts "db=jethro_functest newdb" -- "$@"
+[[ -z "${newdb:-}" ]] && { echo >&2 "Error: --newdb is required"; help; }
+
+# --default-character-set=binary preserves the exact bytes in every column
+# regardless of table charset. The alternative (utf8mb4, the default) causes
+# the server to convert column data on read, silently corrupting any database
+# that contains latin1 tables with non-ASCII bytes (including the deliberate
+# "raw UTF-8 bytes in latin1 columns" corruption we test against in
+# load_jethro_with_latin1.sh). Each table's CREATE TABLE statement already
+# declares its charset, so the dump does not need to reinterpret bytes —
+# binary round-trips every permutation faithfully.
+# mariadb-dump generates lines like:
+#   SET sql_mode='STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';
+# the NO_AUTO_CREATE_USER mode breaks MySQL. Remove it so the SQL works in both databases.
+mariadb-dump --socket "$MYSQL_UNIX_PORT" -u root --skip-password --default-character-set=binary "$db" \
+    --single-transaction --routines --events --triggers \
+     | sed -e 's/NO_AUTO_CREATE_USER,//g' -e 's/,NO_AUTO_CREATE_USER//g' \
+     | mariadb_rename --database "$newdb"
