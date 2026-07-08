@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+#? Usage: jethro_db_init [--db=NAME] [--db-user=USER] [--db-pass=PASS] [--charset=CHARSET] [--collation=COLLATION]
+#?
+#? Create (or wipe and recreate) a 'jethro' database and user account
+#? in the Devbox MariaDB/MySQL.
+#?
+#? Non-interactive (e.g. from process-compose): existing databases are
+#? left untouched.
+#? Interactive: prompts before wiping an existing database.
+#?
+#? Options:
+#?   --db           Database name (default: jethro)
+#?   --db-user      Database user (default: jethro)
+#?   --db-pass      Database password (default: jethro)
+#?   --charset      Database character set (default: utf8)
+#?   --collation    Database collation (default: utf8_unicode_ci)
+
+set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/jethrodb.sh"
+
+# default opts
+parse_opts "db=jethro db_user=jethro db_pass=jethro charset=utf8 collation=utf8_unicode_ci" -- "$@"
+
+main() {
+	if (( ${#ARGV[@]} )); then help; fi
+	validate_working
+	create_user_and_dropcreate_db
+	echo
+	echo "Connect with: devbox run mariadb"
+}
+
+create_user_and_dropcreate_db() {
+	# Mariadb's 'root' account initializes with no password set, and is only accessible
+	# via socket auth as the 'root' user. mariadb_as_root handles this without sudo.
+	dropcreate_db "$db" "$db_user" "$db_pass" "$charset" "$collation"
+}
+
+
+main "${ARGV[@]}"
