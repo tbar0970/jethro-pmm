@@ -1,0 +1,106 @@
+---
+sidebar_position: 1
+---
+
+# Installation
+
+This guide covers deploying Jethro on a Linux server with Nginx, PHP-FPM, and MySQL.
+
+## Prerequisites
+
+- **Linux server** (Ubuntu 22.04+ recommended)
+- **Nginx** 1.18+
+- **PHP** 8.1+ with required extensions
+- **MySQL** 8.0+ or MariaDB 10.6+
+
+## Quick Install
+
+```bash
+# Clone the repository
+git clone <repo-url> /path/to/jethro
+cd /path/to/jethro
+
+# Install PHP dependencies (if using Composer)
+composer install
+
+# Set up the database
+mysql -u root -p -e "CREATE DATABASE jethro CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+mysql -u root -p jethro < install/install.sql
+
+# Configure
+cp conf.php.example conf.php
+# Edit conf.php with your database credentials and settings
+```
+
+## Nginx Configuration
+
+Jethro uses URL rewriting for clean URLs. Configure Nginx with PHP-FPM:
+
+```nginx
+server {
+    listen 80;
+    server_name your-church.example.com;
+    root /path/to/jethro;
+
+    index index.php;
+
+    # Pass PHP files to PHP-FPM
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    # Serve static files directly
+    location /resources/ {
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Everything else goes to PHP
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }
+}
+```
+
+See `nginx/CLAUDE_NGINX.md` in the repository for full configuration details.
+
+## PHP Extensions
+
+Required PHP extensions:
+
+```bash
+apt install php8.1-fpm php8.1-mysql php8.1-mbstring \
+  php8.1-xml php8.1-curl php8.1-gd php8.1-zip
+```
+
+## Database Setup
+
+Jethro uses MySQL views and stored procedures. The initial schema is created by `install/install.sql`. Ongoing upgrades use the `upgrades/` directory.
+
+JethroDB supports multiple connection accounts (PRIVATE, MEMBERS, PUBLIC) mapped to MySQL users with different privileges. Configure these in `conf.php`.
+
+## Configuration File
+
+Copy `conf.php.example` to `conf.php` and set:
+
+- `DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME` — database connection
+- `BASE_URL` — the URL where Jethro is accessible
+- `SYSTEM_NAME` — your church name
+
+## File Permissions
+
+```bash
+chown -R www-data:www-data /path/to/jethro
+chmod -R 755 /path/to/jethro
+# Ensure conf.php is not world-readable
+chmod 640 conf.php
+```
+
+## Upgrade Process
+
+1. Pull the latest code
+2. Run `composer install` if using Composer
+3. Visit `/admin/upgrade` or run `mysql < upgrades/*.sql`
+4. Check the system configuration page for any new settings

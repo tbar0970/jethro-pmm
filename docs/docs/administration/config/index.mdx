@@ -1,0 +1,131 @@
+---
+sidebar_position: 1
+---
+
+import { SingleSetting, MultiSettings } from '../../../src/components/SettingComponents';
+
+# System Configuration
+
+Settings that control Jethro's behaviour. Most can be set via **Admin &rarr; System Configuration**; some are file-only in `conf.php`.
+
+<SingleSetting id="SYSTEM_NAME" />
+
+## Permissions and Security
+
+Foundation settings: feature flags, default permissions, and session management.
+
+<MultiSettings group="permissionsAndSecurity" />
+
+## 2-Factor Authentication
+
+Require a one-time SMS code at login for users holding specific permissions.
+
+<MultiSettings group="twoFactorAuth" />
+
+## Jethro Behaviour Options
+
+Controls defaults for rosters, notes, attendance, person lists, envelopes, and more.
+
+<MultiSettings group="behaviourOptions" />
+
+## Data Structure options
+
+Defines the values available in dropdowns throughout Jethro: person statuses, age brackets, address fields, and telephone formats.
+
+<MultiSettings group="dataStructure" />
+
+## Member area
+
+Self-service portal where congregation members can log in to view their details and rosters.
+
+<MultiSettings group="memberArea" />
+
+## iCal feeds
+
+Publish roster information as iCal feeds for congregation members to subscribe to.
+
+<MultiSettings group="icalFeeds" />
+
+## Public area
+
+Make selected content available on a public-facing page without requiring login.
+
+<MultiSettings group="publicArea" />
+
+## External Links
+
+URLs and integration settings for external services: Bible lookup, CCLI, postcode search, maps, QR codes, and bulk-email settings.
+
+<MultiSettings group="externalLinks" />
+
+## Task Notifications
+
+Email notifications for task assignments and reminders.
+
+<MultiSettings group="taskNotifications" />
+
+## Mailchimp Sync
+
+Sync person data with a Mailchimp audience for bulk email campaigns.
+
+<MultiSettings group="mailchimpSync" />
+
+## SMTP Email Server
+
+Outgoing email server configuration for system-generated emails (notifications, member area).
+
+<MultiSettings group="smtpEmailServer" />
+
+## SMS
+
+SMS messaging configuration — message limits, gateway templates, and 2FA transport.
+
+### Message body
+
+Limits on what the user can type in SMS messages.
+
+<MultiSettings group="messageBody" />
+
+### Debugging &amp; cost display
+
+<MultiSettings group="debugging" />
+
+### Legacy HTTP template gateway
+
+Only needed if using `TemplateSmsProvider`, `FiveCentSmsV4Provider`, or a custom HTTP-template gateway. Most users should use one of the provider-specific sections above instead.
+
+<MultiSettings group="legacyGateway" />
+
+### 2FA SMS gateway (file-only)
+
+If you want 2FA to use a different SMS gateway than regular sends. When unset, 2FA falls back to the regular SMS constants.
+
+<MultiSettings group="twoFactorSmsGateway" />
+
+### 2FA logging (file-only)
+
+<MultiSettings group="twoFactorLogging" />
+
+## Essential
+
+Core infrastructure: database connection and base URL. These must be set for the system to run.
+
+<MultiSettings group="essential" />
+
+## Database accounts (optional)
+
+Separate MySQL credentials for the Members and Public areas, to restrict which tables those interfaces can access. All default to the main credentials.
+
+<MultiSettings group="databaseAccounts" />
+
+## Bible API (file-only)
+
+Auto-fetches Bible passage text for service handouts. Requires a key from api.bible.
+
+<MultiSettings group="bibleApi" />
+
+## Advanced (file-only)
+
+Server-side and display options: error reporting, SQL mode, pre-filled credentials, custom CSS, and more.
+
+<MultiSettings group="advanced" />
