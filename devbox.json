@@ -11,7 +11,8 @@
     "php85Extensions.curl@latest",
     "php85Extensions.exif@latest",
     "mariadb@latest",
-    "nginx@latest"
+    "nginx@latest",
+    "bun@latest"
   ],
   "env": {
     "NGINX_WEB_PORT":         "8081",
@@ -21,7 +22,10 @@
     "scripts": {
       "lint":                 "php -l *.php calls/*.php db_objects/*.php hooks/**/*.php include/*.php members/*.php members/**/*.php public/*.php public/**/*.php scripts/*.php templates/*.php upgrades/*.php upgrades/**/*.php views/*.php",
       "mariadb_as_root":      "devbox.d/bin/mariadb_as_root",
-      "initdb":               "devbox.d/bin/jethro_db_init"
+      "initdb":               "devbox.d/bin/jethro_db_init",
+      "compile":              "jethro_compile_css ${JETHRO_VERSION} && jethro_compile_js ${JETHRO_VERSION} && echo \"To use compiled resources, run: echo \"${JETHRO_VERSION}\" > ./include/version.txt\"",
+      "docs":                 "cd docs && bun install && bun run start",
+      "docs-html":            "cd docs && bun install && bun run build"
     }
   }
 }
