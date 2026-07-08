@@ -1,0 +1,1359 @@
+{
+  "options": {
+    "boolean": [
+      {
+        "value": "0",
+        "label": "No"
+      },
+      {
+        "value": "1",
+        "label": "Yes"
+      }
+    ]
+  },
+  "settings": {
+    "SYSTEM_NAME": {
+      "type": "text",
+      "label": "System Name",
+      "description": "Label displayed at the top of every page",
+      "explanation": "",
+      "default": null,
+      "note": "Label displayed at the top of every page"
+    },
+    "ENABLED_FEATURES": {
+      "type": "text",
+      "label": "Enabled Features",
+      "description": "Which Jethro features are visible to users?",
+      "explanation": "",
+      "default": "NOTES,PHOTOS,ATTENDANCE,ROSTERS&SERVICES,SERVICEDETAILS,DOCUMENTS,SERVICEDOCUMENTS,SMS",
+      "note": "Which Jethro features are visible to users?"
+    },
+    "DEFAULT_PERMISSIONS": {
+      "type": "number",
+      "label": "Default Permissions",
+      "description": "Permissions to grant to new user accounts by default",
+      "explanation": "",
+      "default": 8519679,
+      "note": "Permissions to grant to new user accounts by default"
+    },
+    "RESTRICTED_USERS_CAN_ADD": {
+      "type": "select",
+      "label": "Restricted Users Can Add",
+      "description": "Allow users with group/congregation restrictions to create new persons and families?",
+      "explanation": "",
+      "default": "0",
+      "note": "Allow users with group/congregation restrictions to create new persons and families?",
+      "options": "boolean"
+    },
+    "PASSWORD_MIN_LENGTH": {
+      "type": "number",
+      "label": "Password Min Length",
+      "description": "Minimum password length",
+      "explanation": "",
+      "default": 8,
+      "note": "Minimum password length"
+    },
+    "SESSION_TIMEOUT_MINS": {
+      "type": "number",
+      "label": "Session Timeout Mins",
+      "description": "Inactive sessions will be logged out after this number of minutes",
+      "explanation": "",
+      "default": 90,
+      "note": "Inactive sessions will be logged out after this number of minutes"
+    },
+    "SESSION_MAXLENGTH_MINS": {
+      "type": "number",
+      "label": "Session Maxlength Mins",
+      "description": "Every session will be logged out this many minutes after login",
+      "explanation": "",
+      "default": 480,
+      "note": "Every session will be logged out this many minutes after login"
+    },
+    "2FA_REQUIRED_PERMS": {
+      "type": "text",
+      "label": "2fa Required Perms",
+      "description": "Users who hold permission levels selected here will be required to complete 2-factor authentication at login.",
+      "explanation": "",
+      "default": null,
+      "note": "Users who hold permission levels selected here will be required to complete 2-factor authentication at login."
+    },
+    "2FA_EVEN_FOR_RESTRICTED_ACCTS": {
+      "type": "select",
+      "label": "2fa Even For Restricted Accts",
+      "description": "Require 2-factor auth even for accounts with group/congregation restrictions?",
+      "explanation": "",
+      "default": "0",
+      "note": "Require 2-factor auth even for accounts with group/congregation restrictions?",
+      "options": "boolean"
+    },
+    "2FA_TRUST_DAYS": {
+      "type": "number",
+      "label": "2fa Trust Days",
+      "description": "Users can tick a box to skip 2-factor auth for this many days. Set to 0 to disable.",
+      "explanation": "",
+      "default": 30,
+      "note": "Users can tick a box to skip 2-factor auth for this many days. Set to 0 to disable."
+    },
+    "REQUIRE_INITIAL_NOTE": {
+      "type": "select",
+      "label": "Require Initial Note",
+      "description": "Whether an initial note is required when adding new family",
+      "explanation": "",
+      "default": "1",
+      "note": "Whether an initial note is required when adding new family",
+      "options": "boolean"
+    },
+    "DEFAULT_NOTE_STATUS": {
+      "type": "text",
+      "label": "Default Note Status",
+      "description": "Default status when creating a new note",
+      "explanation": "",
+      "default": "pending",
+      "note": "Default status when creating a new note"
+    },
+    "NOTES_ORDER": {
+      "type": "text",
+      "label": "Notes Order",
+      "description": "Order to display person and family notes",
+      "explanation": "",
+      "default": "ASC",
+      "note": "Order to display person and family notes"
+    },
+    "LOCK_LENGTH": {
+      "type": "number",
+      "label": "Lock Length",
+      "description": "Number of minutes users have to edit an object before their lock expires",
+      "explanation": "",
+      "default": 10,
+      "note": "Number of minutes users have to edit an object before their lock expires"
+    },
+    "PERSON_LIST_SHOW_GROUPS": {
+      "type": "select",
+      "label": "Person List Show Groups",
+      "description": "Show all groups when listing persons?",
+      "explanation": "",
+      "default": "0",
+      "note": "Show all groups when listing persons?",
+      "options": "boolean"
+    },
+    "NOTES_LINK_TO_EDIT": {
+      "type": "select",
+      "label": "Notes Link To Edit",
+      "description": "Should the homepage notes list link to the edit-note page?",
+      "explanation": "",
+      "default": "0",
+      "note": "Should the homepage notes list link to the edit-note page?",
+      "options": "boolean"
+    },
+    "CHUNK_SIZE": {
+      "type": "number",
+      "label": "Chunk Size",
+      "description": "Batch size to aim for when dividing lists of items",
+      "explanation": "",
+      "default": 100,
+      "note": "Batch size to aim for when dividing lists of items"
+    },
+    "REPEAT_DATE_THRESHOLD": {
+      "type": "number",
+      "label": "Repeat Date Threshold",
+      "description": "When a roster has this many columns, show the date on the right as well as the left",
+      "explanation": "",
+      "default": 10,
+      "note": "When a roster has this many columns, show the date on the right as well as the left"
+    },
+    "ROSTER_WEEKS_DEFAULT": {
+      "type": "number",
+      "label": "Roster Weeks Default",
+      "description": "Number of weeks to show in rosters by default",
+      "explanation": "",
+      "default": 8,
+      "note": "Number of weeks to show in rosters by default"
+    },
+    "ATTENDANCE_DEFAULT_DAY": {
+      "type": "text",
+      "label": "Attendance Default Day",
+      "description": "Default day to record attendance",
+      "explanation": "",
+      "default": "Sunday",
+      "note": "Default day to record attendance"
+    },
+    "ATTENDANCE_ORDER_DEFAULT": {
+      "type": "text",
+      "label": "Attendance Order Default",
+      "description": "Default order for recording/showing attendance",
+      "explanation": "",
+      "default": "status",
+      "note": "Default order for recording/showing attendance"
+    },
+    "ENVELOPE_WIDTH_MM": {
+      "type": "number",
+      "label": "Envelope Width Mm",
+      "description": "Envelope width (mm)",
+      "explanation": "",
+      "default": 220,
+      "note": "Envelope width (mm)"
+    },
+    "ENVELOPE_HEIGHT_MM": {
+      "type": "number",
+      "label": "Envelope Height Mm",
+      "description": "Envelope height (mm)",
+      "explanation": "",
+      "default": 110,
+      "note": "Envelope height (mm)"
+    },
+    "PERSON_STATUS_OPTIONS": {
+      "type": "text",
+      "label": "Person Status Options",
+      "description": "Configuration for <code>PERSON_STATUS_OPTIONS</code>.",
+      "explanation": "",
+      "default": "",
+      "note": ""
+    },
+    "AGE_BRACKET_OPTIONS": {
+      "type": "text",
+      "label": "Age Bracket Options",
+      "description": "Configuration for <code>AGE_BRACKET_OPTIONS</code>.",
+      "explanation": "",
+      "default": "",
+      "note": ""
+    },
+    "GROUP_MEMBERSHIP_STATUS_OPTIONS": {
+      "type": "text",
+      "label": "Group Membership Status Options",
+      "description": "Configuration for <code>GROUP_MEMBERSHIP_STATUS_OPTIONS</code>.",
+      "explanation": "",
+      "default": "",
+      "note": ""
+    },
+    "TIMEZONE": {
+      "type": "text",
+      "label": "Timezone",
+      "description": "Configuration for <code>TIMEZONE</code>.",
+      "explanation": "",
+      "default": "Australia/Sydney",
+      "note": ""
+    },
+    "ADDRESS_STATE_OPTIONS": {
+      "type": "text",
+      "label": "Address State Options",
+      "description": "(Leave blank to hide the state field)",
+      "explanation": "",
+      "default": "ACT,NSW,NT,QLD,SA,TAS,VIC,WA",
+      "note": "(Leave blank to hide the state field)"
+    },
+    "ADDRESS_STATE_LABEL": {
+      "type": "text",
+      "label": "Address State Label",
+      "description": "Label for the 'state' field. (Leave blank to hide the state field)",
+      "explanation": "",
+      "default": "State",
+      "note": "Label for the 'state' field. (Leave blank to hide the state field)"
+    },
+    "ADDRESS_STATE_DEFAULT": {
+      "type": "text",
+      "label": "Address State Default",
+      "description": "Default state",
+      "explanation": "",
+      "default": "NSW",
+      "note": "Default state"
+    },
+    "ADDRESS_SUBURB_LABEL": {
+      "type": "text",
+      "label": "Address Suburb Label",
+      "description": "Label for the 'suburb' field",
+      "explanation": "",
+      "default": "Suburb",
+      "note": "Label for the 'suburb' field"
+    },
+    "ADDRESS_POSTCODE_LABEL": {
+      "type": "text",
+      "label": "Address Postcode Label",
+      "description": "Label for the 'postcode' field",
+      "explanation": "",
+      "default": "Postcode",
+      "note": "Label for the 'postcode' field"
+    },
+    "ADDRESS_POSTCODE_WIDTH": {
+      "type": "number",
+      "label": "Address Postcode Width",
+      "description": "Width of the postcode box",
+      "explanation": "",
+      "default": 4,
+      "note": "Width of the postcode box"
+    },
+    "ADDRESS_POSTCODE_REGEX": {
+      "type": "text",
+      "label": "Address Postcode Regex",
+      "description": "Regex to validate postcodes; eg /^[0-9][0-9][0-9][0-9]$/ for 4 digits",
+      "explanation": "",
+      "default": "/^[0-9][0-9][0-9][0-9]$/",
+      "note": "Regex to validate postcodes; eg /^[0-9][0-9][0-9][0-9]$/ for 4 digits"
+    },
+    "HOME_TEL_FORMATS": {
+      "type": "text",
+      "label": "Home Tel Formats",
+      "description": "Valid formats for home phone; use X for a digit",
+      "explanation": "",
+      "default": "XXXX-XXXX\\n(XX) XXXX-XXXX",
+      "note": "Valid formats for home phone; use X for a digit"
+    },
+    "WORK_TEL_FORMATS": {
+      "type": "text",
+      "label": "Work Tel Formats",
+      "description": "Valid formats for work phone; use X for a digit",
+      "explanation": "",
+      "default": "XXXX-XXXX\\n(XX) XXXX-XXXX",
+      "note": "Valid formats for work phone; use X for a digit"
+    },
+    "MOBILE_TEL_FORMATS": {
+      "type": "text",
+      "label": "Mobile Tel Formats",
+      "description": "Valid formats for mobile phone; use X for a digit",
+      "explanation": "",
+      "default": "XXXX-XXX-XXX",
+      "note": "Valid formats for mobile phone; use X for a digit"
+    },
+    "MEMBER_LOGIN_ENABLED": {
+      "type": "select",
+      "label": "Member Login Enabled",
+      "description": "Should church members be able to log in at <system_url>members ?",
+      "explanation": "",
+      "default": "0",
+      "note": "Should church members be able to log in at <system_url>members ?",
+      "options": "boolean"
+    },
+    "MEMBER_REGO_EMAIL_FROM_NAME": {
+      "type": "text",
+      "label": "Member Rego Email From Name",
+      "description": "Sender name for member rego emails",
+      "explanation": "",
+      "default": null,
+      "note": "Sender name for member rego emails"
+    },
+    "MEMBER_REGO_EMAIL_FROM_ADDRESS": {
+      "type": "text",
+      "label": "Member Rego Email From Address",
+      "description": "Sender address for member rego emails",
+      "explanation": "",
+      "default": null,
+      "note": "Sender address for member rego emails"
+    },
+    "MEMBER_REGO_EMAIL_SUBJECT": {
+      "type": "text",
+      "label": "Member Rego Email Subject",
+      "description": "Subject for member rego emails",
+      "explanation": "",
+      "default": "Setting up your account",
+      "note": "Subject for member rego emails"
+    },
+    "MEMBERS_SEE_AGE_BRACKET": {
+      "type": "select",
+      "label": "Members See Age Bracket",
+      "description": "Should members be able to see and edit the age bracket field?",
+      "explanation": "",
+      "default": "1",
+      "note": "Should members be able to see and edit the age bracket field?",
+      "options": "boolean"
+    },
+    "MEMBER_VISIBLE_FOLDERS": {
+      "type": "text",
+      "label": "Member Visible Folders",
+      "description": "Folders in Documents which, if they exist, are visible to Members. Separate multiple directories with a pipe (|) character.",
+      "explanation": "",
+      "default": "Member_Files",
+      "note": "Folders in Documents which, if they exist, are visible to Members. Separate multiple directories with a pipe (|) character."
+    },
+    "MEMBER_REGO_HELP_EMAIL": {
+      "type": "text",
+      "label": "Member Rego Help Email",
+      "description": "Address that users can contact for assistance with member rego (optional)",
+      "explanation": "",
+      "default": null,
+      "note": "Address that users can contact for assistance with member rego (optional)"
+    },
+    "MEMBER_REGO_FAILURE_EMAIL": {
+      "type": "text",
+      "label": "Member Rego Failure Email",
+      "description": "Address to notifiy when member rego fails",
+      "explanation": "",
+      "default": null,
+      "note": "Address to notifiy when member rego fails"
+    },
+    "MEMBER_PASSWORD_MIN_LENGTH": {
+      "type": "number",
+      "label": "Member Password Min Length",
+      "description": "Minimum length for member passwords",
+      "explanation": "",
+      "default": 7,
+      "note": "Minimum length for member passwords"
+    },
+    "MEMBERS_SHARE_ADDRESS": {
+      "type": "select",
+      "label": "Members Share Address",
+      "description": "Should addresses be visible in the members area?",
+      "explanation": "",
+      "default": "0",
+      "note": "Should addresses be visible in the members area?",
+      "options": "boolean"
+    },
+    "ROSTER_FEEDS_ENABLED": {
+      "type": "select",
+      "label": "Roster Feeds Enabled",
+      "description": "Whether users can access their roster assignments via an ical feed with secret URL",
+      "explanation": "",
+      "default": "1",
+      "note": "Whether users can access their roster assignments via an ical feed with secret URL",
+      "options": "boolean"
+    },
+    "PUBLIC_AREA_ENABLED": {
+      "type": "select",
+      "label": "Public Area Enabled",
+      "description": "Whether to allow public access to certain info at <system_url>public",
+      "explanation": "",
+      "default": "0",
+      "note": "Whether to allow public access to certain info at <system_url>public",
+      "options": "boolean"
+    },
+    "SHOW_SERVICE_NOTES_PUBLICLY": {
+      "type": "select",
+      "label": "Show Service Notes Publicly",
+      "description": "Should service notes be visible in the public area at <system_url>public?",
+      "explanation": "",
+      "default": "0",
+      "note": "Should service notes be visible in the public area at <system_url>public?",
+      "options": "boolean"
+    },
+    "PUBLIC_ROSTER_SECRET": {
+      "type": "text",
+      "label": "Public Roster Secret",
+      "description": "Advanced: Only allow access to public rosters if the URL contains \\\"&secret=<this-secret>\\\"",
+      "explanation": "",
+      "default": null,
+      "note": "Advanced: Only allow access to public rosters if the URL contains \\\"&secret=<this-secret>\\\""
+    },
+    "BIBLE_URL": {
+      "type": "text",
+      "label": "Bible Url",
+      "description": "URL Template for bible passage links, with the keyword __REFERENCE__",
+      "explanation": "",
+      "default": "https://www.biblegateway.com/passage/?search=__REFERENCE__&version=NIVUK",
+      "note": "URL Template for bible passage links, with the keyword __REFERENCE__"
+    },
+    "CCLI_SEARCH_URL": {
+      "type": "text",
+      "label": "Ccli Search Url",
+      "description": "URL Template for searching CCLI, with the keyword __TITLE__",
+      "explanation": "",
+      "default": "https://songselect.ccli.com/search/results?search=__TITLE__",
+      "note": "URL Template for searching CCLI, with the keyword __TITLE__"
+    },
+    "CCLI_DETAIL_URL": {
+      "type": "text",
+      "label": "Ccli Detail Url",
+      "description": "URL Template for CCLI song details by song number, with the keyword __NUMBER__",
+      "explanation": "",
+      "default": "https://songselect.ccli.com/songs/__NUMBER__",
+      "note": "URL Template for CCLI song details by song number, with the keyword __NUMBER__"
+    },
+    "CCLI_REPORT_URL": {
+      "type": "text",
+      "label": "Ccli Report Url",
+      "description": "URL Template for reporting usage to CCLI by song number, with keyword __NUMBER__",
+      "explanation": "",
+      "default": "https://reporting.ccli.com/search?s=__NUMBER__&page=1&category=all",
+      "note": "URL Template for reporting usage to CCLI by song number, with keyword __NUMBER__"
+    },
+    "POSTCODE_LOOKUP_URL": {
+      "type": "text",
+      "label": "Postcode Lookup Url",
+      "description": "URL template for looking up postcodes, with the keyword __SUBURB__",
+      "explanation": "",
+      "default": "https://auspost.com.au/postcode/__SUBURB__",
+      "note": "URL template for looking up postcodes, with the keyword __SUBURB__"
+    },
+    "MAP_LOOKUP_URL": {
+      "type": "text",
+      "label": "Map Lookup Url",
+      "description": "URL template for map links, with the keywords __ADDRESS_STREET__, __ADDRESS_SUBURB__, __ADDRESS_POSTCODE__, __ADDRESS_STATE__",
+      "explanation": "",
+      "default": "http://maps.google.com.au?q=__ADDRESS_STREET__,%20__ADDRESS_SUBURB__,%20__ADDRESS_STATE__,%20__ADDRESS_POSTCODE__",
+      "note": "URL template for map links, with the keywords __ADDRESS_STREET__, __ADDRESS_SUBURB__, __ADDRESS_POSTCODE__, __ADDRESS_STATE__"
+    },
+    "QR_CODE_GENERATOR_URL": {
+      "type": "text",
+      "label": "Qr Code Generator Url",
+      "description": "URL template for generating QR codes, containing the placeholder __URL__",
+      "explanation": "",
+      "default": "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=__URL__",
+      "note": "URL template for generating QR codes, containing the placeholder __URL__"
+    },
+    "EMAIL_CHUNK_SIZE": {
+      "type": "number",
+      "label": "Email Chunk Size",
+      "description": "When displaying mailto links for emails, divide into batches of this size",
+      "explanation": "",
+      "default": 25,
+      "note": "When displaying mailto links for emails, divide into batches of this size"
+    },
+    "MULTI_EMAIL_SEPARATOR": {
+      "type": "text",
+      "label": "Multi Email Separator",
+      "description": "When displaying mailto links for emails, separate addresses using this character",
+      "explanation": "",
+      "default": ",",
+      "note": "When displaying mailto links for emails, separate addresses using this character"
+    },
+    "TASK_NOTIFICATION_ENABLED": {
+      "type": "select",
+      "label": "Task Notification Enabled",
+      "description": "(This feature also requires the task_reminder.php script to be called by cron every 5 minutes)",
+      "explanation": "",
+      "default": "0",
+      "note": "(This feature also requires the task_reminder.php script to be called by cron every 5 minutes)",
+      "options": "boolean"
+    },
+    "TASK_NOTIFICATION_FROM_NAME": {
+      "type": "text",
+      "label": "Task Notification From Name",
+      "description": "Name from which task notifications should be sent",
+      "explanation": "",
+      "default": "Jethro",
+      "note": "Name from which task notifications should be sent"
+    },
+    "TASK_NOTIFICATION_FROM_ADDRESS": {
+      "type": "text",
+      "label": "Task Notification From Address",
+      "description": "Email address from which task notifications should be sent",
+      "explanation": "",
+      "default": null,
+      "note": "Email address from which task notifications should be sent"
+    },
+    "TASK_NOTIFICATION_SUBJECT": {
+      "type": "text",
+      "label": "Task Notification Subject",
+      "description": "Configuration for <code>TASK_NOTIFICATION_SUBJECT</code>.",
+      "explanation": "",
+      "default": "New notes assigned to you",
+      "note": ""
+    },
+    "MAILCHIMP_API_KEY": {
+      "type": "text",
+      "label": "Mailchimp Api Key",
+      "description": "API Key for Mailchimp integration. NB the mailchimp sync script must also be called regularly by cron.",
+      "explanation": "",
+      "default": null,
+      "note": "API Key for Mailchimp integration. NB the mailchimp sync script must also be called regularly by cron."
+    },
+    "SMTP_SERVER": {
+      "type": "text",
+      "label": "Smtp Server",
+      "description": "SMTP server for sending emails",
+      "explanation": "",
+      "default": null,
+      "note": "SMTP server for sending emails"
+    },
+    "SMTP_ENCRYPTION": {
+      "type": "text",
+      "label": "Smtp Encryption",
+      "description": "Encryption method for SMTP server",
+      "explanation": "",
+      "default": "",
+      "note": "Encryption method for SMTP server"
+    },
+    "SMTP_USERNAME": {
+      "type": "text",
+      "label": "Smtp Username",
+      "description": "Username for SMTP server",
+      "explanation": "",
+      "default": null,
+      "note": "Username for SMTP server"
+    },
+    "SMTP_PASSWORD": {
+      "type": "text",
+      "label": "Smtp Password",
+      "description": "Password for SMTP server",
+      "explanation": "",
+      "default": null,
+      "note": "Password for SMTP server"
+    },
+    "SMTP_PORT": {
+      "type": "number",
+      "label": "Smtp Port",
+      "description": "Port to connect to the SMTP server. Usually 25, 465 for SSL, or 587 for TLS.",
+      "explanation": "",
+      "default": 25,
+      "note": "Port to connect to the SMTP server. Usually 25, 465 for SSL, or 587 for TLS."
+    },
+    "SMS_MAX_LENGTH": {
+      "type": "number",
+      "label": "Sms Max Length",
+      "description": "Character limit for SMS messages. 160 chars is usually a one-part SMS.",
+      "explanation": "SMSes are billed per 160 characters (or 70 if emojis / unicode are present), so setting SMS_MAX_LENGTH to 160 keeps costs down by enforcing brevity. To allow longer messages increase SMS_MAX_LENGTH to 306 (2x SMS segments), 459 (3x), 612 (4x), 765 (5x) etc.",
+      "default": 160,
+      "note": ""
+    },
+    "SMS_UNICODE_PERMITTED": {
+      "type": "select",
+      "label": "Sms Unicode Permitted",
+      "description": "Whether to permit emojis and other unicode in SMSes.",
+      "explanation": "Be aware that even a single Unicode character doubles the cost for messages >70 chars (shifts encoding from GSM 03.38 to UCS-2).<br><br><code>1</code> = allow all Unicode; <code>0</code> = GSM-only (non-GSM chars block sending); <code>'when_free'</code> = allow Unicode for single-segment messages (≤70 chars), block for longer. This only affects whether Jethro allows Unicode — your upstream provider has to as well. Cellcast supports Unicode natively; 5CentSMS requires contacting support.",
+      "default": "when_free",
+      "options": "unicode",
+      "note": "Whether to permit emojis and other unicode in SMSes"
+    },
+    "SMS_HTTP_URL": {
+      "type": "text",
+      "label": "Sms Http Url",
+      "description": "URL of the SMS gateway to send SMSes through. Used by <code>TemplateSmsProvider</code> / legacy gateway.",
+      "explanation": "",
+      "default": null,
+      "fileOnly": true,
+      "note": "URL of the SMS messaging service"
+    },
+    "SMS_HTTP_HEADER_TEMPLATE": {
+      "type": "text",
+      "label": "Sms Http Header Template",
+      "description": "Template for the HTTP headers of the POST request Jethro sends to the SMS gateway. Some gateways use headers for authentication.",
+      "explanation": "Example for 5CentSMS: <code>User: me@example.com\\r\\nApi-Key: MyAPIKey\\r\\n</code>",
+      "default": null,
+      "fileOnly": true,
+      "note": "Template for the headers of a request to the SMS messaging service"
+    },
+    "SMS_HTTP_POST_TEMPLATE": {
+      "type": "text",
+      "label": "Sms Http Post Template",
+      "description": "Template for the body of the HTTP POST request Jethro sends to the SMS gateway.",
+      "explanation": "Supports keywords: <code>_MESSAGE_</code>, <code>_RECIPIENTS_COMMAS_</code>, <code>_RECIPIENTS_NEWLINES_</code>, <code>_RECIPIENTS_ARRAY_</code>, <code>_RECIPIENTS_INTERNATIONAL_COMMAS_</code>, <code>_RECIPIENTS_INTERNATIONAL_NEWLINES_</code>, <code>_RECIPIENTS_INTERNATIONAL_ARRAY_</code>, <code>_USER_MOBILE_</code>, <code>_USER_EMAIL_</code>.<br><br>Example for SMSBroadcast: <code>username=MYUSER&password=MYPASS&to=_RECIPIENTS_COMMAS_&from=_USER_MOBILE_&message=_MESSAGE_</code><br>Example for 5CentSMS: <code>sender=_USER_MOBILE_&to=_RECIPIENTS_COMMAS_&message=_MESSAGE_</code>",
+      "default": null,
+      "fileOnly": true,
+      "note": "Template for the body of a request to the SMS messaging service"
+    },
+    "SMS_RECIPIENT_ARRAY_PARAMETER": {
+      "type": "text",
+      "label": "Sms Recipient Array Parameter",
+      "description": "Base name for the <code>_RECIPIENTS_ARRAY_</code> keyword in SMS_HTTP_POST_TEMPLATE.",
+      "explanation": "Set to <code>number</code> to produce <code>number[]=0412333444&number[]=0413555666</code>.",
+      "default": null,
+      "fileOnly": true,
+      "note": ""
+    },
+    "SMS_HTTP_RESPONSE_OK_REGEX": {
+      "type": "text",
+      "label": "Sms Http Response Ok Regex",
+      "description": "Regex to detect a per-recipient success message from the SMS gateway. Omit slash delimiters.",
+      "explanation": "Keywords: <code>_RECIPIENT_</code>, <code>_RECIPIENT_INTERNATIONAL_</code>.<br>Leave blank to ignore the response.<br><br>Example for 5CentSMS: <code>[{]\\s*\"destination\":\\s*\"_RECIPIENT_\",[^}]*\"status\":\\s*\"?(1000|1001|1002|1004|1006|1011|1527)\"?,</code>",
+      "default": null,
+      "fileOnly": true,
+      "note": "Regex for recognising a successful send"
+    },
+    "SMS_HTTP_RESPONSE_ERROR_REGEX": {
+      "type": "text",
+      "label": "Sms Http Response Error Regex",
+      "description": "Regex to detect an overall error response from the API server (e.g. bad credentials). Omit slash delimiters. Leave blank to ignore.",
+      "explanation": "",
+      "default": null,
+      "fileOnly": true,
+      "note": "Regex for recognising an API error"
+    },
+    "SMS_LOCAL_PREFIX": {
+      "type": "text",
+      "label": "Sms Local Prefix",
+      "description": "Local prefix used in the mobile numbers stored in Jethro. Stripped before prepending the international prefix.",
+      "explanation": "Needed for SMS gateways that use international-format numbers. E.g. <code>0</code>.",
+      "default": null,
+      "fileOnly": true,
+      "note": "Used for converting local to international numbers.  eg 0"
+    },
+    "SMS_INTERNATIONAL_PREFIX": {
+      "type": "text",
+      "label": "Sms International Prefix",
+      "description": "International prefix, which replaces the local prefix to form an international-format number.",
+      "explanation": "Needed for SMS gateways that use international-format numbers. E.g. <code>61</code> for Australia.",
+      "default": null,
+      "fileOnly": true,
+      "note": "Used for converting local to international numbers. eg +61"
+    },
+    "SMS_SEGMENT_COST": {
+      "type": "text",
+      "label": "Sms Segment Cost",
+      "description": "Cost per SMS segment in dollars (e.g. <code>0.05</code>). Overrides the provider's default rate for cost estimates in the compose UI and the Messages history. Use this if you have a bulk-purchase discount or non-standard pricing agreement.",
+      "explanation": "",
+      "default": null,
+      "note": "Cost per SMS segment in dollars (e.g. 0.05). Overrides the provider default."
+    },
+    "SMS_ENCODING": {
+      "type": "text",
+      "label": "Sms Encoding",
+      "description": "Typed text is stripped to be representable in this encoding before being sent. GSM0338 is the default and only valid value.",
+      "explanation": "",
+      "default": "GSM0338",
+      "note": "Sms text is forced into this encoding before sending."
+    },
+    "SMS_HTTP_RESPONSE_ID_REGEX": {
+      "type": "text",
+      "label": "Sms Http Response Id Regex",
+      "description": "Regex with a capture group to extract the remote message ID from the gateway response.",
+      "explanation": "The first capture group is stored as the remote message ID.",
+      "default": null,
+      "fileOnly": true,
+      "note": ""
+    },
+    "SMS_SEND_LOGFILE": {
+      "type": "text",
+      "label": "Sms Send Logfile",
+      "description": "Path to a JSONP log file for SMS send audit trail (optional).",
+      "explanation": "",
+      "default": null,
+      "fileOnly": true,
+      "note": ""
+    },
+    "SMS_SEGMENT_LENGTH": {
+      "type": "number",
+      "label": "Sms Segment Length",
+      "description": "Length of a single SMS segment for cost estimation purposes",
+      "explanation": "",
+      "default": 160,
+      "fileOnly": true,
+      "note": ""
+    },
+    "DB_DATABASE": {
+      "type": "text",
+      "label": "Db Database",
+      "description": "Name of the MySQL database, e.g. <code>jethro</code>.",
+      "explanation": "",
+      "default": null,
+      "fileOnly": true,
+      "note": "MySQL database name."
+    },
+    "DB_USERNAME": {
+      "type": "text",
+      "label": "Db Username",
+      "description": "Username of the MySQL account Jethro uses to access the database.",
+      "explanation": "",
+      "default": null,
+      "fileOnly": true,
+      "note": "MySQL user."
+    },
+    "DB_PASSWORD": {
+      "type": "text",
+      "label": "Db Password",
+      "description": "Password of the MySQL account Jethro uses to access the database.",
+      "explanation": "Optional if DB_DSN is set for socket-based authentication.",
+      "default": null,
+      "fileOnly": true,
+      "note": "MySQL password. Optional if DB_DSN is set."
+    },
+    "DB_HOST": {
+      "type": "text",
+      "label": "Db Host",
+      "description": "Server on which MySQL is running — usually <code>localhost</code>.",
+      "explanation": "",
+      "default": "localhost",
+      "fileOnly": true,
+      "note": "MySQL server hostname."
+    },
+    "DB_TYPE": {
+      "type": "text",
+      "label": "Db Type",
+      "description": "Database driver — usually <code>mysql</code>.",
+      "explanation": "",
+      "default": "mysql",
+      "fileOnly": true,
+      "note": "Database driver."
+    },
+    "DB_DSN": {
+      "type": "text",
+      "label": "Db Dsn",
+      "description": "Full PDO DSN instead of DB_PASSWORD, e.g. <code>mysql:dbname=jethro</code>.",
+      "explanation": "For socket-based authentication. If your PHP-FPM runs as a dedicated OS user (<code>jethro</code>), you can create a MySQL user with <code>unix_socket</code> auth and specify the DSN directly instead of a password.",
+      "default": null,
+      "fileOnly": true,
+      "note": "Full PDO DSN instead of DB_PASSWORD, e.g. mysql:dbname=jethro. For socket-based auth."
+    },
+    "BASE_URL": {
+      "type": "text",
+      "label": "Base Url",
+      "description": "The URL Jethro runs at. Only needed if behind a proxy without X-Forwarded-Proto / X-Forwarded-Host, or when running CLI scripts like task_reminder.php where the base URL cannot be inferred.",
+      "explanation": "",
+      "default": null,
+      "fileOnly": true,
+      "note": "URL Jethro runs at. Set if behind a proxy without X-Forwarded-Proto / X-Forwarded-Host."
+    },
+    "DB_MEMBERS_USERNAME": {
+      "type": "text",
+      "label": "Db Members Username",
+      "description": "MySQL username for the Members area. Restrict table access for extra security.",
+      "explanation": "Defaults to the main DB_USERNAME if not set.",
+      "default": null,
+      "fileOnly": true,
+      "note": "Members-area MySQL user."
+    },
+    "DB_MEMBERS_PASSWORD": {
+      "type": "text",
+      "label": "Db Members Password",
+      "description": "MySQL password for the Members area.",
+      "explanation": "Defaults to the main DB_PASSWORD if not set.",
+      "default": null,
+      "fileOnly": true,
+      "note": "Members-area MySQL password."
+    },
+    "DB_PUBLIC_USERNAME": {
+      "type": "text",
+      "label": "Db Public Username",
+      "description": "MySQL username for the Public area. Restrict table access for extra security.",
+      "explanation": "Defaults to the main DB_USERNAME if not set.",
+      "default": null,
+      "fileOnly": true,
+      "note": "Public-area MySQL user."
+    },
+    "DB_PUBLIC_PASSWORD": {
+      "type": "text",
+      "label": "Db Public Password",
+      "description": "MySQL password for the Public area.",
+      "explanation": "Defaults to the main DB_PASSWORD if not set.",
+      "default": null,
+      "fileOnly": true,
+      "note": "Public-area MySQL password."
+    },
+    "2FA_ENABLED": {
+      "type": "select",
+      "label": "2fa Enabled",
+      "description": "Master kill-switch for 2-factor authentication. Set to <code>false</code> to disable 2FA entirely.",
+      "explanation": "Setting to <code>true</code> still requires other 2FA parameters to be defined for 2FA to be applied.",
+      "default": "true",
+      "fileOnly": true,
+      "note": "Master kill-switch. Set to false to disable 2FA entirely.",
+      "options": "boolean"
+    },
+    "2FA_SMS_URL": {
+      "type": "text",
+      "label": "2fa Sms Url",
+      "description": "Dedicated SMS gateway URL for 2FA messages. If set, 2FA uses these 2FA_SMS_* settings instead of SMS_HTTP_*.",
+      "explanation": "2FA messages sent through this gateway are NOT logged in SMS_SEND_LOGFILE.",
+      "default": null,
+      "fileOnly": true,
+      "note": "Gateway URL for 2FA messages."
+    },
+    "2FA_SMS_POST_TEMPLATE": {
+      "type": "text",
+      "label": "2fa Sms Post Template",
+      "description": "POST body template for the dedicated 2FA SMS gateway.",
+      "explanation": "",
+      "default": null,
+      "fileOnly": true,
+      "note": "POST body template for 2FA messages."
+    },
+    "2FA_SMS_HEADER_TEMPLATE": {
+      "type": "text",
+      "label": "2fa Sms Header Template",
+      "description": "Extra HTTP headers for the dedicated 2FA SMS gateway.",
+      "explanation": "",
+      "default": null,
+      "fileOnly": true,
+      "note": "Extra HTTP headers for 2FA messages."
+    },
+    "2FA_SMS_RESPONSE_OK_REGEX": {
+      "type": "text",
+      "label": "2fa Sms Response Ok Regex",
+      "description": "Success detection regex for the dedicated 2FA SMS gateway. Omit slash delimiters.",
+      "explanation": "",
+      "default": null,
+      "fileOnly": true,
+      "note": "Success detection regex for 2FA messages."
+    },
+    "2FA_SMS_RESPONSE_ERROR_REGEX": {
+      "type": "text",
+      "label": "2fa Sms Response Error Regex",
+      "description": "Error detection regex for the dedicated 2FA SMS gateway. Omit slash delimiters.",
+      "explanation": "",
+      "default": null,
+      "fileOnly": true,
+      "note": "Error detection regex for 2FA messages."
+    },
+    "2FA_SMS_RESPONSE_ID_REGEX": {
+      "type": "text",
+      "label": "2fa Sms Response Id Regex",
+      "description": "Remote message ID regex for the dedicated 2FA SMS gateway.",
+      "explanation": "",
+      "default": null,
+      "fileOnly": true,
+      "note": "Remote message ID regex for 2FA messages."
+    },
+    "SMS_2FA_LOGFILE": {
+      "type": "text",
+      "label": "Sms 2fa Logfile",
+      "description": "Path to a log file for the 2FA audit trail. Example: <code>/var/log/jethro-2fa.log</code>.",
+      "explanation": "",
+      "default": null,
+      "fileOnly": true,
+      "note": "Path to JSONP log file for 2FA audit trail."
+    },
+    "SMS_2FA_LOG_LEVEL": {
+      "type": "text",
+      "label": "Sms 2fa Log Level",
+      "description": "Log verbosity for 2FA audit trail: <code>full</code> for everything, or <code>quiet</code> for errors only.",
+      "explanation": "",
+      "default": "full",
+      "fileOnly": true,
+      "note": "full or quiet."
+    },
+    "SMS_2FA_BLOCK_MESSAGES": {
+      "type": "select",
+      "label": "Sms 2fa Block Messages",
+      "description": "Dev-only: log 2FA intentions without actually sending SMS messages.",
+      "explanation": "",
+      "default": "false",
+      "fileOnly": true,
+      "note": "Dev-only: log intentions without sending.",
+      "options": "boolean"
+    },
+    "OVERRIDE_EMAIL_FROM": {
+      "type": "text",
+      "label": "Override Email From",
+      "description": "Force the <code>From:</code> address on Jethro-sent emails. The user-specified From becomes <code>Reply-To</code> instead.",
+      "explanation": "Use this when the From address (set e.g. in a script .ini file) is where you want replies to go, but you are not DKIM-authorised to send from its domain.",
+      "default": null,
+      "fileOnly": true,
+      "note": "Force the From: address on Jethro-sent emails. The user-specified From becomes Reply-To instead."
+    },
+    "MEMBER_LOGIN_NOTE": {
+      "type": "text",
+      "label": "Member Login Note",
+      "description": "HTML displayed beneath the Members Area login form, e.g. a link to terms and conditions.",
+      "explanation": "",
+      "default": null,
+      "fileOnly": true,
+      "note": "HTML beneath the member login form."
+    },
+    "MEMBER_FILES_DIRS": {
+      "type": "text",
+      "label": "Member Files Dirs",
+      "description": "Pipe-separated document folder paths visible to members. Paths are relative to DOCUMENTS_ROOT_PATH.",
+      "explanation": "Generally this should be left unset — use the 'Member Visible Folders' web config setting instead.",
+      "default": null,
+      "fileOnly": true,
+      "note": "Pipe-separated document folder paths visible to members."
+    },
+    "BIBLE_API_APIKEY": {
+      "type": "text",
+      "label": "Bible Api Apikey",
+      "description": "API key from <a href='https://api.bible'>api.bible</a>. Empty = Bible passage auto-fetch disabled.",
+      "explanation": "Obtainable after registering on <a href='https://api.bible'>api.bible</a>. Enables automatic fetching of Bible reading passages in service handouts.",
+      "default": null,
+      "fileOnly": true,
+      "note": "API key from api.bible. Empty = disabled."
+    },
+    "BIBLE_API_URL": {
+      "type": "text",
+      "label": "Bible Api Url",
+      "description": "Base URL for the API.Bible REST API, used for fetching Bible passage text in service handouts.",
+      "explanation": "Defaults to the standard API.Bible endpoint if not set.",
+      "default": "https://rest.api.bible/v1",
+      "fileOnly": true,
+      "note": "API base URL."
+    },
+    "BIBLE_API_TIMEOUT": {
+      "type": "number",
+      "label": "Bible Api Timeout",
+      "description": "Timeout in seconds for API.Bible REST API requests.",
+      "explanation": "Defaults to 10 if not set.",
+      "default": "10",
+      "fileOnly": true,
+      "note": "Request timeout in seconds."
+    },
+    "ALLOW_SETTINGS_IN_FILE": {
+      "type": "select",
+      "label": "Allow Settings In File",
+      "description": "Allow all configuration settings to be defined in conf.php rather than via the admin web interface (legacy mode).",
+      "explanation": "",
+      "default": "true",
+      "fileOnly": true,
+      "note": "Allow all settings to be defined in conf.php rather than via the admin web interface (legacy mode).",
+      "options": "boolean"
+    },
+    "DOCUMENTS_ROOT_PATH": {
+      "type": "text",
+      "label": "Documents Root Path",
+      "description": "Directory where the Documents view stores files.",
+      "explanation": "Defaults to <code>files/</code> under the Jethro root directory.",
+      "default": null,
+      "fileOnly": true,
+      "note": "Document storage path. Defaults to files/ under Jethro root."
+    },
+    "CUSTOM_REPORTS_DIR": {
+      "type": "text",
+      "label": "Custom Reports Dir",
+      "description": "Directory where custom report SQL files are stored.",
+      "explanation": "Defaults to <code>custom_reports/</code> under the Jethro root directory.",
+      "default": null,
+      "fileOnly": true,
+      "note": "Custom report SQL directory. Defaults to custom_reports/ under Jethro root."
+    },
+    "SERVICE_DOCS_TO_POPULATE_DIRS": {
+      "type": "text",
+      "label": "Service Docs To Populate Dirs",
+      "description": "Pipe-separated folder paths for the 'Populate' feature when generating service documents.",
+      "explanation": "Paths can be absolute or relative to DOCUMENTS_ROOT_PATH.",
+      "default": null,
+      "fileOnly": true,
+      "note": "Pipe-separated template folders for the Populate feature."
+    },
+    "SERVICE_DOCS_TO_EXPAND_DIRS": {
+      "type": "text",
+      "label": "Service Docs To Expand Dirs",
+      "description": "Pipe-separated folder paths for the 'Expand' feature when generating service documents.",
+      "explanation": "Paths can be absolute or relative to DOCUMENTS_ROOT_PATH.",
+      "default": null,
+      "fileOnly": true,
+      "note": "Pipe-separated template folders for the Expand feature."
+    },
+    "SYSADMIN_HREF": {
+      "type": "text",
+      "label": "Sysadmin Href",
+      "description": "System administrator contact link — <code>mailto:someone@domain.com</code> or a URL.",
+      "explanation": "",
+      "default": null,
+      "fileOnly": true,
+      "note": "System administrator contact link — mailto:someone@domain.com or a URL."
+    },
+    "ERRORS_EMAIL_ADDRESS": {
+      "type": "text",
+      "label": "Errors Email Address",
+      "description": "Email address where error reports are sent.",
+      "explanation": "",
+      "default": null,
+      "fileOnly": true,
+      "note": "Email address for error reports."
+    },
+    "SQL_MODE": {
+      "type": "text",
+      "label": "Sql Mode",
+      "description": "Override the MySQL <code>SQL_MODE</code> variable.",
+      "explanation": "If MySQL 8 throws <code>ONLY_FULL_GROUP_BY</code> errors, turn it off with: <code>STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION</code>",
+      "default": null,
+      "fileOnly": true,
+      "note": "Override MySQL SQL_MODE. Use if MySQL 8 throws ONLY_FULL_GROUP_BY errors."
+    },
+    "PREFILL_USERNAME": {
+      "type": "text",
+      "label": "Prefill Username",
+      "description": "Pre-filled username on the login form. Demo systems only.",
+      "explanation": "",
+      "default": null,
+      "fileOnly": true,
+      "note": "Pre-filled login form value. Demo systems only."
+    },
+    "PREFILL_PASSWORD": {
+      "type": "text",
+      "label": "Prefill Password",
+      "description": "Pre-filled password on the login form. Demo systems only.",
+      "explanation": "",
+      "default": null,
+      "fileOnly": true,
+      "note": "Pre-filled login form value. Demo systems only."
+    },
+    "EXTRA_HEAD_HTML": {
+      "type": "text",
+      "label": "Extra Head Html",
+      "description": "HTML injected into <code>&lt;head&gt;</code> on every page, e.g. custom CSS <code>&lt;link&gt;</code> tags.",
+      "explanation": "",
+      "default": null,
+      "fileOnly": true,
+      "note": "HTML injected into <head>, e.g. custom CSS <link> tags."
+    },
+    "CUSTOM_LESS_VARS": {
+      "type": "text",
+      "label": "Custom Less Vars",
+      "description": "Override LESS variables for a custom colour scheme.",
+      "explanation": "See <code>resources/less/jethro.less.php</code> for available variables. Example: <code>@linkColor: #008791;</code>",
+      "default": null,
+      "fileOnly": true,
+      "note": "Override LESS variables for custom colour scheme, e.g. @linkColor: #008791;."
+    },
+    "LOGIN_NOTE": {
+      "type": "text",
+      "label": "Login Note",
+      "description": "HTML displayed beneath the Control Centre login button, e.g. a link to terms and conditions.",
+      "explanation": "",
+      "default": null,
+      "fileOnly": true,
+      "note": "HTML beneath the Control Centre login button."
+    },
+    "SHOW_ERROR_DETAILS": {
+      "type": "select",
+      "label": "Show Error Details",
+      "description": "Show error details in the browser. Turn off in production.",
+      "explanation": "",
+      "default": "false",
+      "fileOnly": true,
+      "note": "Show error details in the browser.",
+      "options": "boolean"
+    },
+    "2FA_SENDER_ID": {
+      "type": "text",
+      "label": "2fa Sender Id",
+      "description": "Sender ID for 2-factor auth messages. Mirrors SMS_SENDER.",
+      "explanation": "",
+      "default": "Jethro",
+      "note": "Sender ID for 2-factor auth messages. Mirrors SMS_SENDER."
+    }
+  },
+  "groups": {
+    "permissionsAndSecurity": {
+      "heading": "Permissions and Security",
+      "intro": "",
+      "settings": [
+        "ENABLED_FEATURES",
+        "DEFAULT_PERMISSIONS",
+        "RESTRICTED_USERS_CAN_ADD",
+        "PASSWORD_MIN_LENGTH",
+        "SESSION_TIMEOUT_MINS",
+        "SESSION_MAXLENGTH_MINS"
+      ]
+    },
+    "twoFactorAuth": {
+      "heading": "2-Factor Authentication",
+      "intro": "",
+      "settings": [
+        "2FA_ENABLED",
+        "2FA_REQUIRED_PERMS",
+        "2FA_EVEN_FOR_RESTRICTED_ACCTS",
+        "2FA_TRUST_DAYS",
+        "2FA_SENDER_ID"
+      ]
+    },
+    "behaviourOptions": {
+      "heading": "Jethro Behaviour Options",
+      "intro": "",
+      "settings": [
+        "REQUIRE_INITIAL_NOTE",
+        "DEFAULT_NOTE_STATUS",
+        "NOTES_ORDER",
+        "LOCK_LENGTH",
+        "PERSON_LIST_SHOW_GROUPS",
+        "NOTES_LINK_TO_EDIT",
+        "CHUNK_SIZE",
+        "REPEAT_DATE_THRESHOLD",
+        "ROSTER_WEEKS_DEFAULT",
+        "ATTENDANCE_DEFAULT_DAY",
+        "ATTENDANCE_ORDER_DEFAULT",
+        "ENVELOPE_WIDTH_MM",
+        "ENVELOPE_HEIGHT_MM"
+      ]
+    },
+    "dataStructure": {
+      "heading": "Data Structure options",
+      "intro": "",
+      "settings": [
+        "PERSON_STATUS_OPTIONS",
+        "AGE_BRACKET_OPTIONS",
+        "GROUP_MEMBERSHIP_STATUS_OPTIONS",
+        "TIMEZONE",
+        "ADDRESS_STATE_OPTIONS",
+        "ADDRESS_STATE_LABEL",
+        "ADDRESS_STATE_DEFAULT",
+        "ADDRESS_SUBURB_LABEL",
+        "ADDRESS_POSTCODE_LABEL",
+        "ADDRESS_POSTCODE_WIDTH",
+        "ADDRESS_POSTCODE_REGEX",
+        "HOME_TEL_FORMATS",
+        "WORK_TEL_FORMATS",
+        "MOBILE_TEL_FORMATS"
+      ]
+    },
+    "memberArea": {
+      "heading": "Member area",
+      "intro": "",
+      "settings": [
+        "MEMBER_LOGIN_ENABLED",
+        "MEMBER_REGO_EMAIL_FROM_NAME",
+        "MEMBER_REGO_EMAIL_FROM_ADDRESS",
+        "MEMBER_REGO_EMAIL_SUBJECT",
+        "MEMBERS_SEE_AGE_BRACKET",
+        "MEMBER_VISIBLE_FOLDERS",
+        "MEMBER_REGO_HELP_EMAIL",
+        "MEMBER_REGO_FAILURE_EMAIL",
+        "MEMBER_PASSWORD_MIN_LENGTH",
+        "MEMBERS_SHARE_ADDRESS",
+        "MEMBER_LOGIN_NOTE",
+        "MEMBER_FILES_DIRS"
+      ]
+    },
+    "icalFeeds": {
+      "heading": "iCal feeds",
+      "intro": "Whether users can access their roster assignments via an iCal feed with a secret URL.",
+      "settings": [
+        "ROSTER_FEEDS_ENABLED"
+      ]
+    },
+    "publicArea": {
+      "heading": "Public area",
+      "intro": "",
+      "settings": [
+        "PUBLIC_AREA_ENABLED",
+        "SHOW_SERVICE_NOTES_PUBLICLY",
+        "PUBLIC_ROSTER_SECRET"
+      ]
+    },
+    "externalLinks": {
+      "heading": "External Links",
+      "intro": "",
+      "settings": [
+        "BIBLE_URL",
+        "CCLI_SEARCH_URL",
+        "CCLI_DETAIL_URL",
+        "CCLI_REPORT_URL",
+        "POSTCODE_LOOKUP_URL",
+        "MAP_LOOKUP_URL",
+        "QR_CODE_GENERATOR_URL",
+        "EMAIL_CHUNK_SIZE",
+        "MULTI_EMAIL_SEPARATOR"
+      ]
+    },
+    "taskNotifications": {
+      "heading": "Task Notifications",
+      "intro": "",
+      "settings": [
+        "TASK_NOTIFICATION_ENABLED",
+        "TASK_NOTIFICATION_FROM_NAME",
+        "TASK_NOTIFICATION_FROM_ADDRESS",
+        "TASK_NOTIFICATION_SUBJECT"
+      ]
+    },
+    "mailchimpSync": {
+      "heading": "Mailchimp Sync",
+      "intro": "",
+      "settings": [
+        "MAILCHIMP_API_KEY"
+      ]
+    },
+    "smtpEmailServer": {
+      "heading": "SMTP Email Server",
+      "intro": "",
+      "settings": [
+        "SMTP_SERVER",
+        "SMTP_ENCRYPTION",
+        "SMTP_USERNAME",
+        "SMTP_PASSWORD",
+        "SMTP_PORT",
+        "OVERRIDE_EMAIL_FROM"
+      ]
+    },
+    "messageBody": {
+      "heading": "Message body",
+      "intro": "Limits on what the user can type.",
+      "settings": [
+        "SMS_MAX_LENGTH"
+      ]
+    },
+    "debugging": {
+      "heading": "Debugging &amp; cost display",
+      "settings": [
+        "SMS_SEND_LOGFILE",
+        "SMS_SEGMENT_LENGTH"
+      ]
+    },
+    "legacyGateway": {
+      "heading": "Legacy HTTP template gateway",
+      "intro": "Only needed if using <code>TemplateSmsProvider</code>, <code>FiveCentSmsV4Provider</code>, or a custom HTTP-template gateway. Most users should use one of the provider-specific sections above instead.",
+      "settings": [
+        "SMS_HTTP_URL",
+        "SMS_HTTP_HEADER_TEMPLATE",
+        "SMS_HTTP_POST_TEMPLATE",
+        "SMS_RECIPIENT_ARRAY_PARAMETER",
+        "SMS_HTTP_RESPONSE_OK_REGEX",
+        "SMS_HTTP_RESPONSE_ERROR_REGEX",
+        "SMS_HTTP_RESPONSE_ID_REGEX",
+        "SMS_LOCAL_PREFIX",
+        "SMS_INTERNATIONAL_PREFIX"
+      ]
+    },
+    "twoFactorSmsGateway": {
+      "heading": "2FA SMS gateway (file-only)",
+      "intro": "If you want 2FA to use a different SMS gateway than regular sends. When unset, 2FA falls back to the regular SMS constants.",
+      "settings": [
+        "2FA_SMS_URL",
+        "2FA_SMS_POST_TEMPLATE",
+        "2FA_SMS_HEADER_TEMPLATE",
+        "2FA_SMS_RESPONSE_OK_REGEX",
+        "2FA_SMS_RESPONSE_ERROR_REGEX",
+        "2FA_SMS_RESPONSE_ID_REGEX"
+      ]
+    },
+    "twoFactorLogging": {
+      "heading": "2FA logging (file-only)",
+      "intro": "",
+      "settings": [
+        "SMS_2FA_LOGFILE",
+        "SMS_2FA_LOG_LEVEL",
+        "SMS_2FA_BLOCK_MESSAGES"
+      ]
+    },
+    "essential": {
+      "heading": "Essential",
+      "intro": "These must be set for the system to run.",
+      "settings": [
+        "DB_DATABASE",
+        "DB_USERNAME",
+        "DB_PASSWORD",
+        "DB_HOST",
+        "DB_TYPE",
+        "DB_DSN",
+        "BASE_URL"
+      ]
+    },
+    "databaseAccounts": {
+      "heading": "Database accounts (optional)",
+      "intro": "Separate MySQL credentials for the Members and Public areas, to restrict which tables those interfaces can access. All default to the main credentials.",
+      "settings": [
+        "DB_MEMBERS_USERNAME",
+        "DB_MEMBERS_PASSWORD",
+        "DB_PUBLIC_USERNAME",
+        "DB_PUBLIC_PASSWORD"
+      ]
+    },
+    "bibleApi": {
+      "heading": "Bible API (file-only)",
+      "intro": "Auto-fetches Bible passage text for service handouts. Requires a key from api.bible.",
+      "settings": [
+        "BIBLE_API_APIKEY",
+        "BIBLE_API_URL",
+        "BIBLE_API_TIMEOUT"
+      ]
+    },
+    "advanced": {
+      "heading": "Advanced (file-only)",
+      "intro": "",
+      "settings": [
+        "ALLOW_SETTINGS_IN_FILE",
+        "DOCUMENTS_ROOT_PATH",
+        "CUSTOM_REPORTS_DIR",
+        "SERVICE_DOCS_TO_POPULATE_DIRS",
+        "SERVICE_DOCS_TO_EXPAND_DIRS",
+        "SYSADMIN_HREF",
+        "ERRORS_EMAIL_ADDRESS",
+        "SQL_MODE",
+        "PREFILL_USERNAME",
+        "PREFILL_PASSWORD",
+        "EXTRA_HEAD_HTML",
+        "CUSTOM_LESS_VARS",
+        "LOGIN_NOTE",
+        "SHOW_ERROR_DETAILS"
+      ]
+    }
+  },
+
+  "categories": {
+    "sms": {
+      "heading": "SMS",
+      "intro": "SMS messaging configuration — message limits, gateway templates, and 2FA transport.",
+      "groups": [
+        "messageBody",
+        "debugging",
+        "legacyGateway",
+        "twoFactorSmsGateway",
+        "twoFactorLogging"
+      ]
+    }
+  }
+}
