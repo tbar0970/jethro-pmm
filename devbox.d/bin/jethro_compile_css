@@ -1,0 +1,34 @@
+#!/bin/bash -eu
+
+# Generates resources/css/jethro-$JETHRO_VERSION.css by minifying less output
+
+main() {
+  [[ -v JETHRO_VERSION ]] || { echo >&2 "JETHRO_VERSION is not set. We expect to be run within a devbox environment"; exit 1; }
+  #devbox init
+  #devbox -q add nodejs
+  #grep -qF 'less.js/1.7.5/less.min.js' templates/head.template.php || fail "Cannot validate that Jethro is still using less 1.7.5. Check templates/header.template.php where it used to be included"
+  #[[ -f package.json ]] || devbox -q run -- npm init -y
+  #devbox -q run npm add less@1.7.5
+
+  # Add via npm instead of devbox because devbox doesn't have v1.7.5, and we'd have to patch variables.css
+  #devbox -q add nodePackages.less
+
+  bun add less@1.7.5
+  rm -rf buildenv
+  mkdir buildenv
+  # A fake conf.php to keep jethro.less.php happy
+  touch buildenv/conf.php
+  cp -r resources/ buildenv  # a symlink won't fool php
+  cd buildenv
+  # This doesn't produce byte-for-byte identical output. We can get closer with --compress
+  HTTP_HOST=fakejethro.local php resources/less/jethro.less.php > lessoutput.css
+  bunx lessc --compress --include-path=resources/less lessoutput.css > ../resources/css/"jethro-${JETHRO_VERSION}.css.new"
+  cd ..
+  #> resources/css/"jethro-${JETHRO_VERSION}.css.new"
+  mv resources/css/jethro-${JETHRO_VERSION}.css{.new,}
+  # Clean up after ourselves
+  rm -rf buildenv
+  echo "Generated: $(ls resources/css/jethro-${JETHRO_VERSION}.css)"
+}
+
+main "$@"

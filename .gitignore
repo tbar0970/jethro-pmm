@@ -4,7 +4,11 @@
 /conf.php
 .idea/
 .php-cs-fixer.cache
+resources/css/jethro-*-DEV.css
+resources/js/jethro-*-DEV.js
 # Regenerated from devbox.d/nginx/nginx.template
 devbox.d/nginx/nginx*.conf
 # Symlink to real devbox binary added to PATH by devbox. See DEVELOPMENT.md
 devbox.d/bin/devbox
+bun.lock
+node_modules/
