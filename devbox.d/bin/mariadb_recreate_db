@@ -1,0 +1,45 @@
+#!/bin/bash -eu
+# Usage: mariadb_recreate_db [--charset=CHARSET] [--collation=COLLATION] DB [DB...]
+# Drop and recreate each database, empty, owned by the shared 'jethro' user
+# (password 'jethro', see devbox.d/mariadb/my.cnf).
+# DESTROYS DATA - use mariadb_ensure_db when you only want the database to exist.
+# Options:
+#   --charset    Character set (default: utf8)
+#   --collation  Collation (default: utf8_unicode_ci)
+
+usage() { sed -n '2,8s/^# \?//p' "$0"; }
+
+charset=utf8
+collation=utf8_unicode_ci
+dbs=()
+
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+		--charset=*)   charset="${1#*=}"; shift ;;
+		--collation=*) collation="${1#*=}"; shift ;;
+		--charset|--collation)
+			opt="$1"
+			shift
+			[[ $# -gt 0 && "$1" != -* ]] || { echo >&2 "Option $opt requires a value"; usage; exit 2; }
+			if [[ "$opt" == --charset ]]; then charset="$1"; else collation="$1"; fi
+			shift ;;
+		--) shift; dbs+=("$@"); break ;;
+		-*) echo >&2 "Unknown option: $1"; usage; exit 2 ;;
+		*) dbs+=("$1"); shift ;;
+	esac
+done
+
+[[ ${#dbs[@]} -ge 1 ]] || { usage; exit 2; }
+mariadb_check
+
+for db in "${dbs[@]}"; do
+	# --skip-show-warnings: 'already exists'/'does not exist' notes are the normal case here.
+	mariadb_as_root --skip-show-warnings <<-SQL
+	CREATE USER IF NOT EXISTS 'jethro'@'localhost' IDENTIFIED BY 'jethro';
+	DROP DATABASE IF EXISTS \`$db\`;
+	CREATE DATABASE \`$db\` CHARACTER SET $charset COLLATE $collation;
+	GRANT ALL PRIVILEGES ON \`$db\`.* TO 'jethro'@'localhost';
+	SQL
+	echo "Database recreated (empty): $db"
+done
+echo "Connect with: devbox run mariadb ${dbs[0]}"
