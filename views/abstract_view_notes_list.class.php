@@ -60,7 +60,7 @@ abstract class Abstract_View_Notes_List extends View
 		}
 		?>
 		<form class="well well-small form-inline">
-		<input type="hidden" name="view" value="<?php echo $_REQUEST['view']; ?>" />
+		<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
 		<?php
 		$string = "Show %s of notes assigned to %s with subject containing %s";
 

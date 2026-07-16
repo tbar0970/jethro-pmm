@@ -8,6 +8,10 @@ class Call_Report_CSV extends Call
 			$queryid = ($queryid == 'TEMP') ? $queryid : (int)$queryid;
 			if ($queryid) {
 				$report = $GLOBALS['system']->getDBObject('person_query', $queryid);
+				if (!$report) {
+					trigger_error('Report #'.$queryid.' not found', E_USER_WARNING);
+					return;
+				}
 				$reportname = $report->getValue('name');
 				if (empty($reportname)) $reportname = 'Jethro-Report-'.date('Y-m-d_H:i');
 				header('Content-type: application/force-download');

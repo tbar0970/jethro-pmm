@@ -24,13 +24,13 @@
  * @package jethro-pmm
  */
 
-define('THIS_DIR', str_replace('\\', '/', dirname(__FILE__)));
+define('THIS_DIR', str_replace('\\', '/', dirname($_SERVER['SCRIPT_FILENAME'])));
 define('JETHRO_ROOT', preg_replace('#/public$#', '', THIS_DIR));
 define('TEMPLATE_DIR', THIS_DIR.'/templates/');
 set_include_path(get_include_path().PATH_SEPARATOR.dirname(THIS_DIR));
 
 // Load configuration
-require_once dirname(THIS_DIR).'/conf.php';
+require_once JETHRO_ROOT.'/conf.php';
 
 // Initialise system
 define('IS_PUBLIC', true);

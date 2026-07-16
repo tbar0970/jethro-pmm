@@ -465,7 +465,11 @@ class User_System extends Abstract_User_System
 			if (!$res) $this->_2faLog("ERROR: Failed saving trust record to DB");
 
 			$expiry = strtotime('+'.$trust_days.' days');
-			$res = setcookie('Jethro2FATrust', $trust_token, $expiry);
+				$res = setcookie('Jethro2FATrust', $trust_token, [
+					'expires'  => $expiry,
+					'httponly' => true,
+					'samesite' => 'Lax',
+				]);
 			if (!$res) trigger_error("Could not save trust cookie");
 
 

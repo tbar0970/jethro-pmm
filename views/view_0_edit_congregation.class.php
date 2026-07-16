@@ -12,7 +12,8 @@ class View__Edit_Congregation extends View
 	{
 		$this->_congregation = $GLOBALS['system']->getDBObject('congregation', (int)$_REQUEST['congregationid']);
 		if (is_null($this->_congregation)) {
-			trigger_error('Congregation #'.(int)$_REQUEST['congregationid'].' does not exist', E_USER_WARNING);
+			if (!headers_sent()) http_response_code(404);
+			add_message('Congregation #'.(int)$_REQUEST['congregationid'].' does not exist', 'error');
 			return;
 		}
 

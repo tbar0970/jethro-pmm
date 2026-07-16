@@ -27,6 +27,10 @@ class Call_Document_merge_rosters extends Call
 			case 'xlsx':
 			case 'ppt':
 				$view = $GLOBALS['system']->getDBObject('roster_view', $roster_id);
+				if (!$view) {
+					trigger_error('Roster view #'.$roster_id.' not found', E_USER_WARNING);
+					return;
+				}
 				$start_date = substr(array_get($_REQUEST, 'start_date', ''), 0, 10);
 				$end_date = substr(array_get($_REQUEST, 'end_date', ''), 0, 10);
 				$data = $view->printCSV($start_date, $end_date, TRUE);

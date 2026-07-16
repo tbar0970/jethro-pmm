@@ -39,7 +39,7 @@ class View_Attendance__Statistics extends View
 	{
 		?>
 		<form method="get" style="line-height: 200%" class="well well-small form-inline">
-		<input type="hidden" name="view" value="<?php echo $_REQUEST['view']; ?>" />
+		<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
 		<?php echo _('Show the attendance statistics for persons of each (current) status');?> <br />
 		<?php echo _('between');?> <?php print_widget('start_date', Array('type' => 'date'), $this->_start_date); ?>
 		<?php echo _('and');?>  <?php print_widget('end_date', Array('type' => 'date'), $this->_end_date); ?>

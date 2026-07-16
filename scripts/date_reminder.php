@@ -6,6 +6,9 @@
  * It can also send a summary of the reminders sent, to people in the same congregation
  * with a certain person status.
  *
+ * An optional PERSON_STATUS setting (comma-separated person_status IDs) limits
+ * recipients to persons with one of those statuses.
+ *
  * It is called with an ini file as first argument
  * eg: php date_reminder.php my-config-file.ini
  *
@@ -40,6 +43,22 @@ $GLOBALS['user_system']->setCLIScript();
 $GLOBALS['system'] = System_Controller::get();
 //error_reporting(E_ALL);
 
+$statusFilter = [];
+if (!empty($ini['PERSON_STATUS'])) {
+	$allStatusIds = array_column($GLOBALS['db']->queryAll('SELECT id FROM person_status'), 'id');
+	foreach (array_map('intval', explode(',', $ini['PERSON_STATUS'])) as $sid) {
+		if (in_array($sid, $allStatusIds)) {
+			$statusFilter[] = $sid;
+		} else {
+			echo "Warning: PERSON_STATUS includes unknown status id $sid -- ignoring\n";
+		}
+	}
+	if (empty($statusFilter)) {
+		echo "No valid status IDs in PERSON_STATUS -- nothing to do\n";
+		exit(0);
+	}
+}
+
 $expiryDate = date('Y-m-d', strtotime($ini['REMINDER_OFFSET'].' day'));
 $SQL = 'SELECT p.*';
 if (!empty($ini['SUMMARY_RECIPIENT_STATUS'])) {
@@ -64,7 +83,12 @@ if (!empty($ini['SUMMARY_RECIPIENT_STATUS'])) {
 }
 $SQL .= '
 		WHERE cfv.value_date = "'.$expiryDate.'"
-		AND p.status NOT IN (SELECT id FROM person_status WHERE is_archived)
+		AND p.status NOT IN (SELECT id FROM person_status WHERE is_archived)';
+if (!empty($statusFilter)) {
+	$SQL .= '
+		AND p.status IN ('.implode(',', $statusFilter).')';
+}
+$SQL .= '
 		GROUP BY p.id';
 $res = $GLOBALS['db']->queryAll($SQL);
 

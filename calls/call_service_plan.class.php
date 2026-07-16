@@ -10,6 +10,10 @@ class Call_Service_Plan extends Call
 	function run()
 	{
 		$service = $GLOBALS['system']->getDBObject('service', (int)$_REQUEST['serviceid']);
+		if (!$service) {
+			trigger_error('Service #'.(int)$_REQUEST['serviceid'].' not found', E_USER_WARNING);
+			return;
+		}
 
 		?>
 		<html>
