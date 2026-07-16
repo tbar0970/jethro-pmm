@@ -50,4 +50,59 @@ processes:
       php-fpm:
         condition: process_started
 
+
+  functest_jethro_server:
+    description: A Jethro instance just for functional tests
+    command: |
+      export NGINX_WEB_ROOT="${NGINX_WEB_ROOT/web/functest_jethro_server}"
+      export NGINX_WEB_PORT=${FUNCTEST_WEB_PORT}
+      envsubst $(awk 'BEGIN {for (k in ENVIRON) {printf "$"k","}}') < $NGINX_CONFDIR/nginx.template > $NGINX_CONFDIR/nginx-functest.conf
+      # Own pid file: the devbox nginx plugin's instance uses the same -p prefix
+      # and writes nginx.pid there, so sharing it makes each instance unlink the
+      # other's pid file on shutdown ("unlink() nginx.pid failed" alerts).
+      nginx -p $NGINX_PATH_PREFIX -c $NGINX_CONFDIR/nginx-functest.conf -e error.log -g "pid nginx-functest.pid;daemon off;"
+    depends_on:
+      mariadb:
+        condition: process_healthy
+      functest_databases_setup:
+        condition: process_completed
+    availability:
+      restart: on_failure
+      # FYI: A transient server stall can burn all 5 restarts and leave port
+      # ${FUNCTEST_WEB_PORT} dead for the rest of the session, so every
+      # subsequent test fails with ERR_CONNECTION_REFUSED. Don't increase
+      # max_restarts despite that, as it's better to fail hard than slow.
+      max_restarts: 5
+    readiness_probe:
+      http_get:
+        host: localhost
+        port: ${FUNCTEST_WEB_PORT}
+        path: /
+      # 1s delay, then ping every 1 second until up (try 15 times), and then every 20s.
+      initial_delay_seconds: 1
+      startup_period_seconds: 1
+      period_seconds: 20
+      timeout_seconds: 30
+      failure_threshold: 15
+
+
+  functest_databases_setup:
+    description: Initializes the jethro_functest database with fresh sample data
+    depends_on: 
+      mariadb:
+        condition: process_healthy
+    command: |
+      devbox.d/bin/jethro_db_demodata_load
+      devbox.d/bin/jethro_db_init --db=jethro_functest_walkthrough
+    readiness_probe:
+      exec:
+        command: mariadb -u jethro -pjethro jethro_functest -sNBe "select count(*) from _person;"
+      # 1s delay, then ping every 1 second until up (try 15 times), and then every 20s
+      initial_delay_seconds: 1
+      startup_period_seconds: 1
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 15
+
+
   # FYI mariadb's service is provided by a devbox plugin, defined in .devbox/virtenv/mariadb/process-compose.yaml
