@@ -10,12 +10,20 @@ class Call_email extends Call
 
 		if (!empty($_REQUEST['queryid'])) {
 			$query = $GLOBALS['system']->getDBObject('person_query', (int)$_REQUEST['queryid']);
+			if (!$query) {
+				trigger_error('Report #'.(int)$_REQUEST['queryid'].' not found', E_USER_WARNING);
+				return;
+			}
 			$personids = $query->getResultPersonIDs();
 			$recips = $GLOBALS['system']->getDBObjectData('person', Array('(id' => $personids, '!email' => '', '!(status' => Person_Status::getArchivedIDs()), 'AND');
 			$blanks = $GLOBALS['system']->getDBObjectData('person', Array('(id' => $personids, 'email' => '', '!(status' => Person_Status::getArchivedIDs()), 'AND');
 			$archived = $GLOBALS['system']->getDBObjectData('person', Array('(id' => $personids, '(status' => Person_Status::getArchivedIDs()), 'AND');
 		} else if (!empty($_REQUEST['groupid'])) {
 			$group = $GLOBALS['system']->getDBObject('person_group', (int)$_REQUEST['groupid']);
+			if (!$group) {
+				trigger_error('Group #'.(int)$_REQUEST['groupid'].' not found', E_USER_WARNING);
+				return;
+			}
 			$personids = array_keys($group->getMembers());
 			$recips = $GLOBALS['system']->getDBObjectData('person', Array('(id' => $personids, '!email' => '', '!(status' => Person_Status::getArchivedIDs()), 'AND');
 			$blanks = $GLOBALS['system']->getDBObjectData('person', Array('(id' => $personids, 'email' => '', '!(status' => Person_Status::getArchivedIDs()), 'AND');
@@ -24,6 +32,10 @@ class Call_email extends Call
 			$recips = Array();
 			foreach ((array)$_REQUEST['roster_view'] as $viewid) {
 				$view = $GLOBALS['system']->getDBObject('roster_view', (int)$viewid);
+				if (!$view) {
+					trigger_error('Roster view #'.(int)$viewid.' not found', E_USER_WARNING);
+					continue;
+				}
 				$recips += $view->getAssignees($_REQUEST['start_date'], $_REQUEST['end_date']);
 			}
 		} else {

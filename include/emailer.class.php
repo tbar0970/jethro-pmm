@@ -13,7 +13,8 @@ class Jethro_Swift_Message extends Swift_Message
 		// and use the user-supplied address as Reply-to.
 		if (ifdef('OVERRIDE_EMAIL_FROM')) {
 			$this->addReplyTo($addresses, $name);
-			parent::setFrom(OVERRIDE_EMAIL_FROM, $name);
+			$fromName = ifdef('OVERRIDE_EMAIL_FROM_NAME', '');
+			parent::setFrom(OVERRIDE_EMAIL_FROM, $fromName);
 		} else {
 			parent::setFrom($addresses, $name);
 		}
@@ -78,5 +79,60 @@ class Emailer
 	
 	static function validateAddress($email) {
 		return Swift_Validate::email($email);
+	}
+
+	/**
+	 * Test SMTP connectivity with a socket connect + EHLO.
+	 *
+	 * @return array{success: bool, error: string, greeting: string, ehlo: string}
+	 */
+	static function testConnection(): array
+	{
+		$server = ifdef('SMTP_SERVER', '');
+		if ($server === '') {
+			return ['success' => false, 'error' => 'SMTP_SERVER not configured', 'greeting' => '', 'ehlo' => ''];
+		}
+
+		$port = (int) ifdef('SMTP_PORT', 25);
+		$encryption = ifdef('SMTP_ENCRYPTION', '');
+		$host = ($encryption === 'ssl') ? 'ssl://' . $server : $server;
+
+		$errno = 0;
+		$errstr = '';
+		$socket = @stream_socket_client("$host:$port", $errno, $errstr, 10);
+
+		if (!$socket) {
+			return ['success' => false, 'error' => $errstr ?: "Error $errno", 'greeting' => '', 'ehlo' => ''];
+		}
+
+		$greeting = self::_readSmtp($socket);
+		if ($greeting === '' || $greeting[0] !== '2') {
+			fclose($socket);
+			return ['success' => false, 'error' => 'No SMTP greeting received', 'greeting' => $greeting, 'ehlo' => ''];
+		}
+
+		fwrite($socket, "EHLO jethro\r\n");
+		$ehlo = self::_readSmtp($socket);
+
+		fwrite($socket, "QUIT\r\n");
+		fclose($socket);
+
+		if ($ehlo === '' || $ehlo[0] !== '2') {
+			return ['success' => false, 'error' => 'EHLO rejected', 'greeting' => $greeting, 'ehlo' => $ehlo];
+		}
+
+		return ['success' => true, 'error' => '', 'greeting' => $greeting, 'ehlo' => $ehlo];
+	}
+
+	private static function _readSmtp($socket): string
+	{
+		$response = '';
+		while (!feof($socket) && ($line = fgets($socket, 512)) !== false) {
+			$response .= $line;
+			if (isset($line[3]) && $line[3] === ' ') {
+				break;
+			}
+		}
+		return trim($response);
 	}
 }

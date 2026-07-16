@@ -483,7 +483,7 @@ class View_Attendance__Record extends View
 			$set->printStats();
 		}
 		?>
-		<p><a href="?view=<?php echo $_REQUEST['view']; ?>"><i class="icon-pencil"></i><?php echo _('Record more attendances');?></a></p>
+		<p><a href="?view=<?php echo ents($_REQUEST['view']); ?>"><i class="icon-pencil"></i><?php echo _('Record more attendances');?></a></p>
 		<p><a href="?view=persons__reports"><i class="icon-list"></i><?php echo _('Analyse attendance using a person report');?></a></p>
 		<?php
 	}

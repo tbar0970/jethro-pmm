@@ -83,7 +83,7 @@ class View_Attendance__Display extends View
 	{
 		?>
 		<form method="get" class="well well-small clearfix form-inline no-print">
-			<input type="hidden" name="view" value="<?php echo $_REQUEST['view']; ?>" />
+			<input type="hidden" name="view" value="<?php echo ents($_REQUEST['view']); ?>" />
 			<table class="attendance-config-table">
 				<tr>
 					<th><?php echo _('For');?></th>

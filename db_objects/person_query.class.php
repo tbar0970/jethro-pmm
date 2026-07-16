@@ -156,6 +156,14 @@ class Person_Query extends DB_Object
 	{
 		$GLOBALS['system']->includeDBClass('person_group');
 		$params = $this->_convertParams($this->getValue('params'));
+		if ($params === null) $params = Array();
+		if (!empty($params)) {
+			// Drop references to entities deleted since the report was saved (groups,
+			// custom fields etc.) so the form only renders entities that still exist.
+			// The configure view separately warns the user about what was dropped.
+			list($params,) = $this->validateQueryParams($params);
+		}
+		$rules = array_get($params, 'rules', Array());
 		if (!$GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS) && ($this->getValue('owner') == NULL)) {
 			// we are editing a shared report, but don't have permission to save a shared report
 			// so we treat this as if it's a new private report
@@ -176,7 +184,7 @@ class Person_Query extends DB_Object
 				<tr>
 					<td>
 						<label class="checkbox">
-							<input autofocus="1" type="checkbox" name="enable_rule[]" value="<?php echo $i; ?>" id="enable_rule_<?php echo $i; ?>" class="select-rule-toggle" <?php if (isset($params['rules'][$i])) echo 'checked="checked" '; ?>/>
+							<input autofocus="1" type="checkbox" name="enable_rule[]" value="<?php echo $i; ?>" id="enable_rule_<?php echo $i; ?>" class="select-rule-toggle" <?php if (isset($rules[$i])) echo 'checked="checked" '; ?>/>
 							<strong><?php echo $v['label']; ?></strong>
 							<?php
 							if ($v['type'] == 'datetime') {
@@ -188,17 +196,17 @@ class Person_Query extends DB_Object
 						</label>
 					</td>
 					<td>
-						<div class="select-rule-options" <?php if (!isset($params['rules'][$i])) echo 'style="display: none" '; ?>>
+						<div class="select-rule-options" <?php if (!isset($rules[$i])) echo 'style="display: none" '; ?>>
 							<?php
 							$key = str_replace('.', '_', $i);
 							if ($v['type'] == 'datetime') {
-								$value = array_get($params['rules'], $i, Array('from' => '2000-01-01', 'to' => date('Y-m-d')));
+								$value = array_get($rules, $i, Array('from' => '2000-01-01', 'to' => date('Y-m-d')));
 								print_widget('params_'.$key.'_from', Array('type' => 'date'), $value['from']);
 								echo ' and ';
 								print_widget('params_'.$i.'_to', Array('type' => 'date'), $value['to']);
 							} else {
 								$v['allow_multiple'] = TRUE;
-								print_widget('params_'.$key, $v, array_get($params['rules'], $i, $v['type'] == 'select' ? Array() : ''));
+								print_widget('params_'.$key, $v, array_get($rules, $i, $v['type'] == 'select' ? Array() : ''));
 							}
 							?>
 						</div>
@@ -856,6 +864,7 @@ class Person_Query extends DB_Object
 
 
 		$params = $this->_convertParams($this->getValue('params'));
+		if ($params === null) $params = Array();
 
 		// FIELD RULES
 		$rules = Array();
@@ -1064,7 +1073,7 @@ class Person_Query extends DB_Object
 	function getValidationErrors(): array
 	{
 		$params = $this->_convertParams($this->getValue('params'));
-		if (empty($params)) return Array();
+		if ($params === null) return Array();
 		list(, $badParams) = $this->validateQueryParams($params);
 		return $badParams;
 	}
@@ -1167,7 +1176,7 @@ class Person_Query extends DB_Object
 		}
 
 		// CUSTOM FIELD DISPLAY COLUMNS
-		foreach ($params['show_fields'] as $key => $field) {
+		foreach (array_get($params, 'show_fields', Array()) as $key => $field) {
 			if (0 === strpos($field, self::CUSTOMFIELD_PREFIX)) {
 				$fieldid = substr($field, strlen(self::CUSTOMFIELD_PREFIX));
 				if (!isset($this->_custom_fields[$fieldid])) {
@@ -1323,7 +1332,7 @@ class Person_Query extends DB_Object
 		$db =& $GLOBALS['db'];
 
 		$params = $this->_convertParams($this->getValue('params'));
-		if (empty($params)) return null;
+		if ($params === null) return null;
 		list($params, $this->_bad_params) = $this->validateQueryParams($params);
 		$query = Array();
 		$query['from'] = 'person p
@@ -1918,6 +1927,7 @@ class Person_Query extends DB_Object
 	{
 		$db =& $GLOBALS['db'];
 		$params = $this->_convertParams($this->getValue('params'));
+		if ($params === null) return;
 
 		$sql = $this->getSQL();
 		if (is_null($sql)) return;
@@ -2420,12 +2430,18 @@ class Person_Query extends DB_Object
 	}
 
 	/**
-	 * Convert an older version of the params to new format
-	 * and clean up any stupidities
+	 * Convert an older version of the params to new format and clean up
+	 * any stupidities
+	 *
+	 * Returns null when there are no params to convert — callers MUST
+	 * handle this sentinel (the query has no saved configuration).
+	 *
+	 * @param array|null $params  Raw params from DB (null when unconfigured)
+	 * @return array|null         Converted params, or null when nothing to convert
 	 */
 	private function _convertParams($params)
 	{
-		if (empty($params)) return Array();
+		if (empty($params)) return null;
 		if (!empty($params['dates'])) {
 			foreach ($params['dates'] as $rule) {
 				$params['custom_fields'][$rule['typeid']] = $rule;

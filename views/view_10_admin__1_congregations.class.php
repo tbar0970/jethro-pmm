@@ -49,7 +49,7 @@ class View_Admin__Congregations extends View
 			</thead>
 			<tbody>
 			<?php
-			$congs = $GLOBALS['system']->getDBObjectData('congregation', Array(), 'OR', 'meeting_time');
+			$congs = $GLOBALS['system']->getDBObjectData('congregation', Array(), 'OR', 'meeting_time, id');
 			$deletePrinted = FALSE;
 			$congObject = new Congregation();
 			foreach ($congs as $id => $cong) {

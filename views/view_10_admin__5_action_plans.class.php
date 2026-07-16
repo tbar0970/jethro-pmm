@@ -15,7 +15,7 @@ class View_Admin__Action_Plans extends View
 		if (isset($_REQUEST['planid'])) {
 			$this->_plan = new Action_Plan((int)$_REQUEST['planid']);
 		}
-		if ($this->_plan && !empty($_REQUEST['delete'])) {
+		if ($this->_plan && !empty($_POST['delete'])) {
 			if ($this->_plan->acquireLock()) {
 				$this->_plan->delete();
 				add_message('Action plan deleted');
@@ -107,7 +107,7 @@ class View_Admin__Action_Plans extends View
 							<td class="nowrap"><?php $dummy_plan->printFieldValue('modified'); ?> by <?php echo $dummy_plan->printFieldValue('modifier'); ?></td>
 							<td class="narrow action-cell">
 								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&planid=<?php echo $id; ?>"><i class="icon-wrench"></i>Edit</a> &nbsp;
-								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&planid=<?php echo $id; ?>&delete=1" class="confirm-title" title="Delete this action plan"><i class="icon-trash"></i>Delete</a>
+								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&planid=<?php echo $id; ?>&delete=1" data-method="post" class="confirm-title" title="Delete this action plan"><i class="icon-trash"></i>Delete</a>
 							</td>
 						</tr>
 						<?php

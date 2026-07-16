@@ -3,10 +3,11 @@
 @var $persons
 @var $special_fields
 @var $show_actions	Whether to show the action links for each person
-@var $link_Class	Classname to add to all the action links (eg med-popup)
+@var $link_class		Classname to add to all the action links (eg med-popup)
 @var $view_tab		Which view-person tab to link to (eg attendance)
 @var $callbacks		Functions to call to render each column's value
 */
+$link_class = $link_class ?? '';
 $view_tab = empty($view_tab) ? '' : '#'.$view_tab;
 
 $GLOBALS['system']->includeDBClass('person');

@@ -44,14 +44,14 @@ class View_services extends View
 					}
 				}
 
-				if (!empty($_REQUEST['action'])) {
-					$action = $_REQUEST['action'];
+				if (!empty($_POST['action'])) {
+					$action = $_POST['action'];
 					switch ($action) {
 						case "copy":
-							if (!empty($_REQUEST['copy_service_id']) && !empty($_REQUEST['copy_category_ids'])) {
-								$fromService = new Service((int)$_REQUEST['copy_service_id']);
+							if (!empty($_POST['copy_service_id']) && !empty($_POST['copy_category_ids'])) {
+								$fromService = new Service((int)$_POST['copy_service_id']);
 								if (!$fromService) {
-									trigger_error("Service ".(int)$_REQUEST['copy_service_id']." not found - could not copy");
+									trigger_error("Service ".(int)$_POST['copy_service_id']." not found - could not copy");
 									return;
 								}
 								$newItems = $fromService->getItems();
@@ -65,7 +65,7 @@ class View_services extends View
 									} else {
 										$v['categoryid'] = '!'; // magic value to match filtering of ad hoc items
 									}
-									if (!in_array($v['categoryid'], $_REQUEST['copy_category_ids'])) {
+									if (!in_array($v['categoryid'], $_POST['copy_category_ids'])) {
 										unset($newItems[$k]);
 									}
 								}
@@ -97,43 +97,45 @@ class View_services extends View
 							$this->service->releaseLock('items');
 							redirect("services", Array("date" => $this->date, "congregationid" => $this->congregationid, '*' => NULL));  // Redirecting clears &editing=1
 							break;
-						case strncmp($action, 'nav_', 4) === 0:
-							if ($this->editing) $this->service->releaseLock('items');
-							switch ($action) {
-								case "nav_allservices":
-									// 'All services' nav link clicked in edit mode. Release lock and redirect
-									redirect("services__list_all", Array('*' => null));  // Redirecting clears &editing=1
-									break;
-								case "nav_prevdate":
-									// 'Prev' link clicked in edit mode. Release lock, redirect to previous week, retaining
-									// other params.
-									$prevDate = $this->getPrevServiceDate();
-									redirect("services", Array("action" => null, "date" => $prevDate));  // Redirecting clears &editing=1
-									break;
-								case "nav_nextdate":
-									// 'Next' link clicked in edit mode. Release lock, redirect to next week, retaining
-									// other params.
-									$nextDate = $this->getNextServiceDate();
-									redirect("services", Array("action" => null, "date" => $nextDate));  // Redirecting clears &editing=1
-									break;
-								case "nav_prevservice":
-									// 'Prev' link clicked in edit mode. Release lock, redirect to previous week, retaining
-									// other params.
-									$prevCong = $this->getEarlierServiceCong();
-									redirect("services", Array("action" => null, "congregationid" => $prevCong["id"]));  // Redirecting clears &editing=1
-									break;
-								case "nav_nextservice":
-									// 'Next' link clicked in edit mode. Release lock, redirect to next week, retaining
-									// other params.
-									$nextCong = $this->getLaterServiceCong();
-									redirect("services", Array("action" => null, "congregationid" => $nextCong["id"]));  // Redirecting clears &editing=1
-									break;
-							}
 						default:
 							trigger_error("No 'action' parameter found");
 							break;
 					}
 
+				}
+				if (!empty($_REQUEST['action']) && strncmp($_REQUEST['action'], 'nav_', 4) === 0) {
+					$action = $_REQUEST['action'];
+					if ($this->editing) $this->service->releaseLock('items');
+					switch ($action) {
+						case "nav_allservices":
+							// 'All services' nav link clicked in edit mode. Release lock and redirect
+							redirect("services__list_all", Array('*' => null));  // Redirecting clears &editing=1
+							break;
+						case "nav_prevdate":
+							// 'Prev' link clicked in edit mode. Release lock, redirect to previous week, retaining
+							// other params.
+							$prevDate = $this->getPrevServiceDate();
+							redirect("services", Array("action" => null, "date" => $prevDate));  // Redirecting clears &editing=1
+							break;
+						case "nav_nextdate":
+							// 'Next' link clicked in edit mode. Release lock, redirect to next week, retaining
+							// other params.
+							$nextDate = $this->getNextServiceDate();
+							redirect("services", Array("action" => null, "date" => $nextDate));  // Redirecting clears &editing=1
+							break;
+						case "nav_prevservice":
+							// 'Prev' link clicked in edit mode. Release lock, redirect to previous week, retaining
+							// other params.
+							$prevCong = $this->getEarlierServiceCong();
+							redirect("services", Array("action" => null, "congregationid" => $prevCong["id"]));  // Redirecting clears &editing=1
+							break;
+						case "nav_nextservice":
+							// 'Next' link clicked in edit mode. Release lock, redirect to next week, retaining
+							// other params.
+							$nextCong = $this->getLaterServiceCong();
+							redirect("services", Array("action" => null, "congregationid" => $nextCong["id"]));  // Redirecting clears &editing=1
+							break;
+					}
 				}
 			}
 		} else {

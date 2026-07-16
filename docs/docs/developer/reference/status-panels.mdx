@@ -1,0 +1,119 @@
+---
+sidebar_position: 6
+---
+
+# System Configuration Status Panels
+
+Each section of **Admin → System configuration** can show a *status panel*: help text plus a live
+report of whether that integration is enabled, configured, and actually working.
+
+Panels are implemented as `Call`s (`calls/call_admin_statuspanel_*.class.php`) extending
+`Call_Admin_Statuspanel`, and are loaded asynchronously so a dead external service never delays the
+page.
+
+## Discovery
+
+`View_Admin__System_Configuration` takes the first heading-bearing setting in a section (say
+`SMS_MAX_LENGTH`), then looks for a `Call` class matching the longest prefix of the symbol:
+
+```
+BIBLE_API_URL  →  call_admin_statuspanel_bible_api.class.php   (tried first)
+               →  call_admin_statuspanel_bible.class.php
+```
+
+No registry, no hardcoded list — add a settings section, drop in a matching class.
+
+## What a panel must implement
+
+| Method | Purpose |
+|---|---|
+| `getHelpText(): string` | HTML blurb explaining what the integration does |
+| `isConfigured(): \Result` | Cheap check — are the constants/credentials present? Failure always carries `array{message: string, details?: string}` |
+| `getStatus(): array` | Live operational check — `['success' => bool, 'message' => string, 'details' => array<string,string>]`, all plain text |
+| `linkedFeature(): ?string` | Optional feature-flag name for the Enabled/Disabled line; `null` = feature has no flag |
+| `getOperations(): array` | Optional `operation => label` buttons, handled by `call_admin_statuspanel_operation_<suffix>` |
+
+`isConfigured()` must **not** contact external services; `getStatus()` may (and is only called when
+configured).
+
+### Escaping — who does it
+
+Panels never call `ents()`. Every string a panel returns is **plain text** and the renderer escapes
+it; the one exception is `isConfigured()`'s `details`, which is a block of HTML prose (links,
+`<code>` samples) telling the admin how to fix the problem.
+
+| Field | Content | Escaped by |
+|---|---|---|
+| `isConfigured()` failure `message` | plain text, one line | renderer |
+| `isConfigured()` failure `details` | **HTML** prose | nobody — panel owns it |
+| `getStatus()` `message` | plain text | renderer |
+| `getStatus()` `details` keys/values | plain text | renderer (`detailsTable()`) |
+
+This is centralised deliberately. Detail values routinely carry third-party bytes — SMTP server
+banners, provider API error text, scripture fetched from api.bible — and leaving each panel to
+remember `ents()` produced both holes (unescaped banners) and double-escaping (`&amp;amp;`) in the
+same file. `tests/unit/test_statuspanel_summary.php` pins the behaviour.
+
+## Rendered layout
+
+```
+<help text, italic grey>
+Status: enabled and working:
+    ✓ Enabled (link)     (only when linkedFeature() is non-null)
+    ✓ Configured         (or "✗ Not configured — <reason> (details)")
+    ✓ Operational …      (only when configured; from getStatus())
+[ operation buttons ]
+```
+
+The summary leads, and the checks that produced it are indented beneath it
+(`.status-panel-lines { margin-left: 1.5em }`). Because the summary prints first, `run()` resolves
+`linkedFeature()`, `isConfigured()` and `getStatus()` **before** emitting any markup.
+
+Each check is emitted by `printStatusLine()`, which puts any collapsible details block **after**
+the closing `</p>`, never inside it — a `<div>` nested in a paragraph is invalid, and browsers
+close the paragraph early when they meet one, so it ended up a sibling anyway.
+
+The Enabled line always links to the `ENABLED_FEATURES` setting, but names it when that is the
+problem: `(link)` when enabled, `(see: Enabled Features)` when disabled.
+
+## Styling
+
+All of it lives in `resources/less/jethro.less.php`, under a single `status-panel-*` prefix. Two
+things used to be true and no longer are: the rules were split between that file and the system
+configuration view's inline `<style>` (the panels load by AJAX and the SMS constants table is
+reused off-page, so page-local rules were wrong), and the operation widgets used a
+`status_panel-*` underscore spelling for the same component.
+
+The tick and cross are generated content: the element holding the text carries
+`class="status-icon-yes"` or `status-icon-no`, and `:before { content }` supplies the glyph and its
+colour. So the mark is decoration — not selected when the reader copies the line, and not
+duplicating the label beside it. The glyphs are the CSS escapes `\2713` and `\2717`; the stylesheet
+is served as `text/plain` with no charset and compiled client-side by less.js, so a literal UTF-8
+glyph would be taking a chance. Deliberately not the ballot boxes U+2611 ☑ / U+2612 ☒: U+2611 has
+an emoji presentation that some font stacks render as a colour glyph, ignoring the CSS `color`.
+
+## The "Status:" summary line
+
+`Call_Admin_Statuspanel::summaryText()` collapses the icon lines into one plain-English
+sentence, so an admin can tell at a glance whether the integration will actually do anything.
+It is `protected`, so a panel may override the wording.
+
+It returns the bare phrase; `run()` renders it as `Status: <phrase>:`. The trailing colon
+introduces the indented check lines beneath. The table below shows the full rendered line.
+
+| Enabled | Configured | Working | Rendered line |
+|---|---|---|---|
+| yes | yes | yes | `Status: enabled and working:` |
+| yes | yes | no | `Status: enabled, configured but not working:` |
+| yes | no | — | `Status: enabled but not configured:` |
+| no | yes | yes | `Status: configured and working, but not enabled:` |
+| no | yes | no | `Status: configured but not working, and not enabled:` |
+| no | no | — | `Status: not configured and not enabled:` |
+| n/a | yes | yes | `Status: configured and working:` |
+| n/a | yes | no | `Status: configured but not working:` |
+| n/a | no | — | `Status: not configured:` |
+
+*n/a* = `linkedFeature()` returned `null`, so enablement is never mentioned. Operational health is
+irrelevant when unconfigured (`getStatus()` is not called at all in that case).
+
+Matrix coverage lives in `tests/unit/test_statuspanel_summary.php`.

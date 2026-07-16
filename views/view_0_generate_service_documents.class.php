@@ -135,7 +135,7 @@ class View__Generate_Service_Documents extends View
 			return;
 		}
 		
-		if (!empty($_REQUEST['replacements'])) {
+		if (!empty($_POST['replacements'])) {
 			$method = '_process'.ucfirst($this->_action).'';
 			$this->$method();
 		} else {
