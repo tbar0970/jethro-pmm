@@ -54,6 +54,8 @@ if (!defined('TASK_NOTIFICATION_FROM_ADDRESS')) {
 $reminders = Abstract_Note::getNotifications($minutes);
 $fromText = ifdef('TASK_NOTIFICATION_FROM_NAME', SYSTEM_NAME.' Jethro');
 $subject = ifdef('TASK_NOTIFICATION_SUBJECT', 'New notes assigned to you');
+$replyToAddress = ifdef('TASK_NOTIFICATION_REPLY_TO_ADDRESS', null);
+$replyToName = ifdef('TASK_NOTIFICATION_REPLY_TO_NAME', null);
 
 require_once JETHRO_ROOT.'/include/emailer.class.php';
 
@@ -79,6 +81,10 @@ foreach ($reminders as $reminder) {
 	  ->setTo(array($reminder['email'] => $reminder['first_name'].' '.$reminder['last_name']))
 	  ->setBody($content)
 	  ->addPart($html, 'text/html');
+
+	if ($replyToAddress) {
+		$message->setReplyTo($replyToAddress, $replyToName);
+	}
 
 	if ($DRYRUN) {
 		$res = TRUE;

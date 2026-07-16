@@ -63,7 +63,7 @@ $ini = parse_ini_file($_SERVER['argv'][1]);
 function getvar($name, $default = null) {
 	global $ini;	// Access the $ini array from the global scope
 	if (!isset($ini[$name])) {
-		if ($default === null) {
+		if (func_num_args() < 2) {
 			throw new \RuntimeException("$name is required");
 		} else {
 			return $default;
@@ -83,6 +83,9 @@ if ($sendemail) {
 	$email_from=getvar('EMAIL_FROM');
 	$email_subject=getvar('EMAIL_SUBJECT');
 	$phpMail=getvar('PHP_MAIL', 0);
+	$reply_to_address = getvar('REPLY_TO_ADDRESS', null);
+	$reply_to_name = getvar('REPLY_TO_NAME', null);
+
 }
 if ($sendsms) {
 	$roster_coordinator_id=getvar('ROSTER_COORDINATOR_ID');
@@ -320,6 +323,9 @@ if ($sendemail) {
 			  ->addPart($longstring, 'text/html')
 			  ->setTo(explode(',',$roster_coordinator))
 			  ->setBcc($emails);
+			if ($reply_to_address) {
+				$message->setReplyTo($reply_to_address, $reply_to_name);
+			}
 			$res = Emailer::send($message);
 		  if (!$res) {
 				echo "Failed to send roster reminder (".$roster_name.")\n";
@@ -332,6 +338,10 @@ if ($sendemail) {
 		} else { // using php mail()
 		  $email_to=$roster_coordinator;
 		  $header = "From: \"".addslashes($email_from_name)."\" <".$email_from.">".$eol;
+		  if ($reply_to_address) {
+		  	$replyToHeader = $reply_to_name ? "\"".addslashes($reply_to_name)."\" <".$reply_to_address.">" : $reply_to_address;
+		  	$header .= "Reply-To: ".$replyToHeader.$eol;
+		  }
 		  $header .= "MIME-Version: 1.0".$eol;
 		  $header .= "Bcc: ".implode(',',$emails).$eol;
 		  $header .= "Content-Type: multipart/mixed; boundary=\"".$uid."\"";
@@ -373,6 +383,9 @@ if ($sendemail) {
 			->setBody($summary_notification_subject)
 			->addPart($summary, 'text/html')
 			->setTo(explode(',',$roster_coordinator));
+		if ($reply_to_address) {
+			$message2->setReplyTo($reply_to_address, $reply_to_name);
+		}
 		$res = Emailer::send($message2);
 		if (!$res) {
 			echo "Failed to send roster ($roster_name) reminder summary to coordinator\n";
@@ -386,7 +399,11 @@ if ($sendemail) {
 		$email_to=$roster_coordinator;
 		$header = "From: \"".addslashes($email_from_name)."\" <".$email_from.">".$eol;
 		$header .= "MIME-Version: 1.0".$eol;
-		$header .= "Content-Type: multipart/mixed; boundary=\"".$uid."\"";
+		$header .= "Content-Type: multipart/mixed; boundary=\"".$uid."\"".$eol;
+		if ($reply_to_address) {
+			$replyToHeader = $reply_to_name ? "\"".addslashes($reply_to_name)."\" <".$reply_to_address.">" : $reply_to_address;
+			$header .= "Reply-To: ".$replyToHeader.$eol;
+		}
 		$message = "--".$uid.$eol;
 		$message .= "Content-type:text/html; charset=iso-8859-1".$eol;
 		$message .= "Content-Transfer-Encoding: 8bit".$eol.$eol;

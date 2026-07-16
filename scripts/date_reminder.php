@@ -84,6 +84,9 @@ if (!empty($ini['SMS_MESSAGE'])) {
 	}
 }
 require_once JETHRO_ROOT.'/include/emailer.class.php';
+$replyToAddress = !empty($ini['REPLY_TO_ADDRESS']) ? $ini['REPLY_TO_ADDRESS'] : null;
+$replyToName    = !empty($ini['REPLY_TO_NAME'])    ? $ini['REPLY_TO_NAME']    : null;
+
 
 // Send individual reminders and collate summary info
 $summaries = Array();
@@ -119,6 +122,10 @@ foreach ($summaries as $supervisors => $remindees) {
 	} else {
 		$message->setTo(explode(';', $supervisors));
 	}
+
+	if ($replyToAddress) {
+		$message->setReplyTo($replyToAddress, $replyToName);
+	}
 	$res = Emailer::send($message);
 	if (!$res) {
 		echo "Failed to send summary email to $supervisors \n";
@@ -131,7 +138,7 @@ foreach ($summaries as $supervisors => $remindees) {
 
 function send_reminder($person, $expiryDate)
 {
-	global $ini;
+	global $ini, $replyToAddress, $replyToName;
 	
 	$sentSomething = FALSE;
 	if (!empty($ini['EMAIL_BODY'])) {
@@ -148,6 +155,10 @@ function send_reminder($person, $expiryDate)
 			  ->setTo(array($toEmail => $person['first_name'].' '.$person['last_name']))
 			  ->setBody($content)
 			  ->addPart($html, 'text/html');
+
+			if ($replyToAddress) {
+				$message->setReplyTo($replyToAddress, $replyToName);
+			}
 
 			$res = Emailer::send($message);
 			if (!$res) {
