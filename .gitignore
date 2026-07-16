@@ -15,3 +15,4 @@ node_modules/
 pnpm-lock.yaml
 resources/css/jethro-*-DEV.css
 resources/js/jethro-*-DEV.js
+tests/functional/test-results
