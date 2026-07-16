@@ -13,11 +13,9 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
-# id-token: write is required by DeterminateSystems/nix-installer-action for
-# FlakeHub OIDC authentication. Without it, FlakeHub is disabled and you get:
-#   "FlakeHub is disabled because the workflow is misconfigured.
-#    Please make sure that id-token: write and contents: read are set..."
+# NOTE: determinate: false on nix-installer-action disables Determinate Nix
+# and FlakeHub. Only set determinate: true if this repo has FlakeHub access.
+# id-token: write is still needed for tailscale OIDC on the debug step.
 # https://docs.determinate.systems/guides/github-actions/#nix-installer-action
 
 permissions:
@@ -31,19 +29,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Connect to Tailscale
-        uses: tailscale/github-action@v4
-        with:
-          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-          audience: ${{ secrets.TS_AUDIENCE }}
-          tags: tag:ci
-
-      - name: Rename Tailscale node
-        run: |
-          sudo tailscale set --hostname "ci-${{ github.workflow }}-${{ github.run_id }}"
-
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
+        with:
+          determinate: false
 
       - name: Start services
         run: |
@@ -88,6 +77,19 @@ jobs:
             .devbox/process-compose.log
             .devbox/virtenv/mariadb/run/mysql.log
           if-no-files-found: ignore
+
+      - name: Connect to Tailscale
+        if: failure()
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          audience: ${{ secrets.TS_AUDIENCE }}
+          tags: tag:ci
+
+      - name: Rename Tailscale node
+        if: failure()
+        run: |
+          sudo tailscale set --hostname "ci-${{ github.workflow }}-${{ github.run_id }}"
 
       - name: Launch tmate debug session on failure
         if: failure()

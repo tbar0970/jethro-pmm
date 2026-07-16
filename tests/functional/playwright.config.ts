@@ -23,5 +23,13 @@ export default defineConfig({
   use: { browserName: "chromium", baseURL: `${HOST}/`, screenshot: "only-on-failure" },
   projects: [
     { name: "lookaround", testMatch: ["lookaround/lookaround.spec.ts"] },
+    {
+      name: "walkthrough",
+      testMatch: ["walkthrough/walkthrough.spec.ts"],
+      // Served under the /tests/functional/walkthrough/walkthrough/ prefix; the
+      // walkthrough.conf scenario (required by the functest conf.php) points
+      // the app at the empty jethro_functest_walkthrough database.
+      use: { baseURL: `${HOST}/tests/functional/walkthrough/` },
+    },
   ],
 });
