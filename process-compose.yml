@@ -54,6 +54,7 @@ processes:
   functest_jethro_server:
     description: A Jethro instance just for functional tests
     command: |
+      set -eu
       export NGINX_WEB_ROOT="${NGINX_WEB_ROOT/web/functest_jethro_server}"
       export NGINX_WEB_PORT=${FUNCTEST_WEB_PORT}
       envsubst $(awk 'BEGIN {for (k in ENVIRON) {printf "$"k","}}') < $NGINX_CONFDIR/nginx.template > $NGINX_CONFDIR/nginx-functest.conf
@@ -65,7 +66,7 @@ processes:
       mariadb:
         condition: process_healthy
       functest_databases_setup:
-        condition: process_completed
+        condition: process_completed_successfully
     availability:
       restart: on_failure
       # FYI: A transient server stall can burn all 5 restarts and leave port
@@ -92,11 +93,12 @@ processes:
       mariadb:
         condition: process_healthy
     command: |
-      devbox.d/bin/jethro_db_demodata_load
-      devbox.d/bin/jethro_db_init --db=jethro_functest_walkthrough
+      set -eu
+      devbox.d/bin/jethro_load_demodata jethro_functest
+      devbox.d/bin/mariadb_recreate_db jethro_functest_walkthrough jethro_functest_smsmockserver
     readiness_probe:
       exec:
-        command: mariadb -u jethro -pjethro jethro_functest -sNBe "select count(*) from _person;"
+        command: mariadb jethro_functest -sNBe "select count(*) from _person;"
       # 1s delay, then ping every 1 second until up (try 15 times), and then every 20s
       initial_delay_seconds: 1
       startup_period_seconds: 1

@@ -1,0 +1,37 @@
+#!/bin/bash -eu
+# Usage: jethro_load_demodata DB [SYSTEM_NAME]
+# Recreate DB and fill it with the demo/functional-test data: the SQL dump, the
+# upgrade scripts released after 2.38.
+# SYSTEM_NAME optionally overrides the SYSTEM_NAME setting of the loaded data.
+# Everything but the recreate step runs as the plain 'jethro' user.
+
+[[ $# -ge 1 && $# -le 2 ]] || { sed -n '2,5s/^# \?//p' "$0"; exit 2; }
+set -o pipefail
+
+db="$1"
+system_name="${2-}"
+cd "$(dirname "$(readlink -f "$0")")/../.."  # repo root: upgrades/ and testdata/ are relative
+
+dump=tests/functional/testdata/demodata.sql.gz
+
+# Empty database first, so a reload cannot leave tables behind that the dump and
+# the upgrade scripts no longer know about.
+mariadb_recreate_db "$db"
+
+echo "Loading $dump into '$db'..."
+# mariadb_rename points every database reference and DEFINER at $db and the
+# 'jethro' user, so the dump loads without root privileges.
+zcat "$dump" | mariadb_rename --database "$db" | mariadb "$db"
+
+echo "Applying upgrade scripts released after 2.38..."
+ls upgrades/*.sql | sort --version-sort | sed '0,/2\.38\.sql/ d' | while read -r sql; do
+	echo "  $sql"
+	mariadb "$db" < "$sql"
+done
+
+if [[ -n "$system_name" ]]; then
+	mariadb "$db" -e "UPDATE setting SET value='${system_name//\'/\'\'}' WHERE symbol='SYSTEM_NAME' AND value='Functional Testing';"
+fi
+
+mariadb "$db" -sNBe "SELECT CONCAT('Loaded into \`$db\`: ', (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='$db'), ' tables, ', (SELECT COUNT(*) FROM _person), ' people');"
+echo "Connect with: devbox run mariadb $db"
