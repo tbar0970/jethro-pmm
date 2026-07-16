@@ -24,11 +24,11 @@
   "shell": {
     "scripts": {
       "lint":                 "php -l *.php calls/*.php db_objects/*.php hooks/**/*.php include/*.php members/*.php members/**/*.php public/*.php public/**/*.php scripts/*.php templates/*.php upgrades/*.php upgrades/**/*.php views/*.php",
-      "mysql_as_root":        "devbox.d/bin/mysql_as_root",
+      "mariadb_as_root":      "devbox.d/bin/mariadb_as_root",
       "initdb":               "devbox.d/bin/mariadb_recreate_db jethro",
       "docs":                 "cd docs && bun install && bun run start",
       "docs-html":            "cd docs && bun install && bun run build",
-      "demodata":             "devbox.d/bin/jethro_db_demodata_load --db=jethro --system-name=\"St Bob's\"",
+      "demodata":             "devbox.d/bin/jethro_load_demodata jethro \"St Bob's\"",
       "functests":            "cd tests/functional && bun install && bun run ./node_modules/.bin/playwright test --reporter=list"
     }
   }

@@ -9,13 +9,11 @@
  *
  * Options:
  *   -d, --database NAME   Target database name (required).
- *   -u, --user USER       DEFINER user (default: same as --database).
+ *   -u, --user USER       DEFINER user (default: jethro).
  *   -H, --host HOST       DEFINER host  (default: localhost).
  *   -h, --help            Show this help.
  *
  * Intended for mysqldump/mariadb-dump output.
- *
- * @see devbox.d/bin/mariadb_rename
  */
 
 $options = getopt('d:u:H:h', ['database:', 'user:', 'host:', 'help']);

@@ -20,32 +20,36 @@ if (str_starts_with($path, '/tests/functional/')) {
     // e.g. $path = /tests/functional/walkthrough/
     // First look for /tests/functional/walkthrough.conf
     $conf1 = JETHRO_ROOT . '/../../' . rtrim($path, '/') . '.conf';
-    $testConf = realpath( JETHRO_ROOT . '/../../' . rtrim($path, '/') . '.conf' );
-    if (!$testConf = realpath($conf1)) {
-        $last = basename(rtrim($path,'/'));
+    $testConf = realpath($conf1);
+    if (!$testConf) {
         // Second, look for /tests/functional/walkthrough/walkthrough.conf
-        $conf2 = JETHRO_ROOT . '/../../' . rtrim($path, '/') . '/'. $last . '.conf';
-        if ($testConf = realpath($conf2)) {
-            require_once $testConf;
-            // Serve the app under the scenario prefix: with BASE_URL defined,
-            // baseurl_relative() (and hence build_url(), redirects and resource
-            // links) puts every generated URL under the prefix.  The functional
-            // Caddyfile maps prefixed /resources/ requests back to the real files.
-            if (!defined('BASE_URL')) define('BASE_URL', $path);
-            #exit;
-        } else {
-            if (str_ends_with($path, "/resources/less/")) {
-                // The above assumes all Jethro views are triggered from /?view=... and thus the a path like /tests/functional/walkthrough/?view=..., but /resources is an exception, and does not need a custom conf.php loaded.
-            } else {
-                // Missing tests/functional/something.conf or tests/functional/something/something.conf
-                http_response_code(403);
-                echo "Path: $path <br>Missing config file. Looked for:<br> $conf1<br>$conf2";
-                exit;
-            }
-        }
-        #echo $testConf;
+        $last = basename(rtrim($path, '/'));
+        $conf2 = JETHRO_ROOT . '/../../' . rtrim($path, '/') . '/' . $last . '.conf';
+        $testConf = realpath($conf2);
     }
-    define('LOGIN_NOTE', "Config: ".substr($testConf, strlen(realpath(JETHRO_ROOT.'/../..'))));
+    if ($testConf) {
+        require_once $testConf;
+        // Serve the app under the scenario prefix: with BASE_URL defined,
+        // baseurl_relative() (and hence build_url(), redirects and resource
+        // links) puts every generated URL under the prefix.  The functional
+        // Caddyfile maps prefixed /resources/ requests back to the real files.
+        if (!defined('BASE_URL')) define('BASE_URL', $path);
+        define('LOGIN_NOTE', "Config: ".substr($testConf, strlen(realpath(JETHRO_ROOT.'/../..'))));
+    } elseif (!str_ends_with($path, "/resources/less/")) {
+        // Missing tests/functional/something.conf or tests/functional/something/something.conf
+        http_response_code(403);
+        echo "Path: $path <br>Missing config file. Looked for:<br> $conf1<br>$conf2";
+        exit;
+    }
+} else 
+{
+    define('LOGIN_NOTE', "<details><summary>Functest info</summary>
+        <p>This Jethro is used for functional tests.
+        <p>It is configured to use database 'jethro_functest' (accessible via <tt>./devbox run mariadb jethro_functest</tt>), with a minimal conf.php at ./devbox.d/functest_jethro server/conf.php
+        <p>Other functest-specific conf.php files may be loaded by specifying their directory prefix in the URL, e.g. <a href='/tests/functional/walkthrough/'>/tests/functional/walkthrough/</a> loads <tt>./tests/functional/walkthrough/walkthrough.conf</tt> which points to an initially empty database to test from the setup screen.
+        <p>For development, prefer the <a href='http://localhost:8081/'>http://localhost:8081</a> Jethro. 
+        <p>See <tt>docs/docs/developer/DEVELOPMENT_FUNCTESTS.md</tt> for more info.
+</details>");
 }
 define('SHOW_ERROR_DETAILS', TRUE);
 
