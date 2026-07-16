@@ -68,6 +68,11 @@ define('PREFILL_PASSWORD', 'qfntt7eYuwHs123');   # This qfntt7eYuwHs123 is not s
 // The JETHRO_VERSION env var is set by Devbox, and passed through by devbox.d/php/php-fpm.conf
 define('JETHRO_VERSION', getenv("JETHRO_VERSION"));
 
+// The demo-data dump has no SMS prefix settings, and Config_Manager only defines
+// constants for settings present in the database.  Match devbox.d/web/conf.php.
+define('SMS_INTERNATIONAL_PREFIX', '61');
+define('SMS_LOCAL_PREFIX', '0');
+
 # Default DB settings. A test-scenario conf (e.g. tests/functional/walkthrough.conf)
 # loaded above may define its own DB_* constants first, to point this
 # instance at a different database.
