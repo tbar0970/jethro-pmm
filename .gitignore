@@ -13,3 +13,5 @@ docs/docs/.docusaurus
 node_modules/
 .php-cs-fixer.cache
 pnpm-lock.yaml
+resources/css/jethro-*-DEV.css
+resources/js/jethro-*-DEV.js
