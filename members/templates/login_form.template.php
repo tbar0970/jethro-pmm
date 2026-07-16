@@ -28,7 +28,7 @@
 
 			<div style="display:flex">
 				<label style="margin: 5px 5px 0 0"><b>Email: </b></label>
-				<input style="flex-grow:10" type="email" name="email" autofocus="autofocus" class="compulsory" value="<?php echo ents(array_get($_REQUEST, 'email', '')); ?>" placeholder="Email" />
+				<input style="flex-grow:10" type="email" name="email" autofocus="autofocus" class="compulsory" value="<?php echo ents(array_get($_REQUEST, 'email', defined('PREFILL_MEMBER_EMAIL') ? PREFILL_MEMBER_EMAIL : '')); ?>" placeholder="Email" />
 			</div>
 
 			<div id="member-login-options">
@@ -36,7 +36,7 @@
 					<b>Got a password?</b><br />
 					Enter your password to log in<br />
 						<div class="input-append">
-							<input type="password" name="password" value="" placeholder="Password"/><br>
+							<input type="password" name="password" value="<?php if (defined('PREFILL_MEMBER_PASSWORD')) echo ents(PREFILL_MEMBER_PASSWORD); ?>" placeholder="Password"/><br>
 							<input type="submit" name="login-request" class="btn" value="Log in" />
 						</div>
 				</div>

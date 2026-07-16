@@ -151,12 +151,19 @@ class View_Documents extends View
 		}
 	}
 
-	// Given a fullly qualified path, returns the portion that we should show to the user
+	// Given a fully qualified path inside the documents root, returns the
+	// relative portion for use as a 'dir' URL parameter.
 	// eg /var/www/jethro/files/foo/bar becomes /foo/bar
-	function getPrintedDir($dir=NULL)
+	// If $dir is not a superset of the document root, '' is returned.
+	function getPrintedDir($dir = null)
 	{
 		if (is_null($dir)) $dir = $this->_realdir;
-		return str_replace($this->_rootpath, '', $dir);
+		$root = rtrim($this->_rootpath, '/') . '/';
+		// Only strip the root prefix if $dir is actually under it.
+		if (str_starts_with($dir, $root)) {
+			return '/' . substr($dir, strlen($root));
+		}
+		return '';
 	}
 
 	function printView()
@@ -425,7 +432,9 @@ class View_Documents extends View
 		if (empty($filelist) && empty($dirlist)) {
 			?>
 			<p><i>There are no files in this folder</i></p>
+			<?php if ($this->getPrintedDir() !== ''): ?>
 			<p class="parent-folder"><a href="<?php echo build_url(Array('dir' => $this->getPrintedDir(dirname($this->_realdir)))); ?>"><i class="icon-circle-arrow-up"></i>Parent folder</a></p>
+			<?php endif; ?>
 			<?php
 			return;
 		} else {

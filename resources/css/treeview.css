@@ -7,6 +7,7 @@
     border: 1px solid #ddd;
     padding: 5px;
     border-radius: 5px;
+    min-width: 45ex;
     max-width: 600px;
     margin: 2px auto;
     box-sizing: border-box; 
@@ -34,6 +35,7 @@
     border-radius: 4px;
     font-size: 0.9em !important;
     height: 15px !important;
+    margin: 0px !important;
 }
 .custom-treeview-wrapper .btn-mini {
     height: 24px !important;
