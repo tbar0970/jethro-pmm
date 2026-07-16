@@ -1,0 +1,109 @@
+#!/usr/bin/env php
+<?php
+
+/**
+ * Rewrite SQL dump on stdin for a different database name, DEFINER user, and host.
+ *
+ * Usage:
+ *   mariadb_rename --database DBNAME [--user USER] [--host HOST] < dump.sql > renamed.sql
+ *
+ * Options:
+ *   -d, --database NAME   Target database name (required).
+ *   -u, --user USER       DEFINER user (default: same as --database).
+ *   -H, --host HOST       DEFINER host  (default: localhost).
+ *   -h, --help            Show this help.
+ *
+ * Intended for mysqldump/mariadb-dump output.
+ *
+ * @see devbox.d/bin/mariadb_rename
+ */
+
+$options = getopt('d:u:H:h', ['database:', 'user:', 'host:', 'help']);
+
+// Detect unknown options (getopt silently ignores them)
+$known = ['-d', '--database', '-u', '--user', '-H', '--host', '-h', '--help'];
+foreach ($argv as $arg) {
+    $name = preg_replace('/=.*$/s', '', $arg);
+    if (
+        str_starts_with($name, '-')
+        && $name !== '-'
+        && !in_array($name, $known, true)
+    ) {
+        fwrite(STDERR, "Unknown option: $name\n");
+        usage();
+    }
+}
+
+if (isset($options['h']) || isset($options['help'])) {
+    usage();
+}
+
+$database = $options['d'] ?? $options['database'] ?? null;
+if ($database === null) {
+    fwrite(STDERR, "Error: --database is required\n");
+    usage();
+}
+
+$user = $options['u'] ?? $options['user'] ?? $database;
+$host = $options['H'] ?? $options['host'] ?? 'localhost';
+
+$sql = stream_get_contents(STDIN);
+if ($sql === false || $sql === '') {
+    exit(0);
+}
+
+$sql = preg_replace(
+    '/(DEFINER=`)[^`]+(`)@`([^`]+)`/m',
+    '$1' . $user . '`@`' . $host . '`',
+    $sql,
+);
+$sql = preg_replace(
+    '/^(-- Host: .*    Database: )[^ \n]*$/m',
+    '$1' . $database,
+    $sql,
+);
+$sql = preg_replace(
+    '/^(-- Current Database: )[^ \n]*$/m',
+    '$1`' . $database . '`',
+    $sql,
+);
+$sql = preg_replace(
+    '/^(USE )[^ \n]*;$/m',
+    '$1`' . $database . '`;',
+    $sql,
+);
+$sql = preg_replace(
+    '/^((?:CREATE|ALTER) DATABASE [^`]*`)[^`]+(`)/m',
+    '$1' . $database . '$2',
+    $sql,
+);
+$sql = preg_replace(
+    "/^(-- Dumping (events|routines) for database ')[^ \n]*'$/m",
+    '$1' . $database . "'",
+    $sql,
+);
+
+echo $sql;
+
+/**
+ * Print usage to stderr and exit.
+ */
+function usage(): never
+{
+    $prog = basename($_SERVER['argv'][0] ?? 'mariadb_rename');
+
+    fwrite(STDERR, <<<"USAGE"
+Usage: $prog --database DBNAME [--user USER] [--host HOST] < dump.sql > renamed.sql
+
+Rewrite SQL dump on stdin for a different database name, DEFINER user, and host.
+Intended for mysqldump/mariadb-dump output.
+
+Options:
+  -d, --database NAME   Target database name (required).
+  -u, --user USER       DEFINER user (default: same as --database).
+  -H, --host HOST       DEFINER host  (default: localhost).
+  -h, --help            Show this help.
+
+USAGE);
+    exit(2);
+}

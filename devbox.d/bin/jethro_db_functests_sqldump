@@ -1,0 +1,15 @@
+#!/bin/bash
+#? Usage: jethro_db_functests_sqldump [DB=name]
+#?
+#? Dump the functest database to stdout, renamed for the target database.
+#? Pipe to gzip to recreate tests/functional/testdata/demodata.sql.gz.
+#?
+#? Environment:
+#?   DB        Target database name (default: jethro_functest)
+
+set -euo pipefail
+
+DB=${DB:-jethro_functest}
+
+mariadb-dump "$DB" --single-transaction --routines --events --triggers \
+     | mariadb_rename --database "$DB"

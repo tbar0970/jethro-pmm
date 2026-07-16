@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+#? Usage: jethro_db_demodata_load
+#?
+#? Load functional test data into a database in the Devbox MariaDB.
+#?
+#? Default: loads into 'jethro_functest' (the functional test database).
+#? Override with DB=jethro to load into the main development database.
+#? The dump is normalized through mariadb_rename to ensure database
+#? references always point at the target DB.
+#?
+#? Environment:
+#?   DB        Target database (default: jethro_functest)
+#?   DB_USER   MySQL user for loading (default: jethro)
+#?   DB_PASS   MySQL password for loading (default: jethro)
+
+set -euo pipefail
+
+source "$(dirname "${BASH_SOURCE[0]}")/jethrodb.sh"
+
+DB=${DB:-jethro_functest}
+DB_USER=${DB_USER:-jethro}
+DB_PASS=${DB_PASS:-jethro}
+
+DUMP="$REPO_ROOT/tests/functional/testdata/demodata.sql.gz"
+
+main() {
+	if (( $# )); then help; fi
+	validate_working
+	ensure_db
+	load_dump
+	change_system_name
+	upgrade
+	echo
+	echo "Functional test data loaded into '$DB'"
+	echo "Connect with: mariadb $DB"
+}
+
+runsql() {
+	mariadb -u${DB_USER} -p${DB_PASS} "${DB}" "$@"
+}
+
+ensure_db() {
+	# Create the jethro MySQL user (idempotent; safe even if jethro_db_init hasn't run).
+	# Create the target database and grant jethro access for dump loading.
+	mariadb_as_root -v <<-EOF
+	CREATE USER IF NOT EXISTS 'jethro'@'localhost' IDENTIFIED BY 'jethro';
+	CREATE DATABASE IF NOT EXISTS \`$DB\` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+	GRANT ALL PRIVILEGES ON \`$DB\`.* TO 'jethro'@'localhost';
+	FLUSH PRIVILEGES;
+	EOF
+
+	# When loading into the functest database, also ensure the functest app user
+	# exists (referenced by devbox.d/functest_jethro_server/conf.php).
+	if [[ "$DB" == "jethro_functest" ]]; then
+		mariadb_as_root -v <<-EOF
+		CREATE USER IF NOT EXISTS 'jethro_functest'@'localhost' IDENTIFIED BY 'jethro_functest';
+		GRANT ALL PRIVILEGES ON \`jethro_functest\`.* TO 'jethro_functest'@'localhost';
+		FLUSH PRIVILEGES;
+		EOF
+	fi
+}
+
+load_dump() {
+	[[ -f "$DUMP" ]] || fail "Dump not found: $DUMP
+Generate it first with a functest-data dump (see tests/functional/testdata/)."
+
+	echo "Loading $DUMP into '$DB'..."
+	zcat "$DUMP" | mariadb_rename --database "$DB" | mariadb --user="$DB_USER" --password="$DB_PASS" "$DB"
+
+	local tables
+	tables=$(mariadb "$DB" -sNBe "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='$DB' AND table_type='BASE TABLE';")
+	echo "Done: $tables tables loaded into '$DB'"
+}
+
+change_system_name() {
+	if [[ -v SYSTEM_NAME ]]; then
+		mariadb -sNBe "update setting set value='${SYSTEM_NAME//\'/\'\'}' where symbol='SYSTEM_NAME' and value='Functional Testing';"
+	fi
+}
+
+upgrade() {
+	# Apply upgrade SQL for versions after 2.38
+	ls upgrades/*.sql | sort --version-sort | sed '0,/2\.38\.sql/ d' | while read -r sql; do
+		runsql < "$sql"
+	done
+}
+
+main "$@"

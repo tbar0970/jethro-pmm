@@ -92,6 +92,22 @@ http {
         location = /public/   { rewrite ^ /public/index.php last; }
 
         # ====================================================================
+        # Test-scenario virtual paths: /tests/functional/<name>/...
+        #
+        # conf.php (at devbox.d/functest_jethro_server/conf.php) detects the
+        # scenario prefix from REQUEST_URI and sets BASE_URL accordingly.
+        # Assets (resources/*, favicon.ico) are rewritten to strip the prefix;
+        # everything else routes to Jethro.
+
+        location ^~ /tests/functional/ {
+            # Assets: strip the dynamic scenario prefix so static files
+            # resolve on disk under the real /resources/ or /favicon.ico.
+            rewrite ^/tests/functional/.+?/(resources/.+|favicon\.ico)$ /$1 last;
+            # Everything else: Jethro front controller.
+            rewrite ^ /index.php last;
+        }
+
+        # ====================================================================
         # PHP-FPM handler
         # ====================================================================
 

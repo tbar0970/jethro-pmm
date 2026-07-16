@@ -16,7 +16,9 @@
   ],
   "env": {
     "NGINX_WEB_PORT":         "8081",
-    "PATH":                   "$PWD/devbox.d/bin:$PATH"
+    "PATH":                   "$PWD/devbox.d/bin:$PATH",
+    "JETHRO_VERSION":         "2.39-DEV",
+    "FUNCTEST_WEB_PORT":      "8089"
   },
   "shell": {
     "scripts": {
@@ -25,7 +27,9 @@
       "initdb":               "devbox.d/bin/jethro_db_init",
       "compile":              "jethro_compile_css ${JETHRO_VERSION} && jethro_compile_js ${JETHRO_VERSION} && echo \"To use compiled resources, run: echo \"${JETHRO_VERSION}\" > ./include/version.txt\"",
       "docs":                 "cd docs && bun install && bun run start",
-      "docs-html":            "cd docs && bun install && bun run build"
+      "docs-html":            "cd docs && bun install && bun run build",
+      "demodata":             "DB=jethro SYSTEM_NAME=\"St Bob's\" devbox.d/bin/jethro_db_demodata_load",
+      "functests":            "cd tests/functional && bun install && bun run ./node_modules/.bin/playwright test --reporter=list"
     }
   }
 }
