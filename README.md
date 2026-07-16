@@ -14,12 +14,13 @@ System requirements are:
 * Some kind of web server (apache/ngnix etc)
 * MySQL 8.0 or above
     * with [ONLY_FULL_GROUP_BY](https://dev.mysql.com/doc/refman/8.4/en/sql-mode.html#sqlmode_only_full_group_by) disabled
+    * with [log_bin_trust_function_creators](https://dev.mysql.com/doc/refman/8.4/en/replication-options-binary-log.html#sysvar_log_bin_trust_function_creators) enabled
 * PHP 8.1 or above
     * with [gettext extension](https://www.php.net/manual/en/book.gettext.php) enabled
     * with [zip extension](https://www.php.net/manual/en/book.zip.php) enabled
     * with [xmlwriter extension](https://www.php.net/manual/en/book.xmlwriter.php) enabled, to create DOCX files
     * [GD library](https://www.php.net/manual/en/book.image.php) recommended, to manage the size of uploaded photos
-    * with [curl extension](https://www.php.net/manual/en/book.curl.php) enabled, if you intend to use the Mailchimp integration
+    * with [curl extension](https://www.php.net/manual/en/book.curl.php) enabled, if you intend to use the Mailchimp or https://api.bible integration
     * with [exif extension](https://www.php.net/manual/en/book.exif.php) enabled, if you would like to automatically rotate images
 
 The steps to install are:
@@ -31,6 +32,11 @@ The steps to install are:
 You might like to download and load some [sample data](https://easyjethro.com.au/demo/jethro_demodata.gz) (this can
 be seen running at https://easyjethro.com.au/demo/). The jethro_demodata file is SQL which can be loaded into MySQL. See
 [here](https://github.com/tbar0970/jethro-pmm/pull/1398) for further instructions.
+
+# Development
+
+Jethro source distribution comes with [Devbox](https://www.jetify.com/docs/devbox) scripts for quickly launching a local development environment, see DEVELOPMENT_DEVBOX.md.
+
 
 # Documentation
 

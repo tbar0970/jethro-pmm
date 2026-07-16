@@ -1,0 +1,27 @@
+{
+  "name":        "Jethro Pastoral Ministry Manager",
+  "description": "Jethro helps churches keep track of people, families, groups, attendance, pastoral tasks, church services, rosters and documents.",
+  "$schema":     "https://raw.githubusercontent.com/jetify-com/devbox/0.17.2/.schema/devbox.schema.json",
+  "packages": [
+    "php@8.5.7",
+    "php85Extensions.gd@latest",
+    "php85Extensions.zip@latest",
+    "php85Extensions.xmlwriter@latest",
+    "php85Extensions.gettext@latest",
+    "php85Extensions.curl@latest",
+    "php85Extensions.exif@latest",
+    "mariadb@latest",
+    "nginx@latest"
+  ],
+  "env": {
+    "NGINX_WEB_PORT":         "8081",
+    "PATH":                   "$PWD/devbox.d/bin:$PATH"
+  },
+  "shell": {
+    "scripts": {
+      "lint":                 "php -l *.php calls/*.php db_objects/*.php hooks/**/*.php include/*.php members/*.php members/**/*.php public/*.php public/**/*.php scripts/*.php templates/*.php upgrades/*.php upgrades/**/*.php views/*.php && bunx biome check ./resources/js/ --max-diagnostics=20",
+      "mariadb_as_root":      "devbox.d/bin/mariadb_as_root",
+      "initdb":               "devbox.d/bin/jethro_db_init"
+    }
+  }
+}

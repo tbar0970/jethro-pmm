@@ -756,6 +756,9 @@ function build_url($params)
 
 /**
  * * Get the relative 'base URL' path below which Jethro lives, e.g. '' or '/jethro'. No trailing slash. This is the default value for BASE_URL, and is used to link to root-relative resources. Unlike get_url_pathprefix, there is no '/members' or '/public' part - just the base.
+ * If BASE_URL is already defined (e.g. in conf.php), its path component is authoritative.
+ * Otherwise the base is inferred from SCRIPT_NAME, which may contain any number of leading
+ * path segments (e.g. '/a/b/jethro/index.php' => '/a/b/jethro').
  *  - 'https://jethro.mychurch.org'   returns ''
  *  - 'https://jethro.mychurch.org/'   returns ''
  *  - 'https://jethro.mychurch.org//'   returns ''
@@ -766,15 +769,22 @@ function build_url($params)
  */
 function baseurl_relative()
 {
+    if (defined('BASE_URL')) {
+        // BASE_URL may be absolute ('https://church.org/jethro/') or a bare path ('/jethro').
+        $path = parse_url(BASE_URL, PHP_URL_PATH);
+        return is_string($path) ? rtrim($path, '/') : '';
+    }
     // SCRIPT_NAME is the path part of the URL, e.g. /index.php or /jethro/index.php, or /jethro/members/index.php
-    $parts = explode('/', $_SERVER['SCRIPT_NAME']);
-    end($parts);  // Move internal pointer to the end (likely 'index.php').
-    $lastdir=prev($parts); // Get path segment before 'index.php'
-    if ($lastdir == 'members' or $lastdir == 'public') $lastdir=prev($parts); // Look one earlier than /members / /public
-    if (empty($lastdir)) return '';
-    else return '/'.$lastdir;
+    $dir = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/');
+    // The '/members' and '/public' areas sit one level below the base.
+    foreach (Array('/members', '/public') as $area) {
+        if (str_ends_with($dir, $area)) {
+            $dir = substr($dir, 0, -strlen($area));
+            break;
+        }
+    }
     // Note that this cannot return '/', because its value becomes BASE_URL which gets prepended to '/resources/...' in many places.
-//    return rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/');
+    return $dir;
 }
 
 /**
@@ -791,8 +801,15 @@ function baseurl_relative()
 function get_url_pathprefix()
 {
     $relbase = baseurl_relative(); // e.g. '' or '/jethro'
-    $subdir = dirname(substr($_SERVER['SCRIPT_NAME'], strlen($relbase))); // e.g. '/', '/members' or '/public'
-    return rtrim($relbase.$subdir, '/').'/'; // e.g. '/members/', '/public/', '/jethro/', '/jethro/members/', '/jethro/members/public/'
+    $dir = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/');
+    $area = ''; // '/members' or '/public' if we're in one of those areas
+    foreach (Array('/members', '/public') as $a) {
+        if (str_ends_with($dir, $a)) {
+            $area = $a;
+            break;
+        }
+    }
+    return $relbase.$area.'/'; // e.g. '/members/', '/public/', '/jethro/', '/jethro/members/'
 }
 
 /**
@@ -1137,3 +1154,97 @@ function safe_subdirectory($base, $path) {
             ? false
             : substr($realpath, strlen($base) + 1);
 }
+
+// ---------------------------------------------------------------------------
+// Result monad
+// ---------------------------------------------------------------------------
+
+/**
+ * Result monad — a value that is either Success(T) or Failure(E).
+ *
+ * Failures carry an informational error payload (typically a string)
+ * describing what went wrong, so callers can present a meaningful
+ * message to the user without a separate error channel.
+ *
+ * Transform the value inside a Result with {@see map()}, which applies
+ * a function to the success value while automatically propagating
+ * failures.  Branch on success or failure with {@see isSuccess()} /
+ * {@see isFailure()}, then extract the inner value with
+ * {@see getValue()} or the error with {@see getError()}.
+ *
+ * @template T  The type of the success value.
+ * @template E  The type of the error payload (usually string).
+ *
+ */
+final class Result
+{
+	private function __construct(
+		private readonly mixed $value,
+		private readonly mixed $error,
+		private readonly bool $isSuccess,
+	) {
+	}
+
+	/**
+	 * @param T $value
+	 *
+	 * @return self<T, E>
+	 */
+	public static function success(mixed $value): self
+	{
+		return new self($value, null, true);
+	}
+
+	/**
+	 * @param E $error
+	 *
+	 * @return self<T, E>
+	 */
+	public static function failure(mixed $error): self
+	{
+		return new self(null, $error, false);
+	}
+
+	public function isSuccess(): bool
+	{
+		return $this->isSuccess;
+	}
+
+	public function isFailure(): bool
+	{
+		return !$this->isSuccess;
+	}
+
+	/**
+	 * @return T
+	 */
+	public function getValue(): mixed
+	{
+		return $this->value;
+	}
+
+	/**
+	 * @return E
+	 */
+	public function getError(): mixed
+	{
+		return $this->error;
+	}
+
+	/**
+	 * If success, apply $fn to the value and return a new Result.
+	 * If failure, propagate the error unchanged.
+	 *
+	 * @template U
+	 * @param callable(T): U $fn
+	 * @return Result<U, E>
+	 */
+	public function map(callable $fn): self
+	{
+		if ($this->isFailure()) {
+			return $this;
+		}
+		return self::success($fn($this->value));
+	}
+}
+

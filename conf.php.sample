@@ -155,6 +155,14 @@ define('2FA_ENABLED', true);
 // Cost of sending a single SMS segment, for cost estimation purposes.
 //define('SMS_SEGMENT_COST', 0.05);
 
+// Whether to allow Unicode characters (e.g. emoji) in SMS messages. Be aware that even a single unicode character doubles the cost for >70 char messages.
+// 1 = allow Unicode freely
+// 0 = disable Unicode entirely — only GSM 03.38 characters are allowed and
+//     non-GSM characters will prevent the form from submitting.
+// 'when_free' = allow Unicode for messages ≤70 chars (single UCS-2 segment).
+//     Longer messages with non-GSM chars will be blocked.
+//define('SMS_UNICODE_PERMITTED', 'when_free');
+
 
 ///////////////////////////////////////////////////////////////////////////
 // SMTP SETTINGS - These can also be configured in the web interface,
@@ -178,6 +186,20 @@ define('2FA_ENABLED', true);
 
 // Mailchimp API key for list synchronization
 // define('MAILCHIMP_API_KEY', '');
+
+///////////////////////////////////////////////////////////////////////////
+// BIBLE REF LOOKUP SETTINGS - optional integration with https://api.bible to 
+// automatically fetch Bible Reading passages in service handouts.
+//
+// API key obtainable after registering on https://api.bible
+// define('BIBLE_API_APIKEY', '........-Cn');
+//
+// Base URL for the API.Bible REST API (used for fetching Bible passage text).
+// Defaults to the standard API.Bible endpoint if not set.
+// define('BIBLE_API_URL', 'https://rest.api.bible/v1');
+
+// Timeout in seconds for API.Bible REST API requests. Defaults to 10 if not set.
+// define('BIBLE_API_TIMEOUT', 10);
 
 
 ///////////////////////////////////////////////////////////////////////////
@@ -268,18 +290,22 @@ define('2FA_ENABLED', true);
 // Write your own, or use the sample below to make sure all mailto links open in a new window.
 // function custom_email_extras() { return 'target="_mail"'; }
 
-// When Jethro sends an email itself (eg for member rego), force the From: address to this value,
-// and use the user-specified From address as a reply-to.
+// When Jethro sends an email itself (eg for member rego), force the From: address to be this 
+// and use the user-specified From address as a Reply-To.
+// Set this when the From address (set e.g. in script .ini file) is where we want replies to go, but we are not DKIM-authorized to send from its domain.
 //define('OVERRIDE_EMAIL_FROM', '');
+// Optionally override the display name that appears with OVERRIDE_EMAIL_FROM.
+// When not set, the From header has no display name (bare address).
+//define('OVERRIDE_EMAIL_FROM_NAME', '');
 
 // Pre-filled values for the login form.  Only use on demo systems etc.
 // define('PREFILL_USERNAME', '');
 // define('PREFILL_PASSWORD', '');
 
+// Pre-filled values for the member login form.
+// define('PREFILL_MEMBER_EMAIL', '');
+// define('PREFILL_MEMBER_PASSWORD', '');
+
 // For troubleshooting you can use this to show error details in the browser
 // This is usually disabled in production versions but shown in dev.
 // define('SHOW_ERROR_DETAILS', TRUE);
-
-// Text encoding for sending SMS messages.
-// Change it to something other than GSM0338 to stop Jethro filtering out non-GSMS0338 characters.
-// define('SMS_ENCODING', 'GSM0338');
