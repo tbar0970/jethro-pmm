@@ -20,6 +20,10 @@ class Call_Display_Roster extends Call
 		$roster_id = (int)array_get($_REQUEST, 'viewid');
 		if (empty($roster_id)) return;
 		$view = $GLOBALS['system']->getDBObject('roster_view', $roster_id);
+		if (!$view) {
+			trigger_error('Roster view #'.$roster_id.' not found', E_USER_WARNING);
+			return;
+		}
 
 		?>
 		<html>

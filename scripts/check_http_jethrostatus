@@ -1,0 +1,224 @@
+#!/usr/bin/env perl
+# check_http_jethrostatus - Nagios-compatible check for Jethro status.php
+# Fetches JSON from a Jethro status.php endpoint and validates PHP settings
+# critical to Jethro operation.
+#
+# Usage:
+#   check_http_jethrostatus -u http://localhost:8081/status.php
+
+use strict;
+use warnings;
+use Getopt::Long;
+use LWP::UserAgent;
+use JSON::PP ();
+use constant {
+    OK       => 0,
+    WARNING  => 1,
+    CRITICAL => 2,
+    UNKNOWN  => 3,
+};
+
+# ── defaults ────────────────────────────────────────────────────────────────
+my $opt_url;
+my $opt_timeout     = 15;
+my $opt_insecure    = 0;
+my $opt_help        = 0;
+my $opt_max_input_vars      = 10000;
+my $opt_post_max_size       = 20;       # MB
+my $opt_upload_max_filesize = 20;       # MB
+my $opt_db_charset_results  = 'utf8mb4';
+my $opt_require_jethro_version = 0;
+my $opt_require_request_id = 0;
+my $opt_required_runtime_user = undef;
+
+GetOptions(
+    'url|u=s'                   => \$opt_url,
+    'timeout|t=i'               => \$opt_timeout,
+    'insecure|k'                => \$opt_insecure,
+    'help|h'                    => \$opt_help,
+    'max-input-vars=i'          => \$opt_max_input_vars,
+    'post-max-size=i'           => \$opt_post_max_size,
+    'upload-max-filesize=i'     => \$opt_upload_max_filesize,
+    'db-charset-results=s'      => \$opt_db_charset_results,
+    'require-jethro-version'    => \$opt_require_jethro_version,
+    'require-request-id'        => \$opt_require_request_id,
+    'expected-runtime-user=s'   => \$opt_required_runtime_user,
+) or exit UNKNOWN;
+
+if ($opt_help || !$opt_url) {
+    print "Usage: $0 -u <url> [-k] [-t <seconds>] [--max-input-vars N]\n";
+    print "       [--post-max-size N] [--upload-max-filesize N]\n";
+    print "       [--db-charset-results CHARSET]\n";
+    print "\n";
+    print "  -u, --url     URL to status.php (required)\n";
+    print "  -k, --insecure  Skip SSL certificate verification\n";
+    print "  -t, --timeout   HTTP request timeout (default: $opt_timeout)\n";
+    print "  --max-input-vars          Minimum max_input_vars (default: $opt_max_input_vars)\n";
+    print "  --post-max-size           Minimum post_max_size in MB (default: $opt_post_max_size)\n";
+    print "  --upload-max-filesize     Minimum upload_max_filesize in MB (default: $opt_upload_max_filesize)\n";
+    print "  --db-charset-results      Required db_charset_results (default: $opt_db_charset_results)\n";
+    print "  --require-jethro-version  Require jethroversion field in response\n";
+    print "  --require-request-id      Require request_id_added=true in response\n";
+    print "  --expected-runtime-user   Required OS user (e.g. 'jethro', not 'root')\n";
+    exit UNKNOWN;
+}
+
+# ── fetch ───────────────────────────────────────────────────────────────────
+my $ua = LWP::UserAgent->new(
+    timeout => $opt_timeout,
+    ssl_opts => {
+        verify_hostname => $opt_insecure ? 0 : 1,
+        SSL_verify_mode => $opt_insecure ? 0 : 1,
+    },
+);
+$ua->agent("check_http_jethrostatus/1.0");
+$ua->env_proxy;
+
+my $response = $ua->get($opt_url);
+unless ($response->is_success) {
+    printf "CRITICAL - HTTP %s %s\n", $response->code, $response->message;
+    exit CRITICAL;
+}
+
+# ── parse ───────────────────────────────────────────────────────────────────
+my $status;
+eval {
+    $status = JSON::PP::decode_json($response->decoded_content);
+    1;
+} or do {
+    my $err = $@;
+    printf "CRITICAL - JSON parse error: %s\n", $err;
+    exit CRITICAL;
+};
+
+# Two value conventions for good/bad fields:
+#   - "problem" fields (*_performance_impact, *_misconfigured, *_incompatible_version):
+#     JSON false = nominal (no problem); anything else (a descriptive string or JSON true) = a problem.
+#   - "status" fields (php_extensions_installed, request_id_added):
+#     JSON true = good; a descriptive string = a problem.
+#
+# ── validate ────────────────────────────────────────────────────────────────
+my @errs;
+
+sub check_nominal {
+    my ($name) = @_;
+    my $val = $status->{$name};
+    if (!defined $val) {
+        push @errs, "$name is missing from response";
+    } elsif (JSON::PP::is_bool($val)) {
+        push @errs, "$name is true" if $val;
+    } else {
+        push @errs, $val;
+    }
+}
+
+sub check_enabled {
+    my ($name) = @_;
+    my $val = $status->{$name};
+    if (!defined $val) {
+        push @errs, "$name is missing from response";
+    } elsif (JSON::PP::is_bool($val)) {
+        push @errs, "$name is false" unless $val;
+    } else {
+        push @errs, $val;
+    }
+}
+# Parse a PHP shorthand-bytes ini value ("20M", "1G", "512K", or bare bytes) into
+# a byte count. Returns 0 for malformed input.
+sub parse_ini_bytes {
+    my ($v) = @_;
+    return 0 unless defined $v && $v =~ /^\s*(\d+)\s*([kmg]?)\s*$/i;
+    my %mult = ('' => 1, k => 1024, m => 1024**2, g => 1024**3);
+    return $1 * $mult{lc $2};
+}
+
+# max_input_vars
+{
+    my $val = $status->{max_input_vars};
+    if (!defined $val) {
+        push @errs, "max_input_vars is missing from response";
+    } elsif ($val < $opt_max_input_vars) {
+        push @errs, sprintf("max_input_vars is %s, must be >= %s", $val, $opt_max_input_vars);
+    }
+}
+
+# post_max_size
+{
+    my $val = $status->{post_max_size};
+    if (!defined $val) {
+        push @errs, "post_max_size is missing from response";
+    } elsif (parse_ini_bytes($val) < $opt_post_max_size * 1024**2) {
+        push @errs, sprintf("post_max_size is %s, must be >= %sM", $val, $opt_post_max_size);
+    }
+}
+
+# upload_max_filesize
+{
+    my $val = $status->{upload_max_filesize};
+    if (!defined $val) {
+        push @errs, "upload_max_filesize is missing from response";
+    } elsif (parse_ini_bytes($val) < $opt_upload_max_filesize * 1024**2) {
+        push @errs, sprintf("upload_max_filesize is %s, must be >= %sM", $val, $opt_upload_max_filesize);
+    }
+}
+
+# db_charset_results
+{
+    my $val = $status->{db_charset_results};
+    if (!defined $val) {
+        push @errs, "db_charset_results is missing from response";
+    } elsif ($val ne $opt_db_charset_results) {
+        push @errs, sprintf("db_charset_results is '%s', must be '%s'", $val, $opt_db_charset_results);
+    }
+}
+
+# runtime_user — validated only when --expected-runtime-user is set
+if (defined $opt_required_runtime_user) {
+    my $val = $status->{runtime_user};
+    if (!defined $val) {
+        push @errs, "runtime_user is missing from response";
+    } elsif ($val ne $opt_required_runtime_user) {
+        push @errs, sprintf("runtime user is '%s', must be '%s'", $val, $opt_required_runtime_user);
+    }
+}
+# xdebug_performance_impact — false if off/not loaded, else error string
+check_nominal('xdebug_performance_impact');
+# opcache_performance_impact — false if opcache on + JIT off, else error string
+check_nominal('opcache_performance_impact');
+
+# php_incompatible_version — false if PHP > 8.1, else error string
+check_nominal('php_incompatible_version');
+
+# php_extensions_installed — true if all required loaded, else error string
+check_enabled('php_extensions_installed');
+
+# request_id_added — validated only when --require-request-id is set
+if ($opt_require_request_id) {
+    check_enabled('request_id_added');
+}
+
+# session_gc_misconfigured — false if GC config fine, else error string
+check_nominal('session_gc_misconfigured');
+
+# logging_misconfigured — false if log_errors On, else error string
+check_nominal('logging_misconfigured');
+
+
+# jethroversion — conditionally checked when status.php has SHOW_JETHRO_VERSION=true
+if ($opt_require_jethro_version) {
+    my $val = $status->{jethroversion};
+    if (!defined $val || $val eq '') {
+        push @errs, "jethroversion is missing or empty (use --require-jethro-version only when SHOW_JETHRO_VERSION=true)";
+    }
+}
+# ── output ──────────────────────────────────────────────────────────────────
+if (!@errs) {
+    printf "OK - all checks passed | max_input_vars=%d post_max_size=%s upload_max_filesize=%s\n",
+        $status->{max_input_vars},
+        $status->{post_max_size},
+        $status->{upload_max_filesize};
+    exit OK;
+} else {
+    printf "WARNING - %s\n", join("; ", @errs);
+    exit WARNING;
+}
