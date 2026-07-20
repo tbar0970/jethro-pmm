@@ -1,0 +1,46 @@
+name: Unit Tests
+
+on:
+  push:
+    branches:
+      - master
+      - 'push-*'
+  pull_request:
+    branches:
+      - master
+      - 'push-*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+  cancel-in-progress: true
+
+# id-token: write is required by DeterminateSystems/nix-installer-action for
+# FlakeHub OIDC authentication. Without it, FlakeHub is disabled and you get:
+#   "FlakeHub is disabled because the workflow is misconfigured.
+#    Please make sure that id-token: write and contents: read are set..."
+# https://docs.determinate.systems/guides/github-actions/#nix-installer-action
+
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  unittests:
+    runs-on: ubuntu-latest
+    if: github.repository == 'tbar0970/jethro-pmm' || github.repository == 'jefft/jethro-pmm'
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [8.3, 8.4, 8.5]
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.version }}
+          extensions: gd, gettext, curl
+
+      - name: Run unit tests
+        run: php tests/unit/run.php
