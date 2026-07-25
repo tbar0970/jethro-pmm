@@ -482,10 +482,10 @@ if (isset($tabs['rosters'])) {
 		$absences_choice = array_get($_SESSION, 'person_absences_choice', 'upcoming');
 	}
 	if (array_get($_REQUEST, 'absences') == 'all') {
-		$absences_heading = _('All planned absences');
+		$absences_heading = _('All unavailabilities');
 		$absences_filter = Array();
 	} else {
-		$absences_heading = _('Upcoming planned absences');
+		$absences_heading = _('Upcoming unavailabilities');
 		$absences_filter = Array('>=end_date' => date('Y-m-d'));
 
 	}
@@ -518,7 +518,7 @@ if (isset($tabs['rosters'])) {
 				$warning = '';
 				foreach ($absences as $ab) {
 					if (($ab['start_date'] <= $date) && ($date <= $ab['end_date'])) {
-						$warning = '<br /><span class="label label-important">! Planned absence</span>';
+						$warning = '<br /><span class="label label-important">! Unavailability</span>';
 					}
 				}
 				?>
@@ -584,7 +584,7 @@ if (isset($tabs['rosters'])) {
 					<td><?php echo ents($row['comment']); ?></td>
 					<td>
 						<i class="icon-info-sign" title="<?php echo ents($tooltip); ?>"></i>
-						<a class="confirm-title" href="?view=_delete_planned_absence&id=<?php echo $id; ?>" title="Delete this planned absence" data-method="post"><i class="icon-trash"></i></a>
+						<a class="confirm-title" href="?view=_delete_planned_absence&id=<?php echo $id; ?>" title="Delete this unavailability" data-method="post"><i class="icon-trash"></i></a>
 					</td>
 				</tr>
 				<?php
@@ -595,7 +595,7 @@ if (isset($tabs['rosters'])) {
 		<?php
 	} else {
 		?>
-		<p><i><?php $person->printFieldValue('name'); ?> has no upcoming planned absences</i></p>
+		<p><i><?php $person->printFieldValue('name'); ?> has no upcoming unavailabilities</i></p>
 		<?php	
 	}
 

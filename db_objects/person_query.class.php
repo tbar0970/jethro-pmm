@@ -2267,7 +2267,7 @@ class Person_Query extends DB_Object
 								break;
 							case 'Attendance':
 								if ($row['_has_planned_absence']) {
-									echo '<span class="nowrap" title="Includes planned absence(s) in this period">';
+									echo '<span class="nowrap" title="Includes unavailabilities in this period">';
 								}
 								echo $val.'%';
 								if ($row['_has_planned_absence']) {

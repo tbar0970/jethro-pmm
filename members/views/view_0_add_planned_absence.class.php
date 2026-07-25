@@ -2,11 +2,11 @@
 class View__Add_Planned_Absence extends View
 {
 	private $_create_type = 'planned_absence';
-	private $_success_message = 'Planned absence saved';
+	private $_success_message = 'Unavailability saved';
 	private $_on_success_view = 'persons';
-	private $_failure_message = 'Error saving planned absence';
+	private $_failure_message = 'Error saving unavailability';
 	private $_submit_label = 'Save';
-	private $_title = 'Add Planned Absence';
+	private $_title = 'Add Unavailability';
 
 	var $_new_object;
 
@@ -39,13 +39,13 @@ class View__Add_Planned_Absence extends View
 					return;
 				}
 				if (!$x->create()) {
-					add_message("Error saving planned absences", 'failure');
+					add_message("Error saving unavailabilities", 'failure');
 					$GLOBALS['system']->doTransaction('ROLLBACK');
 					return;
 				}
 			}
 			$GLOBALS['system']->doTransaction('COMMIT');
-			add_message("Planned absence saved", 'success');
+			add_message("Unavailability saved", 'success');
 			redirect('rosters');
 
 		}
@@ -100,7 +100,7 @@ class View__Add_Planned_Absence extends View
 	
 	function getTitle()
 	{
-		return 'Add Planned Absence';
+		return 'Add Unavailability';
 	}
 
 }
