@@ -265,6 +265,25 @@ if ($sendemail) {
 	$eol = PHP_EOL;
 	$uid = md5(uniqid(time()));
 
+/**
+ * Compute From/Reply-To headers for the raw mail() path.
+ * Mirrors Jethro_Swift_Message::setFrom() behaviour.
+ *
+ * @return array{string, string, string} [$fromAddress, $fromName, $headerPrefix]
+ */
+function roster_raw_mail_from(string $from_address, string $from_name): array
+{
+    if (ifdef('OVERRIDE_EMAIL_FROM')) {
+        $actualFrom = OVERRIDE_EMAIL_FROM;
+        $actualName = ifdef('OVERRIDE_EMAIL_FROM_NAME', '');
+        $header = "From: \"".addslashes($actualName)."\" <".$actualFrom.">".PHP_EOL;
+        $replyToHeader = $from_name ? "\"".addslashes($from_name)."\" <".$from_address.">" : $from_address;
+        $header .= "Reply-To: ".$replyToHeader.PHP_EOL;
+        return [$actualFrom, $actualName, $header];
+    }
+    return [$from_address, $from_name, "From: \"".addslashes($from_name)."\" <".$from_address.">".PHP_EOL];
+}
+
 	if (count($assignees) > 0) {
 		// build the roster list to be included in the stream_context_set_params
 		if ((int)$list_not_table==1) {
@@ -357,7 +376,7 @@ if ($sendemail) {
 			}
 		} else { // using php mail()
 		  $email_to=$roster_coordinator;
-		  $header = "From: \"".addslashes($email_from_name)."\" <".$email_from.">".$eol;
+		  [$fromAddress, $fromName, $header] = roster_raw_mail_from($email_from, $email_from_name);
 		  $header .= "MIME-Version: 1.0".$eol;
 		  $header .= "Bcc: ".implode(',',$emails).$eol;
 		  $header .= "Content-Type: multipart/mixed; boundary=\"".$uid."\"";
@@ -366,7 +385,7 @@ if ($sendemail) {
 		  $message .= "Content-Transfer-Encoding: 8bit".$eol.$eol;
 		  $message .= $longstring.$eol;
 		  $message .= "--".$uid."--";
-		   if (mail($email_to, $email_subject . "$roster_date", "$message", $header, "-f ".$email_from)) {
+		   if (mail($email_to, $email_subject . "$roster_date", "$message", $header, "-f ".$fromAddress)) {
 		   	echo "Mail send roster reminder - ".$roster_name." sent OK <br>";
 		   } else {
 		   	echo "Mail send roster reminder - ".$roster_name." send ERROR!";
@@ -410,15 +429,15 @@ if ($sendemail) {
 		}
 	} else {
 		$email_to=$roster_coordinator;
-		$header = "From: \"".addslashes($email_from_name)."\" <".$email_from.">".$eol;
+		[$fromAddress, $fromName, $header] = roster_raw_mail_from($email_from, $email_from_name);
 		$header .= "MIME-Version: 1.0".$eol;
-		$header .= "Content-Type: multipart/mixed; boundary=\"".$uid."\"";
+		$header .= "Content-Type: multipart/mixed; boundary=\"".$uid."\"".$eol;
 		$message = "--".$uid.$eol;
 		$message .= "Content-type:text/html; charset=iso-8859-1".$eol;
 		$message .= "Content-Transfer-Encoding: 8bit".$eol.$eol;
 		$message .= $summary.$eol;
 		$message .= "--".$uid."--";
-		if (mail($email_to,$summary_notification_subject . "$roster_date","$message",$header, "-f ".$email_from)) {
+		if (mail($email_to,$summary_notification_subject . "$roster_date","$message",$header, "-f ".$fromAddress)) {
 			if (!empty($verbose)) {
 				echo "Sent roster ($roster_name) reminder notification to coordinator.\n";
 			}

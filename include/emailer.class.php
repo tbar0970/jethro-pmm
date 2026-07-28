@@ -13,7 +13,8 @@ class Jethro_Swift_Message extends Swift_Message
 		// and use the user-supplied address as Reply-to.
 		if (ifdef('OVERRIDE_EMAIL_FROM')) {
 			$this->addReplyTo($addresses, $name);
-			parent::setFrom(OVERRIDE_EMAIL_FROM, $name);
+			$fromName = ifdef('OVERRIDE_EMAIL_FROM_NAME', '');
+			parent::setFrom(OVERRIDE_EMAIL_FROM, $fromName);
 		} else {
 			parent::setFrom($addresses, $name);
 		}

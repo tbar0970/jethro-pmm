@@ -268,9 +268,13 @@ define('2FA_ENABLED', true);
 // Write your own, or use the sample below to make sure all mailto links open in a new window.
 // function custom_email_extras() { return 'target="_mail"'; }
 
-// When Jethro sends an email itself (eg for member rego), force the From: address to this value,
-// and use the user-specified From address as a reply-to.
+// When Jethro sends an email itself (eg for member rego), force the From: address to be this 
+// and use the user-specified From address as a Reply-To.
+// Set this when the From address (set e.g. in script .ini file) is where we want replies to go, but we are not DKIM-authorized to send from its domain.
 //define('OVERRIDE_EMAIL_FROM', '');
+// Optionally override the display name that appears with OVERRIDE_EMAIL_FROM.
+// When not set, the From header has no display name (bare address).
+//define('OVERRIDE_EMAIL_FROM_NAME', '');
 
 // Pre-filled values for the login form.  Only use on demo systems etc.
 // define('PREFILL_USERNAME', '');
