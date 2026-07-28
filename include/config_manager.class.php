@@ -37,6 +37,25 @@ class Config_Manager {
 		return FALSE;
 	}
 
+	/**
+	 * Whether a setting symbol names a credential that should never be
+	 * displayed on the config page (e.g. API keys, passwords).
+	 *
+	 * Uses a naming convention rather than a hardcoded list. Any setting
+	 * containing APIKEY, API_KEY, PASSWORD, SECRET, or TOKEN in its name
+	 * is treated as sensitive.
+	 */
+	public static function isCredentialSetting(string $symbol): bool
+	{
+		$upper = strtoupper($symbol);
+		return str_contains($upper, 'APIKEY')
+			|| str_contains($upper, 'API_KEY')
+			|| str_contains($upper, 'PASSWORD')
+			|| str_contains($upper, 'SECRET')
+			|| str_contains($upper, 'TOKEN');
+	}
+
+
 	public static function getSettings()
 	{
 		$SQL = 'SELECT symbol, s.* from setting s ORDER BY `rank`';

@@ -97,7 +97,7 @@ class View_Admin__System_Configuration extends View {
 					<div class="controls">
 						<?php
 						if (defined($symbol.'_IN_CONFIG_FILE')) {
-							if (Config_Manager::allowSettingInFile($symbol) && constant($symbol)) {
+							if (Config_Manager::allowSettingInFile($symbol) && constant($symbol) && Config_Manager::isCredentialSetting($symbol)) {
 								// Don't show the value here - sensitive
 								print_message('This setting has been set in the system config file', 'warning');
 								if ($details['note']) echo '<p class="smallprint">'.ents($details['note']).'</p>';
