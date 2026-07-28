@@ -149,6 +149,14 @@ class Installer
 			   CONSTRAINT account_group_restriction_congregationid FOREIGN KEY (congregationid) REFERENCES congregation(id)
 			) engine=innodb;",
 
+			"-- Synced with upgrades/2024-upgrade-to-2.35.sql:2-7 — 2FA trust token storage
+			CREATE TABLE IF NOT EXISTS 2fa_trust (
+				userid INT NOT NULL,
+				token VARCHAR(255) NOT NULL,
+				expiry DATETIME NOT NULL,
+				CONSTRAINT 2fatrust_person FOREIGN KEY (userid) REFERENCES staff_member (id) ON DELETE CASCADE
+			) ENGINE=InnoDB;",
+
 			'CREATE VIEW member AS
 			SELECT mp.id, mp.first_name, mp.last_name, mp.gender, mp.age_bracketid, mp.congregationid,
 			mp.email, mp.mobile_tel, mp.work_tel, mp.familyid,
@@ -221,6 +229,8 @@ class Installer
 			(@rank:=@rank+5, '',                         'REPEAT_DATE_THRESHOLD','When a roster has this many columns, show the date on the right as well as the left','int','10'),
 			(@rank:=@rank+5, '',                         'ROSTER_WEEKS_DEFAULT','Number of weeks to show in rosters by default','int','8'),
 			(@rank:=@rank+5, '',                         'ATTENDANCE_DEFAULT_DAY','Default day to record attendance','select[\"Sunday\",\"Monday\",\"Tuesday\",\"Wednesday\",\"Thursday\",\"Friday\",\"Saturday\"]','Sunday'),
+			-- Synced with upgrades/2024-upgrade-to-2.36.sql:176-179 — configurable attendance order
+			(@rank:=@rank+5, '',                         'ATTENDANCE_ORDER_DEFAULT','Default order for recording/showing attendance','select{\"status\":\"Status, then family name\",\"family_name\":\"Family name, then age bracket\",\"last_name\":\"Last name\",\"first_name\":\"First name\",\"age_bracket\":\"Age bracket\"}','status'),
 			(@rank:=@rank+5, '',                         'ENVELOPE_WIDTH_MM','Envelope width (mm)','int','220'),
 			(@rank:=@rank+5, '',                         'ENVELOPE_HEIGHT_MM','Envelope height (mm)','int','110'),
 
@@ -243,6 +253,10 @@ class Installer
 			(@rank:=@rank+5, '',                         'MEMBER_REGO_EMAIL_FROM_NAME','Sender name for member rego emails','text',''),
 			(@rank:=@rank+5, '',                         'MEMBER_REGO_EMAIL_FROM_ADDRESS','Sender address for member rego emails','text',''),
 			(@rank:=@rank+5, '',                         'MEMBER_REGO_EMAIL_SUBJECT','Subject for member rego emails','text','Setting up your account'),
+			-- Synced with upgrades/2024-upgrade-to-2.36.sql:3-6 — member-visible age bracket
+			(@rank:=@rank+5, '',                         'MEMBERS_SEE_AGE_BRACKET','Should members be able to see and edit the age bracket field?','bool','1'),
+			-- Synced with upgrades/2026-upgrade-to-2.38.sql:2-9 — configurable member-visible document folders
+			(@rank:=@rank+5, '',                         'MEMBER_VISIBLE_FOLDERS','Folders in Documents which, if they exist, are visible to Members. Separate multiple directories with a pipe (|) character.','text','Member_Files'),
 			(@rank:=@rank+5, '',                         'MEMBER_REGO_HELP_EMAIL', 'Address that users can contact for assistance with member rego (optional)', 'text', ''),			(@rank:=@rank+5, '',                         'MEMBER_REGO_FAILURE_EMAIL','Address to notifiy when member rego fails','text',''),
 			(@rank:=@rank+5, '',                         'MEMBER_PASSWORD_MIN_LENGTH','Minimum length for member passwords','int','7'),
 			(@rank:=@rank+5, '',                         'MEMBERS_SHARE_ADDRESS','Should addresses be visible in the members area?','bool','0'),
@@ -274,6 +288,8 @@ class Installer
 			(@rank:=@rank+5, '',                         'SMTP_ENCRYPTION','Encryption method for SMTP server','select{\"ssl\":\"SSL\",\"tls\":\"TLS\",\"\":\"(None)\"}',''),
 			(@rank:=@rank+5, '',                         'SMTP_USERNAME','Username for SMTP server','text',''),
 			(@rank:=@rank+5, '',                         'SMTP_PASSWORD','Password for SMTP server','text',''),
+			-- Synced with upgrades/2017-upgrade-to-2.21.sql:5 — configurable SMTP port
+			(@rank:=@rank+5, '',                         'SMTP_PORT','Port to connect to the SMTP server. Usually 25, 465 for SSL, or 587 for TLS.','int','25'),
 
 			(@rank:=@rank+5, 'SMS Gateway',              'SMS_MAX_LENGTH','','int','160'),
 			(@rank:=@rank+5, '',                         'SMS_HTTP_URL','URL of the SMS messaging service','text',''),
