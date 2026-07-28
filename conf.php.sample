@@ -276,6 +276,10 @@ define('2FA_ENABLED', true);
 // define('PREFILL_USERNAME', '');
 // define('PREFILL_PASSWORD', '');
 
+// Pre-filled values for the member login form.
+// define('PREFILL_MEMBER_EMAIL', '');
+// define('PREFILL_MEMBER_PASSWORD', '');
+
 // For troubleshooting you can use this to show error details in the browser
 // This is usually disabled in production versions but shown in dev.
 // define('SHOW_ERROR_DETAILS', TRUE);
