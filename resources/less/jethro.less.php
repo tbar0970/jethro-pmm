@@ -26,7 +26,10 @@
 
 <?php
 /* Load any custom vars from conf.php */
-$confFile = dirname(dirname(dirname(__FILE__))).'/conf.php';
+if (!defined('JETHRO_ROOT')) {
+	define('JETHRO_ROOT', dirname($_SERVER['SCRIPT_FILENAME'], 3));
+}
+$confFile = JETHRO_ROOT.'/conf.php';
 if (is_readable($confFile)) {
 	require_once $confFile;
 	if (defined('CUSTOM_LESS_VARS')) echo CUSTOM_LESS_VARS;
