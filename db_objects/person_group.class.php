@@ -456,7 +456,7 @@ class Person_Group extends db_object
 			// Save the groups tree in a JS variable for the treeselect to use
 			$cats = $GLOBALS['system']->getDBObjectData('person_group_category', Array(), 'OR', 'name');
 			$cats[0] = Array('name' => 'Uncategorised groups', 'parent_category' => NULL);
-			$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('is_archived' => 0, 'id' => $value), 'OR', 'name');
+			$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('is_archived' => 0, 'id' => $value), 'OR', 'name, person_group.id');
 			$groupsTreeCache[(int)$allow_category_select] = self::_getGroupTree($cats, $groups, $allow_category_select);
 			$gotGroups = !empty($groups);
 			?>
@@ -526,7 +526,7 @@ class Person_Group extends db_object
 			// Save the groups tree in a JS variable for the treeselect to use
 			$cats = $GLOBALS['system']->getDBObjectData('person_group_category', Array(), 'OR', 'name');
 			$cats[0] = Array('name' => 'Uncategorised groups', 'parent_category' => NULL);
-			$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('is_archived' => 0, 'id' => $value), 'OR', 'name');
+			$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('is_archived' => 0, 'id' => $value), 'OR', 'name, person_group.id');
 			$groupsTreeCache[0] = self::_getGroupTree($cats, $groups, 0);
 			$gotGroups = !empty($groups);
 			?>
