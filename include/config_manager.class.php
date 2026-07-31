@@ -19,7 +19,11 @@ class Config_Manager {
 					add_message("The setting ".$symbol." has now been migrated to the database and should be removed from conf.php");
 				}
 			} else {
-				define($symbol, $details['value']);
+				$value = $details['value'];
+				if ($details['type'] === 'bool') {
+					$value = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+				}
+				define($symbol, $value);
 			}
 		}
 		if (defined('AGE_BRACKET_OPTIONS')) {
