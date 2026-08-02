@@ -24,11 +24,12 @@ class Installer
 	function printBody()
 	{
 		require_once dirname(__FILE__).'/system_controller.class.php';
-		$GLOBALS['system'] = $GLOBALS['system'] = System_Controller::get();
+		$GLOBALS['system'] = System_Controller::get();
 		set_error_handler(Array($GLOBALS['system'], '_handleError'));
+		$this->validDb = $this->validateDB();
 
 		// the first time we call initInitialEntities is just to check for errors
-		if ($this->readyToInstall() && $this->initInitialEntities()) {
+		if ($this->validDb && $this->readyToInstall() && $this->initInitialEntities()) {
 			$GLOBALS['JETHRO_INSTALLING'] = 1;
 			date_default_timezone_set('Australia/Sydney'); // Temporary timezone to avoid errors during install
 			$this->initDB();
@@ -80,6 +81,7 @@ class Installer
 
 		if (empty($_REQUEST['system_name'])) {
 			print_message("You must enter a system name", 'error');
+			return FALSE;
 		}
 
 		return TRUE;
@@ -87,9 +89,50 @@ class Installer
 
 
 
+	function validateDB()
+	{
+		$valid = $this->validateMySQLSettings();
+		return $valid;
+	}
+
+	/**
+	 * Check MySQL-specific requirements that don't apply to MariaDB.
+	 * @return bool
+	 */
+	function validateMySQLSettings()
+	{
+		$version = $GLOBALS['db']->queryOne("SELECT VERSION()");
+
+		// MariaDB versions include "-MariaDB" in the string
+		if (strpos($version, 'MariaDB') !== FALSE) {
+			return TRUE;
+		}
+
+		$valid = TRUE;
+
+		// MySQL 8.0+ enables ONLY_FULL_GROUP_BY by default; Jethro requires it disabled
+		$res = $GLOBALS['db']->queryOne("SELECT @@session.sql_mode");
+		$modes = array_map('trim', explode(',', $res));
+		if (in_array('ONLY_FULL_GROUP_BY', $modes)) {
+			print_message("MySQL's ONLY_FULL_GROUP_BY mode is enabled, which will cause errors. Set <code>sql_mode</code> in your MySQL config to exclude ONLY_FULL_GROUP_BY, for example:<br><pre>sql_mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION</pre>", 'error', TRUE);
+			$valid = FALSE;
+		}
+
+		// MySQL 8.0+ requires log_bin_trust_function_creators to be ON for Jethro's stored functions
+		$trusted = $GLOBALS['db']->queryOne("SELECT @@global.log_bin_trust_function_creators");
+		if (!$trusted) {
+			print_message("MySQL's log_bin_trust_function_creators is OFF. Jethro requires this to be ON so it can create stored functions. Set it in your MySQL config:<br><pre>[mysqld]\nlog_bin_trust_function_creators=1</pre>", 'error', TRUE);
+			$valid = FALSE;
+		}
+
+		return $valid;
+	}
+
+
 	function initDB($printOnly=FALSE)
 	{
 		$allSQL = Array();
+
 		ini_set('max_execution_time', 120);
 		$filenames = glob(dirname(dirname(__FILE__)).'/db_objects/*.class.php');
 
@@ -493,7 +536,12 @@ class Installer
 			<p class="smallprint">(List expands as you type)</p>
 
 			<h3>Continue...</h3>
-			<input type="submit" class="btn" value="Set up the database" />
+			<?php if (empty($this->validDb)): ?>
+				<p class="text-error">Please fix the database before proceeding.</p>
+				<input type="submit" class="btn" value="Set up the database" disabled />
+			<?php else: ?>
+				<input type="submit" class="btn" value="Set up the database" />
+			<?php endif; ?>
 		</form>
 		<?php
 	}
