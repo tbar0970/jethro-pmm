@@ -1520,6 +1520,13 @@ ul.nav-tabs {
 	padding: 15px;
 	border-radius: 0px 0px 5px 5px;
 }
+/* Override Bootstrap's overflow:auto (which breaks position:sticky descendants) while
+   still containing floats via display:flow-root. Scoped to view-person to avoid
+   affecting service-planner which intentionally scrolls its tab-content. */
+.tab-content.view-person {
+	overflow: visible;
+	display: flow-root;
+}
 .preview-pane, .tab-content, .nav-tabs > .active > a, .nav-tabs > .active > a:hover, .nav-tabs > .active > a:focus {
 	background: @jethroLightest; /* lighter yellow */
 }
@@ -1863,6 +1870,29 @@ table.service-details td table td input {
 .notes-history-entry .comments {
 	margin-left: 25px;
 	margin-top: 15px;
+}
+
+/* Note filter sidebar — checkboxes to filter by status and assignee.
+   position:sticky keeps the panel visible while scrolling through long lists.
+   top:5px (not 80px) because #jethro-nav is not position:fixed — it scrolls away,
+   so there is no persistent header to clear. */
+.panel-sidebar {
+	border-left: 1px solid #ddd;
+	padding: 8px 8px 0 8px;
+	position: sticky;
+	top: 5px;
+}
+.panel-sidebar fieldset {
+	border: 0;
+	margin: 0;
+	padding: 0;
+}
+.panel-sidebar legend {
+	display: inline;
+	width: auto;
+	margin: 1em 0 0.5em 0;
+	padding-right: 8px;
+	font-size: 0.85em;
 }
 
 /********* ATTENDANCE AND COLOURED RADIO BUTTONS **********/

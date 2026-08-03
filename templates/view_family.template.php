@@ -167,24 +167,21 @@ echo $panel_footer;
 if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
 	printf($panel_header, 'notes', 'Notes ('.count($notes).')', '');
 	$show_edit_link = FALSE;
+	$add_note_html = null;
 	if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
-		?>
-		<div class="align-right">
-			<?php
-			$members = $family->getMemberData();
-			if (count($members) > 1) {
-				?>
-				<a href="?view=_add_note_to_family&familyid=<?php echo $family->id; ?>"><i class="icon-plus-sign"></i><?php echo _('Add Family Note')?></a>
-				<?php
-			} else if (count($members) == 1) {
-				?>
-				<a href="?view=_add_note_to_person&personid=<?php $memberarray = array_keys($members); echo reset($memberarray); ?>"><?php echo _('Add Person Note')?></a>
-				<?php
-			}
-			?>
-		</div>
-		<?php
+		$members = $family->getMemberData();
+		if (count($members) > 1) {
+			$add_note_html = '<a href="?view=_add_note_to_family&familyid='.ents($family->id).'"><i class="icon-plus-sign"></i>'._('Add Family Note').'</a>';
+		} else if (count($members) == 1) {
+			$memberarray = array_keys($members);
+			$add_note_html = '<a href="?view=_add_note_to_person&personid='.ents(reset($memberarray)).'">'._('Add Person Note').'</a>';
+		}
 		$show_edit_link = TRUE;
+	}
+	if (!empty($notes)) {
+		?>
+<?php include __DIR__ . '/note_filters.template.php'; ?>
+		<?php
 	}
 	include 'list_notes.template.php';
 

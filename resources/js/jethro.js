@@ -2538,3 +2538,42 @@ function updateTeams() {
 	const assign_multiple = document.querySelector('select[name=assign_multiple]').value == '1'
 	document.querySelector('#field-teams').hidden = !assign_multiple
 }
+
+/**
+ * Note list filtering — sidebar checkboxes to filter notes by status and assignee.
+ *
+ * Bound to .note-status-filter checkboxes (one per note status) and
+ * #note-assignee-filter checkbox.  Filters .history-entry elements within
+ * .notes-history-container, showing/hiding them with a slide animation.
+ *
+ * @param {number} currentUserId  The current user's person ID for assignee filtering.
+ */
+function initNoteFilters(currentUserId) {
+	var $statusFilters = $('.note-status-filter');
+	var $assigneeFilter = $('#note-assignee-filter');
+
+	function applyFilters() {
+		var activeStatuses = {};
+		$statusFilters.each(function() {
+			activeStatuses[this.value] = this.checked;
+		});
+		var showAllAssignees = !$assigneeFilter.length || !$assigneeFilter.prop('checked');
+
+		$('.notes-history-container .notes-history-entry').each(function() {
+			var $entry = $(this);
+			var $statusDiv = $entry.find('.status');
+			if (!$statusDiv.length) return;
+
+			var status = $statusDiv.attr('data-note-status');
+			var visible = activeStatuses[status];
+			if (visible && !showAllAssignees) {
+				var assignee = $statusDiv.attr('data-note-assignee');
+				visible = (assignee == currentUserId);
+			}
+
+			$entry.stop(true, true)[visible ? 'slideDown' : 'slideUp'](250);
+		});
+	}
+
+	$statusFilters.add($assigneeFilter).on('change', applyFilters);
+};

@@ -232,17 +232,22 @@ if (isset($tabs['notes'])) {
 	printf($panel_header, 'notes', _('Notes').' ('.count($notes).')', '');
 
 	if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
-		?>
-		<div class="pull-right"><a href="?view=_add_note_to_person&personid=<?php echo $person->id; ?>"><i class="icon-plus-sign"></i><?php echo _('Add Note')?></a></div>
-		<?php
 	}
 	if (empty($notes)) {
 		?>
 		<p><i><?php echo _('There are no person or family notes to show for ')?><?php $person->printFieldValue('name'); ?></i></p>
 		<?php
 	} else {
+		$add_note_html = null;
+		if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
+			$add_note_html = '<a href="#add-note-modal" class="note-link" data-toggle="note-modal" data-personid="'.ents($person->id).'" data-name="'.ents($person->getValue('first_name').' '.$person->getValue('last_name')).'"><i class="icon-plus-sign"></i>'._('Add Note').'</a>';
+		}
 		?>
-		<p><i><?php echo _('Person and Family Notes for ')?><?php $person->printFieldValue('name'); ?>:</i></p>
+
+        <?php include __DIR__ . '/note_filters.template.php'; ?>
+		<p>
+			<i><?php echo _('Person and Family Notes for ')?><?php $person->printFieldValue('name'); ?>:</i>
+        </p>
 		<?php
 	}
 	$show_edit_link = true;
