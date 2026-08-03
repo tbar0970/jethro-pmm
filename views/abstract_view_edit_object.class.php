@@ -25,7 +25,8 @@ class Abstract_View_Edit_Object extends View
 		}
 		$this->_edited_object = $GLOBALS['system']->getDBObject($this->_editing_type, (int)$_REQUEST[$this->_object_id_field]);
 		if (is_null($this->_edited_object)) {
-			trigger_error($this->getEditingTypeFriendly().' #'.(int)$_REQUEST[$this->_object_id_field].' does not exist', E_USER_WARNING);
+			if (!headers_sent()) http_response_code(404);
+			add_message($this->getEditingTypeFriendly().' #'.(int)$_REQUEST[$this->_object_id_field].' does not exist', 'error');
 			return false;
 		}
 		return true;

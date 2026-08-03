@@ -20,7 +20,7 @@ class View_Persons__Reports extends View
 				$this->_query->setValue('params', $params);
 			}
 		}
-		if ($this->_query && !empty($_REQUEST['delete'])) {
+		if ($this->_query && !empty($_POST['delete'])) {
 			$can_delete = FALSE;
 			if (($this->_query->getValue('creator') == $GLOBALS['user_system']->getCurrentUser('id')) || $GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 				$can_delete = true;

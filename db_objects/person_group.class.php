@@ -471,7 +471,7 @@ class Person_Group extends db_object
 
 		$chosen = Array();
 		if (count(array_filter($value)) == 0) {
-			$chosen = Array(0 => Array('name' => '--Choose--'));
+			$chosen = Array('' => Array('name' => '--Choose--'));
 		} else {
 			// For each of our selected groups/categories, we print a select box contining a single option.
 			// The treeselect JS handles the rest.

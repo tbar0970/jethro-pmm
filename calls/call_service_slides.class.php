@@ -6,6 +6,10 @@ class Call_Service_slides extends Call
 	{
 		//get service data from database
 		$service = $GLOBALS['system']->getDBObject('service', (int)$_REQUEST['serviceid']);
+		if (!$service) {
+			trigger_error('Service #'.(int)$_REQUEST['serviceid'].' not found', E_USER_WARNING);
+			return;
+		}
 		$serviceContent = $service->getServiceContent();
 
 		//options
