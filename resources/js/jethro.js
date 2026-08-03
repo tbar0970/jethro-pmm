@@ -752,7 +752,7 @@ JethroGroupChooser.initMultiChooser = function() {
 		searchPlaceholder: "Search groups...",
 		onSelectionChange: (selectedNodesData) => {
 			if (selectedNodesData.length == 0) {
-				selectedNodesData = [{id:0,name:"--Choose--"}];
+				selectedNodesData = [{id:'',name:"--Choose--"}];
 			}
 			var name = selectContainer.find('select:first').attr('name');
 			var html = '';
@@ -766,7 +766,7 @@ JethroGroupChooser.initMultiChooser = function() {
 	});
 
 	$(this).find('option').each(function() {
-		if (this.value != 0) {
+		if (this.value !== '') {
 			tree1.selectNodeById(this.value);
 			tree1.expandToShowSelected();
 		}
