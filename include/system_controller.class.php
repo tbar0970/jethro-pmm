@@ -349,14 +349,14 @@ class System_Controller
 				echo _('An error occurred. Please contact your system administrator for help.');
 			}
 			if ($showTechDetails) {
-				?>
-				<u class="clickable" onclick="var parentDiv=this.parentNode; while (parentDiv.tagName != 'DIV') { parentDiv = parentDiv.parentNode; }; with (parentDiv.getElementsByTagName('PRE')[0].style) { display = (display == 'block') ? 'none' : 'block' }">Show Details</u>
-				<pre style="display: none; background: white; font-weight: normal; color: black"><b>Line <?php echo $errline; ?> of File <?php echo $errfile; ?></b>
-	<?php
-				print_r($bt);
-				?>
+?>
+			    <details>
+			    <summary class="clickable">Show Details</summary>
+				<pre style="background: white; font-weight: normal; color: black"><b>Line <?php echo $errline; ?> of File <?php echo $errfile; ?></b>
+				    <?php ents(print_r($bt)); ?>
 				</pre>
-				<?php
+			    </details>
+<?php
 			}
 			?>
 			</div>
