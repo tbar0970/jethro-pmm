@@ -389,7 +389,7 @@ $(document).ready(function() {
 				.attr('disabled', false)
 				.filter('[type!=radio]:visible:first').focus();
 		selectedInputs.filter('[data-toggle=enable]').attr('disabled', false).change();
-	}).change();;
+	}).change();
 
 	$('form.bulk-person-action').submit(function(event) {
 		var checkboxes = document.getElementsByName('personid[]');
@@ -931,13 +931,56 @@ JethroSearchChooserSingle.reinit = function(inputBox) {
 
 /************* SMS ****************/
 
+// =============================================================================
+// JethroSMS — SMS sending and character-counting module
+// =============================================================================
+// This module handles:
+//   - Real-time character counting with GSM 03.38 / UCS-2 segment calculation.
+//   - Unicode restriction enforcement (disabled / when_free modes)
+//   - Bulk SMS form submission via AJAX
+//   - Modal SMS dialog submission via AJAX
+// =============================================================================
+
 var JethroSMS = {};
 
+/**
+ * Initialise the SMS module.
+ * Called once on page load.  Reads the unicode-enabled flag from the textarea's
+ * data-sms-unicode-permitted attribute, attaches event listeners for character
+ * counting, modal dialog triggers, and both submit handlers.
+ */
 JethroSMS.init = function() {
 
-	// SMS Character counting
+	// -----------------------------------------------------------------------
+	// Read unicode restriction mode from the textarea's data attribute.
+	// The PHP layer sets data-sms-unicode-permitted based on the
+	// SMS_UNICODE_PERMITTED config constant:
+	//   absent / undefined  →  Unicode allowed freely (SMS_UNICODE_PERMITTED=1)
+	//   "1"                 →  Unicode allowed freely (SMS_UNICODE_PERMITTED=1)
+	//   "0"                 →  Unicode fully disabled  (SMS_UNICODE_PERMITTED=0)
+	//   "when_free"         →  Block only if the message is >70 chars (i.e.
+	//                          would need more than one UCS-2 segment)
+	// -----------------------------------------------------------------------
+	var attr = $('#sms_message').attr('data-sms-unicode-permitted');
+	if (attr === '0') {
+		JethroSMS.unicodeMode = 'disabled';
+	} else if (attr === 'when_free') {
+		JethroSMS.unicodeMode = 'when_free';
+	} else {
+		JethroSMS.unicodeMode = 'enabled'; // '1' or absent
+	}
+
+	// -----------------------------------------------------------------------
+	// Attach real-time character counting to the SMS message textarea.
+	// Fires on every keystroke, paste, or property change.
+	// -----------------------------------------------------------------------
 	$('.smscharactercount').parent().find('textarea').on('keyup propertychange paste', JethroSMS.updateCharCount);
 
+	// -----------------------------------------------------------------------
+	// Modal SMS dialog trigger.
+	// When a [data-toggle="sms-modal"] element is clicked, populate the modal
+	// with recipient info and show it.
+	// -----------------------------------------------------------------------
 	$(document).on('click', '[data-toggle="sms-modal"]', function(e) {
 		var $this = $(this)
 				, href = $this.attr('href')
@@ -947,6 +990,7 @@ JethroSMS.init = function() {
 		var $recipients = $this.attr('data-name');
 		var $personid = $this.attr('data-personid');
 
+		// Populate the modal with recipient names and clear previous state
 		$("#send-sms-modal .sms_recipients").html($recipients);
 		$("#sms_message").val(""); // Empty the textarea in case of reuse
 		$("#send-sms-modal .results").html(""); // Empty in case of reuse
@@ -963,11 +1007,15 @@ JethroSMS.init = function() {
 		} else {
 			alert('No SMS recipients found');
 		}
+		// Initialise character count display for the empty textarea
 		JethroSMS.updateCharCount.apply($("#sms_message").get(0));
-		
-
 	});
 
+	// -----------------------------------------------------------------------
+	// Bulk SMS submit handler (list view).
+	// Validates that recipients are selected, checks unicode restrictions,
+	// then sends the message via AJAX.
+	// -----------------------------------------------------------------------
 	$('.bulk-sms-submit').click(function(event) {
 		var checkboxes = document.getElementsByName('personid[]');
 		if ($("input[name='personid[]']:checked").length === 0) {
@@ -981,6 +1029,7 @@ JethroSMS.init = function() {
 			}
 		}
 
+		// Disable the button and show "Sending..." while the AJAX call runs
 		event.preventDefault();
 		var submitBtn = $("#smshttp .bulk-sms-submit");
 		submitBtn.prop('disabled', true);
@@ -1001,9 +1050,7 @@ JethroSMS.init = function() {
 			success: function(data) {
 				var smsRequestCount = $("input[name='personid[]']:checked").length;
 				var resultsDiv = $('#bulk-sms-results');
-
 				JethroSMS.onAJAXSuccess(data, resultsDiv);
-
 			},
 			complete: function() {
 				var submitBtn = $("#smshttp .bulk-sms-submit");
@@ -1014,6 +1061,10 @@ JethroSMS.init = function() {
 		});
 	});
 
+	// -----------------------------------------------------------------------
+	// Modal SMS submit handler.
+	// Validates the message, checks unicode restrictions, then sends via AJAX.
+	// -----------------------------------------------------------------------
 	$('#send-sms-modal .sms-submit').on('click', function(event) {
 		event.preventDefault();
 		var resultsDiv = $("#send-sms-modal .results");
@@ -1024,15 +1075,17 @@ JethroSMS.init = function() {
 		if (!sms_message) {
 			alert("Please enter a message first.");
 			return false;
-		} else {
-			var smsData, personid;
+		}
+
+		// Disable the button and show "Sending..." while the AJAX call runs
+		var smsData, personid;
 			$(this).prop('disabled', true);
 			$(this).html("Sending...");
 			$("#send-sms-modal .results").hide();
 			var sendButton = $(this);
 			smsData = {
 				personid: modalDiv.attr("data-personid"),
-				saveasnote: ($("#send-sms-modal .saveasnote").attr("checked") === "checked") ? '1' : '0',
+				saveasnote: $("#send-sms-modal .saveasnote").is(":checked") ? '1' : '0',
 				ajax: 1,
 				message: sms_message
 			}
@@ -1053,6 +1106,7 @@ JethroSMS.init = function() {
 					var modalDiv = $("#send-sms-modal");
 					var showResults = JethroSMS.onAJAXSuccess(data, resultsDiv);
 					if (showResults) {
+						// Partial or all failures — show results in the modal
 						resultsDiv.show();
 						sendButton.html("Send");
 						sendButton.removeClass('sms-success');
@@ -1068,7 +1122,6 @@ JethroSMS.init = function() {
 				}
 			});
 			return false;
-		}
 	});
 }
 
@@ -1085,21 +1138,148 @@ JethroSMS.setFocusedTextbox = function(box) {
 	}
 }
 
+/**
+ * Regex matching any GSM 03.38 character (basic or extended).
+ * Basic set: 128 chars from the GSM 03.38 default alphabet.
+ * Extended set: ^{}\[~]|€ — each counts as 2 chars in effective length.
+ *
+ * The regex is built from the GSM 03.38 code table:
+ *   @£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ\x1BÆæßÉ
+ *   space !"#$%&'()*+,-./0123456789:;<=>?
+ *   ¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿
+ *   abcdefghijklmnopqrstuvwxyzäöñüà
+ */
+JethroSMS.GSM0338_RE = /^[@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ\x1BÆæßÉ !"#$%&'()*+,\-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà€{}\[~\]|^\\]$/;
+JethroSMS.GSM0338_EXTENDED_RE = /[€{}\[~\]|^\\]/g;
+
+/**
+ * Check if a single character is valid GSM 03.38 (basic or extended).
+ */
+JethroSMS.isGsm0338 = function(char) {
+	return JethroSMS.GSM0338_RE.test(char);
+};
+
+/**
+ * Check if a message contains any non-GSM 03.38 characters (e.g. emojis).
+ * Returns an array of the problematic characters (unique).
+ */
+JethroSMS.getNonGsmChars = function(text) {
+	var seen = {};
+	for (var i = 0; i < text.length; i++) {
+		var char = text.charAt(i);
+		if (!JethroSMS.GSM0338_RE.test(char)) {
+			seen[char] = true;
+		}
+	}
+	return Object.keys(seen);
+};
+
+/**
+ * Calculate the effective length of a message in GSM 03.38 encoding.
+ * Extended characters count as 2.
+ */
+JethroSMS.gsmLength = function(text) {
+	// Count extended chars, then add total length
+	var extCount = (text.match(JethroSMS.GSM0338_EXTENDED_RE) || []).length;
+	return text.length + extCount;
+};
+
+/**
+ * Calculate the number of GSM 03.38 segments a message will use.
+ * Single segment: 160 chars. Concatenated (multi-segment): 153 chars per segment
+ * (7 bytes lost to the UDH header).
+ */
+JethroSMS.gsmSegmentCount = function(effectiveLength) {
+	if (effectiveLength <= 160) return 1;
+	return Math.ceil((effectiveLength - 153) / 153) + 1;
+};
+
+/**
+ * Calculate the number of UCS-2 segments a message will use.
+ * Single segment: 70 chars. Concatenated (multi-segment): 67 chars per segment
+ * (6 bytes lost to the UDH header).
+ */
+JethroSMS.ucs2SegmentCount = function(charLength) {
+	if (charLength <= 70) return 1;
+	return Math.ceil((charLength - 67) / 67) + 1;
+};
+
 JethroSMS.updateCharCount = function() {
 	JethroSMS.setFocusedTextbox(this);
 	var maxlength = $(this).attr('maxlength');
 	var rawtext = this.value;
-	// Count the "extended" characters that use 2 bytes in GSM 03.38 https://en.wikipedia.org/wiki/GSM_03.38
-	var wideCharacterCount = rawtext.replace(/[^€~{}^|\[\]\\]/g,'').length;
-	var currentLength = rawtext.length + wideCharacterCount;
-	var charsRemain = maxlength - currentLength;
-	var segmentLength = $(this).attr('data-segment-length');
-	var segmentCount = 1;
-	if (segmentLength && currentLength) {
-		segmentCount = Math.ceil(currentLength / segmentLength);
-		var segmentCost = $(this).attr('data-segment-cost');
-		var recipientCount = 0;
+	var segmentLength = parseInt($(this).attr('data-segment-length'), 10) || 160;
+	var ucs2SegmentLength = parseInt($(this).attr('data-ucs2-segment-length'), 10) || 70;
+	var segmentCost = parseFloat($(this).attr('data-segment-cost')) || 0;
 
+	// Detect non-GSM characters
+	var nonGsmChars = JethroSMS.getNonGsmChars(rawtext);
+	var hasNonGsm = nonGsmChars.length > 0;
+
+	// Calculate GSM 03.38 effective length (extended chars count as 2)
+	var gsmEffectiveLength = JethroSMS.gsmLength(rawtext);
+
+	// Calculate segment counts
+	var gsmSegmentCount = hasNonGsm ? 0 : JethroSMS.gsmSegmentCount(gsmEffectiveLength);
+	var ucs2SegmentCount = hasNonGsm ? JethroSMS.ucs2SegmentCount(rawtext.length) : 0;
+
+	// Determine which encoding will be used
+	var useUcs2 = hasNonGsm;
+	var effectiveSegmentCount = useUcs2 ? ucs2SegmentCount : gsmSegmentCount;
+	var effectiveLength = useUcs2 ? rawtext.length : gsmEffectiveLength;
+
+	// Build the message
+	var msg = '';
+
+	// Determine if the message is blocked by unicode restrictions
+	var isBlocked = false;
+	if (hasNonGsm && JethroSMS.unicodeMode === 'disabled') {
+		isBlocked = true;
+	} else if (hasNonGsm && JethroSMS.unicodeMode === 'when_free' && rawtext.length > 70) {
+		isBlocked = true;
+	}
+
+	// Enable/disable send buttons based on blocked state
+	$('#smshttp .bulk-sms-submit, #send-sms-modal .sms-submit').prop('disabled', isBlocked);
+
+	// Unicode disabled mode — block non-GSM characters entirely
+	if (hasNonGsm && JethroSMS.unicodeMode === 'disabled') {
+		var displayChars = nonGsmChars.join('');
+		msg = 'Unicode characters are not allowed: ' + displayChars;
+		$(this).parent().find('.smscharactercount').html(msg);
+		return;
+	}
+
+	// When-free mode — block if the message is too long for a single UCS-2 segment
+	if (hasNonGsm && JethroSMS.unicodeMode === 'when_free' && rawtext.length > 70) {
+		var displayChars = nonGsmChars.slice(0, 3).join('');
+		if (nonGsmChars.length > 3) displayChars += '…';
+		msg = '⚠ Remove special characters (' + displayChars + ') to reduce SMS cost. ';
+		$(this).parent().find('.smscharactercount').html(msg);
+		return;
+	}
+
+	// Warning for non-GSM characters — only if removing them would save a segment
+	if (hasNonGsm) {
+		// Calculate what the GSM segment count would be without non-GSM chars
+		var gsmOnly = '';
+		for (var i = 0; i < rawtext.length; i++) {
+			var c = rawtext.charAt(i);
+			if (JethroSMS.isGsm0338(c)) gsmOnly += c;
+		}
+		var gsmOnlyLength = JethroSMS.gsmLength(gsmOnly);
+		var gsmOnlySegmentCount = JethroSMS.gsmSegmentCount(gsmOnlyLength);
+
+		if (gsmOnly.length > 0 && gsmOnlySegmentCount < ucs2SegmentCount) {
+			var displayChars = nonGsmChars.slice(0, 3).join('');
+			if (nonGsmChars.length > 3) displayChars += '…';
+			msg += '⚠ Use of special characters (' + displayChars + ') — doubles the cost. ';
+		}
+	}
+
+	// Segment info
+	if (effectiveSegmentCount > 0) {
+		var recipientCount = 0;
 		var modal = $(this).parents('#send-sms-modal');
 		if (modal.length) {
 			recipientCount = modal.attr('data-personid').split(',').length;
@@ -1107,23 +1287,37 @@ JethroSMS.updateCharCount = function() {
 			recipientCount = $("input[name='personid[]']:checked").length;
 			if (!recipientCount) recipientCount = $("input[name='personid[]']").length;
 		}
-		if ((segmentCost > 0) && (recipientCount > 0)) {
-			var cost = segmentCount * recipientCount * segmentCost;
-			var plural = (segmentCount > 1) ? 's' : '';
-			msg = currentLength+' characters ('+segmentCount+' segment'+plural+') to '+recipientCount+' recipients = $'+cost.toFixed(2)+' approx.';
-		} else if (segmentCount <= 1) {
-			msg = (segmentLength - currentLength) + ' characters remaining in this message segment';
-		} else {
-			msg = currentLength+' characters = '+segmentCount+' message segments';
-		}
-		if (currentLength >= maxlength) {
-			msg = 'Max length reached. '+msg;
-		}
-	} else {
-		var msg = charsRemain + ' characters remaining';
-	}
-	$(this).parent().find('.smscharactercount').html(msg);
 
+		if (hasNonGsm) {
+			// Show UCS-2 segment info
+			if ((segmentCost > 0) && (recipientCount > 0)) {
+				var cost = ucs2SegmentCount * recipientCount * segmentCost;
+				var plural = (ucs2SegmentCount > 1) ? 's' : '';
+				msg += rawtext.length + ' chars (' + ucs2SegmentCount + ' UCS-2 segment' + plural + ') to ' + recipientCount + ' recipients = $' + cost.toFixed(2) + '.';
+			} else if (ucs2SegmentCount <= 1) {
+				msg += (ucs2SegmentLength - rawtext.length) + ' characters remaining in this UCS-2 segment';
+			} else {
+				msg += rawtext.length + ' characters = ' + ucs2SegmentCount + ' UCS-2 segments';
+			}
+		} else {
+			// Show GSM 03.38 segment info
+			if ((segmentCost > 0) && (recipientCount > 0)) {
+				var cost = gsmSegmentCount * recipientCount * segmentCost;
+				var plural = (gsmSegmentCount > 1) ? 's' : '';
+				msg = gsmEffectiveLength + ' characters (' + gsmSegmentCount + ' segment' + plural + ') to ' + recipientCount + ' recipients = $' + cost.toFixed(2) + '.';
+			} else if (gsmSegmentCount <= 1) {
+				msg = (segmentLength - gsmEffectiveLength) + ' characters remaining in this message segment';
+			} else {
+				msg = gsmEffectiveLength + ' characters = ' + gsmSegmentCount + ' message segments';
+			}
+		}
+
+		if (effectiveLength >= maxlength) {
+			msg = 'Max length reached. ' + msg;
+		}
+	}
+
+	$(this).parent().find('.smscharactercount').html(msg);
 }
 
 /**
@@ -1160,7 +1354,7 @@ JethroSMS.onAJAXSuccess = function (data, resultsDiv) {
 			message = 'Message successfully sent to '+sentCount+' recipients';
 		}
 		JethroSMS.appendAlert(resultsDiv, 'alert-success', message, sentCount == 1 ? null : data.sent.recipients);
-		JethroSMS.markRecipientStatuses('Sent', data.sent.recipients, 'sms-success', 'SMS sent', true);
+		JethroSMS.markRecipientStatuses(data.sent.recipients, 'sms-success', 'SMS sent', true);
 
 		if (!data.sent.confirmed) {
 			JethroSMS.appendAlert(resultsDiv, '', 'Unable to confirm whether SMS sending was successful. Please check your system SMS configuration.');
@@ -1175,7 +1369,7 @@ JethroSMS.onAJAXSuccess = function (data, resultsDiv) {
 			message = blankCount+' recipients were not sent the message because they have no mobile number';
 		}
 		JethroSMS.appendAlert(resultsDiv, '', message, blankCount == 1 ? null : data.failed_blank.recipients);
-		JethroSMS.markRecipientStatuses('Failed (No Mobile)', data.failed_blank.recipients, 'sms-failure', null, false);
+		JethroSMS.markRecipientStatuses(data.failed_blank.recipients, 'sms-failure', null, false);
 	}
 
 	if (archivedCount > 0) {
@@ -1186,7 +1380,7 @@ JethroSMS.onAJAXSuccess = function (data, resultsDiv) {
 			message = archivedCount+' archived persons were not sent the message';
 		}
 		JethroSMS.appendAlert(resultsDiv, '', message, archivedCount == 1 ? null : data.failed_archived.recipients);
-		JethroSMS.markRecipientStatuses('Failed (Archived)', data.failed_archived.recipients, 'sms-failure', 'SMS not sent - person is archived', false);
+		JethroSMS.markRecipientStatuses(data.failed_archived.recipients, 'sms-failure', 'SMS not sent - person is archived', false);
 	}
 
 	if (failedCount > 0) {
@@ -1197,7 +1391,7 @@ JethroSMS.onAJAXSuccess = function (data, resultsDiv) {
 			message = 'SMS sending failed for '+failedCount+' recipients';
 		}
 		JethroSMS.appendAlert(resultsDiv, 'alert-error', message, failedCount == 1 ? null : data.failed.recipients);
-		JethroSMS.markRecipientStatuses('Failed', data.failed.recipients, 'sms-failure', 'SMS failed', false);
+		JethroSMS.markRecipientStatuses(data.failed.recipients, 'sms-failure', 'SMS failed', false);
 	}
 
 	return ((failedCount > 0) || (archivedCount > 0) || ( blankCount > 0) || ( sentCount == 0) || (data.error !== undefined));
@@ -1207,15 +1401,15 @@ JethroSMS.appendAlert = function(parent, className, content, recipients)
 {
 	if (recipients) {
 		content += '<p>';
-		var count = 0, personid = 0;
+		var count = 0;
+		var personID;
 		for (personID in recipients) {
 			if (recipients.hasOwnProperty(personID)) {
 				if (count > 0) {
 					content += ", ";
-				} else {
-					count = count + 1;
 				}
-				content += recipients[personID]['first_name'] + " " + recipients[personID]['last_name'];
+				count = count + 1;
+				content += $('<span>').text(recipients[personID]['first_name'] + " " + recipients[personID]['last_name']).html();
 			}
 		}
 		content += '</p>';
@@ -1224,10 +1418,8 @@ JethroSMS.appendAlert = function(parent, className, content, recipients)
 
 }
 
-JethroSMS.markRecipientStatuses = function(notice, recipients, rowClass, buttonMessage, untick)
+JethroSMS.markRecipientStatuses = function(recipients, rowClass, buttonMessage, untick)
 {
-	var fail_list = '<p class="namelist">';
-	// Silly long version to support IE < 9
 	var personID;
 	for (personID in recipients) {
 		if (recipients.hasOwnProperty(personID)) {
@@ -1449,7 +1641,7 @@ var JethroServicePlannerCopier = (function($) {
 			if (checked.indexOf(compid) !== -1) {
 				$r.removeClass("muted");
 			} else {
-				$r.addClass("muted");;
+				$r.addClass("muted");
 			}
 		});
 	}

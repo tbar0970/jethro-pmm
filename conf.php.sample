@@ -155,6 +155,14 @@ define('2FA_ENABLED', true);
 // Cost of sending a single SMS segment, for cost estimation purposes.
 //define('SMS_SEGMENT_COST', 0.05);
 
+// Whether to allow Unicode characters (e.g. emoji) in SMS messages. Be aware that even a single unicode character doubles the cost for >70 char messages.
+// 1 = allow Unicode freely
+// 0 = disable Unicode entirely — only GSM 03.38 characters are allowed and
+//     non-GSM characters will prevent the form from submitting.
+// 'when_free' = allow Unicode for messages ≤70 chars (single UCS-2 segment).
+//     Longer messages with non-GSM chars will be blocked.
+//define('SMS_UNICODE_PERMITTED', 'when_free');
+
 
 ///////////////////////////////////////////////////////////////////////////
 // SMTP SETTINGS - These can also be configured in the web interface,
@@ -287,7 +295,3 @@ define('2FA_ENABLED', true);
 // For troubleshooting you can use this to show error details in the browser
 // This is usually disabled in production versions but shown in dev.
 // define('SHOW_ERROR_DETAILS', TRUE);
-
-// Text encoding for sending SMS messages.
-// Change it to something other than GSM0338 to stop Jethro filtering out non-GSMS0338 characters.
-// define('SMS_ENCODING', 'GSM0338');
