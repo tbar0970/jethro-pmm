@@ -504,39 +504,31 @@ class Person extends DB_Object
 	{
 		$db = $GLOBALS['db'];
 		$SQL = '
-			SELECT pp.id, pp.*
-			FROM (
-				SELECT p.*
-				FROM person p
-				WHERE (
-					(first_name LIKE '.$db->quote($searchTerm.'%').')
-					OR (last_name LIKE '.$db->quote($searchTerm.'%').')
-					OR (first_name LIKE '.$db->quote('% '.$searchTerm.'%').')
-					OR (last_name LIKE '.$db->quote('% '.$searchTerm.'%').')
-					OR (CONCAT(first_name, " ", last_name) LIKE '.$db->quote($searchTerm.'%').')
+			SELECT p.*
+			FROM person p
+			JOIN person_status ps ON ps.id = p.status
+			LEFT JOIN custom_field_value cfv ON cfv.personid = p.id
+			LEFT JOIN custom_field cf ON cfv.fieldid = cf.id
+			WHERE (
+				(first_name LIKE '.$db->quote($searchTerm.'%').')
+				OR (last_name LIKE '.$db->quote($searchTerm.'%').')
+				OR (first_name LIKE '.$db->quote('% '.$searchTerm.'%').')
+				OR (last_name LIKE '.$db->quote('% '.$searchTerm.'%').')
+				OR (CONCAT(first_name, " ", last_name) LIKE '.$db->quote($searchTerm.'%').')
+				OR (
+					cf.searchable AND (
+						(cfv.value_text LIKE '.$db->quote($searchTerm.'%').')
+						OR (cfv.value_text LIKE '.$db->quote('% '.$searchTerm.'%').' )
+					)
 				)
-
-				UNION
-
-				SELECT p.*
-				FROM person p
-				JOIN custom_field_value cfv ON cfv.personid = p.id
-				JOIN custom_field cf ON cfv.fieldid = cf.id
-				WHERE cf.searchable
-				AND (
-					(cfv.value_text LIKE '.$db->quote($searchTerm.'%').')
-					OR (cfv.value_text LIKE '.$db->quote('% '.$searchTerm.'%').' )
-				)
-			) pp
-			JOIN person_status ps ON ps.id = pp.status
+			)
 		';
 		if (!$includeArchived) {
 			$SQL .= '
-			WHERE (NOT ps.is_archived)
+			AND NOT ps.is_archived
 			';
 		}
 		$SQL .= '
-			GROUP BY pp.id
 			ORDER BY status
 			';
 		$res = $db->queryAll($SQL, null, null, true, true); // 5th param forces array even if one col
