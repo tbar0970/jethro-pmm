@@ -73,7 +73,7 @@ class Config_Manager {
 
 	public static function migrateEnabledFeatures()
 	{
-		$value = explode(',', ENABLED_FEATURES);
+		$value = explode(',', ifdef('ENABLED_FEATURES', ''));
 		$value = array_diff($value, Array('DATES'));
 		self::saveSetting('ENABLED_FEATURES', implode(',', $value));
 
