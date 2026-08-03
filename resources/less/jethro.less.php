@@ -2673,3 +2673,100 @@ div#send-sms-modal div.results {
 		border-bottom: 2px solid;
 	}
 }
+/**
+ * Boolean state icons: green tick / red cross, e.g.:
+ *
+ * <p class="status-icon-yes">Configured</p>
+ *
+ * \2713 / \2717 are U+2713 CHECK MARK and U+2717 BALLOT X, written as CSS
+ * escapes because this stylesheet is served as text/plain with no charset and
+ * is compiled client-side by less.js.
+ */
+.status-icon-yes:before {
+	content: "\2713";
+	color: #468847;
+	margin-right: 0.4em;
+}
+.status-icon-no:before {
+	content: "\2717";
+	color: #b94a48;
+	margin-right: 0.4em;
+}
+
+/**
+ * Status panels on the system configuration page.
+ *
+ * Rendered by Call_Admin_Statuspanel::run(), loaded into the page by AJAX, so
+ * these rules cannot live in that view's inline <style> — the SMS constants
+ * table (Jethro\Sms\renderNotConfiguredHelp()) reuses them off-page too.
+ */
+.status-panel {
+	margin: 0.5rem 0 1rem 0;
+}
+.status-panel p {
+	margin: 0.15rem 0;
+}
+.status-panel .control-group {
+	margin-bottom: 0.25rem;
+}
+.status-panel .control-group:last-child {
+	margin-bottom: 0;
+}
+.status-panel .control-label {
+	padding-top: 0;
+}
+.status-panel-help {
+	font-style: italic;
+	color: #777;
+}
+.status-panel-loading {
+	color: #999;
+	font-style: italic;
+}
+.status-panel p.status-panel-summary {
+	margin-top: 0.5rem;
+}
+/* The checks are indented under the "Status: …" line that summarises them. */
+.status-panel-lines {
+	margin-left: 1.5em;
+}
+.collapse.in.status-panel-details {
+	border: 1px solid #e0e0e0;
+	border-radius: 4px;
+	padding: 0.5rem 0.75rem;
+}
+
+/**
+ * Status panel operation buttons and forms.
+ *
+ * Rendered by Call_Admin_Statuspanel::run() and
+ * Call_Admin_Statuspanel_Operation::buildFormHtml().
+ */
+.status-panel-operations {
+	margin-top: 8px;
+}
+.status-panel-op-container {
+	margin-top: 1em;
+	overflow: hidden;
+	max-height: 0;
+	transition: max-height 0.35s ease;
+}
+.status-panel-op-container.visible {
+	max-height: 2000px;
+}
+.status-panel-op-form {
+	margin-top: 8px;
+}
+.status-panel-op-result {
+	margin-top: 1em;
+	margin-left: 8px;
+	display: none;
+}
+.status-panel-op-result.error {
+	color: #b94a48;
+	display: inline;
+}
+.status-panel-op-result.success {
+	color: #468847;
+	display: inline;
+}
