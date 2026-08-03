@@ -178,7 +178,13 @@ if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
 		}
 		$show_edit_link = TRUE;
 	}
-	if (!empty($notes)) {
+	if (empty($notes)) {
+		if ($add_note_html) {
+			?>
+			<div class="pull-right"><?php echo $add_note_html; ?></div>
+			<?php
+		}
+	} else {
 		?>
 <?php include __DIR__ . '/note_filters.template.php'; ?>
 		<?php
