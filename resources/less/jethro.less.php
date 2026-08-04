@@ -13,7 +13,7 @@
 @import "bootstrap.less";
 @import "responsive.less";
 @import "../css/jquery-ui.min.css";
-@import "../css/treeview.css?v2";
+@import "../css/treeview.css";
 
 /* Fix for less v2 and bootstrap 2 - see https://stackoverflow.com/questions/26628309/less-v2-does-not-compile-twitters-bootstrap-2-x */
 #grid {
