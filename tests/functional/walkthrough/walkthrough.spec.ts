@@ -36,7 +36,7 @@ const CONGREGATIONS = ["4pm", "4pm Kids", "6pm", "None", "External Supporters"];
 // here so the test is repeatable. (mariadb_as_root is on PATH in the devbox
 // shell, which is how the suite is run: `devbox run functests`.)
 const RESET_WALKTHROUGH_DB = [
-  "jethro_db_init --db=jethro_functest_walkthrough"
+  "jethro_db_init --db=jethro_functest_walkthrough --charset=utf8mb4 --collation=utf8mb4_unicode_ci"
 ].join(" ");
 
 test.describe("Setup wizard", () => {

@@ -11,14 +11,14 @@
 #?   --dump         SQL dump file, relative to tests/functional/testdata (required; '..' rejected)
 #?   --db           Target database (default: jethro_functest)
 #?   --system-name  Override SYSTEM_NAME setting in the loaded database
-#?   --charset      Database character set (default: utf8)
-#?   --collation    Database collation (default: utf8_unicode_ci)
+#?   --charset      Database character set (default: utf8mb4)
+#?   --collation    Database collation (default: utf8mb4_unicode_ci)
 
 set -euo pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/jethrodb.sh"
 
-parse_opts "dump db=jethro_functest system_name= charset=utf8 collation=utf8_unicode_ci" -- "$@"
+parse_opts "dump db=jethro_functest system_name= charset=utf8mb4 collation=utf8mb4_unicode_ci" -- "$@"
 main() {
 	if (( ${#ARGV[@]} )); then help; fi
 	if [[ -z "${dump:-}" ]]; then fail "--dump is required"; fi

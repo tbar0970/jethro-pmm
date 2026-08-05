@@ -92,6 +92,7 @@ class Installer
 	function validateDB()
 	{
 		$valid = $this->validateMySQLSettings();
+		$valid = $this->validateCharset();
 		return $valid;
 	}
 
@@ -128,6 +129,36 @@ class Installer
 		return $valid;
 	}
 
+	/**
+	 * Ensure the database we're given is in the correct utf8mb4 charset and collation.
+	 * @return bool
+	 */
+	function validateCharset()
+	{
+		$current = $GLOBALS['db']->queryRow(
+			"SELECT DEFAULT_CHARACTER_SET_NAME AS charset, DEFAULT_COLLATION_NAME AS collation
+			 FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = DATABASE()"
+		);
+		if ($current && $current['charset'] == 'utf8mb4' && $current['collation'] == 'utf8mb4_unicode_ci') {
+			return TRUE;
+		} else {
+			$dbname = ifdef('DB_DATABASE', 'jethro');
+			$dbuser = ifdef('DB_USERNAME', 'jethro');
+			$current_collation = $current ? $current['charset'].'/'.$current['collation'] : 'unknown';
+			print_message(
+				'Your database uses '.$current_collation.' instead of the required utf8mb4/utf8mb4_unicode_ci. '
+				.'Please recreate the database with the correct charset:<br><br>'
+				.'<code>'
+				."CREATE USER IF NOT EXISTS '".ents($dbuser)."'@'localhost' IDENTIFIED BY '...';<br>"
+				."CREATE DATABASE `".ents($dbname)."` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;<br>"
+				."GRANT ALL PRIVILEGES ON `".ents($dbname)."`.* TO '".ents($dbuser)."'@'localhost';"
+				.'</code>',
+				'warning',
+				TRUE
+			);
+			return FALSE;
+		}
+	}
 
 	function initDB($printOnly=FALSE)
 	{

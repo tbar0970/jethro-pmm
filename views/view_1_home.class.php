@@ -26,6 +26,10 @@ class View_Home extends View
 			require_once 'upgrades/upgradelibs/status_upgrader.class.php';
 			Status_Upgrader::runHTML();
 		}
+		if (ifdef('NEEDS_UTF8MB4_UPGRADE')) {
+			require_once 'upgrades/upgradelibs/charset_fixer.class.php';
+			Charset_Fixer::runHTML();
+		}
 
 		?>
 		<div class="homepage">

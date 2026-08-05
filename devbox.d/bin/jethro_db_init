@@ -12,14 +12,14 @@
 #?   --db           Database name (default: jethro)
 #?   --db-user      Database user (default: jethro)
 #?   --db-pass      Database password (default: jethro)
-#?   --charset      Database character set (default: utf8)
-#?   --collation    Database collation (default: utf8_unicode_ci)
+#?   --charset      Database character set (default: utf8mb4)
+#?   --collation    Database collation (default: utf8mb4_unicode_ci)
 #?   --autoconfirm  Skip the confirmation prompt when wiping an existing database
 
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/jethrodb.sh"
 
-parse_opts "db=jethro db_user=jethro db_pass=jethro charset=utf8 collation=utf8_unicode_ci autoconfirm:--autoconfirm" -- "$@"
+parse_opts "db=jethro db_user=jethro db_pass=jethro charset=utf8mb4 collation=utf8mb4_unicode_ci autoconfirm:--autoconfirm" -- "$@"
 
 main() {
 	if (( ${#ARGV[@]} )); then help; fi

@@ -26,6 +26,7 @@
       "lint":                 "php -l *.php calls/*.php db_objects/*.php hooks/**/*.php include/*.php members/*.php members/**/*.php public/*.php public/**/*.php scripts/*.php templates/*.php upgrades/*.php upgrades/**/*.php views/*.php",
       "mysql_as_root":        "devbox.d/bin/mysql_as_root",
       "initdb":               "devbox.d/bin/jethro_db_init",
+      "compile":              "jethro_compile_css ${JETHRO_VERSION} && jethro_compile_js ${JETHRO_VERSION} && echo \"To use compiled resources, run: echo \"${JETHRO_VERSION}\" > ./include/version.txt\"",
       "docs":                 "cd docs && bun install && bun run start",
       "docs-html":            "cd docs && bun install && bun run build",
       "demodata":             "devbox.d/bin/jethro_db_demodata_load --db=jethro --system-name=\"St Bob's\"",
