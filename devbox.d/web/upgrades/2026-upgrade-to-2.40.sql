@@ -1,0 +1,1 @@
+../../../upgrades/2026-upgrade-to-2.40.sql
