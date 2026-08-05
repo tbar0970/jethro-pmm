@@ -846,7 +846,7 @@ JethroSearchChooserMulti.init = function(inputBox) {
 		callback: function(item) {
 					var myInput = document.getElementById(stem+'-input');
 					if (item.id != 0) {
-						$(document.getElementById(stem+'-list')).append('<li><div class=\"delete-list-item\" title=\"Remove inputBox item\" onclick=\"deletePersonChooserListItem(inputBox);\" />'+item.value+'<input type=\"hidden\" name=\"'+stem+'[]\" value=\"'+item.id+'\" /></li>');
+						$(document.getElementById(stem+'-list')).append('<li><div class=\"delete-list-item\" title=\"Remove inputBox item\" onclick=\"deletePersonChooserListItem(this);\" />'+item.value+'<input type=\"hidden\" name=\"'+stem+'[]\" value=\"'+item.id+'\" /></li>');
 					} else {
 						$(myInput).addClass('error');
 						setTimeout(function() { $(myInput).removeClass('error'); }, 1000);
