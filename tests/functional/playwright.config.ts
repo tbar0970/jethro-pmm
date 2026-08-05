@@ -32,5 +32,20 @@ export default defineConfig({
       // the app at the empty jethro_functest_walkthrough database.
       use: { baseURL: `${HOST}/tests/functional/walkthrough/` },
     },
+    {
+      name: "upgrade_latin1",
+      testMatch: ["upgrade/2.40/upgrade_latin1/upgrade_latin1.spec.ts"],
+      use: { baseURL: `${HOST}/tests/functional/upgrade/2.40/upgrade_latin1/` },
+    },
+    {
+      name: "upgrade_utf8mb3",
+      testMatch: ["upgrade/2.40/upgrade_utf8mb3/upgrade_utf8mb3.spec.ts"],
+      use: { baseURL: `${HOST}/tests/functional/upgrade/2.40/upgrade_utf8mb3/` },
+    },
+    {
+      name: "upgrade_latin1_cli",
+      testMatch: ["upgrade/2.40/upgrade_latin1_cli/upgrade_latin1_cli.spec.ts"],
+      use: { baseURL: `${HOST}/tests/functional/upgrade/2.40/upgrade_latin1_cli/` },
+    },
   ],
 });

@@ -16,3 +16,5 @@ pnpm-lock.yaml
 resources/css/jethro-*-DEV.css
 resources/js/jethro-*-DEV.js
 tests/functional/test-results
+.devbox/
+# .devbox is devbox's generated virtualenv (services state, logs). Recreated by any devbox command.

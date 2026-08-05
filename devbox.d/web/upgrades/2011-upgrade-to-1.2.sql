@@ -1,0 +1,1 @@
+../../../upgrades/2011-upgrade-to-1.2.sql

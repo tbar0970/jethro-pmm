@@ -1,0 +1,1 @@
+../../../upgrades/2025-upgrade-to-2.37.sql
