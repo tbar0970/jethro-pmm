@@ -1,0 +1,270 @@
+{
+  "permissions": {
+    "EDITPERSON": {
+      "bitmask": 1,
+      "label": "Persons & Families - add/edit",
+      "category": "People & Families",
+      "description": "Add, edit, and delete person records. Edit families. Move members between families. Bulk-update persons and group membership.",
+      "default": true,
+      "feature": null,
+      "includes": []
+    },
+    "RUNREPORT": {
+      "bitmask": 4,
+      "label": "Reports - run reports & view stats",
+      "category": "Reports",
+      "description": "Run person/family reports and view statistics.",
+      "default": true,
+      "feature": null,
+      "includes": []
+    },
+    "MANAGEREPORTS": {
+      "bitmask": 12,
+      "label": "Reports - save shared reports",
+      "category": "Reports",
+      "description": "Save **shared** reports (available to all users). Without this, users can still run reports and save personal reports. Includes RUNREPORT.",
+      "default": true,
+      "feature": null,
+      "includes": ["RUNREPORT"]
+    },
+    "VIEWMYNOTES": {
+      "bitmask": 16,
+      "label": "Notes - view & edit notes assigned to me",
+      "category": "Notes",
+      "description": "View notes that you created or that are assigned to you.",
+      "default": true,
+      "feature": "NOTES",
+      "includes": []
+    },
+    "VIEWNOTE": {
+      "bitmask": 48,
+      "label": "Notes - view all",
+      "category": "Notes",
+      "description": "View all notes across all people and families. Includes VIEWMYNOTES.",
+      "default": true,
+      "feature": "NOTES",
+      "includes": ["VIEWMYNOTES"]
+    },
+    "EDITNOTE": {
+      "bitmask": 112,
+      "label": "Notes - add/edit all",
+      "category": "Notes",
+      "description": "Create, edit, and assign notes. Includes VIEWNOTE.",
+      "default": true,
+      "feature": "NOTES",
+      "includes": ["VIEWNOTE"]
+    },
+    "BULKNOTE": {
+      "bitmask": 240,
+      "label": "Notes - bulk-assign",
+      "category": "Notes",
+      "description": "Create a note on multiple people at once. Includes EDITNOTE.",
+      "default": true,
+      "feature": "NOTES",
+      "includes": ["EDITNOTE"]
+    },
+    "VIEWATTENDANCE": {
+      "bitmask": 256,
+      "label": "Attendance - view and report",
+      "category": "Attendance",
+      "description": "View attendance records, check-in logs, and attendance statistics.",
+      "default": true,
+      "feature": "ATTENDANCE",
+      "includes": []
+    },
+    "EDITATTENDANCE": {
+      "bitmask": 768,
+      "label": "Attendance - record",
+      "category": "Attendance",
+      "description": "Record and edit attendance. Includes VIEWATTENDANCE.",
+      "default": true,
+      "feature": "ATTENDANCE",
+      "includes": ["VIEWATTENDANCE"]
+    },
+    "EDITGROUP": {
+      "bitmask": 1024,
+      "label": "Groups - add/edit/delete",
+      "category": "Groups",
+      "description": "Create, edit, and delete groups. Add and remove members.",
+      "default": true,
+      "feature": null,
+      "includes": []
+    },
+    "MANAGEGROUPCATS": {
+      "bitmask": 3072,
+      "label": "Groups - manage categories",
+      "category": "Groups",
+      "description": "Manage group categories (e.g. \"Ministry Teams\", \"Bible Study\"). Includes EDITGROUP.",
+      "default": true,
+      "feature": null,
+      "includes": ["EDITGROUP"]
+    },
+    "VIEWROSTER": {
+      "bitmask": 4096,
+      "label": "Rosters - view assignments",
+      "category": "Rosters",
+      "description": "View roster assignments.",
+      "default": true,
+      "feature": "ROSTERS&SERVICES",
+      "includes": []
+    },
+    "EDITROSTER": {
+      "bitmask": 12288,
+      "label": "Rosters - edit assignments",
+      "category": "Rosters",
+      "description": "Edit roster assignments and record planned absences. Includes VIEWROSTER.",
+      "default": true,
+      "feature": "ROSTERS&SERVICES",
+      "includes": ["VIEWROSTER"]
+    },
+    "MANAGEROSTERS": {
+      "bitmask": 28672,
+      "label": "Rosters - manage roles & views",
+      "category": "Rosters",
+      "description": "Define roster roles and views. Includes EDITROSTER.",
+      "default": true,
+      "feature": "ROSTERS&SERVICES",
+      "includes": ["EDITROSTER"]
+    },
+    "VIEWSERVICE": {
+      "bitmask": 32768,
+      "label": "Services - view",
+      "category": "Services",
+      "description": "View services and service plans.",
+      "default": true,
+      "feature": "ROSTERS&SERVICES",
+      "includes": []
+    },
+    "EDITSERVICE": {
+      "bitmask": 98304,
+      "label": "Services - edit individual",
+      "category": "Services",
+      "description": "Edit service details and add/remove service components. Includes VIEWSERVICE. Note: the service-details editing portion also requires the SERVICEDETAILS feature flag.",
+      "default": true,
+      "feature": "ROSTERS&SERVICES",
+      "includes": ["VIEWSERVICE"]
+    },
+    "BULKSERVICE": {
+      "bitmask": 229376,
+      "label": "Services - edit service schedule",
+      "category": "Services",
+      "description": "Bulk-edit service runs (e.g. change all services in a quarter at once). Includes EDITSERVICE.",
+      "default": false,
+      "feature": "ROSTERS&SERVICES",
+      "includes": ["EDITSERVICE"]
+    },
+    "SERVICECOMPS": {
+      "bitmask": 360448,
+      "label": "Services - manage component library",
+      "category": "Services",
+      "description": "Manage the component library (song list, Bible readings, etc.). Includes EDITSERVICE.",
+      "default": false,
+      "feature": "SERVICEDETAILS",
+      "includes": ["EDITSERVICE"]
+    },
+    "EDITREC": {
+      "bitmask": 1048576,
+      "label": "Sermon recordings - manage",
+      "category": "Sermon Recordings",
+      "description": "Upload and manage sermon recordings.",
+      "default": true,
+      "feature": "SERMONRECORDINGS",
+      "includes": []
+    },
+    "VIEWDOC": {
+      "bitmask": 2097152,
+      "label": "Documents & Folders - view",
+      "category": "Documents",
+      "description": "View stored documents.",
+      "default": true,
+      "feature": "DOCUMENTS",
+      "includes": []
+    },
+    "EDITDOC": {
+      "bitmask": 6291456,
+      "label": "Documents & Folders - add/edit/delete",
+      "category": "Documents",
+      "description": "Upload, edit, and delete documents. Includes VIEWDOC.",
+      "default": true,
+      "feature": "DOCUMENTS",
+      "includes": ["VIEWDOC"]
+    },
+    "SERVICEDOC": {
+      "bitmask": 14680064,
+      "label": "Service Documents - generate",
+      "category": "Documents",
+      "description": "Generate service documents (handouts, run sheets). Includes EDITDOC.",
+      "default": false,
+      "feature": "SERVICEDOCUMENTS",
+      "includes": ["EDITDOC"]
+    },
+    "SYSADMIN": {
+      "bitmask": 2147483647,
+      "label": "SysAdmin - manage user accounts, congregations etc",
+      "category": "System Administration",
+      "description": "Full system access: manage user accounts, congregations, custom fields, note templates, action plans, system configuration, upgrades, imports, and permanently delete people and families. Includes **all** permissions above.",
+      "default": false,
+      "feature": null,
+      "includes": ["EDITPERSON", "SENDSMS", "VIEWSMS", "RUNREPORT", "MANAGEREPORTS", "VIEWMYNOTES", "VIEWNOTE", "EDITNOTE", "BULKNOTE", "VIEWATTENDANCE", "EDITATTENDANCE", "EDITGROUP", "MANAGEGROUPCATS", "VIEWROSTER", "EDITROSTER", "MANAGEROSTERS", "VIEWSERVICE", "EDITSERVICE", "BULKSERVICE", "SERVICECOMPS", "EDITREC", "VIEWDOC", "EDITDOC", "SERVICEDOC"]
+    }
+  },
+  "categoryOrder": [
+    "People & Families",
+    "SMS",
+    "Reports",
+    "Notes",
+    "Attendance",
+    "Groups",
+    "Rosters",
+    "Services",
+    "Sermon Recordings",
+    "Documents",
+    "System Administration"
+  ],
+  "hierarchy": [
+    { "from": "RUNREPORT", "to": "MANAGEREPORTS" },
+    { "from": "VIEWMYNOTES", "to": "VIEWNOTE" },
+    { "from": "VIEWNOTE", "to": "EDITNOTE" },
+    { "from": "EDITNOTE", "to": "BULKNOTE" },
+    { "from": "VIEWATTENDANCE", "to": "EDITATTENDANCE" },
+    { "from": "EDITGROUP", "to": "MANAGEGROUPCATS" },
+    { "from": "VIEWROSTER", "to": "EDITROSTER" },
+    { "from": "EDITROSTER", "to": "MANAGEROSTERS" },
+    { "from": "VIEWSERVICE", "to": "EDITSERVICE" },
+    { "from": "EDITSERVICE", "to": "BULKSERVICE" },
+    { "from": "EDITSERVICE", "to": "SERVICECOMPS" },
+    { "from": "VIEWDOC", "to": "EDITDOC" },
+    { "from": "EDITDOC", "to": "SERVICEDOC" }
+  ],
+  "features": {
+    "Notes": {
+      "flag": "NOTES",
+      "permissions": ["VIEWMYNOTES", "VIEWNOTE", "EDITNOTE", "BULKNOTE"]
+    },
+    "Attendance": {
+      "flag": "ATTENDANCE",
+      "permissions": ["VIEWATTENDANCE", "EDITATTENDANCE"]
+    },
+    "Rosters & Services": {
+      "flag": "ROSTERS&SERVICES",
+      "permissions": ["VIEWROSTER", "EDITROSTER", "MANAGEROSTERS", "VIEWSERVICE", "EDITSERVICE", "BULKSERVICE"]
+    },
+    "Service Details": {
+      "flag": "SERVICEDETAILS",
+      "permissions": ["SERVICECOMPS"],
+      "note": "Also gates the service-details editing portion of EDITSERVICE."
+    },
+    "Sermon Recordings": {
+      "flag": "SERMONRECORDINGS",
+      "permissions": ["EDITREC"]
+    },
+    "Documents": {
+      "flag": "DOCUMENTS",
+      "permissions": ["VIEWDOC", "EDITDOC"]
+    },
+    "Service Documents": {
+      "flag": "SERVICEDOCUMENTS",
+      "permissions": ["SERVICEDOC"]
+    }
+  }
+}

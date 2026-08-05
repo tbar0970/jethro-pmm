@@ -1,0 +1,183 @@
+# Nginx config for Jethro PMM development (devbox)
+# Generated from nginx.template — envsubst expands ${NGINX_WEB_PORT}, ${NGINX_WEB_SERVER_NAME}, ${PHPFPM_UNIX_SOCKET}.
+# PHP-FPM listens on unix socket $PHPFPM_UNIX_SOCKET (set by the devbox php plugin, cf. MYSQL_UNIX_PORT).
+
+events {}
+
+http {
+    include mime.types;
+
+    # Compress static assets beyond Nginx's text/html default.
+    # text/event-stream is deliberately NOT listed — Datastar's SSE responses
+    # must stream unbuffered.
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_comp_level 5;
+    gzip_types text/plain text/css text/javascript application/javascript application/json image/svg+xml;
+
+    # -- Custom log format (simplified from the multi-tenant production config) --
+    log_format jethrolog '$remote_addr - $remote_user [$time_local] '
+        '"$request" $status $body_bytes_sent '
+        '"$http_referer" "$http_user_agent" '
+        'rt=$request_time reqid=$request_id '
+        'jethrosess=$cookie_JethroSess '
+        'jethrouser=$upstream_http_x_jethro_user '
+        'jethrouid=$upstream_http_x_jethro_uid';
+
+    # -- PHP-FPM upstream (single backend, single tenant) --
+    # Unix socket, same pattern as the mariadb plugin's MYSQL_UNIX_PORT.
+    upstream php_backend {
+        server unix:${PHPFPM_UNIX_SOCKET};
+    }
+
+    server {
+        listen       ${NGINX_WEB_PORT};
+        server_name  ${NGINX_WEB_SERVER_NAME};
+
+        root ${NGINX_WEB_ROOT};
+
+        index index.php;
+        server_tokens off;
+
+        # -- Request ID on every response --
+        add_header X-Request-ID $request_id always;
+
+        # -- Logging (relative to -p prefix: .devbox/virtenv/nginx) --
+        access_log access.log jethrolog;
+        error_log  error.log;
+
+        # ====================================================================
+        # Docusaurus static documentation site
+        # Browse at http://localhost:${NGINX_WEB_PORT}/docs/
+        # ====================================================================
+
+        # Redirect no-slash to slashed (preserving query string)
+        location = /docs { return 302 /jethro-pmm/$is_args$args; }
+
+        location ^~ /jethro-pmm/ {
+            alias ../../../docs/build/;
+            index index.html;
+            try_files $uri $uri/ $uri.html /docs/404.html @docs-missing;
+        }
+
+        # Docs not built yet? Show a hint instead of a bare 404.
+        location @docs-missing {
+            return 404 "Please build the docs with ./devbox run docs-html";
+        }
+
+        # -- Temp paths (relative to -p prefix) --
+        client_body_temp_path temp/client_body;
+        proxy_temp_path       temp/proxy;
+        fastcgi_temp_path     temp/fastcgi;
+        uwsgi_temp_path       temp/uwsgi;
+        scgi_temp_path        temp/scgi;
+
+        # ====================================================================
+        # Security: deny access to sensitive paths
+        # ====================================================================
+
+        # Deny direct access to uploaded files — must go through PHP handler
+        location ^~ /files/ {
+            deny all;
+            return 404;
+        }
+
+        # Deny access to configuration, dotfiles, and package files
+        location ~ /(conf\.php|\.env|composer\.(json|lock)|phpstan\.neon|\.git|\.jj|devbox\.(json|lock)) {
+            deny all;
+            return 404;
+        }
+
+        # Deny access to upgrade SQL and other non-public artifacts
+        location ~ /(upgrades/.*\.sql|logs/|backups/) {
+            deny all;
+            return 404;
+        }
+
+        # ====================================================================
+        # URL rewrites — map clean URLs to front controllers
+        # ====================================================================
+
+        # Redirect no-slash to slashed (preserving query string)
+        location = /members { return 302 /members/$is_args$args; }
+        location = /public  { return 302 /public/$is_args$args; }
+
+        # Internal rewrite: / → /index.php, /members/ → /members/index.php, /public/ → /public/index.php
+        location = /          { rewrite ^ /index.php last; }
+        location = /members/  { rewrite ^ /members/index.php last; }
+        location = /public/   { rewrite ^ /public/index.php last; }
+
+        # ====================================================================
+        # Test-scenario virtual paths: /tests/functional/<name>/...
+        #
+        # conf.php (at devbox.d/functest_jethro_server/conf.php) detects the
+        # scenario prefix from REQUEST_URI and sets BASE_URL accordingly.
+        # Assets (resources/*, favicon.ico) are rewritten to strip the prefix;
+        # everything else routes to Jethro.
+
+        location ^~ /tests/functional/ {
+            # Assets: strip the dynamic scenario prefix so static files
+            # resolve on disk under the real /resources/ or /favicon.ico.
+            rewrite ^/tests/functional/.+?/(resources/.+|favicon\.ico)$ /$1 last;
+            # Everything else: Jethro front controller.
+            rewrite ^ /index.php last;
+        }
+
+        # ====================================================================
+        # PHP-FPM handler
+        # ====================================================================
+
+        location ~ /(?<script>.+\.php) {
+            # Prevent path-info attacks — only pass scripts that exist on disk
+            try_files $fastcgi_script_name =404;
+            #add_header X-Debug-script "$script" always;
+            #add_header X-Debug-document_root "$document_root" always;
+            #add_header X-Debug-fastcgi_script_name "$fastcgi_script_name" always;
+
+            include fastcgi.conf;
+            # Note: document_root resolves to "{base}/.devbox/virtenv/nginx/../../../devbox.d/web/index.php" whereas realpath_root (new in nginx 1.26) gives {base}/devbox.d/web/index.php". php-fpm does not resolve ".."'s so we need realpath
+            fastcgi_param SCRIPT_FILENAME $realpath_root/$script;
+            fastcgi_param SCRIPT_NAME $fastcgi_script_name;
+            # For debugging:
+            #add_header X-Debug-SCRIPT_FILENAME "$realpath_root/$script" always;
+            #add_header X-Debug-SCRIPT_NAME "$fastcgi_script_name" always;
+            fastcgi_param HTTP_X_REQUEST_ID $request_id;
+            fastcgi_index index.php;
+            fastcgi_pass php_backend;
+        }
+
+        # ====================================================================
+        # Monitoring endpoints (localhost only)
+        # ====================================================================
+
+        # PHP-FPM status
+        location = /fpm-status {
+            allow 127.0.0.1;
+            allow ::1;
+            deny all;
+
+            fastcgi_pass php_backend;
+            include fastcgi.conf;
+            fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        }
+
+        # Nginx stub status
+        location = /nginx_status {
+            stub_status on;
+            allow 127.0.0.1;
+            deny all;
+        }
+
+        # ====================================================================
+        # Error pages
+        # ====================================================================
+
+        error_page 502 /502.html;
+        location = /502.html {
+            internal;
+            default_type text/html;
+            return 502 "<!DOCTYPE html><html><head><title>Bad Gateway</title></head><body><h1>Bad Gateway</h1><p>Request ID: $request_id</p><p>Upstream: $upstream_addr</p></body></html>";
+        }
+    }
+}
