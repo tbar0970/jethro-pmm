@@ -1,5 +1,4 @@
 <?php
-include_once 'include/db_object.class.php';
 class Custom_Field_Value extends db_object
 {
 	function getInitSQL($table_name=NULL) {
