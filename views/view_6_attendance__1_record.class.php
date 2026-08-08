@@ -73,7 +73,7 @@ class View_Attendance__Record extends View
 		}
 
 		foreach ($this->_cohortids as $id) {
-			$this->_record_sets[$id] = new Attendance_Record_set($this->_attendance_date, $id, $this->_age_brackets, $this->_statuses, $this->_order);
+			$this->_record_sets[$id] = new Attendance_Record_Set($this->_attendance_date, $id, $this->_age_brackets, $this->_statuses, $this->_order);
 			if ($this->_show_photos) $this->_record_sets[$id]->show_photos = TRUE;
 		}
 
@@ -245,7 +245,7 @@ class View_Attendance__Record extends View
 		// STEP 2 - enter attendances
 		ob_start();
 		?>
-		<form method="post" class="attendance warn-unsaved" data-lock-length="<?php echo db_object::getLockLength() ?>" action="?view=attendance__record">
+		<form method="post" class="attendance warn-unsaved" data-lock-length="<?php echo DB_Object::getLockLength() ?>" action="?view=attendance__record">
 			<input type="hidden" name="attendance_date" value="<?php echo $this->_attendance_date; ?>" />
 			<input type="hidden" name="show_photos" value="<?php echo $this->_show_photos; ?>" />
 			<input type="hidden" name="parallel_mode" value="<?php echo $this->_parallel_mode; ?>" />
@@ -270,6 +270,9 @@ class View_Attendance__Record extends View
 			?>
 		</form>
 		<?php
+		if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
+			print_note_modal_once();
+		}
 		if (ini_get('max_input_vars') && ($totalPrinted > ini_get('max_input_vars'))) {
 			ob_end_clean();
 			print_message(_("The parameters you have selected will list more persons ")
@@ -338,7 +341,7 @@ class View_Attendance__Record extends View
 			<?php
 			foreach ($totalPersons as $personid => $detail) {
 				?>
-				<tr>
+				<tr data-personid="<?php echo (int)$personid; ?>">
 				<?php
 				if (SizeDetector::isWide()) {
 					?>
@@ -376,7 +379,7 @@ class View_Attendance__Record extends View
 					<td class="action-cell narrow">
 						<a class="med-popup" tabindex="-1" href="?view=persons&personid=<?php echo $personid; ?>"><i class="icon-user"></i><?php echo _('View');?></a> &nbsp;
 						<a class="med-popup" tabindex="-1" href="?view=_edit_person&personid=<?php echo $personid; ?>"><i class="icon-wrench"></i><?php echo _('Edit');?></a> &nbsp;
-						<a class="med-popup" tabindex="-1" href="?view=_add_note_to_person&personid=<?php echo $personid; ?>"><i class="icon-pencil"></i><?php echo _('Add Note');?></a>
+						<a class="note-link" tabindex="-1" href="?view=_add_note_to_person&personid=<?php echo $personid; ?>" data-toggle="note-modal" data-personid="<?php echo $personid; ?>" data-name="<?php echo ents($detail['first_name'].' '.$detail['last_name']); ?>"><i class="icon-pencil"></i><?php echo _('Add Note');?></a>
 					</td>
 					<?php
 				}
