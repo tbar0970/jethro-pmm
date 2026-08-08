@@ -90,13 +90,13 @@ class System_Controller
 		return $stored !== $this->getViewHash();
 	}
 
-	public function initErrorHandler()
+	public function initErrorHandler(): void
 	{
-		set_error_handler(Array($this, '_handleError'));
-		set_exception_handler(Array($this, '_handleException'));
+		set_error_handler($this->_handleError(...));
+		set_exception_handler($this->_handleException(...));
 	}
 
-	public function run()
+	public function run(): void
 	{
 
 		$this->setGlobalHeaders();
@@ -205,7 +205,7 @@ class System_Controller
 	}
 
 
-	public function printBody()
+	public function printBody(): void
 	{
 		if (is_null($this->_view)) {
 			echo 'Error: Undefined view';
@@ -404,8 +404,8 @@ class System_Controller
 
 	public function featureEnabled($feature)
 	{
-		$enabled_features = explode(',', strtoupper(ifdef('ENABLED_FEATURES', '')));
-		return in_array(strtoupper($feature), $enabled_features);
+		$features = array_fill_keys(explode(',', strtoupper(ifdef('ENABLED_FEATURES', ''))), true);
+		return isset($features[strtoupper($feature)]);
 	}
 
 	public function setGlobalHeaders()

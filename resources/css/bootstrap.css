@@ -63,7 +63,7 @@ html {
 }
 a:focus {
   outline: thin dotted #333;
-  outline: 5px auto -webkit-focus-ring-color;
+  /*outline: 5px auto -webkit-focus-ring-color;*/
   outline-offset: -2px;
 }
 a:hover,
@@ -252,7 +252,8 @@ a:focus {
 .row:after {
   clear: both;
 }
-[class*="span"] {
+
+[class^="span"] {
   float: left;
   min-height: 1px;
   margin-left: 20px;

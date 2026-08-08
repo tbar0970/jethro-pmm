@@ -2,6 +2,7 @@
 /* @var $persons */
 $GLOBALS['system']->includeDBClass('member');
 $dummy = new Member();
+// @var Person $person
 foreach ($persons as $personid => $person) {
 	$dummy->populate($personid, $person);
 	?>
