@@ -1,0 +1,19 @@
+#!/bin/bash -eu
+# Usage: mariadb_ensure_db DB [DB...]
+# Create each database if it does not exist, and give the shared 'jethro' user
+# (password 'jethro', see devbox.d/mariadb/my.cnf) full access to it.
+# Existing data is never touched - use mariadb_recreate_db to wipe.
+
+[[ $# -ge 1 ]] || { sed -n '2,5s/^# \?//p' "$0"; exit 2; }
+mariadb_check
+
+for db in "$@"; do
+	# --skip-show-warnings: 'already exists' notes are the normal case here.
+	mariadb_as_root --skip-show-warnings <<-SQL
+	CREATE USER IF NOT EXISTS 'jethro'@'localhost' IDENTIFIED BY 'jethro';
+	CREATE DATABASE IF NOT EXISTS \`$db\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+	GRANT ALL PRIVILEGES ON \`$db\`.* TO 'jethro'@'localhost';
+	SQL
+	echo "Database ready: $db"
+done
+echo "Connect with: devbox run mariadb $1"

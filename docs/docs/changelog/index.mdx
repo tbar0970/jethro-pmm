@@ -1,0 +1,97 @@
+---
+sidebar_position: 1
+---
+
+# What's New
+
+This page tracks notable changes to Jethro.
+
+## Version 2.39 (unreleased)
+
+### Service Planning
+
+- **Editable service dates.** Dates in the service schedule are now editable
+  inline, and you can drag rows to reorder them.
+  [(#1409)](https://github.com/tbar0970/jethro-pmm/pull/1409)
+  — [(video)](https://github.com/user-attachments/assets/4d054806-1e50-4f14-b38b-1ea31bbd985d)
+
+- **Service highlighting.** The dashboard now highlights all services in the
+  coming week, not just Sunday — helpful for churches with midweek meetings.
+  [(commit 769866c)](https://github.com/tbar0970/jethro-pmm/commit/769866cda523)
+
+### Rosters
+
+- **Advance notice for roster reminders.** `roster_reminder.php` now supports
+  a `START_DATE_OFFSET` setting, so people like service leaders who need more
+  than a week's notice can be reminded further in advance.
+  [(#1411)](https://github.com/tbar0970/jethro-pmm/pull/1411)
+
+- **Date tokens in reminders.** Notification text can now include
+  `{roster_date}`, `{roster_date_short}`, and `{roster_day_of_week}` tokens
+  that expand to the actual roster date — useful in SMSes where brevity
+  matters. [(#1412)](https://github.com/tbar0970/jethro-pmm/pull/1412)
+
+- **Cancel button no longer double-confirms.** The Cancel button on the Edit
+  Roster Assignments page no longer asks for confirmation twice.
+  [(#1426)](https://github.com/tbar0970/jethro-pmm/pull/1426)
+  — [(video)](https://github.com/user-attachments/assets/d4f8b970-e88c-4036-a8f1-5a5dd8ed2acd)
+
+- **See and delete past planned absences.** A long-standing issue ([#1359](https://github.com/tbar0970/jethro-pmm/issues/1359))
+  that prevented viewing or removing planned absences that had already passed
+  has been fixed.
+  [(commit a5844f5)](https://github.com/tbar0970/jethro-pmm/commit/a5844f58f1eb)
+
+### People & Families
+
+- **Tab memory on Person view.** When you refresh the Person page, Jethro now
+  returns you to the tab you were viewing (Notes, Groups, etc.) instead of
+  resetting to Basic Details. Tab URLs can also be bookmarked.
+  [(#1462)](https://github.com/tbar0970/jethro-pmm/pull/1462)
+  — [(video)](https://github.com/user-attachments/assets/7b62c32f-7fb9-4dc6-987d-c455c7e3d926)
+
+- **Enhanced group picker.** Fixed some jankiness in the group selection
+  drop-downs, which since 2.38 let you search by name and expand or collapse
+  group categories. See
+  [(#1424)](https://github.com/tbar0970/jethro-pmm/pull/1424)
+  — [(video)](https://github.com/user-attachments/assets/67ae6196-1b23-41d2-aedc-8740540de208)
+
+### CSV Import
+
+- **Import by Person ID.** CSV imports can now match on Person ID — useful
+  when migrating from another system where name-based matching would pick up
+  archived duplicates.
+  [(#1432)](https://github.com/tbar0970/jethro-pmm/pull/1432)
+
+### System Configuration
+
+- **Sticky sidebar navigation.** A sidebar on the System Configuration page
+  lets you jump between settings sections, with scroll-spy highlighting so
+  you always know where you are.
+  [(#1461)](https://github.com/tbar0970/jethro-pmm/pull/1461)
+  — [(video)](https://github.com/user-attachments/assets/a6bea303-70c8-418a-90bf-980670a2d9ad)
+
+### Email
+
+- **Absolute URLs in emails.** Links in outgoing emails now use absolute URLs
+  so recipients can follow them regardless of their email client. Fixes [#1429](https://github.com/tbar0970/jethro-pmm/issues/1429).
+
+### General Bug Fixes
+
+- **Reports no longer silently return wrong results.** If a saved report
+  references a group, custom field option, or other entity that has since
+  been deleted, Jethro now shows a warning rather than silently returning
+  incomplete or incorrect results. Fixes [#1413](https://github.com/tbar0970/jethro-pmm/issues/1413).
+
+- **Scripts halt on invalid reports.** `mailchimp_sync.php` and
+  `email_report.php` now fail with a clear error if their configured report
+  is invalid, rather than syncing or emailing the wrong data.
+  Fixes [#1423](https://github.com/tbar0970/jethro-pmm/issues/1423).
+
+- **Deleting the last roster assignee now works.** A bug that prevented
+  removing the last person from a roster role (when the role had no volunteer
+  group) has been fixed.
+  Fixes [#1434](https://github.com/tbar0970/jethro-pmm/issues/1434).
+
+- **Saving incomplete notes no longer crashes.** A bug that could cause a
+  crash when saving notes with only partially-filled fields has been fixed.
+  Fixes [#1446](https://github.com/tbar0970/jethro-pmm/issues/1446).

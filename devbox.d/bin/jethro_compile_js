@@ -1,0 +1,46 @@
+#!/bin/bash -eu
+
+fail() { echo >&2 "$*"; exit 1; }
+warn() { echo "$*"; }
+
+warn_if_extra_js_files_found() {
+  local version=$1
+  local allowed=(
+    "jethro-sms-test.js"   # Get rid of this later
+    "jquery.js"
+    "jquery-ui.min.js"
+    "bootstrap.js"
+    "jquery.min.js"
+    "bootstrap.min.js"
+    "tb_lib.js"
+    "bsn_autosuggest.js"
+    "jethro.js"
+    "jethro-sms.js"
+    "jquery-ui.js"
+    "jquery.ui.touch-punch.min.js"
+    "stupidtable.min.js"
+    "treeview.js"
+  )
+
+  # Exclude generated bundles (jethro-<version>.js) plus the explicit allowlist below.
+  pattern="jethro-.*\.js|$(printf "%s\n" "${allowed[@]}" | sed 's/\./\\./g' | paste -sd'|')"
+  #shellcheck disable=SC2010,SC2143
+  if find . -maxdepth 1 -type f -name "*.js" -printf "%f\n" | grep -vP "^(${pattern})$"; then
+    warn "Extra js files (printed above) have been added. These will NOT be bundled into jethro-${version}.js unless $0 is edited."
+  fi
+}
+
+main() {
+  local version=${1:-${JETHRO_VERSION:-}}
+  [[ -n "$version" ]] || { echo >&2 "No version supplied: pass one as an argument or set JETHRO_VERSION"; exit 1; }
+  [[ -d resources/js ]] || { echo "Must be invoked in the project root"; exit 1; }
+  cd resources/js
+  warn_if_extra_js_files_found "$version"
+  # shellcheck disable=SC2016
+  php -r '$files=["jquery.min.js", "bootstrap.min.js", "tb_lib.js", "bsn_autosuggest.js", "jethro.js", "jquery-ui.js", "jquery.ui.touch-punch.min.js", "stupidtable.min.js", "treeview.js"]; echo implode("/* --- */\n", array_map(fn($f)=>file_get_contents($f), $files));' > "jethro-${version}.js.new"
+  mv "jethro-${version}.js.new" "jethro-${version}.js"
+  cd ../..
+  echo "Generated: $(ls resources/js/jethro-${version}.js)"
+}
+
+main "$@"

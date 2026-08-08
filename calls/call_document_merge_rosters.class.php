@@ -1,5 +1,5 @@
 <?php
-class Call_Document_merge_rosters extends Call
+class Call_Document_Merge_Rosters extends Call
 {
 	function run()
 	{

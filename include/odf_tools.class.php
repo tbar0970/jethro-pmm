@@ -75,7 +75,7 @@ Class ODF_Tools
 			foreach ($replacements as $k => $v) {
 				$xml = str_replace('%'.strtoupper($k).'%', ODF_Tools::odfEntities(trim($v)), $xml);
 			}
-			ODF_TOOLS::setXML($filename, $xml, $xml_filename);
+			ODF_Tools::setXML($filename, $xml, $xml_filename);
 		}
 	}
 
