@@ -1,4 +1,6 @@
 <?php
+/* @var Person $person */
+/* @var Family $family */
 include_once 'size_detector.class.php';
 // ------------------------ MODALS --------------------------
 
@@ -71,6 +73,20 @@ if ($GLOBALS['user_system']->havePerm(PERM_VIEWMYNOTES)) {
 	$notes = $person->getNotesHistory();
 	$tabs['notes'] = _('Notes').' ('.count($notes).')';
 }
+$personalCount = null;
+$smsTooltip = null;
+if ($GLOBALS['user_system']->havePerm(PERM_SENDSMS) && $GLOBALS['system']->featureEnabled('SMS')) {
+	$messages = $person->getSmsHistory();
+	$totalCount = count($messages);
+	$personalCount = $person->getPersonalSmsCount($messages);
+	$smsTooltip = $personalCount.' SMSes direct, '.$totalCount.' including broadcast';
+	$personOptedOut = ($person->getValue('mobile_tel'))
+		&& \Jethro\Sms\isPersonOptedOut($person);
+	$tabs['messages'] = [
+		'label' => _('Messages') . ($personalCount > 0 ? ' ('.$personalCount.')' : ''),
+		'title' => $smsTooltip,
+	];
+}
 if ($can_add_group || (count($groups) > 1)) {
 	$tabs['groups'] = _('Groups').' ('.count($groups).')';
 }
@@ -110,8 +126,13 @@ if (!$accordion) {
 	<?php
 	$current_tab = 'basic';
 	foreach ($tabs as $id => $label) {
+		$titleAttr = '';
+		if (is_array($label)) {
+			$titleAttr = ' title="'.ents($label['title']).'"';
+			$label = $label['label'];
+		}
 		?>
-		<li <?php if ($current_tab == $id) echo 'class="active"'; ?>><a data-toggle="tab" href="#<?php echo $id; ?>"><?php echo ents($label); ?></a></li>
+		<li <?php if ($current_tab === $id) echo 'class="active"'; ?>><a data-toggle="tab" href="#<?php echo $id; ?>"<?php echo $titleAttr; ?>><?php echo ents($label); ?></a></li>
 		<?php
 	}
 	?>
@@ -168,6 +189,9 @@ printf($panel_header, 'basic', _('Basic Details'), 'active');
 			<?php
 
 			$person->printSummary();
+
+			?>
+			<?php
 
 			if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 				?>
@@ -236,18 +260,15 @@ if (isset($tabs['notes'])) {
 		$add_note_html = '<a href="?view=_add_note_to_person&personid='.ents($person->id).'" class="note-link" data-toggle="note-modal" data-personid="'.ents($person->id).'" data-name="'.ents($person->getValue('first_name').' '.$person->getValue('last_name')).'"><i class="icon-plus-sign"></i>'._('Add Note').'</a>';
 		print_note_modal_once();
 	}
+	$show_filters = !empty($notes);
+	include __DIR__ . '/note_filters.template.php';
+
 	if (empty($notes)) {
-		if ($add_note_html) {
-			?>
-			<div class="pull-right"><?php echo $add_note_html; ?></div>
-			<?php
-		}
 		?>
 		<p><i><?php echo _('There are no person or family notes to show for ')?><?php $person->printFieldValue('name'); ?></i></p>
 		<?php
 	} else {
 		?>
-		<?php include __DIR__ . '/note_filters.template.php'; ?>
 		<p>
 			<i><?php echo _('Person and Family Notes for ')?><?php $person->printFieldValue('name'); ?>:</i>
 		</p>
@@ -259,6 +280,73 @@ if (isset($tabs['notes'])) {
 	echo $panel_footer;
 }
 
+
+/************** MESSAGES TAB **************/
+
+if (isset($tabs['messages'])) {
+
+	printf($panel_header, 'messages', _('Messages') . ($personalCount > 0 ? ' (<span title="'.ents($smsTooltip).'">'.$personalCount.'</span>)' : ''), '');
+
+	$multiCount = 0;
+	$presentStatuses = [];
+	foreach ($messages as $entry) {
+		if (($entry['recipient_count'] ?? 1) > 1) $multiCount++;
+		$s = $entry['delivery_status'] ?? '';
+		if ($s !== '') $presentStatuses[$s] = true;
+	}
+
+	$hasMessageFilters = $multiCount > 0 || count($presentStatuses) > 0;
+	?>
+	<div class="panel-sidebar pull-right" id="message-filters">
+	<?php if ($personOptedOut): ?>
+		<i class="sms-opted-out icon-ban-circle"></i>
+		<span class="sms-opted-out"
+			  title="This person has opted out of receiving SMS messages.">
+			Send SMS
+		</span>
+	<?php else: ?>
+		<i><a href="#send-sms-modal" data-toggle="sms-modal" data-personid="<?php echo (int)$person->id; ?>" data-name="<?php echo ents($person->getValue('first_name') . ' ' . $person->getValue('last_name')); ?>"><i class="icon-plus-sign"></i><?php echo _('Send SMS'); ?></a></i>
+	<?php endif; ?>
+	<?php if ($hasMessageFilters): ?>
+		<h4 class="hidden-phone"><?php echo _('Filters'); ?></h4>
+		<fieldset class="hidden-phone">
+		<legend><?php echo _('Status:'); ?></legend>
+		<?php foreach (\Sms\SmsStatus::filterOptions() as $value => $label): ?>
+		<?php if (isset($presentStatuses[$value])): ?>
+		<label class="checkbox">
+            <?php // E.g. create a 'Sent' checkbox tied to '$showSentSms' datastar signal. Each message div has a corresponding data-show="$showSentSms", meaning it shows when 'Sent' is checked (see templates/single_message.template.php:16) ?>
+			<input type="checkbox" checked <?php echo 'data-bind="show' . preg_replace('/[^A-Za-z0-9]/', '', ucfirst($value)) . 'Sms"'; ?> />
+			<?php echo $label; ?>
+		</label>
+		<?php endif; ?>
+		<?php endforeach; ?>
+		<?php if ($multiCount > 0): ?>
+		<legend><?php echo _('Recipients:'); ?></legend>
+			<label class="checkbox">
+				<input type="checkbox" id="show-multi-sms" data-bind="showMultiSms"<?php if ($personalCount == 0) echo ' checked'; ?> />
+				<?php echo _('Multi-recipient'); ?> (<?php echo $multiCount; ?>)
+			</label>
+		<?php endif; ?>
+		</fieldset>
+	<?php endif; ?>
+	</div>
+
+	<?php if (empty($messages)): ?>
+		<p><i><?php echo _('There are no SMS messages to show for ')?><?php $person->printFieldValue('name'); ?></i></p>
+	<?php else: ?>
+    <p><i><?php echo _('SMS messages sent to ')?><?php $person->printFieldValue('name'); ?>:</i></p>
+	<?php endif; ?>
+	<?php
+	include __DIR__ . '/list_messages.template.php';
+		?>
+		<script>
+			// Multi-recipient visibility is handled by initMessageFilters()
+			// in jethro-sms.js — the checkbox change re-triggers the filter.
+		</script>
+	<?php
+
+	echo $panel_footer;
+}
 
 /************** GROUPS TAB *****************/
 if (isset($tabs['groups'])) {
@@ -420,15 +508,16 @@ if (isset($tabs['attendance'])) {
 		if (count($groupids) > 1 || reset($attendances) != '') {
 			$groups = $GLOBALS['system']->getDBObjectData('person_group', Array('id' => $groupids));
 		}
+		// present is NULL when attendance is unknown; '' is that key.
 		$classes = Array(
 					'0'	=> 'absent',
 					'1'	=> 'present',
-					NULL => 'unknown'
+					''	=> 'unknown'
 				   );
 		$labels = Array(
 					'0'	=> 'A',
 					'1'	=> 'P',
-					NULL => '?'
+					''	=> '?'
 				   );
 		foreach ($attendances as $groupid => $group_attendances) {
 			$start = reset($group_attendances);
@@ -459,8 +548,8 @@ if (isset($tabs['attendance'])) {
 					<?php
 					foreach ($group_attendances as $att) {
 						?>
-						<td class="<?php echo $classes[$att['present']]; ?>">
-							<?php echo $labels[$att['present']]; ?>
+						<td class="<?php echo $classes[$att['present'] ?? '']; ?>">
+							<?php echo $labels[$att['present'] ?? '']; ?>
 						</td>
 						<?php
 					}

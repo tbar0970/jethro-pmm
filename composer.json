@@ -1,10 +1,34 @@
 {
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/jethro-chms/jethro-sms"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/jethro-chms/jethro-url-shortener"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/jethro-chms/smsmockserver"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/jethro-chms/jethro-utils"
+        }
+    ],
     "require": {
         "cweagans/composer-patches": "^2.0",
         "drewm/mailchimp-api": "@stable",
+        "jethro/jethro-sms": "^2.40",
+        "jethro/jethro-url-shortener": "^0.2",
+        "jethro/jethro-utils": "^1.0",
         "phpoffice/phpword": "v0.18.*",
         "swiftmailer/swiftmailer": "~5.4.12",
         "symfony/mailer": "^6.4"
+    },
+    "require-dev": {
+        "jethro/smsmockserver": "^1.0.1"
     },
     "config": {
         "allow-plugins": {
@@ -12,7 +36,7 @@
         },
         "platform-check": false,
         "platform": {
-            "php": "8.1.0"
+            "php": "8.2.0"
         }
     },
     "extra": {

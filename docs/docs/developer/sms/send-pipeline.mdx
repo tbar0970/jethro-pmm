@@ -1,0 +1,78 @@
+---
+sidebar_position: 14
+---
+
+# Send Pipeline
+
+A step-by-step walkthrough of what happens when a user clicks Send. Sending
+is server-driven: the browser posts the form through Datastar and the server
+renders the result, the same way the [statusline](./SMS_DATASTAR.md) works.
+
+## Phase 1: The Send button
+
+Both Send buttons (`printSmsModal()`, `printBulkSmsForm()` in
+`include/jethro_sms.php`) post their form to `?call=sms` with Datastar:
+
+- **Modal:** `@post('?call=sms', {contentType: 'form', selector: '#sms-modal-form'})`.
+  The button sits in the modal footer, outside the form, hence `selector`.
+  The form carries the recipient (`personid`, filled in by the modal-open
+  handler in `resources/js/jethro-sms.js`), `note_type` and `sms_form=modal`.
+- **Bulk:** `JethroSMS.confirmBulkRecipients(el) && @post('?call=sms', {contentType: 'form'})`,
+  posting the enclosing bulk-action form with its ticked `personid[]` boxes
+  and `sms_form=bulk`. With nobody ticked, `confirmBulkRecipients()` asks
+  whether to send to everyone listed, as the other bulk actions do.
+
+The button is disabled while the server-rendered statusline reports the
+message blocked (`$smsSendBlocked`, see
+[Character Counting](./engine/character-counting)) and while the request is
+in flight (`data-indicator:smssending` / `smssendingbulk`, which also switch
+its label to "Sending..."). An empty message or invalid sender comes back as
+an error from the server.
+
+## Phase 2: Server-Side Processing
+
+`Call_SMS::_send()` handles the request:
+
+1. **Parse recipients** — `getRecipientsFromRequest()` extracts recipients, splitting out blanks/archived/opted-out
+2. **Parse sender** — `getSenderFromRequest()` determines the sender
+3. **Build provider chain** — `getSmsProvider()` returns the fully wired decorator chain
+4. **Send** — `sendSms()` traverses the chain in one call; see [Send flow](./smsarchitecture#send-flow-web) for how token-bearing and overridden messages are partitioned into entries
+
+It returns the outcome keyed by category — `sent`, `failed`,
+`failed_archived`, `failed_blank`, `failed_opted_out` — each with a `count`
+and a `recipients` map (`{personId: {first_name, last_name}}`), or an
+`error`. A successful send also carries `msgid` (person ID → delivery ID) and
+`scheduled` under `sent`.
+
+## Phase 3: Response
+
+`Call_SMS::run()` answers in one of two formats:
+
+- **Datastar requests** (`Datastar-Request` header; both Send buttons):
+  `_respondDatastar()` streams SSE. `Jethro\Sms\presentSendResult()` turns the
+  outcome into the alerts (one person named, several counted then listed), the
+  CSS classes for each recipient's list rows, and whether the modal stays
+  open. The SSE then:
+  1. patches the form's error box (`#sms-send-response` / `#sms-send-response-bulk`);
+  2. patches its results box (`#sms-results` / `#bulk-sms-results`);
+  3. appends a `<script>` calling `JethroSMS.applySendOutcome()`, which adds
+     the row classes (`sms-success`, `sms-failure`, `note-success`), closes
+     the modal when one person was sent to and nobody left out, and reloads
+     a visible Messages tab when something was sent.
+
+  If sending throws, the error is logged and shown in the error box rather
+  than lost, since a Datastar request shows only what the SSE patches in.
+- **Other requests:** the outcome as JSON (plus `can_view_history`), for
+  scripts and tests.
+
+## Phase 4: Save as Note
+
+When "Save as Note" is checked, `Call_SMS` creates the `Person_Note` (or,
+for family sends, one `Family_Note` per family) **in the same request** —
+not a separate AJAX round-trip — and links each note to its `smsdelivery`
+row via `sms_note`.
+
+## See Also
+
+- [SMS Architecture](./smsarchitecture)
+- [Design Decisions](./design-decisions)

@@ -10,6 +10,7 @@
       "resources/js/*.min.js",
       "resources/js/jquery*.js",
       "resources/js/bootstrap*.js",
+      "resources/js/datastar-1.0.4.min.js",
       "resources/js/jethro-*.js"
     ]
   },

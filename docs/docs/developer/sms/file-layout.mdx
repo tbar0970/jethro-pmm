@@ -1,0 +1,31 @@
+---
+sidebar_position: 5
+---
+
+# SMS File Layout
+
+The SMS subsystem was restructured to one-class-per-file (2026-07-03);
+`jethro-sms/src/load.php` is the only loader.
+
+## Source directories
+
+| Directory | What's there |
+|---|---|
+| `jethro-sms/src/` | Pure layer: `SmsProvider`, `SmsCapability`, `SmsStatus`, decorators, value objects, HTTP, Result monad, statusline maths |
+| `jethro-sms/src/Providers/` | Concrete providers: `FiveCentSmsV5Provider`, `MobileMessageSmsProvider`, `CellcastSmsProvider`, `FiveCentSmsV4Provider`, `TemplateSmsProvider` |
+| `jethro-sms/src/Cli/` | CLI core: `CliEnvironment` (host wiring), `CliOutcome` + `CliError` (handler results), `Presenter` with `TextPresenter` / `JsonPresenter` (`--json`) — handlers execute, presenters print |
+| `include/Jethro/Sms/` | Bridge value objects: `JethroSmsRecipient`, `JethroSmsDelivery`, `JethroSmsDeliveryBatch`, `SmsRequestRecipients`, `SessionSmsCache`, `SmsStatusIcon` |
+| `include/Jethro/Sms/Providers/` | Bridge decorators: `DbLoggingSmsProvider` |
+| `include/jethro_sms.php` | Bridge functions: `getSmsProvider()` factory, send pipeline, request parsing, UI rendering |
+| `calls/call_sms*.class.php` | AJAX handlers: `Call_SMS`, `Call_SMS_Info`, `Call_SMS_Cancel`, `Call_SMS_Balance`, `Call_SMS_SenderNum`, `Call_SMS_Statusline`, `Call_Admin_Statuspanel_Sms` |
+| `resources/js/jethro-sms.js` | Modal opener, bulk-send confirmation, applying send outcomes, scheduled-send default, Messages cost total |
+| `scripts/sms.php` | CLI for all SMS operations |
+| `jethro-sms/tests/` | Pure-layer unit tests |
+| `tests/sms/` | Bridge-layer tests |
+
+Loading `include/jethro_sms.php` brings in everything — it requires all other
+bridge files.
+
+## See Also
+
+- [SMS Architecture](./smsarchitecture)

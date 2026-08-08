@@ -1,0 +1,34 @@
+---
+sidebar_position: 13
+---
+
+# SMS Design Decisions
+
+The SMS module was designed with several key architectural decisions. See
+[SMS Architecture](./smsarchitecture) for the layering and chain this
+rationale explains.
+
+## Why Decorator Pattern?
+
+`TokenExpandingSmsProvider`, `DbLoggingSmsProvider`, and `LoggingHttpClient`
+are all decorators. This is intentional:
+
+- Each concern (token expansion, DB logging, HTTP logging) is a separate class
+- Decorators compose cleanly — see [Provider chain](./smsarchitecture#provider-chain) for the full chain order
+- Adding a new concern means adding one class, not modifying existing ones
+
+## Why JavaScript Polling for Delivery?
+
+Delivery status polling uses client-side JavaScript rather than a server-side cron job:
+
+- Simpler deployment — no cron setup needed
+- Polls only when someone views the messages page (lazy)
+- Capped at 20 lookups per page to prevent abuse
+- Provider responses are cached in `smsdelivery.raw_response`
+
+See [Delivery Tracking](./delivery-tracking) for the mechanics.
+
+## See Also
+
+- [SMS Architecture](./smsarchitecture)
+- [Send Pipeline](./send-pipeline)

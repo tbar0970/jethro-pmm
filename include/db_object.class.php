@@ -341,6 +341,13 @@ class DB_Object
 	}
 
 
+	/**
+	 * Save changes to an existing object.
+	 *
+	 * NOTE: This is for updating already-persisted objects (id > 0).
+	 * For creating a new object for the first time, use {@see create()} instead.
+	 * create() initialises required fields like 'history' that save() expects to exist.
+	 */
 	public function save()
 	{
 		if (!empty($this->_populated_partial)) {

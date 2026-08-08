@@ -69,8 +69,10 @@ define('2FA_ENABLED', true);
 // Allow users to tick a box to bypass 2-factor auth for this many days
 //define('2FA_TRUST_DAYS','30');
 
-// Sender ID for 2-factor auth SMS messages
-//define('2FA_SENDER_ID','Jethro');
+// ACMA-registered sender ID for 2FA SMS messages. Blank means the literal SMS_SENDER,
+// or else the first ACMA-approved sender ID at your provider. Since 1 July 2026 an
+// unregistered alphanumeric sender ID is shown to recipients as 'Unverified'.
+//define('2FA_SENDER_ID','');
 
 // Require 2-factor auth for users that hold these permissions
 //define('2FA_REQUIRED_PERMS','2147483647,48'); // SYSADMIN,VIEWNOTE
@@ -83,77 +85,99 @@ define('2FA_ENABLED', true);
 // but you may want to define them here to avoid making credentials visible.
 ///////////////////////////////////////////////////////////////////////////
 
+// Fully qualified class name or short key of the SMS provider to use.
+// If not defined here, the 'SMS_PROVIDER' setting in the admin System Configuration
+// page is used (default: 'Auto-detect'). Short keys: '5centsmsv5', 'cellcast', 'mobilemessage'.
+//   \Sms\Providers\MobileMessageSmsProvider::class — https://mobilemessage.com.au JSON API (HTTP Basic)
+//   \Sms\Providers\FiveCentSmsV5Provider::class    — https://5centsms.com.au modern (v5) JSON API
+//   \Sms\Providers\CellcastSmsProvider::class      — https://cellcast.com JSON API
+//   \Sms\Providers\FiveCentSmsV4Provider::class    — https://5centsms.com.au legacy (v4) API (deprecated — use v5)
+//   \Sms\Providers\TemplateSmsProvider::class      — generic HTTP POST template gateway (use only if you know what you're doing)
+// define('SMS_PROVIDER', '');
+
+// =====================================================================
+// 5CentSMS v5 (5centsms.com.au) — modern JSON API
+//   Supports scheduling, cancellation, delivery status polling, and balance.
+// =====================================================================
+
+// API key ID from https://www.5centsms.com.au/dashboard/api (required)
+// define('SMS_5CENTSMS_APIKEY_ID', '');
+
+// API key secret from https://www.5centsms.com.au/dashboard/api (required)
+// define('SMS_5CENTSMS_APIKEY', '');
+
+// API base URL (optional; defaults to https://www.5centsms.com.au/api/v5)
+// define('SMS_5CENTSMS_URL', '');
+
+// =====================================================================
+// Cellcast (cellcast.com) — JSON API
+//   Supports scheduling, cancellation, and delivery status polling.
+// =====================================================================
+
+// API bearer token from your Cellcast dashboard (required)
+// define('SMS_CELLCAST_APIKEY', '');
+
+// API base URL (optional; defaults to https://api.cellcast.com)
+// define('SMS_CELLCAST_URL', '');
+
+// =====================================================================
+// MobileMessage (mobilemessage.com.au) — JSON API with HTTP Basic auth
+//   Supports scheduling, cancellation, delivery status polling, balance,
+//   sender registration and opt-out list/removal.
+//   Note: the undo cool-off needs SMS_SEND_COOLOFF >= 90 with this
+//   provider: the API silently sends schedules of 60s or less immediately,
+//   and Jethro asks for at least 90 to stay clear of that threshold.
+// =====================================================================
+
+// API username from your MobileMessage dashboard, Settings → API (required)
+// define('SMS_MOBILEMESSAGE_APIKEY_USERNAME', '');
+
+// API password from your MobileMessage dashboard, Settings → API (required)
+// define('SMS_MOBILEMESSAGE_APIKEY_PASSWORD', '');
+
+// API base URL (optional; defaults to https://api.mobilemessage.com.au)
+// define('SMS_MOBILEMESSAGE_URL', '');
+
+// =====================================================================
+// Common SMS settings (apply to all providers)
+// =====================================================================
+
 // The maximum SMS length users are allowed to send.  160 chars is usually a one-part SMS.
 // define('SMS_MAX_LENGTH', 160);
 
-// URL of the SMS gateway to send SMSes through
-// define('SMS_HTTP_URL', 'https://www.5centsms.com.au/api/v4/sms');
-// define('SMS_HTTP_URL', 'https://api.smsbroadcast.com.au/api-adv.php');
-// define('SMS_HTTP_URL', "");
+// If true, SMS HTTP requests and responses are logged to the PHP error log (useful for debugging).
+// define('SMS_VERBOSE', false);
 
-// Template for the headers of the HTTP POST request Jethro will send to the SMS gateway.
-// Some SMS gateways use headers for authentication.
-// Examples:
-// * For 5centsms:
-//   define('SMS_HTTP_HEADER_TEMPLATE', "User: me@example.com\r\nApi-Key: MyAPIKey\r\n");
-// define('SMS_HTTP_HEADER_TEMPLATE', "");
+// If true, SMSes are not actually sent (dry-run mode).
+// define('SMS_TESTMODE', true);
 
-// Template for the body of the HTTP POST request Jethro will send to the SMS gateway.
-// Can include the following keywords:
-// _MESSAGE_ - text message to send
-// _RECIPIENTS_COMMAS_ - recipient mobile numbers separated by commas
-// _RECIPIENTS_NEWLINES_ - recipient mobile numbers separated by newlines
-// _RECIPIENTS_ARRAY_ - recipient mobile numbers as an array.  See the SMS_RECIPIENT_ARRAY_PARAMETER setting.
-// _RECIPIENTS_INTERNATIONAL_COMMAS_ - internationalised recipient mobile numbers separated by commas
-//                                     (see SMS_LOCAL_PREFIX and SMS_INTERNATIONAL_PREFIX below)
-// _RECIPIENTS_INTERNATIONAL_NEWLINES_ - recipient mobile numbers separated by newlines
-// _RECIPIENTS_INTERNATIONAL_ARRAY_ - recipient mobile numbers as an array.  See the SMS_RECIPIENT_ARRAY_PARAMETER setting.
-// _USER_MOBILE_ - mobile number of the current Jethro user (eg to use as sender)
-// _USER_EMAIL_ - email address of the current Jethro user.
-//
-// Examples:
-// * For smsbroadcast:
-//   define('SMS_HTTP_POST_TEMPLATE', 'username=MYUSERNAME&password=MYPASSWORD&to=_RECIPIENTS_COMMAS_&from=_USER_MOBILE_&maxsplit=' . floor(SMS_MAX_LENGTH/160) . '&message=_MESSAGE_');
-// * For 5centsms:
-//   define('SMS_HTTP_POST_TEMPLATE', 'sender=_USER_MOBILE_&to=_RECIPIENTS_COMMAS_&message=_MESSAGE_');
-// define('SMS_HTTP_POST_TEMPLATE' , '');
+// Undo window in seconds: an immediate SMS is held, cancellable, before it is
+// dispatched.  Off by default (0: messages send immediately).  Only providers
+// that can schedule and cancel hold messages: 5CentSMS v5 and Cellcast honour
+// the exact value; MobileMessage needs at least 90 (its API sends anything
+// 60 seconds or less ahead immediately, so Jethro asks for 90).
+// define('SMS_SEND_COOLOFF', 30);
 
-// Base name for the _RECIPIENTS_ARRAY_ keyword available above.
-// Eg set this to "number" to get number[]=0412333444&number[]=0413555666 etc
-// define('SMS_RECIPIENT_ARRAY_PARAMETER', 'number');
+// Comma-separated sender options for the SMS dropdown.  Recognised tokens:
+//   _SENDER_IDS_  — expands to every sender ID your SMS provider reports
+//   _USER_MOBILE_ — expands to the current user's mobile number
+// Defaults to '_USER_MOBILE_,_SENDER_IDS_' when not defined.
+// Literal values (e.g. 'StBarnabas') are always included as-is.
+// Example: define('SMS_SENDER_OPTIONS', 'StBarnabas,_USER_MOBILE_,_SENDER_IDS_');
+// Set to an empty string to disable all Sender ID lookup:
+//   define('SMS_SENDER_OPTIONS', '');
+// define('SMS_SENDER_OPTIONS', '');
 
-// Regex to use to detect success message from the SMS server for each recipient.
-// Optional. Omit slash delimiters at start and end. Leave blank to ignore response.
-// Keywords available:
-// _RECIPIENT_ - recipient number in raw format
-// _RECIPIENT_INTERNATIONAL_ - recipient number in international format (see SMS_LOCAL_PREFIX and SMS_INTERNATIONAL_PREFIX below)
-// Examples:
-// * For smsbroadcast.com.au
-//   define('SMS_HTTP_RESPONSE_OK_REGEX', '[\s\S]*_RECIPIENT_INTERNATIONAL_\",\"id\"\:\d*,\"status\"\:\d*,\"status_text\"\:\"Sen');
-// * For 5centsms
-//   define('SMS_HTTP_RESPONSE_OK_REGEX', '[{]\s*"destination":\s*"_RECIPIENT_",[^}]*"status":\s*"?(1000|1001|1002|1004|1006|1011|1527)"?,');
-// define('SMS_HTTP_RESPONSE_OK_REGEX', '');
+// Hardcode the sender (Sender ID or mobile number) for all SMS messages.
+// Use '_USER_MOBILE_' to use the current user's mobile number.
+// define('SMS_SENDER', 'MyChurch');
 
-// Regex to detect an overall error response from the API server (eg bad credentials).
-// Optional.  Omit slash delimiters at start and end. Leave blank to ignore response.
-// define('SMS_HTTP_RESPONSE_ERROR_REGEX', '');
+// Default sender selected in the SMS sender dropdown (Sender ID or '_USER_MOBILE_').
+// define('SMS_SENDER_DEFAULT', ''); // blank = first option in SMS_SENDER_OPTIONS
 
-// Local prefix used in the mobile numbers stored in Jethro.
-// Needed for some SMS gateways which use international-format numbers
-// define('SMS_LOCAL_PREFIX', '0');
-
-// International prefix, which replaces the local prefix to form an international-format number
-// Needed for some SMS gateways which use international-format numbers
-// define('SMS_INTERNATIONAL_PREFIX', '61');
-
-// A file to log who has sent SMSes (optional). JSONP format.
-// define('SMS_SEND_LOGFILE', '');
-
-// Length of a single SMS segment for cost estimation purposes
-//define('SMS_SEGMENT_LENGTH', 160);
-
-// Cost of sending a single SMS segment, for cost estimation purposes.
-//define('SMS_SEGMENT_COST', 0.05);
+// =====================================================================
+// UI and behaviour settings
+// =====================================================================
 
 // Whether to allow Unicode characters (e.g. emoji) in SMS messages. Be aware that even a single unicode character doubles the cost for >70 char messages.
 // 1 = allow Unicode freely
@@ -161,8 +185,76 @@ define('2FA_ENABLED', true);
 //     non-GSM characters will prevent the form from submitting.
 // 'when_free' = allow Unicode for messages ≤70 chars (single UCS-2 segment).
 //     Longer messages with non-GSM chars will be blocked.
-//define('SMS_UNICODE_PERMITTED', 'when_free');
+// define('SMS_UNICODE_PERMITTED', 'when_free');
 
+// Low-balance alert: trigger a notification when the SMS account balance drops below this amount.
+// Set to 0 to disable.
+// define('SMS_BALANCE_LOW_THRESHOLD', 10.00);
+
+// Email address to notify when SMS balance drops below SMS_BALANCE_LOW_THRESHOLD.
+// define('SMS_BALANCE_LOW_NOTIFICANT_EMAIL', 'admin@example.org');
+
+// =====================================================================
+// Legacy v4 / template-based gateway settings
+// Only needed if using FiveCentSmsV4Provider, TemplateSmsProvider, or a
+// custom HTTP-template gateway.  Most users should use one of the
+// provider-specific sections above instead.
+// =====================================================================
+
+// URL of the SMS gateway to send SMSes through
+// define('SMS_HTTP_URL', '');
+
+// Template for the headers of the HTTP POST request Jethro will send to the SMS gateway.
+// Some SMS gateways use headers for authentication.
+// Example: define('SMS_HTTP_HEADER_TEMPLATE', "User: me@example.com\r\nApi-Key: MyAPIKey\r\n");
+// define('SMS_HTTP_HEADER_TEMPLATE', '');
+
+// Template for the body of the HTTP POST request Jethro will send to the SMS gateway.
+// Can include the following keywords:
+//   _MESSAGE_ - text message to send
+//   _RECIPIENTS_COMMAS_ - recipient mobile numbers separated by commas
+//   _RECIPIENTS_NEWLINES_ - recipient mobile numbers separated by newlines
+//   _RECIPIENTS_ARRAY_ - recipient mobile numbers as an array.  See SMS_RECIPIENT_ARRAY_PARAMETER.
+//   _RECIPIENTS_INTERNATIONAL_COMMAS_ - internationalised recipient numbers separated by commas
+//                                      (see SMS_LOCAL_PREFIX and SMS_INTERNATIONAL_PREFIX below)
+//   _RECIPIENTS_INTERNATIONAL_NEWLINES_ - recipient numbers separated by newlines
+//   _RECIPIENTS_INTERNATIONAL_ARRAY_ - recipient numbers as an array
+//   _USER_MOBILE_ - mobile number of the current Jethro user (for use as sender)
+//   _USER_EMAIL_ - email address of the current Jethro user
+// define('SMS_HTTP_POST_TEMPLATE', '');
+
+// Base name for the _RECIPIENTS_ARRAY_ keyword available above.
+// E.g. set this to "number" to get number[]=0412333444&number[]=0413555666 etc
+// define('SMS_RECIPIENT_ARRAY_PARAMETER', 'number');
+
+// Regex to use to detect success message from the SMS server for each recipient.
+// Optional. Omit slash delimiters at start and end. Leave blank to ignore response.
+// Keywords available:
+//   _RECIPIENT_ - recipient number in raw format
+//   _RECIPIENT_INTERNATIONAL_ - recipient number in international format
+//                              (see SMS_LOCAL_PREFIX and SMS_INTERNATIONAL_PREFIX below)
+// define('SMS_HTTP_RESPONSE_OK_REGEX', '');
+
+// Regex to detect an overall error response from the API server (e.g. bad credentials).
+// Optional.  Omit slash delimiters at start and end. Leave blank to ignore response.
+// define('SMS_HTTP_RESPONSE_ERROR_REGEX', '');
+
+// Regex with a capture group to extract the remote message ID from the response.
+// The first capture group is stored as the remote message ID.
+// define('SMS_HTTP_RESPONSE_ID_REGEX', '');
+
+// Balance endpoint URL for the SMS gateway (optional).
+// define('SMS_HTTP_URL_BALANCE', '');
+
+// Local prefix used in the mobile numbers stored in Jethro.
+// E.g. '0' — stripped before prepending the international prefix.
+// Only used by the deprecated template/5CentSMS v4 provider (the _INTERNATIONAL_ keywords above);
+// 5CentSMS v5 and Cellcast send numbers as entered and let the provider normalise them.
+// define('SMS_LOCAL_PREFIX', '0');
+
+// International prefix, which replaces the local prefix to form an international-format number.
+// E.g. '61' for Australia. Only used by the deprecated template/5CentSMS v4 provider.
+// define('SMS_INTERNATIONAL_PREFIX', '61');
 
 ///////////////////////////////////////////////////////////////////////////
 // SMTP SETTINGS - These can also be configured in the web interface,
@@ -228,22 +320,15 @@ define('2FA_ENABLED', true);
 // Defaults to [yourJethroRoot]/custom_reports
 // define('CUSTOM_REPORTS_DIR', '');
 
-// Dedicated SMS gateway config for 2FA SMS messages (optional)
-// - If 2FA_SMS_URL is set:
-//    * 2FA will use all the 2FA_SMS_ settings instead of SMS_HTTP_ settings.
-//    * 2FA messages will NOT be logged in SMS_SEND_LOGFILE.
-//define('2FA_SMS_URL', '');
-//define('2FA_SMS_POST_TEMPLATE', '');
-//define('2FA_SMS_HEADER_TEMPLATE', "");
-//define('2FA_SMS_RESPONSE_OK_REGEX', '');
-//define('2FA_SMS_RESPONSE_ERROR_REGEX', '');
+// 2FA codes are sent through the SMS gateway configured above (or in the web interface).
+// Earlier versions supported a dedicated 2FA gateway via 2FA_SMS_* constants; it has been removed.
 
 // Log file to keep track of 2FA actions
-// define('2FA_LOGFILE', "/var/log/jethro-2fa.log");
-// define('2FA_LOG_LEVEL', "full"); // 'full' for everything, or 'quiet' for errors only.
+// define('SMS_2FA_LOGFILE', "/var/log/jethro-2fa.log"); // was 2FA_LOGFILE
+// define('SMS_2FA_LOG_LEVEL', "full"); // 'full' for everything, or 'quiet' for errors only. was 2FA_LOG_LEVEL
 
 // Dev option: Don't actually sent 2FA messages, just log them
-// define('2FA_BLOCK_MESSAGES', TRUE); // Don't actually send SMS, just log the intention to send.
+// define('SMS_2FA_BLOCK_MESSAGES', TRUE); // Don't actually send SMS, just log the intention to send. was 2FA_BLOCK_MESSAGES
 
 // To use the "generate service documents" feature, add folder paths here.
 // They can be absolute paths, or relative within the documents root above.
