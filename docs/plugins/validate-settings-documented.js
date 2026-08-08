@@ -22,7 +22,9 @@ module.exports = function validateSettingsDocumentedPlugin(_context, _options) {
       const data = initData(JSON.parse(fs.readFileSync(jsonPath, 'utf8')));
       const allSettingIds = new Set(getAllSettingIds(data));
 
-      const indexContent = fs.readFileSync(indexPath, 'utf8');
+      // sms.mdx is imported into index.mdx, so its references count too.
+      const smsPath = path.join(repoRoot, 'docs', 'docs', 'administration', 'config', 'sms.mdx');
+      const indexContent = fs.readFileSync(indexPath, 'utf8') + '\n' + fs.readFileSync(smsPath, 'utf8');
 
       // Extract settings referenced via SingleSetting id="X"
       const idRegex = /\b(?:SingleSetting)\s+id\s*=\s*["']([A-Z0-9][A-Z0-9_]*)["']/g;
@@ -46,22 +48,17 @@ module.exports = function validateSettingsDocumentedPlugin(_context, _options) {
         resolved.forEach(id => documentedIds.add(id));
       }
 
-      // SMS settings should be documented via sms.mdx imported into index.mdx.
-      const smsSettings = new Set();
-      for (const id of allSettingIds) {
-        if (id.startsWith('SMS_') || id.startsWith('2FA_SMS_')) smsSettings.add(id);
-      }
-
+      // No exemptions: every jethrosettings.json entry, SMS included, must be
+      // rendered by index.mdx or by sms.mdx (which index.mdx imports).
       const missing = [...allSettingIds]
-        .filter(id => !documentedIds.has(id) && !smsSettings.has(id))
+        .filter(id => !documentedIds.has(id))
         .sort();
 
       if (missing.length > 0) {
         throw new Error(
-          'jethrosettings.json has settings not documented on config/index.mdx:\n' +
+          'jethrosettings.json has settings not documented on config/index.mdx or config/sms.mdx:\n' +
           '  ' + missing.join('\n  ') +
-          '\n\nAdd them to docs/docs/administration/config/index.mdx\n' +
-          'via SingleSetting, MultiSettings ids=, MultiSettings group=, or ensure sms.mdx covers them.'
+          '\n\nAdd them via SingleSetting, MultiSettings ids=, or MultiSettings group=.'
         );
       }
 

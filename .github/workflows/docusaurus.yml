@@ -32,6 +32,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      # docs/docs/developer/sms links into vendor/jethro/jethro-sms,
+      # so the jethro-sms package must be installed before the site builds.
+      - name: Set up PHP and Composer
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer
+      - name: Install PHP dependencies
+        run: composer install --no-dev --no-interaction --no-progress
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest

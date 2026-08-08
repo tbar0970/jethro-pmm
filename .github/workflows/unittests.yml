@@ -31,7 +31,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: [8.3, 8.4, 8.5]
+        # 8.2 is the minimum supported PHP version (composer.json platform).
+        version: [8.2, 8.3, 8.4, 8.5]
     steps:
       - name: Check out repository code
         uses: actions/checkout@v6
@@ -41,6 +42,10 @@ jobs:
         with:
           php-version: ${{ matrix.version }}
           extensions: gd, gettext, curl
+          tools: composer
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --no-progress
 
       - name: Run unit tests
         run: php tests/unit/run.php

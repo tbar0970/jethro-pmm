@@ -13,6 +13,7 @@ system_name="${2-}"
 cd "$(dirname "$(readlink -f "$0")")/../.."  # repo root: upgrades/ and testdata/ are relative
 
 dump=tests/functional/testdata/demodata-${JETHRO_VERSION}.sql.gz
+fakesmses=tests/functional/testdata/fakesmses.sql.gz
 
 [[ -f $dump ]] || { echo >&2 "We don't have sample data for $JETHRO_VERSION (no $dump)."; exit 1; }
 # Empty database first, so a reload cannot leave tables behind that the dump and
@@ -30,9 +31,17 @@ ls upgrades/*.sql | sort --version-sort | sed '0,/2\.38\.sql/ d' | while read -r
 	mariadb "$db" < "$sql"
 done
 
+echo "Loading fake SMS history: $fakesmses"
+zcat "$fakesmses" | mariadb "$db"
+
+# The database was created utf8mb4 by mariadb_recreate_db, so the 2.40 upgrade's
+# "database charset needs upgrading" flag does not apply here; clear it so test
+# users do not get that warning on the home page.
+mariadb "$db" -e "DELETE FROM setting WHERE symbol='NEEDS_UTF8MB4_UPGRADE';"
+
 if [[ -n "$system_name" ]]; then
 	mariadb "$db" -e "UPDATE setting SET value='${system_name//\'/\'\'}' WHERE symbol='SYSTEM_NAME' AND value='Functional Testing';"
 fi
 
-mariadb "$db" -sNBe "SELECT CONCAT('Loaded into \`$db\`: ', (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='$db'), ' tables, ', (SELECT COUNT(*) FROM _person), ' people');"
+mariadb "$db" -sNBe "SELECT CONCAT('Loaded into \`$db\`: ', (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='$db'), ' tables, ', (SELECT COUNT(*) FROM _person), ' people, ', (SELECT COUNT(*) FROM sms), ' SMSes');"
 echo "Connect with: devbox run mariadb $db"

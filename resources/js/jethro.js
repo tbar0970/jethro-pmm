@@ -383,13 +383,19 @@ $(document).ready(function() {
 	$('#bulk-action-chooser').change(function() {
 		$('.bulk-action').hide();
 		$('.bulk-action input, .bulk-action select, .bulk-action textarea').attr('disabled', true);
-		$('#'+this.value).show('fast', function() { try { this.scrollIntoView() } catch(e) {} });
+		$('#'+this.value).show(); try { document.getElementById(this.value).scrollIntoView(); } catch(e) {}
 		var selectedInputs = $('#'+this.value+' input, #'+this.value+' select, #'+this.value+' textarea');
 		selectedInputs
 				.attr('disabled', false)
 				.filter('[type!=radio]:visible:first').focus();
 		selectedInputs.filter('[data-toggle=enable]').attr('disabled', false).change();
 	}).change();
+	// pageshow fires after browser restores form state on back/forward navigation
+	// (the browser silently resets select values without firing 'change'), so
+	// re-trigger the handler to sync .bulk-action div visibility.
+	$(window).on('pageshow', function() {
+		$('#bulk-action-chooser').triggerHandler('change');
+	});
 
 	$('form.bulk-person-action').submit(function(event) {
 		var checkboxes = document.getElementsByName('personid[]');
@@ -419,7 +425,7 @@ $(document).ready(function() {
 
 	/************* HIGHLIGHT NOTE *****************/
 	if (document.location.hash) {
-		$(document.location.hash).filter('.notes-history-entry').addClass('highlight');
+		$(document.location.hash).filter('.history-entry').addClass('highlight');
 	}
 
 
@@ -446,9 +452,18 @@ $(document).ready(function() {
 		*/
 
 		if (document.location.hash) {
-			var targetTab = $('a[name='+document.location.hash.substr(1)+']').parents('.tab-pane');
-			if (targetTab.length) {
-				$('a[href=#'+targetTab.attr('id')+']').tab('show');
+			var hash = document.location.hash;
+			// History-entry anchors: switch to the right tab
+			if (hash.startsWith('#note_')) {
+				$('.nav-tabs a[href="#notes"]').tab('show');
+			} else if (hash.startsWith('#message_')) {
+				$('.nav-tabs a[href="#messages"]').tab('show');
+			} else {
+				// Legacy <a name> anchors: find parent tab-pane and activate
+				var targetTab = $('a[name='+hash.substr(1)+']').parents('.tab-pane');
+				if (targetTab.length) {
+					$('a[href=#'+targetTab.attr('id')+']').tab('show');
+				}
 			}
 			$(".nav-tabs li a[href='#" + window.location.hash.substr(1) + "']").click()
 		}
@@ -635,8 +650,11 @@ $(document).ready(function() {
 		JethroServiceProgram.init();
 	}
 
-	JethroSMS.init();
 
+	// Prevent sorting on columns with class no-sort
+	$('table.table-sortable').on('click.stupidtable', 'thead th.no-sort', function(e) {
+		e.stopImmediatePropagation();
+	});
 	$('table.table-sortable').stupidtable().bind('aftertablesort', function(event, data) {
 		$(this).find('th .icon-arrow-up, th .icon-arrow-down').remove();
 		var cn = (data.direction === "asc") ? 'up' : 'down';
@@ -929,201 +947,26 @@ JethroSearchChooserSingle.reinit = function(inputBox) {
 }
 
 
-/************* SMS ****************/
+// -----------------------------------------------------------------------
+// Cross-tab anchor links — switch tabs and highlight target.
+// Handles both #note_ (→ Notes tab) and #message_ (→ Messages tab).
+// -----------------------------------------------------------------------
+$(document).on('click', 'a[href^="#note_"], a[href^="#message_"]', function(e) {
+	e.preventDefault();
+	var href = this.getAttribute('href');
+	var targetId = href.slice(1);
 
-// =============================================================================
-// JethroSMS — SMS sending and character-counting module
-// =============================================================================
-// This module handles:
-//   - Real-time character counting with GSM 03.38 / UCS-2 segment calculation.
-//   - Unicode restriction enforcement (disabled / when_free modes)
-//   - Bulk SMS form submission via AJAX
-//   - Modal SMS dialog submission via AJAX
-// =============================================================================
+	// Determine target tab from the anchor prefix
+	var tabHref = href.indexOf('#note_') === 0 ? '#notes' : '#messages';
+	$('.nav-tabs a[href="' + tabHref + '"]').tab('show');
 
-var JethroSMS = {};
-
-/**
- * Initialise the SMS module.
- * Called once on page load.  Reads the unicode-enabled flag from the textarea's
- * data-sms-unicode-permitted attribute, attaches event listeners for character
- * counting, modal dialog triggers, and both submit handlers.
- */
-JethroSMS.init = function() {
-
-	// -----------------------------------------------------------------------
-	// Read unicode restriction mode from the textarea's data attribute.
-	// The PHP layer sets data-sms-unicode-permitted based on the
-	// SMS_UNICODE_PERMITTED config constant:
-	//   absent / undefined  →  Unicode allowed freely (SMS_UNICODE_PERMITTED=1)
-	//   "1"                 →  Unicode allowed freely (SMS_UNICODE_PERMITTED=1)
-	//   "0"                 →  Unicode fully disabled  (SMS_UNICODE_PERMITTED=0)
-	//   "when_free"         →  Block only if the message is >70 chars (i.e.
-	//                          would need more than one UCS-2 segment)
-	// -----------------------------------------------------------------------
-	var attr = $('#sms_message').attr('data-sms-unicode-permitted');
-	if (attr === '0') {
-		JethroSMS.unicodeMode = 'disabled';
-	} else if (attr === 'when_free') {
-		JethroSMS.unicodeMode = 'when_free';
-	} else {
-		JethroSMS.unicodeMode = 'enabled'; // '1' or absent
+	// Scroll to and highlight the target element
+	var target = document.getElementById(targetId);
+	if (target) {
+		target.classList.add('highlight');
+		target.scrollIntoView({ behavior: 'smooth', block: 'center' });
 	}
-
-	// -----------------------------------------------------------------------
-	// Attach real-time character counting to the SMS message textarea.
-	// Fires on every keystroke, paste, or property change.
-	// -----------------------------------------------------------------------
-	$('.smscharactercount').parent().find('textarea').on('keyup propertychange paste', JethroSMS.updateCharCount);
-
-	// -----------------------------------------------------------------------
-	// Modal SMS dialog trigger.
-	// When a [data-toggle="sms-modal"] element is clicked, populate the modal
-	// with recipient info and show it.
-	// -----------------------------------------------------------------------
-	$(document).on('click', '[data-toggle="sms-modal"]', function(e) {
-		var $this = $(this)
-				, href = $this.attr('href')
-				, $target = $($this.attr('data-target') || (href && href.replace(/.*(?=#[^\s]+$)/, ''))) //strip for ie7
-				, option = $target.data('modal') ? 'toggle' : $.extend({remote: !/#/.test(href) && href}, $target.data(), $this.data());
-
-		var $recipients = $this.attr('data-name');
-		var $personid = $this.attr('data-personid');
-
-		// Populate the modal with recipient names and clear previous state
-		$("#send-sms-modal .sms_recipients").html($recipients);
-		$("#sms_message").val(""); // Empty the textarea in case of reuse
-		$("#send-sms-modal .results").html(""); // Empty in case of reuse
-
-		if (!!$personid) {
-			$("#send-sms-modal").attr("data-sms_type", "person");
-			$("#send-sms-modal").attr("data-personid", $personid);
-			$("#send-sms-modal .sms-modal-option").show();
-			e.preventDefault();
-			$target.modal(option).one('hide', function() {
-				$this.focus()
-			})
-			$target.on('shown', function() { $("#sms_message").select(); })
-		} else {
-			alert('No SMS recipients found');
-		}
-		// Initialise character count display for the empty textarea
-		JethroSMS.updateCharCount.apply($("#sms_message").get(0));
-	});
-
-	// -----------------------------------------------------------------------
-	// Bulk SMS submit handler (list view).
-	// Validates that recipients are selected, checks unicode restrictions,
-	// then sends the message via AJAX.
-	// -----------------------------------------------------------------------
-	$('.bulk-sms-submit').click(function(event) {
-		var checkboxes = document.getElementsByName('personid[]');
-		if ($("input[name='personid[]']:checked").length === 0) {
-			if (confirm('You have not selected any persons. Would you like to perform this action on every person listed?')) {
-			  for (var i = 0; i < checkboxes.length; i++) {
-				checkboxes[i].checked = true;
-			  }
-			} else {
-			  TBLib.cancelValidation();
-			  return false;
-			}
-		}
-
-		// Disable the button and show "Sending..." while the AJAX call runs
-		event.preventDefault();
-		var submitBtn = $("#smshttp .bulk-sms-submit");
-		submitBtn.prop('disabled', true);
-		submitBtn.prop('value', 'Sending...');
-		submitBtn.css('cursor', 'wait');
-
-		var smsData = $(this.form).serialize();
-
-		$.ajax({
-			type: 'POST',
-			dataType: 'JSON',
-			url: '?call=sms',
-			data: smsData,
-			context: $(this),
-			error: function(jqXHR, status, error) {
-				alert('AJAX error sending SMS: ' + error);
-			},
-			success: function(data) {
-				var smsRequestCount = $("input[name='personid[]']:checked").length;
-				var resultsDiv = $('#bulk-sms-results');
-				JethroSMS.onAJAXSuccess(data, resultsDiv);
-			},
-			complete: function() {
-				var submitBtn = $("#smshttp .bulk-sms-submit");
-				submitBtn.prop('disabled', false);
-				submitBtn.prop('value', 'Send');
-				submitBtn.css('cursor', '');
-			}
-		});
-	});
-
-	// -----------------------------------------------------------------------
-	// Modal SMS submit handler.
-	// Validates the message, checks unicode restrictions, then sends via AJAX.
-	// -----------------------------------------------------------------------
-	$('#send-sms-modal .sms-submit').on('click', function(event) {
-		event.preventDefault();
-		var resultsDiv = $("#send-sms-modal .results");
-		resultsDiv.hide();
-
-		var modalDiv = $("#send-sms-modal");
-		var sms_message = $("#sms_message").val();
-		if (!sms_message) {
-			alert("Please enter a message first.");
-			return false;
-		}
-
-		// Disable the button and show "Sending..." while the AJAX call runs
-		var smsData, personid;
-			$(this).prop('disabled', true);
-			$(this).html("Sending...");
-			$("#send-sms-modal .results").hide();
-			var sendButton = $(this);
-			smsData = {
-				personid: modalDiv.attr("data-personid"),
-				saveasnote: $("#send-sms-modal .saveasnote").is(":checked") ? '1' : '0',
-				ajax: 1,
-				message: sms_message
-			}
-			$.ajax({
-				type: 'POST',
-				dataType: 'JSON',
-				url: '?call=sms',
-				data: smsData,
-				context: $(this),
-				error: function(jqXHR, status, error) {
-					alert('Server error while sending SMS');
-					console.log(jqXHR);
-					console.log(status);
-					console.log(error);
-					sendButton.html("Send");
-				},
-				success: function(data) {
-					var modalDiv = $("#send-sms-modal");
-					var showResults = JethroSMS.onAJAXSuccess(data, resultsDiv);
-					if (showResults) {
-						// Partial or all failures — show results in the modal
-						resultsDiv.show();
-						sendButton.html("Send");
-						sendButton.removeClass('sms-success');
-					} else { // Success!
-						sendButton.html('<i class="icon-ok"></i> Sent').addClass('sms-success');
-						setTimeout(function() {
-							modalDiv.modal('hide');
-							sendButton.html("Send");
-							sendButton.removeClass('sms-success');
-						}, 1000);
-					}
-					sendButton.prop('disabled', false);
-				}
-			});
-			return false;
-	});
-}
+});
 
 // -----------------------------------------------------------------------
 // Note modal — open handler
@@ -1149,6 +992,7 @@ $(document).on('click', '[data-toggle="note-modal"]', function(e) {
 	$('#add-note-modal textarea[name=details]').val('');
 	$('#add-note-modal select[name=status]').val('no_action');
 	$('#add-note-modal .results').html('').hide();
+	$('#add-note-modal #call-failures').empty().hide();
 
 	e.preventDefault();
 	$target.modal(option).one('hide', function() {
@@ -1158,6 +1002,40 @@ $(document).on('click', '[data-toggle="note-modal"]', function(e) {
 		$('#add-note-modal input[name=subject]').focus();
 	});
 });
+
+var NoteCallHandler = {
+	// -----------------------------------------------------------------------
+	// NoteCallHandler — processes JSON responses from ?call=add_note, appending any error messages to the given #call-failures
+	// div. Returns true if there were problems (error key, partial failures, or a null response).
+	// -----------------------------------------------------------------------
+	handleResponse: function(data, $failuresDiv) {
+		$failuresDiv.empty().hide();
+		var hasIssues = false;
+
+		if (!data) {
+			$failuresDiv.append('<div class="alert alert-error">Note save failed: no response from server</div>');
+			$failuresDiv.show();
+			return true;
+		}
+
+		if (data.error) {
+			$failuresDiv.append('<div class="alert alert-error">' + data.error + '</div>');
+			hasIssues = true;
+		}
+
+		if (data.failed && data.failed.count > 0) {
+			$failuresDiv.append('<div class="alert alert-error">Failed to save note for ' + data.failed.count + ' recipient(s)</div>');
+			hasIssues = true;
+		}
+
+		if (hasIssues) {
+			$failuresDiv.show();
+		}
+
+		return hasIssues;
+	}
+};
+
 
 // -----------------------------------------------------------------------
 // Note modal — submit handler
@@ -1191,12 +1069,11 @@ $(document).on('click', '#add-note-modal .note-submit', function(e) {
 		url: '?call=add_note',
 		data: data,
 		error: function() {
-			alert('Server error while saving note');
+			NoteCallHandler.handleResponse(null, $modal.find('#call-failures'));
 			$btn.prop('disabled', false).html('Save Note');
 		},
 		success: function(data) {
-			if (data.error) {
-				$results.html('<div class="alert alert-error">' + data.error + '</div>').show();
+			if (NoteCallHandler.handleResponse(data, $modal.find('#call-failures'))) {
 				$btn.prop('disabled', false).html('Save Note');
 			} else {
 				var personId = $('#note_personid').val();
@@ -1206,6 +1083,13 @@ $(document).on('click', '#add-note-modal .note-submit', function(e) {
 					$modal.modal('hide');
 					$btn.html('Save Note').removeClass('btn-success').prop('disabled', false);
 					if ($modal.data('refresh')) location.reload();
+					// When the Notes tab is visible, reload so the
+					// newly created note appears in the history list.
+					if ($('.notes-history-container').length) {
+						var newNoteId = data.sent && data.sent.note_ids && data.sent.note_ids[$('#note_personid').val()];
+						if (newNoteId) location.hash = 'note_' + newNoteId;
+						location.reload();
+					}
 				}, 1000);
 			}
 		}
@@ -1213,311 +1097,6 @@ $(document).on('click', '#add-note-modal .note-submit', function(e) {
 	return false;
 });
 
-JethroSMS.focusedTextbox = null;
-JethroSMS.personListenerInited = false;
-
-JethroSMS.setFocusedTextbox = function(box) {
-	JethroSMS.focusedTextbox = box;
-	if (!JethroSMS.personListenerInited) {
-		JethroSMS.personListenerInited = true;
-		$("input[name='personid[]'], input.select-all").click(function() {
-			JethroSMS.updateCharCount.apply(JethroSMS.focusedTextbox);
-		});
-	}
-}
-
-/**
- * Regex matching any GSM 03.38 character (basic or extended).
- * Basic set: 128 chars from the GSM 03.38 default alphabet.
- * Extended set: ^{}\[~]|€ — each counts as 2 chars in effective length.
- *
- * The regex is built from the GSM 03.38 code table:
- *   @£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ\x1BÆæßÉ
- *   space !"#$%&'()*+,-./0123456789:;<=>?
- *   ¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿
- *   abcdefghijklmnopqrstuvwxyzäöñüà
- */
-JethroSMS.GSM0338_RE = /^[@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ\x1BÆæßÉ !"#$%&'()*+,\-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà€{}\[~\]|^\\]$/;
-JethroSMS.GSM0338_EXTENDED_RE = /[€{}\[~\]|^\\]/g;
-
-/**
- * Check if a single character is valid GSM 03.38 (basic or extended).
- */
-JethroSMS.isGsm0338 = function(char) {
-	return JethroSMS.GSM0338_RE.test(char);
-};
-
-/**
- * Check if a message contains any non-GSM 03.38 characters (e.g. emojis).
- * Returns an array of the problematic characters (unique).
- */
-JethroSMS.getNonGsmChars = function(text) {
-	var seen = {};
-	for (var i = 0; i < text.length; i++) {
-		var char = text.charAt(i);
-		if (!JethroSMS.GSM0338_RE.test(char)) {
-			seen[char] = true;
-		}
-	}
-	return Object.keys(seen);
-};
-
-/**
- * Calculate the effective length of a message in GSM 03.38 encoding.
- * Extended characters count as 2.
- */
-JethroSMS.gsmLength = function(text) {
-	// Count extended chars, then add total length
-	var extCount = (text.match(JethroSMS.GSM0338_EXTENDED_RE) || []).length;
-	return text.length + extCount;
-};
-
-/**
- * Calculate the number of GSM 03.38 segments a message will use.
- * Single segment: 160 chars. Concatenated (multi-segment): 153 chars per segment
- * (7 bytes lost to the UDH header).
- */
-JethroSMS.gsmSegmentCount = function(effectiveLength) {
-	if (effectiveLength <= 160) return 1;
-	return Math.ceil((effectiveLength - 153) / 153) + 1;
-};
-
-/**
- * Calculate the number of UCS-2 segments a message will use.
- * Single segment: 70 chars. Concatenated (multi-segment): 67 chars per segment
- * (6 bytes lost to the UDH header).
- */
-JethroSMS.ucs2SegmentCount = function(charLength) {
-	if (charLength <= 70) return 1;
-	return Math.ceil((charLength - 67) / 67) + 1;
-};
-
-JethroSMS.updateCharCount = function() {
-	JethroSMS.setFocusedTextbox(this);
-	var maxlength = $(this).attr('maxlength');
-	var rawtext = this.value;
-	var segmentLength = parseInt($(this).attr('data-segment-length'), 10) || 160;
-	var ucs2SegmentLength = parseInt($(this).attr('data-ucs2-segment-length'), 10) || 70;
-	var segmentCost = parseFloat($(this).attr('data-segment-cost')) || 0;
-
-	// Detect non-GSM characters
-	var nonGsmChars = JethroSMS.getNonGsmChars(rawtext);
-	var hasNonGsm = nonGsmChars.length > 0;
-
-	// Calculate GSM 03.38 effective length (extended chars count as 2)
-	var gsmEffectiveLength = JethroSMS.gsmLength(rawtext);
-
-	// Calculate segment counts
-	var gsmSegmentCount = hasNonGsm ? 0 : JethroSMS.gsmSegmentCount(gsmEffectiveLength);
-	var ucs2SegmentCount = hasNonGsm ? JethroSMS.ucs2SegmentCount(rawtext.length) : 0;
-
-	// Determine which encoding will be used
-	var useUcs2 = hasNonGsm;
-	var effectiveSegmentCount = useUcs2 ? ucs2SegmentCount : gsmSegmentCount;
-	var effectiveLength = useUcs2 ? rawtext.length : gsmEffectiveLength;
-
-	// Build the message
-	var msg = '';
-
-	// Determine if the message is blocked by unicode restrictions
-	var isBlocked = false;
-	if (hasNonGsm && JethroSMS.unicodeMode === 'disabled') {
-		isBlocked = true;
-	} else if (hasNonGsm && JethroSMS.unicodeMode === 'when_free' && rawtext.length > 70) {
-		isBlocked = true;
-	}
-
-	// Enable/disable send buttons based on blocked state
-	$('#smshttp .bulk-sms-submit, #send-sms-modal .sms-submit').prop('disabled', isBlocked);
-
-	// Unicode disabled mode — block non-GSM characters entirely
-	if (hasNonGsm && JethroSMS.unicodeMode === 'disabled') {
-		var displayChars = nonGsmChars.join('');
-		msg = 'Unicode characters are not allowed: ' + displayChars;
-		$(this).parent().find('.smscharactercount').html(msg);
-		return;
-	}
-
-	// When-free mode — block if the message is too long for a single UCS-2 segment
-	if (hasNonGsm && JethroSMS.unicodeMode === 'when_free' && rawtext.length > 70) {
-		var displayChars = nonGsmChars.slice(0, 3).join('');
-		if (nonGsmChars.length > 3) displayChars += '…';
-		msg = '⚠ Remove special characters (' + displayChars + ') to reduce SMS cost. ';
-		$(this).parent().find('.smscharactercount').html(msg);
-		return;
-	}
-
-	// Warning for non-GSM characters — only if removing them would save a segment
-	if (hasNonGsm) {
-		// Calculate what the GSM segment count would be without non-GSM chars
-		var gsmOnly = '';
-		for (var i = 0; i < rawtext.length; i++) {
-			var c = rawtext.charAt(i);
-			if (JethroSMS.isGsm0338(c)) gsmOnly += c;
-		}
-		var gsmOnlyLength = JethroSMS.gsmLength(gsmOnly);
-		var gsmOnlySegmentCount = JethroSMS.gsmSegmentCount(gsmOnlyLength);
-
-		if (gsmOnly.length > 0 && gsmOnlySegmentCount < ucs2SegmentCount) {
-			var displayChars = nonGsmChars.slice(0, 3).join('');
-			if (nonGsmChars.length > 3) displayChars += '…';
-			msg += '⚠ Use of special characters (' + displayChars + ') — doubles the cost. ';
-		}
-	}
-
-	// Segment info
-	if (effectiveSegmentCount > 0) {
-		var recipientCount = 0;
-		var modal = $(this).parents('#send-sms-modal');
-		if (modal.length) {
-			recipientCount = modal.attr('data-personid').split(',').length;
-		} else {
-			recipientCount = $("input[name='personid[]']:checked").length;
-			if (!recipientCount) recipientCount = $("input[name='personid[]']").length;
-		}
-
-		if (hasNonGsm) {
-			// Show UCS-2 segment info
-			if ((segmentCost > 0) && (recipientCount > 0)) {
-				var cost = ucs2SegmentCount * recipientCount * segmentCost;
-				var plural = (ucs2SegmentCount > 1) ? 's' : '';
-				msg += rawtext.length + ' chars (' + ucs2SegmentCount + ' UCS-2 segment' + plural + ') to ' + recipientCount + ' recipients = $' + cost.toFixed(2) + '.';
-			} else if (ucs2SegmentCount <= 1) {
-				msg += (ucs2SegmentLength - rawtext.length) + ' characters remaining in this UCS-2 segment';
-			} else {
-				msg += rawtext.length + ' characters = ' + ucs2SegmentCount + ' UCS-2 segments';
-			}
-		} else {
-			// Show GSM 03.38 segment info
-			if ((segmentCost > 0) && (recipientCount > 0)) {
-				var cost = gsmSegmentCount * recipientCount * segmentCost;
-				var plural = (gsmSegmentCount > 1) ? 's' : '';
-				msg = gsmEffectiveLength + ' characters (' + gsmSegmentCount + ' segment' + plural + ') to ' + recipientCount + ' recipients = $' + cost.toFixed(2) + '.';
-			} else if (gsmSegmentCount <= 1) {
-				msg = (segmentLength - gsmEffectiveLength) + ' characters remaining in this message segment';
-			} else {
-				msg = gsmEffectiveLength + ' characters = ' + gsmSegmentCount + ' message segments';
-			}
-		}
-
-		if (effectiveLength >= maxlength) {
-			msg = 'Max length reached. ' + msg;
-		}
-	}
-
-	$(this).parent().find('.smscharactercount').html(msg);
-}
-
-/**
- *
- * @param object data
- * @param object resultsDiv
- * @returns {Boolean} TRUE if the modal window should be kept open to display errors.
- */
-JethroSMS.onAJAXSuccess = function (data, resultsDiv) {
-	var sentCount = 0,
-	failedCount = 0,
-	archivedCount = 0,
-	blankCount = 0,
-	rawresponse = '',
-	statusBtn;
-
-	if (data.sent !== undefined) { sentCount = data.sent.count; }
-	if (data.failed !== undefined) { failedCount = data.failed.count; }
-	if (data.failed_archived !== undefined) { archivedCount = data.failed_archived.count; }
-	if (data.failed_blank !== undefined) { blankCount = data.failed_blank.count; }
-	if (data.rawresponse !== undefined) { rawresponse = data.rawresponse; }
-
-	resultsDiv.html(""); // Reset results in case there's something there
-	var message = '';
-	if (data.error!==undefined) {
-		alert('Server error sending SMS\n'+data.error);
-		return true;
-	}
-	if (sentCount > 0) {
-		if (sentCount == 1) {
-			var recip = data.sent.recipients[Object.keys(data.sent.recipients)[0]];
-			message = 'Message successfully sent to '+recip.first_name+' '+recip.last_name;
-		} else {
-			message = 'Message successfully sent to '+sentCount+' recipients';
-		}
-		JethroSMS.appendAlert(resultsDiv, 'alert-success', message, sentCount == 1 ? null : data.sent.recipients);
-		JethroSMS.markRecipientStatuses(data.sent.recipients, 'sms-success', 'SMS sent', true);
-
-		if (!data.sent.confirmed) {
-			JethroSMS.appendAlert(resultsDiv, '', 'Unable to confirm whether SMS sending was successful. Please check your system SMS configuration.');
-		}
-	}
-
-	if (blankCount > 0) {
-		if (blankCount == 1) {
-			var recip = data.failed_blank.recipients[Object.keys(data.failed_blank.recipients)[0]];
-			message = recip.first_name+' '+recip.last_name+' was not sent the message because they have no mobile number';
-		} else {
-			message = blankCount+' recipients were not sent the message because they have no mobile number';
-		}
-		JethroSMS.appendAlert(resultsDiv, '', message, blankCount == 1 ? null : data.failed_blank.recipients);
-		JethroSMS.markRecipientStatuses(data.failed_blank.recipients, 'sms-failure', null, false);
-	}
-
-	if (archivedCount > 0) {
-		if (archivedCount == 1) {
-			var recip = data.failed_archived.recipients[Object.keys(data.failed_archived.recipients)[0]];
-			message = recip.first_name+' '+recip.last_name+' was not sent the message because they are archived';
-		} else {
-			message = archivedCount+' archived persons were not sent the message';
-		}
-		JethroSMS.appendAlert(resultsDiv, '', message, archivedCount == 1 ? null : data.failed_archived.recipients);
-		JethroSMS.markRecipientStatuses(data.failed_archived.recipients, 'sms-failure', 'SMS not sent - person is archived', false);
-	}
-
-	if (failedCount > 0) {
-		if (failedCount == 1) {
-			var recip = data.failed.recipients[Object.keys(data.failed.recipients)[0]];
-			message = 'SMS sending failed for '+recip.first_name+' '+recip.last_name;
-		} else {
-			message = 'SMS sending failed for '+failedCount+' recipients';
-		}
-		JethroSMS.appendAlert(resultsDiv, 'alert-error', message, failedCount == 1 ? null : data.failed.recipients);
-		JethroSMS.markRecipientStatuses(data.failed.recipients, 'sms-failure', 'SMS failed', false);
-	}
-
-	return ((failedCount > 0) || (archivedCount > 0) || ( blankCount > 0) || ( sentCount == 0) || (data.error !== undefined));
-}
-
-JethroSMS.appendAlert = function(parent, className, content, recipients)
-{
-	if (recipients) {
-		content += '<p>';
-		var count = 0;
-		var personID;
-		for (personID in recipients) {
-			if (recipients.hasOwnProperty(personID)) {
-				if (count > 0) {
-					content += ", ";
-				}
-				count = count + 1;
-				content += $('<span>').text(recipients[personID]['first_name'] + " " + recipients[personID]['last_name']).html();
-			}
-		}
-		content += '</p>';
-	}
-	parent.append('<div class="alert ' + className + '">' + content + '</div>');
-
-}
-
-JethroSMS.markRecipientStatuses = function(recipients, rowClass, buttonMessage, untick)
-{
-	var personID;
-	for (personID in recipients) {
-		if (recipients.hasOwnProperty(personID)) {
-			if (rowClass) $('tr[data-personid=' + personID + ']').addClass(rowClass);
-			if (untick)
-				$('tr[data-personid=' + personID + '] input[type=checkbox]').attr('checked', false);
-			if (buttonMessage) $('tr[data-personid=' + personID + '] .btn-sms').attr('title', buttonMessage);
-		}
-	}
-}
 
 var JethroServiceProgram = {};
 
@@ -2695,42 +2274,95 @@ function updateTeams() {
 	const assign_multiple = document.querySelector('select[name=assign_multiple]').value == '1'
 	document.querySelector('#field-teams').hidden = !assign_multiple
 }
+ /**
+  * Note list filtering — sidebar checkboxes to filter notes by status and assignee.
+  *
+  * Bound to .note-status-filter checkboxes (one per note status) and
+  * #note-assignee-filter checkbox.  Filters .history-entry elements within
+  * .notes-history-container, showing/hiding them with a slide animation.
+  *
+  * @param {number} currentUserId  The current user's person ID for assignee filtering.
+  */
+ function initNoteFilters(currentUserId) {
+ 	var $statusFilters = $('.note-status-filter');
+ 	var $assigneeFilter = $('#note-assignee-filter');
+ 
+ 	function applyFilters() {
+ 		var activeStatuses = {};
+ 		$statusFilters.each(function() {
+ 			activeStatuses[this.value] = this.checked;
+ 		});
+ 		var showAllAssignees = !$assigneeFilter.length || !$assigneeFilter.prop('checked');
+ 
+ 		$('.notes-history-container .history-entry').each(function() {
+ 			var $entry = $(this);
+ 			var $statusDiv = $entry.find('.status');
+ 			if (!$statusDiv.length) return;
+ 
+ 			var status = $statusDiv.attr('data-note-status');
+ 			var visible = activeStatuses[status];
+ 			if (visible && !showAllAssignees) {
+ 				var assignee = $statusDiv.attr('data-note-assignee');
+ 				visible = (assignee == currentUserId);
+ 			}
+ 
+ 			$entry.stop(true, true)[visible ? 'slideDown' : 'slideUp'](250);
+ 		});
+ 	}
+ 
+ 	$statusFilters.add($assigneeFilter).on('change', applyFilters);
+ };
+ 
 
-/**
- * Note list filtering — sidebar checkboxes to filter notes by status and assignee.
- *
- * Bound to .note-status-filter checkboxes (one per note status) and
- * #note-assignee-filter checkbox.  Filters .history-entry elements within
- * .notes-history-container, showing/hiding them with a slide animation.
- *
- * @param {number} currentUserId  The current user's person ID for assignee filtering.
- */
-function initNoteFilters(currentUserId) {
-	var $statusFilters = $('.note-status-filter');
-	var $assigneeFilter = $('#note-assignee-filter');
+// Mobile-tel dropdown — built client-side from data attributes, to avoid
+// sending the full menu markup for every person row over the wire.
+// Built lazily on mouseenter/focus/touchstart (events that always precede
+// a click) rather than on click itself, so that by the time the click
+// happens, data-toggle="dropdown" is already set and Bootstrap 2.3.1's own
+// native dropdown handlers can take over open/close/toggle unmodified.
+$(document).on('mouseenter focus touchstart', 'a.mobile-tel:not([data-toggle="dropdown"])', function(e) {
+	var $btn = $(this);
+	var data = $btn.data();
+	var smsConfigured = ($('meta[name="jethro-sms-configured"]').attr('content') === '1');
+	var isNarrow = ($('meta[name="jethro-is-narrow"]').attr('content') === '1');
+	var isMac = ($('meta[name="jethro-is-mac"]').attr('content') === '1');
+	var items = [];
 
-	function applyFilters() {
-		var activeStatuses = {};
-		$statusFilters.each(function() {
-			activeStatuses[this.value] = this.checked;
-		});
-		var showAllAssignees = !$assigneeFilter.length || !$assigneeFilter.prop('checked');
+	// Call
+	items.push('<li><a href="tel:' + data.mobilenumber + '"><i class="icon-phone"></i> Call</a></li>');
 
-		$('.notes-history-container .notes-history-entry').each(function() {
-			var $entry = $(this);
-			var $statusDiv = $entry.find('.status');
-			if (!$statusDiv.length) return;
-
-			var status = $statusDiv.attr('data-note-status');
-			var visible = activeStatuses[status];
-			if (visible && !showAllAssignees) {
-				var assignee = $statusDiv.attr('data-note-assignee');
-				visible = (assignee == currentUserId);
-			}
-
-			$entry.stop(true, true)[visible ? 'slideDown' : 'slideUp'](250);
-		});
+	// SMS via Jethro
+	if (smsConfigured) {
+		if (data.optedout) {
+			items.push('<li class="disabled"><span class="sms-opted-out" title="This person has opted out of receiving SMS"><i class="icon-envelope"></i> SMS via Jethro</span></li>');
+		} else {
+			// Escape the attribute values: a quote in a name would otherwise
+			// break out of data-name (items are joined into HTML below).
+			var nameAttr = $('<div>').text(data.name).html().replace(/"/g, '&quot;');
+			var pidAttr = $('<div>').text(data.personid).html().replace(/"/g, '&quot;');
+			items.push('<li><a href="#send-sms-modal" data-toggle="sms-modal" data-personid="' + pidAttr + '" data-name="' + nameAttr + '"><i class="icon-envelope"></i> SMS via Jethro</a></li>');
+		}
 	}
 
-	$statusFilters.add($assigneeFilter).on('change', applyFilters);
-};
+	// iMessage (Mac) or device SMS (narrow)
+	if (isMac) {
+		items.push('<li><a href="imessage:' + data.mobilenumber + '"><i class="icon-envelope"></i> SMS via iMessage</a></li>');
+	} else if (isNarrow) {
+		var deviceLabel = smsConfigured ? 'SMS via my device' : 'SMS';
+		items.push('<li><a href="sms:' + data.mobilenumber + '"><i class="icon-envelope"></i> ' + deviceLabel + '</a></li>');
+	}
+
+	// WhatsApp
+	items.push('<li><a href="https://wa.me/' + data.international + '" target="_whatsapp"><i class="icon-comment"></i> Send WhatsApp</a></li>');
+
+	// Copy
+	items.push('<li><a data-action="copy" data-target="#mobile-' + data.personid + '"><i class="icon-copy"></i> Copy number</a></li>');
+
+	// Build Bootstrap dropdown structure around the anchor
+	$btn.attr('data-toggle', 'dropdown');
+	$btn.wrap('<span class="dropdown nowrap"></span>');
+	$btn.after('<ul class="dropdown-menu mobile-tel-menu" role="menu" aria-labelledby="' + $btn.attr('id') + '">' + items.join('') + '</ul>');
+});
+
+
+

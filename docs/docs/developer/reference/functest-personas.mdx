@@ -20,12 +20,11 @@ via `tests/functional/testdata/import_demodata.sh`) ships six restricted account
 | Username | Person | Permissions (decoded) | Restrictions | Test asserts |
 |---|---|---|---|---|
 | `demo` | Dennis Demo | `PERM_SYSADMIN` (all bits) | none | the read-only nouns walk |
-| `6pmonly` | Nakia Lockman | everything except `PERM_SYSADMIN`-only views; has `PERM_VIEWSMS` | congregation 4pm... no — congregation **6pm** (id 4) | persons limited to 6pm; attendance cohorts limited to 6pm; User Accounts view denied |
+| `6pmonly` | Nakia Lockman | everything except `PERM_SYSADMIN`-only views; has `PERM_VIEWSMS` | congregation **6pm** (id 4) | persons limited to 6pm; attendance cohorts limited to 6pm; User Accounts view denied |
 | `rostersetter` | Coleman Champlin | `VIEWROSTER`, `EDITROSTER`, `MANAGEROSTERS`, `SENDSMS`, `VIEWSMS` | none | roster views open; services/attendance/`_execute_plans` denied |
 | `smallgroupleader` | — | `VIEWATTENDANCE`, `EDITATTENDANCE`, `SENDSMS`, `VIEWSMS` | groups 9, 11 | only those groups visible; person visibility follows group membership; attendance open |
 | `bandleader` | — | `EDITPERSON`, `SENDSMS`, `VIEWSMS`, `VIEWROSTER`, `EDITROSTER`, `VIEWSERVICE`, `EDITSERVICE`, `BULKSERVICE`, `SERVICECOMPS` | congregation 2 (4pm) + groups 32, 33 | persons/groups scoped; services + component library open; attendance denied |
 | `kidscare` | — | `EDITPERSON`, `VIEWMYNOTES`, `VIEWATTENDANCE`, `EDITATTENDANCE` (no SMS perms) | congregation 3 (4pm Kids) | persons/attendance scoped; Messages view denied |
-| `6pmonly` | Nakia Lockman | everything except `PERM_SYSADMIN`-only views; has `PERM_VIEWSMS` | congregation **6pm** (id 4) | persons limited to 6pm; attendance cohorts limited to 6pm; User Accounts view denied |
 
 ## How enforcement works (and therefore what the tests pin)
 
@@ -34,7 +33,8 @@ via `tests/functional/testdata/import_demodata.sh`) ships six restricted account
   off `account_congregation_restriction` / `account_group_restriction` and
   `getCurrentUserID()`. Accounts with no restriction rows see everything —
   permissions play no part in visibility. `noperms` exploits this: it must still be
-  denied every *action*.
+  denied every *action*. Restrictions apply to staff sessions only, never in the
+  members area (see `db-session-identity.md`).
 - **Congregation lists/choosers** are scoped by
   `Congregation::getInstancesQueryComps()` via
   `User_System::getCurrentRestrictions()`.

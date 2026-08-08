@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "737b06229d69e222c03dd7c06d0c2277",
+    "content-hash": "0483dc8386c8e931a6f00d2e9d80ae35",
     "packages": [
         {
             "name": "cweagans/composer-configurable-plugin",
@@ -318,6 +318,128 @@
                 }
             ],
             "time": "2025-03-06T22:45:56+00:00"
+        },
+        {
+            "name": "jethro/jethro-sms",
+            "version": "2.40.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jethro-chms/jethro-sms.git",
+                "reference": "ad938a94f59c728ddd4d7ffb9ca4892cc0a0bdaf"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jethro-chms/jethro-sms/zipball/ad938a94f59c728ddd4d7ffb9ca4892cc0a0bdaf",
+                "reference": "ad938a94f59c728ddd4d7ffb9ca4892cc0a0bdaf",
+                "shasum": ""
+            },
+            "require": {
+                "ext-mbstring": "*",
+                "jethro/jethro-utils": "^1.0",
+                "php": ">=8.2"
+            },
+            "bin": [
+                "bin/jethro-sms"
+            ],
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/load.php"
+                ]
+            },
+            "scripts": {
+                "test": [
+                    "php tests/run.php"
+                ]
+            },
+            "license": [
+                "Apache-2.0"
+            ],
+            "description": "Provider-agnostic SMS engine and CLI: MobileMessage, 5CentSMS v5, Cellcast; token expansion, segment/cost maths, opaque sender-registration state machines.",
+            "support": {
+                "source": "https://github.com/jethro-chms/jethro-sms/tree/2.40.2",
+                "issues": "https://github.com/jethro-chms/jethro-sms/issues"
+            },
+            "time": "2026-10-31T12:02:44+00:00"
+        },
+        {
+            "name": "jethro/jethro-url-shortener",
+            "version": "v0.2.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jethro-chms/jethro-url-shortener.git",
+                "reference": "83d4b8083163c0b558e3e14d29389210fba73427"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jethro-chms/jethro-url-shortener/zipball/83d4b8083163c0b558e3e14d29389210fba73427",
+                "reference": "83d4b8083163c0b558e3e14d29389210fba73427",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-hash": "*",
+                "ext-json": "*",
+                "php": ">=8.1"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/php/UrlShortener.php"
+                ]
+            },
+            "scripts": {
+                "test": [
+                    "php src/php/test.php"
+                ]
+            },
+            "license": [
+                "Apache-2.0"
+            ],
+            "description": "Self-hosted URL shortener on Cloudflare Workers with deterministic codes and multi-key auth",
+            "support": {
+                "source": "https://github.com/jethro-chms/jethro-url-shortener/tree/v0.2.3",
+                "issues": "https://github.com/jethro-chms/jethro-url-shortener/issues"
+            },
+            "time": "2026-10-30T13:33:24+00:00"
+        },
+        {
+            "name": "jethro/jethro-utils",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jethro-chms/jethro-utils.git",
+                "reference": "e30eb66dc9c3499d3607001387e8143743b3fc21"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jethro-chms/jethro-utils/zipball/e30eb66dc9c3499d3607001387e8143743b3fc21",
+                "reference": "e30eb66dc9c3499d3607001387e8143743b3fc21",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.2"
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "src/Result.php"
+                ]
+            },
+            "scripts": {
+                "test": [
+                    "php tests/run.php"
+                ]
+            },
+            "license": [
+                "Apache-2.0"
+            ],
+            "description": "Small helpers shared by Jethro and its packages: the \\Result type.",
+            "support": {
+                "source": "https://github.com/jethro-chms/jethro-utils/tree/v1.0.0",
+                "issues": "https://github.com/jethro-chms/jethro-utils/issues"
+            },
+            "time": "2026-10-30T23:36:53+00:00"
         },
         {
             "name": "laminas/laminas-escaper",
@@ -1455,7 +1577,52 @@
             "time": "2026-07-27T15:39:01+00:00"
         }
     ],
-    "packages-dev": [],
+    "packages-dev": [
+        {
+            "name": "jethro/smsmockserver",
+            "version": "v1.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jethro-chms/smsmockserver.git",
+                "reference": "680969476b02d513fa65d241c7b46fc88db634cb"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jethro-chms/smsmockserver/zipball/680969476b02d513fa65d241c7b46fc88db634cb",
+                "reference": "680969476b02d513fa65d241c7b46fc88db634cb",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-pdo_mysql": "*",
+                "php": ">=8.2"
+            },
+            "bin": [
+                "bin/check",
+                "bin/record"
+            ],
+            "type": "project",
+            "autoload": {
+                "psr-4": {
+                    "SmsMockServer\\": "src/"
+                }
+            },
+            "scripts": {
+                "start": [
+                    "php -S 127.0.0.1:${SMSMOCK_PORT:-8083} -t webroot webroot/index.php"
+                ],
+                "test": [
+                    "php tests/run.php"
+                ]
+            },
+            "description": "Mock Cellcast, 5CentSMS v5 and MobileMessage APIs for functional tests",
+            "support": {
+                "source": "https://github.com/jethro-chms/smsmockserver/tree/v1.0.1",
+                "issues": "https://github.com/jethro-chms/smsmockserver/issues"
+            },
+            "time": "2026-11-05T03:47:01+00:00"
+        }
+    ],
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
@@ -1466,7 +1633,7 @@
     "platform": {},
     "platform-dev": {},
     "platform-overrides": {
-        "php": "8.1.0"
+        "php": "8.2.0"
     },
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }

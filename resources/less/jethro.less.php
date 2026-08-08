@@ -1,3 +1,4 @@
+<?php header('Content-Type: text/plain'); ?>
 /* Define our colours (may be overriden in CUSTOM_LESS_VARS for conf.php below) */
 
 @jethroDarkest: #858A9B;
@@ -25,13 +26,18 @@
 };
 
 <?php
-/* Load any custom vars from conf.php */
+/* Load any custom vars from conf.php.
+ * Wrap in output buffering: conf.php may emit warnings (e.g. "Constant
+ * already defined" when env vars clash with bare defines) which would
+ * corrupt the LESS output stream. */
 if (!defined('JETHRO_ROOT')) {
 	define('JETHRO_ROOT', dirname($_SERVER['SCRIPT_FILENAME'], 3));
 }
 $confFile = JETHRO_ROOT.'/conf.php';
 if (is_readable($confFile)) {
+	ob_start();
 	require_once $confFile;
+	ob_end_clean();
 	if (defined('CUSTOM_LESS_VARS')) echo CUSTOM_LESS_VARS;
 }
 ?>
@@ -89,7 +95,6 @@ if (is_readable($confFile)) {
 .hovered, .hovered td, tr#selected td {
 	background: #d3d6e1 !important;
 }
-
 
 /******************** LOGIN *******************/
 #login-box {
@@ -243,6 +248,7 @@ body {
 @media (min-width: 1025px) {
 	#jethro-overall-width {
 		min-width: 1025px;
+		max-width: 1400px;
 	}
 }
 @media (max-width: 1025px) {
@@ -649,6 +655,18 @@ form.min {
 .icon-phone {
 	background: url(../img/phone.png) no-repeat !important;
 }
+.icon-sms {
+	background: url(../img/sms.svg) no-repeat !important;
+	background-size: contain !important;
+	height: 18px;
+	width: 18px;
+}
+.icon-sms-multi {
+	background: url(../img/sms-multi.svg) no-repeat !important;
+	background-size: contain !important;
+	height: 18px;
+	width: 18px;
+}
 .modal form {
 	margin: 0px;
 }
@@ -774,8 +792,8 @@ code {
 }
 #body .soft, .soft { /* low-key links */
 	font-size: 85%;
-	padding-top: 1px;
-	color: #aaa !important;
+	padding: 1px;
+	color: #777 !important;
 }
 #body .table thead th .soft, #body .table tfoot th .soft {
 	color: #ccc !important;
@@ -1819,6 +1837,18 @@ table.service-details td table td input {
 	line-height: 12px !important;
 }
 
+	/* Transparent button for icon toggles: pencil edit, delete, etc. */
+	.editbutton {
+	    background-color: transparent;
+	    border: 0px;
+	    margin: 0px;
+	    padding: 0px;
+	    color: #aaa;
+	    font-size: 1em;
+	    vertical-align: middle;
+	}
+	.editbutton:hover { color: #333; }
+
 /* When editing a service schedule, The 'delete this service' and 'delete all services' buttons must render as just an icon, without button decoration */
 #body table.service-program tr td button {
     background-color: transparent;
@@ -1848,13 +1878,9 @@ table.service-details td table td input {
 }
 
 /* Pencil toggle button that switches a service date cell between read-only and editable */
-#body table.service-program .service-date-edit-toggle {
-	color: #aaa;
+.service-date-edit-toggle {
 	padding: 0 2px;
-	font-size: 1em;
-	vertical-align: middle;
 }
-#body table.service-program .service-date-edit-toggle:hover { color: #333; }
 
 /* Six-dot grip used as a drag handle to reorder service rows */
 #body table.service-program .drag-handle {
@@ -1867,49 +1893,53 @@ table.service-details td table td input {
 #body table.service-program .drag-handle:hover { color: #555; }
 
 
-/*********** NOTES **************/
-.notes-history-entry small {
+/*********** HISTORY (NOTES & MESSAGES) **************/
+.history-entry small {
 	display: inline;
 }
-.notes-history-entry.well {
+.history-entry.well {
 	padding: 20px 20px 10px 20px;
 	max-width: 40em;
 }
-.notes-history-entry.well > [class^="icon-"], .notes-history-entry.well > [class*=" icon-"]  {
+.history-entry.well > [class^="icon-"], .history-entry.well > [class*=" icon-"]  {
 	position: absolute;
 	margin-left: 1px;
 }
-#body .notes-history-entry blockquote {
+#body .history-entry blockquote {
 	margin-bottom: 10px;
 	margin-left: 1.5em;
 }
-#body .notes-history-entry p {
+
+.history-entry.latest-entry {
+	box-shadow: 0 0 12px rgba(0, 119, 204, 0.45);
+}
+#body .history-entry p {
 	margin: 0px;
 	font-size: 14px; /* override bootstrap special blockquote size */
 	line-height: 1.3em;
 	margin-bottom: 4px;
 }
-.notes-history-entry p.subject {
+.history-entry p.subject {
 	font-weight: bold;
 	border: 0px;
 	margin: 0px;
 }
 
-.notes-history-entry .author {
+.history-entry .author {
 	font-style: italic;
 	font-size: 0.8em;
 	line-height: 1.1em;
 }
-.notes-history-entry h4 {
+.history-entry h4 {
 	margin: -10px 0px 7px 0px;
 }
-.notes-history-entry h4.note-update {
+.history-entry h4.note-update {
 	margin-left: 45px;
 	color: @grayLight;
 	border-bottom: 1px solid @jethroDarkish;
 	margin-top: 15px;
 }
-.notes-history-entry .comments {
+.history-entry .comments {
 	margin-left: 25px;
 	margin-top: 15px;
 }
@@ -1924,6 +1954,54 @@ table.service-details td table td input {
 	position: sticky;
 	top: 5px;
 }
+.sms-history-layout {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	align-items: start;
+}
+/* Sidebar appears first in DOM; grid-column/grid-row place it visually to the
+   right in the same row as the table despite DOM order. */
+.sms-history-layout > .panel-sidebar {
+	grid-column: 2;
+	grid-row: 1;
+}
+.sms-history-table {
+	grid-column: 1;
+	grid-row: 1;
+}
+
+/* Let the browser skip layout for off-screen history rows.
+   Dramatically reduces filter-update cost with 200+ rows. */
+.sms-history-table tbody tr {
+	content-visibility: auto;
+	contain-intrinsic-size: auto 3.2em;
+}
+/* Recipients can list many names; never let them wrap. Used by
+   views/view_3_persons__5_messages.class.php (Messages page). */
+.sms-history-recipients {
+	white-space: nowrap;
+}
+.sms-history-actions {
+    white-space: nowrap;
+}
+/* Recipients column: cap height so a row with many recipients doesn't
+   force the row taller than the Body cell's natural height.
+   updateSmsCostSum() in jethro-sms.js dynamically sets
+   max-height to the Body cell's computed height per visible row.
+   The 8em here is a static fallback for rows measured before JS runs
+   or if JS is unavailable. */
+.sms-history-recipients-scroll {
+	max-height: 8em;
+	overflow-y: auto;
+	white-space: nowrap;
+}
+
+#sms-cost-total {
+    font-size: 1em;
+white-space: nowrap;
+
+}
+
 .panel-sidebar fieldset {
 	border: 0;
 	margin: 0;
@@ -1932,11 +2010,32 @@ table.service-details td table td input {
 .panel-sidebar legend {
 	display: inline;
 	width: auto;
-	margin: 1em 0 0.5em 0;
+	margin: 1em 0 -0.9em 0;
 	padding-right: 8px;
 	font-size: 0.85em;
 }
+/* Bootstrap's .checkbox label reserves left padding for the checkbox icon.
+   These labels wrap a plain text/date input or a div instead, so the
+   reserved space is removed. Used by the SMS history filter sidebar —
+   views/view_3_persons__5_messages.class.php. */
+.sms-filter-noindent {
+	padding-left: 0;
+}
 
+/* Date filter rows: keep "From"/"To" labels always to the left of their
+   date inputs so they never wrap apart.  Used by
+   views/view_3_persons__5_messages.class.php. */
+.sms-filter-dates {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+.sms-filter-date-row {
+	display: flex;
+	align-items: baseline;
+	gap: 4px;
+	white-space: nowrap;
+}
 /********* ATTENDANCE AND COLOURED RADIO BUTTONS **********/
 
 	div.radio-button-group {
@@ -2145,6 +2244,8 @@ span.group-chooser-container {
 	min-width: 50%;
 	max-width: 100%;
 }
+
+
 .documents-container .parent-folder {
 	display: none;
 }
@@ -2355,6 +2456,12 @@ div.service-content {
 	margin-top: 1ex;
 	margin-bottom: 0px;
 }
+.service-content h5 {
+	color: @grayLight;
+	margin-top: 1.5ex;
+	margin-bottom: 1ex
+}
+
 table.run-sheet tbody td {
 	background-color: @jethroLightest;
 }
@@ -2592,6 +2699,10 @@ td.run-sheet-comments * {
 
 
 /*************** SMS MESSAGING ************************/
+span.config-help, label.config-help {
+	cursor: help;
+}
+
 a.sms-success, #body tr.sms-success .mobile-tel, #body tr.sms-success .mobile-tel:hover {
 	background: #d8e9cb; /* Old browsers */
 	background: -moz-linear-gradient(top, #d8e9cb 0%, #abdc88 99%, #abdc88 99%, #d8e9cb 100%); /* FF3.6-15 */
@@ -2623,6 +2734,50 @@ div#send-sms-modal div.results {
 
 div#send-sms-modal div.results {
   text-align: left;
+}
+
+#sms-statusline p {
+	margin: 0;
+}
+
+/* SMS counter: the live client-side char count and the server-rendered
+   segment/cost statusline share one line. The "SMS settings·" separator is drawn only
+   when the statusline has content, so a bare char count never trails one. */
+.smscharactercount .sms-charcount-instant,
+.sms-statusline-cost,
+.sms-statusline-cost p {
+	display: inline;
+}
+.sms-statusline-cost p {
+	margin: 0;
+}
+.sms-statusline-cost:not(:empty)::before {
+	content: " · ";
+	color: #999;
+}
+
+/* Narrower control-label for the SMS form — labels like "To:" don't need 160px */
+#smshttp .control-label,
+#send-sms-modal .control-label {
+  width: 70px;
+}
+#smshttp .controls,
+#send-sms-modal .controls {
+  margin-left: 90px;
+}
+
+#smshttp label.checkbox.sms-preview-toggle {
+  margin-top: 1em;
+}
+
+/* Greyed-out "Send SMS" link / number for opted-out persons */
+.sms-opted-out {
+	color: #999;
+	cursor: not-allowed;
+}
+.dropdown-menu li.disabled .sms-opted-out {
+	display: block;
+	padding: 3px 20px;
 }
 
 
@@ -2756,6 +2911,17 @@ div#send-sms-modal div.results {
 		border-bottom: 2px solid;
 	}
 }
+
+/**
+ * Highlight a setting on the system configuration page when its anchor
+ * is in the URL (e.g. ?view=admin__system_configuration#SMS_SENDER_OPTIONS).
+ *
+ * Uses the CSS :target pseudo-class — no JavaScript required.
+ */
+.settings-page :target {
+	background-color: #fff3cd;
+}
+
 /**
  * Boolean state icons: green tick / red cross, e.g.:
  *
@@ -2817,6 +2983,14 @@ div#send-sms-modal div.results {
 	border: 1px solid #e0e0e0;
 	border-radius: 4px;
 	padding: 0.5rem 0.75rem;
+}
+
+/* Required/optional marker in the SMS "not configured" constants table. */
+.sms-constant-required {
+	color: #b94a48;
+}
+.sms-constant-optional {
+	color: #999;
 }
 
 /**

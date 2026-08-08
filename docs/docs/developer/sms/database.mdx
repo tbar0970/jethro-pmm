@@ -1,0 +1,183 @@
+---
+sidebar_position: 4
+---
+
+# SMS Database Tables
+
+Schema source: `upgrades/2026-upgrade-to-2.40-sms.sql` (SMS tables) and
+`upgrades/2026-upgrade-to-2.40.sql` (main schema). All tables and columns
+are defined there. This page documents the semantics that aren't obvious from
+column names alone.
+
+## Entity-Relationship Diagram
+
+
+```
+┌──────────────┐       ┌──────────────────┐       ┌────────────────────────────────────┐
+│  _person     │       │  sms             │       │  _smsdelivery (view: smsdelivery)  │
+├──────────────┤       ├──────────────────┤       ├────────────────────────────────────┤
+│ id        PK │◄──┐   │ id            PK │──┐    │ id           PK                    │
+│ first_name   │   │   │ body             │  │    │ sms_id       FK ──────────────────┐│
+│ last_name    │   │   │ sender        FK │  └───►│ personid     FK ───┐              ││
+│ mobile_tel   │   │   │ wire_sender      │       │ remote_id          │              ││
+│ congregation │   │   │ created          │       │ raw_response       │              ││
+│ familyid  FK │   │   │ scheduled_send   │       │ body               │              ││
+└──────────────┘   │   └──────────────────┘       │ provider           │              ││
+                   │                              │ status             │              ││
+                   │                              │ delivered_at       │              ││
+                   │                              │ segments_used      │              ││
+                   │                              │ per_segment_cost   │              ││
+                   │                              │ cost_bearer        │              ││
+                   │                              └────────────────────┘              ││
+                   │                                       │  │                       ││
+                   │                              ┌────────┘  └──────────┐            ││
+                   │                              │                      │            ││
+┌──────────────────┴─┐                    ┌──────▼──────┐       ┌───────▼────────┐   ││
+│  person_note       │                    │  sms_note   │       │ _abstract_note │   ││
+├────────────────────┤                    ├─────────────┤       ├────────────────┤   ││
+│ personid  PK,FK    │◄───────────────────│ personid    │       │ id          PK │   ││
+│ id        PK,FK ───┼───────────────────►│ id          │───┐   │ subject        │   ││
+└────────────────────┘                    │ smsdelivery │   └──►│ details        │   ││
+                                          └─────────────┘       │ status         │   ││
+                                                                 │ creator     FK │   ││
+┌──────────────────────┐                                        │ assignee    FK │   ││
+│ sms_registered_sender│                                        └────────────────┘   ││
+├──────────────────────┤                                                             ││
+│ phone   PK           │                                                             ││
+│ registered_at        │                                                             ││
+└──────────────────────┘                                                             ││
+```
+
+**Key relationships** (FK columns versus diagram lines):
+
+- `sms.sender` → `_person.id` (nullable: NULL for script sends)
+- `_smsdelivery.sms_id` → `sms.id`: one send produces one delivery row per recipient (CASCADE delete)
+- `_smsdelivery.personid` → `_person.id` (nullable: NULL if raw mobile number)
+- `sms_note.(personid, id)` → `person_note.(personid, id)`: the note lives in the `person_note` / `_abstract_note` system
+- `sms_note.smsdelivery_id` → `_smsdelivery.id`: a delivery may have zero or one linked notes (CASCADE delete)
+- `person_note.id` → `_abstract_note.id`
+- `sms_registered_sender.personid` → `_person.id`: the person a sender number is verified for. A number belongs to the first person verified for it; `DbLoggingSmsProvider::verifySenderNumber()` reads it before asking the provider, and claims an unowned number when the provider reports it verified
+
+
+All FK relationships reference `_person`, never `person` (MySQL cannot create
+foreign keys against views — see below).
+
+## Provider column
+
+`smsdelivery.provider` records the **upstream SMS company and API version** that
+sent the delivery (`SmsProvider::getKey()`), so its `raw_response` can always be
+interpreted. It is not a PHP class name and not the `SMS_PROVIDER` setting.
+
+| Value | Upstream API | Provider class |
+|---|---|---|
+| `5centsmsv5` | 5CentSMS v5 REST API | `FiveCentSmsV5Provider` |
+| `5centsmsv4` | 5CentSMS v4 HTTP API | `FiveCentSmsV4Provider` |
+| `cellcastv1` | Cellcast `/api/v1` | `CellcastSmsProvider` |
+| `mobilemessagev1` | MobileMessage `/v1` | `MobileMessageSmsProvider` |
+| NULL | Unknown: generic `SMS_HTTP_*` template gateway, or a 2.39 "SMS Sent" note migrated from a site whose `SMS_HTTP_URL` wasn't the 5CentSMS v4 endpoint in the `setting` table | `TemplateSmsProvider` / none |
+
+- **Versioning rule:** when an upstream API changes incompatibly, the provider must return a new key (e.g. `cellcastv2`) and the ENUM gains the value in that release's upgrade SQL. Old rows keep their key.
+- **Polling and history sync** only touch rows whose key equals the current provider's key: a delivery sent through another API version can't be queried with the current one.
+- **Pricing:** `\Jethro\Sms\providerClassesByKey()` maps each value to its class for the default per-segment price.
+
+## Cost tracking
+
+Each `smsdelivery` row records what that delivery cost, at the time it was sent:
+
+| Column | Meaning | Set from |
+|---|---|---|
+| `segments_used` | SMS segments charged, i.e. SMS against the provider balance (one credit is one SMS segment) | 5CentSMS `credits`; Cellcast `smsDetail.smscount`; MobileMessage `cost` (credits, on send results and lookups). NULL when the provider doesn't report it (v4/template, rows logged before 2.40's cost tracking) |
+| `per_segment_cost` | Dollars per segment | Cellcast `smsDetail.costpersms` (or `deductibleCredit / smscount`); otherwise `SMS_SEGMENT_COST` if set, else the sending provider's `SEGMENT_COST_MILLICENTS` default |
+| `cost_bearer` | Whether this row bears the charge for its (possibly shared) message | `DeduplicatingSmsProvider` via the send — TRUE on a group's primary row, FALSE on the secondary persons sharing the number |
+
+Both cost columns are written by the send (`logSms()`), by status polls (`DbLoggingSmsProvider`, only overwriting with values the provider actually reported) and by Synchronize History.
+
+**Shared mobile numbers.** When several recipients share one number, one gateway message serves the whole group: all their `smsdelivery` rows share the group's `remote_id`, the primary row carries the reported `segments_used` (and `cost_bearer` 1), and each secondary row records `segments_used` 0 / `cost_bearer` 0 — so a message is counted once whether it went to one person or five sharing a handset. Status polls guard their cost update with `IF(cost_bearer, …)` so the provider's count is never copied onto a secondary's zero row. `sms_usage_daily` and `Sms::costSqlExpr()` count an explicit 0 as 0 (only NULL counts as 1).
+
+The Messages page's Cost column (`Sms::costSqlExpr()`) sums `segments_used × per_segment_cost` over accepted deliveries, treating an unknown `segments_used` as 1 and an unknown `per_segment_cost` as the default of **the provider recorded on that row** (`\Jethro\Sms\defaultSegmentCost()`). Prices are fixed per row, so changing `SMS_SEGMENT_COST` or switching providers only affects new sends.
+
+## Jethro Views and the `_`-prefixed Tables
+
+Jethro uses MySQL views to enforce row-level security. Every queryable entity
+has two names: the **`_`-prefixed base table** (the physical storage) and the
+**view** (the security-filtered access path). Foreign keys always reference
+the base table.
+
+| View | Base table | Filter |
+|---|---|---|
+| `person` | `_person` | Current user's congregation + group restrictions via `getCurrentUserID()`; unrestricted in a members-area session (`getCurrentMemberID()`) |
+| `person_group` | `_person_group` | Group restrictions via `getCurrentUserID()`; shared groups only in a members-area session |
+| `member` | `_person` + `_family` | Flattened join; visible only when the current member (`getCurrentMemberID()`) shares a member-sharing group or family with the person |
+| `abstract_note` | `_abstract_note` | Assignee is current user AND status is 'pending', OR user has permission bits 48 |
+| `smsdelivery` | `_smsdelivery` | Deliveries to persons visible through `person`, plus those with no person (raw numbers) |
+
+The views use `getCurrentUserID()`, a MySQL stored function that returns the
+session variable `@current_user_id` (staff account), and `getCurrentMemberID()`
+(`@current_member_id`, members area) — see
+`docs/docs/developer/reference/db-session-identity.md`. In CLI/testing contexts,
+set it before querying through views:
+
+```sql
+SET @current_user_id = 1;
+SELECT * FROM person WHERE id = 42;
+```
+
+Without this, views return empty results (the function sees NULL, and no row
+matches `NULL = …`).
+
+### Why `_person` not `person` in FKs?
+
+MySQL does not allow foreign keys to reference views — only base tables. So
+`sms.sender REFERENCES _person(id)` and `_smsdelivery.personid REFERENCES
+_person(id)`, and `sms_note.smsdelivery_id` references `_smsdelivery(id)`.
+This is correct: the FK ensures referential integrity at the storage level;
+the view layer adds security on top.
+
+### Which name to use for SMS deliveries
+
+Pages and calls read **`smsdelivery`**, so restricted accounts only ever see
+deliveries to persons they may see (Persons → Messages, the person Messages
+tab, `?call=sms_info`, notes, the `Sms` aggregates — a send with no visible
+delivery isn't listed, and its counts and cost cover visible deliveries only).
+Writers and system-level code use **`_smsdelivery`**: logging a send
+(`insertSms`), status caching (`DbLoggingSmsProvider`), Synchronize History,
+cancel (`cancelSms`, already permission-checked: a sender's cancel reaches all
+their recipients), CLI export and the legacy-note migration. Several of these
+run with no current user, when the view would be empty. `SmsDelivery`
+(`db_objects/smsdelivery.class.php`) inserts into `_smsdelivery`. The view is
+`SELECT sd.*`, expanded when created: recreate it after adding columns.
+
+### Legacy SMS notes
+
+Before 2.40, each SMS send that ticked 'Save as Note' created a `person_note` +
+`_abstract_note` row per recipient: subject `SMS_SAVE_TO_NOTE_SUBJECT`, or
+`'SMS Sent'` when that was blank. `2026-upgrade-to-2.40-sms.sql` converts them
+into `sms` + `_smsdelivery` rows:
+
+- notes with the same sender and text written no more than an hour apart are one
+  send, and a silence of more than an hour starts a new one — the same rule
+  Synchronize History uses — so a weekly reminder becomes one send per week
+  rather than one send for every week or a delivery per note;
+- notes under a custom `SMS_SAVE_TO_NOTE_SUBJECT` migrate too: the script reads
+  the 2.39 value of the setting, which `2026-upgrade-to-2.40.sql` has already
+  rewritten for the default case;
+- bulk-send notes that nobody interacted with are deleted. Single-recipient
+  sends, and notes that were edited, reassigned, had their status changed or
+  have `note_comment` rows, stay in Notes and are linked to their delivery
+  through `sms_note`;
+- the whole migration is one transaction and aborts (rolling back, so nothing is
+  deleted) if its integrity check cannot find every note's sender and text in
+  `sms`.
+
+### Global search ("messages")
+
+`View__Mixed_Search::searchMessages()` (`views/view_0_mixed_search.class.php`)
+matches `COALESCE(smsdelivery.body, sms.body) LIKE %search%` for non-bulk sends
+only: those with exactly one row in `_smsdelivery` (bulk-ness counts every
+delivery). Rows are read through the restricted `smsdelivery` view. Offered only
+when the `SMS` feature is enabled and the user has `PERM_VIEWSMS`; searchtype `m`.
+
+## See Also
+
+- [Status Codes](./engine/status-codes)
+- [Delivery Tracking](./delivery-tracking)

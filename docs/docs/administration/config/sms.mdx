@@ -1,0 +1,494 @@
+---
+sidebar_position: 16
+---
+
+import SMSProviderCapabilities from '../sms_provider_capabilities.md';
+import SettingRef from '@site/src/components/SettingRef';
+import { MultiSettings } from '../../../src/components/SettingComponents';
+
+# SMS Administration
+
+:::info[See also]{.padding--lg .text--italic}
+- [SMS Usage](../../user-manual/sms)
+:::
+
+To [send SMS messages](../../user-manual/sms) from Jethro, you need to:
+
+1. Sign up to, enable and [configure](#configuring-a-sms-provider) a SMS provider
+2. Configure who SMSes appear to come from in the ['sender' settings](#sms-sender)
+3. Grant users the [SMS - send permission](#permissions)
+
+## Configuring a SMS Provider
+
+
+In **Admin → System Configuration**:
+
+1. ensure the _SMS_ feature is enabled under _Enabled Features_
+{/* screenshot: admin_enabled_features.png */}
+![Admin - SMS feature](/img/admin-sms/admin_enabled_features.png)
+
+2. click _SMS Gateway_ to scroll down to the SMS settings.
+
+In the SMS Gateway section, the first section shows whether your provider is connected. Initially it will report "Not configured", with instructions on how to proceed:
+
+![SMS Gateway - unconfigured](/img/admin-sms/admin_sysconfig_smsgateway_unconfigured.png)
+
+You now need to obtain an API key from your preferred provider, and enter the API key into the relevant setting.
+
+:::note
+
+Jethro SMS _settings_ may be set either on the server in `conf.php`, or Admin → System Configuration. So these are equivalent:
+ - `SMS_VERBOSE` in `conf.php`
+ - <SettingRef name="SMS_VERBOSE" />in the config page
+
+If both are set `conf.php` takes precedent.
+:::
+
+
+Jethro sends SMSes via a SMS provider service, which you will need to sign up to (some hosted deployments include a provider account). Jethro supports:
+
+- 5centSMS - https://5centsms.com.au
+- Cellcast - https://www.cellcast.com
+- MobileMessage - https://www.mobilemessage.com.au
+
+<SMSProviderCapabilities />
+
+
+### 5CentSMS
+
+1. Generate API keys at [5centsms.com.au/dashboard/api](https://www.5centsms.com.au/dashboard/api)
+2. Set these constants in `conf.php`:
+
+
+   ```php
+    // API key ID from https://www.5centsms.com.au/dashboard/api (required)
+    define('SMS_5CENTSMS_APIKEY_ID', '<insert here>');
+    // API key secret from https://www.5centsms.com.au/dashboard/api (required)
+    define('SMS_5CENTSMS_APIKEY', '<insert here>');
+   ```
+
+    or via the System Configuration page:
+
+    <MultiSettings ids="SMS_5CENTSMS_APIKEY_ID,SMS_5CENTSMS_APIKEY" />
+
+Jethro auto-detects the provider once both constants are set.
+
+![Screenshot](/img/admin-sms/admin_sysconfig_smsgateway_configured_5centsmsv5_summary.png)
+
+#### Upgrading 5CentSMS from v4 to v5
+
+If you already have `SMS_*` settings from an older Jethro, SMS will appear configured showing provider '5CentSMS **v4**' rather than **v5**:
+
+![Screenshot](/img/admin-sms/admin_sysconfig_smsgateway_configured_5centsmsv4_summary.png)
+
+{/* screenshot: admin_sysconfig_smsgateway_configured_5centsmsv4_summary.png */}
+
+SMS sending will work, but you will be missing out on many features until you upgrade. Follow the steps above to create a new v5 API key and set the new `SMS_5CENTSMS_*` settings. Once set, Jethro will automatically switch to v5. The old `SMS_HTTP_*` settings can be removed once migrated.
+
+{/* screenshot: admin_sysconfig_smsgateway_configured_5centsmsv5_summary.png */}
+
+### Cellcast
+
+1. Generate a bearer token at [app.cellcast.com/accounts/api-keys](https://app.cellcast.com/accounts/api-keys)
+2. Set 'Sms Cellcast Apikey' in the settings page, or set in `conf.php`:
+
+```php
+// API bearer token from your Cellcast dashboard (required)
+define('SMS_CELLCAST_APIKEY', '<insert here>');
+   ```
+
+or via the System Configuration page:
+
+![Screenshot](/img/admin-sms/admin_sysconfig_cellcast_settings_in_gui.png)
+
+The SMS Gateway section should update:
+
+![Screenshot](/img/admin-sms/admin_sysconfig_smsgateway_configured_cellcast_summary.png)
+
+Once configured, a new [Persons → Messages](../../user-manual/sms.mdx#messages-overview) page will appear showing SMS Send History.
+
+### MobileMessage
+
+1. Generate API credentials in your [MobileMessage dashboard](https://www.mobilemessage.com.au) under Settings → API
+2. Set 'Sms Mobilemessage Username' and 'Sms Mobilemessage Password' in the settings page, or set in `conf.php`:
+
+```php
+// API username from your MobileMessage dashboard, Settings → API (required)
+define('SMS_MOBILEMESSAGE_APIKEY_USERNAME', '<insert here>');
+// API password from your MobileMessage dashboard, Settings → API (required)
+define('SMS_MOBILEMESSAGE_APIKEY_PASSWORD', '<insert here>');
+   ```
+
+or via the System Configuration page.
+
+Jethro auto-detects the provider once both constants are set. Note the [send cool-off](../../user-manual/sms.mdx#send-cool-off) with MobileMessage is 90 seconds rather than 30, since the API only accepts schedules more than 60 seconds ahead.
+
+## SMS settings
+
+Beyond just configuring a SMS provider, Admin → System Configuration → SMS Gateway has various settings affecting Jethro's SMS capabilities.
+
+### SMS Sender
+
+When Jethro sends a SMS, it will appear to come 'from' either the mobile number of the Jethro user, or (if configured) 'Sender ID', a short identifier for your church (e.g. `StBarnabas`) that you [register](#registering-sender-ids). Sender IDs are ideal for bulk messages where you don't expect (and cannot have) a reply. Sending from a personal number is good for pastoral situations where you expect a personal reply, but still want the send recorded.
+
+The `SMS_SENDER*` defaults to preferring a Sender ID, if present, but also allowing sending from the user's mobile. Some examples:
+
+<SenderPresets />
+
+import { useState } from 'react';
+
+export function SenderPresets() {
+  const SENDER_PRESETS = [
+      {
+          label: 'Defaults',
+          values: undefined,
+          image: '/img/admin-sms/smsform_sender_stbarnabas_plus_usermobile.png',
+          caption: 'Defaults — if a sender ID is registered, both the Sender ID and the user\u2019s mobile appear in the dropdown.',
+      },    {
+          label: 'Defaults (no sender ID)',
+          values: undefined,
+          image: '/img/admin-sms/smsform_sender_no_senderids_just_usermobile.png',
+          caption: 'Defaults — if no sender ID is registered, _SENDER_IDS_ is blank, leaving just the  user\u2019s mobile in the dropdown.',
+      },
+    {
+      label: 'Hardcoded Sender ID',
+      values: { SMS_SENDER: 'StBarnabas', SMS_SENDER_OPTIONS: '', SMS_SENDER_DEFAULT: '' },
+      image: '/img/admin-sms/smsform_sender_hardcoded_senderid.png',
+      caption: 'A hardcoded Sender ID — the dropdown is replaced with a single fixed value. SMS_SENDER takes a literal Sender ID, number or _USER_MOBILE_; to offer the Sender IDs registered with your SMS provider, leave SMS_SENDER empty and use _SENDER_IDS_ in SMS_SENDER_OPTIONS.',
+    },
+      {
+      label: 'Hardcoded Sender number',
+      values: { SMS_SENDER: '0491570158', SMS_SENDER_OPTIONS: '', SMS_SENDER_DEFAULT: '' },
+      image: '/img/admin-sms/smsform_sender_hardcoded_sendernum.png',
+      caption: 'Sender numbers can also be hardcoded (must be validated)',
+    },
+  ];
+
+  const [selected, setSelected] = useState(0);
+  const preset = SENDER_PRESETS[selected];
+
+  return (
+    <div style={{ border: '1px solid #e5e7eb', padding: '1em' }}>
+        <p>
+            {SENDER_PRESETS.map((p, i) => (
+                <span key={i}>
+            <label>
+              <input type="radio" name="sp" checked={selected === i} onChange={() => setSelected(i)} />
+                {' '}{p.label}
+            </label>
+          </span>
+            ))}
+        </p>
+        <MultiSettings group="sender" key={JSON.stringify(preset.values)} values={preset.values} />
+        <h5>Preview</h5>
+      <figure style={{marginBottom: '1rem'}}>
+        <img class="img-bordered" alt="Screenshot" src={preset.image} style={{maxWidth: '500px'}} />
+        <figcaption align="left">{preset.caption}</figcaption>
+      </figure>
+
+    </div>
+  );
+}
+
+
+### Message body
+
+(affected features: [SMS Message field](../../user-manual/sms#message-text))
+
+The maximum SMS length can be increased (at a cost), and emojis permitted or forbidden. Click the setting ⓘ️ help icons for details. For how this looks to users, see [Message text](../../user-manual/sms#message-text).
+
+<MultiSettings group="messageBody" />
+
+### Cost and URL shortening
+
+<MultiSettings group="costAndUrls" />
+
+
+### Post-send behaviour
+
+(affected features: [SMS Create Note](../../user-manual/sms#saving-as-a-note), [send cool-off](../../user-manual/sms#send-cool-off) )
+
+
+<MultiSettings group="postSendBehaviour" />
+
+### Low Balance
+<MultiSettings group="balance" />
+
+### Debugging &amp; cost display
+
+<MultiSettings group="debugging" />
+
+### Provider selection
+The SMS provider can be explicitly configured here. The 'auto-detect' default causes Jethro to use the first SMS provider properly configured. You could even specify your own implementation class (in `conf.php`):
+
+<MultiSettings group="providerSelection" />
+#### 5CentSMS v5
+
+Discussed [above](#5centsms) — fill in these details to use https://5centsms.com.au.
+
+<MultiSettings group="fiveCentSms" />
+
+#### Cellcast
+
+Discussed [above](#cellcast) — fill in these details to use https://cellcast.com.au.
+
+<MultiSettings group="cellcast" />
+
+#### MobileMessage
+
+Discussed [above](#mobilemessage) — fill in these details to use https://mobilemessage.com.au.
+
+<MultiSettings group="mobileMessage" />
+
+
+
+## Registering Sender IDs
+
+A **Sender ID** is an alphanumeric name that appears as the message sender (e.g. "StBarnabas"). You may wish to register a Sender ID for your church, and use it for bulk SMSes where a reply is not expected.
+
+![Screenshot](/img/sms/sms_sender_showing_mobile_and_senderid.png)
+
+Jethro's SMS form lets one pick the SMS 'sender', and defaults to registered Sender IDs plus the current user's mobile (see [SMS Senders](../../user-manual/sms#sms-sender)):
+
+
+In Australia, a Sender ID requires registration. A Sender ID must be 3-11 characters, and must relate to your business name. 5CentSMS v5 and Cellcast support sender ID registration through Jethro. For MobileMessage, register the Sender ID in its dashboard (it submits the ACMA registration there); once approved it appears in Jethro's sender list automatically.
+
+Go to Admin → System Configuration, and click 'SMS Gateway' go to the SMS configuration.
+
+The first section will show your current SMS provider, and you will see a <u>Register Sender ID</u> link if your provider supports it:
+
+![Screenshot](/img/admin-sms/admin_sysconfig_smsgateway_configured_cellcast_summary.png)
+
+### 5CentSMS sender ID registration
+
+Click <u>Register Sender ID</u> to open the registration form:
+
+![Screenshot](/img/admin-sms/admin_sysconfig_smsgateway_senderid_rego_5centsms_filled.png)
+
+Submitting the form:
+ - creates an _unverified_ sender ID with 5CentSMS via their API
+ - prints a filled-in form that an authorised representative must copy-and paste into an email, and send to `hello@5centsms.com.au`.
+
+    ![Screenshot](/img/admin-sms/admin_sysconfig_smsgateway_senderid_rego_5centsms_filled_submitted.png)
+
+### Cellcast sender ID registration
+
+Cellcast allow the full registration form to be submitted via Jethro:
+
+![Screenshot](/img/admin-sms/admin_sysconfig_smsgateway_senderid_rego_cellcast_filled.png)
+
+On clicking Submit, a new section confirming what was submitted will show:
+
+![Screenshot](/img/admin-sms/admin_sysconfig_smsgateway_senderid_rego_cellcast_filled_submitted.png)
+
+### MobileMessage sender ID registration
+
+For MobileMessage, you will need to log in to their website, click [Settings -> Sender IDs](https://app.mobilemessage.com.au/senderid) and fill in the form:
+
+![Screenshot](/img/admin-sms/mobilemessage_acma_senderid_regoform.png)
+
+## Permissions
+
+There are two SMS-related permissions:
+
+| Permission | What it allows |
+|---|---|
+| **SMS/Mailchimp - send** | Send SMS messages, and view SMSes sent by yourself |
+| **SMS - view all** | View all users' SMS message history |
+
+![Screenshot](/img/admin-sms/admin_permissions_sms.png)
+
+On new installations, these permissions are granted by default to new staff members, unless altered in Admin → System Configuration → Default Permissions.
+
+### Upgrading from an earlier Jethro version
+
+Before this version, sent SMSes were only recorded as notes, so only staff with **Notes - view all** could read other users' messages. To avoid exposing those messages more widely, the upgrade grants **SMS - view all** only to staff who hold both **SMS/Mailchimp - send** and **Notes - view all**. It is removed from everyone else, apart from SysAdmins.
+
+The same rule applies to the Default Permissions setting: it includes **SMS - view all** after the upgrade only if it already included both of those permissions.
+
+After upgrading, you can grant **SMS - view all** to other users individually, or add it to Default Permissions.
+
+#### SMS send log file
+
+Earlier versions could log every send to a JSON-lines file set by `SMS_SEND_LOGFILE` (typically `sms.log`). The upgrade removes that setting, and Jethro no longer writes to the file. The file itself is left in place but is **not imported**: Persons → Messages initially only contains sends migrated from 'SMS Sent' notes, plus everything sent after the upgrade.
+
+##### Recovering history from your SMS provider
+
+Sends that were never recorded as notes — for example roster reminders sent by cron — can be recovered from your SMS provider. In **Admin → System Configuration → SMS Gateway**, use the **Synchronize History** action (or `php scripts/sms.php sync-history --since=<unix timestamp>` on the server). It fetches recent deliveries from the provider and adds any that are missing from Persons → Messages, matching recipients to people by mobile number. Running it again is safe: deliveries already present are skipped.
+
+Limitations:
+
+- Only **5CentSMS v5**, **Cellcast** and **MobileMessage** support it. With 5CentSMS v4 it imports nothing.
+- Without a **From** date it only fetches the last 24 hours. Set **From** to an early date (e.g. 2016-01-01) to import everything the provider still holds.
+- The provider does not say which Jethro user sent each message, so imported sends show the sender as `system`.
+- The provider's retention limits apply. 5CentSMS keeps roughly the last 12 months.
+
+Keep or archive `sms.log` if you need history older than your provider retains.
+
+##### Exporting in the old log format
+
+For tooling that consumes the old log format, `scripts/sms.php export-smslog` writes Jethro's *database* send history as JSON lines in that format:
+
+```bash
+HTTP_HOST=yourdomain.example.org php ./scripts/sms.php export-smslog > sms-export.log
+```
+
+This is a regeneration from the database, not a copy of the old file, and differs from it:
+
+- only sends present in the database are included (see above)
+- timestamps are always UTC
+- the recipient count is a string, and the fourth field is always `null`
+- sends without a staff sender show `system` rather than `null`
+- message bodies are truncated to 30 characters, as in the old log
+
+
+## Low SMS Reminders
+
+Jethro can email someone when the SMS account balance runs low. It needs two things:
+
+1. The **Sms Balance Low Threshold** and **Sms Balance Low Notificant Email** settings in Admin → System Configuration → Balance.
+2. A cron job or systemd timer that runs `scripts/sms_low_reminder.php` once daily.
+
+### Cron example
+
+```cron
+0 9 * * * php /path/to/jethro/scripts/sms_low_reminder.php --sender=admin@mychurch.org
+```
+
+### systemd timer example
+
+Create two files:
+
+**`/etc/systemd/system/jethro-sms-low-reminder.service`**
+
+```ini
+[Unit]
+Description=Jethro SMS low balance reminder
+
+[Service]
+Type=oneshot
+User=www-data
+ExecStart=/usr/bin/php /path/to/jethro/scripts/sms_low_reminder.php --sender=admin@mychurch.org
+```
+
+**`/etc/systemd/system/jethro-sms-low-reminder.timer`**
+
+```ini
+[Unit]
+Description=Jethro SMS low balance reminder timer
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+```
+
+Then enable it:
+
+```bash
+systemctl daemon-reload
+systemctl enable --now jethro-sms-low-reminder.timer
+```
+
+### How it works
+
+The script:
+
+- Fetches the current account balance from the SMS provider
+- Skips if the balance is above the threshold
+- Skips if no SMS has been sent in the last 24 hours (avoids pestering during quiet periods)
+- Emails the notificant with the current balance and a reminder to top up
+
+Use `--debug` to preview the email without sending:
+
+```bash
+php ./scripts/sms_low_reminder.php --sender=admin@mychurch.org --debug
+```
+
+Notifications are sent by **email only** — sending an SMS warning would consume further credits from the depleted account.
+
+## 2FA SMS
+
+Jethro can require staff members to enter a 6-digit code sent by SMS before they finish logging in. Even if someone's password is stolen, their account stays safe because the attacker won't receive the code.
+
+:::note
+2FA SMS needs a working SMS gateway. If your gateway isn't set up yet, follow the provider setup steps [above](#configuring-a-sms-provider) first. The 'SMS' [feature](#configuring-a-sms-provider) does _not_ need to be enabled.
+:::
+
+### How it works
+
+1. A staff member enters their username and password on the login page
+2. Jethro checks whether their account requires 2FA
+3. If it does, Jethro generates a 6-digit code, sends it by SMS to the staff member's mobile number, and shows a form asking for the code
+4. The staff member enters the code (or it expires after 10 minutes)
+5. If the code matches, they're logged in. If it's wrong twice, the process resets and they start again
+
+### Turning on 2FA
+
+2FA is controlled by the **2FA Required Permissions** setting in Admin → System Configuration. This setting lists which permission levels must use 2FA — anyone who holds at least one of the listed permissions will be required to complete 2FA on every login.
+
+For example, to require 2FA for users who can manage other people's accounts (SysAdmins), add the SysAdmin permission level to the list. The permission values are the numbers shown in the Permissions &amp; Security section of System Configuration.
+
+:::tip
+Start by requiring 2FA only for SysAdmins. You can add more permission levels later once you've confirmed everything works.
+:::
+
+If a staff member doesn't have a mobile number on their record, 2FA can't proceed — Jethro will show an error and notify SysAdmins by email to update the person's contact details.
+
+### Choosing the sender
+
+Regular SMS messages usually appear to come from the staff member's own mobile number. But a 2FA code is sent *before* the user finishes logging in — there's no "current user" yet — so Jethro needs a fixed sender name for 2FA codes.
+
+**2FA Sender Id** in Admin → System Configuration → 2FA names the sender your provider recognises, usually the same Sender ID you use for bulk SMS (e.g. your church name). It is blank by default, and Jethro then resolves the sender in this order:
+
+1. **2FA Sender Id**, when set;
+2. otherwise a literal **SMS Sender** (`SMS_SENDER`) — unless that is `_USER_MOBILE_`, which needs a logged-in user and so can never work before login;
+3. otherwise the first Sender ID your provider reports as ACMA-registered.
+
+From 1 July 2026 an unregistered alphanumeric Sender ID is shown to recipients as "Unverified", which is why the 2FA sender is no longer defaulted to a made-up name: set **2FA Sender Id** to a Sender ID you have actually registered.
+
+The sender must be allowed by your **SMS Sender Options** list. If you've restricted senders to an allow-list (for example, only `StBarnabas` and user mobile numbers), make sure the 2FA sender appears in that list too.
+
+2FA codes go through the same SMS gateway and credentials as ordinary messages. (Earlier versions could use a separate gateway via `2FA_SMS_*` constants in `conf.php`; that has been removed.)
+
+### When 2FA cannot send a code
+
+2FA is never skipped silently for an account that requires it. If no usable gateway exists — none configured, no 2FA sender as above (not even an ACMA-registered Sender ID from your provider), or leftover `2FA_SMS_*` constants in `conf.php` — the login is refused with an error explaining the exact cause, and SysAdmins are emailed. Setting **2FA Sender Id** to a registered Sender ID, fixing the SMS settings, or turning 2FA off with **2FA Enabled** (or `define('2FA_ENABLED', false)` in `conf.php`) resolves it.
+
+### Trust this device
+
+After entering a correct code, users see a checkbox: **Trust this device for N days**. If they tick it, Jethro won't ask for a 2FA code again from that browser until the days run out.
+
+You can change how many days trust lasts (default 30), or disable the feature entirely, via the **2FA Trust Days** setting.
+
+### Restricted accounts
+
+By default, 2FA applies to everyone who holds a required permission — even users whose view is limited to particular congregations or groups ("restricted accounts"). If you'd prefer to exempt restricted users from 2FA, turn off **2FA Even For Restricted Accounts**.
+
+### Testing and disabling
+
+If you're setting up 2FA on a staging or test site, you can prevent real SMS charges while still testing the 2FA form and code flow:
+
+- Turn on **Sms 2fa Block Messages** — the 2FA form appears, and Jethro logs what code it *would* have sent, but no SMS is actually delivered.
+
+To switch 2FA off entirely (for example on a development copy of Jethro), turn off the **2FA Enabled** setting.
+
+### Audit log
+
+Jethro can keep a 2FA audit trail — who required a code, which number it was sent to, whether they entered it correctly, and any errors that occurred. To enable this, set the **Sms 2fa Logfile** path in System Configuration. Use **Sms 2fa Log Level** to control how much detail is recorded: *Full* logs every event, *Quiet* only records errors.
+
+### Troubleshooting 2FA
+
+| Symptom | Likely cause |
+|---|---|
+| 2FA form never appears after login | **2FA Required Permissions** is blank, or the user doesn't hold any of the listed permissions |
+| "System error during 2-factor auth" | SMS gateway is unreachable, or the 2FA sender name isn't allowed by **SMS Sender Options** |
+| 2FA is skipped without any message | SMS gateway isn't fully configured — check the gateway status on the SMS page |
+| User gets an error about missing contact details | The staff member has no mobile number on their person record — add one in Persons &amp; Families |
+| "Cannot send 2FA: …" in the log | No 2FA sender could be resolved — set **2FA Sender Id** (or `SMS_SENDER`) to a Sender ID registered with your provider, or register one and let Jethro pick it up |
+
+## See Also
+
+- **[User Guide: Sending SMS](../../user-manual/sms)** — how staff send messages
