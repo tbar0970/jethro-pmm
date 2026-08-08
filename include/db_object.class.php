@@ -142,7 +142,7 @@ class db_object
 				";
 		}
 		$res .= "PRIMARY KEY (`id`)".$indexes."
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8";
+		) ENGINE=InnoDB";  // Deliberately no charset to use database-default charset+collation
 		return $res;
 	}
 
