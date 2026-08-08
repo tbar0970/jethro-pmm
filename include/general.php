@@ -230,7 +230,7 @@ function print_widget($name, $params, $value)
 			break;
 		case 'bibleref':
 			require_once 'bible_ref.class.php';
-			$br = new bible_ref($value);
+			$br = new Bible_Ref($value);
 			$value = $br->toShortString();
 			$params['class'] = 'bible-ref';
 			// fall through
@@ -639,7 +639,7 @@ function process_widget($name, $params, $index=NULL, $preserveEmpties=FALSE)
 		case 'bibleref':
 			if (!empty($rawVal)) {
 				require_once 'bible_ref.class.php';
-				$br = new bible_ref($rawVal);
+				$br = new Bible_Ref($rawVal);
 				if ($br->toString()) $value = $br->toCode();
 			}
 			break;
@@ -716,7 +716,7 @@ function format_value($value, $params)
 			break;
 		case 'bibleref':
 			require_once 'bible_ref.class.php';
-			$br = new bible_ref($value);
+			$br = new Bible_Ref($value);
 			return $br->toShortString();
 			break;
 		case 'phone':
@@ -813,25 +813,20 @@ function get_url_pathprefix()
 }
 
 /**
- * Infer Jethro's absolute base URL from the request.
+ * Infer Jethro's absolute base URL from the request (scheme + host + path).
+ * Returns e.g. "https://church.org/jethro" — no trailing slash.
+ * Proxy-aware: respects X-Forwarded-Proto and X-Forwarded-Host.
  */
 function baseurl_absolute()
 {
-    // Detect scheme
     $https = (
         (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
         (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443) ||
         (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
     );
     $scheme = $https ? 'https' : 'http';
-
-    // Detect host (with proxy awareness)
     $host = $_SERVER['HTTP_X_FORWARDED_HOST'] ?? $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'];
-
-    // Detect base path (the directory your app runs from)
     $scriptDir = baseurl_relative();
-
-    // Build base URL (no trailing slash if at root)
     return $scheme . '://' . $host . ($scriptDir !== '' ? $scriptDir : '');
 }
 

@@ -1,0 +1,45 @@
+#!/bin/bash -eu
+
+fail() { echo >&2 "$*"; exit 1; }
+warn() { echo "$*"; }
+
+warn_if_extra_js_files_found() {
+  local allowed=(
+    "jethro-${JETHRO_VERSION}.js"
+    "jethro-sms-test.js"   # Get rid of this later
+    "jquery.js"
+    "jquery-ui.min.js"
+    "bootstrap.js"
+    "jquery.min.js"
+    "bootstrap.min.js"
+    "tb_lib.js"
+    "bsn_autosuggest.js"
+    "jethro.js"
+    "jethro-sms.js"
+    "jquery-ui.js"
+    "jquery.ui.touch-punch.min.js"
+    "stupidtable.min.js"
+    "treeview.js"
+  )
+
+  # Build pattern dynamically to avoid manual regex maintenance
+  pattern=$(printf "%s\n" "${allowed[@]}" | sed 's/\./\\./g' | paste -sd'|')
+  #shellcheck disable=SC2010,SC2143
+  if find . -maxdepth 1 -type f -name "*.js" -printf "%f\n" | grep -vP "^(${pattern})$"; then
+    warn "Extra js files (printed above) have been added. These will NOT be bundled into jethro-${JETHRO_VERSION}.js unless $0 is edited."
+  fi
+}
+
+main() {
+  [[ -v JETHRO_VERSION ]] || { echo >&2 "JETHRO_VERSION is not set. We expect to be run within a devbox environment"; exit 1; }
+  [[ -d resources/js ]] || { echo "Must be invoked in the project root"; exit 1; }
+  cd resources/js
+  warn_if_extra_js_files_found
+  # shellcheck disable=SC2016
+  php -r '$files=["jquery.min.js", "bootstrap.min.js", "tb_lib.js", "bsn_autosuggest.js", "jethro.js", "jquery-ui.js", "jquery.ui.touch-punch.min.js", "stupidtable.min.js", "treeview.js"]; echo implode("/* --- */\n", array_map(fn($f)=>file_get_contents($f), $files));' > "jethro-${JETHRO_VERSION}.js.new"
+  mv "jethro-${JETHRO_VERSION}.js.new" "jethro-${JETHRO_VERSION}.js"
+  cd ../..
+  echo "Generated: $(ls resources/js/jethro-${JETHRO_VERSION}.js)"
+}
+
+main "$@"

@@ -1,6 +1,5 @@
 <?php
-include_once 'include/db_object.class.php';
-class Congregation extends db_object
+class Congregation extends DB_Object
 {
 	protected static function _getFields()
 	{

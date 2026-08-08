@@ -1,0 +1,37 @@
+{
+  "name":        "Jethro Pastoral Ministry Manager",
+  "description": "Jethro helps churches keep track of people, families, groups, attendance, pastoral tasks, church services, rosters and documents.",
+  "$schema":     "https://raw.githubusercontent.com/jetify-com/devbox/0.17.2/.schema/devbox.schema.json",
+  "packages": [
+    "php@8.5.7",
+    "php85Extensions.gd@latest",
+    "php85Extensions.zip@latest",
+    "php85Extensions.xmlwriter@latest",
+    "php85Extensions.gettext@latest",
+    "php85Extensions.curl@latest",
+    "php85Extensions.exif@latest",
+    "mariadb@latest",
+    "nginx@latest",
+    "bun@latest"
+  ],
+  "env": {
+    "DEVBOX_PC_PORT_NUM":     "36387",
+    "NGINX_WEB_PORT":         "8081",
+    "PATH":                   "$PWD/devbox.d/bin:$PATH",
+    "JETHRO_VERSION":         "2.39-DEV",
+    "FUNCTEST_WEB_PORT":      "8089"
+  },
+  "shell": {
+    "scripts": {
+      "lint":                 "php -l *.php calls/*.php db_objects/*.php hooks/**/*.php include/*.php members/*.php members/**/*.php public/*.php public/**/*.php scripts/*.php templates/*.php upgrades/*.php upgrades/**/*.php views/*.php && bunx biome check ./resources/js/ --max-diagnostics=20",
+      "mariadb_as_root":      "devbox.d/bin/mariadb_as_root",
+      "initdb":               "devbox.d/bin/jethro_db_init",
+      "compile":              "jethro_compile_css ${JETHRO_VERSION} && jethro_compile_js ${JETHRO_VERSION} && echo \"To use compiled resources, run: echo \"${JETHRO_VERSION}\" > ./include/version.txt\"",
+      "docs":                 "cd docs && bun install && bun run start",
+      "docs-html":            "cd docs && bun install && bun run build",
+      "demodata":             "devbox.d/bin/jethro_db_demodata_load --db=jethro --system-name=\"St Bob's\"",
+      "unittests":            "php tests/unit/run.php",
+      "functests":            "cd tests/functional && bun install && bun run ./node_modules/.bin/playwright test --reporter=list"
+    }
+  }
+}

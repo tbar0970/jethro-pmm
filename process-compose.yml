@@ -1,0 +1,98 @@
+# Define services for a working Jethro development environment (nginx
+# webserver, php-fpm backend, mariadb database).
+# See https://www.jetify.com/docs/devbox/guides/services
+#
+# Usage:
+#   devbox services up -b          # Start all in background
+#   devbox services ls             # Show status
+#   devbox services stop           # Stop all
+#
+version: "0.5"
+
+processes:
+
+  jethro:
+    description: "A demo Jethro for development, at http://localhost:${NGINX_WEB_PORT}"
+    depends_on: 
+      nginx:
+        condition: process_healthy
+      jethro_database_setup:
+        condition: process_completed
+    availability:
+      restart: "no"
+
+  jethro_database_setup:
+    description: Ensures the 'jethro' database/user exists
+    depends_on: 
+      mariadb:
+        condition: process_healthy
+    command: devbox.d/bin/jethro_db_init
+    readiness_probe:
+      exec:
+        command: mariadb -u jethro -pjethro jethro -sNBe "select database();"
+      # 1s delay, then ping every 1 second until up (try 15 times), and then every 20s
+      initial_delay_seconds: 1
+      startup_period_seconds: 1
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 15
+
+  # Nginx's service is defined by a devbox plugin, in .devbox/virtenv/nginx/process-compose.yaml
+  # We extend it a bit here to make "successful startup" depend on php-fpm and the access/error log watchers being started
+  nginx:
+    depends_on: 
+      nginx-error:
+        condition: process_started
+      nginx-access:
+        condition: process_started
+      php-fpm:
+        condition: process_started
+
+
+  functest_jethro_server:
+    description: A Jethro instance just for functional tests
+    command: |
+      export NGINX_WEB_ROOT="${NGINX_WEB_ROOT/web/functest_jethro_server}"
+      export NGINX_WEB_PORT=${FUNCTEST_WEB_PORT}
+      envsubst $(awk 'BEGIN {for (k in ENVIRON) {printf "$"k","}}') < $NGINX_CONFDIR/nginx.template > $NGINX_CONFDIR/nginx-functest.conf
+      nginx -p $NGINX_PATH_PREFIX -c $NGINX_CONFDIR/nginx-functest.conf -e error.log -g "pid nginx.pid;daemon off;"
+    depends_on:
+      mariadb:
+        condition: process_healthy
+      functest_databases_setup:
+        condition: process_completed
+    availability:
+      restart: on_failure
+      max_restarts: 5
+    readiness_probe:
+      http_get:
+        host: localhost
+        port: ${FUNCTEST_WEB_PORT}
+        path: /
+      # 1s delay, then ping every 1 second until up (try 15 times), and then every 20s
+      initial_delay_seconds: 1
+      startup_period_seconds: 1
+      period_seconds: 20
+      failure_threshold: 15
+
+
+  functest_databases_setup:
+    description: Initializes the jethro_functest database with fresh sample data
+    depends_on: 
+      mariadb:
+        condition: process_healthy
+    command: |
+      devbox.d/bin/jethro_db_demodata_load
+      devbox.d/bin/jethro_db_init --db=jethro_functest_walkthrough
+    readiness_probe:
+      exec:
+        command: mariadb -u jethro -pjethro jethro_functest -sNBe "select count(*) from _person;"
+      # 1s delay, then ping every 1 second until up (try 15 times), and then every 20s
+      initial_delay_seconds: 1
+      startup_period_seconds: 1
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 15
+
+
+  # FYI mariadb's service is provided by a devbox plugin, defined in .devbox/virtenv/mariadb/process-compose.yaml

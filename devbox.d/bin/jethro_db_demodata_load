@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+#? Usage: jethro_db_demodata_load [--db=NAME] [--system-name=NAME]
+#?
+#? Load functional test data into a database in the Devbox MariaDB.
+#?
+#? Default: loads into 'jethro_functest' (the functional test database).
+#? Override with --db=jethro to load into the main development database.
+#? This is a convenience wrapper around jethro_db_load; see its --help for the
+#? full option list including --dump.
+#? All database operations use the root socket connection (mariadb_as_root).
+#?
+#? Options:
+#?   --db           Target database (default: jethro_functest)
+#?   --system-name  Override SYSTEM_NAME setting in the loaded database
+
+set -euo pipefail
+
+source "$(dirname "${BASH_SOURCE[0]}")/jethrodb.sh"
+
+exec "$(dirname "${BASH_SOURCE[0]}")/jethro_db_load" \
+	--dump=demodata.sql.gz \
+	"$@"

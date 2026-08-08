@@ -1,0 +1,411 @@
+#!/bin/bash
+#
+# Launch script - variant of the script at https://get.jetify.com/devbox,
+# modified to download
+# https://github.com/jefft/devbox/releases/tag/v0.17-6.1-jeff which contains
+# necessary bugfixes.
+#
+# Delegates execution to another binary, but first verifies that
+# the desired version of that binary is already installed. If it
+# isn't, it will go ahead and download it before executing.
+
+set -euo pipefail
+
+readonly LAUNCHER_VERSION="0.2.2"
+
+# ========================
+# Customize script
+# ========================
+
+# This script is published at releases.jetify.com/devbox and acts an "universal"
+# binary.
+
+readonly TOOL_NAME="devbox"
+readonly INSTALL_DIR="${HOME}/.cache/${TOOL_NAME}/bin"
+readonly GITHUB_REPO="jefft/${TOOL_NAME}"
+readonly DEFAULT_VERSION="v0.17.6-11-jeff"
+
+
+# ====================
+# format.sh
+# ====================
+
+readonly BOLD="$(tput bold 2>/dev/null || echo '')"
+readonly GREY="$(tput setaf 8 2>/dev/null || echo '')"
+readonly UNDERLINE="$(tput smul 2>/dev/null || echo '')"
+readonly RED="$(tput setaf 1 2>/dev/null || echo '')"
+readonly GREEN="$(tput setaf 2 2>/dev/null || echo '')"
+readonly YELLOW="$(tput setaf 3 2>/dev/null || echo '')"
+readonly BLUE="$(tput setaf 4 2>/dev/null || echo '')"
+readonly MAGENTA="$(tput setaf 5 2>/dev/null || echo '')"
+readonly CYAN="$(tput setaf 6 2>/dev/null || echo '')"
+readonly NO_COLOR="$(tput sgr0 2>/dev/null || echo '')"
+readonly CLEAR_LAST_MSG="\033[1F\033[0K"
+
+title() {
+	local -r text="$*"
+	printf "%s\n" "${BOLD}${MAGENTA}${text}${NO_COLOR}"
+}
+
+header() {
+	local -r text="$*"
+	printf "%s\n" "${BOLD}${text}${NO_COLOR}"
+}
+
+plain() {
+	local -r text="$*"
+	printf "%s\n" "${text}"
+}
+
+info() {
+	local -r text="$*"
+	printf "%s\n" "${BOLD}${GREY}→${NO_COLOR} ${text}"
+}
+
+warn() {
+	local -r text="$*"
+	printf "%s\n" "${YELLOW}! $*${NO_COLOR}"
+}
+
+error() {
+	local -r text="$*"
+	printf "%s\n" "${RED}✘ ${text}${NO_COLOR}" >&2
+}
+
+success() {
+	local -r text="$*"
+	printf "%s\n" "${GREEN}✓${NO_COLOR} ${text}"
+}
+
+start_task() {
+	local -r text="$*"
+	printf "%s\n" "${BOLD}${GREY}→${NO_COLOR} ${text}..."
+}
+
+end_task() {
+	local -r text="$*"
+	printf "${CLEAR_LAST_MSG}%s\n" "${GREEN}✓${NO_COLOR} ${text}... [DONE]"
+}
+
+fail_task() {
+	local -r text="$*"
+	printf "${CLEAR_LAST_MSG}%s\n" "${RED}✘ ${text}... [FAILED]${NO_COLOR}" >&2
+}
+
+confirm() {
+	if [ -z "${FORCE-}" ]; then
+		printf "%s " "${MAGENTA}?${NO_COLOR} $* ${BOLD}[Y/n]${NO_COLOR}"
+		set +e
+		read -r yn </dev/tty
+		rc=$?
+		set -e
+		if [ $rc -ne 0 ]; then
+			error "Error reading from prompt (re-run with '--yes' option if running in a script)"
+			exit 1
+		fi
+		if [ "$yn" != "y" ] && [ "$yn" != "Y" ] && [ "$yn" != "yes" ] && [ "$yn" != "" ]; then
+			error 'Aborting (please answer "yes" to continue)'
+			exit 1
+		fi
+	fi
+}
+
+delay() {
+	sleep 0.3
+}
+
+# =========
+# util.sh
+# =========
+has() {
+	command -v "$1" 1>/dev/null 2>&1
+}
+
+download() {
+	local -r url="$1"
+	local -r file="$2"
+	local cmd=""
+
+	if has curl; then
+		cmd="curl --fail --silent --location --output $file $url"
+	elif has wget; then
+		cmd="wget --quiet --output-document=$file $url"
+	elif has fetch; then
+		cmd="fetch --quiet --output=$file $url"
+	else
+		error "No program to download files found. Please install one of: curl, wget, fetch"
+		error "Exiting..."
+		return 1
+	fi
+
+	if [[ ${3:-} == "--fail" ]]; then
+		$cmd && return 0 || rc=$?
+		error "Command failed (exit code $rc): ${BLUE}${cmd}${NO_COLOR}"
+		exit $rc
+	fi
+
+	$cmd && return 0 || rc=$?
+	return $rc
+}
+
+is_true() {
+	# Get the input string
+	local -r input_string="$1"
+
+	# Convert the input string to lowercase for case-insensitive comparison
+	local -r lowercase_input_string=$(echo "${input_string}" | tr '[:upper:]' '[:lower:]')
+
+	# Check if the input string is not empty, not "0", and not "false"
+	if [[ -n $input_string && $lowercase_input_string != "0" && $lowercase_input_string != "false" ]]; then
+		# If the conditions are met, return "true"
+		echo "true"
+	fi
+}
+
+debug() {
+	local -r debug=$(echo "${TOOL_NAME}_LAUNCHER_DEBUG" | tr '[:lower:]' '[:upper:]')
+	echo "${!debug:-}"
+}
+
+read_file() {
+	if [[ -e $1 ]]; then
+		content=$(cat "$1")
+		echo "$content"
+	else
+		echo "$2"
+	fi
+}
+
+# ====================
+# install.sh
+# ====================
+unpack() {
+	local -r archive="$1"
+	local -r bin_dir="$2"
+
+	local -r tmp_dir=$(mktemp -d)
+
+	case "$archive" in
+	*.tar.gz)
+		tar -xzof "${archive}" -C "${tmp_dir}"
+		mv "${tmp_dir}"/* ${bin_dir}
+		rm -rf "${tmp_dir}"
+		return 0
+		;;
+	*.zip)
+		unzip "${archive}" -d "${tmp_dir}"
+		mv "${tmp_dir}"/* ${bin_dir}
+		rm -rf "${tmp_dir}"
+		return 0
+		;;
+	esac
+
+	error "Unknown package extension in: ${archive}"
+	return 1
+}
+
+sha256() {
+	local -r file=$1
+	if has sha256sum; then
+		cmd="sha256sum $1"
+	elif has shasum; then
+		cmd="shasum -a 256 $1"
+	else
+		error "No program to verify checksum found. Please install one of: sha256sum, shasum"
+		error "Exiting..."
+		return 1
+	fi
+	(
+		set -e
+		$cmd | cut -d ' ' -f 1
+	) && return 0 || rc=$?
+
+	error "Command failed (exit code $rc): ${BLUE}${cmd}${NO_COLOR}"
+	exit $rc
+}
+
+detect_os() {
+	local -r os="$(
+		set -e
+		uname -s | tr '[:upper:]' '[:lower:]'
+	)"
+
+	case "${os}" in
+	msys_nt*) platform="windows" ;;
+	cygwin_nt*) platform="windows" ;;
+	mingw*) platform="windows" ;;
+	esac
+
+	printf '%s' "${os}"
+}
+
+detect_arch() {
+	local arch="$(
+		set -e
+		uname -m | tr '[:upper:]' '[:lower:]'
+	)"
+
+	# `uname -m` in some cases mis-reports 32-bit OS as 64-bit, so double check
+	if [ "${arch}" = "x64" ] && [ "$(getconf LONG_BIT)" -eq 32 ]; then
+		arch=i686
+	fi
+
+	if [ "${arch}" = "aarch64" ]; then
+		arch=arm64
+	fi
+
+	case "${arch}" in
+	x86_64) arch="amd64" ;;
+	esac
+
+	echo "${arch}"
+}
+
+cached_latest_version() {
+	local cache_dir="${XDG_CACHE_HOME:-${HOME}/.cache}/${TOOL_NAME}"
+	cat "${cache_dir}/latest-version" 2>/dev/null || true
+}
+
+auto_update() {
+	# auto_update file will enable auto-updating to the latest version. Anythin other
+	# than false or 0 will enable auto-updating. Missing file will default to false.
+	local -r config_dir="${XDG_CONFIG_HOME:-${HOME}/.config}/${TOOL_NAME}"
+	local -r auto_update="$(read_file ${config_dir}/auto_update "")"
+	echo $(is_true "${auto_update}")
+}
+
+detect_version() {
+
+	# Start by using the version specified via the environment if set.
+	local -r version_var=$(echo "${TOOL_NAME}_USE_VERSION" | tr '[:lower:]' '[:upper:]')
+	local -r env_version=${!version_var:-}
+	if [[ -n ${env_version} ]]; then
+		echo "${env_version}"
+		return 0
+	fi
+
+	# Custom jefft/devbox fork — always use pinned default version.
+	# (DEVBOX_USE_VERSION env var can override if needed.)
+	echo "${DEFAULT_VERSION}"
+}
+
+# ==============
+# Implementation
+# ==============
+install_flow() {
+	local -r version="$1"
+	if [[ ! ${version} =~ ^v?[0-9]+\.[0-9]+[-.0-9a-zA-Z]*$ ]]; then
+		error "Invalid version '${version}'"
+		exit 1
+	fi
+	local -r platform="$2"
+	local -r bin_dir="${INSTALL_DIR}/${version}_${platform}"
+	local -r bin="${bin_dir}/${TOOL_NAME}"
+
+	if [[ ! -x ${bin} ]]; then
+		(
+			# Setup Installation directory and tmp dir.
+			rm -rf "${bin_dir}"
+			mkdir -p "${bin_dir}"
+			local -r install_tmpdir=$(mktemp -d)
+			cleanup() {
+				rm -rf "${install_tmpdir}"
+			}
+			trap cleanup EXIT INT # Clean up on exit
+
+			# Download archive and checksum file
+			start_task "Downloading version ${version}"
+			local -r archive_version="${version#v}"
+			local -r archive_name="${TOOL_NAME}_${archive_version}_${platform}.tar.gz"
+			local -r url_root="https://github.com/${GITHUB_REPO}/releases/download/${version}"
+
+			local -r checksum_url="${url_root}/checksums.txt"
+			download "${checksum_url}" "${install_tmpdir}/checksums.txt"
+
+			local -r archive_url="${url_root}/${archive_name}"
+			download "${archive_url}" "${install_tmpdir}/${archive_name}" --fail
+
+			end_task "Downloading version ${version}"
+
+			# Verify checksum of downloaded file
+			local expected_checksum=""
+			if [[ -f "${install_tmpdir}/checksums.txt" ]]; then
+				expected_checksum=$(
+					set -e
+					grep "${archive_name}" "${install_tmpdir}/checksums.txt" | cut -d ' ' -f 1
+				)
+			fi
+
+			if [[ -n ${expected_checksum:-} ]]; then
+				start_task "Verifying checksum"
+				delay
+
+				local -r actual_checksum=$(sha256 "${install_tmpdir}/${archive_name}")
+
+				if [[ ${actual_checksum} != "${expected_checksum}" ]]; then
+					delay
+					fail_task "Verifying checksum"
+					plain "  Expected checksum (sha256): ${expected_checksum}"
+					plain "  Actual checksum (sha256): ${actual_checksum}"
+					exit 1
+				fi
+				end_task "Verifying checksum"
+			else
+				warn "Skipping checksum verification"
+			fi
+
+			# Extract the archive into the appropriate destination
+			start_task "Unpacking binary"
+			unpack "${install_tmpdir}/${archive_name}" "${bin_dir}"
+			end_task "Unpacking binary"
+
+			cleanup 0
+			printf "\n"
+		) 1>&2 || exit 1 # we don't want to impact the stdout of the actual tool
+	fi
+}
+
+main() {
+	local -r version="$(detect_version)"
+	local -r os="$(detect_os)"
+	local -r arch="$(detect_arch)"
+	local -r platform="${os}_${arch}"
+
+	install_flow "${version}" "${platform}"
+
+	local -r bin="${INSTALL_DIR}/${version}_${platform}/${TOOL_NAME}"
+
+	# Ensure devbox is findable in PATH for internal subcommands (e.g. services ls)
+	local -r path_symlink="devbox.d/bin/${TOOL_NAME}"
+	if [[ ! -L "${path_symlink}" ]] || [[ "$(readlink -f "${path_symlink}")" != "${bin}" ]]; then
+		mkdir -p "$(dirname "${path_symlink}")"
+		ln -sf "${bin}" "${path_symlink}"
+	fi
+
+	local -r latest_version_var=$(echo "${TOOL_NAME}_LATEST_VERSION" | tr '[:lower:]' '[:upper:]')
+	local -r latest_version=$(cached_latest_version)
+
+	if [[ $(debug) ]]; then
+		echo "TOOL_NAME: ${TOOL_NAME}"
+		echo "GITHUB_REPO: ${GITHUB_REPO}"
+		echo "INSTALL_DIR: ${INSTALL_DIR}"
+		echo "version: ${version}"
+		echo "os: ${os}"
+		echo "arch: ${arch}"
+		echo "platform: ${platform}"
+		echo LAUNCHER_VERSION="${LAUNCHER_VERSION}"
+		echo LAUNCHER_PATH="${BASH_SOURCE[0]}"
+		echo ${latest_version_var}="${latest_version}"
+		echo auto_update="$(auto_update)"
+		echo bin="${bin}"
+		exit 0
+	fi
+
+	exec \
+		env LAUNCHER_VERSION="${LAUNCHER_VERSION}" \
+		env LAUNCHER_PATH="${BASH_SOURCE[0]}" \
+		env ${latest_version_var}="${latest_version}" \
+		"${bin}" "$@"
+}
+
+main "$@"

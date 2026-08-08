@@ -1,0 +1,35 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.16/schema.json",
+  "files": {
+    "include": [
+      "resources/js/**/*.js"
+    ],
+    "ignore": [
+      "resources/js/treeview.js",
+      "resources/js/bsn_autosuggest.js",
+      "resources/js/*.min.js",
+      "resources/js/jquery*.js",
+      "resources/js/bootstrap*.js",
+      "resources/js/jethro-*.js"
+    ]
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "a11y": { "recommended": false },
+      "complexity": { "recommended": false },
+      "correctness": { "recommended": false },
+      "nursery": { "recommended": false },
+      "performance": { "recommended": false },
+      "security": { "recommended": false },
+      "style": { "recommended": false },
+      "suspicious": {
+        "recommended": true,
+        "noDoubleEquals": "off"
+      }
+    }
+  },
+  "formatter": {
+    "enabled": false
+  }
+}

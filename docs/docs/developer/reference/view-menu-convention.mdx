@@ -1,0 +1,39 @@
+---
+sidebar_position: 4
+---
+
+# View-Menu Naming Convention
+
+Jethro's view filenames encode both menu placement and permission level. This is a design choice that trades discoverability for simplicity.
+
+## The Convention
+
+```
+view_3_persons__5_sms.class.php
+ │  │   │    │  │
+ │  │   │    │  └── Menu item label ("sms")
+ │  │   │    └────── Order (9th item in admin submenu)
+ │  │   └─────────── Parent menu ("admin")
+ │  └─────────────── Permission level (0 = admin, 1 = user)
+ └────────────────── Required prefix
+```
+
+## Why This Approach?
+
+- **No configuration files** — adding a page means adding a file with the right name
+- **File-system discoverable** — `ls views/` tells you every page in the system
+- **Ordered by convention** — filenames sort naturally, matching menu order
+- **No database dependency** — pages exist as files, not rows in a table
+
+## Tradeoffs
+
+- Class names with double underscores (`View_persons__sms`) are unusual
+- Adding a new menu item requires a new file — can't be done from the admin UI
+- The convention is implicit — new developers need to learn it
+
+## Top-Level vs Submenu
+
+- `view_7_persons.class.php` → top-level menu, "persons", permission level 1
+- `view_3_persons__5_sms.class.php` → admin submenu, "sms", 9th item
+- `view_1__edit_person.class.php` → no menu (underscore prefix means "hidden page")
+
