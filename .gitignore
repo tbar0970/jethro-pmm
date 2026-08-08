@@ -1,5 +1,18 @@
-/nbproject/
+bun.lock
+/conf.php
+# /conf.php anchors conf.php to allow devbox.d/web/conf.php and others
+devbox.d/bin/devbox
+# devbox.d/bin/devbox is a symlink to real devbox binary added to PATH by devbox. See DEVELOPMENT.md
+devbox.d/nginx/nginx*.conf
+# devbox.d/nginx/nginx*.conf is regenerated from devbox.d/nginx/nginx.template
+docs/docs/build
+docs/docs/.docusaurus
 /files/
-conf.php
 .idea/
+/nbproject/
+node_modules/
 .php-cs-fixer.cache
+pnpm-lock.yaml
+resources/css/jethro-*-DEV.css
+resources/js/jethro-*-DEV.js
+tests/functional/test-results

@@ -1,7 +1,6 @@
 <?php
-include_once 'include/db_object.class.php';
 require_once 'include/bible_ref.class.php';
-class service extends db_object
+class Service extends DB_Object
 {
 	var $_readings = Array(); // bible readings for the service, fetched from the service_bible_reading table
 	var $_old_readings = Array();

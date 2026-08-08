@@ -1,5 +1,4 @@
 <?php
-include_once 'include/db_object.class.php';
 class Abstract_Note extends DB_Object
 {
 	protected $_load_permission_level = PERM_VIEWMYNOTES;
@@ -151,7 +150,7 @@ class Abstract_Note extends DB_Object
 		if ($name == 'status') echo '</div>';
 		if ($name == 'action_date') {
 			?>
-			<span class="nowrap smallprint">
+		<span class="smallprint">
 			<button style="font-size: 90%" type="button" class="btn btn-mini" onclick="setDateField('<?php echo $prefix; ?>action_date', '<?php echo date('Y-m-d', strtotime('+1 day')); ?>')">Tomorrow</button>
 			<button style="font-size: 90%" type="button" class="btn btn-mini" onclick="setDateField('<?php echo $prefix; ?>action_date', '<?php echo date('Y-m-d', strtotime('+1 week')); ?>')">1 week from now</button>
 			<button style="font-size: 90%" type="button" class="btn btn-mini" onclick="setDateField('<?php echo $prefix; ?>action_date', '<?php echo date('Y-m-d', strtotime('+1 month')); ?>')">1 month from now</button>
@@ -299,7 +298,7 @@ class Abstract_Note extends DB_Object
 	function printUpdateForm()
 	{
 		?>
-		<form method="post" id="update-note" class="form-horizontal"  data-lock-length="<?php echo db_object::getLockLength() ?>">
+		<form method="post" id="update-note" class="form-horizontal"  data-lock-length="<?php echo DB_Object::getLockLength() ?>">
 			<input type="hidden" name="update_note_submitted" value="1" />
 			<div class="control-group">
 				<label class="control-label">Comment</label>
