@@ -1,0 +1,174 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+/* You can override the default Infima variables here. */
+:root {
+  --ifm-color-primary: #2e8555;
+  --ifm-color-primary-dark: #29784c;
+  --ifm-color-primary-darker: #277148;
+  --ifm-color-primary-darkest: #205d3b;
+  --ifm-color-primary-light: #33925d;
+  --ifm-color-primary-lighter: #359962;
+  --ifm-color-primary-lightest: #3cad6e;
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+}
+
+/* For readability concerns, you should choose a lighter palette in dark mode. */
+[data-theme='dark'] {
+  --ifm-color-primary: #25c2a0;
+  --ifm-color-primary-dark: #21af90;
+  --ifm-color-primary-darker: #1fa588;
+  --ifm-color-primary-darkest: #1a8870;
+  --ifm-color-primary-light: #29d5b0;
+  --ifm-color-primary-lighter: #32d8b4;
+  --ifm-color-primary-lightest: #4fddbf;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}
+
+:root {
+  --ifm-h1-font-size: 1.6rem;
+  --ifm-h2-font-size: 1.35rem;
+  --ifm-h3-font-size: 1.15rem;
+  --ifm-h4-font-size: 1rem;
+  --ifm-h5-font-size: 0.9rem;
+  --ifm-h6-font-size: 0.7rem;
+}
+/*
+ * .jethro-config-form — renders Jethro system configuration HTML snippets
+ * identically to how they appear in the Jethro admin UI.
+ *
+ * Usage: wrap pasted Jethro HTML in <div class="jethro-config-form form-horizontal">
+ * See docs/administration/admin-sms.mdx for examples.
+ */
+.jethro-config-form {
+  background-color: #ffffe0;
+  margin-bottom: 20px;
+  margin-left: 1rem;
+  padding: 1em;
+}
+.jethro-config-form .control-group {
+  margin-bottom: 10px;
+  *zoom: 1;
+}
+.jethro-config-form .control-group:before,
+.jethro-config-form .control-group:after {
+  display: table;
+  content: "";
+  line-height: 0;
+}
+.jethro-config-form .control-group:after {
+  clear: both;
+}
+
+/* Setting-name labels in the config-page replica */
+.control-label {
+  float: left;
+  color: #333;
+  padding: 5px;
+  font-weight: bold;
+}
+.settingRef {
+  background-color: #ffffe0;
+  color: #333;
+  padding: 2px;
+  font-weight: bold;
+  text-decoration: underline;
+
+}
+.jethro-config-form .controls {
+  margin-left: 180px;
+  *zoom: 1;
+}
+.jethro-config-form .controls:before,
+.jethro-config-form .controls:after {
+  display: table;
+  content: "";
+  line-height: 0;
+}
+.jethro-config-form .controls:after {
+  clear: both;
+}
+.jethro-config-form .controls input[type="text"],
+.jethro-config-form .controls textarea,
+.jethro-config-form .controls select {
+  display: inline-block;
+  padding: 4px 6px;
+  margin-bottom: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: #555;
+  vertical-align: middle;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+}
+.jethro-config-form .controls textarea {
+  height: auto;
+}
+
+.jethro-config-form .smallprint {
+  font-size: 12px;
+  line-height: 130%;
+  margin-left: 0;
+  margin-top: 1px;
+  padding: 0;
+  font-style: italic;
+}
+
+.jethro-config-form .help-toggle {
+  font-size: 0.82em;
+  cursor: pointer;
+  user-select: none;
+  display: block;
+  marginTop: 2px;
+}
+.img-bordered {
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+
+/*
+ * Show the # anchor link when hovering over a heading.
+ * Docusaurus generates <a class="hash-link"> with a zero-width space;
+ * Infima hides it by default and reveals on parent hover.
+ */
+.hash-link {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  padding-left: 0.4rem;
+  font-size: 80%;
+  text-decoration: none !important;
+}
+h1:hover .hash-link,
+h2:hover .hash-link,
+h3:hover .hash-link,
+h4:hover .hash-link,
+h5:hover .hash-link,
+h6:hover .hash-link {
+  opacity: 1;
+}
+
+
+/*
+ * Administration sidebar section — subtle highlight to distinguish
+ * admin-only docs from user-facing content.
+ */
+li[data-sidebar-label="Administration"] > .menu__list-item-collapsible > .menu__link {
+  font-weight: 700;
+  color: var(--ifm-color-primary-dark);
+}
+
+/*
+ * Offset anchor targets so sticky navbar doesn't obscure setting IDs
+ * linked from the settings glossary (e.g. #SMS_MAX_LENGTH).
+ */
+.jethro-config-form .control-group {
+  scroll-margin-top: calc(var(--ifm-navbar-height) + 1rem);
+}

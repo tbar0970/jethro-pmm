@@ -62,7 +62,7 @@ class Call_Envelopes extends Call
 					trigger_error('Person #'.(int)$_REQUEST['personid'].' not found', E_USER_WARNING);
 					return;
 				}
-				$family = $GLOBALS['system']->getDBObject('family', $person->getValue('familyid'));
+				$family = $person->getFamily();
 				$env->addAddress($person->toString()."\n".$family->getPostalAddress());
 			}
 		}
