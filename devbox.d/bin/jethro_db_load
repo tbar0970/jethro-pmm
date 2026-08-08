@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+#? Usage: jethro_db_load --dump=FILE [--db=NAME] [--system-name=NAME] [--charset=CHARSET] [--collation=COLLATION]
+#?
+#? Load a SQL dump file into a database in the Devbox MariaDB.
+#?
+#? The dump is normalized through mariadb_rename to ensure database
+#? references always point at the target DB.  Accepts .sql and .sql.gz.
+#? All database operations use the root socket connection (mariadb_as_root).
+#?
+#? Options:
+#?   --dump         SQL dump file, relative to tests/functional/testdata (required; '..' rejected)
+#?   --db           Target database (default: jethro_functest)
+#?   --system-name  Override SYSTEM_NAME setting in the loaded database
+#?   --charset      Database character set (default: utf8)
+#?   --collation    Database collation (default: utf8_unicode_ci)
+
+set -euo pipefail
+
+source "$(dirname "${BASH_SOURCE[0]}")/jethrodb.sh"
+
+parse_opts "dump db=jethro_functest system_name= charset=utf8 collation=utf8_unicode_ci" -- "$@"
+main() {
+	if (( ${#ARGV[@]} )); then help; fi
+	if [[ -z "${dump:-}" ]]; then fail "--dump is required"; fi
+	validate_dump_path
+	validate_working
+	ensure_db
+	load_dump
+	change_system_name
+	upgrade
+	echo
+	echo "SQL dump loaded into '$db'"
+	echo "Connect with: mariadb $db"
+}
+
+validate_dump_path() {
+	if [[ "$dump" == /* ]]; then
+		fail "--dump must be a relative path, got absolute: $dump"
+	fi
+	if [[ "$dump" == *..* ]]; then
+		fail "--dump must not contain '..': $dump"
+	fi
+	dump="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../../tests/functional/testdata/$dump"
+	[[ -f "$dump" ]] || fail "Dump not found: $dump"
+}
+
+ensure_db() {
+	# Create the jethro MySQL user (idempotent; safe even if jethro_db_init hasn't run)
+	# and the target database with the requested charset/collation.
+	ensure_jethro_user "$db"
+	mariadb_as_root -v <<-EOF
+	CREATE DATABASE IF NOT EXISTS \`$db\` CHARACTER SET $charset COLLATE $collation;
+	EOF
+}
+
+load_dump() {
+	[[ -f "$dump" ]] || fail "Dump not found: $dump"
+
+	echo "Loading $dump into '$db'..."
+	# The SQL contains CREATE PROCEDURE which MySQL will only do as root,
+	# hence mariadb_as_root here.
+	if [[ "$dump" == *.gz ]]; then
+		zcat "$dump" | mariadb_rename --database "$db" | mariadb_as_root "$db"
+	else
+		mariadb_rename --database "$db" < "$dump" | mariadb_as_root "$db"
+	fi
+
+	local tables
+	tables=$(mariadb_as_root "$db" -sNBe "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='$db' AND table_type='BASE TABLE';")
+	echo "Done: $tables tables loaded into '$db'"
+}
+
+change_system_name() {
+	if [[ -n "${system_name:-}" ]]; then
+		mariadb_as_root "$db" -sNBe "update setting set value='${system_name//\'/\'\'}' where symbol='SYSTEM_NAME' and value='Functional Testing';"
+	fi
+}
+
+upgrade() {
+	# Apply upgrade SQL for versions after 2.38
+	ls upgrades/*.sql | sort --version-sort | sed '0,/2\.38\.sql/ d' | while read -r sql; do
+		mariadb_as_root "$db" < "$sql"
+	done
+}
+
+main "${ARGV[@]}"

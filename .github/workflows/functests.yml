@@ -1,0 +1,98 @@
+name: Functional Tests
+
+on:
+  push:
+    branches:
+      - master
+      - 'push-*'
+  pull_request:
+    branches:
+      - master
+      - 'push-*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+# NOTE: determinate: false on nix-installer-action disables Determinate Nix
+# and FlakeHub. Only set determinate: true if this repo has FlakeHub access.
+# id-token: write is still needed for tailscale OIDC on the debug step.
+# https://docs.determinate.systems/guides/github-actions/#nix-installer-action
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  functests:
+    runs-on: ubuntu-latest
+    if: github.repository == 'tbar0970/jethro-pmm' || github.repository == 'jefft/jethro-pmm'
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+        with:
+          determinate: false
+
+      - name: Start services
+        run: |
+          chmod +x ./devbox
+          ./devbox services up -b
+
+      - name: Wait for functest server
+        run: |
+          PORT="${FUNCTEST_WEB_PORT:-8089}"
+          for i in $(seq 1 30); do
+            if curl -sf -o /dev/null "http://127.0.0.1:${PORT}/"; then
+              echo "Functest server ready on port ${PORT}"
+              exit 0
+            fi
+            echo "Waiting for functest server (attempt ${i}/30)..."
+            sleep 3
+          done
+          echo "Timed out waiting for functest server" >&2
+          exit 1
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('**/package.json', '**/bun.lockb') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
+      - name: Install Playwright browsers
+        run: ./devbox run -- bunx playwright install chromium
+
+      - name: Run functional tests
+        run: ./devbox run functests
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts
+          path: |
+            tests/functional/test-results/
+            .devbox/process-compose.log
+            .devbox/virtenv/mariadb/run/mysql.log
+          if-no-files-found: ignore
+
+      - name: Connect to Tailscale
+        if: failure()
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          audience: ${{ secrets.TS_AUDIENCE }}
+          tags: tag:ci
+
+      - name: Rename Tailscale node
+        if: failure()
+        run: |
+          sudo tailscale set --hostname "ci-${{ github.workflow }}-${{ github.run_id }}"
+
+      - name: Launch tmate debug session on failure
+        if: failure()
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
