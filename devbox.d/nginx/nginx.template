@@ -111,6 +111,26 @@ http {
         location = /public/   { rewrite ^ /public/index.php last; }
 
         # ====================================================================
+        # Mock SMS server — served through the same PHP-FPM as Jethro.
+        # /smsmockserver/ → index page listing default providers and test profiles
+        # /smsmockserver/5centsms/ → 5CentSMS default (no overrides)
+        # /smsmockserver/cellcast/ → Cellcast default (no overrides)
+        # /smsmockserver/tests/functional/{dir}/{scenario}/ → loads {dir}/{scenario}.smsmock.php
+        # ====================================================================
+
+        # Redirect no-slash to slashed (preserving query string)
+        location = /smsmockserver { return 302 /smsmockserver/$is_args$args; }
+
+        location ~ ^/smsmockserver(/.*)?$ {
+            root ../../../smsmockserver/webroot;
+            include fastcgi.conf;
+            fastcgi_param SCRIPT_FILENAME $realpath_root/index.php;
+            fastcgi_param SCRIPT_NAME /smsmockserver/index.php;
+            fastcgi_param PATH_INFO $1;
+            fastcgi_pass php_backend;
+        }
+
+        # ====================================================================
         # Test-scenario virtual paths: /tests/functional/<name>/...
         #
         # conf.php (at devbox.d/functest_jethro_server/conf.php) detects the

@@ -11,6 +11,8 @@ class User_System extends Abstract_User_System
 	private $_error;
 	private $_is_public = FALSE;
 	private $_is_cli_script = FALSE;
+	/** Null, or why 2FA cannot send a code for the pending login (see _require2FA()). */
+	private ?string $_2faBlockedReason = null;
 
 	public function __construct()
 	{
@@ -53,30 +55,35 @@ class User_System extends Abstract_User_System
 				}
 			}
 		} else if (!empty($_SESSION['2fa']['pending_user'])) {
-			// We are processing a 2FA code
-			if ($_SESSION['2fa']['expiry'] < time()) {
-				add_message('SMS-code form has expired. Please try again.', 'warning');
-				$this->_reset2FA();
-				return;
-			} else if (array_get($_POST, '2fa_key') != $_SESSION['2fa']['key']) {
-				add_message("2-factor authentication was interrupted. Please try again.", 'warning');
-				$this->_reset2FA();
-				return;
-			}
-			if (!empty($_POST['2fa_code'])) {
-				if ($_POST['2fa_code'] == $_SESSION['2fa']['code']) {
-					$this->_2faLog($_SESSION['2fa']['pending_user']['username']." entered the correct code and will be logged in.");
-					$this->_process2FATrust();
-					if (empty($_SESSION['user_requiring_password_upgrade'])) {
-						$this->_logUserIn($_SESSION['2fa']['pending_user']);
-					}
+			// Form-submission checks — only when the 2FA form was actually POSTed.
+			// A request carrying the session cookie but no POST data must not
+			// trigger expiry/key/code checks.
+			if (!empty($_POST)) {
+				if ($_SESSION['2fa']['expiry'] < time()) {
+					add_message('SMS-code form has expired. Please try again.', 'warning');
 					$this->_reset2FA();
-				} else {
-					$this->_error = 'Incorrect 2-factor code. Please try again';
-					$this->_2faLog("Received incorrect code for ".$_SESSION['2fa']['pending_user']['username']);
-					$_SESSION['2fa']['wrong_code_count']++;
-					if ($_SESSION['2fa']['wrong_code_count'] > 1) $this->_reset2FA(); // start again from scratch after 2 wrong codes.
 					return;
+				} else if (!hash_equals((string) $_SESSION['2fa']['key'], (string) array_get($_POST, '2fa_key'))) {
+					add_message("2-factor authentication was interrupted. Please try again.", 'warning');
+					$this->_reset2FA();
+					return;
+				}
+				if (!empty($_POST['2fa_code'])) {
+					// Constant-time comparison of the strings, not ==.
+					if (hash_equals((string) $_SESSION['2fa']['code'], trim((string) $_POST['2fa_code']))) {
+						$this->_2faLog($_SESSION['2fa']['pending_user']['username']." entered the correct code and will be logged in.");
+						$this->_process2FATrust();
+						if (empty($_SESSION['user_requiring_password_upgrade'])) {
+							$this->_logUserIn($_SESSION['2fa']['pending_user']);
+						}
+						$this->_reset2FA();
+					} else {
+						$this->_error = 'Incorrect 2-factor code. Please try again';
+						$this->_2faLog("Received incorrect code for ".$_SESSION['2fa']['pending_user']['username']);
+						$_SESSION['2fa']['wrong_code_count']++;
+						if ($_SESSION['2fa']['wrong_code_count'] > 1) $this->_reset2FA(); // start again from scratch after 2 wrong codes.
+						return;
+					}
 				}
 			}
 
@@ -304,6 +311,7 @@ class User_System extends Abstract_User_System
 	 * @param array $user_details	Details of the person who has entered their password correctly
 	 * @return boolean TRUE if this person needs to do 2-factor auth before being logged in.
 	 */
+
 	private function _require2FA($user_details)
 	{
 		// Allow 2FA to be forcibly turned off regardless of admin settings e.g. for dev environments
@@ -329,22 +337,7 @@ class User_System extends Abstract_User_System
 			}
 		}
 
-		if (ifdef('2FA_SMS_URL', '')) {
-			// Use dedicated SMS gateway settings as supplied
-			SMS_Sender::setConfigPrefix('2FA_SMS');
-		}
-
-		if (!SMS_Sender::canSend()) {
-			// Configuation problem.
-			$this->_2faLog('SMS gateway not configured properly, so 2FA being skipped');
-			return FALSE;
-		}
-
-		if (SMS_Sender::usesUserMobile() && strlen(ifdef('2FA_SENDER_ID')) == 0) {
-			// Configuation problem.
-			$this->_2faLog('2FA_SENDER_ID not set, so 2FA being skipped');
-			return FALSE;
-		}
+		require_once __DIR__ . '/jethro_sms.php';
 
 		$req_perms = ifdef('2FA_REQUIRED_PERMS', '');
 		if (!strlen($req_perms)) return FALSE;
@@ -357,23 +350,146 @@ class User_System extends Abstract_User_System
 			return FALSE;
 		}
 
+		$required = FALSE;
 		foreach (explode(',', $req_perms) as $perm) {
 			$levels = $this->getPermissionLevels();
 			if (!isset($levels[$perm])) {
 				$this->_2faLog("ERROR: Unknown permission level ".$perm." in system setting 2FA_REQUIRED_PERMS");
 				trigger_error("Unknown permission level ".$perm." in system setting 2FA_REQUIRED_PERMS", E_USER_WARNING);
-				return TRUE; // error on the side of requiring 2FA
+				$required = TRUE; // error on the side of requiring 2FA
+				break;
 			}
 
-			if (($user_details['permissions'] & $perm) == $perm) {
-				// They have one of the relevant permissions
+			if (((int)$user_details['permissions'] & (int)$perm) == (int)$perm) {
 				$permName = $this->getPermissionLevels()[$perm];
 				$this->_2faLog($user_details['username'].' requires 2FA because they hold permission "'.$permName.'"');
-				return TRUE;
+				$required = TRUE;
+				break;
 			}
 		}
-		$this->_2faLog($user_details['username'].' does not require 2FA');
-		return FALSE;
+		if (!$required) {
+			$this->_2faLog($user_details['username'].' does not require 2FA');
+			return FALSE;
+		}
+
+		// This user's login needs 2FA. If no code can be sent, stop the login
+		// rather than silently letting it through without a second factor.
+		$blocked = $this->_2faBlockedReason();
+		if ($blocked !== null) {
+			$this->_2faLog('ERROR: '.$user_details['username'].' requires 2FA but cannot be sent a code: '.$blocked);
+			$this->_notifySysadmins("The user ".$user_details['username']." was unable to log in: two-factor authentication is required for them, but Jethro cannot send a code (".$blocked."). Fix the SMS settings, or disable 2FA with define('2FA_ENABLED', false) in conf.php.");
+			$this->_2faBlockedReason = $blocked;
+		}
+		return TRUE;
+	}
+
+	/**
+	 * Pick the sender a 2FA code is sent as, and say why there isn't one.
+	 *
+	 * 2FA sends before login, so the acting user's mobile is unknown. Order:
+	 *   1. 2FA_SENDER_ID, a literal sender ID or number;
+	 *   2. else a literal SMS_SENDER (SMS_SENDER=_USER_MOBILE_ can't resolve yet);
+	 *   3. else the first sender ID the provider reports as ACMA-registered:
+	 *      from 1 July 2026 an unregistered alphanumeric ID is shown to
+	 *      recipients as 'Unverified'.
+	 * With no usable sender the code cannot be sent, and 2FA would lock every
+	 * affected user out, so the login is refused with this reason instead.
+	 *
+	 * Pure, for unit tests. $senderIds is null when the provider couldn't be read.
+	 *
+	 * @param \Sms\SenderID[]|null $senderIds
+	 * @return array{0: ?\Sms\SmsSender, 1: ?string} the sender, or null and why not
+	 */
+	public static function resolve2FASender(string $configured, string $smsSender, ?array $senderIds): array
+	{
+		$configured = trim($configured);
+		if ($configured !== '') {
+			return array(\Sms\senderFromString($configured), null);
+		}
+		$smsSender = trim($smsSender);
+		if ($smsSender !== '' && $smsSender !== '_USER_MOBILE_') {
+			return array(\Sms\senderFromString($smsSender), null);
+		}
+		foreach ($senderIds ?? array() as $senderId) {
+			if ($senderId instanceof \Sms\SenderID && $senderId->acmaApproved === true) {
+				return array($senderId, null);
+			}
+		}
+		if ($senderIds === null) {
+			return array(null, 'no sender ID could be read from the SMS provider');
+		}
+		if ($smsSender === '_USER_MOBILE_') {
+			return array(null, 'SMS_SENDER is _USER_MOBILE_, which cannot be resolved before login, and the SMS provider reports no ACMA-registered sender ID');
+		}
+		return array(null, 'neither 2FA_SENDER_ID nor SMS_SENDER is set, and the SMS provider reports no ACMA-registered sender ID');
+	}
+
+	/**
+	 * {@see resolve2FASender()} with the settings and provider sender IDs.
+	 *
+	 * The provider is only asked when neither setting names a literal sender,
+	 * and its sender-ID list is cached, so repeated 2FA logins are cheap.
+	 *
+	 * @return array{0: ?\Sms\SmsSender, 1: ?string}
+	 */
+	private function _twoFASender(): array
+	{
+		require_once __DIR__ . '/jethro_sms.php';
+		$configured = (string) ifdef('2FA_SENDER_ID', '');
+		$smsSender = (string) ifdef('SMS_SENDER', '');
+		$senderIds = null;
+		if (trim($configured) === '' && (trim($smsSender) === '' || trim($smsSender) === '_USER_MOBILE_')) {
+			$senderIds = array();
+			$providerResult = Jethro\Sms\getSmsProvider();
+			if ($providerResult->isFailure()) {
+				$senderIds = null;
+			} else {
+				$idsResult = $providerResult->getValue()->getSenderIds();
+				if ($idsResult->isFailure()) {
+					$senderIds = null;
+				} else {
+					$senderIds = $idsResult->getValue();
+				}
+			}
+		}
+		return self::resolve2FASender($configured, $smsSender, $senderIds);
+	}
+
+	/**
+	 * Why a 2FA code cannot be sent right now, or null when it can.
+	 *
+	 * @return string|null
+	 */
+	private function _2faBlockedReason()
+	{
+		if (Jethro\Sms\legacyTfaGatewayConstantsDefined()) {
+			return 'conf.php still defines 2FA_SMS_* settings for a dedicated 2FA SMS gateway, which Jethro no longer supports (2FA codes go through the main SMS gateway)';
+		}
+		if (!Jethro\Sms\isConfigured()) {
+			return 'no SMS gateway is configured';
+		}
+		list($sender, $problem) = $this->_twoFASender();
+		if ($sender === null) {
+			return $problem . '; set 2FA_SENDER_ID to an ACMA-registered sender ID, or register one with your SMS provider';
+		}
+		return null;
+	}
+
+	/**
+	 * {@see _2faBlockedReason()}, for the system configuration page's warning.
+	 *
+	 * Null when 2FA is switched off (2FA_ENABLED = false), so a page that asks
+	 * unconditionally doesn't complain on installs that don't use 2FA. Callers
+	 * still decide whether anyone requires it (2FA_REQUIRED_PERMS).
+	 *
+	 * @return string|null null when a 2FA code can be sent
+	 */
+	public function twoFactorBlockedReason(): ?string
+	{
+		if (defined('2FA_ENABLED') && constant('2FA_ENABLED') == false) {
+			return null;
+		}
+		return $this->_2faBlockedReason();
 	}
 
 	public function handle2FAMobileTelChange($person, $old_mobile)
@@ -394,22 +510,32 @@ class User_System extends Abstract_User_System
 	 */
 	private function _init2FA($user_details)
 	{
+		if ($this->_2faBlockedReason !== null) {
+			add_message(
+				'Two-factor authentication is required for your account, but Jethro cannot send you a code: '
+				. $this->_2faBlockedReason
+				. ". Ask your system administrator to fix the SMS settings, or to disable 2FA with define('2FA_ENABLED', false) in conf.php.",
+				'error'
+			);
+			return;
+		}
+
 		$_SESSION['2fa'] = Array();
 		$_SESSION['2fa']['pending_user'] = $user_details;
 		$_SESSION['2fa']['code'] = generate_random_string(6, range(0, 9));
 		$_SESSION['2fa']['key'] = generate_random_string(32);
-		$_SESSION['2fa']['expiry'] = time() + (60*10); // 10 minutes to use code
 		$_SESSION['2fa']['wrong_code_count'] = 0;
+        $_SESSION['2fa']['expiry'] = time() + 600; // 10 minutes
 
 		if (!strlen($user_details['mobile_tel'])) {
-			add_message("2-factor auth could not be completed because your contact details are incomplete. Please contact your system administrator.", 'error');
-			$this->_notifySysadmins("The user ".$_SESSION['2fa']['pending_user']['username']." was unable to log in: Jethro could not send a 2-factor auth code because their mobile number is blank. Please update their mobile number.");
 			$this->_2faLog($_SESSION['2fa']['pending_user']['username']." can't log in because they have blank mobile number. Sysadmins have been notified");
+			add_message("2-factor auth could not be completed because your contact details are incomplete - no mobile number has been set.  Please ask a system administrator to add one to your record.", 'error');
+			$this->_notifySysadmins("The user ".$_SESSION['2fa']['pending_user']['username']." was unable to log in, because they have no mobile number for 2-factor authentication.");
 			$this->_reset2FA();
 			return;
 		}
-		if (ifdef('2FA_BLOCK_MESSAGES')) {
-			$this->_2faLog($_SESSION['2fa']['pending_user']['username']." WOULD BE sent code ".$_SESSION['2fa']['code']." at ".$_SESSION['2fa']['pending_user']['mobile_tel'].' but 2FA_BLOCK_MESSAGES in effect');
+		if (ifdef('SMS_2FA_BLOCK_MESSAGES', ifdef('2FA_BLOCK_MESSAGES', false))) {
+			$this->_2faLog($_SESSION['2fa']['pending_user']['username']." WOULD BE sent code ".$_SESSION['2fa']['code']." at ".$_SESSION['2fa']['pending_user']['mobile_tel'].' but SMS_2FA_BLOCK_MESSAGES in effect');
 			return;
 		}
 
@@ -417,11 +543,11 @@ class User_System extends Abstract_User_System
 		if (!$this->_send2FAMessage($msg, $_SESSION['2fa']['pending_user'])) {
 			add_message("System error during 2-factor auth. Please contact your system administrator.", 'error');
 			$this->_notifySysadmins("The user ".$_SESSION['2fa']['pending_user']['username']." was unable to log in, because Jethro could not send the 2-factor auth code. The SMS gateway may be down, or mis-configured.");
-			$this->_2faLog($_SESSION['2fa']['pending_user']['username']." could not log in because SMS could not be sent. SMS gateway down or misconfigured. Sysadmins have been notified.");
 			$this->_reset2FA();
 			return;
 		}
-		$this->_2faLog($_SESSION['2fa']['pending_user']['username']." was sent code ".$_SESSION['2fa']['code']." at ".$_SESSION['2fa']['pending_user']['mobile_tel']);
+		// Never log the code: anyone who can read the log could complete the login.
+		$this->_2faLog($_SESSION['2fa']['pending_user']['username']." was sent a code at ".$_SESSION['2fa']['pending_user']['mobile_tel']);
 	}
 
 	/**
@@ -432,20 +558,37 @@ class User_System extends Abstract_User_System
 	 */
 	private function _send2FAMessage($msg, $recipient)
 	{
-		if (ifdef('2FA_SMS_URL', '')) {
-			// Use dedicated SMS gateway settings as supplied
-			SMS_Sender::setConfigPrefix('2FA_SMS');
+
+		require_once __DIR__ . '/jethro_sms.php';
+		// getSenderFromRequest() cannot be used here: the user is not logged in yet,
+		// so the request carries no sender param and getCurrentUserMobileNumber() is null.
+		list($sender, $problem) = $this->_twoFASender();
+		if ($sender === null) {
+			$this->_2faLog('Cannot send 2FA: ' . $problem);
+			return false;
 		}
+		$smsRecipients = Jethro\Sms\getRecipientsFromPersonRecords([$recipient['id'] ?? 0 => $recipient]);
+		$result = Jethro\Sms\sendSms((string)$msg, $smsRecipients, $sender, logToDb: false);
 
-		define('OVERRIDE_USER_MOBILE', ifdef('2FA_SENDER_ID'));
-		$res = SMS_Sender::sendMessage($msg, Array($recipient));
-
-		if ($res['executed'] && !empty($res['successes'])) {
-			return TRUE;
-		} else {
-			$this->_2faLog("ERROR: SMS send failure: ".print_r($res,1));
+		if ($result->isFailure()) {
+			$this->_2faLog("ERROR: SMS send failure: ".$result->getError());
 			return FALSE;
 		}
+
+		$batch = $result->getValue();
+		$summary = \Sms\sendSummary($batch->deliveries, $smsRecipients);
+
+		if ($summary instanceof \Sms\Failed) {
+			$this->_2faLog("ERROR: SMS send failure: ".$summary->error);
+			return FALSE;
+		}
+
+		if ($summary instanceof \Sms\AllSent || $summary instanceof \Sms\PartialSuccess) {
+			return TRUE;
+		}
+
+		$this->_2faLog("ERROR: SMS send failure: ".print_r($result, true));
+		return FALSE;
 	}
 
 	/**
@@ -491,10 +634,10 @@ class User_System extends Abstract_User_System
 	 */
 	private function _2faLog($message)
 	{
-		$logfile = ifdef('2FA_LOGFILE');
+		$logfile = ifdef('SMS_2FA_LOGFILE', ifdef('2FA_LOGFILE'));
 		if (!$logfile) return;
 
-		if (strtolower(ifdef('2FA_LOG_LEVEL', 'full')) == 'quiet') {
+		if (strtolower(ifdef('SMS_2FA_LOG_LEVEL', ifdef('2FA_LOG_LEVEL', 'full'))) == 'quiet') {
 			if (0 !== strpos($message, 'ERROR')) return; // in 'quiet' mode, only log messages starting with ERROR.
 		}
 
@@ -526,7 +669,7 @@ class User_System extends Abstract_User_System
 		  ->setTo($emails)
 		  ->text($text);
 
-		$from_address = ifdef(MEMBER_REGO_EMAIL_FROM_ADDRESS, '');
+		$from_address = ifdef('MEMBER_REGO_EMAIL_FROM_ADDRESS', '');
 		if (strlen($from_address)) {
 			$message->setFrom(array($from_address => SYSTEM_NAME.' Jethro System'));
 		} else {

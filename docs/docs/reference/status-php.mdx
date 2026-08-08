@@ -129,15 +129,15 @@ These three fields expose the raw Xdebug state: whether the extension is loaded,
 
 **Expected value:** `false`.
 
-Shows `!version_compare(PHP_VERSION, '8.1', '>')` — `false` when PHP is newer than 8.1, `true` when it is not. Jethro requires PHP 8.1+.
+Shows `!version_compare(PHP_VERSION, '8.2', '>=')` — `false` on PHP 8.2 or newer, `true` otherwise. Jethro requires PHP 8.2+.
 
-Non-nominal: `true` (PHP ≤ 8.1). No php.ini setting — install a newer PHP.
+Non-nominal: `true` (PHP < 8.2). No php.ini setting — install a newer PHP.
 
 ### `php_extensions_installed`
 
 **Expected value:** `true`.
 
-Shows whether all required PHP extensions are loaded: `gettext`, `zip`, `xmlwriter`, `gd`, `curl`, `exif`.
+Shows whether all required PHP extensions are loaded: `gettext`, `zip`, `xmlwriter`, `gd`, `curl`, `exif`, `mbstring`.
 
 Non-nominal: `"Missing extensions: …"` listing whichever are absent. Install the missing extensions (as packages / `extension=` directives).
 

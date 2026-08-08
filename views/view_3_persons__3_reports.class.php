@@ -218,7 +218,7 @@ class View_Persons__Reports extends View
 											?>
 										</li>
 									<?php
-									if (SMS_Sender::canSend()) {
+									if (Jethro\Sms\canSendSms()) {
 										?>
 										<li><a href="<?php echo build_url(Array('queryid'=>$id, 'bulk_action'=>'sms')); ?>"><i class="icon-envelope"></i><?php echo _('Send SMS')?></a></li>
 										<?php

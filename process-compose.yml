@@ -150,6 +150,14 @@ processes:
       set -eu
       devbox.d/bin/jethro_load_demodata jethro_functest
       devbox.d/bin/mariadb_recreate_db jethro_functest_walkthrough jethro_functest_smsmockserver
+      # Cancel any SMS deliveries still 'scheduled'. Each one renders a Datastar
+      # polling span (?call=sms_info, backing off from every 2s per batch, for
+      # up to 24h; see smsDeliveryPollIntervalSecs()) whose PHP-side status
+      # call re-enters the same php-fpm pool, so leftovers saturate the pool
+      # and unrelated tests time out. Re-run before every suite by
+      # tests/functional/global-setup.ts.
+      # (_smsdelivery: the smsdelivery view shows nothing without a current user.)
+      mariadb jethro_functest -e "UPDATE _smsdelivery SET status='cancelled' WHERE status='scheduled'"
     on_exit:
       command: |
         if [ "$PC_EXIT_CODE" = 0 ]; then

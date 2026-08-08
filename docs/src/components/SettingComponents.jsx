@@ -347,10 +347,9 @@ function SettingSelect({ id, label, defaultValue, options: opts, value, fileOnly
  * @param {boolean} [props.fileOnly]   — forwarded to {@link HelpBox}
  *
  * @example
- * // Renders a person search labeled "Sms Balance Low Notificant"
- * // See jethrosettings.json: SMS_BALANCE_LOW_NOTIFICANT_PERSON_ID (type "personSearch", default 0)
- * <SettingPersonSearch id="SMS_BALANCE_LOW_NOTIFICANT_PERSON_ID"
- *                      label="Sms Balance Low Notificant" defaultValue={0} />
+ * // Renders a person search for a "personSearch" setting (none ship today;
+ * // the low-balance alert used to be one, now an email address).
+ * <SettingPersonSearch id="SOME_PERSON_ID" label="Example person" defaultValue={0} />
  */
 function SettingPersonSearch({ id, label, defaultValue = 0, value, fileOnly }) {
   const [open, setOpen] = React.useState(true);
