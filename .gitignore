@@ -1,5 +1,18 @@
 /nbproject/
 /files/
-conf.php
+# Anchor conf.php to allow devbox.d/web/conf.php and others
+/conf.php
 .idea/
 .php-cs-fixer.cache
+resources/css/jethro-*-DEV.css
+resources/js/jethro-*-DEV.js
+# Regenerated from devbox.d/nginx/nginx.template
+devbox.d/nginx/nginx*.conf
+# Symlink to real devbox binary added to PATH by devbox. See DEVELOPMENT.md
+devbox.d/bin/devbox
+bun.lock
+pnpm-lock.yaml
+node_modules/
+docs/docs/.docusaurus
+docs/docs/build
+tests/functional/test-results

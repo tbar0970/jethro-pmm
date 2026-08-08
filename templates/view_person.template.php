@@ -234,6 +234,11 @@ if (isset($tabs['notes'])) {
 	$add_note_html = null;
 	if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
 		$add_note_html = '<a href="?view=_add_note_to_person&personid='.ents($person->id).'"><i class="icon-plus-sign"></i>'._('Add Note').'</a>';
+		static $printedNoteModal = false;
+		if (!$printedNoteModal) {
+			include JETHRO_ROOT.'/templates/note_modal.template.php';
+			$printedNoteModal = true;
+		}
 	}
 	if (empty($notes)) {
 		if ($add_note_html) {
@@ -480,7 +485,7 @@ if (isset($tabs['rosters'])) {
 
 	printf($panel_header, 'rosters', _('Rosters'), '');
 
-	$GLOBALS['system']->includeDBClass('roster_role_assignment');
+	$GLOBALS['system']->includeDBClass('Roster_Role_Assignment');
 	$assignments = Roster_Role_Assignment::getUpcomingAssignments($person->id, '99 weeks');
 	$absences_choice = array_get($_REQUEST, 'absences'); // "all" or "upcoming"
 	if ($absences_choice) {

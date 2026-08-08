@@ -41,7 +41,7 @@ class View_Home extends View
 				My Roster &nbsp;
 			</h3>
 			<?php
-			$GLOBALS['system']->includeDBClass('roster_role_assignment');
+			$GLOBALS['system']->includeDBClass('Roster_Role_Assignment');
 			$rallocs = Roster_Role_Assignment::getUpcomingAssignments($GLOBALS['user_system']->getCurrentMember('id'), NULL);
 			if ($rallocs) {
 				?>

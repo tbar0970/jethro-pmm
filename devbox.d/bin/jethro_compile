@@ -1,0 +1,57 @@
+#!/bin/bash -eu
+
+# Compiles the css + js resources for a given version and, with --use,
+# activates them by writing the version to include/version.txt.
+
+fail() { echo >&2 "$*"; exit 1; }
+
+usage() {
+  echo "Usage: $0 [--use] [version]"
+  echo "  version  version string (default: \$JETHRO_VERSION)"
+  echo "  --use    write the version to include/version.txt so the app uses the compiled assets"
+  exit 0
+}
+
+main() {
+  [[ -d resources/js ]] || fail "Must be invoked in the project root"
+
+  local version=""
+  local use=false
+
+  while (($#)); do
+    case "$1" in
+      --use)
+        use=true
+        ;;
+      -h|--help)
+        usage
+        ;;
+      -*)
+        fail "Unknown option: $1"
+        ;;
+      *)
+        [[ -z "$version" ]] || fail "Version specified more than once: '$version' and '$1'"
+        version=$1
+        ;;
+    esac
+    shift
+  done
+
+  version=${version:-${JETHRO_VERSION:-}}
+  [[ -n "$version" ]] || fail "No version supplied: pass one as an argument or set JETHRO_VERSION"
+
+  local script_dir
+  script_dir=$(cd "$(dirname "$0")" && pwd)
+
+  "$script_dir/jethro_compile_css" "$version"
+  "$script_dir/jethro_compile_js" "$version"
+
+  if $use; then
+    printf '%s\n' "$version" > include/version.txt
+    echo "Wrote include/version.txt — the app now uses jethro-${version}.css/.js"
+  else
+    echo "To use compiled resources, run: $0 --use \"$version\""
+  fi
+}
+
+main "$@"

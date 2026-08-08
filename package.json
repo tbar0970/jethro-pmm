@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "less": "1.7.5"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4"
+  }
+}
