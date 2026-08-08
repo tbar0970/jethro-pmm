@@ -34,7 +34,7 @@ $selected = Array(array_get($_REQUEST, 'bulk_action', '') => 'selected="selected
 				?>
 					<option value="email" <?php echo array_get($selected, 'email', ''); ?>><?php echo _('Send email')?></option>
 				<?php
-				if (SMS_Sender::canSend()) {
+				if (Jethro\Sms\canSendSms()) {
 					?>
 					<option value="smshttp" <?php echo array_get($selected, 'sms', ''); ?>><?php echo _('Send SMS')?></option>
 					<?php
@@ -225,53 +225,9 @@ $selected = Array(array_get($_REQUEST, 'bulk_action', '') => 'selected="selected
 			<input type="submit" class="btn " value="Go" data-set-form-target="hidden" data-set-form-action="?call=email" />
 		</div>
 	<?php
-	if (SMS_Sender::canSend()) {
-		?>
-		<div class="bulk-action well" id="smshttp">
-			<div class="control-group">
-				<label class="control-label"><?php echo _('To:')?></label>
-				<div class="controls">
-					<label class="radio">
-						<input class="compulsory" type="radio" name="sms_type" value="person" id="sms_type_person" checked="checked" />
-						<?php echo _('the selected persons')?>
-					</label>
-					<label class="radio">
-						<input type="radio" name="sms_type" value="family" id="sms_type_family" />
-						<?php echo _('the adults in the selected persons families')?>
-					</label>
-				</div>
-			</div>
-			<div class="control-group">
-				<label class="control-label">Message: </label>
-				<div class="controls">
-					<?php
-					SMS_Sender::printTextbox();
-					?>
-				</div>
-			</div>
-		<?php
-		if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
-			?>
-			<div class="control-group">
-				<label class="control-label">After sending:</label>
-				<div class="controls">
-				  <label class="checkbox">
-					<input type="checkbox" name="saveasnote" <?php if (ifdef('SMS_SAVE_TO_NOTE_BY_DEFAULT')) { echo 'checked="checked"'; } ?>  />
-					save as note
-				  </label>
-				</div>
-			</div>
-			<?php
-		}
-		?>
-			<div class="control-group">
-				<div class="controls">
-					<input type="button" class="btn bulk-sms-submit" value="Send" />
-				</div>
-			</div>
-			<div class="control-group" id="bulk-sms-results"></div>
-		</div>
-		<?php
+	if (Jethro\Sms\canSendSms()) {
+		$noteType = (($_REQUEST['view'] ?? '') === 'families') ? 'family' : 'person';
+		\Jethro\Sms\printBulkSmsForm($noteType);
 	}
 	?>
 		<div class="bulk-action well" id="export">

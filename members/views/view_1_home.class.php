@@ -8,6 +8,8 @@ class View_Home extends View
 
 	function processView()
 	{
+		// High-traffic page with no Datastar markup; see docs/docs/developer/reference/datastar.md
+		$GLOBALS['datastarNeeded'] = FALSE;
 	}
 
 	function printView()

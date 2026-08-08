@@ -96,14 +96,18 @@ if (empty($res) && !empty($ini['VERBOSE'])) {
 	echo "No persons found with custom field ".$ini['CUSTOM_FIELD_ID'].' '.$ini['REMINDER_OFFSET']." days from now \n";
 }
 
+$smsFailureCount = 0;  // makes the script exit 1 at the end; never stops the email reminders
 if (!empty($ini['SMS_MESSAGE'])) {
-	
-	if (!empty($ini['SMS_FROM'])) {
-		define('OVERRIDE_USER_MOBILE', $ini['SMS_FROM']);
-	}
-	require_once JETHRO_ROOT.'/include/sms_sender.class.php';
-	if (!ifdef('SMS_HTTP_URL')) {
+	require_once JETHRO_ROOT.'/include/jethro_sms.php';
+	// SMS_FROM may be a phone number or an alphanumeric Sender ID (e.g. "StBarnabas");
+	// when unset, fall back to SMS_SENDER as roster_reminder.php does.
+	$smsSenderNumber = \Sms\senderFromString((string) ($ini['SMS_FROM'] ?? ''));
+	$smsSender = $smsSenderNumber ?? Jethro\Sms\getSenderFromRequest();
+	if (!Jethro\Sms\isConfigured()) {
 		trigger_error("You have specified an SMS message in ".$_SERVER['argv'][1].' but this Jethro system does not have an SMS gateway configured. No SMS messages will be sent.');
+		$ini['SMS_MESSAGE'] = '';
+	} elseif ($smsSender === null) {
+		trigger_error("You have specified an SMS message in ".$_SERVER['argv'][1].' but no sender is configured. Set SMS_FROM in the ini file, or SMS_SENDER/SMS_SENDER_OPTIONS in conf.php. No SMS messages will be sent.');
 		$ini['SMS_MESSAGE'] = '';
 	}
 }
@@ -152,11 +156,16 @@ foreach ($summaries as $supervisors => $remindees) {
 	
 }
 
+// The email reminders above have been sent regardless; report SMS problems to cron.
+if ($smsFailureCount > 0) {
+	fwrite(STDERR, "{$smsFailureCount} SMS reminder(s) could not be sent.\n");
+	exit(1);
+}
 
 function send_reminder($person, $expiryDate)
 {
-	global $ini;
-	
+	global $ini, $smsSender, $smsFailureCount;
+
 	$sentSomething = FALSE;
 	if (!empty($ini['EMAIL_BODY'])) {
 		if (strlen($person['email'])) {
@@ -190,14 +199,34 @@ function send_reminder($person, $expiryDate)
 		if (strlen($person['mobile_tel'])) {
 			$toNumber = $person['mobile_tel'];
 			if (!empty($ini['OVERRIDE_RECIPIENT_SMS'])) $toNumber = $person['mobile_tel'] = $ini['OVERRIDE_RECIPIENT_SMS'];
-			$message = replace_keywords($ini['SMS_MESSAGE'], $person, $expiryDate);
-			$res = SMS_Sender::sendMessage($message, Array($person), FALSE);
-			if (!$res['executed'] || (count($res['successes']) != 1)) {
-				echo "Failed to send SMS to ".$toNumber."\n";
+			if ($smsSender === null) {
+				echo "SMS not sent to ".$toNumber.": no sender configured\n";
+				$smsFailureCount++;
 			} else {
-				$sentSomething = TRUE;
-				if (!empty($ini['VERBOSE'])) {
-					echo "Sent SMS reminder to ".$person['first_name'].' '.$person['last_name'].' '.$toNumber."\n";
+				$message = replace_keywords($ini['SMS_MESSAGE'], $person, $expiryDate);
+				$recipient = new \Jethro\Sms\JethroSmsRecipient(
+					$person['id'],
+					new \Sms\PhoneNumber($person['mobile_tel']),
+				);
+				try {
+					$result = \Jethro\Sms\sendSms($message, [$recipient], $smsSender, logToDb: true);
+				} catch (\Throwable $e) {
+					// One bad send (e.g. a template keyword needing a logged-in
+					// user) must not stop the remaining reminders.
+					$result = \Result::failure($e->getMessage());
+				}
+				if ($result->isFailure()) {
+					echo "Failed to send SMS to ".$toNumber.": " . $result->getError() . "\n";
+					$smsFailureCount++;
+				} elseif (($result->getValue()->deliveries[0] ?? null)?->status() === \Sms\SmsStatus::OPTED_OUT) {
+					if (!empty($ini['VERBOSE'])) {
+						echo $person['first_name'].' '.$person['last_name'].' '.$toNumber." has opted out of SMS and was not sent one\n";
+					}
+				} else {
+					$sentSomething = TRUE;
+					if (!empty($ini['VERBOSE'])) {
+						echo "Sent SMS reminder to ".$person['first_name'].' '.$person['last_name'].' '.$toNumber."\n";
+					}
 				}
 			}
 		} else {

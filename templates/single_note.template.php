@@ -10,7 +10,7 @@ $type = (!empty($entry['familyid']) ? 'family' : 'person');
 include_once 'urllinker.php';
 ?>
 <a name="note_<?php echo $id; ?>"></a>
-<div class="notes-history-entry well <?php echo $type; ?>-note" id="note_<?php echo $id; ?>" data-note-id="<?php echo $id; ?>">
+<div class="history-entry well <?php echo $type; ?>-note" id="note_<?php echo $id; ?>" data-note-id="<?php echo $id; ?>">
 
 
 	<?php
@@ -50,6 +50,13 @@ include_once 'urllinker.php';
 			<?php echo $entry['creator_fn'].' '.$entry['creator_ln'].' <span class="visible-desktop">(#'.$entry['creator'].')</span>,'; ?>
 			<?php echo format_datetime($entry['created']); ?>
 			<?php
+			if (!empty($entry['_sms_status'])) {
+				$friendlyStatus = match ($entry['_sms_status']) {
+					'sent', 'delivered', 'queued', 'sending', 'scheduled', 'in-progress', 'test-message' => 'Associated',
+					default => $entry['_sms_status'],
+				};
+				echo ' &middot; <a href="#message_' . (int)$entry['_msg_id'] . '">' . $friendlyStatus . ' message</a>';
+			}
 			if ($entry['editor']) {
 				$editor = $GLOBALS['system']->getDBObject('person', $entry['editor']);
 				$name = $editor ? $editor->toString() : '(restricted user)';

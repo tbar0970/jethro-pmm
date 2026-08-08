@@ -46,7 +46,7 @@ const config: Config = {
   // cannot resolve `export *` re-export chains through d3's ESM source tree,
   // causing "curveBumpX/curveBumpY not exported from d3" and "blur2 not
   // exported from d3-array" at build time (mermaid 11.16 + d3 7.9).
-  // The single ER diagram in jethro-sms/docs/reference/database.mdx was
+  // The single ER diagram in docs/docs/developer/sms/database.mdx was
   // replaced with ASCII art. To re-enable mermaid in future, test that
   // `bun run build` succeeds after re-adding the theme, the `markdown.mermaid`
   // config, and `@docusaurus/theme-mermaid` to dependencies.

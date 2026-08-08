@@ -7,6 +7,8 @@ $PERM_LEVELS = Array(
 
 2 =>		Array('SENDSMS',			'SMS/Mailchimp - send',							''),
 
+524288 =>	Array('VIEWSMS',			'SMS - view all',						''),	// Also referenced in upgrades/2026-upgrade-to-2.40.sql (granted only with SENDSMS + VIEWNOTE) and include/installer.class.php (DEFAULT_PERMISSIONS)
+
 4 =>		Array('RUNREPORT',			'Reports - run reports & view stats',	''),
 12 =>		Array('MANAGEREPORTS',		'Reports - save shared reports',''),
 

@@ -1,5 +1,32 @@
 <?php
 
+/**
+ * AJAX handler for creating a Person_Note record (?call=add_note).
+ *
+ * Sole caller: the '#add-note-modal .note-submit' click handler in
+ * resources/js/jethro.js, which posts one person at a time from the shared note
+ * modal (templates/note_modal.template.php). Failures it returns are rendered by
+ * NoteCallHandler.handleResponse() into #call-failures; on success the note is
+ * linked from the page via a #note_<id> hash.
+ *
+ * SMS sends do NOT use this call: when "Create Note" is ticked, Call_SMS creates
+ * the note server-side (see include/jethro_sms.php).
+ *
+ * See docs/docs/developer/reference/note-modal.mdx.
+ *
+ * Response contract (JSON):
+ *   Success: {"sent": {"note_id": <int>}}
+ *   Failure: {"error": "<message>"}
+ *
+ * URL parameters:
+ *   personid     int     — person to attach the note to (required)
+ *   subject      string  — note subject (required)
+ *   details      string  — note body text
+ *   status       string  — note status (default: 'no_action')
+ *   assignee     int     — person ID of the assignee
+ *   action_date  string  — action date (default: today)
+ *   ajax         1       — indicates AJAX request
+ */
 class Call_Add_Note extends Call
 {
 	function run(): void
@@ -9,24 +36,9 @@ class Call_Add_Note extends Call
 			return;
 		}
 
-		$ajax = [];
-
-		// Parse person IDs from request
-		$personIds = [];
-		$raw = $_REQUEST['personid'] ?? [];
-		if (!is_array($raw)) {
-			$raw = [$raw];
-		}
-		foreach ($raw as $id) {
-			$id = (int) $id;
-			if ($id > 0) {
-				$personIds[] = $id;
-			}
-		}
-		$personIds = array_unique($personIds);
-
-		if ($personIds === []) {
-			echo json_encode(['error' => 'No valid recipients']);
+		$personId = (int) ($_REQUEST['personid'] ?? 0);
+		if ($personId <= 0) {
+			echo json_encode(['error' => 'No person specified']);
 			return;
 		}
 
@@ -36,64 +48,22 @@ class Call_Add_Note extends Call
 			return;
 		}
 
-		$details = trim((string) ($_REQUEST['details'] ?? ''));
-		$status = $_REQUEST['status'] ?? 'no_action';
-		$assignee = !empty($_REQUEST['assignee']) ? (int) $_REQUEST['assignee'] : null;
-
 		$GLOBALS['system']->includeDBClass('person_note');
-		$successIds = [];
-		$failureIds = [];
-
-		foreach ($personIds as $personId) {
-			$note = new Person_Note();
-			$note->setValue('personid', $personId);
-			$note->setValue('subject', $subject);
-			$note->setValue('details', $details);
-			$note->setValue('status', $status);
-			if ($assignee !== null) {
-				$note->setValue('assignee', $assignee);
-			}
-
-			if ($note->create()) {
-				$successIds[] = $personId;
-			} else {
-				$failureIds[] = $personId;
-			}
+		$note = new Person_Note();
+		$note->setValue('personid', $personId);
+		$note->setValue('subject', $subject);
+		$note->setValue('details', trim((string) ($_REQUEST['details'] ?? '')));
+		$note->setValue('status', $_REQUEST['status'] ?? 'no_action');
+		$note->setValue('action_date', $_REQUEST['action_date'] ?? date('Y-m-d'));
+		if (!empty($_REQUEST['assignee'])) {
+			$note->setValue('assignee', (int) $_REQUEST['assignee']);
 		}
 
-		if ($failureIds !== []) {
-			$ajax['failed']['count'] = count($failureIds);
-			$ajax['failed']['recipients'] = self::_personIdsToRecords($failureIds);
-		}
-		if ($successIds !== []) {
-			$ajax['sent']['count'] = count($successIds);
-			$ajax['sent']['recipients'] = self::_personIdsToRecords($successIds);
-			$ajax['sent']['confirmed'] = true;
+		if (!$note->create()) {
+			echo json_encode(['error' => 'Failed to add note']);
+			return;
 		}
 
-		if ($successIds === []) {
-			$ajax['error'] = 'Failed to add note to any selected person';
-		}
-
-		echo json_encode($ajax);
-	}
-
-	/**
-	 * Convert person IDs into person-record format (keyed by person ID).
-	 *
-	 * @param int[] $personIds
-	 * @return array<int, array{first_name: string, last_name: string}>
-	 */
-	private static function _personIdsToRecords(array $personIds): array
-	{
-		$people = $GLOBALS['system']->getDBObjectData('person', ['id' => $personIds], 'AND');
-		$result = [];
-		foreach ($personIds as $pid) {
-			$result[$pid] = [
-				'first_name' => $people[$pid]['first_name'] ?? "Person #$pid",
-				'last_name'  => $people[$pid]['last_name'] ?? '',
-			];
-		}
-		return $result;
+		echo json_encode(['sent' => ['note_id' => (int) $note->id]]);
 	}
 }

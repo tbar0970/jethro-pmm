@@ -78,31 +78,62 @@ Outgoing email server configuration for system-generated emails (notifications, 
 
 ## SMS
 
-SMS messaging configuration — message limits, gateway templates, and 2FA transport.
+SMS messaging configuration — message limits, gateway templates, and 2FA transport. See the [SMS Administration guide](./sms.mdx) for setup instructions and provider details.
+
+### Sender
+
+Controls the "From" dropdown on the SMS send page. See [SMS Sender](./sms.mdx#sms-sender) for examples and Sender ID registration.
+
+<MultiSettings group="sender" />
+
+### Post-send behaviour
+
+Settings affecting the SMS Create Note… behaviour, and post-send 'cooloff'. See [Post-send behaviour](./sms.mdx#post-send-behaviour).
+
+<MultiSettings group="postSendBehaviour" />
+
+### Balance
+
+See [Low Balance](./sms.mdx#low-balance) for balance enforcement and notification.
+
+<MultiSettings group="balance" />
+
+### Provider selection
+
+See [Provider selection](./sms.mdx#provider-selection) for auto-detection and manual overrides.
+
+<MultiSettings group="providerSelection" />
+<MultiSettings group="fiveCentSms" />
+<MultiSettings group="cellcast" />
+<MultiSettings group="mobileMessage" />
 
 ### Message body
 
-Limits on what the user can type in SMS messages.
+Limits on what the user can type in SMS messages. See [Message body](./sms.mdx#message-body).
 
 <MultiSettings group="messageBody" />
 
 ### Debugging &amp; cost display
 
+See [Debugging &amp; cost display](./sms.mdx#debugging--cost-display).
+
 <MultiSettings group="debugging" />
 
 ### Legacy HTTP template gateway
 
-Only needed if using `TemplateSmsProvider`, `FiveCentSmsV4Provider`, or a custom HTTP-template gateway. Most users should use one of the provider-specific sections above instead.
+Only needed if using `TemplateSmsProvider`, `FiveCentSmsV4Provider`, or a custom HTTP-template gateway. Most users should use one of the provider-specific sections above instead. See [configuring a provider](./sms.mdx#configuring-a-sms-provider) for modern alternatives.
 
 <MultiSettings group="legacyGateway" />
 
 ### 2FA SMS gateway (file-only)
 
-If you want 2FA to use a different SMS gateway than regular sends. When unset, 2FA falls back to the regular SMS constants.
+If you want 2FA to use a different SMS gateway than regular sends. When unset, 2FA falls back to the regular SMS constants. See [2FA SMS](./sms.mdx#2fa-sms) for setup and troubleshooting.
 
 <MultiSettings group="twoFactorSmsGateway" />
 
 ### 2FA logging (file-only)
+
+See [Audit log](./sms.mdx#audit-log) for log levels and blocking.
 
 <MultiSettings group="twoFactorLogging" />
 

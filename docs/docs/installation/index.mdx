@@ -8,9 +8,9 @@ This guide covers deploying Jethro on a Linux server with Nginx, PHP-FPM, and My
 
 ## Prerequisites
 
-- **Linux server** (Ubuntu 22.04+ recommended)
+- **Linux server** (Ubuntu 24.04+ recommended; 22.04 ships PHP 8.1, which is too old)
 - **Nginx** 1.18+
-- **PHP** 8.1+ with required extensions
+- **PHP** 8.2+ with required extensions
 - **MySQL** 8.0+ or MariaDB 10.6+
 
 ## Quick Install
@@ -46,7 +46,7 @@ server {
 
     # Pass PHP files to PHP-FPM
     location ~ \.php$ {
-        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+        fastcgi_pass unix:/var/run/php/php-fpm.sock;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         include fastcgi_params;
     }
@@ -71,8 +71,8 @@ See `nginx/CLAUDE_NGINX.md` in the repository for full configuration details.
 Required PHP extensions:
 
 ```bash
-apt install php8.1-fpm php8.1-mysql php8.1-mbstring \
-  php8.1-xml php8.1-curl php8.1-gd php8.1-zip
+apt install php-fpm php-mysql php-mbstring \
+  php-xml php-curl php-gd php-zip
 ```
 
 ## Database Setup
@@ -100,7 +100,8 @@ chmod 640 conf.php
 
 ## Upgrade Process
 
-1. Pull the latest code
-2. Run `composer install` if using Composer
-3. Visit `/admin/upgrade` or run `mysql < upgrades/*.sql`
-4. Check the system configuration page for any new settings
+1. Check that your PHP (CLI and PHP-FPM) meets the [prerequisites](#prerequisites). Jethro 2.40 raised the minimum from PHP 8.1 to **8.2**; see [What's New](../changelog/index.mdx).
+2. Pull the latest code
+3. Run `composer install` if using Composer
+4. Visit `/admin/upgrade` or run `mysql < upgrades/*.sql`
+5. Check the system configuration page for any new settings

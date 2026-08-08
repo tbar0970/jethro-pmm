@@ -13,8 +13,11 @@ system_name="${2-}"
 cd "$(dirname "$(readlink -f "$0")")/../.."  # repo root: upgrades/ and testdata/ are relative
 
 dump=tests/functional/testdata/demodata-${JETHRO_VERSION}.sql.gz
+fakesmses=tests/functional/testdata/fakesmses.sql.gz
+fakesmses_tsv=tests/functional/testdata/fakesmses.tsv.gz
 
 [[ -f $dump ]] || { echo >&2 "We don't have sample data for $JETHRO_VERSION (no $dump)."; exit 1; }
+[[ -f $fakesmses && -f $fakesmses_tsv ]] || { echo >&2 "Missing fake SMS fixture: $fakesmses or $fakesmses_tsv"; exit 1; }
 # Empty database first, so a reload cannot leave tables behind that the dump and
 # the upgrade scripts no longer know about.
 mariadb_recreate_db "$db"
@@ -41,9 +44,25 @@ ls upgrades/*.php | sort --version-sort | sed '0,/2\.40/ d' | while read -r php;
 	devbox.d/bin/utf8mb4_convert_db "$db" "$PWD/$php"
 done
 
+# fakesmses.sql.gz uses one LOAD DATA LOCAL INFILE. Its rows are gzipped beside
+# it; decompress into a private directory and run from there so the LOAD DATA
+# path in the SQL does not depend on the checkout layout.
+echo "Loading fake SMS history: $fakesmses"
+fakesmses_dir=$(mktemp -d)
+trap 'rm -rf "$fakesmses_dir"' EXIT
+zcat "$fakesmses_tsv" > "$fakesmses_dir/fakesmses.tsv"
+fakesmses_sql="$PWD/$fakesmses"
+( cd "$fakesmses_dir" && zcat "$fakesmses_sql" | mariadb --local-infile=1 "$db" )
+
+# The database is utf8mb4 (mariadb_recreate_db created it that way and the
+# charset fixer above keeps it so), so the 2.40 upgrade's "database charset
+# needs upgrading" flag does not apply; clear it so test users do not get
+# that warning on the home page.
+mariadb "$db" -e "DELETE FROM setting WHERE symbol='NEEDS_UTF8MB4_UPGRADE';"
+
 if [[ -n "$system_name" ]]; then
 	mariadb "$db" -e "UPDATE setting SET value='${system_name//\'/\'\'}' WHERE symbol='SYSTEM_NAME' AND value='Functional Testing';"
 fi
 
-mariadb "$db" -sNBe "SELECT CONCAT('Loaded into \`$db\`: ', (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='$db'), ' tables, ', (SELECT COUNT(*) FROM _person), ' people');"
+mariadb "$db" -sNBe "SELECT CONCAT('Loaded into \`$db\`: ', (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='$db'), ' tables, ', (SELECT COUNT(*) FROM _person), ' people, ', (SELECT COUNT(*) FROM sms), ' SMSes');"
 echo "Connect with: devbox run mariadb $db"

@@ -174,7 +174,8 @@ class View_Groups__List_All extends View
 					break;
 				}
 			}
-			?>
+?>
+			<hr />
 			<div class="form-horizontal bulk-actions">
 				<?php echo _('With selected groups:')?>
 				<select id="bulk-action-chooser" class="no-autofocus">
