@@ -813,25 +813,20 @@ function get_url_pathprefix()
 }
 
 /**
- * Infer Jethro's absolute base URL from the request.
+ * Infer Jethro's absolute base URL from the request (scheme + host + path).
+ * Returns e.g. "https://church.org/jethro" — no trailing slash.
+ * Proxy-aware: respects X-Forwarded-Proto and X-Forwarded-Host.
  */
 function baseurl_absolute()
 {
-    // Detect scheme
     $https = (
         (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
         (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443) ||
         (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
     );
     $scheme = $https ? 'https' : 'http';
-
-    // Detect host (with proxy awareness)
     $host = $_SERVER['HTTP_X_FORWARDED_HOST'] ?? $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'];
-
-    // Detect base path (the directory your app runs from)
     $scriptDir = baseurl_relative();
-
-    // Build base URL (no trailing slash if at root)
     return $scheme . '://' . $host . ($scriptDir !== '' ? $scriptDir : '');
 }
 
