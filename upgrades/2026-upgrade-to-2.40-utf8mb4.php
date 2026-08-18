@@ -7,7 +7,7 @@
  * idempotent - safe to run more than once, and safe to run on a database that has
  * already been converted.
  *
- * Jethro 2.39 makes utf8mb4/utf8mb4_unicode_ci the standard character set for new
+ * Jethro 2.40 makes utf8mb4/utf8mb4_unicode_ci the standard character set for new
  * installs: the table-creation code (db_object.class.php, installer.class.php) and
  * the PDO connection charset now all use utf8mb4. This script brings existing
  * databases into line by converting every table not already on utf8mb4_unicode_ci
