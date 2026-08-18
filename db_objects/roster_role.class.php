@@ -1,5 +1,4 @@
 <?php
-include_once 'include/db_object.class.php';
 class Roster_Role extends db_object
 {
 	protected $_load_permission_level = NULL;
