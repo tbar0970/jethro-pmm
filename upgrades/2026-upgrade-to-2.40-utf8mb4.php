@@ -3,7 +3,7 @@
 /**
  * Convert any remaining non-standard-collation tables to utf8mb4_unicode_ci.
  *
- * Run this script when upgrading from 2.38 (or earlier) to 2.39 or above. It is
+ * Run this script when upgrading from 2.38 (or earlier) to 2.40 or above. It is
  * idempotent - safe to run more than once, and safe to run on a database that has
  * already been converted.
  *

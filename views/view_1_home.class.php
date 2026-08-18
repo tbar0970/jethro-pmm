@@ -26,7 +26,10 @@ class View_Home extends View
 			require_once 'upgrades/upgradelibs/status_upgrader.class.php';
 			Status_Upgrader::runHTML();
 		}
-		require_once JETHRO_ROOT.'/upgrades/upgradefixes/2.40.0_fix_db_charset/utf8mb4_upgradecheck.php';
+
+		if (ifdef('NEEDS_UTF8MB4_UPGRADE')) {
+			require_once JETHRO_ROOT.'/upgrades/upgradefixes/2.40.0_fix_db_charset/utf8mb4_upgradecheck.php';
+		}
 
 		?>
 		<div class="homepage">
