@@ -108,7 +108,7 @@ $result['xdebug_performance_impact'] = (extension_loaded('xdebug')
 $opcachestatus = opcache_get_status();
 $result['opcache_performance_impact'] = ($opcachestatus === false)
     ? "opcache is not enabled"
-    : (($opcachestatus['jit']['enabled'] ?? false) ? "opcache JIT is enabled" : false);
+    : (($opcachestatus['jit']['on'] ?? false) ? "opcache JIT is enabled" : false);
 
 // Session GC config — check for Debian/Ubuntu sessionclean misconfiguration
 // Ref: https://github.com/tbar0970/jethro-pmm/issues/1088#issuecomment-2436805398
