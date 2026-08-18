@@ -1,0 +1,9 @@
+#!/bin/bash -eu
+# Usage: mariadb_check
+# Fail unless we are talking to the devbox MariaDB (not a real one).
+# Called by the scripts that create, wipe or load databases.
+
+: "${MYSQL_UNIX_PORT:?not in a devbox environment - run via 'devbox run' or 'devbox shell'}"
+[[ -S "$MYSQL_UNIX_PORT" ]] || { echo >&2 "mariadb is not running. Start it with 'devbox services up -b'"; exit 1; }
+[[ $(mariadb_as_root -sNBe "select @@datadir") == */.devbox/virtenv/*/data/ ]] \
+	|| { echo >&2 "Connected to a non-devbox database - refusing to continue"; exit 1; }
