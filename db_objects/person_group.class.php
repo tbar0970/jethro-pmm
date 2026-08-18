@@ -1,6 +1,5 @@
 <?php
-include_once 'include/db_object.class.php';
-class Person_Group extends db_object
+class Person_Group extends DB_Object
 {
 	protected $_save_permission_level = PERM_EDITGROUP;
 
