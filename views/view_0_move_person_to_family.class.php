@@ -63,7 +63,7 @@ class View__Move_Person_To_Family extends View
 			// archive the family record
 			$old_family->setValue('status', 'archived');
 			$old_family->save(FALSE);
-		}		
+		}
 	}
 
 	function getTitle()

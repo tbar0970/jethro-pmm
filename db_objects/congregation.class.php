@@ -70,7 +70,7 @@ class Congregation extends db_object
 					Persons can be added to this congregation
 				</label>
 				<label class="checkbox">
-					<?php 
+					<?php
 					$params['attrs']['data-target'] = '#field-attendance_recording_days';
 					print_widget('holds_attendance', $params, empty($this->id) || $this->getValue('attendance_recording_days') > 0); ?>
 					Attendance can be recorded for this congregation

@@ -23,7 +23,7 @@ foreach ($persons as $personid => $person) {
 			}
 			echo ents($dummy->getFormattedValue('gender'));
 			if ($dummy->getValue('mobile_tel')) {
-				echo ' &bull; ';	
+				echo ' &bull; ';
 				$dummy->printFieldValue('mobile_tel');
 			}
 			if ($dummy->getValue('email')) {
