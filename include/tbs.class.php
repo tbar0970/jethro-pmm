@@ -794,7 +794,7 @@ public $OnLoad = true;
 public $OnShow = true;
 public $IncludePath = array();
 public $TplStore = array();
-public $OldSubTpl = false; // turn to true to have compatibility with the old way to perform subtemplates, that is get output buffuring
+public $OldSubTpl = false; // turn to true to have compatibility with the old way to perform subtemplates, that is get output buffering
 // Private
 public $_ErrMsgName = '';
 public $_LastFile = '';
@@ -3693,7 +3693,7 @@ function meth_Misc_ChangeMode($Init,&$Loc,&$CurrVal) {
 		unset($this->Source); $this->Source = '';
 		$this->_Mode++; // Mode>0 means subtemplate mode
 		if ($this->OldSubTpl) {
-			ob_start(); // Start buffuring output
+			ob_start(); // Start buffering output
 			$Loc->SaveRender = $this->Render;
 		}
 		$this->Render = TBS_OUTPUT;

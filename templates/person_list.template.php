@@ -3,11 +3,11 @@
 @var $persons
 @var $special_fields
 @var $show_actions	Whether to show the action links for each person
-@var $link_Class	Classname to add to all the action links (eg med-popup)
+@var $link_class		Classname to add to all the action links (eg med-popup)
 @var $view_tab		Which view-person tab to link to (eg attendance)
 @var $callbacks		Functions to call to render each column's value
 */
-$link_class = empty($link_class) ? '' : 'class="'.$link_class.'"';
+$link_class = $link_class ?? '';
 $view_tab = empty($view_tab) ? '' : '#'.$view_tab;
 
 $GLOBALS['system']->includeDBClass('person');
@@ -107,11 +107,11 @@ if ($show_actions) {
 
 			?>
 			<td class="narrow action-cell">
-				<a <?php echo $link_class; ?> href="?view=persons&personid=<?php echo $id; echo $view_tab ?>"><i class="icon-user"></i><?php echo _('View')?></a> &nbsp;
+					<a class="rowlink" href="?view=persons&personid=<?php echo $id; echo $view_tab ?>"><i class="icon-user"></i><?php echo _('View')?></a> &nbsp;
 			<?php
 			if ($GLOBALS['user_system']->havePerm(PERM_EDITPERSON) && !SizeDetector::isNarrow()) {
 				?>
-				<a <?php echo $link_class; ?> href="?view=_edit_person&personid=<?php echo $id; ?>"><i class="icon-wrench"></i><?php echo _('Edit')?></a> &nbsp;
+				<a href="?view=_edit_person&personid=<?php echo $id; ?>"><i class="icon-wrench"></i><?php echo _('Edit')?></a> &nbsp;
 				<?php
 			}
 			if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE) && !SizeDetector::isNarrow()) {

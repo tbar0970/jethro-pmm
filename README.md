@@ -12,21 +12,33 @@ Download the latest version of Jethro from the [releases page](https://github.co
 
 System requirements are:
 * Some kind of web server (apache/ngnix etc)
-* MySQL 8.0 or above
-    * with [ONLY_FULL_GROUP_BY](https://dev.mysql.com/doc/refman/8.4/en/sql-mode.html#sqlmode_only_full_group_by) disabled
+* A database, either:
+    * MariaDB 10.6+
+    * MySQL 8.0 or above
+        * with [ONLY_FULL_GROUP_BY](https://dev.mysql.com/doc/refman/8.4/en/sql-mode.html#sqlmode_only_full_group_by) disabled
+        * with [log_bin_trust_function_creators](https://dev.mysql.com/doc/refman/8.4/en/replication-options-binary-log.html#sysvar_log_bin_trust_function_creators) enabled
 * PHP 8.1 or above
     * with [gettext extension](https://www.php.net/manual/en/book.gettext.php) enabled
     * with [zip extension](https://www.php.net/manual/en/book.zip.php) enabled
     * with [xmlwriter extension](https://www.php.net/manual/en/book.xmlwriter.php) enabled, to create DOCX files
     * [GD library](https://www.php.net/manual/en/book.image.php) recommended, to manage the size of uploaded photos
-    * with [curl extension](https://www.php.net/manual/en/book.curl.php) enabled, if you intend to use the Mailchimp integration
+    * with [curl extension](https://www.php.net/manual/en/book.curl.php) enabled, if you intend to use the Mailchimp or https://api.bible integration
     * with [exif extension](https://www.php.net/manual/en/book.exif.php) enabled, if you would like to automatically rotate images
 
 The steps to install are:
 1. Unzip the files into a web-accessible folder on your web server
-2. Create a mysql database and database user for your jethro system to use. If asked, choose utf8_unicode_ci as the character set and collation.
+2. Create a mysql database and database user for your jethro system to use. The charset must be `utf8mb4`, and collation `utf8mb4_unicode_ci`. E.g.:
+    ```sql
+    CREATE USER IF NOT EXISTS 'jethro'@'localhost' IDENTIFIED BY 'jethro';
+    CREATE DATABASE `jethro` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    GRANT ALL PRIVILEGES ON `jethro`.* TO 'jethro'@'localhost';
+    ```
 3. Edit Jethro's configuration file conf.php and fill in the essential details (system name, URL, database details).  Further explanation can be found inside the file.
 4. Open the Jethro system URL in your web browser.  The Jethro installer will start automatically and will prompt you for details to create the initial user account.  When the installer completes, it will prompt you to log into the installed system.
+
+You might like to download and load some [sample data](https://easyjethro.com.au/demo/jethro_demodata.gz) (this can
+be seen running at https://easyjethro.com.au/demo/). The jethro_demodata file is SQL which can be loaded into MySQL. See
+[here](https://github.com/tbar0970/jethro-pmm/pull/1398) for further instructions.
 
 # Documentation
 

@@ -247,6 +247,10 @@ class Call_Document_Merge extends Call
 					// (eg "selected groups", "other family members" etc) to the merge data.
 					// Make sure the report returns a 'flat' array by removing grouping.
 					$query = $GLOBALS['system']->getDBObject('person_query',$_REQUEST['queryid']);
+					if (!$query) {
+						trigger_error('Report #'.(int)$_REQUEST['queryid'].' not found', E_USER_WARNING);
+						return;
+					}
 					$params = $query->getValue('params');
 					$params['group_by'] = NULL;
 					$query->setValue('params', $params);

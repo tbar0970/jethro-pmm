@@ -15,10 +15,14 @@ $(document).ready(function() {
 	if (!('autofocus' in i) || $('[autofocus]').length == 0) {
 		// native autofocus is not supported, or no element is using it
 		if ($('.initial-focus, .autofocus, [autofocus]').length) {
-			setTimeout("$('.initial-focus, .autofocus, [autofocus]').get(0).focus()", 200);
+			setTimeout(function() {
+				TBLib.applyInitialFocus($('.initial-focus, .autofocus, [autofocus]'));
+			}, 200);
 		} else if (document.location.hash.length == 0) {
 			// Focus the first visible input
-			setTimeout("try { $('body input[type!=checkbox]:visible, select:visible').not('.btn-link, [type=checkbox], [type=radio], [type=submit]').not('.no-autofocus *, .no-autofocus').get(0).focus(); } catch (e) {}", 200);
+			setTimeout(function() {
+				TBLib.applyInitialFocus($('body input[type!=checkbox]:visible, select:visible').not('.btn-link, [type=checkbox], [type=radio], [type=submit]').not('.no-autofocus *, .no-autofocus'));
+			}, 200);
 		}
 	}
 	$('input[autoselect]').each(function() {
@@ -78,14 +82,18 @@ $(document).ready(function() {
 		history.back();
 	});
 
-	// Ability to click anywhere on a table row to activate the link within it
+	// Ability to click anywhere on a table row to activate the primary link.
+	// If a <a class="rowlink"> exists in the row, it takes priority;
+	// otherwise the first <a> in the row is used (backwards-compatible).
 	$('table.clickable-rows td').click(function(e) {
 		var t = $(this);
 		var myLinks = t.find('a, input');
 		if (!myLinks.length) {
-			childLinks = $(this).parent('tr').find('a');
-			if (childLinks.length) {
-				self.location = childLinks[0].href;
+			var row = $(this).parent('tr');
+			var rowLinks = row.find('td>a[href!=#]');
+			if (rowLinks.length) {
+				var primary = rowLinks.filter('.rowlink');
+				self.location = (primary.length ? primary : rowLinks).first()[0].href;
 			}
 		} else if (myLinks.filter('a').length == 1) {
 			self.location = myLinks[0].href;
@@ -380,32 +388,31 @@ $(document).ready(function() {
 		var target = $($(this).attr('data-target'));
 		var t = '';
 		if (target.is('input, textarea')) {
-			t = target.attr('value');
+			t = target.val();
 			target.get(0).select();
 		} else {
-			t = target.get(0).innerText;
+			t = target.get(0).innerText || target.text();
 		}
-		try {
-			if (navigator.clipboard.writeText(t)) {
-				var oldLink = this;
-				var oldLabel = this.value || this.innerHTML;
-				if ($(this).is('input')) {
-					this.value = '✔ Copied';
-					setTimeout(function() {
-						oldLink.value = oldLabel;
-					}, 2000);				
-				} else {
-					this.innerHTML = '✔ Copied';
-					setTimeout(function() {
-						oldLink.innerHTML = oldLabel;
-					}, 2000);
-				}
+
+		if (!window.isSecureContext) {
+			alert("Clipboard access requires HTTPS");
+			return false;
+		}
+
+		navigator.clipboard.writeText(t).then(function() {
+			var el = this;
+			var oldLabel = el.value || el.innerHTML;
+			if ($(el).is('input')) {
+				el.value = '✔ Copied';
+				setTimeout(function() { el.value = oldLabel; }, 2000);
 			} else {
-				alert("Sorry, browser settings do not allow copying");
+				el.innerHTML = '✔ Copied';
+				setTimeout(function() { el.innerHTML = oldLabel; }, 2000);
 			}
-		} catch (e) {
-				alert("Sorry, browser settings do not allow copying");
-		}	
+		}.bind(this)).catch(function() {
+			alert("Clipboard access was denied — check your browser permissions");
+		});
+
 		return false;
 	});
 
@@ -427,6 +434,44 @@ $(document).ready(function() {
 
 	highlightControlGroupFromUrlParams();
 });
+
+/**
+ * Focus the first element of jqElts, unless focus has already moved elsewhere.
+ *
+ * Called from a 200ms timer in $(document).ready (above).  That delay is long
+ * enough for a fast typist -- or a browser-automation script -- to have focused
+ * a field of their own first, and yanking focus back then sends the rest of
+ * their keystrokes into the wrong input.  So we only place the initial focus
+ * while nothing else holds it.
+ *
+ * Reproducing the bug this guards against (it hit the Playwright setup-wizard
+ * test, tests/functional/walkthrough/walkthrough.spec.ts):
+ *
+ *   1. Open a page whose first visible input is not the one you want to type
+ *      into -- e.g. the installer on an empty database: System Name is the
+ *      first field, the Congregations table the last.
+ *   2. Less than 200ms after DOMContentLoaded, focus one of the later fields
+ *      and type into it.  Playwright's fill() hits the window reliably: it
+ *      focuses + selects the target in one round trip, then delivers the text
+ *      as keystrokes (CDP Input.insertText) in the next one.
+ *   3. Unguarded, the timer fires between those two round trips and focuses
+ *      System Name, so the text lands there instead: "St DemosVille" + "6pm"
+ *      = "St DemosVille6pm", while the congregation row stays empty.  The
+ *      Congregations table then stops growing too, because rows are appended
+ *      on focus (TBLib.handleTableExpansion) only when the row above is
+ *      non-empty.
+ *
+ * While nothing is focused the browser reports document.activeElement as
+ * <body> (or <html>, or null in a detached document), so that is what we treat
+ * as "the initial focus is still ours to place".
+ */
+TBLib.applyInitialFocus = function(jqElts)
+{
+	var active = document.activeElement;
+	if (active && (active !== document.body) && (active !== document.documentElement)) return;
+	var elt = jqElts.get(0);
+	if (elt) elt.focus();
+}
 
 /**
  * Highlight a particular edit-mode form element ('.control-group'), with a text callout saying what needs to happen. 'hl' URL param identifies the form element, and 'hltext' supplies the help text.

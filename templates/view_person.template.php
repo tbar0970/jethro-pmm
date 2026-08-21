@@ -42,17 +42,17 @@ if ($GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
 			<div class="modal-header">
 				<h4><?php echo _('Add ')?> <?php $person->printFieldValue('name'); ?><?php echo _(' to a group');?></h4>
 			</div>
-			<div class="modal-body">
+			<div class="modal-body" style="overflow: visible">
 				<?php
 				$GLOBALS['system']->includeDBClass('person_group');
-				echo _('Add as a ');
+				echo _('Add to ');
+				$can_add_group = Person_Group::printChooser('groupid', 0);
+				echo _(' as a ');
 				Person_Group::printMembershipStatusChooser('membership_status');
-				echo _(' of ');
-				$can_add_group = Person_Group::printChooser('groupid', 0, array_keys($groups));
 				?>
 			</div>
 			<div class="modal-footer">
-				<input type="submit" class="btn" value="Go" accesskey="s" onclick="if (!$('[name=groupid]').val()) { alert('<?php echo _('Choose a group first'); ?>'); return false; }" />
+				<input type="submit" class="btn" value="Go" accesskey="s" onclick="if (!parseInt($('[name=groupid]').val())) { alert('<?php echo _('Choose a group first'); ?>'); return false; }" />
 				<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
 			</div>
 		</form>
@@ -231,18 +231,25 @@ if (isset($tabs['notes'])) {
 
 	printf($panel_header, 'notes', _('Notes').' ('.count($notes).')', '');
 
+	$add_note_html = null;
 	if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
-		?>
-		<div class="pull-right"><a href="?view=_add_note_to_person&personid=<?php echo $person->id; ?>"><i class="icon-plus-sign"></i><?php echo _('Add Note')?></a></div>
-		<?php
+		$add_note_html = '<a href="?view=_add_note_to_person&personid='.ents($person->id).'"><i class="icon-plus-sign"></i>'._('Add Note').'</a>';
 	}
 	if (empty($notes)) {
+		if ($add_note_html) {
+			?>
+			<div class="pull-right"><?php echo $add_note_html; ?></div>
+			<?php
+		}
 		?>
 		<p><i><?php echo _('There are no person or family notes to show for ')?><?php $person->printFieldValue('name'); ?></i></p>
 		<?php
 	} else {
 		?>
-		<p><i><?php echo _('Person and Family Notes for ')?><?php $person->printFieldValue('name'); ?>:</i></p>
+		<?php include __DIR__ . '/note_filters.template.php'; ?>
+		<p>
+			<i><?php echo _('Person and Family Notes for ')?><?php $person->printFieldValue('name'); ?>:</i>
+		</p>
 		<?php
 	}
 	$show_edit_link = true;
@@ -475,11 +482,26 @@ if (isset($tabs['rosters'])) {
 
 	$GLOBALS['system']->includeDBClass('roster_role_assignment');
 	$assignments = Roster_Role_Assignment::getUpcomingAssignments($person->id, '99 weeks');
+	$absences_choice = array_get($_REQUEST, 'absences'); // "all" or "upcoming"
+	if ($absences_choice) {
+		$_SESSION['person_absences_choice'] = $absences_choice;
+	} else {
+		$absences_choice = array_get($_SESSION, 'person_absences_choice', 'upcoming');
+	}
+	if (array_get($_REQUEST, 'absences') == 'all') {
+		$absences_heading = _('All planned absences');
+		$absences_filter = Array();
+	} else {
+		$absences_heading = _('Upcoming planned absences');
+		$absences_filter = Array('>=end_date' => date('Y-m-d'));
+
+	}
 	$absences = $GLOBALS['system']->getDBObjectData(
 											'planned_absence',
-											Array('personid' => $person->id, '>=end_date' => date('Y-m-d')),
+											Array('personid' => $person->id)+$absences_filter,
 											'start_date'
 									);
+	
 	
 	?>
 	<h4>Upcoming roster assignments</h4>
@@ -528,13 +550,24 @@ if (isset($tabs['rosters'])) {
 	?>
 	<h4>
 		<?php
+		if ($absences_choice == "all") {
+			?>
+			<a class="pull-right" href="<?php echo build_url(Array('absences' => 'upcoming')); ?>#rosters"><i class="icon-eye-open"></i>Show upcoming only</a>
+			<?php
+		} else {
+			?>
+			<a class="pull-right" href="<?php echo build_url(Array('absences' => 'all')); ?>#rosters"><i class="icon-eye-open"></i>Show past absences</a>
+			<?php
+		}
 		if ($GLOBALS['user_system']->havePerm(PERM_EDITROSTER)) {
 			?>
 			<a class="pull-right" href="?view=_add_planned_absence&personid=<?php echo $person->id; ?>"><i class="icon-plus-sign"></i>Add</a>
 			<?php
 		}
+
+		echo $absences_heading; 
 		?>
-		Planned absences</h4>
+	</h4>
 	<?php
 	if ($absences) {
 		?>

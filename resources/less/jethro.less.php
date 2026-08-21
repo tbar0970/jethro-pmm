@@ -13,6 +13,7 @@
 @import "bootstrap.less";
 @import "responsive.less";
 @import "../css/jquery-ui.min.css";
+@import "../css/treeview.css";
 
 /* Fix for less v2 and bootstrap 2 - see https://stackoverflow.com/questions/26628309/less-v2-does-not-compile-twitters-bootstrap-2-x */
 #grid {
@@ -25,7 +26,10 @@
 
 <?php
 /* Load any custom vars from conf.php */
-$confFile = dirname(dirname(dirname(__FILE__))).'/conf.php';
+if (!defined('JETHRO_ROOT')) {
+	define('JETHRO_ROOT', dirname($_SERVER['SCRIPT_FILENAME'], 3));
+}
+$confFile = JETHRO_ROOT.'/conf.php';
 if (is_readable($confFile)) {
 	require_once $confFile;
 	if (defined('CUSTOM_LESS_VARS')) echo CUSTOM_LESS_VARS;
@@ -176,6 +180,31 @@ if (is_readable($confFile)) {
 		display: none;
 	}
 }
+#login-body.member-login h3 {
+	margin-bottom: 10px !important;
+}
+#member-login-options {
+	display: flex;
+	white-space: nowrap;
+}
+#member-login-left {
+	padding: 0 1em 0 0;
+	flex-grow: 10;
+}
+#member-login-left input[type=password] {
+		margin-bottom: 0; 
+		width: 100px !important; 
+		flex-grow:1 
+}
+#member-login-right {
+	padding: 0 0 0 1em;
+	border-left: 2px solid #bbb;
+}
+#member-login-left .input-append {
+	display: flex;
+	margin-bottom: 0px !important;
+}
+
 
 
 /********** OVERALL PAGE ************/
@@ -634,7 +663,7 @@ form.min {
 #body .valign-middle, #body table.valign-middle td, #body table.valign-middle th {
 	vertical-align: middle;
 }
-#body .valign-top, #body table.valign-top td {
+#body .valign-top, #body table.valign-top td, .valign-top td {
 	vertical-align: top !important;
 }
 
@@ -817,10 +846,22 @@ table.custom-field-tooltip {
 .right {
 	text-align: right !important;
 }
+
 select, input, textarea,div.editor {
+	/* apply shrink-to-fit sizing rather than bootstrap's default 206px */
 	width: auto;
-	max-width: 97%;
 }
+
+.modal input, .modal select, .modal textarea, .modal .uneditable-input {
+	/* In modals the shink-to-fit size from the rule above is too wide. Constrain it to the containing box */
+	max-width: 100%;
+	/* 'box-sizing: border-box' means max-width includes padding and
+	 * border. Without this, the padding + border makes the actual width exceed
+	 * 100% resulting in a scrollbar. Previously we had 'max-width: 97%' to avoid
+	 * that. */
+	box-sizing: border-box;
+}
+
 .full-width-input {
 	width: 99.5%;
 	-webkit-box-sizing: border-box;
@@ -1054,6 +1095,7 @@ img.person-photo {
 	background: @jethroLight;
 	border-radius: 5px;
 	margin-bottom: 15px;
+	display: flow-root;
 }
 .view-person .details-box {
 	width: 500px;
@@ -1187,6 +1229,8 @@ img.person-photo {
 	row-gap: 10px;
 	box-sizing: border-box;
 	margin-bottom: 10px;
+	padding-bottom: 8px;
+	border-bottom: 1px solid #dddddd;
  }
 .family-member {
 	box-sizing: border-box;
@@ -1489,6 +1533,13 @@ ul.nav-tabs {
 	padding: 15px;
 	border-radius: 0px 0px 5px 5px;
 }
+/* Override Bootstrap's overflow:auto (which breaks position:sticky descendants) while
+   still containing floats via display:flow-root. Scoped to view-person to avoid
+   affecting service-planner which intentionally scrolls its tab-content. */
+.tab-content.view-person {
+	overflow: visible;
+	display: flow-root;
+}
 .preview-pane, .tab-content, .nav-tabs > .active > a, .nav-tabs > .active > a:hover, .nav-tabs > .active > a:focus {
 	background: @jethroLightest; /* lighter yellow */
 }
@@ -1767,6 +1818,25 @@ table.service-details td table td input {
 	margin-bottom: 0px !important;
 }
 
+/* Pencil toggle button that switches a service date cell between read-only and editable */
+#body table.service-program .service-date-edit-toggle {
+	color: #aaa;
+	padding: 0 2px;
+	font-size: 1em;
+	vertical-align: middle;
+}
+#body table.service-program .service-date-edit-toggle:hover { color: #333; }
+
+/* Six-dot grip used as a drag handle to reorder service rows */
+#body table.service-program .drag-handle {
+	cursor: grab;
+	color: #ccc;
+	padding: 0 4px 0 0;
+	font-size: 1.1em;
+	vertical-align: middle;
+}
+#body table.service-program .drag-handle:hover { color: #555; }
+
 
 /*********** NOTES **************/
 .notes-history-entry small {
@@ -1813,6 +1883,29 @@ table.service-details td table td input {
 .notes-history-entry .comments {
 	margin-left: 25px;
 	margin-top: 15px;
+}
+
+/* Note filter sidebar — checkboxes to filter by status and assignee.
+   position:sticky keeps the panel visible while scrolling through long lists.
+   top:5px (not 80px) because #jethro-nav is not position:fixed — it scrolls away,
+   so there is no persistent header to clear. */
+.panel-sidebar {
+	border-left: 1px solid #ddd;
+	padding: 8px 8px 0 8px;
+	position: sticky;
+	top: 5px;
+}
+.panel-sidebar fieldset {
+	border: 0;
+	margin: 0;
+	padding: 0;
+}
+.panel-sidebar legend {
+	display: inline;
+	width: auto;
+	margin: 1em 0 0.5em 0;
+	padding-right: 8px;
+	font-size: 0.85em;
 }
 
 /********* ATTENDANCE AND COLOURED RADIO BUTTONS **********/
@@ -1986,6 +2079,19 @@ li div.delete-list-item, li div.delete-chosen-person {
 	position: relative;
 	top: 0.5em;
 	margin-top: -4px;
+}
+
+/***********GROUP CHOOSER ********** */
+span.group-chooser-container {
+	display: inline-block;
+}
+.group-chooser-multi {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+.group-chooser-multi.active select, .group-chooser.active {
+	outline: 2px solid rgb(0,94,204);
 }
 
 /********* DOCUMENTS ************/
@@ -2540,6 +2646,37 @@ div#send-sms-modal div.results {
 	margin: 1em 1em 1em 5em;
 }
 
+
+/*************** SCRIPTURE VERSES *****************/
+
+.scripture-styles .v {
+	font-size: .7em;
+	font-weight: bold;
+	vertical-align: super;
+	line-height: 0;
+}
+
+
+.scripture-styles .v::after {
+	content: "\00a0";
+}
+
+.scripture-styles .s1 {
+	font-style: italic;
+}
+.scripture-styles .q1 {
+	margin-left: 0;
+}
+.scripture-styles .q2 {
+	margin-left: 1.5em;
+}
+.scripture-styles .q3 {
+	margin-left: 3em;
+}
+.scripture-styles .q4 {
+	margin-left: 4.5em;
+}
+
 /************ PRINT **************/
 @media print {
 	#jethro-overall-width, #jethro-overall-width-inner {
@@ -2578,4 +2715,101 @@ div#send-sms-modal div.results {
 	#jethro-nav {
 		border-bottom: 2px solid;
 	}
+}
+/**
+ * Boolean state icons: green tick / red cross, e.g.:
+ *
+ * <p class="status-icon-yes">Configured</p>
+ *
+ * \2713 / \2717 are U+2713 CHECK MARK and U+2717 BALLOT X, written as CSS
+ * escapes because this stylesheet is served as text/plain with no charset and
+ * is compiled client-side by less.js.
+ */
+.status-icon-yes:before {
+	content: "\2713";
+	color: #468847;
+	margin-right: 0.4em;
+}
+.status-icon-no:before {
+	content: "\2717";
+	color: #b94a48;
+	margin-right: 0.4em;
+}
+
+/**
+ * Status panels on the system configuration page.
+ *
+ * Rendered by Call_Admin_Statuspanel::run(), loaded into the page by AJAX, so
+ * these rules cannot live in that view's inline <style> — the SMS constants
+ * table (Jethro\Sms\renderNotConfiguredHelp()) reuses them off-page too.
+ */
+.status-panel {
+	margin: 0.5rem 0 1rem 0;
+}
+.status-panel p {
+	margin: 0.15rem 0;
+}
+.status-panel .control-group {
+	margin-bottom: 0.25rem;
+}
+.status-panel .control-group:last-child {
+	margin-bottom: 0;
+}
+.status-panel .control-label {
+	padding-top: 0;
+}
+.status-panel-help {
+	font-style: italic;
+	color: #777;
+}
+.status-panel-loading {
+	color: #999;
+	font-style: italic;
+}
+.status-panel p.status-panel-summary {
+	margin-top: 0.5rem;
+}
+/* The checks are indented under the "Status: …" line that summarises them. */
+.status-panel-lines {
+	margin-left: 1.5em;
+}
+.collapse.in.status-panel-details {
+	border: 1px solid #e0e0e0;
+	border-radius: 4px;
+	padding: 0.5rem 0.75rem;
+}
+
+/**
+ * Status panel operation buttons and forms.
+ *
+ * Rendered by Call_Admin_Statuspanel::run() and
+ * Call_Admin_Statuspanel_Operation::buildFormHtml().
+ */
+.status-panel-operations {
+	margin-top: 8px;
+}
+.status-panel-op-container {
+	margin-top: 1em;
+	overflow: hidden;
+	max-height: 0;
+	transition: max-height 0.35s ease;
+}
+.status-panel-op-container.visible {
+	max-height: 2000px;
+}
+.status-panel-op-form {
+	margin-top: 8px;
+}
+.status-panel-op-result {
+	margin-top: 1em;
+	margin-left: 8px;
+	display: none;
+}
+.status-panel-op-result.error {
+	color: #b94a48;
+	display: inline;
+}
+.status-panel-op-result.success {
+	color: #468847;
+	display: inline;
 }

@@ -54,6 +54,13 @@ if (!(int)$ini['REPORT_ID']) {
 // Use the report to generate the subject and content of the email using the output buffer, then clear the buffer
 //
 $report = $GLOBALS['system']->getDBObject('person_query', (int)$ini['REPORT_ID']);
+$validationErrors = $report->getValidationErrors();
+if (!empty($validationErrors)) {
+	foreach (Person_Query::formatValidationErrors($validationErrors) as $message) {
+		echo "Validation error in report #".$ini['REPORT_ID'].": $message\n";
+	}
+	exit(1);
+}
 $reportname = $report->getValue('name');
 if (empty($reportname)) $reportname = 'Jethro-Report-'.date('Y-m-d_H:i');
 ob_start();

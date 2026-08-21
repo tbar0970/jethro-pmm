@@ -19,7 +19,11 @@ class Config_Manager {
 					add_message("The setting ".$symbol." has now been migrated to the database and should be removed from conf.php");
 				}
 			} else {
-				define($symbol, $details['value']);
+				$value = $details['value'];
+				if ($details['type'] === 'bool') {
+					$value = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+				}
+				define($symbol, $value);
 			}
 		}
 		if (defined('AGE_BRACKET_OPTIONS')) {
@@ -33,8 +37,29 @@ class Config_Manager {
 		if (0 === strpos($symbol, 'SMS_')) return TRUE;
 		if (0 === strpos($symbol, '2FA_')) return TRUE;
 		if (0 === strpos($symbol, 'SMTP')) return TRUE;
+		if (0 === strpos($symbol, 'MAILCHIMP_')) return TRUE;
+		if (0 === strpos($symbol, 'BIBLE_')) return TRUE;
 		return FALSE;
 	}
+
+	/**
+	 * Whether a setting symbol names a credential that should never be
+	 * displayed on the config page (e.g. API keys, passwords).
+	 *
+	 * Uses a naming convention rather than a hardcoded list. Any setting
+	 * containing APIKEY, API_KEY, PASSWORD, SECRET, or TOKEN in its name
+	 * is treated as sensitive.
+	 */
+	public static function isCredentialSetting(string $symbol): bool
+	{
+		$upper = strtoupper($symbol);
+		return str_contains($upper, 'APIKEY')
+			|| str_contains($upper, 'API_KEY')
+			|| str_contains($upper, 'PASSWORD')
+			|| str_contains($upper, 'SECRET')
+			|| str_contains($upper, 'TOKEN');
+	}
+
 
 	public static function getSettings()
 	{
@@ -53,7 +78,7 @@ class Config_Manager {
 
 	public static function migrateEnabledFeatures()
 	{
-		$value = explode(',', ENABLED_FEATURES);
+		$value = explode(',', ifdef('ENABLED_FEATURES', ''));
 		$value = array_diff($value, Array('DATES'));
 		self::saveSetting('ENABLED_FEATURES', implode(',', $value));
 
@@ -137,6 +162,8 @@ class Config_Manager {
 	public static function saveSetting($symbol, $value)
 	{
 		$db = $GLOBALS['db'];
+		// UPDATE-only: every valid setting symbol must already exist in the DB
+		// (created by installer.class.php or an upgrade SQL script).
 		$SQL = 'UPDATE setting
 				SET value = '.$db->quote($value).'
 				WHERE symbol = '.$db->quote($symbol);

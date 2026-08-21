@@ -104,8 +104,9 @@ require_once JETHRO_ROOT.'/db_objects/roster_view.class.php';
 //get the roster information using the roster view id
 //
 $view = $GLOBALS['system']->getDBObject('roster_view', $roster_id);
-$start_date = date("Y-m-d");
-$end_date = date('Y-m-d', strtotime("+6 day"));
+$start_date_offset = (int)getvar('START_DATE_OFFSET', 0);
+$start_date = date('Y-m-d', strtotime("+$start_date_offset day"));
+$end_date = date('Y-m-d', strtotime("+" . ($start_date_offset + 6) . " day"));
 
 
 //
@@ -131,8 +132,8 @@ foreach ($roster_lines as $line) {
 	$roster_array[] = str_getcsv($line, ",", '"', "");
 }
 $roster_date = '';
+$rds = Array();
 if (count($roster_array) > 2) {
-	$rds = Array();
 	$roster_date_index = array_search('Date', $roster_array[1]);
 	if ($roster_date_index !== FALSE) {
 		for ($i=2; $i < count($roster_array); $i++) {
@@ -141,6 +142,20 @@ if (count($roster_array) > 2) {
 	}
 	if ($rds) $roster_date = ' ('.implode(', ', $rds).')';
 }
+
+// Template substitution for PRE_MESSAGE / POST_MESSAGE.  Three tokens are available:
+//   {roster_date}       - e.g. "Sunday, 29 April" or "Sunday, 29 April, Friday, 3 April"
+//   {roster_date_short} - e.g. "29 Apr" (no year or day name; keeps SMS messages short)
+//   {roster_day_of_week}       - e.g. "Sunday" or "Sunday, Friday"
+// See roster_reminder_sample.ini for examples.
+$roster_date_full  = implode(' or ', array_map(fn($d) => date('l, j F', strtotime($d)), $rds));
+$roster_date_short = implode('/', array_map(fn($d) => date('j M',    strtotime($d)), $rds));
+$day_of_week       = implode(' or ', array_map(fn($d) => date('l',      strtotime($d)), $rds));
+$tokens       = ['{roster_date}', '{roster_date_short}', '{roster_day_of_week}'];
+$replacements = [$roster_date_full, $roster_date_short, $day_of_week];
+$pre_message  = str_replace($tokens, $replacements, $pre_message);
+$post_message = str_replace($tokens, $replacements, $post_message);
+if ($sendemail) $email_subject = str_replace($tokens, $replacements, $email_subject);
 
 $assignees=$view->getAssignees($start_date, $end_date);
 
@@ -177,9 +192,6 @@ if ($sendsms) { // make the sms message!
 
 			}
 			$smsroster .= "\n";
-			if ((int)$debug==1){
-			 $assignees=Array();
-			}
 		}
 
 		$assignees = array_merge($assignees, $coordinator);
@@ -192,6 +204,10 @@ if ($sendsms) { // make the sms message!
 		if ($debug) {
 			bam($sms_message);
 			bam("Debug mode - no messages sent");
+			$recipientNames = array_map(function($a) {
+				return $a['first_name'] . ' ' . $a['last_name'] . ' (' . $a['mobile_tel'] . ')';
+			}, $assignees);
+			bam("Recipients: " . implode(', ', $recipientNames));
 			exit;
 		}
 		if (strlen($sms_message) > SMS_MAX_LENGTH) {
@@ -249,6 +265,25 @@ if ($sendemail) {
 	$eol = PHP_EOL;
 	$uid = md5(uniqid(time()));
 
+/**
+ * Compute From/Reply-To headers for the raw mail() path.
+ * Mirrors Jethro_Swift_Message::setFrom() behaviour.
+ *
+ * @return array{string, string, string} [$fromAddress, $fromName, $headerPrefix]
+ */
+function roster_raw_mail_from(string $from_address, string $from_name): array
+{
+    if (ifdef('OVERRIDE_EMAIL_FROM')) {
+        $actualFrom = OVERRIDE_EMAIL_FROM;
+        $actualName = ifdef('OVERRIDE_EMAIL_FROM_NAME', '');
+        $header = "From: \"".addslashes($actualName)."\" <".$actualFrom.">".PHP_EOL;
+        $replyToHeader = $from_name ? "\"".addslashes($from_name)."\" <".$from_address.">" : $from_address;
+        $header .= "Reply-To: ".$replyToHeader.PHP_EOL;
+        return [$actualFrom, $actualName, $header];
+    }
+    return [$from_address, $from_name, "From: \"".addslashes($from_name)."\" <".$from_address.">".PHP_EOL];
+}
+
 	if (count($assignees) > 0) {
 		// build the roster list to be included in the stream_context_set_params
 		if ((int)$list_not_table==1) {
@@ -303,10 +338,20 @@ if ($sendemail) {
 		$no_emails = array_unique($no_emails);
 		//send the emails
 
-		//if DEBUG then echo the email content
+		//if DEBUG then echo the email content and recipients, then exit without sending
 		if ((int)$debug==1){
 			echo "Sending the following message:\n\n";
 			echo $longstring."\n\n";
+			echo "Recipients:\n";
+			foreach ($assignees as $a) {
+				if (!empty($a['email'])) {
+					echo "  " . $a['first_name'] . ' ' . $a['last_name'] . ' <' . $a['email'] . ">\n";
+				} else {
+					echo "  " . $a['first_name'] . ' ' . $a['last_name'] . " (no email)\n";
+				}
+			}
+			echo "\nDebug mode - no messages sent\n";
+			exit;
 		}
 		//
 		//send using built in email class
@@ -331,7 +376,7 @@ if ($sendemail) {
 			}
 		} else { // using php mail()
 		  $email_to=$roster_coordinator;
-		  $header = "From: \"".addslashes($email_from_name)."\" <".$email_from.">".$eol;
+		  [$fromAddress, $fromName, $header] = roster_raw_mail_from($email_from, $email_from_name);
 		  $header .= "MIME-Version: 1.0".$eol;
 		  $header .= "Bcc: ".implode(',',$emails).$eol;
 		  $header .= "Content-Type: multipart/mixed; boundary=\"".$uid."\"";
@@ -340,7 +385,7 @@ if ($sendemail) {
 		  $message .= "Content-Transfer-Encoding: 8bit".$eol.$eol;
 		  $message .= $longstring.$eol;
 		  $message .= "--".$uid."--";
-		   if (mail($email_to, $email_subject . "$roster_date", "$message", $header, "-f ".$email_from)) {
+		   if (mail($email_to, $email_subject . "$roster_date", "$message", $header, "-f ".$fromAddress)) {
 		   	echo "Mail send roster reminder - ".$roster_name." sent OK <br>";
 		   } else {
 		   	echo "Mail send roster reminder - ".$roster_name." send ERROR!";
@@ -384,15 +429,15 @@ if ($sendemail) {
 		}
 	} else {
 		$email_to=$roster_coordinator;
-		$header = "From: \"".addslashes($email_from_name)."\" <".$email_from.">".$eol;
+		[$fromAddress, $fromName, $header] = roster_raw_mail_from($email_from, $email_from_name);
 		$header .= "MIME-Version: 1.0".$eol;
-		$header .= "Content-Type: multipart/mixed; boundary=\"".$uid."\"";
+		$header .= "Content-Type: multipart/mixed; boundary=\"".$uid."\"".$eol;
 		$message = "--".$uid.$eol;
 		$message .= "Content-type:text/html; charset=iso-8859-1".$eol;
 		$message .= "Content-Transfer-Encoding: 8bit".$eol.$eol;
 		$message .= $summary.$eol;
 		$message .= "--".$uid."--";
-		if (mail($email_to,$summary_notification_subject . "$roster_date","$message",$header, "-f ".$email_from)) {
+		if (mail($email_to,$summary_notification_subject . "$roster_date","$message",$header, "-f ".$fromAddress)) {
 			if (!empty($verbose)) {
 				echo "Sent roster ($roster_name) reminder notification to coordinator.\n";
 			}

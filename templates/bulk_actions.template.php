@@ -357,7 +357,6 @@ $selected = Array(array_get($_REQUEST, 'bulk_action', '') => 'selected="selected
 						<label class="radio">
 							<input type="radio" name="merge_type" value="family" id="merge_type_family" />
 							<?php echo _('each family that contains a selected person')?>
-							<span class="smallprint">
 						</label>
 				</div>
 			</div>

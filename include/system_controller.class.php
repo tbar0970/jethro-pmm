@@ -36,8 +36,8 @@ class System_Controller
 		$path_sep = defined('PATH_SEPARATOR') ? PATH_SEPARATOR : ((FALSE === strpos($_ENV['OS'], 'Win')) ? ';' : ':');
 		ini_set('include_path', ini_get('include_path').$path_sep.$this->_base_dir);
 
-		if (!isset($_SESSION['views'][$base_dir]) || isset($_REQUEST['regen'])) {
-			$_SESSION['views'][$base_dir] = Array();
+		if (!isset($_SESSION['views'][$base_dir]) || $this->viewsAreStale($base_dir) || isset($_REQUEST['regen'])) {
+			$scanned_views = Array();
 			$raw_filenames = glob($this->_base_dir.'/views/*.class.php');
 			natsort($raw_filenames);
 			foreach ($raw_filenames as $filename) {
@@ -53,21 +53,41 @@ class System_Controller
 					include_once($this->_base_dir.'/views/'.$filename);
 					$showView = TRUE;
 					if ($view_perm = call_user_func(Array($classname, 'getMenuPermissionLevel'))) {
-						$showView = !empty($GLOBALS['user_system']) && $GLOBALS['user_system']->havePerm($view_perm);
-					} else if ($view_feature = call_user_func(Array($classname, 'getMenuRequiredFeature'))) {
-						$showView = $this->featureEnabled($view_feature);
+						$showView &= !empty($GLOBALS['user_system']) && $GLOBALS['user_system']->havePerm($view_perm);
+					}
+					if ($view_feature = call_user_func(Array($classname, 'getMenuRequiredFeature'))) {
+						$showView &= $this->featureEnabled($view_feature);
 					}
 					if ($showView) {
 						if (preg_match('/^view_([0-9.]*)_(.*)__([0-9]*)_(.*)\.class\.php/', $filename, $matches)) {
-							$_SESSION['views'][$base_dir][$matches[2]]['children'][$matches[4]]['filename'] = $filename;
+							$scanned_views[$matches[2]]['children'][$matches[4]]['filename'] = $filename;
 						} else if (preg_match('/^view_([0-9.]*)_(.*)\.class\.php/', $filename, $matches)) {
 							if ($matches[1] == 0) $matches[2] = '_'.$matches[2];
-							$_SESSION['views'][$base_dir][$matches[2]]['filename'] = $filename;
+							$scanned_views[$matches[2]]['filename'] = $filename;
 						}
 					}
 				}
 			}
+			$_SESSION['views'][$base_dir] = $scanned_views;
+			$_SESSION['views_deps_hash'][$base_dir] = $this->getViewHash();
 		}
+	}
+
+	/** Get a hash representing Jethro state our views depend on. Currently our views depend on globally enabled features, and our user's permissions.
+	 * @return string A hash
+	 */
+	private function getViewHash(): string {
+		$currentUser = $GLOBALS['user_system']->getCurrentUser();
+		return sha1(ifdef('ENABLED_FEATURES', '') . ($currentUser ? $currentUser['permissions'] : ''));
+	}
+
+	/**
+	 * @param string $base_dir
+	 * @return bool Whether the views cached in $_SESSION['views'] are out of date, not reflecting currently enabled features or our permissions.
+	 */
+	private function viewsAreStale(string $base_dir): bool {
+		$stored = $_SESSION['views_deps_hash'][$base_dir] ?? null;
+		return $stored !== $this->getViewHash();
 	}
 
 	public function initErrorHandler()
@@ -156,7 +176,7 @@ class System_Controller
 		foreach ($_SESSION['views'][$this->_base_dir] as $name => $data) {
 			if ($name[0] == '_') continue;
 			$class = '';
-			if (($current_view == $name) || (strpos($current_view, $name.'__') === 0)) $class = 'active';
+			if ($current_view == $name || str_starts_with($current_view, $name.'__')) $class = 'active';
 			if (empty($data['children'])) {
 				// deliberately - only leaf nodes can be navigated to directly
 				?>
@@ -329,14 +349,14 @@ class System_Controller
 				echo _('An error occurred. Please contact your system administrator for help.');
 			}
 			if ($showTechDetails) {
-				?>
-				<u class="clickable" onclick="var parentDiv=this.parentNode; while (parentDiv.tagName != 'DIV') { parentDiv = parentDiv.parentNode; }; with (parentDiv.getElementsByTagName('PRE')[0].style) { display = (display == 'block') ? 'none' : 'block' }">Show Details</u>
-				<pre style="display: none; background: white; font-weight: normal; color: black"><b>Line <?php echo $errline; ?> of File <?php echo $errfile; ?></b>
-	<?php
-				print_r($bt);
-				?>
+?>
+			    <details>
+			    <summary class="clickable">Show Details</summary>
+				<pre style="background: white; font-weight: normal; color: black"><b>Line <?php echo $errline; ?> of File <?php echo $errfile; ?></b>
+				    <?php ents(print_r($bt)); ?>
 				</pre>
-				<?php
+			    </details>
+<?php
 			}
 			?>
 			</div>
@@ -354,7 +374,7 @@ class System_Controller
 			$content .= "REQUEST: \n".print_r($safe_request,1)."\n\n";
 			$content .= "BACKTRACE:\n";
 			$content .= print_r($bt, 1);
-			@mail(constant('ERRORS_EMAIL_ADDRESS'), 'Jethro Error from '.base_url(), $content);
+			@mail(constant('ERRORS_EMAIL_ADDRESS'), 'Jethro Error from '.baseurl_absolute(), $content);
 		}
 		if ($send_email) error_log("$errstr - Line $errline of $errfile");
 	}
@@ -372,7 +392,7 @@ class System_Controller
 		while ($dir && ($hook_file = readdir($dir))) {
 			if (is_dir(JETHRO_ROOT.'/hooks/'.$hook_file)) continue;
 			if ($hook_file[0] == '.') continue;
-			if (0 === strpos($hook_file, 'sample.')) continue;
+			if (str_starts_with($hook_file, 'sample.')) continue;
 			require_once 'hooks/'.$hook_name.'/'.$hook_file;
 			$class_name = str_replace('.class.php', '', $hook_file);
 			call_user_func(Array($class_name, 'run'), $params);

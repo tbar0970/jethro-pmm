@@ -46,19 +46,20 @@ class Roster_Role extends db_object
 									'default'		=> '1',
 									'note'			=> 'When a role is no longer to be used, mark it as inactive'
 							   ),
-			'volunteer_group'		=> Array(
-									'type'		=> 'reference',
-									'references' => 'person_group',
-									'order_by'	=> 'name',
-									'allow_empty'	=> true,
-									'note'			=> 'If no volunteer group is chosen, any person in the system can be allocated to this role'
-								   ),
 			'assign_multiple'	=> Array(
 									'type'			=> 'select',
 									'options'		=> Array(1 => 'Yes', 0 => 'No'),
 									'default'		=> 0,
 									'note'			=> 'Whether multiple people can be assigned to this role on a given date'
 							   ),
+			'volunteer_group'		=> Array(
+									'type'		=> 'reference',
+									'references' => 'person_group',
+									'label'		=> 'Volunteers Group',
+									'order_by'	=> 'name',
+									'allow_empty'	=> true,
+									'note'			=> 'Group of individuals who can be assigned to this role. If blank, any person can be assigned'
+								   ),
 			'details'		=> Array(
 									'type'		=> 'html',
 									'label'		=> 'Role description',
@@ -82,7 +83,9 @@ class Roster_Role extends db_object
 		if (($name == 'volunteer_group') && (empty($this->id) || $this->haveLock())) {
 			$GLOBALS['system']->includeDBClass('person_group');
 			$value = array_get($this->values, $name);
-			Person_Group::printChooser($prefix.$name, $value, array(), null, '(None)');
+			Person_Group::printChooser($prefix.$name, $value, '(None)');
+		} else if ($name == 'teams') {
+			Person_Group::printMultiChooser('teams', $this->values['teams'] ?? []);
 		} else {
 			if ($name == 'active') {
 				$memberships = $this->getViewMemberships();
@@ -100,8 +103,16 @@ class Roster_Role extends db_object
 	{
 		switch ($name) {
 			case 'details':
-				echo '<a class="pull-right" target="publicrole" href="'.BASE_URL.'/public/?view=_roster_role_description&role='.$this->id.'"><i class="icon-share"></i>View in public area</a>';
+				$url = BASE_URL.'/public/?view=_roster_role_description&role='.$this->id;
+				if (PUBLIC_ROSTER_SECRET) $url .= '&secret='.PUBLIC_ROSTER_SECRET;
+				echo '<a class="pull-right" target="publicrole" href="'.$url.	'"><i class="icon-share"></i>View in public area</a>';
 				echo '<div class="text">'.$this->getValue($name).'</div>';
+				break;
+			case 'teams':
+				echo implode(', ', array_map(function ($val) {
+					$group = new Person_group($val);
+					return '<a href="?view=groups&groupid='.(int)$val.'">'.ents($group->getValue('name')).'</a>';
+				}, $this->getValue($name)));
 				break;
 			case 'volunteer_group':
 				if ($val = $this->getValue($name)) {
@@ -112,6 +123,87 @@ class Roster_Role extends db_object
 			default:
 				parent::printFieldValue($name, $value);
 		}
+	}
+	
+	function printForm($prefix='', $fields=NULL)
+	{
+		$this->fields = array_slice($this->fields, 0, 5) + [
+			'teams' => [
+				'type' => 'reference',
+				'references' => 'person_group',
+				'label' => 'Team Groups',
+				'order_by' => 'name',
+				'allow_empty' => true,
+				'allow_multiple' => true,
+				'note' => 'Groups whose members can be assigned to this role as a batch, eg. \'Band 1\''
+			]
+		] + $this->fields;
+		parent::printForm($prefix, $fields);
+		unset($this->fields['teams']);
+	}
+
+	function processForm($prefix='', $fields=NULL)
+	{
+		parent::processForm($prefix, $fields);
+		
+		$this->values['teams'] = $this->getValue('assign_multiple') ? ($_POST['teams'] ?? []) : [];
+	}
+
+	public function load($id)
+	{
+		$res = parent::load($id);
+		if ($this->id) {
+			$db = $GLOBALS['db'];
+			$SQL = 'SELECT person_group_id FROM roster_role_team WHERE roster_role_id = '.$db->quote($this->id);
+			$this->values['teams'] = $db->queryCol($SQL);
+		}
+		return $res;
+	}
+
+	public function save()
+	{
+		$res = parent::save();
+		if ($res) {
+			$this->_saveVolunteerTeams();
+		}
+		return $res;
+	}
+
+	private function _saveVolunteerTeams()
+	{
+		$db = $GLOBALS['db'];
+		$db->exec('DELETE FROM roster_role_team WHERE roster_role_id = '.$db->quote($this->id));
+		
+		$sets = [];
+		foreach ($this->values['teams'] as $group_id) {
+			if (!$group_id) {
+				continue;
+			}
+			$sets[] = '('.$db->quote($this->id).', '.$db->quote($group_id).')';
+		}
+		if (!empty($sets)) {
+			$SQL = 'INSERT INTO roster_role_team
+					(roster_role_id, person_group_id)
+					VALUES
+					'.implode(",\n", $sets);
+			$db->exec($SQL);
+		}
+	}
+
+	function printSummary()
+	{
+		$this->fields = array_slice($this->fields, 0, 5) + [
+			'teams' => [
+				'type' => 'reference',
+				'references' => 'person_group',
+				'label' => 'Team Groups',
+				'order_by' => 'name',
+				'allow_empty' => true,
+				'allow_multiple' => true
+			]
+		] + $this->fields;
+		parent::printSummary();
+		unset($this->fields['teams']);
 	}
 
 	function _getVolunteers()
@@ -124,6 +216,20 @@ class Roster_Role extends db_object
 					$params = Array('!(status' => Person_Status::getArchivedIDs());
 					foreach ($group->getMembers($params) as $id => $details) {
 						$this->_volunteers[$id] = $details['first_name'].' '.$details['last_name'];
+					}
+				}
+			}
+			
+			foreach ($this->getValue('teams') as $team) {
+				$group = $GLOBALS['system']->getDBObject('person_group', $team);
+				if ($group) {
+					$members = $group->getMembers();
+					if ($members) {
+					    $memberNames = implode(', ', array_map(fn ($details) => $details['first_name'].' '.$details['last_name'], $members));
+					    if (strlen($memberNames) > 30) {
+					    	$memberNames = substr($memberNames, 0, 27).'...';
+					    }
+						$this->_volunteers['team'.implode(',', array_keys($members))] = 'Team: '.$group->getValue('name').' ('.$memberNames.')';
 					}
 				}
 			}
@@ -185,7 +291,7 @@ class Roster_Role extends db_object
 	function printChooser($date, $currentval=Array(''), $absentees=Array())
 	{
 		if ($groupid = $this->getValue('volunteer_group')) {
-			$volunteers = $this->_getVolunteers();
+            $volunteers = $this->_getVolunteers();
 			if ($this->getValue('assign_multiple')) {
 				if (empty($currentval)) $currentval = Array('');
 				?>
@@ -229,6 +335,9 @@ class Roster_Role extends db_object
 			$GLOBALS['system']->includeDBClass('person');
 			if ($this->getValue('assign_multiple')) {
 				Person::printMultipleFinder('assignees['.$this->id.']['.$date.']', $currentval, $date);
+				// Sentinel: always submit something so processAllocations can distinguish
+				// "user deleted all assignees" from "cell was read-only (not submitted at all)".
+				echo '<input type="hidden" name="assignees_submitted['.$this->id.']['.$date.']" value="1" />';
 			} else {
 				$currentID = (int)reset($currentval);
 				Person::printSingleFinder('assignees['.$this->id.']['.$date.']', $currentID, $date);
@@ -244,6 +353,28 @@ class Roster_Role extends db_object
 			}
 		}
 		return TRUE;
+	}
+
+	/**
+	 * Whether to allow role descriptions to be viewed in the public area.
+	 */
+	public static function allowPublicDescriptions()
+	{
+		if (!ifdef('PUBLIC_AREA_ENABLED', 1)) {
+			// Public area is disabled altogether
+			return FALSE;
+		}
+		if (ifdef('PUBLIC_ROSTER_SECRET')) {
+			// A secret is used in public roster URLs, so allow descriptions
+			return TRUE;
+		}
+		$views = $GLOBALS['system']->getDBObjectData('roster_view', Array('visibility' => 'public'), 'AND', 'name');
+		if (!empty($views)) {
+			// There is at least one public roster view, so allow public descriptions
+			return TRUE;
+		}
+		// Otherwise, since there is no secret code, and no public roster views, don't allow public descriptions.
+		return FALSE;
 	}
 
 }

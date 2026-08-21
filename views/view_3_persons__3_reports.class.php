@@ -20,7 +20,7 @@ class View_Persons__Reports extends View
 				$this->_query->setValue('params', $params);
 			}
 		}
-		if ($this->_query && !empty($_REQUEST['delete'])) {
+		if ($this->_query && !empty($_POST['delete'])) {
 			$can_delete = FALSE;
 			if (($this->_query->getValue('creator') == $GLOBALS['user_system']->getCurrentUser('id')) || $GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 				$can_delete = true;
@@ -39,7 +39,6 @@ class View_Persons__Reports extends View
 		if (!empty($_POST['query_submitted'])) {
 			$this->_query->processForm();
 			if ($this->_query->id) {
-				bam("Saving with id ".$this->_query->id);
 				$this->_query->save();
 			} else {
 				$this->_query->create();
@@ -74,6 +73,9 @@ class View_Persons__Reports extends View
 	{
 		if (!empty($_REQUEST['configure'])) {
 			// PRINT THE FORM TO CONFIGURE THE REPORT
+			foreach (Person_Query::formatValidationErrors($this->_query->getValidationErrors()) as $message) {
+				print_message($message, 'warning');
+			}
 			?>
 			<form method="post" class="form-horizontal" action="<?php echo build_url(Array('configure' => NULL)); ?>">
 				<input type="hidden" name="query_submitted" value="1" />
@@ -177,8 +179,6 @@ class View_Persons__Reports extends View
 							</tr>
 							<?php
 						}
-					} else {
-						echo "<tr><td>"; bam($_SESSION);
 					}
 
 					$staff_members = $GLOBALS['system']->getDBObjectData('staff_member');

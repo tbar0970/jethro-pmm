@@ -8,7 +8,7 @@ class View__Delete_Planned_Absence extends View
 		$person = new Person($GLOBALS['user_system']->getCurrentPerson('id'));
 		$fmembers = $person->getFamily()->getMemberData();
 		if (!isset($fmembers[$absence->getValue('personid')])) {
-			trigger_error(E_USER_ERROR, 'Attempt to delete absence for a person outside the users family');
+			trigger_error('Attempt to delete absence for a person outside the users family', E_USER_ERROR);
 			exit;
 		}
 

@@ -54,7 +54,7 @@ class JethroDB extends PDO
 		$port = ifdef('DB_PORT', '');
 		$type = ifdef('DB_TYPE', 'mysql');
 		$host = ifdef('DB_HOST', 'localhost');
-		$dsn = $type . ':host=' . $host . (strlen($port) ? (';port=' . $port) : '') . ';dbname=' . DB_DATABASE . ';charset=utf8';
+		$dsn = $type . ':host=' . $host . (strlen($port) ? (';port=' . $port) : '') . ';dbname=' . DB_DATABASE . ';charset=utf8mb4';
 		$GLOBALS['db'] = new JethroDB($dsn, $username, $password);
 	}
 
@@ -185,7 +185,7 @@ class JethroDB extends PDO
 			if (null !== $shift_array) {
 				$colnum = count($row);
 				if ($colnum < 2) {
-					return new Exception('rekey feature requires at least 2 columns');
+					throw new Exception('rekey feature requires at least 2 columns');
 				}
 				$shift_array = (!$force_array && $colnum == 2);
 			}
