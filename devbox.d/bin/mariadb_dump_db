@@ -1,0 +1,22 @@
+#!/bin/bash -eu
+# Usage: mariadb_dump_db DB [AS_NAME] > dump.sql
+# Dump DB to stdout, normalized for reloading: database references renamed to
+# AS_NAME (default: DB) and DEFINERs rewritten to jethro@localhost.
+# Regenerate the functional test fixture with:
+#   mariadb_dump_db jethro_functest | gzip > tests/functional/testdata/demodata.sql.gz
+
+[[ $# -ge 1 && $# -le 2 ]] || { sed -n '2,6s/^# \?//p' "$0"; exit 2; }
+set -o pipefail
+
+# --default-character-set=binary preserves the exact bytes in every column
+# regardless of table charset. The alternative (utf8mb4, the default) causes
+# the server to convert column data on read, silently corrupting any database
+# that contains latin1 tables with non-ASCII bytes. Each table's CREATE TABLE
+# statement already declares its charset, so the dump does not need to
+# reinterpret bytes - binary round-trips every permutation faithfully.
+# mariadb-dump generates lines like:
+#   SET sql_mode='STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';
+# the NO_AUTO_CREATE_USER mode breaks MySQL. Remove it so the SQL works in both databases.
+mariadb-dump --default-character-set=binary "$1" --single-transaction --routines --events --triggers \
+	| sed -e 's/NO_AUTO_CREATE_USER,//g' -e 's/,NO_AUTO_CREATE_USER//g' \
+	| mariadb_rename --database "${2-$1}"
