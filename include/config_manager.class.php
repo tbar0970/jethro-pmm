@@ -53,6 +53,7 @@ class Config_Manager {
 			|| str_contains($upper, 'API_KEY')
 			|| str_contains($upper, 'PASSWORD')
 			|| str_contains($upper, 'SECRET')
+			|| str_contains($upper, 'SMS_HTTP_HEADER_TEMPLATE')
 			|| str_contains($upper, 'TOKEN');
 	}
 
