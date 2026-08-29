@@ -399,7 +399,7 @@ class View_Services__List_All extends View
 						<td>
 							<span class="dropdown">
 							<a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-chevron-down"></i></a>
-							<ul class="dropdown-menu" role="menu">
+							<ul class="dropdown-menu pull-right" role="menu">
 								<li>
 								<?php
 								$printed = FALSE;
