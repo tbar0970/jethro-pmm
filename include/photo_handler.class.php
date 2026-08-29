@@ -189,7 +189,7 @@ Class Photo_Handler {
 			</div>
 			<?php
 
-		}		
+		}
 	}
 
 }

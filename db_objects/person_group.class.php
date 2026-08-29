@@ -128,7 +128,7 @@ class Person_Group extends db_object
 		return Array(
 			'_person_group.categoryid' => "`person_group_category` (`id`) ON DELETE SET NULL",
 		);
-	}	
+	}
 
 
 	/**
@@ -543,7 +543,7 @@ class Person_Group extends db_object
 		<span class="dropdown group-chooser-container">
 		<select class="group-chooser" name="<?php echo ents($fieldname);?>" data-allow-category-select="0">
 			<option selected value="<?php echo (int)$value; ?>">
-				<?php 
+				<?php
 				if ($value) {
 					if (isset($groups[$value])) {
 						echo ents($groups[$value]['name']);
