@@ -250,12 +250,12 @@ class View_Attendance__Display extends View
 					</td>
 				<?php
 				foreach ($dates as $date) {
-					$raw = array_get($record, $date, ''); // might have a trailing * to indicate planned absence
+					$raw = array_get($record, $date, ''); // might have a trailing * to indicate unavailability
 					$char = substr($raw, 0, 1);
 					$letter = $this->letters[$char];
 					$class = $this->classes[$char];
 					if ($raw == '0*') {
-						echo '<td class="'.$class.'" title="(Planned absence)">('.$letter.')</td>';
+						echo '<td class="'.$class.'" title="(Unavailability)">('.$letter.')</td>';
 					} else {
 						echo '<td class="'.$class.'">'.$letter.'</td>';
 					}
@@ -502,7 +502,7 @@ class View_Attendance__Display extends View
 						foreach ($this->cohortids as $cohortid) {
 							$catt = array_get($all_attendances[$personid], $cohortid, Array());
 							$x = (array_get($catt, $date, ''));
-							if (strlen($x)) $score = (int)$score + rtrim($x, '*'); // The '*' suffix indicates a planned absence
+							if (strlen($x)) $score = (int)$score + rtrim($x, '*'); // The '*' suffix indicates unavailability
 						}
 						$class = $this->classes[$score > 0 ? 1 : $score];
 						if ($score === '') $score = '?';
@@ -516,14 +516,14 @@ class View_Attendance__Display extends View
 							} else {
 								$catt = array_get($all_attendances[$personid], $cohortid, Array());
 								$v = array_get($catt, $date, '');
-								$pa = ($v == '0*'); // planned absence
+								$pa = ($v == '0*'); // unavailability
 								$v = substr($v, 0, 1);
 								$letter = $this->letters[$v];
 								$class = $this->classes[$v];
 							}
 							if ($first) $class .= ' new-cohort';
 							if ($pa) {
-								echo '<td class="'.$class.'" title="(Planned absence)">('.$letter.')';
+								echo '<td class="'.$class.'" title="(Unavailability)">('.$letter.')';
 							} else {
 								echo '<td class="'.$class.'">'.$letter;
 							}

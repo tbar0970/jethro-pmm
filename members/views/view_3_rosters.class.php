@@ -54,7 +54,7 @@ class View_Rosters extends View
 			$family = $person->getFamily();
 			$fmembers = $family->getMemberData();
 			?>
-			<h3>Planned absences for <?php $family->printFieldValue('family_name'); ?> family</h3>
+			<h3>Unavailabilities for <?php $family->printFieldValue('family_name'); ?> family</h3>
 			<?php
 			$params = Array(
 				'>=end_date' => date('Y-m-d'),
@@ -86,7 +86,7 @@ class View_Rosters extends View
 							<td><?php echo ents($row['comment']); ?></td>
 							<td>
 								<i class="icon-info-sign" title="<?php echo ents($tooltip); ?>"></i>
-								<a class="confirm-title" href="?view=_delete_planned_absence&id=<?php echo $id; ?>" title="Delete this planned absence" data-method="post"><i class="icon-trash"></i></a>
+								<a class="confirm-title" href="?view=_delete_planned_absence&id=<?php echo $id; ?>" title="Delete this unavailability" data-method="post"><i class="icon-trash"></i></a>
 							</td>
 						</tr>
 						<?php
@@ -97,11 +97,11 @@ class View_Rosters extends View
 				<?php
 			} else {
 				?>
-				<p><i>The <?php $family->printFieldValue('family_name'); ?> family has no upcoming planned absences</i></p>
+				<p><i>The <?php $family->printFieldValue('family_name'); ?> family has no upcoming unavailabilities</i></p>
 				<?php
 			}
 			?>
-			<p><i class="icon-plus-sign"></i> <a href="?view=_add_planned_absence">Add a planned absence</a></p>
+			<p><i class="icon-plus-sign"></i> <a href="?view=_add_planned_absence">Add an unavailability</a></p>
 			<?php
 		}
 	}
