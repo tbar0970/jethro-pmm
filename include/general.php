@@ -160,7 +160,11 @@ function redirect($view, $params=Array(), $hash='')
 	session_write_close();
 	if ($view == -1) {
 		// go back
-		$url = $_SERVER['HTTP_REFERER'];
+		$url = array_get($_SERVER, 'HTTP_REFERER');
+		if (!$url) {
+			// No referer to go back to (direct entry, privacy stripping etc) - go home instead
+			$url = build_url(Array('view' => 'home'));
+		}
 	} else {
 		$params['view'] = $view;
 		$url = build_url($params);
@@ -309,7 +313,7 @@ function print_widget($name, $params, $value)
 			} else {
 				$width_exp = 'size="5" ';
 			}
-			$intType = (FALSE !== strpos($_SERVER['HTTP_USER_AGENT'], 'iPhone')) ? 'tel' : 'number';
+			$intType = (FALSE !== strpos(array_get($_SERVER, 'HTTP_USER_AGENT', ''), 'iPhone')) ? 'tel' : 'number';
 			?>
 			<input pattern="[0-9]*" inputmode="numeric" type="<?php echo $intType; ?>" name="<?php echo $name; ?>" value="<?php echo $value; ?>" class="<?php echo trim($classes); ?>" <?php echo $width_exp; ?> <?php echo $attrs; ?> />
 			<?php
@@ -944,8 +948,8 @@ function get_email_href($to, $name=NULL, $bcc=NULL, $subject=NULL)
 	if (function_exists('custom_email_href')) return custom_email_href($to, $name, $bcc, $subject);
 
 	// Chrome on mac with mac:mail as the mailto handler cannot cope with fullname in the address
-	$is_chrome_mac = (FALSE !== strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'chrome/'))
-						&& (FALSE !== strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'macintosh'));
+	$ua = strtolower(array_get($_SERVER, 'HTTP_USER_AGENT', ''));
+	$is_chrome_mac = (FALSE !== strpos($ua, 'chrome/')) && (FALSE !== strpos($ua, 'macintosh'));
 
 	$res = ents($to);
 	$extras = Array();
