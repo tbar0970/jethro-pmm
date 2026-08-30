@@ -90,7 +90,7 @@ class Abstract_View_Edit_Object extends View
 				} else {
 					// could not re-acquire lock
 					?>
-					<div class="failure"><?php echo _('Your changes could not be saved because your lock has expired.  The lock has now been acquired by another user.  Wait some time for them to finish and then');?> <a href="<?php echo $_SERVER['QUERY_STRING']; ?>">_(try again)</a></div>
+					<div class="failure"><?php echo _('Your changes could not be saved because your lock has expired.  The lock has now been acquired by another user.  Wait some time for them to finish and then');?> <a href="?<?php echo $_SERVER['QUERY_STRING']; ?>">try again</a></div>
 					<?php
 					$show_form = false;
 				}
