@@ -80,7 +80,7 @@ class call_service_comp_help_personnel_format extends Call
                             <code>%<?php echo $titleinfo['title_uppercase']; ?>_n_FIRSTNAME%</code><br>
                         </td>
                         <td>
-                            <a href="?view=rosters__define_roster_roles&roster_roleid=${titleinfo['id']}"><?php echo $titleinfo['title']; ?></a>
+                            <a href="?view=rosters__define_roster_roles&roster_roleid=<?php echo (int)$titleinfo['id']; ?>"><?php echo $titleinfo['title']; ?></a>
                             service personnel value
                         </td>
                     </tr>
