@@ -1137,7 +1137,10 @@ $(document).on('click', '[data-toggle="note-modal"]', function(e) {
 		$target = $('#add-note-modal'),
 		option = $target.data('modal') ? 'toggle' : {};
 
-	$('#add-note-modal .note-recipient-name').html($this.attr('data-name'));
+	// Insert as TEXT: the attribute is ents()-escaped, .attr() decodes it,
+	// and .html() would re-parse the decoded name as markup (stored XSS via
+	// a person name like <img src=x onerror=...> — finding X2.2).
+	$('#add-note-modal .note-recipient-name').text($this.attr('data-name'));
 	$('#note_personid').val($this.attr('data-personid'));
 	// Reports with a Notes column ask for a page reload after saving,
 	// so the new note appears in the notes cell (replaces the old
