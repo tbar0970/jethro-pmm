@@ -491,7 +491,8 @@ class Person_Group extends db_object
 				$allData['c'.$k] = $v;
 			}
 			foreach ($chosen as $val => $x) {
-				$chosen[$val] = $allData[$val];
+				$deletedLabel = (is_string($val) && ($val[0] == 'c')) ? '(deleted category)' : '(deleted group)';
+				$chosen[$val] = array_get($allData, $val, Array('name' => $deletedLabel));
 			}
 		}
 

@@ -6,7 +6,7 @@
 BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Jethro/Jethro//NONSGML v1.0//EN
-X-WR-CALNAME:<?php echo SYSTEM_NAME; ?> Roster
+X-WR-CALNAME:<?php echo ical_escape_text(SYSTEM_NAME); ?> Roster
 <?php
     foreach ($assignments as $date => $allocs) {
         foreach ($allocs as $alloc) {
@@ -42,7 +42,7 @@ UID:<?php echo $uid ?>@jethro_roster
                 $fromName = 'Jethro Admin';
             }
             if (defined('MEMBER_REGO_EMAIL_FROM_ADDRESS') && strlen(MEMBER_REGO_EMAIL_FROM_ADDRESS)) { ?>
-ORGANIZER;CN=<?php echo $fromName; ?>:MAILTO:<?php echo MEMBER_REGO_EMAIL_FROM_ADDRESS; ?>
+ORGANIZER;CN=<?php echo ical_escape_text($fromName); ?>:MAILTO:<?php echo MEMBER_REGO_EMAIL_FROM_ADDRESS; ?>
 
 <?php
             }
@@ -64,11 +64,11 @@ DTEND;VALUE=DATE:<?php echo date('Ymd', $endtime); ?>
 ?>
 DTSTAMP:<?php echo gmdate('Ymd\THis\Z', $assignedon); ?>
 
-SUMMARY:<?php echo $alloc['title']; ?>
+SUMMARY:<?php echo ical_escape_text($alloc['title']); ?>
 
 DESCRIPTION:Roster assignment: <?php
             if ($alloc['cong'] )
-            echo $alloc['title'] . ', ' . $alloc['cong'] . ', ' . SYSTEM_NAME;
+            echo ical_escape_text($alloc['title'] . ', ' . $alloc['cong'] . ', ' . SYSTEM_NAME);
 ?>\n\n<?php echo 'Role description: ' . BASE_URL_ABSOLUTE . '/public/?view=_roster_role_description&role=' . $alloc['id'] . ' ';
 ?> \n\nNote that start/end time is approximate.
 END:VEVENT

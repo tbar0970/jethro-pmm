@@ -813,25 +813,20 @@ function get_url_pathprefix()
 }
 
 /**
- * Infer Jethro's absolute base URL from the request.
+ * Infer Jethro's absolute base URL from the request (scheme + host + path).
+ * Returns e.g. "https://church.org/jethro" — no trailing slash.
+ * Proxy-aware: respects X-Forwarded-Proto and X-Forwarded-Host.
  */
 function baseurl_absolute()
 {
-    // Detect scheme
     $https = (
         (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
         (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443) ||
         (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
     );
     $scheme = $https ? 'https' : 'http';
-
-    // Detect host (with proxy awareness)
     $host = $_SERVER['HTTP_X_FORWARDED_HOST'] ?? $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'];
-
-    // Detect base path (the directory your app runs from)
     $scriptDir = baseurl_relative();
-
-    // Build base URL (no trailing slash if at root)
     return $scheme . '://' . $host . ($scriptDir !== '' ? $scriptDir : '');
 }
 
@@ -1058,6 +1053,21 @@ function jethro_password_verify($password, $hash)
 	} else {
 		return (crypt($password, $hash) == $hash);
 	}
+}
+
+/**
+/**
+ * Escape a text value for an RFC 5545 iCal TEXT property: backslash, semicolon
+ * and comma are backslash-escaped, and CR/LF are folded into the literal \\n
+ * sequence so a crafted value cannot inject new iCal lines (finding X8).
+ * @param mixed $value
+ * @return string
+ */
+function ical_escape_text($value)
+{
+	$value = str_replace(array('\\', ';', ','), array('\\\\', '\\;', '\\,'), (string)$value);
+	$value = str_replace(array("\r\n", "\r", "\n"), '\\n', $value);
+	return $value;
 }
 
 /**

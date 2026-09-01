@@ -157,6 +157,12 @@ class Person_Query extends DB_Object
 		$GLOBALS['system']->includeDBClass('person_group');
 		$params = $this->_convertParams($this->getValue('params'));
 		if ($params === null) $params = Array();
+		if (!empty($params)) {
+			// Drop references to entities deleted since the report was saved (groups,
+			// custom fields etc.) so the form only renders entities that still exist.
+			// The configure view separately warns the user about what was dropped.
+			list($params,) = $this->validateQueryParams($params);
+		}
 		$rules = array_get($params, 'rules', Array());
 		if (!$GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS) && ($this->getValue('owner') == NULL)) {
 			// we are editing a shared report, but don't have permission to save a shared report
