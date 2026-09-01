@@ -387,7 +387,7 @@ class View_Admin__Import extends View
 
 				// Try updating the family fields
 				$family_row['status'] = 'current';
-				$familyObj = $GLOBALS['system']->getDBObject('family', $existingPerson->getValue('familyid'));
+				$familyObj = $existingPerson->getFamily();
 				$family_row['family_name'] = $familyObj->getValue('family_name'); // avoid case munging
 				$familyObj->fromCsvRow($family_row, $this->_sess['overwrite_existing']);
 				if (empty($current_existing_family_data) || ($existingPerson->getValue('familyid') != $current_existing_family_data['id'])) {
