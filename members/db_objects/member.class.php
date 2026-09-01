@@ -1,5 +1,4 @@
 <?php
-include_once JETHRO_ROOT.'/include/db_object.class.php';
 include_once JETHRO_ROOT.'/db_objects/person.class.php';
 include_once JETHRO_ROOT.'/db_objects/family.class.php';
 class Member extends DB_Object

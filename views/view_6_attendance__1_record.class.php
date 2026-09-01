@@ -73,7 +73,7 @@ class View_Attendance__Record extends View
 		}
 
 		foreach ($this->_cohortids as $id) {
-			$this->_record_sets[$id] = new Attendance_Record_set($this->_attendance_date, $id, $this->_age_brackets, $this->_statuses, $this->_order);
+			$this->_record_sets[$id] = new Attendance_Record_Set($this->_attendance_date, $id, $this->_age_brackets, $this->_statuses, $this->_order);
 			if ($this->_show_photos) $this->_record_sets[$id]->show_photos = TRUE;
 		}
 
@@ -245,7 +245,7 @@ class View_Attendance__Record extends View
 		// STEP 2 - enter attendances
 		ob_start();
 		?>
-		<form method="post" class="attendance warn-unsaved" data-lock-length="<?php echo db_object::getLockLength() ?>" action="?view=attendance__record">
+		<form method="post" class="attendance warn-unsaved" data-lock-length="<?php echo DB_Object::getLockLength() ?>" action="?view=attendance__record">
 			<input type="hidden" name="attendance_date" value="<?php echo $this->_attendance_date; ?>" />
 			<input type="hidden" name="show_photos" value="<?php echo $this->_show_photos; ?>" />
 			<input type="hidden" name="parallel_mode" value="<?php echo $this->_parallel_mode; ?>" />
