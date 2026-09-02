@@ -554,3 +554,87 @@ test('build_url: null param removes existing key', function () {
     assert_contains($result, 'keep=me');
     $_GET = $old;
 });
+// baseurl_absolute / request_scheme_and_host — host-header poisoning (A5)
+// ===========================================================================
+
+/** Save request superglobal keys the A5 tests mutate, for restoration. */
+function a5_save_server(): array
+{
+    $keys = ['HTTP_HOST', 'HTTP_X_FORWARDED_HOST', 'HTTP_X_FORWARDED_PROTO', 'SERVER_NAME', 'SERVER_PORT', 'HTTPS'];
+    $saved = [];
+    foreach ($keys as $k) {
+        $saved[$k] = $_SERVER[$k] ?? null;
+    }
+    return $saved;
+}
+
+function a5_restore_server(array $saved): void
+{
+    foreach ($saved as $k => $v) {
+        if ($v === null) {
+            unset($_SERVER[$k]);
+        } else {
+            $_SERVER[$k] = $v;
+        }
+    }
+}
+
+test('baseurl_absolute: ignores X-Forwarded-* by default (A5)', function () {
+    $saved = a5_save_server();
+    try {
+        $_SERVER['HTTP_HOST'] = 'church.example';
+        $_SERVER['HTTP_X_FORWARDED_HOST'] = 'attacker.example';
+        $_SERVER['HTTP_X_FORWARDED_PROTO'] = 'https';
+        $url = baseurl_absolute();
+        assert_contains($url, 'church.example', 'real Host must be used');
+        assert_not_contains($url, 'attacker.example', 'X-Forwarded-Host must be ignored by default');
+        assert_contains($url, 'http://', 'X-Forwarded-Proto must not flip the scheme by default');
+    } finally {
+        a5_restore_server($saved);
+    }
+});
+
+test('baseurl_absolute: honours X-Forwarded-* under TRUST_X_FORWARDED_HEADERS', function () {
+    if (!defined('TRUST_X_FORWARDED_HEADERS')) {
+        define('TRUST_X_FORWARDED_HEADERS', true);
+    }
+    $saved = a5_save_server();
+    try {
+        $_SERVER['HTTP_HOST'] = 'church.example';
+        $_SERVER['HTTP_X_FORWARDED_HOST'] = 'proxy.internal';
+        $_SERVER['HTTP_X_FORWARDED_PROTO'] = 'https';
+        $url = baseurl_absolute();
+        assert_contains($url, 'proxy.internal', 'trusted forwarded host must be used');
+        assert_contains($url, 'https://', 'trusted forwarded proto must set the scheme');
+    } finally {
+        a5_restore_server($saved);
+    }
+});
+
+test('baseurl_absolute: ALLOWED_HOSTS rejects unknown Host, falls back to SERVER_NAME', function () {
+    if (!defined('ALLOWED_HOSTS')) {
+        define('ALLOWED_HOSTS', 'church.example|alt.example');
+    }
+    $saved = a5_save_server();
+    try {
+        $_SERVER['HTTP_HOST'] = 'attacker.example';
+        unset($_SERVER['HTTP_X_FORWARDED_HOST']);
+        $_SERVER['SERVER_NAME'] = 'server.example';
+        $url = baseurl_absolute();
+        assert_not_contains($url, 'attacker.example', 'poisoned Host must be rejected');
+        assert_contains($url, 'server.example', 'fallback must be SERVER_NAME');
+    } finally {
+        a5_restore_server($saved);
+    }
+});
+
+test('baseurl_absolute: ALLOWED_HOSTS accepts listed hosts', function () {
+    $saved = a5_save_server();
+    try {
+        $_SERVER['HTTP_HOST'] = 'church.example';
+        $url = baseurl_absolute();
+        assert_contains($url, 'church.example', 'allowlisted Host must be used');
+    } finally {
+        a5_restore_server($saved);
+    }
+});
