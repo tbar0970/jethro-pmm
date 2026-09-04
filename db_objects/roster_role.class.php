@@ -112,7 +112,7 @@ class Roster_Role extends db_object
 				echo implode(', ', array_map(function ($val) {
 					$group = new Person_group($val);
 					return '<a href="?view=groups&groupid='.(int)$val.'">'.ents($group->getValue('name')).'</a>';
-				}, $this->getValue($name)));
+				}, $this->getValue($name) ?? []));
 				break;
 			case 'volunteer_group':
 				if ($val = $this->getValue($name)) {
