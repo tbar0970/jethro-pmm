@@ -15,13 +15,18 @@
     "bun@latest"
   ],
   "env": {
+    "FUNCTEST_WEB_PORT":      "8089",
+    "JETHRO_VERSION":         "2.39-DEV",
     "NGINX_WEB_PORT":         "8081",
     "PATH":                   "$PWD/devbox.d/bin:$PATH"
   },
   "shell": {
     "scripts": {
+      "compile":              "devbox.d/bin/jethro_compile",
+      "demodata":             "devbox.d/bin/jethro_load_demodata jethro \"St Bob's\"",
       "docs":                 "cd docs && bun install && bun run start",
       "docs-html":            "cd docs && bun install && bun run build",
+      "functests":            "cd tests/functional && bun install && bunx playwright install && bun run ./node_modules/.bin/playwright test --reporter=list",
       "initdb":               "devbox.d/bin/mariadb_recreate_db jethro",
       "lint":                 "php -l *.php calls/*.php db_objects/*.php hooks/**/*.php include/*.php members/*.php members/**/*.php public/*.php public/**/*.php scripts/*.php templates/*.php upgrades/*.php upgrades/**/*.php views/*.php",
       "mariadb_as_root":      "devbox.d/bin/mariadb_as_root"
