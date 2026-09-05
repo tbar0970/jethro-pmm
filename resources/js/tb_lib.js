@@ -86,6 +86,11 @@ $(document).ready(function() {
 	// If a <a class="rowlink"> exists in the row, it takes priority;
 	// otherwise the first <a> in the row is used (backwards-compatible).
 	$('table.clickable-rows td').click(function(e) {
+		// Clicks landing on a modal-trigger link (Add Note / Send SMS) are
+		// handled by delegated handlers in jethro.js. Assigning self.location
+		// here would race that handler with a page load, defeating the modal
+		// and middle/ctrl-click's open-in-new-tab.
+		if ($(e.target).closest('a[data-toggle]').length) return;
 		var t = $(this);
 		var myLinks = t.find('a, input');
 		if (!myLinks.length) {

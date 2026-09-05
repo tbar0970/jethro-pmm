@@ -174,7 +174,9 @@ if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
 			$add_note_html = '<a href="?view=_add_note_to_family&familyid='.ents($family->id).'"><i class="icon-plus-sign"></i>'._('Add Family Note').'</a>';
 		} else if (count($members) == 1) {
 			$memberarray = array_keys($members);
-			$add_note_html = '<a href="?view=_add_note_to_person&personid='.ents(reset($memberarray)).'">'._('Add Person Note').'</a>';
+			$pid = reset($memberarray);
+			$add_note_html = '<a href="?view=_add_note_to_person&personid='.ents($pid).'" class="note-link" data-toggle="note-modal" data-personid="'.ents($pid).'" data-name="'.ents($members[$pid]['first_name'].' '.$members[$pid]['last_name']).'">'._('Add Person Note').'</a>';
+			print_note_modal_once();
 		}
 		$show_edit_link = TRUE;
 	}
