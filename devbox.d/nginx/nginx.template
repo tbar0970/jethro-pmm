@@ -54,10 +54,18 @@ http {
         # Browse at http://localhost:${NGINX_WEB_PORT}/docs/
         # ====================================================================
 
-        location ^~ /docs/ {
+        # Redirect no-slash to slashed (preserving query string)
+        location = /docs { return 302 /jethro-pmm/$is_args$args; }
+
+        location ^~ /jethro-pmm/ {
             alias ../../../docs/build/;
             index index.html;
-            try_files $uri $uri/ $uri.html /docs/404.html;
+            try_files $uri $uri/ $uri.html /docs/404.html @docs-missing;
+        }
+
+        # Docs not built yet? Show a hint instead of a bare 404.
+        location @docs-missing {
+            return 404 "Please build the docs with ./devbox run docs-html";
         }
 
         # -- Temp paths (relative to -p prefix) --

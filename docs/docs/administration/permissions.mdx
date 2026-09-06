@@ -1,0 +1,127 @@
+---
+sidebar_position: 4
+---
+
+import data from '../../jethropermissions.json';
+
+# Permissions
+
+Jethro controls what each staff member can do through a set of permissions. Permissions are assigned per user account and can be changed at **Admin → User Accounts**.
+
+## Complete permission reference
+
+{data.categoryOrder.filter(cat => Object.values(data.permissions).some(p => p.category === cat)).map(cat => {
+  const perms = Object.entries(data.permissions).filter(([, p]) => p.category === cat);
+  return (
+    <section key={cat}>
+      <h3 id={cat.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '')}>{cat}</h3>
+      <table>
+        <thead><tr><th>Permission</th><th>Default</th><th>What it allows</th></tr></thead>
+        <tbody>
+          {perms.map(([key, perm]) => (
+            <tr key={key} id={key.toLowerCase()}>
+              <td><code>{key}</code></td>
+              <td>{perm.default ? 'Yes' : 'No'}</td>
+              <td>{perm.description}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  );
+})}
+
+## Permission hierarchy
+
+Higher permissions automatically include lower ones within the same category. For example, granting `EDITROSTER` also grants `VIEWROSTER`. The hierarchy is:
+
+<table>
+  <thead><tr><th>Category</th><th>Hierarchy</th></tr></thead>
+  <tbody>
+    {(() => {
+      // Group hierarchy edges by the category of the "to" permission
+      const catEdges = {};
+      for (const edge of data.hierarchy) {
+        const cat = data.permissions[edge.to].category;
+        if (!catEdges[cat]) catEdges[cat] = [];
+        catEdges[cat].push(edge);
+      }
+      // Build chains for each category
+      const rows = [];
+      for (const cat of data.categoryOrder) {
+        const edges = catEdges[cat];
+        if (!edges || edges.length === 0) continue;
+        // Build chain: find the leaf-most permission, walk backwards
+        const children = new Set(edges.map(e => e.to));
+        const parents = new Set(edges.map(e => e.from));
+        const leaves = [...children].filter(c => !parents.has(c));
+        const chains = leaves.map(leaf => {
+          const chain = [leaf];
+          let current = leaf;
+          while (true) {
+            const edge = edges.find(e => e.to === current);
+            if (!edge) break;
+            chain.unshift(edge.from);
+            current = edge.from;
+          }
+          return chain;
+        });
+        // If one chain covers all, show it spanning categories
+        if (cat === 'System Administration') {
+          rows.push(<tr key={cat}><td>{cat}</td><td><code>SYSADMIN</code> (includes all permissions)</td></tr>);
+          continue;
+        }
+        const chainStrs = chains.map(c => c.map(k => <code key={k}>{k}</code>).reduce((a, b) => <>{a} → {b}</>));
+        rows.push(<tr key={cat}><td>{cat}</td><td>{chainStrs.map((c, i) => <div key={i}>{c}</div>)}</td></tr>);
+      }
+      return rows;
+    })()}
+  </tbody>
+</table>
+
+Permissions in different categories are independent — having `MANAGEREPORTS` does not give you `EDITPERSON`, and so on. SMS permissions (`SENDSMS`, `VIEWSMS`), People (`EDITPERSON`), and Sermons (`EDITREC`) are standalone and do not form hierarchies.
+
+## Default permissions
+
+New staff accounts receive the following permissions by default:
+
+<ul>
+  <li><strong>Included:</strong> {Object.entries(data.permissions).filter(([, p]) => p.default).map(([k]) => <code key={k}>{k}</code>).reduce((a, b) => <>{a}, {b}</>)}</li>
+  <li><strong>Excluded:</strong> {Object.entries(data.permissions).filter(([, p]) => !p.default).map(([k]) => <code key={k}>{k}</code>).reduce((a, b) => <>{a}, {b}</>)}</li>
+</ul>
+
+The default can be changed at **Admin → System Configuration** → `DEFAULT_PERMISSIONS`. Changes only affect new accounts — existing users are not modified.
+
+## Feature-flag gating
+
+Some permissions require a feature to be enabled in `ENABLED_FEATURES`. If the feature is turned off, the associated permissions have no effect — even if granted on a user account:
+
+<table>
+  <thead><tr><th>Feature</th><th>Affected permissions</th></tr></thead>
+  <tbody>
+    {Object.entries(data.features).map(([featureName, feature]) => (
+      <tr key={featureName}>
+        <td>{featureName}{feature.note ? <><br /><small>{feature.note}</small></> : null}</td>
+        <td>{feature.permissions.map(k => <code key={k}>{k}</code>).reduce((a, b) => <>{a}, {b}</>)}</td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
+Permissions not listed above (People, SMS, Reports, Groups, System Administration) are always active regardless of feature flags.
+
+## Congregation and group restrictions
+
+Separate from permission levels, user accounts can have **congregation restrictions** and **group restrictions**. These limit which people, families, and groups a user can see, regardless of their permission level. SysAdmins bypass these restrictions.
+
+## Configuration
+
+<table>
+  <thead><tr><th>Setting</th><th>Default</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td><code>DEFAULT_PERMISSIONS</code></td><td><em>(most permissions)</em></td><td>Permission set granted to new user accounts</td></tr>
+    <tr><td><code>ENABLED_FEATURES</code></td><td><em>(all features)</em></td><td>Which feature modules are active</td></tr>
+    <tr><td><code>2FA_REQUIRED_PERMS</code></td><td><em>(empty)</em></td><td>Comma-separated permission names that require 2-factor authentication</td></tr>
+    <tr><td><code>RESTRICTED_USERS_CAN_ADD</code></td><td>Off</td><td>Allow users with congregation/group restrictions to create new persons and families</td></tr>
+  </tbody>
+</table>
