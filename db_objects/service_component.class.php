@@ -1,5 +1,5 @@
 <?php
-class Service_Component extends db_object
+class Service_Component extends DB_Object
 {
 	protected $_load_permission_level = PERM_VIEWSERVICE;
 	protected $_save_permission_level = PERM_EDITSERVICE;

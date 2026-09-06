@@ -1,5 +1,5 @@
 <?php
-class Age_Bracket extends db_object
+class Age_Bracket extends DB_Object
 {
 	protected $_load_permission_level = 0;
 	protected $_save_permission_level = 0;

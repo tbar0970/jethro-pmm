@@ -1,6 +1,5 @@
 <?php
-include_once 'include/db_object.class.php';
-class Service_Component_Tagging extends db_object
+class Service_Component_Tagging extends DB_Object
 {
 	protected static function _getFields()
 	{
