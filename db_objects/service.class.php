@@ -669,10 +669,17 @@ class service extends db_object
             return $services;
 	}
 
+	/**
+	 * Atomically replaces all items for this service: the DELETE and the
+	 * multi-row INSERT run in one transaction, so a failed INSERT leaves the
+	 * previous items intact. Personnel is coerced to string; see
+	 * docs/docs/developer/reference/services-items-personnel.mdx for the
+	 * personnel NOT NULL contract.
+	 * @param array $itemList
+	 */
 	public function saveItems($itemList)
 	{
 		$db = $GLOBALS['db'];
-		$res = $db->exec('DELETE FROM service_item WHERE serviceid = '.(int)$this->id);
 
 		$compids = $comps = Array();
 		foreach ($itemList as $item) {
@@ -683,6 +690,7 @@ class service extends db_object
 			$comps = $GLOBALS['system']->getDBObjectData('service_component', Array('(id' => $set));
 		}
 
+		$SQL = '';
 		if (!empty($itemList)) {
 			$SQL = 'INSERT INTO service_item
 					(serviceid, `rank`, componentid, title, personnel, show_in_handout, length_mins, note, heading_text)
@@ -690,6 +698,7 @@ class service extends db_object
 					';
 			$sets = Array();
 			foreach ($itemList as $rank => $item) {
+				$item['personnel'] = (string)array_get($item, 'personnel'); // service_item.personnel is NOT NULL
 				if ($item['componentid']) {
 					$item['title'] = ''; // title is only saved for ad hoc items
 
@@ -704,7 +713,21 @@ class service extends db_object
 				$sets[] = '('.(int)$this->id.', '.(int)$rank.', '.$db->quote($item['componentid']).', '.$db->quote($item['title']).', '.$db->quote($item['personnel']).', '.$db->quote($item['show_in_handout']).', '.(int)$item['length_mins'].', '.$db->quote(array_get($item, 'note')).', '.$db->quote(array_get($item, 'heading_text')).')';
 			}
 			$SQL .= implode(",\n", $sets);
-			$res = $db->exec($SQL);;
+		}
+
+		// DELETE and INSERT run atomically: if the INSERT fails (e.g. constraint
+		// violation), the previous items must not be left deleted. See
+		// docs/docs/developer/reference/services-items-personnel.mdx.
+		$db->beginTransaction();
+		try {
+			$db->exec('DELETE FROM service_item WHERE serviceid = '.(int)$this->id);
+			if ($SQL !== '') {
+				$db->exec($SQL);
+			}
+			$db->commit();
+		} catch (Throwable $e) {
+			$db->rollBack();
+			throw $e;
 		}
 	}
 
@@ -728,6 +751,14 @@ class service extends db_object
 		return FALSE;
 	}
 
+	/**
+	 * Returned personnel is always a string, never NULL (ad-hoc items resolve
+	 * through missed LEFT JOINs) - see
+	 * docs/docs/developer/reference/services-items-personnel.mdx.
+	 * @param boolean $withContent
+	 * @param int|string $ofCategoryID
+	 * @return array
+	 */
 	public function getItems($withContent=FALSE, $ofCategoryID=NULL)
 	{
 		$SQL = 'SELECT si.*,
@@ -736,7 +767,7 @@ class service extends db_object
 					'.($withContent ? 'sc.content_html, sc.credits, ' : '').'
 					IFNULL(IF(LENGTH(sc.runsheet_title_format) = 0, scc.runsheet_title_format, sc.runsheet_title_format), "%title%") AS runsheet_title_format,
 					IFNULL(IF(LENGTH(sc.handout_title_format) = 0, scc.handout_title_format, sc.handout_title_format), "%title%") AS handout_title_format,
-					IF(LENGTH(si.personnel) > 0, si.personnel, IF(LENGTH(sc.personnel) > 0, sc.personnel, scc.personnel_default)) as personnel,
+				IFNULL(IF(LENGTH(si.personnel) > 0, si.personnel, IF(LENGTH(sc.personnel) > 0, sc.personnel, scc.personnel_default)), "") as personnel,
 					sc.categoryid,
 					sc.ccli_number,
 					sc.comments
