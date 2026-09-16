@@ -206,16 +206,18 @@ class Roster_Role extends db_object
 		unset($this->fields['teams']);
 	}
 
-	function _getVolunteers()
+	function _getVolunteers($individuals=false)
 	{
 		if (is_null($this->_volunteers)) {
 			$this->_volunteers = Array();
+			
+			$full_name = fn($details) => $details['first_name'].' '.$details['last_name'];
 			if ($this->getValue('volunteer_group')) {
 				$group = $GLOBALS['system']->getDBObject('person_group', $this->getValue('volunteer_group'));
 				if ($group) {
 					$params = Array('!(status' => Person_Status::getArchivedIDs());
 					foreach ($group->getMembers($params) as $id => $details) {
-						$this->_volunteers[$id] = $details['first_name'].' '.$details['last_name'];
+						$this->_volunteers[$id] = $full_name($details);
 					}
 				}
 			}
@@ -225,11 +227,17 @@ class Roster_Role extends db_object
 				if ($group) {
 					$members = $group->getMembers();
 					if ($members) {
-					    $memberNames = implode(', ', array_map(fn ($details) => $details['first_name'].' '.$details['last_name'], $members));
-					    if (strlen($memberNames) > 30) {
-					    	$memberNames = substr($memberNames, 0, 27).'...';
-					    }
-						$this->_volunteers['team'.implode(',', array_keys($members))] = 'Team: '.$group->getValue('name').' ('.$memberNames.')';
+						if ($individuals) {
+							foreach ($members as $id => $details) {
+								$this->_volunteers[$id] = $full_name($details);
+							}
+						} else {
+							$memberNames = implode(', ', array_map($full_name, $members));
+							if (strlen($memberNames) > 30) {
+								$memberNames = substr($memberNames, 0, 27).'...';
+							}
+							$this->_volunteers['team'.implode(',', array_keys($members))] = 'Team: '.$group->getValue('name').' ('.$memberNames.')';
+						}
 					}
 				}
 			}
@@ -266,7 +274,7 @@ class Roster_Role extends db_object
 		<?php
 	}
 	
-	private function _printChooserOption($vid, $name, $selectedid, &$absentees)
+	private function _printChooserOption($vid, $name, $selectedid, $absentees)
 	{
 		$sel = $dis = $note = '';
 		if ($vid == $selectedid) {
@@ -344,7 +352,39 @@ class Roster_Role extends db_object
 			}
 		}
 	}
-	
+
+	/**
+	* Print a widget for choosing an individual person to fulfill this role
+	*/
+	function printChooserForMember($date, $currentID)
+	{
+		if ($groupid = $this->getValue('volunteer_group')) {
+            ?>
+			<select name="assignees[<?php echo $this->id; ?>][<?php echo $date; ?>]">
+			<?php
+			$volunteers = $this->_getVolunteers(individuals: true);
+            $absentees = [];
+			$absences = $GLOBALS['system']->getDBObjectData('planned_absence',
+																Array(
+																	'>=end_date' => $date,
+																	'<=start_date' => $date,
+																),
+																'AND');
+            foreach ($absences as $ab) {
+            	$absentees[] = $ab['personid'];
+            }
+			foreach ($volunteers as $id => $name) {
+				$this->_printChooserOption($id, $name, $currentID, $absentees);
+			}
+			?>
+			</select>
+			<?php
+		} else {
+			$GLOBALS['system']->includeDBClass('person');
+			Person::printSingleFinder('assignees['.$this->id.']['.$date.']', $currentID, $date);
+		}
+	}
+
 	public function canEditAssignments() {
 		if ($this->getValue('volunteer_group')) {
 			$group = $GLOBALS['system']->getDBObject('person_group', $this->getValue('volunteer_group'));

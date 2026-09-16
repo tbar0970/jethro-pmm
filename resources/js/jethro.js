@@ -2620,3 +2620,19 @@ function initNoteFilters(currentUserId) {
 
 	$statusFilters.add($assigneeFilter).on('change', applyFilters);
 };
+
+$(document).ready(function() {
+	const assignments = document.querySelectorAll('.member_roster_role_assignment')
+	assignments.forEach(assignment => {
+		assignment.querySelector('.info a').addEventListener('click', () => {
+			assignments.forEach(otherAssignment => {
+				otherAssignment.classList.remove('swapping')
+			})
+			assignment.classList.toggle('swapping')
+		})
+		
+		assignment.querySelector('.cancel').addEventListener('click', () => {
+			assignment.classList.remove('swapping')
+		})
+	})
+})
