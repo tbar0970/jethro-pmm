@@ -312,7 +312,8 @@ class family extends db_object
 	function getInstancesQueryComps($params, $logic, $order)
 	{
 		$res = parent::getInstancesQueryComps($params, $logic, $order);
-		$res['select'][] = 'GROUP_CONCAT(p.first_name ORDER BY ab.`rank` ASC, p.gender DESC SEPARATOR \', \') as members';
+        // Keep family member order in sync with that in the Contact List.
+		$res['select'][] = 'GROUP_CONCAT(p.first_name ORDER BY ab.`rank` ASC, IF(ab.is_adult, gender, "") DESC, p.first_name ASC SEPARATOR \', \') as members';
 		if (array_get($params, '!status') == 'archived') {
 			// If we are excluding archived families, exclude archived members too
 			$res['from'] .= ' JOIN person p ON family.id = p.familyid AND p.status <> "archived"'; // Families with no visible members will be excluded

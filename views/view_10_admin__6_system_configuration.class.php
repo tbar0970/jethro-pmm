@@ -35,6 +35,9 @@ class View_Admin__System_Configuration extends View {
 				case '2FA_REQUIRED_PERMS':
 					$this->process2FARequiredPermsField();
 					break;
+                case 'BIBLE_TRANSLATION_PREFERRED':
+                    $this->processBibleTranslationPreferredOptions();
+                    break;
 				default:
 					if (isset($_REQUEST[$symbol])) {
 						list($params, $value, $multi) = self::getParamsAndValue($symbol, $details);
@@ -73,14 +76,21 @@ class View_Admin__System_Configuration extends View {
 		}
 		$this->_doConfigChecks();
 		?>
-		<form method="post">
+		<div class="settings-page">
+			<nav id="settings-nav" class="settings-nav hidden-phone"></nav>
+			<form method="post" class="settings-form">
 			<div class="form-horizontal">
 			<?php
+			$headings = [];
+			$panelsRendered = [];
 			foreach (Config_Manager::getSettings() as $symbol => $details) {
 				if ($details['type'] == 'hidden') continue;
 				$details['note'] = str_replace('<system_url>', BASE_URL, $details['note']);
 				if ($details['heading']) {
-					echo '<hr /><h4>'.ents($details['heading']).'</h4>';
+					$slug = strtolower((string) preg_replace('/[^A-Za-z0-9]+/', '-', $details['heading']));
+					$headings[] = ['slug' => $slug, 'label' => $details['heading']];
+					echo '<hr /><h4 id="'.ents($slug).'">'.ents($details['heading']).'</h4>';
+					$this->printStatusPanel($symbol, $panelsRendered);
 				}
 				?>
 				<div class="control-group" id="<?php echo $symbol; ?>">
@@ -92,7 +102,7 @@ class View_Admin__System_Configuration extends View {
 					<div class="controls">
 						<?php
 						if (defined($symbol.'_IN_CONFIG_FILE')) {
-							if (Config_Manager::allowSettingInFile($symbol) && constant($symbol)) {
+							if (Config_Manager::allowSettingInFile($symbol) && constant($symbol) && Config_Manager::isCredentialSetting($symbol)) {
 								// Don't show the value here - sensitive
 								print_message('This setting has been set in the system config file', 'warning');
 								if ($details['note']) echo '<p class="smallprint">'.ents($details['note']).'</p>';
@@ -118,7 +128,130 @@ class View_Admin__System_Configuration extends View {
 				</div>
 			</div>
 		</form>
+		</div>
+		<script>
+		(function() {
+			var headings = <?php echo json_encode($headings); ?>;
+			if (!headings.length) return;
+			var nav = document.getElementById('settings-nav');
+			var links = {};
+			headings.forEach(function(h) {
+				var a = document.createElement('a');
+				a.href = '#' + h.slug;
+				a.textContent = h.label;
+				nav.appendChild(a);
+				links[h.slug] = a;
+			});
+
+			var activeEl = null;
+
+			function setActive(slug) {
+				if (activeEl === links[slug]) return;
+				if (activeEl) activeEl.classList.remove('active');
+				activeEl = links[slug] || null;
+				if (activeEl) activeEl.classList.add('active');
+			}
+
+			function refresh() {
+				var bestSlug = null;
+				var bestTop = Infinity;
+				var viewTop = window.scrollY + 80; // small offset so the heading itself is visible
+				headings.forEach(function(h) {
+					var el = document.getElementById(h.slug);
+					if (!el) return;
+					var top = el.getBoundingClientRect().top + window.scrollY;
+					if (top <= viewTop && (viewTop - top) < bestTop) {
+						bestTop = viewTop - top;
+						bestSlug = h.slug;
+					}
+				});
+				setActive(bestSlug);
+			}
+
+			// Clicking a nav link also highlights it immediately
+			nav.addEventListener('click', function(e) {
+				var a = e.target.closest('a');
+				if (a) {
+					var slug = a.getAttribute('href').slice(1);
+					setActive(slug);
+				}
+			});
+
+			var ticking = false;
+			window.addEventListener('scroll', function() {
+				if (!ticking) {
+					requestAnimationFrame(function() { refresh(); ticking = false; });
+					ticking = true;
+				}
+			});
+
+			refresh();
+		})();
+		</script>
+		<script>
+		// Status panel AJAX loader
+		(function() {
+			document.querySelectorAll('.status-panel').forEach(function(panel) {
+				var prefix = panel.getAttribute('data-prefix');
+				if (!prefix) return;
+				var xhr = new XMLHttpRequest();
+				xhr.open('GET', '?call=admin_statuspanel_' + prefix);
+				xhr.onload = function() {
+					if (xhr.status === 200) {
+						panel.innerHTML = xhr.responseText;
+					} else {
+						panel.innerHTML = '';
+					}
+				};
+				xhr.onerror = function() {
+					panel.innerHTML = '';
+				};
+				xhr.send();
+			});
+		})();
+		</script>
+		<style>
+		.settings-page { display: flex; gap: 2rem; align-items: flex-start; }
+		.settings-nav { position: sticky; top: 10rem; width: 14rem; flex-shrink: 0; }
+		.settings-nav a { display: block; padding: 0.35rem 0.75rem; color: #555; text-decoration: none; font-size: 0.85rem; border-radius: 4px; margin-bottom: 1px; }
+		.settings-nav a:hover { background: #f0f0f0; color: #333; }
+		.settings-nav a.active { font-weight: 600; color: #08c; background: #e8f4fc; }
+		.settings-nav a.active::before { content: ''; display: none; }
+		.settings-form { flex: 1; min-width: 0; }
+
+		.status-panel { margin: 0.5rem 0 1rem 0; }
+		.status-panel .control-group { margin-bottom: 0.25rem; }
+		.status-panel .control-group:last-child { margin-bottom: 0; }
+		.status-panel .control-label { padding-top: 0; }
+		.collapse.in.status-panel-details { border: 1px solid #e0e0e0; border-radius: 4px; padding: 0.5rem 0.75rem; }
+		.status-panel p { margin: 0.15rem 0; }
+		.status-panel-help { font-style: italic; color: #777; }
+		.status-panel-loading { color: #999; font-style: italic; }
+		</style>
 		<?php
+	}
+
+	private function printStatusPanel(string $symbol, array &$panelsRendered): void
+	{
+		// Longest-match: progressively strip trailing _* from the symbol until a call class file is found.
+		$key = strtolower($symbol);
+		do {
+			if (!in_array($key, $panelsRendered, true)
+				&& file_exists(JETHRO_ROOT . '/calls/call_admin_statuspanel_' . $key . '.class.php')
+			) {
+				$panelsRendered[] = $key;
+?>
+				<div class="status-panel" id="status-panel-<?php echo ents($key); ?>" data-prefix="<?php echo ents($key); ?>">
+				    <div class="status-panel-loading">Loading&hellip;</div>
+				</div>
+<?php
+				return;
+			}
+			$pos = strrpos($key, '_');
+			if ($pos !== false) {
+				$key = substr($key, 0, $pos);
+			}
+		} while ($pos !== false);
 	}
 
 	private static function getParamsAndValue($symbol, $details)
@@ -238,6 +371,10 @@ class View_Admin__System_Configuration extends View {
 			case '2FA_REQUIRED_PERMS':
 				$this->print2FARequiredPermsField();
 				break;
+
+            case 'BIBLE_TRANSLATION_PREFERRED':
+                $this->printBibleTranslationPreferredOptions();
+                break;
 			default:
 				list($params, $value, $multi) = self::getParamsAndValue($symbol, $details);
 				if ($multi) {
@@ -684,6 +821,29 @@ class View_Admin__System_Configuration extends View {
 		}
 
 	}
+    private function printBibleTranslationPreferredOptions(): void
+    {
+		require_once JETHRO_ROOT.'/include/bibleapi.php';
+		$translations = getBibleTranslations();
+		$current = defined('BIBLE_TRANSLATION_PREFERRED') ? constant('BIBLE_TRANSLATION_PREFERRED') : null;
+		?>
+		<select name="BIBLE_TRANSLATION_PREFERRED">
+			<option value="" <?php if ($current === null || $current === '') echo 'selected="selected"'; ?>>(not set)</option>
+			<?php foreach ($translations as $id => $info): ?>
+				<option value="<?php echo ents($id); ?>" <?php if ($id === $current) echo 'selected="selected"'; ?>>
+					<?php echo ents($info['abbreviation'] . ' — ' . $info['name']); ?>
+				</option>
+			<?php endforeach; ?>
+		</select>
+		<?php
+    }
+
+    private function processBibleTranslationPreferredOptions(): void
+    {
+		if (isset($_REQUEST['BIBLE_TRANSLATION_PREFERRED'])) {
+			Config_Manager::saveSetting('BIBLE_TRANSLATION_PREFERRED', $_REQUEST['BIBLE_TRANSLATION_PREFERRED']);
+		}
+    }
 
 }
 

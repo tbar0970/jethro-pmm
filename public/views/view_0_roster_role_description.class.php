@@ -21,15 +21,16 @@ class View__Roster_Role_Description extends View
 
 	function printView()
 	{
-		if (defined('PUBLIC_ROSTER_SECRET')
+		// This view is used by /members and /public, and only /public supports 'private' URLs. #1486
+		if ((defined('DB_MODE') && (DB_MODE == 'PUBLIC'))
+					&& defined('PUBLIC_ROSTER_SECRET')
 					&& strlen(PUBLIC_ROSTER_SECRET)
 					&& (array_get($_REQUEST, 'secret') != PUBLIC_ROSTER_SECRET)) {
 			print_message("Please contact your church admin to get the private URL for rosters", "error");
 			return;
 		}
-		$views = $GLOBALS['system']->getDBObjectData('roster_view', Array('visibility' => 'public'), 'AND', 'name');
-		if (empty($views)) {
-			// If no public views, don't show any public role descriptions
+		if (!Roster_Role::allowPublicDescriptions()) {
+			// If no public views, and no roster secret, don't show any public role descriptions
 			print_message("There are no role descriptions available for public viewing", 'error');
 			return;
 		}

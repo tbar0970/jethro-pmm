@@ -20,7 +20,7 @@ class View_Persons__Reports extends View
 				$this->_query->setValue('params', $params);
 			}
 		}
-		if ($this->_query && !empty($_REQUEST['delete'])) {
+		if ($this->_query && !empty($_POST['delete'])) {
 			$can_delete = FALSE;
 			if (($this->_query->getValue('creator') == $GLOBALS['user_system']->getCurrentUser('id')) || $GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 				$can_delete = true;
@@ -73,6 +73,9 @@ class View_Persons__Reports extends View
 	{
 		if (!empty($_REQUEST['configure'])) {
 			// PRINT THE FORM TO CONFIGURE THE REPORT
+			foreach (Person_Query::formatValidationErrors($this->_query->getValidationErrors()) as $message) {
+				print_message($message, 'warning');
+			}
 			?>
 			<form method="post" class="form-horizontal" action="<?php echo build_url(Array('configure' => NULL)); ?>">
 				<input type="hidden" name="query_submitted" value="1" />
@@ -142,7 +145,6 @@ class View_Persons__Reports extends View
 						<?php
 						if (!SizeDetector::isNarrow()) {
 							?>
-							<th><?php echo _('Actions');?></th>
 							<th></th>
 							<?php
 						}
@@ -155,23 +157,25 @@ class View_Persons__Reports extends View
 					if (!empty($_SESSION['saved_query'])) {
 						if (SizeDetector::isNarrow()) {
 							?>
-							<td class="hidden-phone">-</td>
-							<td>
-								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=TEMP">
-									<i><?php echo _('Last ad-hoc report');?></i>
-								</a>
-							</td>
+							<tr>
+								<td class="hidden-phone">-</td>
+								<td>
+									<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=TEMP">
+										<i><?php echo _('Last ad-hoc report');?></i>
+									</a>
+								</td>
+							</tr>
+							<?php
 						} else {
 							?>
 							<tr>
 								<td class="hidden-phone">-</td>
 								<td><i><?php echo _('Last ad-hoc report');?></i></td>
-								<td>-</td>
-								<td class="action-cell">
+								<td>Only me</td>
+								<td class="action-cell narrow">
 									<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=TEMP"><i class="icon-list"></i><?php echo _('View');?></a> &nbsp;
 									<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=TEMP&configure=1"><i class="icon-wrench"></i><?php echo _('Configure');?></a> &nbsp;
 								</td>
-								<td></td>
 							</tr>
 							<?php
 						}
@@ -196,27 +200,41 @@ class View_Persons__Reports extends View
 							?>
 							<td class="action-cell narrow">
 								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>"><i class="icon-list"></i><?php echo _('View');?></a> &nbsp;
-							<?php
-							if (strlen($details['mailchimp_list_id'])) {
-								?>
-								<a href="?view=_send_mc_campaign&reportid=<?php echo (int)$id; ?>"><i class="icon-email">@</i>Send campaign</a>
-								<?php
-							} else {
-								?>
-								<a target="_append" href="?call=email&print_modal=1&queryid=<?php echo $id; ?>"><i class="icon-email">@</i><?php echo _('Email');?></a>
-								<?php
-							}
-							?>
-							</td>
-							<td class="action-cell narrow">
 								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>&configure=1"><i class="icon-wrench"></i><?php echo _('Configure');?></a> &nbsp;
-							<?php
-							if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
-								?>
-								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>&delete=1" data-method="post" class=" double-confirm-title" title="Delete this report"><i class="icon-trash"></i><?php echo _('Delete');?></a>
-								<?php
-							}
-							?>
+								<span class="dropdown nowrap">
+									<a class="dropdown-toggle" data-toggle="dropdown" href="#"><?php echo _('Actions'); ?><i class="caret"></i></a>
+									<ul class="dropdown-menu" role="menu" style="z-index:9999">
+										<li>
+											<?php
+											if (strlen($details['mailchimp_list_id'])) {
+												?>
+												<a href="?view=_send_mc_campaign&reportid=<?php echo (int)$id; ?>"><i class="icon-email">@</i>Send campaign</a>
+												<?php
+											} else {
+												?>
+												<a href="<?php echo build_url(Array('queryid'=>$id, 'bulk_action'=>'email')); ?>"><i class="icon-email">@</i><?php echo _('Send Email');?></a>
+												<?php
+											}
+											?>
+										</li>
+									<?php
+									if (SMS_Sender::canSend()) {
+										?>
+										<li><a href="<?php echo build_url(Array('queryid'=>$id, 'bulk_action'=>'sms')); ?>"><i class="icon-envelope"></i><?php echo _('Send SMS')?></a></li>
+										<?php
+									}
+									?>
+										<li><a href="<?php echo build_url(Array('queryid'=>$id, 'bulk_action'=>'merge')); ?>"><i class="icon-file"></i><?php echo _('Mail merge a document')?></a></li>
+										<li><a href="?call=report_csv&queryid=<?php echo (int)$id; ?>"><i class="icon-download-alt"></i><?php echo _('Download CSV')?></a></li>
+									<?php
+									if ($GLOBALS['user_system']->havePerm(PERM_MANAGEREPORTS)) {
+										?>
+										<li><a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>&delete=1" data-method="post" class=" double-confirm-title" title="Delete this report"><i class="icon-trash"></i><?php echo _('Delete report');?></a></li>
+										<?php
+									}
+									?>
+									</ul>
+								</span>
 							</td>
 							<?php
 						}

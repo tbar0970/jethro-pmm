@@ -6,13 +6,11 @@
  * @var $show_form
  * @var $show_edit_link
  */
-$dummy->reset();
-$dummy->populate($id, $entry);
 $type = (!empty($entry['familyid']) ? 'family' : 'person');
 include_once 'urllinker.php';
 ?>
 <a name="note_<?php echo $id; ?>"></a>
-<div class="notes-history-entry well <?php echo $type; ?>-note" id="note_<?php echo $id; ?>">
+<div class="notes-history-entry well <?php echo $type; ?>-note" id="note_<?php echo $id; ?>" data-note-id="<?php echo $id; ?>">
 
 
 	<?php
@@ -89,7 +87,7 @@ include_once 'urllinker.php';
 		<?php
 	} else {
 		?>
-		<div class="status">
+		<div class="status" data-note-status="<?php echo $dummy->getValue('status'); ?>" data-note-assignee="<?php echo (int)$entry['assignee']; ?>">
 			<?php
 			$back_to = array_get($_REQUEST, 'note_back_to', '');
 			if ($back_to) $back_to = '&back_to='.ents($back_to);

@@ -27,6 +27,10 @@ class View_Home extends View
 			Status_Upgrader::runHTML();
 		}
 
+		if (ifdef('NEEDS_UTF8MB4_UPGRADE')) {
+			require_once JETHRO_ROOT.'/upgrades/upgradefixes/2.40.0_fix_db_charset/utf8mb4_upgradecheck.php';
+		}
+
 		?>
 		<div class="homepage">
 
@@ -105,7 +109,7 @@ class View_Home extends View
 			<div class="homepage-box upcoming">
 				<?php
 				if ($GLOBALS['user_system']->havePerm(PERM_VIEWSERVICE)) {
-					$cutoff = date('Y-m-d', strtotime('+7 days'));
+					$cutoff = date('Y-m-d', strtotime('+6 days'));
 					$services = $GLOBALS['system']->getDBObjectData(
 									'service', 
 									Array('-date' => Array(date('Y-m-d'), $cutoff))
@@ -163,6 +167,9 @@ class View_Home extends View
 			</div>
 			<?php
 		}
+		?>
+		</div>
+		<?php
 
 		$reportVals = Array('all');
 		if ($GLOBALS['user_system']->havePerm(PERM_RUNREPORT)) {

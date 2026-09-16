@@ -36,10 +36,11 @@ class Person_Group_Category extends db_object
 	function delete()
 	{
 		$GLOBALS['system']->doTransaction('BEGIN');
-		parent::delete();
+		$res = parent::delete();
 		$sql = 'UPDATE person_group SET categoryid = 0 WHERE categoryid = '.(int)$this->id;
-		$res = $GLOBALS['db']->query($sql);
+		$GLOBALS['db']->query($sql);
 		$GLOBALS['system']->doTransaction('COMMIT');
+		return $res;
 	}
 
 	function printFieldInterface($fieldname, $prefix='')

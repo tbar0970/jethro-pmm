@@ -24,11 +24,12 @@ class Installer
 	function printBody()
 	{
 		require_once dirname(__FILE__).'/system_controller.class.php';
-		$GLOBALS['system'] = $GLOBALS['system'] = System_Controller::get();
+		$GLOBALS['system'] = System_Controller::get();
 		set_error_handler(Array($GLOBALS['system'], '_handleError'));
+		$this->validDb = $this->validateDB();
 
 		// the first time we call initInitialEntities is just to check for errors
-		if ($this->readyToInstall() && $this->initInitialEntities()) {
+		if ($this->validDb && $this->readyToInstall() && $this->initInitialEntities()) {
 			$GLOBALS['JETHRO_INSTALLING'] = 1;
 			date_default_timezone_set('Australia/Sydney'); // Temporary timezone to avoid errors during install
 			$this->initDB();
@@ -80,6 +81,7 @@ class Installer
 
 		if (empty($_REQUEST['system_name'])) {
 			print_message("You must enter a system name", 'error');
+			return FALSE;
 		}
 
 		return TRUE;
@@ -87,9 +89,81 @@ class Installer
 
 
 
+	function validateDB()
+	{
+		$valid = $this->validateMySQLSettings();
+		$valid = $this->validateCharset();
+		return $valid;
+	}
+
+	/**
+	 * Check MySQL-specific requirements that don't apply to MariaDB.
+	 * @return bool
+	 */
+	function validateMySQLSettings()
+	{
+		$version = $GLOBALS['db']->queryOne("SELECT VERSION()");
+
+		// MariaDB versions include "-MariaDB" in the string
+		if (strpos($version, 'MariaDB') !== FALSE) {
+			return TRUE;
+		}
+
+		$valid = TRUE;
+
+		// MySQL 8.0+ enables ONLY_FULL_GROUP_BY by default; Jethro requires it disabled
+		$res = $GLOBALS['db']->queryOne("SELECT @@session.sql_mode");
+		$modes = array_map('trim', explode(',', $res));
+		if (in_array('ONLY_FULL_GROUP_BY', $modes)) {
+			print_message("MySQL's ONLY_FULL_GROUP_BY mode is enabled, which will cause errors. Set <code>sql_mode</code> in your MySQL config to exclude ONLY_FULL_GROUP_BY, for example:<br><pre>sql_mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION</pre>", 'error', TRUE);
+			$valid = FALSE;
+		}
+
+		// MySQL 8.0+ requires log_bin_trust_function_creators to be ON for Jethro's stored functions
+		$trusted = $GLOBALS['db']->queryOne("SELECT @@global.log_bin_trust_function_creators");
+		if (!$trusted) {
+			print_message("MySQL's log_bin_trust_function_creators is OFF. Jethro requires this to be ON so it can create stored functions. Set it in your MySQL config:<br><pre>[mysqld]\nlog_bin_trust_function_creators=1</pre>", 'error', TRUE);
+			$valid = FALSE;
+		}
+
+		return $valid;
+	}
+
+	/**
+	 * Ensure the database we're given is in the correct utf8mb4 charset and collation.
+	 * @return bool
+	 */
+	function validateCharset()
+	{
+		$current = $GLOBALS['db']->queryRow(
+			"SELECT DEFAULT_CHARACTER_SET_NAME AS charset, DEFAULT_COLLATION_NAME AS collation
+			 FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = DATABASE()"
+		);
+		if ($current && $current['charset'] == 'utf8mb4' && $current['collation'] == 'utf8mb4_unicode_ci') {
+			return TRUE;
+		} else {
+			$dbname = ifdef('DB_DATABASE', 'jethro');
+			$dbuser = ifdef('DB_USERNAME', 'jethro');
+			$current_collation = $current ? $current['charset'].'/'.$current['collation'] : 'unknown';
+			print_message(
+				'Your database uses '.$current_collation.' instead of the required utf8mb4/utf8mb4_unicode_ci. '
+				.'Please recreate the database with the correct charset:<br><br>'
+				.'<code>'
+				."CREATE USER IF NOT EXISTS '".ents($dbuser)."'@'localhost' IDENTIFIED BY '...';<br>"
+				."CREATE DATABASE `".ents($dbname)."` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;<br>"
+				."GRANT ALL PRIVILEGES ON `".ents($dbname)."`.* TO '".ents($dbuser)."'@'localhost';"
+				.'</code>',
+				'warning',
+				TRUE
+			);
+			return FALSE;
+		}
+	}
+
 	function initDB($printOnly=FALSE)
 	{
 		$allSQL = Array();
+
 		ini_set('max_execution_time', 120);
 		$filenames = glob(dirname(dirname(__FILE__)).'/db_objects/*.class.php');
 
@@ -148,6 +222,14 @@ class Installer
 			   CONSTRAINT account_congregation_restriction_personid FOREIGN KEY (personid) REFERENCES staff_member(id),
 			   CONSTRAINT account_group_restriction_congregationid FOREIGN KEY (congregationid) REFERENCES congregation(id)
 			) engine=innodb;",
+
+			"-- Synced with upgrades/2024-upgrade-to-2.35.sql:2-7 — 2FA trust token storage
+			CREATE TABLE IF NOT EXISTS 2fa_trust (
+				userid INT NOT NULL,
+				token VARCHAR(255) NOT NULL,
+				expiry DATETIME NOT NULL,
+				CONSTRAINT 2fatrust_person FOREIGN KEY (userid) REFERENCES staff_member (id) ON DELETE CASCADE
+			) ENGINE=InnoDB;",
 
 			'CREATE VIEW member AS
 			SELECT mp.id, mp.first_name, mp.last_name, mp.gender, mp.age_bracketid, mp.congregationid,
@@ -221,6 +303,8 @@ class Installer
 			(@rank:=@rank+5, '',                         'REPEAT_DATE_THRESHOLD','When a roster has this many columns, show the date on the right as well as the left','int','10'),
 			(@rank:=@rank+5, '',                         'ROSTER_WEEKS_DEFAULT','Number of weeks to show in rosters by default','int','8'),
 			(@rank:=@rank+5, '',                         'ATTENDANCE_DEFAULT_DAY','Default day to record attendance','select[\"Sunday\",\"Monday\",\"Tuesday\",\"Wednesday\",\"Thursday\",\"Friday\",\"Saturday\"]','Sunday'),
+			-- Synced with upgrades/2024-upgrade-to-2.36.sql:176-179 — configurable attendance order
+			(@rank:=@rank+5, '',                         'ATTENDANCE_ORDER_DEFAULT','Default order for recording/showing attendance','select{\"status\":\"Status, then family name\",\"family_name\":\"Family name, then age bracket\",\"last_name\":\"Last name\",\"first_name\":\"First name\",\"age_bracket\":\"Age bracket\"}','status'),
 			(@rank:=@rank+5, '',                         'ENVELOPE_WIDTH_MM','Envelope width (mm)','int','220'),
 			(@rank:=@rank+5, '',                         'ENVELOPE_HEIGHT_MM','Envelope height (mm)','int','110'),
 
@@ -243,6 +327,10 @@ class Installer
 			(@rank:=@rank+5, '',                         'MEMBER_REGO_EMAIL_FROM_NAME','Sender name for member rego emails','text',''),
 			(@rank:=@rank+5, '',                         'MEMBER_REGO_EMAIL_FROM_ADDRESS','Sender address for member rego emails','text',''),
 			(@rank:=@rank+5, '',                         'MEMBER_REGO_EMAIL_SUBJECT','Subject for member rego emails','text','Setting up your account'),
+			-- Synced with upgrades/2024-upgrade-to-2.36.sql:3-6 — member-visible age bracket
+			(@rank:=@rank+5, '',                         'MEMBERS_SEE_AGE_BRACKET','Should members be able to see and edit the age bracket field?','bool','1'),
+			-- Synced with upgrades/2026-upgrade-to-2.38.sql:2-9 — configurable member-visible document folders
+			(@rank:=@rank+5, '',                         'MEMBER_VISIBLE_FOLDERS','Folders in Documents which, if they exist, are visible to Members. Separate multiple directories with a pipe (|) character.','text','Member_Files'),
 			(@rank:=@rank+5, '',                         'MEMBER_REGO_HELP_EMAIL', 'Address that users can contact for assistance with member rego (optional)', 'text', ''),			(@rank:=@rank+5, '',                         'MEMBER_REGO_FAILURE_EMAIL','Address to notifiy when member rego fails','text',''),
 			(@rank:=@rank+5, '',                         'MEMBER_PASSWORD_MIN_LENGTH','Minimum length for member passwords','int','7'),
 			(@rank:=@rank+5, '',                         'MEMBERS_SHARE_ADDRESS','Should addresses be visible in the members area?','bool','0'),
@@ -274,6 +362,8 @@ class Installer
 			(@rank:=@rank+5, '',                         'SMTP_ENCRYPTION','Encryption method for SMTP server','select{\"ssl\":\"SSL\",\"tls\":\"TLS\",\"\":\"(None)\"}',''),
 			(@rank:=@rank+5, '',                         'SMTP_USERNAME','Username for SMTP server','text',''),
 			(@rank:=@rank+5, '',                         'SMTP_PASSWORD','Password for SMTP server','text',''),
+			-- Synced with upgrades/2017-upgrade-to-2.21.sql:5 — configurable SMTP port
+			(@rank:=@rank+5, '',                         'SMTP_PORT','Port to connect to the SMTP server. Usually 25, 465 for SSL, or 587 for TLS.','int','25'),
 
 			(@rank:=@rank+5, 'SMS Gateway',              'SMS_MAX_LENGTH','','int','160'),
 			(@rank:=@rank+5, '',                         'SMS_HTTP_URL','URL of the SMS messaging service','text',''),
@@ -493,7 +583,12 @@ class Installer
 			<p class="smallprint">(List expands as you type)</p>
 
 			<h3>Continue...</h3>
-			<input type="submit" class="btn" value="Set up the database" />
+			<?php if (empty($this->validDb)): ?>
+				<p class="text-error">Please fix the database before proceeding.</p>
+				<input type="submit" class="btn" value="Set up the database" disabled />
+			<?php else: ?>
+				<input type="submit" class="btn" value="Set up the database" />
+			<?php endif; ?>
 		</form>
 		<?php
 	}

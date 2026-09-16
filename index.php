@@ -24,7 +24,7 @@
  * @package jethro-pmm
  */
 
-define('JETHRO_ROOT', dirname(__FILE__));
+define('JETHRO_ROOT', dirname($_SERVER['SCRIPT_FILENAME']));
 define('TEMPLATE_DIR', JETHRO_ROOT.'/templates/');
 
 // Load configuration

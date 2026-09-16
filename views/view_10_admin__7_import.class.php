@@ -126,7 +126,7 @@ class View_Admin__Import extends View
 				<td>
 					<label class="checkbox">
 						<input type="checkbox" name="match_existing" value="1" <?php if (array_get($_REQUEST, 'match_existing', 1)) echo 'checked="checked"';?> data-toggle="enable" data-target="#match-options *"/>
-						Update existing persons if their first and last name match
+						Update existing persons if they match (by person ID, or first & last names)
 					</label>
 					<div class="indent-left" id="match-options">
 						<label class="checkbox">
@@ -737,7 +737,7 @@ class View_Admin__Import extends View
 			$family = new Family();
 			$family->fromCSVRow($familyrow);
 			if (!$family->create()) {
-				trigger_error('Family: '.$familydata['family_name']." not created");
+				trigger_error('Family: '.$familyrow['family_name']." not created");
 				continue;
 			}
 			foreach ($members as $member) {
@@ -769,12 +769,12 @@ class View_Admin__Import extends View
 		foreach ($this->_sess['family_updates'] as $familyid => $familyrow) {
 			$family = new Family($familyid);
 			if (!$family->acquireLock()) {
-				trigger_error("Could not update ".$familydata['family_name'].' because another user is editing it. Please try again later.', E_USER_WARNING);
+				trigger_error("Could not update ".$familyrow['family_name'].' because another user is editing it. Please try again later.', E_USER_WARNING);
 				continue;
 			}
 			$family->fromCSVRow($familyrow, $this->_sess['overwrite_existing']);
 			if (!$family->save()) {
-				trigger_error('Family: '.$familydata['family_name']." not updated");
+				trigger_error('Family: '.$familyrow['family_name']." not updated");
 			}
 			$family->releaseLock();
 			$this->_printProgress($done++, $todo);
@@ -1022,6 +1022,20 @@ class View_Admin__Import extends View
 	 */
 	private function _findExistingPerson($row)
 	{
+		// === NEW: Exact ID match ===
+		// If the CSV supplies the internal Jethro person ID (column "id" or "person_id"),
+		// perform an immediate certain lookup. This bypasses name/email/mobile logic
+		// and solves import failures caused by multiple archived duplicates.
+		// All existing matching behaviour remains unchanged when no ID is provided.
+		if (!empty($row['id']) || !empty($row['person_id'])) {
+			$id = (int)($row['id'] ?? $row['person_id']);
+			if ($id > 0) {
+				$person = $GLOBALS['system']->getDBObject('person', $id);
+				if ($person && $person->id) {
+					return $person;
+				}
+			}
+		}
 		if (empty($_REQUEST['match_existing'])) return NULL;
 		$params = Array(
 					'first_name' => $row['first_name'],
@@ -1085,6 +1099,7 @@ class View_Admin__Import extends View
 	public static function getSampleHeader($required_fields_only=FALSE)
 	{
 		$header = Array(
+			'personid',
 			'family_name',
 			'last_name',
 			'first_name',

@@ -62,6 +62,7 @@ if (JETHRO_VERSION == 'DEV') {
 	<script type="text/javascript" src="<?php echo BASE_URL; ?>/resources/js/jquery-ui.js?t=<?php echo time(); ?>"></script>
 	<script type="text/javascript" src="<?php echo BASE_URL; ?>/resources/js/jquery.ui.touch-punch.min.js?t=<?php echo time(); ?>"></script>
 	<script type="text/javascript" src="<?php echo BASE_URL; ?>/resources/js/stupidtable.min.js?t=<?php echo time(); ?>"></script>
+	<script type="text/javascript" src="<?php echo BASE_URL; ?>/resources/js/treeview.js?t=<?php echo time(); ?>"></script>
 	<?php
 } else {
 	?>

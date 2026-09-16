@@ -25,7 +25,11 @@ class View__Delete_Person extends View
 		if ($_REQUEST['personid']) {
 			$this->_person = new Person((int)$_REQUEST['personid']);
 		}
-		if (empty($this->_person)) throw new \RuntimeException("Person not found"); // exits
+		if (empty($this->_person->id)) {
+			if (!headers_sent()) http_response_code(404);
+			add_message("Person not found", 'error');
+			return;
+		}
 		$this->_staff_member = $GLOBALS['system']->getDBObject('staff_member', $this->_person->id);
 
 		$this->_notes = $GLOBALS['system']->getDBObjectData(
@@ -81,11 +85,13 @@ class View__Delete_Person extends View
 
 	public function getTitle()
 	{
+		if (empty($this->_person->id)) return _('Person not found');
 		return _('Delete ').$this->_person->toString();
 	}
 
 	public function printView()
 	{
+		if (empty($this->_person->id)) return;
 		$buttons = Array(
 					'archive' => _('Archive only'),
 					'archiveclean' => _('Archive and Cleanse'),

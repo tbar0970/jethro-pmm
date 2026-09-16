@@ -1,0 +1,304 @@
+---
+sidebar_position: 8
+---
+
+# status.php
+
+Jethro's `status.php` endpoint reports the PHP, database, and web-server configuration as JSON. It is written for monitoring systems (e.g. Nagios) and for administrators checking that a Jethro install is healthy. The companion plugin `scripts/check_http_jethrostatus` turns the JSON into a pass/warn result.
+
+## How to read the output
+
+The endpoint returns three kinds of field, grouped in that order:
+
+- **Raw observations** — facts read directly from the environment (PHP ini values, the OS user, database state). No judgment, just the inputs.
+- **Derived verdicts** — `status.php`'s own judgment about whether something is wrong.
+- **Aggregate** — `warnings`, a summary of every verdict that is currently non-nominal.
+
+| Convention | Fields | Nominal (healthy) | Non-nominal (problem) |
+|---|---|---|---|
+| "problem" fields | `php_incompatible_version`, `*_performance_impact`, `*_misconfigured` | `false` | a descriptive string (`true` for `php_incompatible_version`) |
+| "status" fields | `php_extensions_installed`, `request_id_added` | `true` | `false` or a descriptive string |
+
+`warnings` is an array: empty (`[]`) when everything is nominal, otherwise a list of the field names that are currently non-nominal.
+
+---
+
+## Raw observations
+
+### `runtime_user`
+
+**Expected value:** `"jethro"` — or whatever non-root user your PHP-FPM pool runs as.
+
+Shows the OS user PHP is executing as (`$_SERVER['USER']`). It matters because PHP should never run as `root`: a vulnerability in the application would then have unrestricted system access.
+
+Non-nominal: `"root"` (or any user you did not expect).
+
+### `jethroversion` *(conditional)*
+
+**Expected value:** the Jethro version you intend to deploy.
+
+Present only when `SHOW_JETHRO_VERSION` is `true` in `status.php` (off by default). It reports the running `JETHRO_VERSION` so you can confirm the deployed version matches expectations. The check plugin flags it only when run with `--require-jethro-version`.
+
+### `max_input_vars`
+
+**Expected value:** `10000` or higher.
+
+Shows PHP's `max_input_vars` (default `1000`). The default is too low: large attendance sheets and many custom fields generate more GET/POST/COOKIE variables than 1000, and the excess is silently discarded ([#6](https://github.com/tbar0970/jethro-pmm/issues/6), [#152](https://github.com/tbar0970/jethro-pmm/issues/152); see also [PR #1497](https://github.com/tbar0970/jethro-pmm/pull/1497)).
+
+Non-nominal: a value below `10000` → inputs may be truncated.
+
+`php.ini` setting:
+
+```ini
+max_input_vars = 10000
+```
+
+### `post_max_size`
+
+**Expected value:** `"20M"` or higher (parsed as MB).
+
+Shows PHP's `post_max_size` verbatim as PHP reported it (e.g. `"8M"`, `"20M"`, `"1G"`). The default of 8M is too small — contact photos can exceed it ([#949](https://github.com/tbar0970/jethro-pmm/issues/949)).
+
+Non-nominal: leading integer below `20` → large form submissions / uploads fail.
+
+`php.ini` setting:
+
+```ini
+post_max_size = 20M
+```
+
+### `upload_max_filesize`
+
+**Expected value:** `"20M"` or higher (parsed as MB).
+
+Shows PHP's `upload_max_filesize` verbatim as PHP reported it (e.g. `"2M"`, `"20M"`). The default of 2M is too small for common uploads.
+
+Non-nominal: leading integer below `20` → uploads fail.
+
+`php.ini` setting:
+
+```ini
+upload_max_filesize = 20M
+```
+
+### `db_charset_results`
+
+**Expected value:** `"utf8mb4"`.
+
+Shows the MySQL session variable `@@character_set_results` on the connection. Jethro needs real 4-byte UTF-8; MySQL's historical `utf8` (now `utf8mb3`) is only 3-byte and cannot represent supplementary characters such as emoji, which causes upgrade problems ([#754](https://github.com/tbar0970/jethro-pmm/issues/754), [#1088](https://github.com/tbar0970/jethro-pmm/issues/1088)).
+
+Non-nominal: `utf8`, `utf8mb3`, `latin1`, etc.
+
+No php.ini setting — this is the database connection/server character set, configured on the MySQL server or the connection. Jethro 3.40+ may automatically diagnose/fix this problem ([#1517](https://github.com/tbar0970/jethro-pmm/pull/1517)).
+
+### `session_gc_maxlifetime`
+
+**Expected value:** at least `SESSION_TIMEOUT_MINS × 60` (Jethro's default is 90 minutes → `5400` seconds).
+
+Shows PHP's `session.gc_maxlifetime`. It is the raw input that `session_gc_misconfigured` (below) judges.
+
+`php.ini` setting:
+
+```ini
+session.gc_maxlifetime = 5400
+```
+
+### `session_gc_probability`
+
+**Expected value:** `1` (or any non-zero value).
+
+Shows PHP's `session.gc_probability`. The default (`1`) is fine; a value of `0` disables PHP's own garbage collection and is part of what triggers the `session_gc_misconfigured` warning.
+
+`php.ini` setting:
+
+```ini
+session.gc_probability = 1
+```
+
+### `xdebug_loaded`, `xdebug.mode`, `xdebug.start_with_request`
+
+**Expected value:** `xdebug_loaded` is informational (either `true` or `false`); what matters is the verdict in `xdebug_performance_impact` below.
+
+These three fields expose the raw Xdebug state: whether the extension is loaded, its `xdebug.mode`, and its `xdebug.start_with_request`. See [Understanding xdebug](#understanding-xdebug-settings) for the full explanation.
+
+---
+
+## Derived verdicts
+
+### `php_incompatible_version`
+
+**Expected value:** `false`.
+
+Shows `!version_compare(PHP_VERSION, '8.1', '>')` — `false` when PHP is newer than 8.1, `true` when it is not. Jethro requires PHP 8.1+.
+
+Non-nominal: `true` (PHP ≤ 8.1). No php.ini setting — install a newer PHP.
+
+### `php_extensions_installed`
+
+**Expected value:** `true`.
+
+Shows whether all required PHP extensions are loaded: `gettext`, `zip`, `xmlwriter`, `gd`, `curl`, `exif`.
+
+Non-nominal: `"Missing extensions: …"` listing whichever are absent. Install the missing extensions (as packages / `extension=` directives).
+
+### `request_id_added`
+
+**Expected value:** `true / false`
+
+Shows whether the `HTTP_X_REQUEST_ID` request header is present, which Nginx `$request_id` or Apache's `mod_unique_id`
+module sets. Setting a unique request ID header is optional, but useful in production, as lets you correlate access-log
+entries with error-log entries and application logging. E.g. in Nginx, one's main `location` block might set the header
+with:
+
+```nginx
+	fastcgi_param HTTP_X_REQUEST_ID $request_id;
+```
+
+and then in `log_format`, include the header with:
+
+```nginx
+    'jethrouid=$upstream_http_x_jethro_uid '
+```
+
+The `check_http_jethrostatus` plugin flags `false` as a warning only when run with `--require-request-id`.
+
+
+### `xdebug_performance_impact`
+
+**Expected value:** `false`.
+
+Shows whether Xdebug is loaded *and* actively doing work. The verdict logic is:
+
+```php
+extension_loaded('xdebug')
+    && xdebug.mode not in ('off', '')
+    && (mode contains 'develop' || start_with_request == 'yes')
+```
+
+Non-nominal: `"xdebug performance impact: mode=…, start_with_request=…"` when Xdebug is adding overhead. To make it nominal while keeping Xdebug installed, disable its mode:
+
+```ini
+[xdebug]
+xdebug.mode = off
+```
+
+#### Understanding Xdebug settings
+
+Xdebug's `xdebug.mode` is a comma-separated list of modes:
+
+| Mode | What it does | Overhead |
+|---|---|---|
+| `off` | Xdebug disabled | none |
+| `develop` | improved errors, stack traces, `var_dump` | small, **always on** when listed |
+| `debug` | step debugging | large, gated by `start_with_request` |
+| `trace` | function traces | large, gated by `start_with_request` |
+| `profile` | profiling | large, gated by `start_with_request` |
+
+`xdebug.start_with_request` controls when the *gated* modes (`debug`/`trace`/`profile`) begin:
+
+| Value | Meaning |
+|---|---|
+| `yes` | start on every request |
+| `no` | never start |
+| `trigger` | start only when a trigger (cookie/request parameter) is present |
+| `default` | same as `trigger` |
+
+`develop` ignores `start_with_request` — it is always active whenever it appears in `xdebug.mode`. And only `start_with_request=yes` actually starts a gated mode on every request; `trigger`/`default` arm on a cookie/param and cost nothing per-request until the trigger arrives. That asymmetry is what `xdebug_performance_impact` encodes:
+
+| Xdebug loaded | `xdebug.mode` | `start_with_request` | `xdebug_performance_impact` |
+|---|---|---|---|
+| no | — | — | `false` |
+| yes | `off` | — | `false` |
+| yes | *(empty)* | — | `false` |
+| yes | `develop` | `no` | string (impact) |
+| yes | `develop` | `default` | string (impact) |
+| yes | `debug` | `no` | `false` |
+| yes | `debug` | `yes` | string (impact) |
+| yes | `debug` | `trigger` | `false` |
+| yes | `debug` | `default` | `false` |
+
+Note: `trigger`/`default` mean an attacker who knows the trigger cookie/parameter can enable step-debugging on a public endpoint. That is a *security* concern, not a performance one, and this field does not police it — production installs should not load Xdebug at all.
+
+### `opcache_performance_impact`
+
+**Expected value:** `false`.
+
+Shows the opcache/JIT state. Nominal means opcache bytecode caching is **on** and JIT is **off**:
+
+- `"opcache is not enabled"` — opcache is disabled, so no bytecode cache.
+- `"opcache JIT is enabled"` — JIT is on, which burns CPU on warmup and is pointless for Jethro's short-lived request/response pages.
+
+```ini
+[opcache]
+opcache.enable = 1
+opcache.jit = off
+```
+
+### `session_gc_misconfigured`
+
+**Expected value:** `false`.
+
+Shows whether session garbage collection is configured so that sessions can expire prematurely. The condition is `session.gc_probability == 0` **and** `session.gc_maxlifetime < SESSION_TIMEOUT_MINS × 60`.
+
+Why it matters: Debian/Ubuntu ship a `sessionclean` cron job that deletes session files older than `session.gc_maxlifetime`. When PHP's own GC is disabled (`gc_probability = 0`) *and* `gc_maxlifetime` is shorter than Jethro's session timeout, that cron reaps sessions early and users get logged out unexpectedly. This surfaced in [#1088](https://github.com/tbar0970/jethro-pmm/issues/1088) — specifically [the sessionclean discussion](https://github.com/tbar0970/jethro-pmm/issues/1088#issuecomment-2436805398).
+
+Non-nominal: `"Session GC misconfigured: gc_probability=0, gc_maxlifetime=…s < SESSION_TIMEOUT_MINS*60"`. The fix is to make the reap threshold at least as long as Jethro's session timeout (default 90 minutes → 5400 s):
+
+```ini
+session.gc_maxlifetime = 5400
+```
+
+### `logging_misconfigured`
+
+**Expected value:** `false`.
+
+Shows whether PHP's `log_errors` is On. Errors must be logged (rather than only displayed) so problems can be diagnosed in production.
+
+Non-nominal: `"log_errors=Off"` (or `"log_errors=0"` if set explicitly to `0`).
+
+```ini
+log_errors = On
+```
+
+For production also hide errors from output:
+
+```ini
+display_errors = Off
+```
+
+---
+
+## Aggregate
+
+### `warnings`
+
+**Expected value:** `[]` (an empty array).
+
+Lists the field names currently in a non-nominal state. It is derived from every verdict above plus the threshold comparisons (`max_input_vars`, `post_max_size`, `upload_max_filesize`, `db_charset_results`). An empty array means everything is healthy; a non-empty array tells you at a glance which fields to look up in this guide.
+
+No php.ini setting — fix the individual fields it names.
+
+---
+
+## Nominal php.ini reference
+
+These are recommended `php.ini` settings to run Jethro with, which `status.php` expects:
+
+```ini
+[php]
+max_input_vars        = 10000
+post_max_size         = 20M
+upload_max_filesize   = 20M
+session.gc_maxlifetime = 5400   ; SESSION_TIMEOUT_MINS (90) × 60
+session.gc_probability = 1
+log_errors            = On
+
+[opcache]
+opcache.enable        = 1
+opcache.jit           = off
+
+[xdebug]
+xdebug.mode           = off       ; or omit xdebug entirely
+```
+
+Remember to restart PHP-FPM after editing php.ini.

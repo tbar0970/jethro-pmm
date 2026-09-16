@@ -538,11 +538,26 @@ class Person extends DB_Object
 
 	/**
 	 * Find a person who matches the details given.
-	 * @param array $match_data - keys can be first_name, last_name, mobile_tel, email
+	 * @param array $match_data - keys can be first_name, last_name, mobile_tel, email, OR id/person_id
 	 * @return Array(personid => (bool)$certain)
 	 */
 	public static function getMatchingPerson($match_data)
 	{
+		// === EXACT ID MATCH (added to support bulk updates after migrations with duplicates) ===
+		// If the import supplies the internal Jethro person ID (column "id" or "person_id"),
+		// perform an immediate exact lookup. This is certain and bypasses all fuzzy logic.
+		// The rest of the function (fuzzy matching on name/email/mobile) is completely unchanged.
+		// Full support requires changes to the CSV import handler + reports (planned follow-ups).
+		if (!empty($match_data['id']) || !empty($match_data['person_id'])) {
+			$id = (int)($match_data['id'] ?? $match_data['person_id']);
+			if ($id > 0) {
+				$db = JethroDB::get();
+				$exists = $db->queryOne('SELECT id FROM person WHERE id = '.$db->quote($id));
+				if ($exists) {
+					return Array($id => TRUE);   // certain match on ID
+				}
+			}
+		}
 		$keys = Array('first_name', 'last_name', 'email', 'mobile_tel');
 		foreach ($keys as $k) {
 			if (isset($match_data[$k])) $match_data[$k] = trim($match_data[$k]);
@@ -578,7 +593,6 @@ class Person extends DB_Object
 		$top = reset($res);
 		$second_hit = next($res);
 		if ($top && (!$second_hit || ($second_hit['match_rating'] < $top['match_rating']))) {
-			bam("Got one stand-out");
 			// There is one stand-out result
 			$DIFFERENT = -1;
 			$MATCH = 1;
@@ -586,7 +600,6 @@ class Person extends DB_Object
 			foreach ($keys as $k) {
 				$cmp[$k] = self::_compareMatch(array_get($match_data, $k), $top[$k]);
 			}
-			bam($cmp);
 			if ($cmp['last_name'] == $MATCH) {
 				if ($cmp['first_name'] == $MATCH) {
 					if (($cmp['mobile_tel'] != $DIFFERENT) && ($cmp['email'] != $DIFFERENT)) {
@@ -615,7 +628,6 @@ class Person extends DB_Object
 				}
 			}
 		}
-		bam("bottomed out");
 		return Array(NULL => NULL);
 	}
 
@@ -1148,7 +1160,7 @@ class Person extends DB_Object
 			if (isset($customFields[$k]) && strlen($v)) {
 				if (empty($this->id)
 						|| $overwriteExistingValues
-						|| ($this->_custom_values[$customFields[$k]->id] == '')
+						|| (array_get($this->_custom_values, $customFields[$k]->id, '') == '')
 				) {
 					$this->setCustomValue($customFields[$k]->id, $customFields[$k]->parseValue($v));
 				}

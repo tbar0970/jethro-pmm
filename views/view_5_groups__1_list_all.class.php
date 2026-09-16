@@ -81,7 +81,7 @@ class View_Groups__List_All extends View
 					?>
 					<tr<?php echo $tr_class; ?>>
 						<td><?php echo $gid; ?></td>
-						<td><a class="block" href="?view=groups&groupid=<?php echo $gid; ?>"><?php echo $details['name']; ?></a></td>
+						<td><a class="block" href="?view=groups&groupid=<?php echo $gid; ?>"><?php echo ents($details['name']); ?></a></td>
 						<td><?php echo $details['member_count']; ?></td>
 					<?php
 					if ($GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {

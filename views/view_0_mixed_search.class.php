@@ -25,7 +25,7 @@ class View__Mixed_Search extends View
 
 		if (!empty($tel)) {
 			if ($prefix = preg_replace('[^0-9]', '', ifdef('SMS_INTERNATIONAL_PREFIX'))) {
-				if (strpos($tel, $prefix) === 0) {
+				if (str_starts_with($tel, $prefix)) {
 					$tel = SMS_LOCAL_PREFIX.substr($tel, strlen($prefix));
 				}
 			}
