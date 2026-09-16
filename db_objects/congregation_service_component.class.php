@@ -33,7 +33,7 @@ class Congregation_Service_Component extends db_object
 	{
 		return Array(
 			'congregationid' => "`congregation` (`id`) ON DELETE CASCADE",
-			'componentid' => "`service_component` (`id`) ON DELETE CASCADE",			
+			'componentid' => "`service_component` (`id`) ON DELETE CASCADE",
 		);
 	}
 	

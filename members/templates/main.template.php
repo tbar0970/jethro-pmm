@@ -61,7 +61,7 @@ if (empty($_REQUEST['raw'])) {
 
 		</div>
 		<div id="body">
-			<?php 
+			<?php
 			dump_messages();
 
 			if ($title = $GLOBALS['system']->getPageHeading()) {

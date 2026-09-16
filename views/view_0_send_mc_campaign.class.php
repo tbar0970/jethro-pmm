@@ -197,7 +197,7 @@ class View__Send_MC_Campaign extends View
 			<div class="control-group">
 				<label class="control-label">Message</label>
 				<div class="controls">
-					<?php 
+					<?php
 					$content = $this->_sent_campaign_id ? '' : array_get($_REQUEST, 'message', '');
 					print_widget('message', Array('type' => 'html'), $content);
 					?>

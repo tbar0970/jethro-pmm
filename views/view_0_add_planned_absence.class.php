@@ -20,7 +20,7 @@ class View__Add_Planned_Absence extends Abstract_View_Add_Object
 		return 'Add Planned Absence for '.$person->toString();
 	}
 
-	function processView() 
+	function processView()
 	{
 		parent::processView();
 	}

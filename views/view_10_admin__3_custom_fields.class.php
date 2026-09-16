@@ -70,7 +70,7 @@ class View_Admin__Custom_Fields extends View
 		if (is_null($this->fields)) return;
 		?>
 		<p class="text alert alert-info">
-			<?php 
+			<?php
 			echo _("When you define a custom field here, you'll then be able to enter a value for that field when editing a person record.");
 			echo '<br />';
 			echo _("Custom fields are useful for recording dates of birth, accreditations and medical details.");
@@ -162,7 +162,7 @@ class View_Admin__Custom_Fields extends View
 						
 					</td>
 					<td>
-						<?php 
+						<?php
 						$field->printFieldInterface('params', $prefix);
 						?>
 					</td>
