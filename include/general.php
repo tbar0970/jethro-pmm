@@ -1071,6 +1071,45 @@ function ical_escape_text($value)
 }
 
 /**
+ * Fold a content line to the RFC 5545 maximum line length of 75 octets:
+ * after the first 75 octets, a CRLF followed by a single space is inserted
+ * every 74 octets.  Folding never splits a multi-byte UTF-8 character or a
+ * backslash escape pair, so unfolding restores the original line exactly.
+ *
+ * @param string $line	A complete content line, e.g. "SUMMARY:some text"
+ * @return string
+ */
+function ical_fold_line($line)
+{
+	$line = (string)$line;
+	if (strlen($line) <= 75) return $line;
+	$res = '';
+	$pos = 0;
+	$len = strlen($line);
+	$first = TRUE;
+	while ($pos < $len) {
+		$limit = $first ? 75 : 74;
+		$chunk = '';
+		$used = 0;
+		while (($pos < $len) && ($used < $limit)) {
+			$ord = ord($line[$pos]);
+			if ($ord >= 0xF0) $unit = 4;
+			else if ($ord >= 0xE0) $unit = 3;
+			else if ($ord >= 0xC0) $unit = 2;
+			else if ($ord == 0x5C) $unit = min(2, $len - $pos);
+			else $unit = 1;
+			if ($used + $unit > $limit) break;
+			$chunk .= substr($line, $pos, $unit);
+			$pos += $unit;
+			$used += $unit;
+		}
+		$res .= ($first ? '' : ' ').$chunk."\r\n";
+		$first = FALSE;
+	}
+	return substr($res, 0, -2);
+}
+
+/**
  * Writes a CSV file.  Unlike php's native fputcsv, it encloses every non-empty cell with the enclosure
  * - not just the ones it thinks need it.
  * @param array $rows	data to put in the CSV

@@ -6,7 +6,7 @@
 BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Jethro/Jethro//NONSGML v1.0//EN
-X-WR-CALNAME:<?php echo ical_escape_text(SYSTEM_NAME); ?> Roster
+<?php echo ical_fold_line('X-WR-CALNAME:'.ical_escape_text(SYSTEM_NAME).' Roster')."\n"; ?>
 <?php
     foreach ($assignments as $date => $allocs) {
         foreach ($allocs as $alloc) {
@@ -42,8 +42,7 @@ UID:<?php echo $uid ?>@jethro_roster
                 $fromName = 'Jethro Admin';
             }
             if (defined('MEMBER_REGO_EMAIL_FROM_ADDRESS') && strlen(MEMBER_REGO_EMAIL_FROM_ADDRESS)) { ?>
-ORGANIZER;CN=<?php echo ical_escape_text($fromName); ?>:MAILTO:<?php echo MEMBER_REGO_EMAIL_FROM_ADDRESS; ?>
-
+<?php echo ical_fold_line('ORGANIZER;CN='.ical_escape_text($fromName).':MAILTO:'.MEMBER_REGO_EMAIL_FROM_ADDRESS)."\n"; ?>
 <?php
             }
             if ($timeSpecified) {
@@ -64,13 +63,16 @@ DTEND;VALUE=DATE:<?php echo date('Ymd', $endtime); ?>
 ?>
 DTSTAMP:<?php echo gmdate('Ymd\THis\Z', $assignedon); ?>
 
-SUMMARY:<?php echo ical_escape_text($alloc['title']); ?>
-
-DESCRIPTION:Roster assignment: <?php
-            if ($alloc['cong'] )
-            echo ical_escape_text($alloc['title'] . ', ' . $alloc['cong'] . ', ' . SYSTEM_NAME);
-?>\n\n<?php echo 'Role description: ' . BASE_URL_ABSOLUTE . '/public/?view=_roster_role_description&role=' . $alloc['id'] . ' ';
-?> \n\nNote that start/end time is approximate.
+<?php echo ical_fold_line('SUMMARY:'.ical_escape_text($alloc['title']))."\n"; ?>
+<?php
+            $desc = 'Roster assignment: ';
+            if ($alloc['cong']) {
+                $desc .= ical_escape_text($alloc['title'] . ', ' . $alloc['cong'] . ', ' . SYSTEM_NAME);
+            }
+            $desc .= '\n\nRole description: ' . BASE_URL_ABSOLUTE . '/public/?view=_roster_role_description&role=' . $alloc['id'] . ' ';
+            $desc .= ' \n\nNote that start/end time is approximate.';
+            echo ical_fold_line('DESCRIPTION:' . $desc) . "\n";
+?>
 END:VEVENT
 <?php
         }
