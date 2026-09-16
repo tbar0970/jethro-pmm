@@ -8,6 +8,19 @@ class View_Home extends View
 
 	function processView()
 	{
+			if (!empty($_POST['assignees'])) {
+				$currentMemberId = $GLOBALS['user_system']->getCurrentMember('id');
+				foreach ($_POST['assignees'] as $roleid => $dates) {
+					foreach ($dates as $date => $assignee) {
+						if ($assignee) {
+							$SQL = 'UPDATE roster_role_assignment rra
+									SET rra.`personid` = '.(int)$assignee.'
+									WHERE rra.`roster_role_id` = '.$roleid.' AND rra.`assignment_date` = '.$GLOBALS['db']->quote($date).' AND rra.`personid` = '.$currentMemberId;
+							$GLOBALS['db']->query($SQL);
+						}
+					}
+				}
+			}
 	}
 
 	function printView()
@@ -27,6 +40,7 @@ class View_Home extends View
 		</div>
 
 		<?php
+		$currentMemberId = $GLOBALS['user_system']->getCurrentMember('id');
 		if ($GLOBALS['system']->featureEnabled('ROSTERS&SERVICES')) {
 			?>
 			<div class="member-homepage-box">
@@ -42,7 +56,7 @@ class View_Home extends View
 			</h3>
 			<?php
 			$GLOBALS['system']->includeDBClass('roster_role_assignment');
-			$rallocs = Roster_Role_Assignment::getUpcomingAssignments($GLOBALS['user_system']->getCurrentMember('id'), NULL);
+			$rallocs = Roster_Role_Assignment::getUpcomingAssignments($currentMemberId, NULL);
 			if ($rallocs) {
 				?>
 				<table class="table table-condensed">
@@ -54,7 +68,24 @@ class View_Home extends View
 						 <td>
 							<?php
 							foreach ($allocs as $alloc) {
-								 echo $alloc['cong'].' '.$alloc['title'].'<br />';
+								?><div class="member_roster_role_assignment">
+									<div class="info">
+										<div><?php
+											echo $alloc['cong'].' '.$alloc['title'];
+										?></div>
+										<a href="javascript:void(0);">Swap</a>
+									</div>
+									<form method="POST" class="swap">
+										Assign
+										<?php
+										$roster_role = new Roster_Role($alloc['id']);
+										$roster_role->printChooserForMember($date, $currentMemberId);
+										?>
+										<button type="submit" class="btn save">Save</button>
+										<button type="button" class="btn cancel">Cancel</button>
+									</form>
+								</div>
+								<?php
 							}
 							?>
 						 </td>
@@ -75,7 +106,7 @@ class View_Home extends View
 		}
 
 		$GLOBALS['system']->includeDBClass('person_group');
-		$groups = Person_Group::getGroups($GLOBALS['user_system']->getCurrentMember('id'), FALSE, TRUE);
+		$groups = Person_Group::getGroups($currentMemberId, FALSE, TRUE);
 		echo '<div  class="member-homepage-box" >';
 		echo '<h3>My Groups</h3>';
 		echo '<ul>';
