@@ -8,6 +8,10 @@ class View_Home extends View
 
 	function processView()
 	{
+		if (!MEMBER_SWAP_ENABLED) {
+			return;
+		}
+
 		$currentMemberId = $GLOBALS['user_system']->getCurrentMember('id');
 		if (!empty($_GET['accept']) && !empty($_GET['on']) && !empty($_GET['from'])) {
 			// Verify that the role is currently assigned to the original person on that date
@@ -120,20 +124,23 @@ class View_Home extends View
 									<div class="info">
 										<div><?php
 											echo $alloc['cong'].' '.$alloc['title'];
-										?></div>
-										<a href="javascript:void(0);">Swap</a>
-									</div>
-									<form method="POST" class="swap">
-										Assign
-										<?php
-										$roster_role = new Roster_Role($alloc['id']);
-										$roster_role->printChooserForMember($date, $currentMemberId);
-										?>
-										<button type="submit" class="btn save">Save</button>
-										<button type="button" class="btn cancel">Cancel</button>
-									</form>
-								</div>
-								<?php
+										?></div><?php
+										if (MEMBER_SWAP_ENABLED) {
+											?><a href="javascript:void(0);">Swap</a><?php
+										}
+									?></div><?php
+									if (MEMBER_SWAP_ENABLED) {
+										?><form method="POST" class="swap">
+											Assign
+											<?php
+											$roster_role = new Roster_Role($alloc['id']);
+											$roster_role->printChooserForMember($date, $currentMemberId);
+											?>
+											<button type="submit" class="btn save">Save</button>
+											<button type="button" class="btn cancel">Cancel</button>
+										</form><?php
+									}
+								?></div><?php
 							}
 							?>
 						 </td>
