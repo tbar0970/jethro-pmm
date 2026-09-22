@@ -8,19 +8,67 @@ class View_Home extends View
 
 	function processView()
 	{
-			if (!empty($_POST['assignees'])) {
-				$currentMemberId = $GLOBALS['user_system']->getCurrentMember('id');
-				foreach ($_POST['assignees'] as $roleid => $dates) {
-					foreach ($dates as $date => $assignee) {
-						if ($assignee) {
-							$SQL = 'UPDATE roster_role_assignment rra
-									SET rra.`personid` = '.(int)$assignee.'
-									WHERE rra.`roster_role_id` = '.$roleid.' AND rra.`assignment_date` = '.$GLOBALS['db']->quote($date).' AND rra.`personid` = '.$currentMemberId;
-							$GLOBALS['db']->query($SQL);
-						}
+		$currentMemberId = $GLOBALS['user_system']->getCurrentMember('id');
+		if (!empty($_GET['accept']) && !empty($_GET['on']) && !empty($_GET['from'])) {
+			// Verify that the role is currently assigned to the original person on that date
+			$where = 'WHERE rra.`roster_role_id` = '.(int)$_GET['accept'].' AND rra.`assignment_date` = '.$GLOBALS['db']->quote($_GET['on']).' AND rra.`personid` = '.(int)$_GET['from'];
+			$SQL = 'SELECT 1 FROM roster_role_assignment rra '.$where;
+			if ($GLOBALS['db']->queryRow($SQL)) {
+				$SQL = 'UPDATE roster_role_assignment rra
+						SET rra.`personid` = '.$currentMemberId.' '.$where;
+				$GLOBALS['db']->queryRow($SQL);
+
+				add_message('Swap accepted', 'success');
+			}
+			
+		}
+		if (!empty($_POST['assignees'])) {
+			foreach ($_POST['assignees'] as $roleid => $dates) {
+				foreach ($dates as $date => $assignee) {
+					if (!$assignee || $assignee == $currentMemberId) {
+						// No new person, or new person is the same as the current person
+						continue;
 					}
+					$SQL = 'SELECT 1 FROM roster_role_assignment rra
+							WHERE rra.`roster_role_id` = '.(int)$roleid.' AND rra.`assignment_date` = '.$GLOBALS['db']->quote($date).' AND rra.`personid` = '.$currentMemberId;
+					if (!$GLOBALS['db']->queryRow($SQL)) {
+						// The role isn't actually assigned to the original person on that date
+						// This shouldn't happen, unless submission occurred twice
+						continue;
+					}
+
+					$person = new Person($assignee);
+					$personEmail = $person->getValue('email');
+					if (!$personEmail) {
+						// No e-mail
+						// This should have been filtered out by printChooserForMember()
+						continue;
+					}
+
+					$url = baseurl_absolute().'/members?accept='.(int)$roleid.'&on='.$date.'&from='.$currentMemberId;
+
+					$body = "Hi %s,
+
+%s has asked you to cover %s on %s. To accept, %s";
+
+					$memberName = $GLOBALS['user_system']->getCurrentMember('first_name');
+					$formattedDate = date('F jS Y', strtotime($date));
+					$role = new Roster_Role($roleid);
+					$roleTitle = $role->getValue('title');
+					$text = sprintf($body, $person->getValue('first_name'), $memberName, $roleTitle, $formattedDate, 'go to '.$url);
+					$html = sprintf(nl2br($body), $person->getValue('first_name'), $memberName, $roleTitle, $formattedDate, '<a href="'.$url.'">click here</a>.');
+					$message = Emailer::newMessage()
+									  ->setSubject('Cover '.$roleTitle)
+									  ->setFrom(['church@hurstvillepresbyterian.org' => 'Hurstville Presbyterian Roster'])
+									  ->setTo([$personEmail => $person->getValue('first_name').' '.$person->getValue('last_name')])
+									  ->setBody($text)
+									  ->addPart($html, 'text/html');
+					Emailer::send($message);
+
+					add_message('Swap requested', 'info');
 				}
 			}
+		}
 	}
 
 	function printView()

@@ -206,7 +206,7 @@ class Roster_Role extends db_object
 		unset($this->fields['teams']);
 	}
 
-	function _getVolunteers($individuals=false)
+	function _getVolunteers($individuals=false, $emailsRequired=false)
 	{
 		if (is_null($this->_volunteers)) {
 			$this->_volunteers = Array();
@@ -217,6 +217,9 @@ class Roster_Role extends db_object
 				if ($group) {
 					$params = Array('!(status' => Person_Status::getArchivedIDs());
 					foreach ($group->getMembers($params) as $id => $details) {
+						if ($emailsRequired && empty($details['email'])) {
+							continue;
+						}
 						$this->_volunteers[$id] = $full_name($details);
 					}
 				}
@@ -229,6 +232,9 @@ class Roster_Role extends db_object
 					if ($members) {
 						if ($individuals) {
 							foreach ($members as $id => $details) {
+								if ($emailsRequired && empty($details['email'])) {
+									continue;
+								}
 								$this->_volunteers[$id] = $full_name($details);
 							}
 						} else {
@@ -362,7 +368,7 @@ class Roster_Role extends db_object
             ?>
 			<select name="assignees[<?php echo $this->id; ?>][<?php echo $date; ?>]">
 			<?php
-			$volunteers = $this->_getVolunteers(individuals: true);
+			$volunteers = $this->_getVolunteers(individuals: true, emailsRequired: true);
             $absentees = [];
 			$absences = $GLOBALS['system']->getDBObjectData('planned_absence',
 																Array(
