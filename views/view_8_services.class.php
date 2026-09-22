@@ -270,7 +270,7 @@ class View_services extends View
 			</h3>
 			<form method="post" id="service-planner-form" data-lock-length="<?php echo db_object::getLockLength() ?>">
 			<div id="service-plan-container">
-			<table class="table table-bordered table-hover table-condensed no-autofocus" id="service-plan" data-starttime="<?php echo $startTime; ?>">
+			<table class="table table-bordered table-hover table-condensed no-narrow-magic no-autofocus" id="service-plan" data-starttime="<?php echo $startTime; ?>">
 				<thead>
 					<tr>
 						<th class="narrow">Start</th>
