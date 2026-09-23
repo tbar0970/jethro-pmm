@@ -20,15 +20,16 @@ class Process_Roster_Swap
 						// No new person, or new person is the same as the current person
 						continue;
 					}
-					if (!Roster_Role_Assignment::currentMemberHasAssignment($roleid, $date)) {
-						continue;
-					}
 
 					$person = new Person($assignee);
 					$personEmail = $person->getValue('email');
 					if (!$personEmail) {
 						// No e-mail
 						// This should have been filtered out by printChooserForMember()
+						continue;
+					}
+
+					if (!Roster_Role_Assignment::requestSwapFromCurrentMember($roleid, $date, $assignee)) {
 						continue;
 					}
 
