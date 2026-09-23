@@ -38,7 +38,7 @@ class View_Groups__List_All extends View
 			if ($cat['parent_category'] != $parentid) continue;
 			?>
 			<h3><?php echo ents($cat['name']); ?></h3>
-			<?php 
+			<?php
 			$this->_printGroupsForCategory($cid);
 			?>
 			<div class="indent-left">
@@ -169,7 +169,7 @@ class View_Groups__List_All extends View
 				if ($g['categoryid'] == 0) {
 					?>
 					<h3><?php echo _('Uncategorised Groups');?></h3>
-					<?php 
+					<?php
 					$this->_printGroupsForCategory(0);
 					break;
 				}

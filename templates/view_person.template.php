@@ -497,7 +497,7 @@ if (isset($tabs['rosters'])) {
 
 	}
 	$absences = $GLOBALS['system']->getDBObjectData(
-											'planned_absence', 
+											'planned_absence',
 											Array('personid' => $person->id)+$absences_filter,
 											'start_date'
 									);
@@ -603,7 +603,7 @@ if (isset($tabs['rosters'])) {
 	} else {
 		?>
 		<p><i><?php $person->printFieldValue('name'); ?> has no upcoming planned absences</i></p>
-		<?php	
+		<?php
 	}
 
 	echo $panel_footer;

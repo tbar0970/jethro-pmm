@@ -87,16 +87,16 @@ class Call_Service_Comp_Slides extends Call
 									$numlines = count($lines);
 									
 									//clone nodes for each line of text
-									for ($z = 1; $z < ($numlines); $z++) {	
+									for ($z = 1; $z < ($numlines); $z++) {
 										$line = $textelements->item($y)->parentNode->cloneNode(true);
-										$newline = $textelements->item($y)->parentNode->parentNode->appendChild($line);								
+										$newline = $textelements->item($y)->parentNode->parentNode->appendChild($line);
 									}
 									//find text elements within cloned nodes above
 									$textlines = $xpath->query(".//*[text()[contains(., 'contents')]]",$textelements->item($y)->parentNode->parentNode);
-									//populate text elements							
+									//populate text elements
 									for ($z = 0; $z < ($numlines); $z++) {
 										$textlines->item($z)->nodeValue = xml_safe_string($lines[$z]);
-									}	
+									}
 									
 								} elseif (strcmp($textelements->item($y)->nodeValue, 'credit') == 0) { //credits textbox
 
@@ -110,19 +110,19 @@ class Call_Service_Comp_Slides extends Call
 										$numlines = count($lines);
 									
 										//clone nodes for each line of text
-										for ($z = 0; $z < ($numlines-1); $z++) {	
+										for ($z = 0; $z < ($numlines-1); $z++) {
 											$line = $textelements->item($y)->parentNode->cloneNode(true);
-											$newline = $textelements->item($y)->parentNode->parentNode->appendChild($line);											
+											$newline = $textelements->item($y)->parentNode->parentNode->appendChild($line);
 										}
 										//find text elements within cloned nodes above
 										$textlines = $xpath->query(".//*[text()[contains(., 'credit')]]",$textelements->item($y)->parentNode->parentNode);
 
-										//populate text elements							
+										//populate text elements
 										for ($z = 0; $z < ($numlines); $z++) {
 											$textlines->item($z)->nodeValue = xml_safe_string($lines[$z]);
 										}
 									}
-								} 
+								}
 							}
 					
 							$dom->saveXML();
