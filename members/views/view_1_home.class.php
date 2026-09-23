@@ -161,18 +161,18 @@ class View_Home extends View
 		}
 
 		$GLOBALS['system']->includeDBClass('person_group');
-		$groups = Person_Group::getGroups($currentMemberId, FALSE, TRUE);
-		echo '<div  class="member-homepage-box" >';
-		echo '<h3>My Groups</h3>';
-		echo '<ul>';
-		foreach ($groups as $id => $details) {
-			echo '<li><a href="?view=_groups&groupid='.(int)$id.'">'.ents($details['name']).'</a></li>';
+		$groups = Person_Group::getGroups($GLOBALS['user_system']->getCurrentMember('id'), FALSE, TRUE);
+		if ($groups) {
+			?><div class="member-homepage-box">
+				<h3>My Groups</h3>
+				<ul><?php
+				foreach ($groups as $id => $details) {
+					echo '<li><a href="?view=_groups&groupid='.(int)$id.'">'.ents($details['name']).'</a></li>';
+				}
+				?></ul>
+			</div><?php
 		}
-		echo '</ul>';
-		echo '</div>';
-
-		?>
-		</div>
+		?></div>
 			
 		<div class="member-homepage-box family">
 			<h3>
