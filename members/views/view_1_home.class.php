@@ -8,6 +8,8 @@ class View_Home extends View
 
 	function processView()
 	{
+		include 'views/process_roster_swap.class.php';
+		Process_Roster_Swap::process();
 	}
 
 	function printView()
@@ -42,7 +44,8 @@ class View_Home extends View
 			</h3>
 			<?php
 			$GLOBALS['system']->includeDBClass('roster_role_assignment');
-			$rallocs = Roster_Role_Assignment::getUpcomingAssignments($GLOBALS['user_system']->getCurrentMember('id'), NULL);
+			$currentMemberId = $GLOBALS['user_system']->getCurrentMember('id');
+			$rallocs = Roster_Role_Assignment::getUpcomingAssignments($currentMemberId, NULL);
 			if ($rallocs) {
 				?>
 				<table class="table table-condensed">
@@ -54,7 +57,27 @@ class View_Home extends View
 						 <td>
 							<?php
 							foreach ($allocs as $alloc) {
-								 echo $alloc['cong'].' '.$alloc['title'].'<br />';
+								?><div class="member_roster_role_assignment">
+									<div class="info">
+										<div><?php
+											echo $alloc['cong'].' '.$alloc['title'];
+										?></div><?php
+										if (MEMBER_SWAP_ENABLED) {
+											?><a href="javascript:void(0);">Swap</a><?php
+										}
+									?></div><?php
+									if (MEMBER_SWAP_ENABLED) {
+										?><form method="POST" class="swap">
+											Assign
+											<?php
+											$roster_role = new Roster_Role($alloc['id']);
+											$roster_role->printChooserForMember($date, $currentMemberId);
+											?>
+											<button type="submit" class="btn save">Save</button>
+											<button type="button" class="btn cancel">Cancel</button>
+										</form><?php
+									}
+								?></div><?php
 							}
 							?>
 						 </td>

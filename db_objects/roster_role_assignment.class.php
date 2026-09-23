@@ -7,15 +7,17 @@ class roster_role_assignment extends db_object
 	function getInitSql($table_name = NULL)
 	{
 		return 'create table roster_role_assignment (
-					assignment_date	date not null,
-					roster_role_id	int(11) not null,
-					personid		int(11) not null,
-					`rank`            int unsigned not null default 0,
-					assigner		int(11) not null,
-					assignedon		timestamp NOT NULL default CURRENT_TIMESTAMP,
+					assignment_date		date not null,
+					roster_role_id		int(11) not null,
+					personid			int(11) not null,
+					pending_personid	int(11) not null,
+					`rank`				int unsigned not null default 0,
+					assigner			int(11) not null,
+					assignedon			timestamp NOT NULL default CURRENT_TIMESTAMP,
 					primary key (roster_role_id, assignment_date, personid),
 					constraint `rra_assiger` foreign key (assigner) references _person(id),
 					constraint `rra_personid` foreign key (personid) references _person(id) ON DELETE CASCADE,
+					constraint `rra_pending_personid` foreign key (pending_personid) references _person(id) ON DELETE SET NULL,
 					constraint `rra_roster_role_id` foreign key (roster_role_id) references roster_role(id)
 				) ENGINE=InnoDB ;';
 	}
@@ -58,6 +60,32 @@ class roster_role_assignment extends db_object
 		$SQL = 'SELECT count(*) FROM roster_role_assignment
 				WHERE personid = '.(int)$personid;
 		$res = $GLOBALS['db']->queryOne($SQL);
+	}
+
+	static function requestSwapFromCurrentMember($roleid, $date, $personid)
+	{
+		$currentMemberId = $GLOBALS['user_system']->getCurrentMember('id');
+		$where = 'WHERE rra.`roster_role_id` = '.(int)$roleid.' AND rra.`assignment_date` = '.$GLOBALS['db']->quote($date).' AND rra.`personid` = '.$currentMemberId;
+		$SQL = 'SELECT 1 FROM roster_role_assignment rra '.$where;
+		if ($GLOBALS['db']->queryRow($SQL)) {
+			$SQL = 'UPDATE roster_role_assignment rra
+					SET rra.`pending_personid` = '.(int)$personid.' '.$where;
+			$GLOBALS['db']->query($SQL);
+			return true;
+		}
+	}
+
+	static function swapToCurrentMember($roleid, $date, $personid) {
+		$currentMemberId = $GLOBALS['user_system']->getCurrentMember('id');
+		$where = 'WHERE rra.`roster_role_id` = '.(int)$roleid.' AND rra.`assignment_date` = '.$GLOBALS['db']->quote($date).' AND rra.`personid` = '.(int)$personid.' AND rra.`pending_personid` = '.$currentMemberId;
+		$SQL = 'SELECT 1 FROM roster_role_assignment rra '.$where;
+		if ($GLOBALS['db']->queryRow($SQL)) {
+			$SQL = 'UPDATE roster_role_assignment rra
+					SET rra.`personid` = '.$currentMemberId.',
+						rra.`pending_personid` = NULL '.$where;
+			$GLOBALS['db']->query($SQL);
+			return true;
+		}
 	}
 
 }
