@@ -12,32 +12,21 @@ class View_Home extends View
 			return;
 		}
 
-		$currentMemberId = $GLOBALS['user_system']->getCurrentMember('id');
 		if (!empty($_GET['accept']) && !empty($_GET['on']) && !empty($_GET['from'])) {
 			// Verify that the role is currently assigned to the original person on that date
-			$where = 'WHERE rra.`roster_role_id` = '.(int)$_GET['accept'].' AND rra.`assignment_date` = '.$GLOBALS['db']->quote($_GET['on']).' AND rra.`personid` = '.(int)$_GET['from'];
-			$SQL = 'SELECT 1 FROM roster_role_assignment rra '.$where;
-			if ($GLOBALS['db']->queryRow($SQL)) {
-				$SQL = 'UPDATE roster_role_assignment rra
-						SET rra.`personid` = '.$currentMemberId.' '.$where;
-				$GLOBALS['db']->queryRow($SQL);
-
+			if (Roster_Role_Assignment::swapToCurrentMember($_GET['accept'], $_GET['on'], $_GET['from'])) {
 				add_message('Swap accepted', 'success');
 			}
-			
 		}
 		if (!empty($_POST['assignees'])) {
+			$currentMemberId = $GLOBALS['user_system']->getCurrentMember('id');
 			foreach ($_POST['assignees'] as $roleid => $dates) {
 				foreach ($dates as $date => $assignee) {
 					if (!$assignee || $assignee == $currentMemberId) {
 						// No new person, or new person is the same as the current person
 						continue;
 					}
-					$SQL = 'SELECT 1 FROM roster_role_assignment rra
-							WHERE rra.`roster_role_id` = '.(int)$roleid.' AND rra.`assignment_date` = '.$GLOBALS['db']->quote($date).' AND rra.`personid` = '.$currentMemberId;
-					if (!$GLOBALS['db']->queryRow($SQL)) {
-						// The role isn't actually assigned to the original person on that date
-						// This shouldn't happen, unless submission occurred twice
+					if (!Roster_Role_Assignment::currentMemberHasAssignment($roleid, $date)) {
 						continue;
 					}
 
@@ -92,7 +81,6 @@ class View_Home extends View
 		</div>
 
 		<?php
-		$currentMemberId = $GLOBALS['user_system']->getCurrentMember('id');
 		if ($GLOBALS['system']->featureEnabled('ROSTERS&SERVICES')) {
 			?>
 			<div class="member-homepage-box">
@@ -108,6 +96,7 @@ class View_Home extends View
 			</h3>
 			<?php
 			$GLOBALS['system']->includeDBClass('roster_role_assignment');
+			$currentMemberId = $GLOBALS['user_system']->getCurrentMember('id');
 			$rallocs = Roster_Role_Assignment::getUpcomingAssignments($currentMemberId, NULL);
 			if ($rallocs) {
 				?>

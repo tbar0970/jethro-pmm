@@ -60,4 +60,24 @@ class roster_role_assignment extends db_object
 		$res = $GLOBALS['db']->queryOne($SQL);
 	}
 
+	static function currentMemberHasAssignment($roleid, $date)
+	{
+		$currentMemberId = $GLOBALS['user_system']->getCurrentMember('id');
+		$SQL = 'SELECT 1 FROM roster_role_assignment rra
+				WHERE rra.`roster_role_id` = '.(int)$roleid.' AND rra.`assignment_date` = '.$GLOBALS['db']->quote($date).' AND rra.`personid` = '.$currentMemberId;
+		return !empty($GLOBALS['db']->queryRow($SQL));
+	}
+
+	static function swapToCurrentMember($roleid, $date, $personid) {
+		$where = 'WHERE rra.`roster_role_id` = '.(int)$roleid.' AND rra.`assignment_date` = '.$GLOBALS['db']->quote($date).' AND rra.`personid` = '.(int)$personid;
+		$SQL = 'SELECT 1 FROM roster_role_assignment rra '.$where;
+		if ($GLOBALS['db']->queryRow($SQL)) {
+			$currentMemberId = $GLOBALS['user_system']->getCurrentMember('id');
+			$SQL = 'UPDATE roster_role_assignment rra
+					SET rra.`personid` = '.$currentMemberId.' '.$where;
+			$GLOBALS['db']->queryRow($SQL);
+			return true;
+		}
+	}
+
 }
