@@ -852,11 +852,12 @@ class service extends db_object
 		}
 	}
 
-    /** @return Whether a service component HTML body contains a single %.*_CONTENT% token (i.e. bible readings) which is the only case in which we allow substitution.
+    /** @return bool Whether a service component HTML body contains a single %.*_CONTENT% token (i.e. bible readings) which is the only case in which we allow substitution.
+     * $content is null for ad-hoc service items (componentid is NULL), which have no component body.
      */
-    private function keywordsInBody(string $content): bool
+    private function keywordsInBody(?string $content): bool
     {
-        $stripped = trim(strip_tags($content));
+        $stripped = trim(strip_tags((string)$content));
         return preg_match('/^%[A-Z0-9_]+_CONTENT%$/i', $stripped) === 1;
     }
 
