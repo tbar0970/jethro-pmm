@@ -3,11 +3,11 @@ require_once 'abstract_view_add_object.class.php';
 class View__Add_Planned_Absence extends Abstract_View_Add_Object
 {
 	var $_create_type = 'planned_absence';
-	var $_success_message = 'Planned absence saved';
+	var $_success_message = 'Unavailability saved';
 	var $_on_success_view = 'persons';
-	var $_failure_message = 'Error saving planned absence';
+	var $_failure_message = 'Error saving unavailability';
 	var $_submit_label = 'Save';
-	var $_title = 'Add Planned Absence';
+	var $_title = 'Add Unavailability';
 
 	static function getMenuPermissionLevel()
 	{
@@ -17,7 +17,7 @@ class View__Add_Planned_Absence extends Abstract_View_Add_Object
 	function getTitle()
 	{
 		$person = new Person((int)$_REQUEST['personid']);
-		return 'Add Planned Absence for '.$person->toString();
+		return 'Add Unavailability for '.$person->toString();
 	}
 
 	function processView() 

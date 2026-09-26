@@ -848,7 +848,7 @@ class Person extends DB_Object
 	 * Print a widget for choosing a person by name search
 	 * @param string	$name				Form element name
 	 * @param int		$currentval			PersonID
-	 * @param string	$plannedAbsenceDate	(optional) - if specified, planned absences on this date should be displayed in results
+	 * @param string	$plannedAbsenceDate	(optional) - if specified, unavailabilities on this date should be displayed in results
 	 */
 	static function printSingleFinder($name, $currentval, $plannedAbsenceDate=NULL)
 	{
@@ -877,7 +877,7 @@ class Person extends DB_Object
 	 * Print a widget for choosing multiple persons by name search
 	 * @param string	$name
 	 * @param array		$val				Array of IDs
-	 * @param string	$plannedAbsenceDate	(optional) - if specified, planned absences on this date should be displayed in results
+	 * @param string	$plannedAbsenceDate	(optional) - if specified, unavailabilities on this date should be displayed in results
 	 */
 	static function printMultipleFinder($name, $val=Array(), $plannedAbsenceDate=NULL)
 	{

@@ -5,10 +5,10 @@ class View__Delete_Planned_Absence extends View
 	{
 		$absence = new Planned_Absence((int)$_REQUEST['id']);
 		if ($absence && $absence->delete()) {
-			add_message('Planned absence deleted', 'success');
+			add_message('Unavailability deleted', 'success');
 			redirect(-1, Array(), 'rosters');
 		} else {
-			add_message("Error while deleting planned absence");
+			add_message("Error while deleting unavailability");
 		}
 	}
 	
