@@ -2351,11 +2351,37 @@ $(document).ready(function() {
 		//
 		// The workaround is to preserve that &confirm_delete= param in a hidden
 		// field, so the receiver still can tell what action was taken.
+		var form = this;
 		var submitter = e.originalEvent && e.originalEvent.submitter;
-		if (submitter && submitter.name) {
-			$(this).append($('<input type="hidden">').attr('name', submitter.name).val($(submitter).val()));
-		}
-		$(this).find('input[type=submit], button[type=submit]').prop('disabled', true);
+		// All submit handlers on a form run synchronously, in the order they were
+		// bound, during one event dispatch. This handler is bound before the
+		// validators (TBLib.handleFormSubmit, and view-specific ones like
+		// handleNewFamilySubmit), so at this moment we cannot know whether the
+		// submission will go ahead: a later handler may still cancel it by
+		// returning false, and a synchronous check of e.isDefaultPrevented() here
+		// would only see cancellations from handlers bound earlier. Disabling
+		// now is what caused #1552: validation failed, the form never
+		// navigated, and the buttons stayed disabled forever.
+		//
+		// setTimeout(0) means "run after the current task finishes", i.e. after
+		// the ENTIRE submit dispatch has completed. In the callback,
+		// isDefaultPrevented() is a final answer regardless of binding order: if
+		// any handler cancelled, we leave the buttons enabled so the user can fix
+		// the form and resubmit.
+		//
+		// If nothing cancelled, the browser has not yet started the POST: the
+		// submission is queued as a task AFTER this timer (it was queued during
+		// the dispatch), so the buttons are locked before the request leaves and
+		// double-submit protection still holds. The remaining double-click
+		// window is a single event-loop turn, versus the seconds-long POST that
+		// the protection actually targets.
+		setTimeout(function() {
+			if (e.isDefaultPrevented()) return;
+			if (submitter && submitter.name) {
+				$(form).append($('<input type="hidden">').attr('name', submitter.name).val($(submitter).val()));
+			}
+			$(form).find('input[type=submit], button[type=submit]').prop('disabled', true);
+		}, 0);
 	});
 });
 
