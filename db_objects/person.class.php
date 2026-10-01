@@ -323,6 +323,28 @@ class Person extends DB_Object
 				</span>
 				<?php
 				return;
+			case 'email':
+				if (!strlen($value)) return;
+				$links = Array('<a href="mailto:'.ents($value).'"><i class="icon-email">@</i> Send Email</a>');
+				$links[] = '<a data-action="copy" data-target="#email-'.$this->id.'"><i class="icon-copy"></i> Copy Address</a>';
+				$template = "https://mail.google.com/mail/?authuser=%user%#search/%search%";
+				$url = str_replace(Array('%user%','%search%'), Array($GLOBALS['user_system']->getCurrentUser('email'), $value), $template);
+				$links[] = '<a target="gmail" href="'.$url.'"><i class="icon-search"></i> '._('Search Gmail').'</a>';
+				?>
+				<span class="dropdown nowrap">
+					<a class="dropdown-toggle email" id="email-<?php echo $this->id; ?>" data-toggle="dropdown" href="#"><?php echo ents($this->getFormattedValue('email')); ?></a>
+					<ul class="dropdown-menu" role="menu" aria-labelledby="email-<?php echo $this->id; ?>" style="z-index:9999">
+					<?php
+					foreach ($links as $l) {
+						?>
+						<li><?php echo $l; ?></li>
+						<?php
+					}
+					?>
+					</ul>
+				</span>
+				<?php
+				return;				
 			default:
 				parent::printFieldValue($name, $value);
 
