@@ -8,8 +8,6 @@ class View_Home extends View
 
 	function processView()
 	{
-		include 'views/process_roster_swap.class.php';
-		Process_Roster_Swap::process();
 	}
 
 	function printView()
@@ -67,7 +65,7 @@ class View_Home extends View
 										}
 									?></div><?php
 									if (MEMBER_SWAP_ENABLED) {
-										?><form method="POST" class="swap">
+										?><form action="?view=_process_roster_swap" method="POST" class="swap">
 											Assign
 											<?php
 											$roster_role = new Roster_Role($alloc['id']);

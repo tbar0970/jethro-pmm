@@ -1,7 +1,7 @@
 <?php
-class Process_Roster_Swap extends View
+class View__Process_Roster_Swap extends View
 {
-	static function process()
+	public function processView()
 	{
 		if (!MEMBER_SWAP_ENABLED) {
 			return;
@@ -33,7 +33,7 @@ class Process_Roster_Swap extends View
 						continue;
 					}
 
-					$url = baseurl_absolute().'/members?accept='.(int)$roleid.'&on='.$date.'&from='.$currentMemberId;
+					$url = baseurl_absolute().'/members?view=_process_roster_swap&accept='.(int)$roleid.'&on='.$date.'&from='.$currentMemberId;
 
 					$body = "Hi %s,
 
