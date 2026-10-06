@@ -29,7 +29,7 @@ class Process_Roster_Swap
 						continue;
 					}
 
-					if (!Roster_Role_Assignment::requestSwapFromCurrentMember($roleid, $date, $assignee)) {
+					if (!Roster_Role_Assignment::recordSwapRequest($roleid, $date, $assignee)) {
 						continue;
 					}
 

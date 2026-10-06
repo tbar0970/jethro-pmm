@@ -62,7 +62,17 @@ class roster_role_assignment extends db_object
 		$res = $GLOBALS['db']->queryOne($SQL);
 	}
 
-	static function requestSwapFromCurrentMember($roleid, $date, $personid)
+    /**
+     * Record a swap request, to be later accepted by 'swapToCurrentMember'
+     *
+     * Checks that the current member is rostered on the given role and date
+     * and then records a request for a new person to take it over
+     *
+     * @param str $roleid    The role to be swapped
+     * @param str $date      The date to swap for
+     * @param str $personid  The requested person to be rostered instead
+     */
+	static function recordSwapRequest($roleid, $date, $personid)
 	{
 		$currentMemberId = $GLOBALS['user_system']->getCurrentMember('id');
 		$where = 'WHERE rra.`roster_role_id` = '.(int)$roleid.' AND rra.`assignment_date` = '.$GLOBALS['db']->quote($date).' AND rra.`personid` = '.$currentMemberId;
