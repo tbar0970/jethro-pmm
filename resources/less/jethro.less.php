@@ -416,7 +416,33 @@ a#user-menu {
 
 }
 
-/* current submenu  item */
+.member_roster_role_assignment {
+	&.swapping .info a,
+	&:not(.swapping) .swap {
+		display: none;
+	}
+	
+	.info {
+		display: flex;
+		
+		div {
+			flex-grow: 1;
+		}
+	}
+	
+	.swap {
+		select,
+		input {
+			display: block;
+		}
+		
+		button {
+			margin-top: 5px;
+		}
+	}
+}
+
+/* current submenu item */
 .dropdown-menu > .active > a, .dropdown-menu > .active > a:hover, .dropdown-menu > .active > a:focus,
 .navbar .nav li.dropdown a:hover,
 .user-header

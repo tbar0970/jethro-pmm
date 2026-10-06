@@ -206,16 +206,32 @@ class Roster_Role extends db_object
 		unset($this->fields['teams']);
 	}
 
-	function _getVolunteers()
+    /**
+     * Return a list of persons from the person_group of this role's overall 'volunteer_group',
+     * and any associated 'teams', groups that can be assigned to this role as a batch.
+     *
+     * @param bool   $individuals     If true, do not group 'teams' into a single list item
+     *                                with the team's group name, but instead return the persons
+     *                                in those groups as distinct items.
+     * @param bool   $emailsRequired  If true, only return persons with an e-mail address.
+     *                                If true and 'individuals' is not true,
+     *                                does not filter out people from the grouped team.
+     */
+	function _getVolunteers($individuals=false, $emailsRequired=false)
 	{
 		if (is_null($this->_volunteers)) {
 			$this->_volunteers = Array();
+			
+			$full_name = fn($details) => $details['first_name'].' '.$details['last_name'];
 			if ($this->getValue('volunteer_group')) {
 				$group = $GLOBALS['system']->getDBObject('person_group', $this->getValue('volunteer_group'));
 				if ($group) {
 					$params = Array('!(status' => Person_Status::getArchivedIDs());
 					foreach ($group->getMembers($params) as $id => $details) {
-						$this->_volunteers[$id] = $details['first_name'].' '.$details['last_name'];
+						if ($emailsRequired && empty($details['email'])) {
+							continue;
+						}
+						$this->_volunteers[$id] = $full_name($details);
 					}
 				}
 			}
@@ -225,11 +241,20 @@ class Roster_Role extends db_object
 				if ($group) {
 					$members = $group->getMembers();
 					if ($members) {
-					    $memberNames = implode(', ', array_map(fn ($details) => $details['first_name'].' '.$details['last_name'], $members));
-					    if (strlen($memberNames) > 30) {
-					    	$memberNames = substr($memberNames, 0, 27).'...';
-					    }
-						$this->_volunteers['team'.implode(',', array_keys($members))] = 'Team: '.$group->getValue('name').' ('.$memberNames.')';
+						if ($individuals) {
+							foreach ($members as $id => $details) {
+								if ($emailsRequired && empty($details['email'])) {
+									continue;
+								}
+								$this->_volunteers[$id] = $full_name($details);
+							}
+						} else {
+							$memberNames = implode(', ', array_map($full_name, $members));
+							if (strlen($memberNames) > 30) {
+								$memberNames = substr($memberNames, 0, 27).'...';
+							}
+							$this->_volunteers['team'.implode(',', array_keys($members))] = 'Team: '.$group->getValue('name').' ('.$memberNames.')';
+						}
 					}
 				}
 			}
@@ -266,7 +291,7 @@ class Roster_Role extends db_object
 		<?php
 	}
 	
-	private function _printChooserOption($vid, $name, $selectedid, &$absentees)
+	private function _printChooserOption($vid, $name, $selectedid, $absentees)
 	{
 		$sel = $dis = $note = '';
 		if ($vid == $selectedid) {
@@ -344,7 +369,39 @@ class Roster_Role extends db_object
 			}
 		}
 	}
-	
+
+	/**
+	* Print a widget for choosing an individual person to fulfill this role
+	*/
+	function printAssigneeChooser($date, $currentID)
+	{
+		if ($groupid = $this->getValue('volunteer_group')) {
+            ?>
+			<select name="assignees[<?php echo $this->id; ?>][<?php echo $date; ?>]">
+			<?php
+			$volunteers = $this->_getVolunteers(individuals: true, emailsRequired: true);
+            $absentees = [];
+			$absences = $GLOBALS['system']->getDBObjectData('planned_absence',
+																Array(
+																	'>=end_date' => $date,
+																	'<=start_date' => $date,
+																),
+																'AND');
+            foreach ($absences as $ab) {
+            	$absentees[] = $ab['personid'];
+            }
+			foreach ($volunteers as $id => $name) {
+				$this->_printChooserOption($id, $name, $currentID, $absentees);
+			}
+			?>
+			</select>
+			<?php
+		} else {
+			$GLOBALS['system']->includeDBClass('person');
+			Person::printSingleFinder('assignees['.$this->id.']['.$date.']', $currentID, $date);
+		}
+	}
+
 	public function canEditAssignments() {
 		if ($this->getValue('volunteer_group')) {
 			$group = $GLOBALS['system']->getDBObject('person_group', $this->getValue('volunteer_group'));

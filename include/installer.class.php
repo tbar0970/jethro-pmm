@@ -324,6 +324,7 @@ class Installer
 			(@rank:=@rank+5, '',                         'MOBILE_TEL_FORMATS','Valid formats for mobile phone; use X for a digit','multitext_nl','XXXX-XXX-XXX'),
 
 			(@rank:=@rank+5, 'Member area',              'MEMBER_LOGIN_ENABLED','Should church members be able to log in at <system_url>members ?','bool','0'),
+			(@rank:=@rank+5, '',                         'MEMBER_SWAP_ENABLED','Should church members be able swap roster assignments themselves?','bool','0'),
 			(@rank:=@rank+5, '',                         'MEMBER_REGO_EMAIL_FROM_NAME','Sender name for member rego emails','text',''),
 			(@rank:=@rank+5, '',                         'MEMBER_REGO_EMAIL_FROM_ADDRESS','Sender address for member rego emails','text',''),
 			(@rank:=@rank+5, '',                         'MEMBER_REGO_EMAIL_SUBJECT','Subject for member rego emails','text','Setting up your account'),
