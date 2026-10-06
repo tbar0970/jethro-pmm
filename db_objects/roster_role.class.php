@@ -362,7 +362,7 @@ class Roster_Role extends db_object
 	/**
 	* Print a widget for choosing an individual person to fulfill this role
 	*/
-	function printChooserForMember($date, $currentID)
+	function printAssigneeChooser($date, $currentID)
 	{
 		if ($groupid = $this->getValue('volunteer_group')) {
             ?>

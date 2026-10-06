@@ -25,7 +25,7 @@ class Process_Roster_Swap
 					$personEmail = $person->getValue('email');
 					if (!$personEmail) {
 						// No e-mail
-						// This should have been filtered out by printChooserForMember()
+						// This should have been filtered out by printAssigneeChooser()
 						continue;
 					}
 
