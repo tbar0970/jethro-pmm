@@ -71,7 +71,7 @@ class View_Home extends View
 											Assign
 											<?php
 											$roster_role = new Roster_Role($alloc['id']);
-											$roster_role->printChooserForMember($date, $currentMemberId);
+											$roster_role->printAssigneeChooser($date, $currentMemberId);
 											?>
 											<button type="submit" class="btn save">Save</button>
 											<button type="button" class="btn cancel">Cancel</button>
