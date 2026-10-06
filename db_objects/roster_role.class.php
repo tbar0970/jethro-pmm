@@ -206,6 +206,17 @@ class Roster_Role extends db_object
 		unset($this->fields['teams']);
 	}
 
+    /**
+     * Return a list of persons from the person_group of this role's overall 'volunteer_group',
+     * and any associated 'teams', groups that can be assigned to this role as a batch.
+     *
+     * @param bool   $individuals     If true, do not group 'teams' into a single list item
+     *                                with the team's group name, but instead return the persons
+     *                                in those groups as distinct items.
+     * @param bool   $emailsRequired  If true, only return persons with an e-mail address.
+     *                                If true and 'individuals' is not true,
+     *                                does not filter out people from the grouped team.
+     */
 	function _getVolunteers($individuals=false, $emailsRequired=false)
 	{
 		if (is_null($this->_volunteers)) {
