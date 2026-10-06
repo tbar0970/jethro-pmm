@@ -62,7 +62,7 @@ class Process_Roster_Swap extends View
 	protected static function processAccept() {
 		if (!empty($_GET['accept']) && !empty($_GET['on']) && !empty($_GET['from'])) {
 			// Verify that the role is currently assigned to the original person on that date
-			if (Roster_Role_Assignment::swapToCurrentMember($_GET['accept'], $_GET['on'], $_GET['from'])) {
+			if (Roster_Role_Assignment::swapToCurrentUser($_GET['accept'], $_GET['on'], $_GET['from'])) {
 				add_message('Swap accepted', 'success');
 			}
 		}
