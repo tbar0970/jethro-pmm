@@ -1,5 +1,5 @@
 <?php
-class Process_Roster_Swap
+class Process_Roster_Swap extends View
 {
 	static function process()
 	{
@@ -66,5 +66,8 @@ class Process_Roster_Swap
 				add_message('Swap accepted', 'success');
 			}
 		}
+	}
+
+	public function printView() {
 	}
 }
