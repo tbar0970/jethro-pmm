@@ -1,5 +1,10 @@
-/nbproject/
+/conf.php
+# /conf.php anchors conf.php to allow devbox.d/web/conf.php and others
+devbox.d/bin/devbox
+# devbox.d/bin/devbox is a symlink to real devbox binary added to PATH by devbox. See DEVELOPMENT.md
+devbox.d/nginx/nginx*.conf
+# devbox.d/nginx/nginx*.conf is regenerated from devbox.d/nginx/nginx.template
 /files/
-conf.php
 .idea/
+/nbproject/
 .php-cs-fixer.cache

@@ -1,0 +1,4 @@
+#!/bin/bash -eu
+# Connect to MariaDBD via unix socket as root (no password).
+# Overrides my.cnf defaults which set user=jethro and database=jethro.
+mariadb --show-warnings -u root --skip-password --socket "$MYSQL_UNIX_PORT" --database=mysql "$@"
