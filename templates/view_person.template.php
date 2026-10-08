@@ -233,7 +233,8 @@ if (isset($tabs['notes'])) {
 
 	$add_note_html = null;
 	if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
-		$add_note_html = '<a href="?view=_add_note_to_person&personid='.ents($person->id).'"><i class="icon-plus-sign"></i>'._('Add Note').'</a>';
+		$add_note_html = '<a href="?view=_add_note_to_person&personid='.ents($person->id).'" class="note-link" data-toggle="note-modal" data-personid="'.ents($person->id).'" data-name="'.ents($person->getValue('first_name').' '.$person->getValue('last_name')).'"><i class="icon-plus-sign"></i>'._('Add Note').'</a>';
+		print_note_modal_once();
 	}
 	if (empty($notes)) {
 		if ($add_note_html) {

@@ -270,6 +270,9 @@ class View_Attendance__Record extends View
 			?>
 		</form>
 		<?php
+		if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
+			print_note_modal_once();
+		}
 		if (ini_get('max_input_vars') && ($totalPrinted > ini_get('max_input_vars'))) {
 			ob_end_clean();
 			print_message(_("The parameters you have selected will list more persons ")
@@ -338,7 +341,7 @@ class View_Attendance__Record extends View
 			<?php
 			foreach ($totalPersons as $personid => $detail) {
 				?>
-				<tr>
+				<tr data-personid="<?php echo (int)$personid; ?>">
 				<?php
 				if (SizeDetector::isWide()) {
 					?>
@@ -376,7 +379,7 @@ class View_Attendance__Record extends View
 					<td class="action-cell narrow">
 						<a class="med-popup" tabindex="-1" href="?view=persons&personid=<?php echo $personid; ?>"><i class="icon-user"></i><?php echo _('View');?></a> &nbsp;
 						<a class="med-popup" tabindex="-1" href="?view=_edit_person&personid=<?php echo $personid; ?>"><i class="icon-wrench"></i><?php echo _('Edit');?></a> &nbsp;
-						<a class="med-popup" tabindex="-1" href="?view=_add_note_to_person&personid=<?php echo $personid; ?>"><i class="icon-pencil"></i><?php echo _('Add Note');?></a>
+						<a class="note-link" tabindex="-1" href="?view=_add_note_to_person&personid=<?php echo $personid; ?>" data-toggle="note-modal" data-personid="<?php echo $personid; ?>" data-name="<?php echo ents($detail['first_name'].' '.$detail['last_name']); ?>"><i class="icon-pencil"></i><?php echo _('Add Note');?></a>
 					</td>
 					<?php
 				}

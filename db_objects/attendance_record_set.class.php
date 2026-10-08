@@ -287,7 +287,7 @@ class Attendance_Record_Set
 		foreach ($this->_persons as $personid => $details) {
 			$dummy->populate($personid, $details);
 			?>
-			<tr>
+			<tr data-personid="<?php echo (int)$personid; ?>">
 			<?php
 			if (!SizeDetector::isNarrow()) {
 				?>
@@ -339,7 +339,7 @@ class Attendance_Record_Set
 				<?php
 				if ($GLOBALS['user_system']->havePerm(PERM_EDITNOTE)) {
 					?>
-					<a class="med-popup" tabindex="-1" href="?view=_add_note_to_person&personid=<?php echo $personid; ?>"><i class="icon-pencil"></i>Add Note</a>
+					<a class="note-link" tabindex="-1" href="?view=_add_note_to_person&personid=<?php echo $personid; ?>" data-toggle="note-modal" data-personid="<?php echo $personid; ?>" data-name="<?php echo ents($details['first_name'].' '.$details['last_name']); ?>"><i class="icon-pencil"></i>Add Note</a>
 					<?php
 				}
 				?>
