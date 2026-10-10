@@ -27,7 +27,7 @@ class Call_Find_Person_JSON extends Call
 				$dummy->populate($i, $details);
 				$info = $dummy->getFormattedValue('status').', '.$dummy->getFormattedValue('congregationid');
 				if (isset($absences[$i])) {
-					$info = '!! ABSENT !!'; 
+					$info = '!! ABSENT !!';
 					$i = 0;
 				}
 				$arr[] = '

@@ -62,7 +62,7 @@ class View_Admin__Congregations extends View
 					<td><?php echo ents($cong['name']); ?></td>
 					<td>
 						<i class="<?php echo $cong['holds_persons'] ? 'icon-ok' : 'icon-remove '; ?>"></i>
-						<?php 
+						<?php
 						if ($cong['member_count'] > 0) {
 							if (!$cong['holds_persons']) echo '(';
 							echo (int)$cong['member_count'];

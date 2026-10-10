@@ -610,7 +610,7 @@ class View_Attendance__Display extends View
 						$headcount = array_get($hc, $cohortid, NULL);
 						?>
 						<td>
-							<?php 
+							<?php
 							if ($headcount) {
 								$count = $headcount - $present;
 								echo $count;

@@ -100,7 +100,7 @@ class View__Mixed_Search extends View
 		<table class="table table-hover table-min-width table-condensed clickable-rows">
 		<?php
 		$this->printResultRows(FALSE);
-		$this->printResultRows(TRUE);	
+		$this->printResultRows(TRUE);
 		?>
 		</table>
 
@@ -155,7 +155,7 @@ class View__Mixed_Search extends View
 				if ($this_person_archived !== $archivedStatus) continue;
 				if ($lastFamilyID != $values['familyid']) $indent = '';
 				if (isset($this->_family_data[$values['familyid']])) {
-					$this->_printFamilyRow($values['familyid'], $this->_family_data[$values['familyid']]);	
+					$this->_printFamilyRow($values['familyid'], $this->_family_data[$values['familyid']]);
 					unset($this->_family_data[$values['familyid']]);
 					$indent = '&nbsp;&nbsp;&nbsp;&nbsp;';
 				}
@@ -167,7 +167,7 @@ class View__Mixed_Search extends View
 						<?php //bam($values);
 						echo $indent;
 						echo '<i class="icon-user"></i> ';
-						echo ents($values['first_name']).' '.ents($values['last_name']); 
+						echo ents($values['first_name']).' '.ents($values['last_name']);
 						?>
 					</td>
 					<td class="narrow">
@@ -181,11 +181,11 @@ class View__Mixed_Search extends View
 		}
 		if (!empty($this->_family_data)) {
 			foreach ($this->_family_data as $id => $values) {
-				if (($values['status'] == 'archived') !== $archivedStatus) continue;		
+				if (($values['status'] == 'archived') !== $archivedStatus) continue;
 				$this->_printFamilyRow($id, $values);
 			}
 		}
-	}		
+	}
 	
 	
 	private function _printFamilyRow($id, $values)
@@ -199,7 +199,7 @@ class View__Mixed_Search extends View
 				<a class="hidden-phone" href="?view=_edit_family&familyid=<?php echo $id; ?>">Edit</a>
 			</td>
 		</tr>
-		<?php		
+		<?php
 	}
 	
 	
