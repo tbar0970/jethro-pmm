@@ -166,7 +166,7 @@ class Attendance_Record_Set
 			}
 			foreach (Planned_Absence::getForDateAndCong($date, $this->congregationid) as $personid => $absences) {
 				if (isset($this->_persons[$personid])) {
-					$this->_persons[$personid]['assignments'] = '['._('Planned absence').']';
+					$this->_persons[$personid]['assignments'] = '['._('Unavailability').']';
 				}
 			}
 		} else {
@@ -175,7 +175,7 @@ class Attendance_Record_Set
 			$this->_persons = $group->getMembers($conds, $orderSQL);
 			foreach (Planned_Absence::getForDateAndGroup($date, $this->groupid) as $personid => $absences) {
 				if (isset($this->_persons[$personid])) {
-					$this->_persons[$personid]['assignments'] = '['._('Planned absence').']';
+					$this->_persons[$personid]['assignments'] = '['._('Unavailability').']';
 				}
 			}
 		}

@@ -593,7 +593,7 @@ class roster_view extends db_object
 				if ($withLinks) {
 					echo '</a>';
 					if ($asn['absenceid']) {
-						echo ' <span class="label label-important" title="Planned absence: '.ents($asn['absence_comment']).'">!</i></span>';
+						echo ' <span class="label label-important" title="Unavailability: '.ents($asn['absence_comment']).'">!</i></span>';
 					}
 					if (('' === $asn['email'])) echo ' <img class="visible-desktop" src="'.BASE_URL.'/resources/img/no_email.png" title="No Email Address" />';
 					if (('' === $asn['mobile']) && SMS_Sender::canSend()) {
@@ -837,7 +837,7 @@ class roster_view extends db_object
 									$n = '<span class="nowrap">';
 									$n .= '<a data-personid="'.$personid . '" href="'.$href.'" title="Assigned by '.ents($vs['assigner']).' on '.format_datetime($vs['assignedon']).'">'.ents($vs['name']).'</a>';
 									if (strlen(strval($vs['absenceid']))) {
-										$n .= ' <a href="'.$href.'#rosters" class="label label-important" title="Planned absence: '.ents($vs['absence_comment']).'">!</i></a>';
+										$n .= ' <a href="'.$href.'#rosters" class="label label-important" title="Unavailability: '.ents($vs['absence_comment']).'">!</i></a>';
 									}
 									if (('' === $vs['email'])) $n .= ' <img class="visible-desktop" src="'.BASE_URL.'/resources/img/no_email.png" title="No Email Address" />';
 									if (('' === $vs['mobile']) && SMS_Sender::canSend()) {
