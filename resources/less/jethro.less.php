@@ -1505,6 +1505,27 @@ img.person-photo {
 		display: block;
 		margin-top: 3px;
 	}
+	/* The dropdown-menu and its links must keep readable labels - only the toggle collapses to an icon.
+	   (BS2 dropdowns stay full-size overlays at any width; the selectors above match menu links too,
+	   since they are descendants of td.action-cell.) */
+	#body td.action-cell .dropdown-menu {
+		right: 0; /* open leftward so the menu stays in the viewport */
+		left: auto;
+	}
+	#body td.action-cell .dropdown-menu a {
+		display: block;
+		width: auto;
+		height: auto !important;
+		font-size: @baseFontSize;
+		text-indent: 0;
+		overflow: visible;
+		padding: 3px 20px;
+		white-space: nowrap;
+	}
+	#body td.action-cell .dropdown-menu a i {
+		display: inline-block;
+		margin-top: 0;
+	}
 }
 
 /* widgets at the top of "list all" pages */

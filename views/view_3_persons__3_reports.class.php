@@ -202,7 +202,7 @@ class View_Persons__Reports extends View
 								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>"><i class="icon-list"></i><?php echo _('View');?></a> &nbsp;
 								<a href="?view=<?php echo ents($_REQUEST['view']); ?>&queryid=<?php echo $id; ?>&configure=1"><i class="icon-wrench"></i><?php echo _('Configure');?></a> &nbsp;
 								<span class="dropdown nowrap">
-									<a class="dropdown-toggle" data-toggle="dropdown" href="#"><?php echo _('Actions'); ?><i class="caret"></i></a>
+									<a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-chevron-down"></i><?php echo _('Actions'); ?></a>
 									<ul class="dropdown-menu" role="menu" style="z-index:9999">
 										<li>
 											<?php
