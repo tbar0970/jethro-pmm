@@ -1,5 +1,4 @@
 <?php
-include_once 'include/db_object.class.php';
 class Person_Query extends DB_Object
 {
 	private $_field_details = Array();

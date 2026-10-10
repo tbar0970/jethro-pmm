@@ -1,5 +1,4 @@
 <?php
-include_once 'include/db_object.class.php';
 include_once 'db_objects/action_plan_note.class.php';
 class Action_Plan extends DB_Object
 {

@@ -1,5 +1,4 @@
 <?php
-include_once 'include/db_object.class.php';
 include_once 'include/bible_ref.class.php';
 include_once 'db_objects/service.class.php';
 class roster_view extends db_object

@@ -1,5 +1,4 @@
 <?php
-include_once 'include/db_object.class.php';
 class Custom_Field_Option extends db_object
 {
 	protected $_save_permission_level = PERM_SYSADMIN;

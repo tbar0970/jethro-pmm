@@ -1,5 +1,4 @@
 <?php
-include_once 'include/db_object.class.php';
 class roster_view_service_field extends db_object
 {
 	// NB This class only exists for the following SQL

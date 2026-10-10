@@ -1,5 +1,4 @@
 <?php
-include_once 'include/db_object.class.php';
 class service_bible_reading extends db_object
 {
 	// NB This class only exists for the following SQL

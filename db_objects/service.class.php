@@ -1,5 +1,4 @@
 <?php
-include_once 'include/db_object.class.php';
 require_once 'include/bible_ref.class.php';
 class service extends db_object
 {
