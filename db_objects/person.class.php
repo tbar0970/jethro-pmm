@@ -675,6 +675,11 @@ class Person extends DB_Object
 		return 0; // one must be blank, can't be sure.
 	}	
 
+	public function getFamily(): Family
+    {
+		return $GLOBALS['system']->getDBObject('family', $this->getValue('familyid'));
+	}
+
 	public function save($update_family=TRUE)
 	{
 		$GLOBALS['system']->doTransaction('BEGIN');
@@ -685,7 +690,7 @@ class Person extends DB_Object
 			// be updating themselves but saving the family will fail
 
 			if (!empty($this->_old_values['status']) || !empty($this->_old_values['last_name'])) {
-				$family = $GLOBALS['system']->getDBObject('family', $this->getValue('familyid'));
+				$family = $this->getFamily();
 				$members = $family->getMemberData(TRUE);
 				$archivedStatuses = Person_Status::getArchivedIDs();
 
@@ -1266,7 +1271,7 @@ class Person extends DB_Object
 			$n->delete();
 		}
 
-		$family = $GLOBALS['system']->getDBObject('family', $this->getValue('familyid'));
+		$family = $this->getFamily();
 		$members = $family->getMemberData();
 		$found_live_member = false;
 		foreach ($members as $id => $details) {
@@ -1287,7 +1292,7 @@ class Person extends DB_Object
 	public function delete()
 	{
 		$GLOBALS['system']->doTransaction('BEGIN');
-		$family = $GLOBALS['system']->getDBObject('family', $this->getValue('familyid'));
+		$family = $this->getFamily();
 		$members = $family->getMemberData();
 		unset($members[$this->id]);
 		parent::delete();

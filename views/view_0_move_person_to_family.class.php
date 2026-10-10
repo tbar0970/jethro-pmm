@@ -15,7 +15,7 @@ class View__Move_Person_To_Family extends View
 		if (!empty($_REQUEST['move_to'])) {
 			if ($_REQUEST['move_to'] == 'new') {
 				$old_familyid = $this->_person->getValue('familyid');
-				$family = $GLOBALS['system']->getDBObject('family', (int)$this->_person->getValue('familyid'));
+				$family = $this->_person->getFamily();
 				$family->id = 0;
 				$family->create();
 				$this->_person->setValue('familyid', $family->id);
