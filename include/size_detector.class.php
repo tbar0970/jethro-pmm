@@ -16,7 +16,7 @@ class SizeDetector {
 		});
 		</script>
 		<?php
-		if (!empty($_REQUEST['showsize'])) bam($_SERVER['HTTP_USER_AGENT']);
+		if (!empty($_REQUEST['showsize'])) bam(array_get($_SERVER, 'HTTP_USER_AGENT', ''));
 	}
 
 	static function processRequest() {

@@ -295,7 +295,7 @@ class Person extends DB_Object
 						$printedModal = TRUE;
 					}
 				}
-				if (FALSE !== strpos($_SERVER['HTTP_USER_AGENT'], 'Macintosh')) {
+				if (FALSE !== strpos(array_get($_SERVER, 'HTTP_USER_AGENT', ''), 'Macintosh')) {
 					// on mac we can use the messages app
 					$msg = _('SMS via iMessage');
 					$links[] = '<a href="imessage:'.ents($value).'"><i class="icon-envelope"></i> '.$msg.'</a>';
