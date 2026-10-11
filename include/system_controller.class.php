@@ -115,7 +115,8 @@ class System_Controller
 				$call_obj = new $classname;
 				$call_obj->run();
 			} else {
-				trigger_error('Unknown call '.ents($_REQUEST['call']), E_USER_WARNING);
+				http_response_code(404);
+				echo 'Unknown call';
 			}
 		} else {
 			$this->initErrorHandler();
