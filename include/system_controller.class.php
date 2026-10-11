@@ -100,9 +100,11 @@ class System_Controller
 	{
 
 		$this->setGlobalHeaders();
-		if (!empty($_REQUEST['call'])) {
+		// Dispatch on the query string only: a POST body must not be able to
+		// override which handler runs.
+		if (!empty($_GET['call'])) {
 			$this->initErrorHandler();
-			$call_name = str_replace('/', '', $_REQUEST['call']);
+			$call_name = str_replace('/', '', $_GET['call']);
 			// Try both the Jethro and system_root calls folders
 			$filename = ''; //dirname(dirname(__FILE__)).'/calls/call_'.$call_name.'.class.php';
 			if (!file_exists($filename)) {
