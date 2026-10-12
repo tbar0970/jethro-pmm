@@ -48,6 +48,8 @@ class View__Mixed_Search extends View
 					// Add email search
 					$this->_person_data += $GLOBALS['system']->getDBObjectData('person', Array('email' => $search));
 				}
+				// Add remarks (free text) search
+				$this->_person_data += $GLOBALS['system']->getDBObjectData('person', Array('_remarks' => $search));
 			}
 			if ($types ['g']) {
 				$this->_group_data = $GLOBALS['system']->getDBObjectData('person_group', Array('_name' => $search.'%'), 'OR', 'name');
