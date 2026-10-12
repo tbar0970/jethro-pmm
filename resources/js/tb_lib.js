@@ -1114,6 +1114,13 @@ TBLib.downloadText = function(content, filename) {
 
 // open mailto links in a new window (eg for gmail), but close the new window if it's unused (eg outlook desktop)
 TBLib.handleMailtoClick = function() {
+	const ua = window.navigator.userAgent
+	if (ua.includes('Safari') && !ua.includes('Chrome')) {
+		// In Safari, opening a mailto link in a new window may raise an alert
+		// "This website has been blocked from automatically composing an email."
+		// Use the default mailto behaviour instead
+		return
+	}
 	var windowRef = window.open(this.href, '_email');
 	windowRef.focus();
 	setTimeout(function(){
