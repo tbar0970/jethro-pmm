@@ -203,8 +203,13 @@ class Person extends DB_Object
 	}
 
 	/**
-	 *
-	 * @return The SQL to run to create any database views used by this class
+	 * Staff sessions (@current_user_id) see persons permitted by the account's
+	 * congregation/group restrictions; members-area sessions (@current_member_id)
+	 * are not subject to staff restrictions - the members area scopes data via the
+	 * member view and family checks instead.
+	 * Keep in sync with upgrades/2026-upgrade-to-2.40.sql (person view).
+	 * @see docs/docs/developer/reference/db-session-identity.md
+	 * @return string The SQL to run to create any database views used by this class
 	 */
 	public function getViewSQL()
 	{
@@ -212,6 +217,9 @@ class Person extends DB_Object
 			CREATE VIEW person AS
 			SELECT * from _person p
 			WHERE
+				/* members-area session: staff restrictions do not apply */
+				(getCurrentMemberID() IS NOT NULL)
+				OR (
 				getCurrentUserID() IS NOT NULL
 				AND (
 					/* the person in question IS the current user */
@@ -230,6 +238,7 @@ class Person extends DB_Object
 					OR
 					/* person is within a permitted group */
 					(`p`.`id` in (select `m`.`personid` AS `personid` from (`person_group_membership` `m` join `account_group_restriction` `gr` on((`m`.`groupid` = `gr`.`groupid`))) where (`gr`.`personid` = `getCurrentUserID`())))
+				)
 				)
 		";
 	}
