@@ -259,8 +259,13 @@ class JethroDB extends PDO
 	}
 
 	/**
-	 * Set the current User ID variable in the DB
-	 * @param int	$userid
+	 * Set the current staff-account ID variable (@current_user_id) in the DB.
+	 * The person, person_group and abstract_note views apply this account's
+	 * restrictions and permissions; -1 means public/CLI (unrestricted).
+	 * Never set this to a member's ID: see setCurrentMemberID() and
+	 * docs/docs/developer/reference/db-session-identity.md
+	 * @param int $userid
+	 * @return void
 	 */
 	public function setCurrentUserID($userid)
 	{
@@ -269,6 +274,23 @@ class JethroDB extends PDO
 			$result = parent::query($sql);
 		} catch (PDOException $e) {
 			throw new \RuntimeException('Failed to set user id in database');
+		}
+	}
+
+	/**
+	 * Set the current members-area person ID variable (@current_member_id) in the DB.
+	 * The member view is scoped to this person; the person and person_group views
+	 * do not apply staff-account restrictions to a member session.
+	 * @see docs/docs/developer/reference/db-session-identity.md
+	 * @param int $personid
+	 * @return void
+	 */
+	public function setCurrentMemberID($personid)
+	{
+		try {
+			parent::query('SET @current_member_id = ' . (int)$personid);
+		} catch (PDOException $e) {
+			throw new \RuntimeException('Failed to set member id in database');
 		}
 	}
 

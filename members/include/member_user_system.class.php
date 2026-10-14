@@ -48,7 +48,9 @@ class Member_User_System extends Abstract_User_System
 
 			}
 			$_SESSION['last_activity_time'] = time();
-            $GLOBALS['db']->setCurrentUserID((int)$_SESSION['member']['id']);
+			// Member identity only: staff-account restrictions must not apply in the members area
+			// (see docs/docs/developer/reference/db-session-identity.md)
+			$GLOBALS['db']->setCurrentMemberID((int)$_SESSION['member']['id']);
 
 			$this->_loadPermissionLevels();
 			return;
