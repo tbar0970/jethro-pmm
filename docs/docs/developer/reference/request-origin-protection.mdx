@@ -1,0 +1,110 @@
+---
+sidebar_position: 9
+---
+
+# Request origin protection (Sec-Fetch-Site)
+
+How Jethro rejects state-changing requests that a browser reports as coming from
+another origin. Implemented by `enforce_request_origin()` in
+`include/general.php`, called from `include/init.php` before the database and
+session are set up.
+
+## Why this exists
+
+Jethro has no general application-level CSRF middleware. Before this check the
+only request-forgery controls were:
+
+- the session cookie's `SameSite=Lax` attribute, set in `include/init.php`;
+- a `login_key` token on the staff and member login forms;
+- an `enter_attendance_token` synchronizer token on the attendance form.
+
+That leaves gaps:
+
+- `SameSite=Lax` does not stop same-site requests. `jethro.church.org` and
+  `www.church.org` are same-site with another.
+- Browsers that do not implement `SameSite` (or deployments that relax the
+  cookie) allow cross-site form posts to edit persons, groups, rosters,
+  services, SMS settings, and so on.
+- The attendance token is not a standalone CSRF control. It lives in
+  `$_SESSION` and is minted with `md5(time())`, so it is predictable, and any
+  login regenerates the session and wipes it. The old unguarded read also
+  raised `Undefined array key` when a stale form was posted after a login,
+  producing a 500 and an error email instead of a recoverable outcome.
+
+An attacker page can auto-submit a form to a Jethro URL. Where the cookie is
+still sent (no/relaxed `SameSite`, or a same-site origin), the request is
+indistinguishable from a normal POST and Jethro applies the change without any
+token check.
+
+## What the header does
+
+`Sec-Fetch-Site` is set by the browser on every request and cannot be overridden
+by page script. Values:
+
+| Value | Meaning |
+|---|---|
+| `same-origin` | Initiator has the same scheme, host and port as the target |
+| `same-site` | Same registrable domain, different origin (e.g. sibling tenant) |
+| `cross-site` | Different site |
+| `none` | User-initiated (address bar, bookmark), or no initiator |
+
+Jethro only accepts `same-origin` for unsafe methods. `same-site` is deliberately
+not accepted.
+
+## Enforcement
+
+| Situation | Result |
+|---|---|
+| `GET`, `HEAD`, `OPTIONS`, `TRACE` | Not checked |
+| `POST`/`PUT`/`PATCH`/`DELETE`, `Sec-Fetch-Site: same-origin` | Allowed |
+| Same methods, `same-site` / `cross-site` / `none` | **403**, logged and exited before dispatch |
+| Header absent, `Origin` present | Allowed only if `Origin` matches the request's scheme and host |
+| Header absent, `Origin` absent, `Referer` present | Allowed only if `Referer`'s origin matches |
+| No header, no `Origin`, no `Referer` | Allowed — legacy path (CLI, curl, old browsers); rely on `SameSite=Lax` and per-form tokens |
+
+`request_origin_verdict()` holds the policy and `urls_have_same_origin()` does
+the scheme/host/port comparison (default ports normalised). Both are pure and
+unit-tested.
+
+A rejection is a plain `403` plus an `error_log()` line. It is not an
+application error: no stacktrace, no 500, no email.
+
+## Attendance form
+
+`views/view_6_attendance__1_record.class.php` still uses
+`enter_attendance_token` as a one-time duplicate-submit guard:
+
+- token present in the session and matching → process;
+- token present but not matching → existing duplicate-submit message (e.g. a
+  double click, or a second tab);
+- token **absent** from the session and the request is same-origin → process.
+  This is the stale-form-after-login case: the session was regenerated while
+  the form was open. The read uses `array_key_exists()` + `hash_equals()`, so it
+  no longer emits a warning when the key is missing.
+
+## Caveats
+
+- **HTTPS.** Some engines only send Fetch Metadata over secure connections.
+  The `Origin`/`Referer` fallback, then the legacy path, cover the rest.
+- **Browser support.** Chrome 76+, Firefox 90+, Safari 16.4+. Older browsers
+  fall through to `Origin`/`Referer`, then to the legacy path.
+- **Proxies.** nginx maps the header to `HTTP_SEC_FETCH_SITE`; Cloudflare
+  passes it through. `TRUST_X_FORWARDED_HEADERS` must be set when TLS terminates
+  upstream, so `request_scheme_and_host()` sees the public scheme/host.
+- **Non-browser clients.** curl, scripts, and server-to-server webhooks do not
+  send the header and are unaffected. Do not treat this check as
+  authentication or authorization.
+- **Not a duplicate guard.** Letting a same-origin request through defeats a
+  token whose only job is "process once"; keep one-time-submission guards
+  separate from provenance checks.
+
+## Testing
+
+Unit tests live in `tests/unit/test_general.php` (header parsing, origin
+normalisation, verdict policy). Smoke-test with, e.g.:
+
+```bash
+curl -i -X POST -H 'Sec-Fetch-Site: cross-site' http://instance.internal/
+curl -i -X POST -H 'Sec-Fetch-Site: same-origin' http://instance.internal/
+curl -i -X POST -H 'Origin: https://evil.example' http://instance.internal/
+```

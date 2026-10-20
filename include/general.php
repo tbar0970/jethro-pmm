@@ -865,6 +865,147 @@ function baseurl_absolute()
     return request_scheme_and_host() . ($scriptDir !== '' ? $scriptDir : '');
 }
 
+/**
+ * The provenance reported by the browser's Fetch Metadata `Sec-Fetch-Site`
+ * header, lower-cased. Page script cannot set this header; browsers do.
+ *
+ * Returns one of 'same-origin', 'same-site', 'cross-site', 'none', or NULL
+ * when the header is absent (older browsers, non-browser clients, or engines
+ * that only send Fetch Metadata over HTTPS).
+ *
+ * @see docs/docs/developer/reference/request-origin-protection.mdx
+ * @return string|null
+ */
+function request_sec_fetch_site(): ?string
+{
+    $value = $_SERVER['HTTP_SEC_FETCH_SITE'] ?? NULL;
+    if (!is_string($value) || $value === '') return NULL;
+    return strtolower($value);
+}
+
+/**
+ * Normalise a URL or Origin header value to a scheme://host[:port] origin.
+ *
+ * Default ports are omitted, so https://example.org and https://example.org:443
+ * compare equal. Returns NULL for values that are not an http(s) origin,
+ * including the opaque "null" origin.
+ *
+ * @see docs/docs/developer/reference/request-origin-protection.mdx
+ * @return string|null
+ */
+function url_origin(string $url): ?string
+{
+    $parts = parse_url(trim($url));
+    if (!is_array($parts) || empty($parts['scheme']) || empty($parts['host'])) return NULL;
+    $scheme = strtolower($parts['scheme']);
+    if ($scheme !== 'http' && $scheme !== 'https') return NULL;
+    $host = strtolower($parts['host']);
+    $port = isset($parts['port']) ? (int)$parts['port'] : NULL;
+    if (($scheme === 'http' && $port === 80) || ($scheme === 'https' && $port === 443)) {
+        $port = NULL;
+    }
+    return $scheme.'://'.$host.($port === NULL ? '' : ':'.$port);
+}
+
+/**
+ * Whether two URLs/Origin values refer to the same origin (scheme, host, port).
+ *
+ * @see docs/docs/developer/reference/request-origin-protection.mdx
+ * @return bool
+ */
+function urls_have_same_origin(string $a, string $b): bool
+{
+    $origin_a = url_origin($a);
+    $origin_b = url_origin($b);
+    return $origin_a !== NULL && $origin_b !== NULL && $origin_a === $origin_b;
+}
+
+/**
+ * Decide whether the provenance of an unsafe request is acceptable.
+ *
+ * TRUE  - same-origin, per Sec-Fetch-Site, or a matching Origin/Referer fallback.
+ * FALSE - explicitly same-site, cross-site, none, or a mismatched fallback.
+ * NULL  - no provenance signal; callers should preserve legacy behaviour
+ *         (SameSite=Lax plus any per-form token).
+ *
+ * Sec-Fetch-Site is authoritative when present. 'same-site' is rejected because
+ * Jethro tenants can share a registrable domain, so a sibling subdomain is not
+ * a trusted origin.
+ *
+ * @see docs/docs/developer/reference/request-origin-protection.mdx
+ * @param string|null $sec_fetch_site Value from request_sec_fetch_site()
+ * @param string $origin Value of the HTTP Origin header, if any
+ * @param string $referer Value of the HTTP Referer header, if any
+ * @param string $expected_origin The current request's scheme://host[:port]
+ * @return bool|null
+ */
+function request_origin_verdict(?string $sec_fetch_site, string $origin, string $referer, string $expected_origin): ?bool
+{
+    if ($sec_fetch_site !== NULL) {
+        return $sec_fetch_site === 'same-origin';
+    }
+    if ($origin !== '') {
+        return urls_have_same_origin($origin, $expected_origin);
+    }
+    if ($referer !== '') {
+        return urls_have_same_origin($referer, $expected_origin);
+    }
+    return NULL;
+}
+
+/**
+ * request_origin_verdict() for the current request, using Origin then Referer
+ * as the fallback when Sec-Fetch-Site is unavailable.
+ *
+ * @see docs/docs/developer/reference/request-origin-protection.mdx
+ * @return bool|null
+ */
+function request_origin_verdict_current(): ?bool
+{
+    $origin = isset($_SERVER['HTTP_ORIGIN']) && is_string($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
+    $referer = isset($_SERVER['HTTP_REFERER']) && is_string($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
+    return request_origin_verdict(
+        request_sec_fetch_site(),
+        $origin,
+        $referer,
+        request_scheme_and_host()
+    );
+}
+
+/**
+ * Reject state-changing requests that the browser reports as cross-origin.
+ *
+ * Called from include/init.php for every web request, before the database and
+ * session are set up. Safe methods are ignored. Requests with no provenance
+ * signal are allowed, preserving compatibility with CLI/curl clients and older
+ * browsers; those keep SameSite=Lax and per-form token protection.
+ *
+ * A rejection is a plain 403 and an error_log line. It is not an application
+ * error, so it must not produce a stacktrace, a 500 response, or an email.
+ *
+ * @see docs/docs/developer/reference/request-origin-protection.mdx
+ * @return void
+ */
+function enforce_request_origin(): void
+{
+    if (PHP_SAPI === 'cli' || empty($_SERVER['REQUEST_METHOD'])) return;
+
+    $method = strtoupper((string)$_SERVER['REQUEST_METHOD']);
+    if (!in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], TRUE)) return;
+
+    if (request_origin_verdict_current() !== FALSE) return;
+
+    $site = request_sec_fetch_site() ?? 'absent';
+    $uri = isset($_SERVER['REQUEST_URI']) && is_string($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+    $uri = str_replace(["\r", "\n"], '', $uri);
+    error_log('Blocked '.$method.' '.$uri.': request came from another origin (Sec-Fetch-Site='.$site.')');
+
+    http_response_code(403);
+    header('Content-Type: text/plain; charset=utf-8');
+    echo "Forbidden: cross-origin requests are not accepted.\n";
+    exit;
+}
+
 function speed_log($bam=FALSE)
 {
 	$fn = $bam ? 'bam' : 'error_log';

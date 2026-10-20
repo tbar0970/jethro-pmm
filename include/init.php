@@ -29,6 +29,12 @@ error_reporting($error_level);
 require_once JETHRO_ROOT.'/include/general.php';
 strip_all_slashes();
 
+// Reject state-changing requests that the browser reports as cross-origin before
+// any database or session work happens. Safe methods, CLI/curl clients, and
+// browsers without Fetch Metadata are unaffected.
+// See docs/docs/developer/reference/request-origin-protection.mdx
+enforce_request_origin();
+
 // Set up the DB
 require_once JETHRO_ROOT .'/include/jethrodb.php';
 JethroDB::init(ifdef('DB_MODE', 'PRIVATE'));

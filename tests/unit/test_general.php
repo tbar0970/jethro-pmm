@@ -638,3 +638,90 @@ test('baseurl_absolute: ALLOWED_HOSTS accepts listed hosts', function () {
         a5_restore_server($saved);
     }
 });
+
+// ===========================================================================
+// Request origin protection (Sec-Fetch-Site) — pure policy functions
+// ===========================================================================
+
+test('url_origin: normalises scheme, host and default ports', function () {
+    assert_eq(url_origin('https://Example.ORG/foo?x=1'), 'https://example.org',
+        'path and case should be dropped');
+    assert_eq(url_origin('https://example.org:443'), 'https://example.org',
+        'default https port should be omitted');
+    assert_eq(url_origin('http://example.org:80'), 'http://example.org',
+        'default http port should be omitted');
+    assert_eq(url_origin('http://example.org:8080'), 'http://example.org:8080',
+        'non-default port should be kept');
+    assert_eq(url_origin('  https://example.org  '), 'https://example.org',
+        'surrounding whitespace should be trimmed');
+});
+
+test('url_origin: rejects non-http(s), opaque and malformed values', function () {
+    assert_eq(url_origin('ftp://example.org'), null, 'ftp is not a web origin');
+    assert_eq(url_origin('null'), null, 'the opaque "null" origin has no origin');
+    assert_eq(url_origin('example.org'), null, 'a scheme is required');
+    assert_eq(url_origin('https://'), null, 'a host is required');
+    assert_eq(url_origin(''), null);
+});
+
+test('urls_have_same_origin: compares scheme, host and port', function () {
+    assert_true(urls_have_same_origin('https://example.org/a', 'https://example.org:443/b'),
+        'default port and path are irrelevant');
+    assert_false(urls_have_same_origin('http://example.org', 'https://example.org'),
+        'scheme differs');
+    assert_false(urls_have_same_origin('https://example.org:8080', 'https://example.org'),
+        'port differs');
+    assert_false(urls_have_same_origin('https://a.example.org', 'https://example.org'),
+        'a subdomain is a different origin');
+    assert_false(urls_have_same_origin('null', 'https://example.org'),
+        'an opaque origin never matches');
+});
+
+test('request_sec_fetch_site: absent, empty and mixed case', function () {
+    $key = 'HTTP_SEC_FETCH_SITE';
+    $saved = $_SERVER[$key] ?? null;
+    try {
+        unset($_SERVER[$key]);
+        assert_eq(request_sec_fetch_site(), null, 'absent header should be null');
+        $_SERVER[$key] = '';
+        assert_eq(request_sec_fetch_site(), null, 'empty header should be null');
+        $_SERVER[$key] = 'Same-Origin';
+        assert_eq(request_sec_fetch_site(), 'same-origin', 'value should be lower-cased');
+    } finally {
+        if ($saved === null) {
+            unset($_SERVER[$key]);
+        } else {
+            $_SERVER[$key] = $saved;
+        }
+    }
+});
+
+test('request_origin_verdict: Sec-Fetch-Site is authoritative', function () {
+    $expected = 'https://church.example';
+    assert_true(request_origin_verdict('same-origin', '', '', $expected));
+    assert_false(request_origin_verdict('same-site', '', '', $expected),
+        'a sibling subdomain sharing a registrable domain is not trusted');
+    assert_false(request_origin_verdict('cross-site', '', '', $expected));
+    assert_false(request_origin_verdict('none', '', '', $expected),
+        'an unsafe request with no initiator is rejected');
+    assert_true(request_origin_verdict('same-origin', 'https://evil.example', 'https://evil.example/x', $expected),
+        'Sec-Fetch-Site outranks the fallback headers');
+});
+
+test('request_origin_verdict: Origin, then Referer, then legacy NULL', function () {
+    $expected = 'https://church.example';
+    assert_true(request_origin_verdict(null, 'https://church.example', '', $expected),
+        'matching Origin is accepted');
+    assert_false(request_origin_verdict(null, 'https://evil.example', '', $expected),
+        'mismatched Origin is rejected');
+    assert_false(request_origin_verdict(null, 'null', '', $expected),
+        'the opaque Origin is rejected');
+    assert_true(request_origin_verdict(null, '', 'https://church.example/some/page', $expected),
+        'matching Referer is accepted');
+    assert_false(request_origin_verdict(null, '', 'https://evil.example/some/page', $expected),
+        'mismatched Referer is rejected');
+    assert_false(request_origin_verdict(null, 'https://evil.example', 'https://church.example/x', $expected),
+        'Origin outranks Referer');
+    assert_eq(request_origin_verdict(null, '', '', $expected), null,
+        'no provenance signal preserves legacy behaviour');
+});
