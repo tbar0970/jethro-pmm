@@ -73,7 +73,7 @@
 
 				<!-- logo and system name -->
 				<h1>
-					<a class="brand" href="<?php echo BASE_URL; ?>" tabindex="-1">Jethro PMM</a>
+					<a class="brand" href="<?php echo ents(get_url_pathprefix()); ?>" tabindex="-1">Jethro PMM</a>
 					<span><?php echo SYSTEM_NAME; ?></span>
 				</h1>
 

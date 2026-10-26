@@ -207,6 +207,10 @@ class Installer
 
 			"CREATE FUNCTION getCurrentUserID() RETURNS INTEGER NO SQL RETURN @current_user_id;",
 
+			"-- Synced with upgrades/2026-upgrade-to-2.40.sql — members-area identity, separate from staff accounts
+			-- (see docs/docs/developer/reference/db-session-identity.md)
+			CREATE FUNCTION getCurrentMemberID() RETURNS INTEGER NO SQL RETURN @current_member_id;",
+
 			"CREATE TABLE account_group_restriction (
 			   personid INTEGER NOT NULL,
 			   groupid INTEGER NOT NULL,
@@ -243,7 +247,7 @@ class Installer
 			JOIN person_group_membership pgm2 ON pgm2.groupid = pg.id
 			JOIN _person up ON up.id = pgm2.personid
 			JOIN person_status ups ON ups.id = up.status
-			WHERE up.id = getCurrentUserID()
+			WHERE up.id = getCurrentMemberID()
 			   AND (NOT mps.is_archived)    /* dont show archived persons */
 			   AND mf.status <> "archived"  /* dont show archived families */
 			   AND (NOT ups.is_archived)	/* dont let persons who are themselves archived see anything */
@@ -259,7 +263,7 @@ class Installer
 			JOIN _person self ON self.familyid = mp.familyid
 			JOIN person_status selfs ON selfs.id = self.status
 			WHERE
-				self.id = getCurrentUserID()
+				self.id = getCurrentMemberID()
 				AND ((NOT mps.is_archived) OR (mp.id = self.id))
 				AND ((NOT selfs.is_archived) OR (mp.id = self.id))
 				/* archived persons can only see themselves, not any family members */
@@ -600,7 +604,7 @@ class Installer
 		?>
 		<h2>Installation Complete!</h2>
 
-		You can now <a href="<?php echo BASE_URL; ?>">log in to the system</a> to start work.
+		You can now <a href="<?php echo ents(get_url_pathprefix()); ?>">log in to the system</a> to start work.
 
 		<?php
 	}

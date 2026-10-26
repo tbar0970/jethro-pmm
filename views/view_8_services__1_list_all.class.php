@@ -288,7 +288,13 @@ class View_Services__List_All extends View
 		$service->clearReadings();
 
 		foreach ($_POST['bible_refs'][$congid][$date] as $i => $bible_ref) {
+			$bible_ref = trim($bible_ref);
 			if (!empty($bible_ref)) {
+				$br = new Bible_Ref($bible_ref);
+				if (!$br->isValid()) {
+					add_message('Invalid bible reference - "'.$bible_ref.'"', 'error');
+					continue;
+				}
 				$to_read = $_POST['bible_to_read'][$congid][$date][$i];
 				$to_preach = $_POST['bible_to_preach'][$congid][$date][$i];
 				$service->addReading($bible_ref, $to_read, $to_preach);
@@ -399,7 +405,7 @@ class View_Services__List_All extends View
 						<td>
 							<span class="dropdown">
 							<a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-chevron-down"></i></a>
-							<ul class="dropdown-menu" role="menu">
+							<ul class="dropdown-menu pull-right" role="menu">
 								<li>
 								<?php
 								$printed = FALSE;

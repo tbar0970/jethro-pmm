@@ -876,11 +876,11 @@ table.custom-field-tooltip {
 select, input, textarea,div.editor {
 	/* apply shrink-to-fit sizing rather than bootstrap's default 206px */
 	width: auto;
+	/* Constrain width to the containing box */
+	max-width: 100%;
 }
 
-.modal input, .modal select, .modal textarea, .modal .uneditable-input {
-	/* In modals the shink-to-fit size from the rule above is too wide. Constrain it to the containing box */
-	max-width: 100%;
+div.editor {
 	/* 'box-sizing: border-box' means max-width includes padding and
 	 * border. Without this, the padding + border makes the actual width exceed
 	 * 100% resulting in a scrollbar. Previously we had 'max-width: 97%' to avoid
@@ -1530,6 +1530,27 @@ img.person-photo {
 	#body td.action-cell a i, #body td.action-cell button i, #body td.action-cell .clickable i, .link-collapse i {
 		display: block;
 		margin-top: 3px;
+	}
+	/* The dropdown-menu and its links must keep readable labels - only the toggle collapses to an icon.
+	   (BS2 dropdowns stay full-size overlays at any width; the selectors above match menu links too,
+	   since they are descendants of td.action-cell.) */
+	#body td.action-cell .dropdown-menu {
+		right: 0; /* open leftward so the menu stays in the viewport */
+		left: auto;
+	}
+	#body td.action-cell .dropdown-menu a {
+		display: block;
+		width: auto;
+		height: auto !important;
+		font-size: @baseFontSize;
+		text-indent: 0;
+		overflow: visible;
+		padding: 3px 20px;
+		white-space: nowrap;
+	}
+	#body td.action-cell .dropdown-menu a i {
+		display: inline-block;
+		margin-top: 0;
 	}
 }
 

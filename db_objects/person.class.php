@@ -203,8 +203,13 @@ class Person extends DB_Object
 	}
 
 	/**
-	 *
-	 * @return The SQL to run to create any database views used by this class
+	 * Staff sessions (@current_user_id) see persons permitted by the account's
+	 * congregation/group restrictions; members-area sessions (@current_member_id)
+	 * are not subject to staff restrictions - the members area scopes data via the
+	 * member view and family checks instead.
+	 * Keep in sync with upgrades/2026-upgrade-to-2.40.sql (person view).
+	 * @see docs/docs/developer/reference/db-session-identity.md
+	 * @return string The SQL to run to create any database views used by this class
 	 */
 	public function getViewSQL()
 	{
@@ -212,6 +217,9 @@ class Person extends DB_Object
 			CREATE VIEW person AS
 			SELECT * from _person p
 			WHERE
+				/* members-area session: staff restrictions do not apply */
+				(getCurrentMemberID() IS NOT NULL)
+				OR (
 				getCurrentUserID() IS NOT NULL
 				AND (
 					/* the person in question IS the current user */
@@ -230,6 +238,7 @@ class Person extends DB_Object
 					OR
 					/* person is within a permitted group */
 					(`p`.`id` in (select `m`.`personid` AS `personid` from (`person_group_membership` `m` join `account_group_restriction` `gr` on((`m`.`groupid` = `gr`.`groupid`))) where (`gr`.`personid` = `getCurrentUserID`())))
+				)
 				)
 		";
 	}
@@ -295,7 +304,7 @@ class Person extends DB_Object
 						$printedModal = TRUE;
 					}
 				}
-				if (FALSE !== strpos($_SERVER['HTTP_USER_AGENT'], 'Macintosh')) {
+				if (FALSE !== strpos(array_get($_SERVER, 'HTTP_USER_AGENT', ''), 'Macintosh')) {
 					// on mac we can use the messages app
 					$msg = _('SMS via iMessage');
 					$links[] = '<a href="imessage:'.ents($value).'"><i class="icon-envelope"></i> '.$msg.'</a>';
@@ -323,6 +332,28 @@ class Person extends DB_Object
 				</span>
 				<?php
 				return;
+			case 'email':
+				if (!strlen($value)) return;
+				$links = Array('<a href="mailto:'.ents($value).'"><i class="icon-email">@</i> Send Email</a>');
+				$links[] = '<a data-action="copy" data-target="#email-'.$this->id.'"><i class="icon-copy"></i> Copy Address</a>';
+				$template = "https://mail.google.com/mail/?authuser=%user%#search/%search%";
+				$url = str_replace(Array('%user%','%search%'), Array($GLOBALS['user_system']->getCurrentUser('email'), $value), $template);
+				$links[] = '<a target="gmail" href="'.$url.'"><i class="icon-search"></i> '._('Search Gmail').'</a>';
+				?>
+				<span class="dropdown nowrap">
+					<a class="dropdown-toggle email" id="email-<?php echo $this->id; ?>" data-toggle="dropdown" href="#"><?php echo ents($this->getFormattedValue('email')); ?></a>
+					<ul class="dropdown-menu" role="menu" aria-labelledby="email-<?php echo $this->id; ?>" style="z-index:9999">
+					<?php
+					foreach ($links as $l) {
+						?>
+						<li><?php echo $l; ?></li>
+						<?php
+					}
+					?>
+					</ul>
+				</span>
+				<?php
+				return;				
 			default:
 				parent::printFieldValue($name, $value);
 
@@ -653,6 +684,11 @@ class Person extends DB_Object
 		return 0; // one must be blank, can't be sure.
 	}	
 
+	public function getFamily(): Family
+    {
+		return $GLOBALS['system']->getDBObject('family', $this->getValue('familyid'));
+	}
+
 	public function save($update_family=TRUE)
 	{
 		$GLOBALS['system']->doTransaction('BEGIN');
@@ -663,7 +699,7 @@ class Person extends DB_Object
 			// be updating themselves but saving the family will fail
 
 			if (!empty($this->_old_values['status']) || !empty($this->_old_values['last_name'])) {
-				$family = $GLOBALS['system']->getDBObject('family', $this->getValue('familyid'));
+				$family = $this->getFamily();
 				$members = $family->getMemberData(TRUE);
 				$archivedStatuses = Person_Status::getArchivedIDs();
 
@@ -1244,7 +1280,7 @@ class Person extends DB_Object
 			$n->delete();
 		}
 
-		$family = $GLOBALS['system']->getDBObject('family', $this->getValue('familyid'));
+		$family = $this->getFamily();
 		$members = $family->getMemberData();
 		$found_live_member = false;
 		foreach ($members as $id => $details) {
@@ -1265,7 +1301,7 @@ class Person extends DB_Object
 	public function delete()
 	{
 		$GLOBALS['system']->doTransaction('BEGIN');
-		$family = $GLOBALS['system']->getDBObject('family', $this->getValue('familyid'));
+		$family = $this->getFamily();
 		$members = $family->getMemberData();
 		unset($members[$this->id]);
 		parent::delete();

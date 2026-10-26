@@ -132,20 +132,27 @@ class Person_Group extends db_object
 
 
 	/**
-	 *
-	 * @return The SQL to run to create any database views used by this class
+	 * Staff sessions (@current_user_id) see their own and shared groups, limited by
+	 * account_group_restriction; members-area sessions (@current_member_id) see all
+	 * shared (non-personal) groups, unaffected by staff restrictions.
+	 * Keep in sync with upgrades/2026-upgrade-to-2.40.sql (person_group view).
+	 * @see docs/docs/developer/reference/db-session-identity.md
+	 * @return string The SQL to run to create any database views used by this class
 	 */
 	public function getViewSQL()
 	{
 		return "CREATE VIEW person_group AS
 			SELECT * from _person_group g
 			WHERE
+			  (getCurrentMemberID() IS NOT NULL AND g.owner IS NULL)
+			  OR (
 			  getCurrentUserID() IS NOT NULL
 			  AND
 			  ((g.owner IS NULL) OR (g.owner = getCurrentUserID()))
 			  AND
 			  (NOT EXISTS (SELECT * FROM account_group_restriction gr WHERE gr.personid  = getCurrentUserID())
-			  OR g.id IN (SELECT groupid FROM account_group_restriction gr WHERE gr.personid = getCurrentUserID()))";
+			  OR g.id IN (SELECT groupid FROM account_group_restriction gr WHERE gr.personid = getCurrentUserID()))
+			  )";
 	}
 
 
