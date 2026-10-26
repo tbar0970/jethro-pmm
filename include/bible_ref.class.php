@@ -330,6 +330,8 @@ class bible_ref
 	public function __construct($str)
 	{
 		if (empty($str)) return;
+		$str = trim($str);
+		if ($str === '') return;
 		if ($str[0] == '0') {
 			if (strpos($str, ',') === FALSE) {
 				list($this->book, $this->start_ch, $this->start_v, $this->end_ch, $this->end_v) = sscanf($str, '%03d_%03d:%03d-%03d:%03d');
@@ -340,10 +342,13 @@ class bible_ref
 			$str = strtolower(str_replace(' ', '', $str));
 			$pattern = "/([0-9]?([^0-9]+))(([0-9]+)([\-\:.]))?(([0-9]+)([\-\:.]))?(([0-9]+)([\-\:.]))?([0-9]+)(,([0-9]+)(-([0-9]+))?)?/";
 			$matches = Array();
-			preg_match($pattern, $str, $matches);
-			$this->book = @$this->names_to_numbers[$matches[1]];
+			if (!preg_match($pattern, $str, $matches)) {
+				error_log("Could not parse bible reference: $str");
+				return false;
+			}
+			$this->book = $this->names_to_numbers[$matches[1]] ?? null;
 			if (is_null($this->book)) {
-				trigger_error("Unknown bible book $matches[1]");
+				error_log("Unknown bible book $matches[1]");
 				return false;
 			}
 			if (!empty($matches[10])) {
@@ -385,6 +390,11 @@ class bible_ref
 				}
 			}
 		}
+	}
+
+	public function isValid()
+	{
+		return !is_null($this->book);
 	}
 
 	public function toString($short=false)
