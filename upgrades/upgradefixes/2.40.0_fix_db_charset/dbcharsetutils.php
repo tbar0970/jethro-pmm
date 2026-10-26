@@ -433,11 +433,19 @@ class DB_Charset_Utils
 	 */
 	private static function _openRawConnection($charset)
 	{
-		$type = ifdef('DB_TYPE', 'mysql');
-		$host = ifdef('DB_HOST', 'localhost');
-		$port = ifdef('DB_PORT', '');
-		$portPart = strlen($port) ? ';port='.$port : '';
-		$dsn = $type.':host='.$host.$portPart.';dbname='.DB_DATABASE.';charset='.$charset;
+		// Reuse the app's configured DSN when one is defined (eg the
+		// unix-socket connections used by devbox/docker), swapping in the raw
+		// charset. Fall back to host/port params for confs that set
+		// DB_HOST/DB_PORT/DB_TYPE instead of DB_DSN.
+		if (defined('DB_DSN')) {
+			$dsn = preg_replace('/;charset=[^;]*/', '', DB_DSN).';charset='.$charset;
+		} else {
+			$type = ifdef('DB_TYPE', 'mysql');
+			$host = ifdef('DB_HOST', 'localhost');
+			$port = ifdef('DB_PORT', '');
+			$portPart = strlen($port) ? ';port='.$port : '';
+			$dsn = $type.':host='.$host.$portPart.';dbname='.DB_DATABASE.';charset='.$charset;
+		}
 
 		try {
 			return new PDO($dsn, DB_USERNAME, DB_PASSWORD, Array(
