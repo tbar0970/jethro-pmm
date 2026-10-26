@@ -204,12 +204,13 @@ class DB_Charset_Utils
 		}
 
 		// Open a temporary latin1 connection to read raw bytes.
-		$rawDb = self::_openRawConnection('latin1');
+		$rawErr = null;
+		$rawDb = self::_openRawConnection('latin1', $rawErr);
 		if ($rawDb === null) {
 			return Array(
 				'risky_columns' => Array(),
 				'risky' => false,
-				'error' => 'Could not open latin1 connection for byte inspection.',
+				'error' => 'Could not open latin1 connection for byte inspection'.($rawErr ? ': '.$rawErr : '.'),
 			);
 		}
 
@@ -429,9 +430,12 @@ class DB_Charset_Utils
 	 * automatic charset conversion.
 	 *
 	 * @param string $charset Connection charset (e.g. 'latin1').
+	 * @param string|null &$error Filled with the PDO error message when the
+	 *     return value is null, so callers can surface a useful diagnostic
+	 *     instead of a bare "could not open" message.
 	 * @return PDO|null PDO connection, or null on failure.
 	 */
-	private static function _openRawConnection($charset)
+	private static function _openRawConnection($charset, &$error = null)
 	{
 		// Reuse the app's configured DSN when one is defined (eg the
 		// unix-socket connections used by devbox/docker), swapping in the raw
@@ -453,6 +457,7 @@ class DB_Charset_Utils
 				PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
 			));
 		} catch (Exception $e) {
+			$error = $e->getMessage();
 			return null;
 		}
 	}
@@ -611,9 +616,10 @@ class DB_Charset_Utils
 
 		// Fix latin1 tables via BLOB detour, after full-row validation.
 		if ($latin1Tables) {
-			$rawDb = self::_openRawConnection('latin1');
+			$rawErr = null;
+			$rawDb = self::_openRawConnection('latin1', $rawErr);
 			if ($rawDb === null) {
-				$result['errors'][] = 'Could not open latin1 connection for validation — skipping '.count($latin1Tables).' latin1 table(s).';
+				$result['errors'][] = 'Could not open latin1 connection for validation'.($rawErr ? ': '.$rawErr : '').' — skipping '.count($latin1Tables).' latin1 table(s).';
 			} else {
 				foreach ($latin1Tables as $t) {
 					$validationErrors = self::_validateTableAllRowsUTF8($rawDb, $t['name']);
