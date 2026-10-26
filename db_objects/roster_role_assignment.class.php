@@ -7,15 +7,17 @@ class roster_role_assignment extends db_object
 	function getInitSql($table_name = NULL)
 	{
 		return 'create table roster_role_assignment (
-					assignment_date	date not null,
-					roster_role_id	int(11) not null,
-					personid		int(11) not null,
-					`rank`            int unsigned not null default 0,
-					assigner		int(11) not null,
-					assignedon		timestamp NOT NULL default CURRENT_TIMESTAMP,
+					assignment_date		date not null,
+					roster_role_id		int(11) not null,
+					personid			int(11) not null,
+					pending_personid	int(11) not null,
+					`rank`				int unsigned not null default 0,
+					assigner			int(11) not null,
+					assignedon			timestamp NOT NULL default CURRENT_TIMESTAMP,
 					primary key (roster_role_id, assignment_date, personid),
 					constraint `rra_assiger` foreign key (assigner) references _person(id),
 					constraint `rra_personid` foreign key (personid) references _person(id) ON DELETE CASCADE,
+					constraint `rra_pending_personid` foreign key (pending_personid) references _person(id) ON DELETE SET NULL,
 					constraint `rra_roster_role_id` foreign key (roster_role_id) references roster_role(id)
 				) ENGINE=InnoDB ;';
 	}
@@ -58,6 +60,53 @@ class roster_role_assignment extends db_object
 		$SQL = 'SELECT count(*) FROM roster_role_assignment
 				WHERE personid = '.(int)$personid;
 		$res = $GLOBALS['db']->queryOne($SQL);
+	}
+
+    /**
+     * Record a swap request, to be later accepted by 'swapToCurrentUser'
+     *
+     * Checks that the current user is rostered on the given role and date
+     * and then records a request for a new person to take it over
+     *
+     * @param str $roleid    The role to be swapped
+     * @param str $date      The date to swap for
+     * @param str $personid  The requested person to be rostered instead
+     */
+	static function recordSwapRequest($roleid, $date, $personid)
+	{
+		$currentUserId = $GLOBALS['user_system']->getCurrentPerson('id');
+		$where = 'WHERE rra.`roster_role_id` = '.(int)$roleid.' AND rra.`assignment_date` = '.$GLOBALS['db']->quote($date).' AND rra.`personid` = '.$currentUserId;
+		$SQL = 'SELECT 1 FROM roster_role_assignment rra '.$where;
+		if ($GLOBALS['db']->queryRow($SQL)) {
+			$SQL = 'UPDATE roster_role_assignment rra
+					SET rra.`pending_personid` = '.(int)$personid.' '.$where;
+			$GLOBALS['db']->query($SQL);
+			return true;
+		}
+	}
+
+    /**
+     * Accept the swap requested by 'recordSwapRequest'.
+     *
+     * Checks that the swap was requsted for the given role and date
+     * to the current user by the current rostered person
+     * and then updates the assigned person and clears the request
+     *
+     * @param str $roleid              The role to be swapped
+     * @param str $date                The date to swap for
+     * @param str $originalAssigneeID  The current person rostered on
+     */
+	static function swapToCurrentUser($roleid, $date, $originalAssigneeID) {
+		$currentUserId = $GLOBALS['user_system']->getCurrentPerson('id');
+		$where = 'WHERE rra.`roster_role_id` = '.(int)$roleid.' AND rra.`assignment_date` = '.$GLOBALS['db']->quote($date).' AND rra.`personid` = '.(int)$originalAssigneeID.' AND rra.`pending_personid` = '.$currentUserId;
+		$SQL = 'SELECT 1 FROM roster_role_assignment rra '.$where;
+		if ($GLOBALS['db']->queryRow($SQL)) {
+			$SQL = 'UPDATE roster_role_assignment rra
+					SET rra.`personid` = '.$currentUserId.',
+						rra.`pending_personid` = NULL '.$where;
+			$GLOBALS['db']->query($SQL);
+			return true;
+		}
 	}
 
 }

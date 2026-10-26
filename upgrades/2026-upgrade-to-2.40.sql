@@ -3,6 +3,16 @@ INSERT IGNORE INTO setting
 (symbol, type, value, note)
 VALUES ('NEEDS_UTF8MB4_UPGRADE', 'hidden', "1", "Whether the database charset upgrade to utf8mb4 needs to be run");
 
+SET @rank = (SELECT `rank` FROM setting WHERE symbol = 'MEMBER_LOGIN_ENABLED');
+
+INSERT INTO setting
+(`rank`, symbol, type, value, note)
+VALUES (@rank+1, 'MEMBER_SWAP_ENABLED', 'bool', "0", "Should church members be able swap roster assignments themselves?");
+
+ALTER TABLE roster_role_assignment
+ADD COLUMN pending_personid INT(11) DEFAULT NULL,
+ADD CONSTRAINT `rra_pending_personid` FOREIGN KEY (pending_personid) REFERENCES _person(id) ON DELETE SET NULL;
+
 -- Separate members-area identity from staff-account identity (#1173, #1433).
 -- @current_user_id is the staff account; its congregation/group restrictions are
 -- applied by the person and person_group views.  The members area now sets
