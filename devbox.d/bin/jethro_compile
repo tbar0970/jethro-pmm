@@ -1,0 +1,58 @@
+#!/bin/bash -eu
+
+# Compiles the css + js resources for a given version and activates them by
+# writing the version to include/version.txt. Pass --nouse to compile without
+# touching include/version.txt.
+
+fail() { echo >&2 "$*"; exit 1; }
+
+usage() {
+  echo "Usage: $0 [--nouse] [version]"
+  echo "  version  version string (default: \$JETHRO_VERSION)"
+  echo "  --nouse  compile only; leave include/version.txt untouched"
+  exit 0
+}
+
+main() {
+  [[ -d resources/js ]] || fail "Must be invoked in the project root"
+
+  local version=""
+  local use=true
+
+  while (($#)); do
+    case "$1" in
+      --nouse)
+        use=false
+        ;;
+      -h|--help)
+        usage
+        ;;
+      -*)
+        fail "Unknown option: $1"
+        ;;
+      *)
+        [[ -z "$version" ]] || fail "Version specified more than once: '$version' and '$1'"
+        version=$1
+        ;;
+    esac
+    shift
+  done
+
+  version=${version:-${JETHRO_VERSION:-}}
+  [[ -n "$version" ]] || fail "No version supplied: pass one as an argument or set JETHRO_VERSION"
+
+  local script_dir
+  script_dir=$(cd "$(dirname "$0")" && pwd)
+
+  "$script_dir/jethro_compile_css" "$version"
+  "$script_dir/jethro_compile_js" "$version"
+
+  if $use; then
+    printf '%s\n' "$version" > include/version.txt
+    echo "Modified: include/version.txt — $version"
+  else
+    echo "Left include/version.txt untouched (--nouse)"
+  fi
+}
+
+main "$@"
