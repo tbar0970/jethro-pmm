@@ -1,8 +1,10 @@
 <?php
-if (file_exists(dirname(__FILE__).'/version.txt')) {
-	define('JETHRO_VERSION', trim(file_get_contents(dirname(__FILE__).'/version.txt')));
-} else {
-	define('JETHRO_VERSION', 'DEV');
+if (!defined('JETHRO_VERSION')) {  // Allow overriding in conf.php
+	if (file_exists(dirname(__FILE__).'/version.txt')) {
+		define('JETHRO_VERSION', trim(file_get_contents(dirname(__FILE__).'/version.txt')));
+	} else {
+		define('JETHRO_VERSION', 'DEV');
+	}
 }
 
 $path_sep = defined('PATH_SEPARATOR') ? PATH_SEPARATOR : ((FALSE === strpos($_ENV['OS'], 'Win')) ? ';' : ':');

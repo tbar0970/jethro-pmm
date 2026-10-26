@@ -1,0 +1,69 @@
+---
+sidebar_position: 6
+---
+
+# Functional-test personas (role-based checks)
+
+The `lookaround` Playwright project (`tests/functional/lookaround/lookaround.spec.ts`)
+contains a **"Role-based permission checks"** describe block that logs in as each
+restricted `staff_member` account in the demo data and asserts the account's
+permission and visibility restrictions. Nothing in these tests submits a form —
+they are read-only, like the rest of `lookaround`.
+
+## Where the personas come from
+
+The upstream demo-data dump (`tests/functional/testdata/demodata.sql.gz`, refreshed
+via `tests/functional/testdata/import_demodata.sh`) ships six restricted accounts.
+
+## The personas
+
+| Username | Person | Permissions (decoded) | Restrictions | Test asserts |
+|---|---|---|---|---|
+| `demo` | Dennis Demo | `PERM_SYSADMIN` (all bits) | none | the read-only nouns walk |
+| `6pmonly` | Nakia Lockman | everything except `PERM_SYSADMIN`-only views; has `PERM_VIEWSMS` | congregation 4pm... no — congregation **6pm** (id 4) | persons limited to 6pm; attendance cohorts limited to 6pm; User Accounts view denied |
+| `rostersetter` | Coleman Champlin | `VIEWROSTER`, `EDITROSTER`, `MANAGEROSTERS`, `SENDSMS`, `VIEWSMS` | none | roster views open; services/attendance/`_execute_plans` denied |
+| `smallgroupleader` | — | `VIEWATTENDANCE`, `EDITATTENDANCE`, `SENDSMS`, `VIEWSMS` | groups 9, 11 | only those groups visible; person visibility follows group membership; attendance open |
+| `bandleader` | — | `EDITPERSON`, `SENDSMS`, `VIEWSMS`, `VIEWROSTER`, `EDITROSTER`, `VIEWSERVICE`, `EDITSERVICE`, `BULKSERVICE`, `SERVICECOMPS` | congregation 2 (4pm) + groups 32, 33 | persons/groups scoped; services + component library open; attendance denied |
+| `kidscare` | — | `EDITPERSON`, `VIEWMYNOTES`, `VIEWATTENDANCE`, `EDITATTENDANCE` (no SMS perms) | congregation 3 (4pm Kids) | persons/attendance scoped; Messages view denied |
+| `6pmonly` | Nakia Lockman | everything except `PERM_SYSADMIN`-only views; has `PERM_VIEWSMS` | congregation **6pm** (id 4) | persons limited to 6pm; attendance cohorts limited to 6pm; User Accounts view denied |
+
+## How enforcement works (and therefore what the tests pin)
+
+- **Person/group visibility** is enforced by the `person` and `person_group` DB
+  views (`db_objects/person.class.php`, `db_objects/person_group.class.php`), keyed
+  off `account_congregation_restriction` / `account_group_restriction` and
+  `getCurrentUserID()`. Accounts with no restriction rows see everything —
+  permissions play no part in visibility. `noperms` exploits this: it must still be
+  denied every *action*.
+- **Congregation lists/choosers** are scoped by
+  `Congregation::getInstancesQueryComps()` via
+  `User_System::getCurrentRestrictions()`.
+- **Views** an account lacks the menu permission for are absent from
+  `$_SESSION['views']`, and the dispatcher (`include/system_controller.class.php`)
+  renders **"Error: Undefined view"** in `#body` — that string is what the tests
+  assert, plus a content-negative.
+- **`?call=` endpoints** are gated by the Z1/Z2 permission registry
+  (`Call::getRequiredPermissionLevel()`, enforced in `System_Controller::run()`);
+  denial renders a `Fatal Error (Exception)` banner with HTTP 500. The `noperms`
+  test fetches these via `page.request` because the fixtures' stack-trace guard
+  (`tests/functional/fixtures.ts`) fails any test whose *page* HTML contains that
+  banner — fetching the denial out-of-band is deliberate.
+
+## Security fixes these tests exercise
+
+- **Z1** (`kwsmxvkr`, "views missing permission overrides"): `rostersetter`
+  (no `PERM_EDITNOTE`) is denied `?view=_execute_plans`.
+- **Z2** (call permission registry): `noperms` is denied `?call=display_roster`.
+- The `PERM_VIEWSMS` gate on the Messages view (`view_3_persons__5_messages`) is
+  covered by `kidscare`; the S5 gate on `call_sms_info` is additionally covered by
+  the `sms-*` suites polling as a full-permission user. (A negative `sms_info`
+  check on the plain lookaround instance would be vacuous: `SMS_PROVIDER` is unset
+  there, so the provider-null branch returns empty for everyone.)
+
+## Adding a persona
+
+1. Add a `test()` to the "Role-based permission checks" describe block in
+   `tests/functional/lookaround/lookaround.spec.ts`.
+2. Before encoding assertions, probe the real behaviour as that user (e.g. with
+   `curl` + a login POST like `bin/jethrocurl` does) so the test pins observed
+   behaviour rather than assumptions.
