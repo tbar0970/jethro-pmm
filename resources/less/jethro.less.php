@@ -850,11 +850,11 @@ table.custom-field-tooltip {
 select, input, textarea,div.editor {
 	/* apply shrink-to-fit sizing rather than bootstrap's default 206px */
 	width: auto;
+	/* Constrain width to the containing box */
+	max-width: 100%;
 }
 
-.modal input, .modal select, .modal textarea, .modal .uneditable-input {
-	/* In modals the shink-to-fit size from the rule above is too wide. Constrain it to the containing box */
-	max-width: 100%;
+div.editor {
 	/* 'box-sizing: border-box' means max-width includes padding and
 	 * border. Without this, the padding + border makes the actual width exceed
 	 * 100% resulting in a scrollbar. Previously we had 'max-width: 97%' to avoid
