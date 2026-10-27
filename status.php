@@ -67,7 +67,9 @@ $result = [];
 
 // ── Raw observations ──
 if (SHOW_JETHRO_VERSION) $result['jethroversion'] = JETHRO_VERSION;
-$result['runtime_user'] = $_SERVER['USER'];
+$result['runtime_user'] = $_SERVER['USER']
+    ?? (function_exists('posix_geteuid') ? (posix_getpwuid(posix_geteuid())['name'] ?? null) : null)
+    ?? get_current_user();
 $result['max_input_vars'] = (int)ini_get('max_input_vars');
 $result['post_max_size'] = ini_get('post_max_size');
 $result['upload_max_filesize'] = ini_get('upload_max_filesize');
@@ -105,7 +107,8 @@ $result['xdebug_performance_impact'] = (extension_loaded('xdebug')
     ? "xdebug performance impact: mode=" . ini_get('xdebug.mode') . ", start_with_request=" . ini_get('xdebug.start_with_request')
     : false;
 
-$opcachestatus = opcache_get_status();
+// opcache_get_status() is undefined when the OPcache extension isn't loaded at all.
+$opcachestatus = function_exists('opcache_get_status') ? opcache_get_status() : false;
 $result['opcache_performance_impact'] = ($opcachestatus === false)
     ? "opcache is not enabled"
     : (($opcachestatus['jit']['on'] ?? false) ? "opcache JIT is enabled" : false);
