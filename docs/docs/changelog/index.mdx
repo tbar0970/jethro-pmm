@@ -8,6 +8,22 @@ This page tracks notable changes to Jethro.
 
 ## Version 2.39 (unreleased)
 
+### Search results page: live search
+
+The [search results page](../user-manual/search.mdx) now keeps the search box at the top of the page,
+and results update as you type (one character is not enough; the search starts at two). Changing
+"Search for..." re-runs the search too.
+
+Pressing Enter still works exactly as before, including jumping straight to the person, family or
+group when there is only one match. The header search box is hidden on the results page, since the
+page now has its own.
+
+A new **Search in...** option narrows the search to one kind of information: name, phone, email,
+address, contact remarks, or any custom field marked "Include in system-wide search". Address and
+contact remarks are now searched too: address matches the start of any word in a family's street,
+suburb or postcode; contact remarks match anywhere in the text. "Everything" searches all of these.
+People and families that match by name are listed before those that match on another field.
+
 ### Service Planning
 
 - **Editable service dates.** Dates in the service schedule are now editable
