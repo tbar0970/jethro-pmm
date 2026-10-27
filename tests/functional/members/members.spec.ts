@@ -116,9 +116,8 @@ test.describe("Members area with restricted staff visibility", () => {
 /**
  * A successful members login must redirect (Post/Redirect/Get), as the staff
  * login does.  Without the redirect the logged-in page is the response to the
- * login POST, so reloading or restoring the tab re-sends the email, password
- * and an old login_key.  Once the browser has dropped the session cookie that
- * replay fails with "Login form expired".
+ * login POST, so reloading or restoring the tab re-sends the email and
+ * password.
  */
 test.describe("Members login redirects after success", () => {
   async function submitLogin(page: Page, path: string): Promise<void> {
