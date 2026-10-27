@@ -85,7 +85,8 @@ $(document).ready(function() {
 	// Ability to click anywhere on a table row to activate the primary link.
 	// If a <a class="rowlink"> exists in the row, it takes priority;
 	// otherwise the first <a> in the row is used (backwards-compatible).
-	$('table.clickable-rows td').click(function(e) {
+	// Delegated, so rows replaced by a Datastar morph (e.g. live search results) keep working.
+	$(document).on('click', 'table.clickable-rows td', function(e) {
 		// Clicks landing on a modal-trigger link (Add Note / Send SMS) are
 		// handled by delegated handlers in jethro.js. Assigning self.location
 		// here would race that handler with a page load, defeating the modal
