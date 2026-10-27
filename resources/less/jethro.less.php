@@ -792,6 +792,23 @@ tr:last-child .insert-row-below {
 	padding: 0;
 	font-style: italic;
 }
+/* "Field: …matched text…" under a search result's name (View__Mixed_Search) */
+.search-match {
+	font-size: 12px;
+	line-height: 130%;
+	color: @gray;
+	padding-left: 2em;
+}
+/* "Other matches" heading separating name matches from matches on other fields (View__Mixed_Search) */
+.search-section {
+	margin-top: 1.5em;
+}
+.search-section-note {
+	font-size: 12px;
+	font-weight: normal;
+	color: @gray;
+	margin-left: 0.5em;
+}
 code {
 	color: @gray;
 }
