@@ -11,7 +11,8 @@
     "php85Extensions.curl@latest",
     "php85Extensions.exif@latest",
     "mariadb@latest",
-    "nginx@latest"
+    "nginx@latest",
+    "bun@latest"
   ],
   "env": {
     "FUNCTEST_WEB_PORT":      "8089",
