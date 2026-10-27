@@ -112,3 +112,47 @@ test.describe("Members area with restricted staff visibility", () => {
     await expect(page.locator("#body")).toContainText("Planned absence saved");
   });
 });
+
+/**
+ * A successful members login must redirect (Post/Redirect/Get), as the staff
+ * login does.  Without the redirect the logged-in page is the response to the
+ * login POST, so reloading or restoring the tab re-sends the email, password
+ * and an old login_key.  Once the browser has dropped the session cookie that
+ * replay fails with "Login form expired".
+ */
+test.describe("Members login redirects after success", () => {
+  async function submitLogin(page: Page, path: string): Promise<void> {
+    await page.goto(path);
+    const loginBox = page.locator("#login-box");
+    await loginBox.locator('input[name="email"]').fill(MEMBER_EMAIL);
+    await loginBox.locator('input[name="password"]').fill(MEMBER_PASSWORD);
+    await Promise.all([
+      page.waitForURL(/view=/, { waitUntil: "load", timeout: to(5000) }),
+      loginBox.locator('input[name="login-request"]').click(),
+    ]);
+    await expect(page.locator("#login-box")).toHaveCount(0);
+  }
+
+  test("lands on the requested page, and reloading it is a plain GET", async ({ page }) => {
+    await submitLogin(page, "./?view=rosters");
+    expect(new URL(page.url()).searchParams.get("view")).toBe("rosters");
+
+    const [reload] = await Promise.all([
+      page.waitForRequest((r) => r.isNavigationRequest()),
+      page.reload(),
+    ]);
+    expect(reload.method()).toBe("GET");
+    await expect(page.locator("#login-box")).toHaveCount(0);
+  });
+
+  test("reloading after the session cookie is lost shows a clean login form", async ({ page }) => {
+    await submitLogin(page, "./?view=home");
+    // As when a phone discards the browser-session cookie overnight.
+    await page.context().clearCookies();
+    await page.reload();
+
+    const loginBox = page.locator("#login-box");
+    await expect(loginBox).toBeVisible();
+    await expect(loginBox.locator(".alert-error")).toHaveCount(0);
+  });
+});
