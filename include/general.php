@@ -817,21 +817,52 @@ function get_url_pathprefix()
 }
 
 /**
+ * The scheme + host of the current request, e.g. "https://church.org".
+ *
+ * Security (finding A5): X-Forwarded-Proto/X-Forwarded-Host are CLIENT-CONTROLLED.
+ * Trusting them lets a crafted request make Jethro build absolute URLs (member
+ * activation/reset links, 2FA verify links) pointing at an attacker's host, which
+ * leaks reset hashes / verify tokens. They are therefore ignored unless the
+ * TRUST_X_FORWARDED_HEADERS config constant is defined.
+ *
+ * When the ALLOWED_HOSTS config constant is defined (pipe-separated hostnames),
+ * the request Host header must be on the list; anything else falls back to
+ * SERVER_NAME. Deployments should set ALLOWED_HOSTS so poisoned Host headers
+ * cannot redirect system-generated links to attacker hosts.
+ *
+ * @return string e.g. "https://church.org" — no trailing slash, no path.
+ */
+function request_scheme_and_host(): string
+{
+    $trust_forwarded = defined('TRUST_X_FORWARDED_HEADERS') && TRUST_X_FORWARDED_HEADERS;
+
+    $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)
+        || ($trust_forwarded && isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+    $scheme = $https ? 'https' : 'http';
+
+    $host = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? '';
+    if ($trust_forwarded && !empty($_SERVER['HTTP_X_FORWARDED_HOST'])) {
+        $host = $_SERVER['HTTP_X_FORWARDED_HOST'];
+    }
+    if (defined('ALLOWED_HOSTS') && strlen(ALLOWED_HOSTS)) {
+        $allowed = array_map('strtolower', array_map('trim', explode('|', ALLOWED_HOSTS)));
+        if (!in_array(strtolower((string)$host), $allowed, true)) {
+            $host = $_SERVER['SERVER_NAME'] ?? '';
+        }
+    }
+    return $scheme . '://' . $host;
+}
+
+/**
  * Infer Jethro's absolute base URL from the request (scheme + host + path).
  * Returns e.g. "https://church.org/jethro" — no trailing slash.
- * Proxy-aware: respects X-Forwarded-Proto and X-Forwarded-Host.
+ * The scheme/host rules are documented on request_scheme_and_host().
  */
 function baseurl_absolute()
 {
-    $https = (
-        (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
-        (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443) ||
-        (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
-    );
-    $scheme = $https ? 'https' : 'http';
-    $host = $_SERVER['HTTP_X_FORWARDED_HOST'] ?? $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'];
     $scriptDir = baseurl_relative();
-    return $scheme . '://' . $host . ($scriptDir !== '' ? $scriptDir : '');
+    return request_scheme_and_host() . ($scriptDir !== '' ? $scriptDir : '');
 }
 
 function speed_log($bam=FALSE)
