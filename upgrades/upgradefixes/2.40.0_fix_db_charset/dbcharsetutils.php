@@ -16,10 +16,12 @@
  * Latin1 tables get special treatment: they may contain raw UTF-8 bytes (a
  * side-effect of PHP < 5.3.6 ignoring charset=utf8 in the PDO DSN). A plain
  * CONVERT TO CHARACTER SET would double-encode and corrupt them, so fix()
- * validates all rows then uses a BLOB detour: CONVERT TO binary (strips charset,
+ * scans every row, then uses a BLOB detour: CONVERT TO binary (strips charset,
  * preserves bytes), then CONVERT TO utf8mb4 (reinterprets bytes as utf8mb4).
- * A pre-flight detector (detectLatin1UTF8Bytes) samples columns to warn about
- * this situation.
+ * Tables that mix raw UTF-8 with genuine latin1 bytes have the latin1 bytes
+ * transcoded to UTF-8 first, because neither whole-table strategy is safe for
+ * them. A pre-flight detector (detectLatin1UTF8Bytes) samples columns to warn
+ * about this situation.
  *
  * The conversion is lossless for every character representable in utf8mb3 (the
  * Basic Multilingual Plane); 4-byte characters could not be stored in utf8mb3
@@ -204,12 +206,13 @@ class DB_Charset_Utils
 		}
 
 		// Open a temporary latin1 connection to read raw bytes.
-		$rawDb = self::_openRawConnection('latin1');
+		$rawErr = null;
+		$rawDb = self::_openRawConnection('latin1', $rawErr);
 		if ($rawDb === null) {
 			return Array(
 				'risky_columns' => Array(),
 				'risky' => false,
-				'error' => 'Could not open latin1 connection for byte inspection.',
+				'error' => 'Could not open latin1 connection for byte inspection'.($rawErr ? ': '.$rawErr : '.'),
 			);
 		}
 
@@ -429,9 +432,12 @@ class DB_Charset_Utils
 	 * automatic charset conversion.
 	 *
 	 * @param string $charset Connection charset (e.g. 'latin1').
+	 * @param string|null &$error Filled with the PDO error message when the
+	 *     return value is null, so callers can surface a useful diagnostic
+	 *     instead of a bare "could not open" message.
 	 * @return PDO|null PDO connection, or null on failure.
 	 */
-	private static function _openRawConnection($charset)
+	private static function _openRawConnection($charset, &$error = null)
 	{
 		// Reuse the app's configured DSN when one is defined (eg the
 		// unix-socket connections used by devbox/docker), swapping in the raw
@@ -453,6 +459,7 @@ class DB_Charset_Utils
 				PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
 			));
 		} catch (Exception $e) {
+			$error = $e->getMessage();
 			return null;
 		}
 	}
@@ -531,49 +538,140 @@ class DB_Charset_Utils
 	}
 
 	/**
-	 * Validate that every row in every latin1 text column of a table
-	 * contains valid UTF-8 bytes. Used as a gate before the BLOB-detour
-	 * ALTER — if any row has genuine latin1 bytes, the BLOB-detour
-	 * would fail or corrupt.
+	 * Get the primary key columns of a table, in key order.
 	 *
-	 * @param PDO $rawDb A latin1-charset PDO connection.
 	 * @param string $tbl Table name.
-	 * @return array<int, string> Error messages; empty if all rows pass.
+	 * @return array<int, string> Column names; empty if the table has no primary key.
 	 */
-	private static function _validateTableAllRowsUTF8($rawDb, $tbl)
+	private static function _getPrimaryKeyColumns($tbl)
 	{
-		$errors = Array();
-		$columns = self::_getLatin1TextColumns($tbl);
+		$db = $GLOBALS['db'];
+		return $db->queryCol(
+			"SELECT COLUMN_NAME
+			 FROM information_schema.KEY_COLUMN_USAGE
+			 WHERE TABLE_SCHEMA = DATABASE()
+			   AND TABLE_NAME = ".$db->quote($tbl)."
+			   AND CONSTRAINT_NAME = 'PRIMARY'
+			 ORDER BY ORDINAL_POSITION"
+		);
+	}
 
-		foreach ($columns as $col) {
-			$badSamples = Array();
-			$badCount = 0;
-			$maxBadSamples = 3;
+	/**
+	 * Classify every latin1 text column in a table by its raw bytes.
+	 *
+	 * A column can contain:
+	 *   - invalid UTF-8 ("genuine latin1"): bytes like 0x97 from a cp1252
+	 *     connection. CONVERT TO CHARACTER SET maps these correctly.
+	 *   - valid non-ASCII UTF-8 ("raw UTF-8"): multi-byte sequences stored
+	 *     as bytes by the PHP < 5.3.6 bug. CONVERT TO CHARACTER SET would
+	 *     double-encode these.
+	 *
+	 * A table with both needs mixed handling; a table with only raw UTF-8
+	 * takes the BLOB detour directly; a table with only genuine latin1 takes
+	 * a plain CONVERT.
+	 *
+	 * @param PDO $rawDb A latin1-charset PDO connection (returns bytes as stored).
+	 * @param string $tbl Table name.
+	 * @return array{invalid: bool, raw_utf8: bool, columns: array<string, array{invalid: bool, raw_utf8: bool}>}
+	 */
+	private static function _scanLatin1TableBytes($rawDb, $tbl)
+	{
+		$result = Array('invalid' => FALSE, 'raw_utf8' => FALSE, 'columns' => Array());
 
+		foreach (self::_getLatin1TextColumns($tbl) as $col) {
+			$flags = Array('invalid' => FALSE, 'raw_utf8' => FALSE);
 			$stmt = $rawDb->prepare(
 				"SELECT `".$col."` FROM `".$tbl."` WHERE `".$col."` IS NOT NULL AND `".$col."` <> ''"
 			);
 			$stmt->execute();
 
-			while (($row = $stmt->fetch(PDO::FETCH_NUM)) !== false) {
-				$value = $row[0];
-				if ($value === null || $value === '') continue;
+			while (($value = $stmt->fetchColumn()) !== false) {
+				if (!is_string($value) || $value === '') continue;
 
-				if (!self::_isValidUTF8($value)) {
-					$badCount++;
-					if (count($badSamples) < $maxBadSamples) {
-						$badSamples[] = self::_hexSample($value, 40);
+				if (self::_isValidUTF8($value)) {
+					// ASCII is valid UTF-8 too, so only flag non-ASCII bytes.
+					if (preg_match('/[\x80-\xFF]/', $value)) {
+						$flags['raw_utf8'] = TRUE;
 					}
+				} else {
+					$flags['invalid'] = TRUE;
 				}
+
+				if ($flags['invalid'] && $flags['raw_utf8']) break;
 			}
 			$stmt->closeCursor();
 
-			if ($badCount > 0) {
-				$msg = $col.': '.$badCount.' row(s) contain invalid UTF-8 bytes';
-				if ($badSamples) {
-					$msg .= ' (samples: '.implode(', ', $badSamples).')';
+			$result['columns'][$col] = $flags;
+			$result['invalid'] = $result['invalid'] || $flags['invalid'];
+			$result['raw_utf8'] = $result['raw_utf8'] || $flags['raw_utf8'];
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Convert genuine-latin1 bytes to UTF-8 bytes in place, in preparation for
+	 * the BLOB detour.
+	 *
+	 * Only used on tables that also contain raw UTF-8: a plain
+	 * CONVERT TO CHARACTER SET would double-encode the raw UTF-8 values, while
+	 * the BLOB detour alone would mangle the genuine-latin1 ones. After this
+	 * pass every value is stored as UTF-8 bytes, so the BLOB detour can
+	 * reinterpret the whole table without loss.
+	 *
+	 * Columns with no raw UTF-8 are transcoded in a single UPDATE. Columns
+	 * that mix both are fixed row by row (the only reliable discriminator),
+	 * which requires a primary key.
+	 *
+	 * @param PDO $rawDb A latin1-charset PDO connection.
+	 * @param string $tbl Table name.
+	 * @param array<string, array{invalid: bool, raw_utf8: bool}> $columnFlags Output of _scanLatin1TableBytes().
+	 * @return array<int, string> Error messages; empty on success.
+	 */
+	private static function _normaliseMixedLatin1Table($rawDb, $tbl, $columnFlags)
+	{
+		$errors = Array();
+		$pk = null;
+
+		foreach ($columnFlags as $col => $flags) {
+			if (!$flags['invalid']) continue;
+
+			if (!$flags['raw_utf8']) {
+				// No raw UTF-8 here: transcode every value in one pass.
+				// CAST(... AS BINARY) stores the resulting UTF-8 bytes in the
+				// latin1 column; the BLOB detour reinterprets them later.
+				$rawDb->exec(
+					"UPDATE `".$tbl."` SET `".$col."` = CAST(CONVERT(`".$col."` USING utf8mb4) AS BINARY)"
+				);
+				continue;
+			}
+
+			// Mixed within the column: repair only rows whose bytes are invalid.
+			if ($pk === null) {
+				$pk = self::_getPrimaryKeyColumns($tbl);
+			}
+			if (empty($pk)) {
+				$errors[] = $tbl.': column '.$col.' mixes raw UTF-8 and latin1 bytes, and the table has no primary key; cannot convert safely.';
+				return $errors;
+			}
+
+			$stmt = $rawDb->prepare(
+				"SELECT `".implode('`, `', $pk)."`, `".$col."` FROM `".$tbl."` WHERE `".$col."` IS NOT NULL AND `".$col."` <> ''"
+			);
+			$stmt->execute();
+			$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+			$stmt->closeCursor();
+
+			foreach ($rows as $row) {
+				if (self::_isValidUTF8($row[$col])) continue;
+
+				$where = Array();
+				foreach ($pk as $key) {
+					$where[] = '`'.$key.'` = '.$rawDb->quote($row[$key]);
 				}
-				$errors[] = $msg;
+				$rawDb->exec(
+					"UPDATE `".$tbl."` SET `".$col."` = CAST(CONVERT(`".$col."` USING utf8mb4) AS BINARY) WHERE ".implode(' AND ', $where)
+				);
 			}
 		}
 
@@ -609,19 +707,43 @@ class DB_Charset_Utils
 			}
 		}
 
-		// Fix latin1 tables via BLOB detour, after full-row validation.
+		// Fix latin1 tables: raw UTF-8 is preserved via a BLOB detour, genuine
+		// latin1 via a plain CONVERT, and mixed tables are normalised first.
 		if ($latin1Tables) {
-			$rawDb = self::_openRawConnection('latin1');
+			$rawErr = null;
+			$rawDb = self::_openRawConnection('latin1', $rawErr);
 			if ($rawDb === null) {
-				$result['errors'][] = 'Could not open latin1 connection for validation — skipping '.count($latin1Tables).' latin1 table(s).';
+				$result['errors'][] = 'Could not open latin1 connection for byte inspection'.($rawErr ? ': '.$rawErr : '').' — skipping '.count($latin1Tables).' latin1 table(s).';
 			} else {
 				foreach ($latin1Tables as $t) {
-					$validationErrors = self::_validateTableAllRowsUTF8($rawDb, $t['name']);
-					if ($validationErrors) {
-						foreach ($validationErrors as $err) {
-							$result['errors'][] = $t['name'].': '.$err.' — table not converted.';
+					$scan = self::_scanLatin1TableBytes($rawDb, $t['name']);
+
+					if ($scan['invalid'] && $scan['raw_utf8']) {
+						// Mixed table: plain CONVERT would double-encode the
+						// raw-UTF-8 values, and the BLOB detour would mangle the
+						// genuine-latin1 ones. Transcode the latin1 bytes to
+						// UTF-8 first, then BLOB-detour the whole table.
+						try {
+							$normaliseErrors = self::_normaliseMixedLatin1Table($rawDb, $t['name'], $scan['columns']);
+						} catch (Exception $e) {
+							$normaliseErrors = Array($t['name'].': '.$e->getMessage());
 						}
-						continue;
+						if ($normaliseErrors) {
+							foreach ($normaliseErrors as $err) {
+								$result['errors'][] = $err;
+							}
+							// Do not fall back to a plain CONVERT: some columns may
+							// already hold normalised UTF-8 bytes, which it would
+							// double-encode. The table stays latin1 for a later retry.
+							continue;
+						}
+						$needsBlobDetour = TRUE;
+					} elseif ($scan['invalid']) {
+						// Genuine latin1 only: a plain CONVERT is lossless.
+						$needsBlobDetour = FALSE;
+					} else {
+						// Raw UTF-8 (or ASCII) only: preserve the bytes.
+						$needsBlobDetour = TRUE;
 					}
 
 					// Snapshot column types before binary conversion —
@@ -630,42 +752,54 @@ class DB_Charset_Utils
 					// on binary-typed columns, so we must MODIFY each column
 					// back individually.
 					$columnDefs = self::_getLatin1ColumnDefinitions($t['name']);
-					$extra = $t['needs_dynamic'] ? ', ROW_FORMAT=DYNAMIC' : '';
-					try {
-						$db->exec('ALTER TABLE `'.$t['name'].'` CONVERT TO CHARACTER SET binary');
-						$modifyParts = Array();
-						foreach ($columnDefs as $cd) {
-							$modifyParts[] = 'MODIFY `'.$cd['name'].'` '.$cd['type']
-								.' CHARACTER SET '.self::TARGET_CHARSET.' COLLATE '.self::TARGET_COLLATION
-								.($cd['trailing'] ? ' '.$cd['trailing'] : '');
-						}
-						$db->exec('ALTER TABLE `'.$t['name'].'` '.implode(', ', $modifyParts).$extra);
-						// Set the table default charset back from binary to utf8mb4.
-						// The MODIFY above fixes columns; this fixes the TABLE_COLLATION.
-						$db->exec('ALTER TABLE `'.$t['name'].'` DEFAULT CHARACTER SET '.self::TARGET_CHARSET.' COLLATE '.self::TARGET_COLLATION);
-						$result['converted'][] = $t['name'];
-					} catch (Exception $e) {
-						// If the binary→utf8mb4 conversion fails, the table
-						// is left in a binary state. Roll back each column
-						// to its original latin1 type via explicit MODIFY
-						// (CONVERT TO CHARACTER SET is a no-op on binary columns).
+					if ($needsBlobDetour) {
+						$extra = $t['needs_dynamic'] ? ', ROW_FORMAT=DYNAMIC' : '';
 						try {
-							$origCollation = $t['collation'];
-							$origCharset = explode('_', $origCollation)[0];
+							$db->exec('ALTER TABLE `'.$t['name'].'` CONVERT TO CHARACTER SET binary');
 							$modifyParts = Array();
 							foreach ($columnDefs as $cd) {
 								$modifyParts[] = 'MODIFY `'.$cd['name'].'` '.$cd['type']
-									.' CHARACTER SET '.$origCharset.' COLLATE '.$origCollation
+									.' CHARACTER SET '.self::TARGET_CHARSET.' COLLATE '.self::TARGET_COLLATION
 									.($cd['trailing'] ? ' '.$cd['trailing'] : '');
 							}
-							$db->exec('ALTER TABLE `'.$t['name'].'` '.implode(', ', $modifyParts));
-							$db->exec('ALTER TABLE `'.$t['name'].'` DEFAULT CHARACTER SET '.$origCharset.' COLLATE '.$origCollation);
-						} catch (Exception $rollbackError) {
-							// Rollback failed — table may be stuck as binary.
-							$result['errors'][] = $t['name'].': '.$e->getMessage().' (rollback also failed: '.$rollbackError->getMessage().')';
-							continue;
+							$db->exec('ALTER TABLE `'.$t['name'].'` '.implode(', ', $modifyParts).$extra);
+							// Set the table default charset back from binary to utf8mb4.
+							// The MODIFY above fixes columns; this fixes the TABLE_COLLATION.
+							$db->exec('ALTER TABLE `'.$t['name'].'` DEFAULT CHARACTER SET '.self::TARGET_CHARSET.' COLLATE '.self::TARGET_COLLATION);
+							$result['converted'][] = $t['name'];
+						} catch (Exception $e) {
+							// If the binary→utf8mb4 conversion fails, the table
+							// is left in a binary state. Roll back each column
+							// to its original latin1 type via explicit MODIFY
+							// (CONVERT TO CHARACTER SET is a no-op on binary columns).
+							try {
+								$origCollation = $t['collation'];
+								$origCharset = explode('_', $origCollation)[0];
+								$modifyParts = Array();
+								foreach ($columnDefs as $cd) {
+									$modifyParts[] = 'MODIFY `'.$cd['name'].'` '.$cd['type']
+										.' CHARACTER SET '.$origCharset.' COLLATE '.$origCollation
+										.($cd['trailing'] ? ' '.$cd['trailing'] : '');
+								}
+								$db->exec('ALTER TABLE `'.$t['name'].'` '.implode(', ', $modifyParts));
+								$db->exec('ALTER TABLE `'.$t['name'].'` DEFAULT CHARACTER SET '.$origCharset.' COLLATE '.$origCollation);
+							} catch (Exception $rollbackError) {
+								// Rollback failed — table may be stuck as binary.
+								$result['errors'][] = $t['name'].': '.$e->getMessage().' (rollback also failed: '.$rollbackError->getMessage().')';
+								continue;
+							}
+							$result['errors'][] = $t['name'].': '.$e->getMessage().' (rolled back to '.$t['collation'].')';
 						}
-						$result['errors'][] = $t['name'].': '.$e->getMessage().' (rolled back to '.$t['collation'].')';
+					} else {
+						// Genuine latin1 data: plain CONVERT TO CHARACTER SET
+						// maps cp1252 bytes to their utf8mb4 equivalents.
+						$extra = $t['needs_dynamic'] ? ', ROW_FORMAT=DYNAMIC' : '';
+						try {
+							$db->exec('ALTER TABLE `'.$t['name'].'` CONVERT TO CHARACTER SET '.self::TARGET_CHARSET.' COLLATE '.self::TARGET_COLLATION.$extra);
+							$result['converted'][] = $t['name'];
+						} catch (Exception $e) {
+							$result['errors'][] = $t['name'].': '.$e->getMessage();
+						}
 					}
 				}
 				$rawDb = null;

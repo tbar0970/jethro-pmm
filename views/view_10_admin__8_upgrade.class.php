@@ -79,7 +79,8 @@ class View_Admin__Upgrade extends View
 				<p><strong>Fix database charset</strong> will handle this safely using a BLOB-detour method:
 				<code>CONVERT TO binary</code> (strips the charset, preserves bytes) followed by
 				<code>CONVERT TO utf8mb4</code> (reinterprets the preserved bytes as utf8mb4).
-				All rows are validated first — any with invalid UTF-8 bytes will be reported and skipped.</p>
+				All rows are scanned first; genuine latin1 bytes are transcoded to UTF-8, so tables
+				that mix both encodings are converted without double-encoding either.</p>
 				<p><strong>Affected columns:</strong></p>
 				<table class="table table-striped table-condensed table-min-width">
 					<tr><th>Table</th><th>Column</th><th>UTF-8 sequences</th><th>Sample (hex)</th></tr>

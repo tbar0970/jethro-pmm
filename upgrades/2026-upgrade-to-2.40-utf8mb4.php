@@ -27,8 +27,10 @@
  * - Latin1 tables that contain raw UTF-8 bytes (from PHP < 5.3.6 era or
  *   misconfigured connections) are handled safely via a BLOB detour:
  *   CONVERT TO binary preserves bytes, then MODIFY cols to utf8mb4
- *   reinterprets them without double-encoding. This matches the Admin
- *   dashboard path (view_10_admin__8_upgrade.class.php → DB_Charset_Utils::fix()).
+ *   reinterprets them without double-encoding. Tables that also contain
+ *   genuine latin1 bytes have those transcoded to UTF-8 first. This matches
+ *   the Admin dashboard path (view_10_admin__8_upgrade.class.php →
+ *   DB_Charset_Utils::fix()).
  */
 
 if ((php_sapi_name() !== 'cli') && !defined('STDIN')) {
