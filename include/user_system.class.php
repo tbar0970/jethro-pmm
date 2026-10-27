@@ -20,8 +20,11 @@ class User_System extends Abstract_User_System
 			$this->_logOut();
 		} else if (empty($_SESSION['user']) && !empty($_POST['username'])) {
 			// process the login form
-			if (array_get($_SESSION, 'login_key', NULL) != $_POST['login_key']) {
-				$this->_error = 'Login form expired.  Please try again.';
+			if (!request_origin_is_proven_current()) {
+				// Not a browser POST from a Jethro page (typically a scanner): refuse
+				// before the password check. See docs/docs/developer/reference/request-origin-protection.mdx
+				log_unproven_login_origin('staff');
+				$this->_error = 'Your browser did not confirm this login came from this site. Please try again.';
 				return;
 			}
 			$user_details = $this->_findUser($_POST['username'], $_POST['password']);
@@ -50,10 +53,18 @@ class User_System extends Abstract_User_System
 				if ($go_ahead) {
 					// Found a user, nothing further required, so do the business to make them the logged-in user.
 					$this->_logUserIn($user_details);
+				} else {
+					// The 2FA or password-upgrade form comes next (or an error message, from
+					// add_message()). Redirect so the browser's history holds a GET, not a
+					// POST that would re-send the password and another SMS code on reload.
+					session_write_close();
+					header('Location: '.build_url(Array()), true, 303);
+					exit;
 				}
 			}
-		} else if (!empty($_SESSION['2fa']['pending_user'])) {
-			// We are processing a 2FA code
+		} else if (!empty($_SESSION['2fa']['pending_user']) && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+			// We are processing a 2FA code. GETs (including the redirect after the
+			// login POST) fall through to printLogin(), which shows the 2FA form.
 			if ($_SESSION['2fa']['expiry'] < time()) {
 				add_message('SMS-code form has expired. Please try again.', 'warning');
 				$this->_reset2FA();
@@ -80,8 +91,9 @@ class User_System extends Abstract_User_System
 				}
 			}
 
-		} else if (!empty($_SESSION['user_requiring_password_upgrade'])) {
-			// We are processing a password upgrade.
+		} else if (!empty($_SESSION['user_requiring_password_upgrade']) && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+			// We are processing a password upgrade. GETs fall through to
+			// printLogin(), which shows the password-upgrade form.
 			if ($_SESSION['password_upgrade_expiry'] < time()) {
 				unset($_SESSION['user_requiring_password_upgrade']);
 				return;
@@ -274,7 +286,6 @@ class User_System extends Abstract_User_System
 			}
 		}
 
-		$_SESSION['login_key'] = $login_key = generate_random_string(32);
 		require TEMPLATE_DIR.'/login_form.template.php';
 
 	}//end printLogin()

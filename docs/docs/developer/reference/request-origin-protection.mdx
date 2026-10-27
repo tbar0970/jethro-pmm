@@ -15,26 +15,30 @@ Jethro has no general application-level CSRF middleware. Before this check the
 only request-forgery controls were:
 
 - the session cookie's `SameSite=Lax` attribute, set in `include/init.php`;
-- a `login_key` token on the staff and member login forms;
-- an `enter_attendance_token` synchronizer token on the attendance form.
+- session-stored synchronizer tokens on a few forms: `login_key` (staff and
+  member login), `person_form_token` (person edit form) and
+  `enter_attendance_token` (attendance form).
 
 That leaves gaps:
 
 - `SameSite=Lax` does not stop same-site requests. `jethro.church.org` and
   `www.church.org` are same-site with another.
 - Browsers that do not implement `SameSite` (or deployments that relax the
-  cookie) allow cross-site form posts to edit persons, groups, rosters,
-  services, SMS settings, and so on.
-- The attendance token is not a standalone CSRF control. It lives in
-  `$_SESSION` and is minted with `md5(time())`, so it is predictable, and any
-  login regenerates the session and wipes it. The old unguarded read also
-  raised `Undefined array key` when a stale form was posted after a login,
-  producing a 500 and an error email instead of a recoverable outcome.
+  cookie) allow cross-site form posts to edit groups, rosters, services, SMS
+  settings, and so on.
+- Session-stored tokens break whenever the session is not available when the
+  form is rendered or posted: after a login regenerated the session, after the
+  browser dropped the cookie, or when the form is shown in a cross-site iframe
+  (the `SameSite=Lax` cookie is not stored there, so every first login attempt
+  from an embedded member login form failed with "Login form expired").
 
 An attacker page can auto-submit a form to a Jethro URL. Where the cookie is
 still sent (no/relaxed `SameSite`, or a same-site origin), the request is
 indistinguishable from a normal POST and Jethro applies the change without any
 token check.
+
+The origin check covers every unsafe request, so the per-form CSRF tokens have
+been removed. `enter_attendance_token` stays, as a duplicate-submit guard only.
 
 ## What the header does
 
@@ -60,7 +64,7 @@ not accepted.
 | Same methods, `same-site` / `cross-site` / `none` | **403**, logged and exited before dispatch |
 | Header absent, `Origin` present | Allowed only if `Origin` matches the request's scheme and host |
 | Header absent, `Origin` absent, `Referer` present | Allowed only if `Referer`'s origin matches |
-| No header, no `Origin`, no `Referer` | Allowed — legacy path (CLI, curl, old browsers); rely on `SameSite=Lax` and per-form tokens |
+| No header, no `Origin`, no `Referer` | Allowed — legacy path (CLI, curl, old browsers); relies on `SameSite=Lax` |
 
 `request_origin_verdict()` holds the policy and `urls_have_same_origin()` does
 the scheme/host/port comparison (default ports normalised). Both are pure and
@@ -69,18 +73,63 @@ unit-tested.
 A rejection is a plain `403` plus an `error_log()` line. It is not an
 application error: no stacktrace, no 500, no email.
 
+## Login POSTs
+
+The staff and member login handlers apply a stricter check before looking at
+the password: `request_origin_is_proven()` must be TRUE, meaning
+`Sec-Fetch-Site: same-origin`, or (header absent) an `Origin` that matches.
+`Referer` is not accepted, and a request with no signal is refused. Refusals
+re-show the login form with an error and write an `error_log()` line.
+
+This replaces the cheap bot filter that `login_key` used to provide. In
+production access logs (which record `Referer` but not `Origin` or
+`Sec-Fetch-Site`), about half of scanner login POSTs sent no `Referer` and the
+rest forged a same-host `Referer`. All would have reached the password check
+under the general rule above. Their user agents (proof-of-concept scripts,
+`WordPress/6.4.3`) are non-browser clients that are not expected to send
+`Origin`, so this check should refuse them; that is not measured. A client that
+sends a forged `Origin` still gets through, as one that fetched the form first
+got past `login_key`; rate limiting is the defence there.
+
+Browsers that send neither header on a form POST cannot log in. Current
+Chrome, Firefox and Safari send `Origin` on every form POST.
+
+A login POST that logs the user in, or that leads to the 2FA or
+password-upgrade form, ends in a `303` redirect. The browser's history therefore
+never holds a POST that would re-send the password on reload or tab restore.
+(A correct 2FA code is the exception: when a password upgrade is still pending,
+the upgrade form is the response to that POST.) The 2FA and password-upgrade
+handlers only act on POSTs; a GET shows the pending form.
+
 ## Attendance form
 
-`views/view_6_attendance__1_record.class.php` still uses
-`enter_attendance_token` as a one-time duplicate-submit guard:
+`views/view_6_attendance__1_record.class.php` keeps `enter_attendance_token`
+as a one-time duplicate-submit guard. It is not a CSRF control:
 
 - token present in the session and matching → process;
-- token present but not matching → existing duplicate-submit message (e.g. a
-  double click, or a second tab);
-- token **absent** from the session and the request is same-origin → process.
-  This is the stale-form-after-login case: the session was regenerated while
-  the form was open. The read uses `array_key_exists()` + `hash_equals()`, so it
-  no longer emits a warning when the key is missing.
+- token consumed (`NULL`) or not matching → existing duplicate-submit message
+  (e.g. a double click, or a second tab);
+- token key **absent** from the session, and the request is a same-origin POST
+  → process. This is the stale-form-after-login case: the session was
+  regenerated while the form was open. The read uses `array_key_exists()` +
+  `hash_equals()`, so it no longer emits a warning when the key is missing.
+  Anything else with no session token (a GET, a cross-origin request, or one
+  with no provenance signal) gets the duplicate-submit message: the view reads
+  `$_REQUEST`, so without this condition a plain link could submit an empty
+  attendance set and `save()` would delete that cohort's records for the date.
+
+## Embedding in an iframe
+
+Jethro sends no `X-Frame-Options` or `frame-ancestors`, so a church website can
+show the member login in an iframe, e.g.
+`<iframe src="https://jethro.example.org/members/">`. The member login
+form posts with `target="_top"`. That POST is initiated by the framed Jethro
+document, so the browser labels it `Sec-Fetch-Site: same-origin` (the value
+ignores frame ancestors) and it is accepted. The response is a top-level page,
+where the session cookie is stored normally.
+
+A login form copied into the church's own page and posting to Jethro is
+`cross-site` and is rejected.
 
 ## Caveats
 
@@ -94,9 +143,11 @@ application error: no stacktrace, no 500, no email.
 - **Non-browser clients.** curl, scripts, and server-to-server webhooks do not
   send the header and are unaffected. Do not treat this check as
   authentication or authorization.
-- **Not a duplicate guard.** Letting a same-origin request through defeats a
-  token whose only job is "process once"; keep one-time-submission guards
-  separate from provenance checks.
+- **Not a duplicate guard.** Same-origin requests pass however often they are
+  sent; keep one-time-submission guards separate from provenance checks.
+- **Not a clickjacking defence.** A form inside a framed Jethro page posts as
+  `same-origin`. Logged-in pages are protected in a cross-site frame only
+  because the `SameSite=Lax` session cookie is not sent there.
 
 ## Testing
 
