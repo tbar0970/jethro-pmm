@@ -1,0 +1,97 @@
+---
+sidebar_position: 7
+sidebar_label: System-Wide Search
+---
+
+# System-Wide Search
+
+System-wide search finds persons, families, groups and reports from one search box.
+
+## Where to search
+
+- **Home page**: the search box at the top.
+- **Any other page**: the small search box in the header, next to the Jethro logo.
+- **Search results page**: the *System-Wide Search* box at the top of the results. Results update
+  as you type, so you can refine a search without pressing Enter.
+
+When you type into the search results page, results start appearing once you have typed **two
+characters**. Clearing the box clears the results. The address bar keeps up with what you type, so
+reloading the page or pressing Back keeps your search.
+
+**Pressing Enter** runs the search as a normal page load. If it finds exactly one thing, Jethro
+goes straight to that person, family, group or report instead of showing a list. Typing
+without pressing Enter never leaves the results page.
+
+## Search for...
+
+Open **Search for...** under the search box to choose what kind of record to find:
+
+| Choice | Finds |
+|---|---|
+| everything | all of the below |
+| families | families |
+| persons | persons |
+| groups | groups |
+| reports | reports that are shared, or that you own |
+
+## Search in...
+
+Open **Search in...** to choose which information to look in. *Everything* looks in all of them.
+
+| Choice | Looks in | How it matches | Finds |
+|---|---|---|---|
+| everything | all of the below | as below | everything |
+| name | person first, last and full name; family name; group and report names | start of any word | persons, families, groups, reports |
+| phone | mobile and work phone (persons), home phone (families) | the whole number exactly | persons, families |
+| email | email address | the whole address exactly | persons |
+| address | family street, suburb and postcode | start of any word | families |
+| contact remarks | a person's contact remarks | anywhere in the text | persons |
+| *a custom field* | that custom field | start of any word | persons |
+
+**How matching works:**
+
+- **Start of any word**: `hill` finds "12 Hill St" and "Hillcrest Rd", but not "Churchill Ave".
+  `21` finds postcodes 2150 and 2155. Capitals don't matter.
+- **Anywhere in the text**: `diabet` finds "pre-diabetic" and "Diabetic, carries insulin".
+- **Exactly**: a phone number must be complete. Spaces and other punctuation are ignored, so
+  `0491 570 157` finds `0491570157`, and a number starting with the international prefix (e.g.
+  `+61`) is matched in its local form. A partial number such as `0491` finds no phone numbers.
+- With *everything*, a search made of digits is first tried as a phone number. Only if no person or
+  family has that exact number are names and the other information searched.
+
+Only custom fields marked **Include in system-wide search** (in *Admin → Custom Fields*) are
+searched, and each one appears as its own *Search in* choice. Only text custom fields can be marked
+this way.
+
+Some combinations can never match, such as *Search for: groups* with *Search in: address*. These
+simply show "No results were found".
+
+## Results
+
+Results are listed in this order:
+
+1. Groups and reports whose names match.
+2. **Name matches**: persons and families whose names match. A family whose name matches is shown
+   with its matching members indented beneath it.
+3. **Persons that matched on other information**: phone, email, contact remarks or a custom field.
+4. **Families that matched on other information**: phone or address.
+
+Archived persons, families and groups are shown greyed out, after all active ones.
+
+When a person or family was found by something other than its name, the line below its name shows
+which information matched and the matching text, for example:
+
+> Torrie Lockman<br />
+> &nbsp;&nbsp;&nbsp;&nbsp;*Friend Of: **Torrie***
+
+Click anywhere on a result row, or its **View** link, to open it.
+
+## What you can see
+
+Search respects your account's restrictions. If your account is restricted to certain
+congregations or groups, you only see persons and families you are allowed to see.
+
+## Other search boxes
+
+The search boxes on the **Persons**, **Families** and **Groups** lists, and the person picker used
+in forms, are separate. They search names (and, for persons, searchable custom fields) only.

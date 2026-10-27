@@ -766,6 +766,13 @@ tr:last-child .insert-row-below {
 	padding: 0;
 	font-style: italic;
 }
+/* "Field: …matched text…" under a search result's name (View__Mixed_Search) */
+.search-match {
+	font-size: 12px;
+	line-height: 130%;
+	color: @gray;
+	padding-left: 2em;
+}
 code {
 	color: @gray;
 }
