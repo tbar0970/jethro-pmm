@@ -25,6 +25,14 @@ export default defineConfig({
   projects: [
     { name: "lookaround", testMatch: ["lookaround/lookaround.spec.ts"] },
     {
+      // Members-area regressions (#1173, #1433) and the post-login redirect.
+      // The members area lives at /members/ under the shared functest webroot
+      // and reads the standard demo database, so no scenario .conf is needed.
+      name: "members",
+      testMatch: ["members/members.spec.ts"],
+      use: { baseURL: `${HOST}/members/` },
+    },
+    {
       name: "walkthrough",
       testMatch: ["walkthrough/walkthrough.spec.ts"],
       // Served under the /tests/functional/walkthrough/walkthrough/ prefix; the

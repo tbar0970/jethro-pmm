@@ -77,6 +77,11 @@ class Member_User_System extends Abstract_User_System
 			} else {
 				// Log the member in
 				$this->_setAuthMember($user_details);
+				// The login form was POSTed; redirect so the page the browser keeps in its history is a
+				// clean GET. Otherwise reloading or restoring the tab re-sends the email and password.
+				session_write_close();
+				header('Location: '.build_url(Array()), true, 303); // 303 See Other: the follow-up request is always a GET
+				exit;
 			}
 	}
 
