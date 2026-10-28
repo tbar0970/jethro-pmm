@@ -1,5 +1,5 @@
 <?php
-class Call_vcf extends Call
+class Call_VCF extends Call
 {
 	function run()
 	{
