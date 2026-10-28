@@ -58,6 +58,7 @@ const sidebars: SidebarsConfig = {
         'developer/developer_tips',
         'contributing',
         'developer/reference/view-menu-convention',
+        'developer/reference/import',
         'contributing',
         'developer/DEVELOPMENT_FUNCTESTS',
       ],
