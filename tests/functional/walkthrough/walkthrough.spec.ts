@@ -694,19 +694,13 @@ test.describe("Jethro actions", () => {
   test("uploads a CSV file on the import page", async ({ page }) => {
     await page.goto("?view=admin__import");
     await expect(page.locator("#body h1")).toHaveText("Import Persons");
-    // Upload the CSV file with reference-instance persons
+    // Upload the CSV file with reference-instance persons (no personid column, #1577)
     const csvPath = "testdata/import-persons.csv";
     await page.locator('input[type="file"][name="import"]').setInputFiles(csvPath);
-    // Click Continue — the preview/confirm stage should appear.
-    // If the page shows errors for missing required columns, that's still
-    // a valid exercise of the import flow.
-    await page.locator('input[type="submit"]').first().click();
-    // Verify the page still loaded something (even if it's an error message)
-    await expect(page.locator('#body')).toBeVisible({ timeout: to(10000) });
-    // Importing the CSV end-to-end via the UI (preview → confirm) is
-    // unreliable because the multi-step form uses hidden <input> fields
-    // gated on radio-button state, and the confirm button varies between
-    // "Proceed with import" and other labels.  A dedicated import-focused
-    // test would be needed for full coverage.
+    await page.locator('input[name="new_group_name"]').fill("Walkthrough import");
+    await page.locator('input[type="submit"][value^="Continue"]').click();
+    // Reaching the confirm stage proves the file passed column and row validation.
+    // The full upload → confirm → import flow is covered by import/import.spec.ts.
+    await expect(page.locator("#body")).toContainText("Your import is ready to run", { timeout: to(10000) });
   });
 });
