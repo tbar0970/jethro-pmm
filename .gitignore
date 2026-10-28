@@ -8,9 +8,13 @@ docs/docs/build
 docs/docs/.docusaurus
 /files/
 .idea/
+include/version.txt
+# include/version.txt is populated from JETHRO_VERSION in devbox.json on each './devbox run compile' or './devbox run functests'. 
 /nbproject/
 .php-cs-fixer.cache
 pnpm-lock.yaml
-resources/css/jethro-*-DEV.css
-resources/js/jethro-*-DEV.js
+resources/css/jethro-*.css
+# resources/css/jethro-*.css: only resources/less/ files should be in git
+resources/js/jethro-*.js
+# resources/js/jethro-*.js: only resources/js/jethro.js should be in git
 tests/functional/test-results
