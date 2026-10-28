@@ -725,3 +725,19 @@ test('request_origin_verdict: Origin, then Referer, then legacy NULL', function 
     assert_eq(request_origin_verdict(null, '', '', $expected), null,
         'no provenance signal preserves legacy behaviour');
 });
+
+test('request_origin_is_proven: only same-origin or a matching Origin counts', function () {
+    $expected = 'https://church.example';
+    assert_true(request_origin_is_proven('same-origin', '', $expected));
+    assert_false(request_origin_is_proven('same-site', 'https://church.example', $expected),
+        'Sec-Fetch-Site outranks a matching Origin');
+    assert_false(request_origin_is_proven('cross-site', '', $expected));
+    assert_false(request_origin_is_proven('none', '', $expected));
+    assert_true(request_origin_is_proven(null, 'https://church.example:443', $expected),
+        'matching Origin is accepted when Sec-Fetch-Site is absent');
+    assert_false(request_origin_is_proven(null, 'https://evil.example', $expected));
+    assert_false(request_origin_is_proven(null, 'null', $expected),
+        'the opaque Origin is not proof');
+    assert_false(request_origin_is_proven(null, '', $expected),
+        'no signal is not proof, unlike request_origin_verdict()');
+});

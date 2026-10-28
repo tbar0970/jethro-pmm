@@ -944,7 +944,7 @@ function urls_have_same_origin(string $a, string $b): bool
  * TRUE  - same-origin, per Sec-Fetch-Site, or a matching Origin/Referer fallback.
  * FALSE - explicitly same-site, cross-site, none, or a mismatched fallback.
  * NULL  - no provenance signal; callers should preserve legacy behaviour
- *         (SameSite=Lax plus any per-form token).
+ *         (rely on the session cookie's SameSite=Lax).
  *
  * Sec-Fetch-Site is authoritative when present. 'same-site' is rejected because
  * Jethro tenants can share a registrable domain, so a sibling subdomain is not
@@ -980,14 +980,79 @@ function request_origin_verdict(?string $sec_fetch_site, string $origin, string 
  */
 function request_origin_verdict_current(): ?bool
 {
-    $origin = isset($_SERVER['HTTP_ORIGIN']) && is_string($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
-    $referer = isset($_SERVER['HTTP_REFERER']) && is_string($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
     return request_origin_verdict(
         request_sec_fetch_site(),
-        $origin,
-        $referer,
+        request_server_string('HTTP_ORIGIN'),
+        request_server_string('HTTP_REFERER'),
         request_scheme_and_host()
     );
+}
+
+/**
+ * Whether the browser positively vouches that a request is same-origin.
+ *
+ * Stricter than request_origin_verdict(): TRUE only for
+ * `Sec-Fetch-Site: same-origin`, or, when that header is absent, a matching
+ * Origin header. Referer is not accepted (clients forge same-host Referers), and
+ * a request with no signal is FALSE. Current browsers send Sec-Fetch-Site or
+ * Origin on every form POST; scanners and scripts usually send neither.
+ *
+ * Used to gate login POSTs so they reach the password check only when sent by a
+ * browser from a Jethro page.
+ *
+ * @see docs/docs/developer/reference/request-origin-protection.mdx
+ * @param string|null $sec_fetch_site Value from request_sec_fetch_site()
+ * @param string $origin Value of the HTTP Origin header, if any
+ * @param string $expected_origin The current request's scheme://host[:port]
+ * @return bool
+ */
+function request_origin_is_proven(?string $sec_fetch_site, string $origin, string $expected_origin): bool
+{
+    if ($sec_fetch_site !== NULL) {
+        return $sec_fetch_site === 'same-origin';
+    }
+    return $origin !== '' && urls_have_same_origin($origin, $expected_origin);
+}
+
+/**
+ * request_origin_is_proven() for the current request.
+ *
+ * @see docs/docs/developer/reference/request-origin-protection.mdx
+ * @return bool
+ */
+function request_origin_is_proven_current(): bool
+{
+    return request_origin_is_proven(
+        request_sec_fetch_site(),
+        request_server_string('HTTP_ORIGIN'),
+        request_scheme_and_host()
+    );
+}
+
+/**
+ * A $_SERVER entry as a string, '' when absent or not a string. Used for
+ * request headers (e.g. 'HTTP_ORIGIN') and for request metadata such as
+ * 'REQUEST_URI'.
+ *
+ * @param string $key $_SERVER key
+ * @return string
+ */
+function request_server_string(string $key): string
+{
+    $value = $_SERVER[$key] ?? '';
+    return is_string($value) ? $value : '';
+}
+
+/**
+ * Log a login POST refused by request_origin_is_proven_current().
+ *
+ * @param string $area 'staff' or 'members'
+ * @return void
+ */
+function log_unproven_login_origin(string $area): void
+{
+    error_log('Refused '.$area.' login: browser did not confirm a same-origin request (Sec-Fetch-Site='
+        .(request_sec_fetch_site() ?? 'absent').', Origin='.str_replace(["\r", "\n"], '', request_server_string('HTTP_ORIGIN') ?: 'absent').')');
 }
 
 /**
@@ -996,7 +1061,7 @@ function request_origin_verdict_current(): ?bool
  * Called from include/init.php for every web request, before the database and
  * session are set up. Safe methods are ignored. Requests with no provenance
  * signal are allowed, preserving compatibility with CLI/curl clients and older
- * browsers; those keep SameSite=Lax and per-form token protection.
+ * browsers; those rely on the session cookie's SameSite=Lax.
  *
  * A rejection is a plain 403 and an error_log line. It is not an application
  * error, so it must not produce a stacktrace, a 500 response, or an email.
@@ -1014,7 +1079,7 @@ function enforce_request_origin(): void
     if (request_origin_verdict_current() !== FALSE) return;
 
     $site = request_sec_fetch_site() ?? 'absent';
-    $uri = isset($_SERVER['REQUEST_URI']) && is_string($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+    $uri = request_server_string('REQUEST_URI');
     $uri = str_replace(["\r", "\n"], '', $uri);
     error_log('Blocked '.$method.' '.$uri.': request came from another origin (Sec-Fetch-Site='.$site.')');
 
