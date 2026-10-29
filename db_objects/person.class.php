@@ -531,13 +531,33 @@ class Person extends DB_Object
 
 	}
 
-	public static function getPersonsBySearch($searchTerm, $includeArchived=true)
+	/**
+	 * Find persons matching $searchTerm, best match first.
+	 *
+	 * Names and searchable custom fields match at the start of the value or of any word in it
+	 * ('term%' / '% term%'); remarks match anywhere ('%term%'), since they are free prose.
+	 *
+	 * Results are ordered by what matched — name, then custom field, then remarks (a person matching
+	 * several ways ranks by their best) — then by status and name. Each row's `search_rank` holds
+	 * that rank (1 = name, 2 = custom field, 3 = remarks).
+	 *
+	 * @param string $searchTerm
+	 * @param bool $includeArchived
+	 * @param list<string>|null $fields Which parts to search: 'name' (first, last, full name),
+	 *        'remarks' (contact remarks), 'custom_<id>' (one searchable custom field; non-searchable
+	 *        ids match nothing), 'custom' (all searchable custom fields). NULL = name + custom, the
+	 *        default used by the persons list and the person chooser.
+	 * @return array<int, array<string, mixed>> personid => person row (plus search_rank)
+	 */
+	public static function getPersonsBySearch($searchTerm, $includeArchived=true, ?array $fields=NULL)
 	{
 		$db = $GLOBALS['db'];
-		$SQL = '
-			SELECT pp.id, pp.*
-			FROM (
-				SELECT p.*
+		$fields = $fields ?? Array('name', 'custom');
+		// One branch per kind of field, each tagged with its rank.
+		$selects = Array();
+		if (in_array('name', $fields)) {
+			$selects[] = '
+				SELECT p.*, 1 AS search_rank
 				FROM person p
 				WHERE (
 					(first_name LIKE '.$db->quote($searchTerm.'%').')
@@ -545,19 +565,37 @@ class Person extends DB_Object
 					OR (first_name LIKE '.$db->quote('% '.$searchTerm.'%').')
 					OR (last_name LIKE '.$db->quote('% '.$searchTerm.'%').')
 					OR (CONCAT(first_name, " ", last_name) LIKE '.$db->quote($searchTerm.'%').')
-				)
-
-				UNION
-
-				SELECT p.*
+				)';
+		}
+		$customFieldIDs = Array();
+		foreach ($fields as $f) {
+			if (preg_match('/^custom_(\d+)$/', $f, $m)) $customFieldIDs[] = (int)$m[1];
+		}
+		if (in_array('custom', $fields) || $customFieldIDs) {
+			$selects[] = '
+				SELECT p.*, 2 AS search_rank
 				FROM person p
 				JOIN custom_field_value cfv ON cfv.personid = p.id
 				JOIN custom_field cf ON cfv.fieldid = cf.id
 				WHERE cf.searchable
+				'.(in_array('custom', $fields) ? '' : 'AND cf.id IN ('.implode(',', $customFieldIDs).')').'
 				AND (
 					(cfv.value_text LIKE '.$db->quote($searchTerm.'%').')
 					OR (cfv.value_text LIKE '.$db->quote('% '.$searchTerm.'%').' )
-				)
+				)';
+		}
+		if (in_array('remarks', $fields)) {
+			$selects[] = '
+				SELECT p.*, 3 AS search_rank
+				FROM person p
+				WHERE p.remarks LIKE '.$db->quote('%'.$searchTerm.'%');
+		}
+		if (empty($selects)) return Array();
+		// UNION ALL: rows differ by rank anyway; GROUP BY collapses each person to their best rank.
+		// The MIN() column comes after pp.* so it overrides pp.search_rank in the fetched row.
+		$SQL = '
+			SELECT pp.id, pp.*, MIN(pp.search_rank) AS search_rank
+			FROM ('.implode("\n\t\t\t\tUNION ALL\n", $selects).'
 			) pp
 			JOIN person_status ps ON ps.id = pp.status
 		';
@@ -568,7 +606,7 @@ class Person extends DB_Object
 		}
 		$SQL .= '
 			GROUP BY pp.id
-			ORDER BY status
+			ORDER BY MIN(pp.search_rank), pp.status, pp.last_name, pp.first_name
 			';
 		$res = $db->queryAll($SQL, null, null, true, true); // 5th param forces array even if one col
 		return $res;
