@@ -1,0 +1,105 @@
+#!/bin/bash -eu
+#
+# Build a jethro-$version.zip release distribution.
+#
+# The version is the first argument, else $JETHRO_VERSION with any trailing
+# "-DEV" stripped (devbox.json sets e.g. JETHRO_VERSION=2.40.0-DEV).
+#
+# Usage:
+#   devbox.d/bin/jethro_release                               release build, version from $JETHRO_VERSION
+#   devbox.d/bin/jethro_release 2.40.0                        same, arg overrides env
+#   devbox.d/bin/jethro_release --allow-untagged              test build from an untagged commit
+#   devbox.d/bin/jethro_release 2.40-$(date +%Y%m%d) \
+#     --allow-untagged                                        test build with a dated version
+#
+# Steps:
+#   1. refuse a DEV version, and require HEAD to be a tag matching the version
+#   2. compile the JS/CSS bundles and stamp include/version.txt (jethro_compile)
+#   3. install the production dependencies (vendor/) with Composer
+#   4. assemble the archive from `git archive` (which honours .gitattributes
+#      export-ignore), then overlay the freshly built vendor/ and compiled assets
+#   5. write jethro-$version.zip plus a sha256 checksum
+
+version="${JETHRO_VERSION:-}"
+version="${version%-DEV}"
+allow_untagged=false
+
+# First positional argument overrides $JETHRO_VERSION.
+if [[ $# -gt 0 && "$1" != -* ]]; then
+	version="$1"
+	shift
+fi
+
+while (($#)); do
+	case "$1" in
+		--allow-untagged)
+			allow_untagged=true
+			;;
+		-*)
+			echo >&2 "Unknown option: $1"
+			exit 1
+			;;
+		*)
+			echo >&2 "Unexpected argument: $1"
+			exit 1
+			;;
+	esac
+	shift
+done
+
+if [[ -z "$version" ]]; then
+	echo >&2 "JETHRO_VERSION is not set"
+	exit 1
+fi
+if [[ "$version" == *DEV* ]]; then
+	echo >&2 "Refusing to build a DEV release (JETHRO_VERSION=$version)"
+	exit 1
+fi
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$repo_root"
+
+# Release builds must run from a git tag matching the version; test builds
+# (--allow-untagged) skip this.
+if ! $allow_untagged; then
+	tag="$(git describe --exact-match --tags HEAD 2>/dev/null || true)"
+	if [[ -z "$tag" ]]; then
+		echo >&2 "HEAD is not a tagged commit; release builds must run from a git tag"
+		echo >&2 "(pass --allow-untagged to build a test archive without a tag)"
+		exit 1
+	fi
+	if [[ "${tag#v}" != "$version" ]]; then
+		echo >&2 "Tag '$tag' does not match JETHRO_VERSION '$version'"
+		exit 1
+	fi
+fi
+
+# 1. Compile the JS/CSS bundles and stamp include/version.txt.
+"$script_dir/jethro_compile" "$version"
+
+# 2. Production dependencies. vendor/ is gitignored, so install it fresh.
+composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+
+# 3. Assemble a clean tree from the tracked source, then overlay the build
+#    output (vendor/ and the compiled assets) that git archive cannot see.
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+
+git archive --format=tar HEAD | tar -x -C "$tmp"
+
+cp -a vendor "$tmp/vendor"
+cp include/version.txt "$tmp/include/version.txt"
+if [[ -f "resources/css/jethro-$version.css" ]]; then
+	cp "resources/css/jethro-$version.css" "$tmp/resources/css/"
+fi
+if [[ -f "resources/js/jethro-$version.js" ]]; then
+	cp "resources/js/jethro-$version.js" "$tmp/resources/js/"
+fi
+
+# 4. Archive and checksum.
+archive="jethro-$version.zip"
+( cd "$tmp" && zip -qr "$repo_root/$archive" . )
+( cd "$repo_root" && sha256sum "$archive" > "$archive.sha256" )
+
+echo "Built $archive"

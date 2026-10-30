@@ -10,6 +10,8 @@ docs/docs/.docusaurus
 .idea/
 include/version.txt
 # include/version.txt is populated from JETHRO_VERSION in devbox.json on each './devbox run compile' or './devbox run functests'. 
+/jethro-*.zip
+/jethro-*.zip.sha256
 /nbproject/
 .php-cs-fixer.cache
 pnpm-lock.yaml
