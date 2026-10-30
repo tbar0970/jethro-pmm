@@ -1,0 +1,28 @@
+# Paths excluded from `git archive`-based release builds.
+#
+# `git archive` is the source of truth for what ships in a release; it honours
+# the `export-ignore` attribute. vendor/ and the compiled JS/CSS are overlaid at
+# build time by devbox.d/bin/jethro_release (vendor/ is gitignored, and the
+# compiled assets are produced by jethro_compile).
+/.envrc              export-ignore
+/.gitattributes      export-ignore
+/.github             export-ignore
+/.gitignore          export-ignore
+/.php-cs-fixer.php   export-ignore
+/.phpactor.json      export-ignore
+/AGENTS.md           export-ignore
+/CLAUDE.md           export-ignore
+/DEVELOPMENT_DEVBOX.md export-ignore
+/bin                 export-ignore
+/biome.json          export-ignore
+/bun.lock            export-ignore
+/devbox              export-ignore
+/devbox.d            export-ignore
+/devbox.json         export-ignore
+/devbox.lock         export-ignore
+/docs                export-ignore
+/package.json        export-ignore
+/package-lock.json   export-ignore
+/process-compose.yml export-ignore
+/testdata            export-ignore
+/tests               export-ignore
