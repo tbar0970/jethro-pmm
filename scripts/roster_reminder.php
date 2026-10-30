@@ -267,7 +267,7 @@ if ($sendemail) {
 
 /**
  * Compute From/Reply-To headers for the raw mail() path.
- * Mirrors Jethro_Swift_Message::setFrom() behaviour.
+ * Mirrors Jethro_Email::setFrom() behaviour.
  *
  * @return array{string, string, string} [$fromAddress, $fromName, $headerPrefix]
  */
@@ -361,8 +361,8 @@ function roster_raw_mail_from(string $from_address, string $from_name): array
 			$message = Emailer::newMessage()
 			  ->setSubject($email_subject . "$roster_date")
 			  ->setFrom(array($email_from => $email_from_name))
-			  ->setBody("Roster reminder email")
-			  ->addPart($longstring, 'text/html')
+			  ->text("Roster reminder email")
+			  ->html($longstring)
 			  ->setTo(explode(',',$roster_coordinator))
 			  ->setBcc($emails);
 			$res = Emailer::send($message);
@@ -415,8 +415,8 @@ function roster_raw_mail_from(string $from_address, string $from_name): array
 		$message2 = Emailer::newMessage()
 			->setSubject($summary_notification_subject)
 			->setFrom(array($email_from => $email_from_name))
-			->setBody($summary_notification_subject)
-			->addPart($summary, 'text/html')
+			->text($summary_notification_subject)
+			->html($summary)
 			->setTo(explode(',',$roster_coordinator));
 		$res = Emailer::send($message2);
 		if (!$res) {
