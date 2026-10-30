@@ -3,7 +3,8 @@
         "cweagans/composer-patches": "^2.0",
         "drewm/mailchimp-api": "@stable",
         "phpoffice/phpword": "v0.18.*",
-        "swiftmailer/swiftmailer": "~5.4.12"
+        "swiftmailer/swiftmailer": "~5.4.12",
+        "symfony/mailer": "^6.4"
     },
     "config": {
         "allow-plugins": {
