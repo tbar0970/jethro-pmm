@@ -22,7 +22,7 @@ readonly LAUNCHER_VERSION="0.2.2"
 readonly TOOL_NAME="devbox"
 readonly INSTALL_DIR="${HOME}/.cache/${TOOL_NAME}/bin"
 readonly GITHUB_REPO="jefft/${TOOL_NAME}"
-readonly DEFAULT_VERSION="v0.18.5-jethro.2"
+readonly DEFAULT_VERSION="v0.19.0-jethro.6"
 
 
 # ====================

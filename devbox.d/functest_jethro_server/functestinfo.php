@@ -2,8 +2,8 @@
 
 // Identity endpoint for the functional test suite: tests/functional/global-setup.ts
 // fetches /functestinfo.php and refuses to run unless the serving checkout is the
-// checkout the tests are running from (every checkout shares one FUNCTEST_WEB_PORT,
-// so a stale server from another checkout can silently own the port).
+// checkout the tests are running from (FUNCTEST_WEB_PORT is derived per checkout path
+// but not guaranteed unique, so a stale server from another checkout can own the port).
 //
 // Deliberately standalone: no conf.php/init.php, so it needs no database and has no
 // side effects. nginx passes $realpath_root to php-fpm, so __DIR__ is the real path

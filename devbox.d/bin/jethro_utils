@@ -1,0 +1,125 @@
+#!/bin/bash
+# Per-checkout identifiers derived from this checkout's physical root directory.
+#
+#   jethro_utils freeport [purpose]   stable TCP port 10000-29999 for (checkout, purpose);
+#                                     purpose defaults to "web", matching the
+#                                     NGINX_WEB_PORT that env resolves; env uses
+#                                     "web" and "functests" for ports configured as _default_
+#   jethro_utils env                  POSIX exports for ports configured as _default_;
+#                                     literal ports are left untouched (nothing printed)
+#
+# Stateless and deterministic: no port probing, no files created. Results are candidates,
+# not guaranteed-free ports or unique names. Exit 2 on usage errors, 1 on root-discovery
+# or calculation failures; on failure stdout is empty.
+#
+# The checkout root is two levels above this script's physical directory (devbox.d/bin),
+# with symlinks resolved; caller cwd is irrelevant. The derivation below is a stability
+# contract — changing it reshuffles values for every existing checkout. Intent and
+# guarantees: docs/docs/developer/reference/JETHRO_UTILS.md.
+set -uo pipefail
+export LC_ALL=C
+
+readonly PROG=jethro_utils
+
+usage() {
+	printf '%s: %s\nUsage: %s freeport [purpose]\n       %s env\n' "$PROG" "$1" "$PROG" "$PROG" >&2
+	exit 2
+}
+
+die() {
+	printf '%s: %s\n' "$PROG" "$1" >&2
+	exit 1
+}
+
+# Print $1's directory part, as a physical absolute path, into the variable named $2.
+# Command substitution strips trailing LFs, so a sentinel preserves them; a path that
+# contains LF anywhere is rejected rather than hashed truncated.
+physical_dir() {
+	local out
+	out=$(cd -P -- "$1" 2>/dev/null && pwd -P && echo x) || die "cannot resolve directory: $1"
+	out=${out%$'\nx'}
+	[[ $out != *$'\n'* ]] || die "path contains a newline: unsupported"
+	printf -v "$2" '%s' "$out"
+}
+
+# Physical checkout root: resolve this script through any symlinks, then go up from
+# devbox.d/bin.
+checkout_root() {
+	local src=${BASH_SOURCE[0]} target dir bin_dir root
+	while [[ -L $src ]]; do
+		target=$(readlink -- "$src" && echo x) || die "cannot read symlink: $src"
+		target=${target%$'\nx'}
+		if [[ $target != /* ]]; then
+			[[ $src == */* ]] && dir=${src%/*} || dir=.
+			target=$dir/$target
+		fi
+		src=$target
+	done
+	[[ $src == */* ]] && dir=${src%/*} || dir=.
+	physical_dir "${dir:-/}" bin_dir
+	physical_dir "$bin_dir/../.." root
+	[[ -f $root/devbox.json ]] || die "no devbox.json in checkout root: $root"
+	ROOT=$root
+}
+
+# Print the unsigned CRC of stdin via POSIX cksum, validating its output.
+crc() {
+	local out crc _
+	out=$(cksum) || return 1
+	read -r crc _ <<<"$out"
+	[[ $crc =~ ^[0-9]+$ ]] || return 1
+	printf '%s\n' "$crc"
+}
+
+# Calculate values from the physical ROOT discovered by checkout_root.
+port_for() {
+	local sum
+	sum=$(printf 'jethro-freeport-v1\000%s\000%s\000' "$ROOT" "$1" | crc) || die "cksum failed"
+	printf '%d\n' $((10000 + 10#$sum % 20000))
+}
+
+command -v cksum >/dev/null 2>&1 || die "cksum not found"
+
+(($# >= 1)) || usage "missing subcommand"
+cmd=$1
+shift
+
+case $cmd in
+freeport)
+	(($# <= 1)) || usage "freeport: too many arguments"
+	purpose=${1-web}
+	[[ -n $purpose ]] || usage "freeport: empty purpose"
+	checkout_root
+	port_for "$purpose"
+	;;
+env)
+	(($# == 0)) || usage "env: takes no arguments"
+	checkout_root
+	web=${NGINX_WEB_PORT:-}
+	functests=${FUNCTEST_WEB_PORT:-}
+	web_default=
+	functests_default=
+	if [[ $web == _default_ ]]; then
+		web_default=1
+		web=$(port_for web) || die "freeport web failed"
+	fi
+	if [[ $functests == _default_ ]]; then
+		functests_default=1
+		functests=$(port_for functests) || die "freeport functests failed"
+	fi
+	for port in "$web" "$functests"; do
+		[[ $port =~ ^[0-9]{1,5}$ ]] || die "port must be a decimal integer from 1 to 65535"
+		((10#$port >= 1 && 10#$port <= 65535)) || die "port must be from 1 to 65535"
+	done
+	web=$((10#$web))
+	functests=$((10#$functests))
+	[[ $web != "$functests" ]] || die "web and functests ports collide ($web); override one port or move the checkout"
+	# Only _default_ values are resolved; literal values are already configured, so
+	# emitting them would be redundant and would let the hook override the config.
+	[[ -z $web_default ]] || printf 'export NGINX_WEB_PORT=%s\n' "$web"
+	[[ -z $functests_default ]] || printf 'export FUNCTEST_WEB_PORT=%s\n' "$functests"
+	;;
+*)
+	usage "unknown subcommand: $cmd"
+	;;
+esac

@@ -33,7 +33,8 @@ This will:
  - launch a MariaDB database and Nginx web server in the background (`-b`).
  - create a `jethro` database in the Devbox MariaDB
 
-Point your browser at http://localhost:8081, and you should see Jethro's setup wizard.
+Point your browser at `http://localhost:<port>`, where `<port>` is printed by `devbox.d/bin/jethro_utils freeport web`
+(stable for this checkout's path), and you should see Jethro's setup wizard.
 
 ### Devbox overview
 
@@ -73,15 +74,21 @@ PID         NAME                         NAMESPACE        STATUS           AGE  
   - `devbox.d/mariadb/my.cnf`
 
 You will see references to environment variables in those config files, and often it's possible to customize Devbox
-services by setting a relevant environment variable rather than tweaking `devbox.d/` files. E.g. to change Nginx's port
-from 8081 to 80, edit `devbox.json` and set:
+services by setting a relevant environment variable in `devbox.json`'s `env` rather than tweaking `devbox.d/` files.
+The init hook runs `jethro_utils env`, which resolves `_default_` in
+`NGINX_WEB_PORT` and `FUNCTEST_WEB_PORT` to ports derived from the checkout's physical path.
+Replace either `_default_` entry in `devbox.json`'s `env` with a literal port to override it;
+`jethro_utils env` prints only the variables it resolves from `_default_`, so a literal port is
+never re-exported or overwritten.
+Blank values are rejected. Like other config entries, these take precedence over
+inherited shell values.
+Read the configured value with `./devbox run -- printenv NGINX_WEB_PORT`.
 
-```json
-  "env": {
-    "NGINX_WEB_PORT": "80",
-    ...
-  },
-```
+Devbox (at least, our fork of it) exports `DEVBOX_RUNTIME_DIR`, `DEVBOX_LOG_DIR` and `DEVBOX_DATA_DIR`
+before expanding `env`. Log/data roots are `.devbox/logs` and `.devbox/data`.
+Keep MariaDB and PHP-FPM on their plugin-specific paths beneath those roots.
+Custom services must create private runtime subdirectories before using them.
+The hook locates utilities through `$DEVBOX_CONFIG_DIR`.
 
 Run `devbox info mariadb` / `devbox info php` / `devbox info nginx` to see what's available.
 
@@ -111,7 +118,7 @@ that directory is added to your `$PATH` in a devbox shell:
 Every devbox database is reachable as user `jethro`, password `jethro`, and `devbox.d/mariadb/my.cnf` makes that the
 client default — so `mariadb jethro_functest -e 'select 1'` (no `-u`/`-p`) just works, in scripts and tests alike.
 
-Initially http://localhost:8081 will show the Jethro setup wizard, reflecting the empty state of the `jethro` database. If you'd like to load sample data, run `devbox run demodata`. To wipe the `jethro` database again, run `devbox run initdb`.
+Initially `http://localhost:<port>` (`devbox.d/bin/jethro_utils freeport web`) will show the Jethro setup wizard, reflecting the empty state of the `jethro` database. If you'd like to load sample data, run `devbox run demodata`. To wipe the `jethro` database again, run `devbox run initdb`.
 
 
 [^devbox]: The `./devbox` file in the repo root is not the devbox binary itself, but a launcher shell script. On first run it:
