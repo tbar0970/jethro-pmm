@@ -10,6 +10,8 @@ Jethro PMM is the software that powers online services such as [Easy Jethro](htt
 
 Download the latest version of Jethro from the [releases page](https://github.com/tbar0970/jethro-pmm/releases)
 
+> **Installing from source?** Jethro's PHP dependencies (the `vendor/` directory) are not stored in git. If you are installing from the source code — a `git clone` or GitHub's "Download ZIP" — first install the dependencies by running `composer install` in the Jethro directory. This reads `composer.lock` and recreates `vendor/`. (A release archive from the releases page already includes `vendor/`, so no Composer step is needed.)
+
 System requirements are:
 * Some kind of web server (apache/ngnix etc)
 * A database, either:
