@@ -18,3 +18,4 @@ resources/css/jethro-*.css
 resources/js/jethro-*.js
 # resources/js/jethro-*.js: only resources/js/jethro.js should be in git
 tests/functional/test-results
+/vendor/

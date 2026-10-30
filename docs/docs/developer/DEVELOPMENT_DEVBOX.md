@@ -29,6 +29,7 @@ This will:
 
  - download the full `devbox` binary if you don't already have it (`./devbox` is a stub [^devbox] ).
  - download binaries for php, nginx and mariadb. This will take a few minutes the first time.
+ - install Jethro's PHP dependencies (the `vendor/` directory) with Composer. Composer is bundled in the devbox environment (via the php package), so no separate install is needed.
  - launch a MariaDB database and Nginx web server in the background (`-b`).
  - create a `jethro` database in the Devbox MariaDB
 
