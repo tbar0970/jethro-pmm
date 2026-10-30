@@ -524,7 +524,7 @@ class User_System extends Abstract_User_System
 		$message = Emailer::newMessage()
 		  ->setSubject("Jethro SysAdmin notification for ".SYSTEM_NAME)
 		  ->setTo($emails)
-		  ->setBody($text);
+		  ->text($text);
 
 		$from_address = ifdef(MEMBER_REGO_EMAIL_FROM_ADDRESS, '');
 		if (strlen($from_address)) {
