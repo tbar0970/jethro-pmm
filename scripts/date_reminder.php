@@ -136,8 +136,8 @@ foreach ($summaries as $supervisors => $remindees) {
 	$message = Emailer::newMessage()
 	  ->setSubject($ini['SUMMARY_SUBJECT'])
 	  ->setFrom(array($ini['FROM_ADDRESS'] => $ini['FROM_NAME']))
-	  ->setBody($content)
-	  ->addPart($html, 'text/html');
+	  ->text($content)
+	  ->html($html);
 	if (!empty($ini['OVERRIDE_RECIPIENT'])) {
 		$message->setTo($ini['OVERRIDE_RECIPIENT']);
 	} else {
@@ -170,8 +170,8 @@ function send_reminder($person, $expiryDate)
 			  ->setSubject(replace_keywords($ini['SUBJECT'], $person, $expiryDate))
 			  ->setFrom(array($ini['FROM_ADDRESS'] => $ini['FROM_NAME']))
 			  ->setTo(array($toEmail => $person['first_name'].' '.$person['last_name']))
-			  ->setBody($content)
-			  ->addPart($html, 'text/html');
+			  ->text($content)
+			  ->html($html);
 
 			$res = Emailer::send($message);
 			if (!$res) {

@@ -1,7 +1,7 @@
 {
     "require": {
         "phpoffice/phpword": "v0.18.*",
-        "swiftmailer/swiftmailer": "~5.4.12",
+        "symfony/mailer": "^6.4",
         "drewm/mailchimp-api": "@stable"
     },
     "config": {
