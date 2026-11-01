@@ -59,7 +59,8 @@ class View_Admin__Import extends View
 	{
 		$text = _('This page allows you to import persons, families, groups and notes from spreadsheet data containing one person per row.  
 			The data must be formatted like this sample file.  (Column order is flexible, but correct column headers are important.) 
-			Jethro treats consecutive rows as members of the same family, unless (a) the family name or family details are different or (b) there is a blank row in between. 			If you select the option to update existing persons, and an import row matches an existing person, surrounding rows will be imported as new members of the same family if applicable.
+			If you select the option to update existing persons, and an import row matches an existing person, surrounding rows will be imported as new members of the same family if applicable.
+			An optional <code>personid</code> column (or <code>ID</code>, as in Jethro\'s own CSV exports) matches rows to existing persons by their person ID instead of by name.  Leave it blank for new persons.
 			A <code>note</code> column allows you to add a note to the person record.
 			You can add multiple <code>group</code> columns containing the name of groups to add the person to. 
 			You can also tell Jethro to search within the column content to determine a group to add to, by using a header such as <code>groupif{men\'s events}!{women\'s}[men\'s events team]</code>.');
@@ -257,6 +258,7 @@ class View_Admin__Import extends View
 			if ($v == '') continue;
 			if (0 !== strpos($v, 'groupif')) {
 				$v = self::_stringToKey($v);
+				if ($v == 'id') $v = 'personid'; // Jethro's CSV exports head the person ID column "ID"
 				if (!in_array($v, $sample_header)) {
 					add_message("Unrecognised column \"".$v.'" will be ignored', 'warning');
 				}
@@ -1015,26 +1017,34 @@ class View_Admin__Import extends View
 	}
 
 	/**
-	 * Look for an existing person record matching the supplied import row
-	 * Looks at the match_existing, match_mobile_tel and match_email flags in the request.
-	 * @param array $row Data from import CSV
+	 * Look for an existing person record matching the supplied import row.
+	 *
+	 * A non-blank personid matches exactly that person (archived or not), bypassing name/email/mobile checks.
+	 * Otherwise, persons are matched by first & last name, subject to the match_email and match_mobile_tel flags.
+	 * Nothing is matched unless the match_existing flag is set in the request.
+	 * Problems with a supplied personid are raised as E_USER_WARNING, which the caller captures as row errors.
+	 * See docs/docs/developer/reference/import.md
+	 *
+	 * @param array<string, mixed> $row Data from import CSV
 	 * @return Person|null
 	 */
 	private function _findExistingPerson($row)
 	{
-		// === NEW: Exact ID match ===
-		// If the CSV supplies the internal Jethro person ID (column "id" or "person_id"),
-		// perform an immediate certain lookup. This bypasses name/email/mobile logic
-		// and solves import failures caused by multiple archived duplicates.
-		// All existing matching behaviour remains unchanged when no ID is provided.
-		if (!empty($row['id']) || !empty($row['person_id'])) {
-			$id = (int)($row['id'] ?? $row['person_id']);
-			if ($id > 0) {
-				$person = $GLOBALS['system']->getDBObject('person', $id);
-				if ($person && $person->id) {
-					return $person;
-				}
+		$idValue = trim(array_get($row, 'personid', ''));
+		if (strlen($idValue)) {
+			if (!ctype_digit($idValue) || !(int)$idValue) {
+				trigger_error('Invalid person ID "'.$idValue.'"', E_USER_WARNING);
+				return NULL;
 			}
+			if (empty($_REQUEST['match_existing'])) {
+				trigger_error('Person ID '.$idValue.' was supplied but updating existing persons is not enabled', E_USER_WARNING);
+				return NULL;
+			}
+			$person = $GLOBALS['system']->getDBObject('person', (int)$idValue);
+			if (!$person) {
+				trigger_error('There is no person with ID '.$idValue, E_USER_WARNING);
+			}
+			return $person;
 		}
 		if (empty($_REQUEST['match_existing'])) return NULL;
 		$params = Array(
@@ -1096,10 +1106,17 @@ class View_Admin__Import extends View
 		return !empty($this->_captured_errors[$i]);
 	}
 
+	/**
+	 * Column headers recognised by the importer, in sample-file order.
+	 * personid is optional; it leads the full header so it lines up with the "ID" column of Jethro's CSV exports.
+	 * See docs/docs/developer/reference/import.md
+	 *
+	 * @param bool $required_fields_only Whether to return only the columns every import file must contain
+	 * @return list<string>
+	 */
 	public static function getSampleHeader($required_fields_only=FALSE)
 	{
 		$header = Array(
-			'personid',
 			'family_name',
 			'last_name',
 			'first_name',
@@ -1110,7 +1127,7 @@ class View_Admin__Import extends View
 		if ($required_fields_only) {
 			return $header;
 		}
-		$header = array_merge($header, Array(
+		$header = array_merge(Array('personid'), $header, Array(
 			'gender',
 			'email',
 			'mobile_tel',

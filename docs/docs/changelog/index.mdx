@@ -59,8 +59,13 @@ This page tracks notable changes to Jethro.
 
 - **Import by Person ID.** CSV imports can now match on Person ID — useful
   when migrating from another system where name-based matching would pick up
-  archived duplicates.
-  [(#1432)](https://github.com/tbar0970/jethro-pmm/pull/1432)
+  archived duplicates. The `personid` column is optional; the `ID` column of
+  Jethro's own CSV downloads works too, so exported persons can be edited and
+  re-imported. An unknown ID, or an ID given while "Update existing persons" is
+  off, is reported as an error instead of creating a duplicate. See
+  [Importing Persons](../administration/import.mdx#the-personid-column).
+  [(#1432)](https://github.com/tbar0970/jethro-pmm/pull/1432),
+  fixes [#1577](https://github.com/tbar0970/jethro-pmm/issues/1577)
 
 ### System Configuration
 

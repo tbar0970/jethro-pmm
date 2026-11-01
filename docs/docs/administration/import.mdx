@@ -1,1 +1,122 @@
-# Import
+---
+sidebar_label: Importing Persons
+---
+
+# Importing Persons from CSV
+
+**Admin → Import** creates or updates persons, families, groups and notes from a spreadsheet with
+one person per row. Only system administrators can use it.
+
+Importing has two steps. First you upload the file and Jethro checks it, showing a preview of
+everything it will create or update. Nothing changes until you click **Proceed with import** on
+the preview. If any row has a problem, Jethro lists the errors by row number and nothing is
+imported, so you can fix the file and upload it again.
+
+## Preparing the file
+
+The easiest start is the **sample file** linked from the import page. It contains every column
+Jethro recognises, including your custom fields, and example rows that use your own congregations,
+statuses and age brackets.
+
+- **Upload file** expects comma-separated values (CSV), as saved by Excel, LibreOffice or Google
+  Sheets.
+- **Paste text** expects tab-separated values, which is what you get when you copy cells straight
+  from a spreadsheet.
+- The first row must hold the column headers. Column order doesn't matter, and headers are not
+  case-sensitive: `First Name` and `first_name` are the same column.
+- Jethro warns about, and ignores, any column it doesn't recognise.
+
+### Required columns
+
+Every file must contain these columns:
+
+| Column | Value |
+|---|---|
+| `family_name` | Name of the person's family |
+| `last_name` | |
+| `first_name` | |
+| `congregation` | Congregation name (short or long), e.g. `6pm` |
+| `status` | Person status label, e.g. `Core`, `Crowd`, `Newcomer` |
+| `age_bracket` | Age bracket label, e.g. `Adult` |
+
+### Optional columns
+
+| Column | Value |
+|---|---|
+| `personid` (or `ID`) | Jethro person ID of an existing person to update. See [Updating existing persons](#updating-existing-persons) |
+| `gender` | `male`, `female` or `unknown` |
+| `email`, `mobile_tel`, `work_tel` | Person contact details |
+| `home_tel`, `address_street`, `address_suburb`, `address_state`, `address_postcode` | Family contact details |
+| *custom field name* | A value for that custom field. Spaces in the field name may be written as `_` |
+| `note` | Text of a note to add to the person, with the subject "Import note" |
+| `group` | Name of a group to add the person to. Repeat the column to add several groups |
+| `groupif[...]` | Conditional group membership; see [Groups](#groups) |
+
+## Families
+
+Jethro reads consecutive rows as members of the same family. A row starts a new family when:
+
+- it has a different `family_name`, street, suburb, state or home phone from the rows above, or
+- there is a blank row above it.
+
+Family details can be on any row of the family, not only the first.
+
+## Groups
+
+All persons created or updated by an import are added to one group, as a record of the import.
+Choose either **Create a new group** (give it a name and, optionally, a category) or **Add to an
+existing group**.
+
+A `group` column adds the person to the group with that name. If no such group exists, it is
+created. The preview lists which groups will be created.
+
+A `groupif` column decides group membership from the content of the cell:
+
+| Header | Adds the person to the group in `[...]` when the cell... |
+|---|---|
+| `groupif[Cleaners]` | is not blank |
+| `groupif{cleaning}[Cleaners]` | contains "cleaning" |
+| `groupif{men's events}!{women's}[Men's events team]` | contains "men's events" but not "women's" |
+
+Matching is not case-sensitive. This is handy for spreadsheets exported from online forms, where
+one column lists every ministry a person ticked.
+
+## Updating existing persons
+
+Tick **Update existing persons if they match** to update people already in Jethro instead of
+creating duplicates. A row matches an existing person:
+
+1. **By person ID**, when the row has a value in the `personid` column. The ID always identifies
+   exactly that person, even an archived one, whatever names the row contains.
+2. **By name** otherwise: the first and last name must match exactly one existing person. When
+   several persons share the name, Jethro warns and imports the row as a new person. These options
+   narrow name matching:
+   - **Don't match if email address is different**
+   - **Don't match if mobile number is different**
+
+   A blank value in either the file or Jethro never prevents a match.
+
+When an imported value differs from what Jethro holds, you choose whether to **use the value from
+the import file** or **preserve the existing value in Jethro**. A blank cell never clears an
+existing value.
+
+Unmatched rows that follow a matched person in the same family are added to that person's existing
+family.
+
+### The personid column
+
+The `personid` column is optional. Leave it out, or leave it blank, for persons who are new to
+Jethro. It is useful for bulk updates:
+
+1. Select persons in a list or report and download them as CSV. Jethro's CSV download heads the
+   person ID column `ID`, which the importer accepts as `personid`.
+2. Edit the file, keeping the `ID` column, and add the required columns if they aren't there.
+3. Import it with **Update existing persons if they match** ticked.
+
+A non-blank `personid` must be right, so these are errors that stop the import:
+
+| Error | Cause |
+|---|---|
+| `Invalid person ID "x"` | The value is not a whole number above zero |
+| `There is no person with ID n` | No person in Jethro has that ID |
+| `Person ID n was supplied but updating existing persons is not enabled` | **Update existing persons if they match** is unticked. Tick it, or clear the column to import those rows as new persons |
