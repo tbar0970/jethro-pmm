@@ -136,13 +136,14 @@ class Installer
 	function validateCharset()
 	{
 		$current = $GLOBALS['db']->queryRow(
-			"SELECT DEFAULT_CHARACTER_SET_NAME AS charset, DEFAULT_COLLATION_NAME AS collation
+			"SELECT DATABASE() AS dbname, DEFAULT_CHARACTER_SET_NAME AS charset, DEFAULT_COLLATION_NAME AS collation
 			 FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = DATABASE()"
 		);
 		if ($current && $current['charset'] == 'utf8mb4' && $current['collation'] == 'utf8mb4_unicode_ci') {
 			return TRUE;
 		} else {
-			$dbname = ifdef('DB_DATABASE', 'jethro');
+			// Ask the server: DB_DATABASE is undefined when conf.php sets DB_DSN instead.
+			$dbname = ($current && strlen($current['dbname'])) ? $current['dbname'] : ifdef('DB_DATABASE', 'jethro');
 			$dbuser = ifdef('DB_USERNAME', 'jethro');
 			$current_collation = $current ? $current['charset'].'/'.$current['collation'] : 'unknown';
 			print_message(
