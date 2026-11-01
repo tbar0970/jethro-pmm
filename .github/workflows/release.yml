@@ -1,0 +1,45 @@
+name: Build Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build (e.g. 2.40.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-tags: true
+
+      - name: Set up PHP and Composer
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: gd, zip, xmlwriter, gettext, curl, mbstring, exif
+          tools: composer
+
+      - name: Set up Bun (for CSS/JS compilation)
+        uses: oven-sh/setup-bun@v2
+
+      - name: Build the release
+        env:
+          JETHRO_VERSION: ${{ github.event.inputs.version }}
+        run: devbox.d/bin/jethro_release
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          draft: true
+          files: |
+            jethro-${{ github.event.inputs.version }}.zip
+            jethro-${{ github.event.inputs.version }}.zip.sha256

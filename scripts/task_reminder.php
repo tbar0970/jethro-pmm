@@ -77,8 +77,8 @@ foreach ($reminders as $reminder) {
 	  ->setSubject($subject)
 	  ->setFrom(array(TASK_NOTIFICATION_FROM_ADDRESS => $fromText))
 	  ->setTo(array($reminder['email'] => $reminder['first_name'].' '.$reminder['last_name']))
-	  ->setBody($content)
-	  ->addPart($html, 'text/html');
+	  ->text($content)
+	  ->html($html);
 
 	if ($DRYRUN) {
 		$res = TRUE;

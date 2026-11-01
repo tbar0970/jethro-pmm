@@ -18,6 +18,8 @@ processes:
         condition: process_healthy
       jethro_database_setup:
         condition: process_completed_successfully
+      composer_install:
+        condition: process_completed_successfully
     availability:
       restart: "no"
 
@@ -38,6 +40,15 @@ processes:
       period_seconds: 20
       timeout_seconds: 5
       failure_threshold: 15
+
+  composer_install:
+    description: Installs PHP dependencies (vendor/) with Composer
+    # Idempotent: with vendor/ already up to date this is a fast no-op; on a
+    # fresh checkout it populates vendor/ from composer.lock. Composer is
+    # provided by the php package in the devbox nix environment.
+    command: composer install --no-interaction --no-progress
+    availability:
+      restart: "no"
 
   # Nginx's service is defined by a devbox plugin, in .devbox/virtenv/nginx/process-compose.yaml
   # We extend it a bit here to make "successful startup" depend on php-fpm and the access/error log watchers being started
@@ -66,6 +77,8 @@ processes:
       mariadb:
         condition: process_healthy
       functest_databases_setup:
+        condition: process_completed_successfully
+      composer_install:
         condition: process_completed_successfully
     availability:
       restart: on_failure

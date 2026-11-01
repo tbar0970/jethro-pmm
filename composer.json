@@ -1,13 +1,25 @@
 {
     "require": {
-       "phpoffice/phpword": "v0.18.*",
-       "swiftmailer/swiftmailer" : "@stable",
-       "drewm/mailchimp-api" : "@stable"
+        "cweagans/composer-patches": "^2.0",
+        "drewm/mailchimp-api": "@stable",
+        "phpoffice/phpword": "v0.18.*",
+        "swiftmailer/swiftmailer": "~5.4.12",
+        "symfony/mailer": "^6.4"
     },
-	"config": {
-		"platform-check" : false,
-		"platform": {
-			"php" : "8.1.0"
-		}
-	}
+    "config": {
+        "allow-plugins": {
+            "cweagans/composer-patches": true
+        },
+        "platform-check": false,
+        "platform": {
+            "php": "8.1.0"
+        }
+    },
+    "extra": {
+        "patches": {
+            "phpoffice/phpword": {
+                "Fix PHP 8.1+ deprecations in Shared\\XMLWriter::writeAttribute (jethro-pmm #1206)": "patches/phpword-0.18.0-xmlwriter-writeattribute.patch"
+            }
+        }
+    }
 }

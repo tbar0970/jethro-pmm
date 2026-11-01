@@ -1,0 +1,17 @@
+{
+    "_hash": "a1835a8321af93c463e1449dfebbf7c88faf1537315d72bf9a9a376a2386f23b",
+    "patches": {
+        "phpoffice/phpword": [
+            {
+                "package": "phpoffice/phpword",
+                "description": "Fix PHP 8.1+ deprecations in Shared\\XMLWriter::writeAttribute (jethro-pmm #1206)",
+                "url": "patches/phpword-0.18.0-xmlwriter-writeattribute.patch",
+                "sha256": "c0a00a19c027760bb4d8bef0702a5fd30c1de0150a0e8117928e2311924231ef",
+                "depth": 1,
+                "extra": {
+                    "provenance": "root"
+                }
+            }
+        ]
+    }
+}

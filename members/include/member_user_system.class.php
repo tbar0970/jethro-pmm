@@ -109,8 +109,8 @@ If you didn't request an account, you can just ignore this email";
 		  ->setSubject(MEMBER_REGO_EMAIL_SUBJECT)
 		  ->setFrom(array(MEMBER_REGO_EMAIL_FROM_ADDRESS => MEMBER_REGO_EMAIL_FROM_NAME))
 		  ->setTo(array($person['email'] => $person['first_name'].' '.$person['last_name']))
-		  ->setBody($text)
-		  ->addPart($html, 'text/html');
+		  ->text($text)
+		  ->html($html);
 
 		$res = Emailer::send($message);
 
@@ -146,7 +146,7 @@ If you didn't request an account, you can just ignore this email";
 				  ->setSubject("Member Account request from multi-family email")
 				  ->setFrom(array(MEMBER_REGO_EMAIL_FROM_ADDRESS => SYSTEM_NAME.' Jethro System'))
 				  ->setTo(MEMBER_REGO_FAILURE_EMAIL)
-				  ->setBody("Hi, \n\nThis is an automated message from the Jethro system at ".baseurl_absolute().".\n\n"
+				  ->text("Hi, \n\nThis is an automated message from the Jethro system at ".baseurl_absolute().".\n\n"
 						  ."Somebody has used the form at ".baseurl_absolute()."/members to request member-access to this Jethro system. \n\n"
 						  ."The email address they specified was ".$_REQUEST['email']." but this address belongs to SEVERAL persons from DIFFERENT families.  It therefore can't be used for member access.\n\n"
 						  ."Please look up this email address in Jethro and contact the relevant persons to help them solve this problem.\n\n");
@@ -166,7 +166,7 @@ If you didn't request an account, you can just ignore this email";
 				  ->setSubject("Member Account request from unknown email")
 				  ->setFrom(array(MEMBER_REGO_EMAIL_FROM_ADDRESS => SYSTEM_NAME.' Jethro System'))
 				  ->setTo(MEMBER_REGO_FAILURE_EMAIL)
-				  ->setBody("Hi, \n\nThis is an automated message from the Jethro system at ".baseurl_absolute().".\n\n"
+				  ->text("Hi, \n\nThis is an automated message from the Jethro system at ".baseurl_absolute().".\n\n"
 						  ."Somebody has used the form at ".baseurl_absolute()."/members to request member-access to this Jethro system. \n\n"
 						  ."The email address they specified was ".$_REQUEST['email']." but there is no current person record in the Jethro system with that address. (There could be an archived record).\n\n"
 						  ."If you believe this person is a church member, please add their email address to their person record and then ask them to try registering again.\n\n");

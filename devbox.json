@@ -16,7 +16,7 @@
   ],
   "env": {
     "FUNCTEST_WEB_PORT":      "8089",
-    "JETHRO_VERSION":         "2.40-DEV",
+    "JETHRO_VERSION":         "2.40.0-DEV",
     "NGINX_WEB_PORT":         "8081",
     "PATH":                   "$PWD/devbox.d/bin:$PATH"
   },
@@ -30,6 +30,7 @@
       "initdb":               "devbox.d/bin/mariadb_recreate_db jethro",
       "lint":                 "php -l *.php calls/*.php db_objects/*.php hooks/**/*.php include/*.php members/*.php members/**/*.php public/*.php public/**/*.php scripts/*.php templates/*.php upgrades/*.php upgrades/**/*.php views/*.php && bunx biome check ./resources/js/ --max-diagnostics=20",
       "mariadb_as_root":      "devbox.d/bin/mariadb_as_root",
+      "release":              "devbox.d/bin/jethro_release \"$@\"",
       "unittests":            "php tests/unit/run.php"
     }
   }
