@@ -52,13 +52,12 @@ class View__Edit_Me extends View
 				$this->family->save();
 				$this->family->releaseLock();
 			}
-			$fields = Array('gender', 'age_bracket', 'email', 'mobile_tel', 'work_tel');
 			foreach ($this->persons as $person) {
-				$sm = new Staff_Member($person->id);
-				if ($sm && $sm->requires2FA()) {
+				$fields = $this->editablePersonFields($person);
+				if (!$fields) {
 					// People with 2FA control-centre accounts can't be edited via members area, so skip
 				} else if ($this->canEditFamily() || $this->isMe($person)) {
-					$person->processForm('person_'.$person->id, $this->person_fields);
+					$person->processForm('person_'.$person->id, $fields);
 					$person->save(FALSE);
 					$person->releaseLock();
 				}
@@ -120,11 +119,15 @@ class View__Edit_Me extends View
 			foreach ($this->persons as $person) {
 				echo '<h3>'.$person->getValue('first_name').' '.$person->getValue('last_name').'</h3>';
 
-				$sm = new Staff_Member($person->id);
-				if ($sm && $sm->requires2FA()) {
+				$fields = $this->editablePersonFields($person);
+				if (!$fields) {
 					echo '<p><i>This person has a control centre account, so their details can only be edited via the <a href="?view=persons&personid='.(int)$person->id.'">control centre</a></i></p>';
+					$this->printReadOnlyStaffContacts($person);
 				} else if ($this->canEditFamily() || $this->isMe($person)) {
-					$person->printForm('person_'.$person->id, $this->person_fields);
+					$person->printForm('person_'.$person->id, $fields);
+					if (!in_array('email', $fields)) {
+						$this->printReadOnlyStaffContacts($person);
+					}
 				}
 			}
 				
@@ -135,6 +138,61 @@ class View__Edit_Me extends View
 			<?php
 		}
 
+	}
+
+	/**
+	 * Display staff recovery contacts without granting member-area edit access.
+	 * The inputs are unnamed, so they are never submitted; values and sizes match
+	 * the editable widgets from print_widget().
+	 * @see docs/docs/developer/reference/members-contact-protection.mdx
+	 * @param Person $person
+	 * @return void
+	 */
+	private function printReadOnlyStaffContacts(Person $person): void
+	{
+		$reason = 'For security, staff email addresses and mobile numbers can only be changed in the control centre.';
+		$helpID = 'staff-contact-help-'.$person->id;
+		$contacts = Array(
+			'email' => Array(
+				'value' => $person->getValue('email'),
+				'size' => $person->fields['email']['width'],
+			),
+			'mobile_tel' => Array(
+				'value' => $person->getFormattedValue('mobile_tel'),
+				'size' => max(get_phone_format_lengths($person->fields['mobile_tel']['formats'])) + 3,
+			),
+		);
+		?>
+		<div class="form-horizontal">
+			<?php foreach ($contacts as $field => $contact) {
+				$inputID = 'person_'.$person->id.$field;
+				?>
+				<div class="control-group">
+					<label class="control-label" for="<?php echo ents($inputID); ?>"><?php echo ents($person->getFieldLabel($field)); ?></label>
+					<div class="controls">
+						<input type="text" id="<?php echo ents($inputID); ?>" size="<?php echo (int)$contact['size']; ?>" value="<?php echo ents($contact['value']); ?>" readonly title="<?php echo ents($reason); ?>" aria-describedby="<?php echo ents($helpID); ?>" />
+					</div>
+				</div>
+			<?php } ?>
+			<p id="<?php echo ents($helpID); ?>"><i><?php echo ents($reason); ?></i></p>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Member-editable fields; staff recovery contacts are control-centre-only.
+	 * Staff requiring 2FA retain the full member-area edit prohibition.
+	 *
+	 * @see docs/docs/developer/reference/members-contact-protection.mdx
+	 * @param Person $person
+	 * @return array<int, string>
+	 */
+	private function editablePersonFields(Person $person): array
+	{
+		$staff = new Staff_Member($person->id);
+		if (!$staff->id) return $this->person_fields;
+		if ($staff->requires2FA()) return Array();
+		return array_diff($this->person_fields, Array('email', 'mobile_tel'));
 	}
 
 	private function isMe($person)
