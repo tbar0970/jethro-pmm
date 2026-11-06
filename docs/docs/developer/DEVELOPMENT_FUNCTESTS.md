@@ -193,9 +193,11 @@ Two sides:
   and returns the full message (`.Text` / `.HTML` bodies included), plus
   `searchMessages()`, `getMessage()`, `latestMessage()` and `deleteAllMessages()`.
   It reaches the HTTP unix socket with node's `http.request({socketPath})`, because
-  `fetch()` cannot address a unix socket. Its consumer is the `password-reset`
-  project (`tests/functional/email/password-reset.spec.ts`), covering the staff
-  forgot-password and forgot-username flows.
+  `fetch()` cannot address a unix socket. Its consumers are the `member-rego`
+  project (`tests/functional/members/member-rego.spec.ts`, the member activation
+  round-trip) and the `password-reset` project
+  (`tests/functional/email/password-reset.spec.ts`, the staff forgot-password and
+  forgot-username flows).
 
 Notes:
 

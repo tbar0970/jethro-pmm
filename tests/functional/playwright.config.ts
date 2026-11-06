@@ -28,6 +28,14 @@ export default defineConfig({
   use: { browserName: "chromium", baseURL: `${HOST}/`, screenshot: "only-on-failure" },
   projects: [
     { name: "lookaround", testMatch: ["lookaround/lookaround.spec.ts"] },
+    {
+      // Member self-registration: emailed activation link -> set password ->
+      // logged in. Uses the MailPit capture (email/mailpit-api.ts) and reads the
+      // standard demo database, whose settings table supplies the MEMBER_REGO_* values.
+      name: "member-rego",
+      testMatch: ["members/member-rego.spec.ts"],
+      use: { baseURL: `${HOST}/members/` },
+    },
     // CSV person importer (#1577); reads the standard demo database at the root URL.
     { name: "import", testMatch: ["import/import.spec.ts"] },
     {
