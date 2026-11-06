@@ -82,3 +82,13 @@ WHERE
 	AND ((NOT selfs.is_archived) OR (mp.id = self.id))
 	/* archived persons can only see themselves, not any family members */
 ;
+
+-- Expose the sendmail transport alternative on the System Configuration page.
+-- Synced with include/installer.class.php and include/config_manager.class.php
+-- (isFileOnlySetting). Idempotent.
+INSERT IGNORE INTO setting (`rank`, heading, symbol, note, type, value)
+SELECT `rank` + 1, '', 'SENDMAIL_COMMAND',
+    'Send mail via this sendmail-compatible command instead of SMTP_SERVER. Include -bs to speak SMTP over the pipe.',
+    'text', ''
+FROM setting
+WHERE symbol = 'SMTP_SERVER';

@@ -136,6 +136,17 @@ class Emailer
 		}
 	}
 
+	/**
+	 * Build the transport for outgoing mail, in order of precedence:
+	 * - SMTP_SERVER: an SMTP server (ip:port, plus SMTP_PORT/SMTP_ENCRYPTION/credentials);
+	 * - SENDMAIL_COMMAND: a sendmail-compatible command, run with the message piped to
+	 *   its stdin. Must contain "-bs" or "-t" (Symfony rejects any other command);
+	 *   "-bs" is recommended — proper envelope and failure reporting. Symfony drops
+	 *   "-t" and passes the recipients on argv.
+	 * - neither: PHP's mail(), per the sendmail_path ini setting.
+	 *
+	 * @return TransportInterface
+	 */
 	private static function _transport()
 	{
 		if (defined('SMTP_SERVER') && SMTP_SERVER) {
@@ -149,6 +160,9 @@ class Emailer
 				$userinfo .= '@';
 			}
 			return Transport::fromDsn($scheme . '://' . $userinfo . SMTP_SERVER . ':' . $port);
+		}
+		if (defined('SENDMAIL_COMMAND') && SENDMAIL_COMMAND) {
+			return Transport::fromDsn('sendmail://default?command=' . rawurlencode(SENDMAIL_COMMAND));
 		}
 		return Transport::fromDsn('native://default');
 	}

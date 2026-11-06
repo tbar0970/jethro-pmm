@@ -85,10 +85,11 @@ inherited shell values.
 Read the configured value with `./devbox run -- printenv NGINX_WEB_PORT`.
 
 Devbox (at least, our fork of it) exports `DEVBOX_RUNTIME_DIR`, `DEVBOX_LOG_DIR` and `DEVBOX_DATA_DIR`
-before expanding `env`. Log/data roots are `.devbox/logs` and `.devbox/data`.
-Keep MariaDB and PHP-FPM on their plugin-specific paths beneath those roots.
-Custom services must create private runtime subdirectories before using them.
-The hook locates utilities through `$DEVBOX_CONFIG_DIR`.
+before expanding `env`. Project configuration sets `MAILPIT_SOCKET_DIR` to
+`$DEVBOX_RUNTIME_DIR/mailpit`. The runtime namespace matches the plugin socket paths;
+log/data roots are `.devbox/logs` and `.devbox/data`. Keep MariaDB and PHP-FPM on their
+plugin-specific paths beneath those roots. Custom services must create private runtime
+subdirectories before using them. The hook locates utilities through `$DEVBOX_CONFIG_DIR`.
 
 Run `devbox info mariadb` / `devbox info php` / `devbox info nginx` to see what's available.
 

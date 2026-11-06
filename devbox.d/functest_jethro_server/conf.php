@@ -43,10 +43,12 @@ if (str_starts_with($path, '/tests/functional/')) {
     }
 } else 
 {
-    // Identity marker for Playwright's global-setup: every checkout shares the
-    // same FUNCTEST_WEB_PORT, so global-setup verifies the served login page
-    // carries THIS checkout's path before running tests (a stale checkout's
-    // functest_jethro_server can otherwise silently own the port).
+    // Identity marker for Playwright's global-setup: FUNCTEST_WEB_PORT is derived
+    // per checkout path but not guaranteed unique, so global-setup fetches
+    // functestinfo.php (served from this webroot) and refuses to run unless it
+    // reports THIS checkout's path (a stale checkout's functest_jethro_server
+    // can otherwise silently own the port). The LOGIN_NOTE below is human
+    // information on the login page, not what global-setup checks.
     $instance_path = realpath(JETHRO_ROOT . '/../..');
     define('LOGIN_NOTE', "<details><summary>Functest info</summary>
         <p>Jethro instance path: <code data-functest-instance-path='$instance_path'>$instance_path</code>
@@ -87,4 +89,18 @@ if (!defined('DB_HOST') && !defined('DB_DSN')) {
 }
 if (!defined('DB_USERNAME')) define('DB_USERNAME', "jethro");
 if (!defined('DB_PASSWORD')) define('DB_PASSWORD', 'jethro');
+
+// Email capture: send all mail into this checkout's MailPit unix socket
+// (process-compose service `mailpit`; see docs/docs/developer/DEVELOPMENT_FUNCTESTS.md
+// "8. Email capture — MailPit (Unix domain sockets)"). Emailer runs this command via Symfony's sendmail
+// transport ("-bs" = SMTP over the command's stdin), so no SMTP_SERVER is defined;
+// a scenario conf that needs a real SMTP transport can define SMTP_SERVER itself
+// (it is loaded before this point and takes precedence).
+// MailPit's socket directory is $DEVBOX_RUNTIME_DIR/mailpit, configured in devbox.json
+// and passed to php-fpm by devbox.d/php/php-fpm.conf; there is no fallback to a real
+// sendmail, so mail fails if the variable or socket is missing.
+// See docs/docs/developer/reference/JETHRO_UTILS.md.
+define('SENDMAIL_COMMAND',
+    escapeshellarg(dirname(JETHRO_ROOT, 2).'/.devbox/nix/profile/default/bin/mailpit')
+    .' sendmail -S '.escapeshellarg('unix:'.getenv('MAILPIT_SOCKET_DIR').'/smtp.sock').' -bs');
 

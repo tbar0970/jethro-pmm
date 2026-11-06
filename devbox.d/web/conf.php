@@ -18,3 +18,13 @@ define('PREFILL_MEMBER_PASSWORD', 'qfntt7eYuwHs123');  # This qfntt7eYuwHs123 pa
 # Required
 define('SMS_INTERNATIONAL_PREFIX', '61');
 define('SMS_LOCAL_PREFIX', '0');
+
+// Email capture: send all mail into this checkout's MailPit unix socket
+// (process-compose service `mailpit`), mirroring how SMS is faked via the
+// smsmockserver above. php-fpm is given MAILPIT_SOCKET_DIR by
+// devbox.d/php/php-fpm.conf; there is deliberately no fallback to a real
+// sendmail, so if the variable or the socket is missing, mail fails.
+// See DEVELOPMENT_FUNCTESTS.md "8. Email capture — MailPit (Unix domain sockets)".
+define('SENDMAIL_COMMAND',
+	escapeshellarg(dirname(JETHRO_ROOT, 2).'/.devbox/nix/profile/default/bin/mailpit')
+	.' sendmail -S '.escapeshellarg('unix:'.getenv('MAILPIT_SOCKET_DIR').'/smtp.sock').' -bs');

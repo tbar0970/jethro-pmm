@@ -1,5 +1,7 @@
 # Nginx config for Jethro PMM development (devbox)
-# Generated from nginx.template — envsubst expands ${NGINX_WEB_PORT}, ${NGINX_WEB_SERVER_NAME}, ${PHPFPM_UNIX_SOCKET}.
+# Generated from nginx.template — envsubst expands every environment variable; the template
+# uses ${NGINX_WEB_PORT}, ${NGINX_WEB_SERVER_NAME}, ${NGINX_WEB_ROOT}, ${PHPFPM_UNIX_SOCKET},
+# ${NGINX_LOG_DIR} and ${MAILPIT_SOCKET_DIR} (devbox.json sets the latter).
 # PHP-FPM listens on unix socket $PHPFPM_UNIX_SOCKET (set by the devbox php plugin, cf. MYSQL_UNIX_PORT).
 
 events {}
@@ -109,6 +111,53 @@ http {
         location = /          { rewrite ^ /index.php last; }
         location = /members/  { rewrite ^ /members/index.php last; }
         location = /public/   { rewrite ^ /public/index.php last; }
+
+        # ====================================================================
+        # /emailmockserver/ → MailPit web UI + REST API (email capture sink),
+        # proxied unchanged to its HTTP unix socket: MailPit runs with
+        # --webroot /emailmockserver/ (process-compose service `mailpit`), so the
+        # paths already match. Socket dir comes from MAILPIT_SOCKET_DIR
+        # (devbox.json, derived from DEVBOX_RUNTIME_DIR). Upgrade/Connection pass
+        # through for the UI's live-update websocket. Host must carry the browser's
+        # host:port ($http_host), not nginx's default "localhost" for a unix-socket
+        # upstream: MailPit rejects any request whose Origin differs from its Host,
+        # which would 403 the websocket and the UI's fetch() calls. See
+        # DEVELOPMENT_FUNCTESTS.md "8. Email capture — MailPit (Unix domain sockets)".
+        # Loopback only, like /fpm-status below: the captured mail includes member
+        # activation and password-reset links, and MailPit's API is unauthenticated
+        # (it can also DELETE every message), so it must not be reachable from
+        # other hosts on the LAN, VPN/tailnet or a container bridge.
+        location = /emailmockserver {
+            allow 127.0.0.1;
+            allow ::1;
+            deny all;
+            # try_files runs in the content phase, after the access phase, so the
+            # ACL above applies to the redirect too; a bare `return` would run in
+            # the rewrite phase and answer 302 before nginx checks allow/deny.
+            try_files /nonexistent @emailmockserver_redirect;
+        }
+
+        location @emailmockserver_redirect {
+            return 302 /emailmockserver/$is_args$args;
+        }
+
+        location ^~ /emailmockserver/ {
+            allow 127.0.0.1;
+            allow ::1;
+            deny all;
+            # allow/deny alone does not stop DNS rebinding: a page that resolves its
+            # own name to 127.0.0.1 connects from loopback. So also require a
+            # loopback Host header (these are the names DEVELOPMENT_FUNCTESTS.md
+            # documents for the MailPit UI).
+            if ($host !~ ^(localhost|127\.0\.0\.1|\[::1\])$) { return 403; }
+
+            proxy_pass http://unix:${MAILPIT_SOCKET_DIR}/http.sock;
+            proxy_http_version 1.1;
+            # MailPit compares Origin with Host, including the browser-facing port.
+            proxy_set_header Host $http_host;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $http_connection;
+        }
 
         # ====================================================================
         # Test-scenario virtual paths: /tests/functional/<name>/...

@@ -916,6 +916,15 @@
       "fileOnly": true,
       "note": "Force the From: address on Jethro-sent emails. The user-specified From becomes Reply-To instead."
     },
+    "SENDMAIL_COMMAND": {
+      "type": "text",
+      "label": "Sendmail Command",
+      "description": "Send mail via a sendmail-compatible command instead of <code>SMTP_SERVER</code>: the message is piped to the command's stdin. Include <code>-bs</code> to speak SMTP over that pipe (recommended: proper envelope, Bcc handling, failure reporting). Symfony never forwards <code>-t</code>: recipients arrive as argv arguments (or, with <code>-bs</code>, in the SMTP dialogue).",
+      "explanation": "Takes precedence over PHP's sendmail_path ini setting, but is itself overridden by SMTP_SERVER. E.g. a wrapper binary, or an SMTP sink listening on a Unix domain socket.",
+      "default": null,
+      "fileOnly": true,
+      "note": "Send mail via a sendmail-compatible command instead of SMTP_SERVER: the message is piped to the command's stdin. Include -bs to speak SMTP over that pipe (recommended); Symfony never forwards -t: recipients arrive as argv arguments (or, with -bs, in the SMTP dialogue)."
+    },
     "MEMBER_LOGIN_NOTE": {
       "type": "text",
       "label": "Member Login Note",
@@ -1232,6 +1241,7 @@
       "intro": "",
       "settings": [
         "SMTP_SERVER",
+        "SENDMAIL_COMMAND",
         "SMTP_ENCRYPTION",
         "SMTP_USERNAME",
         "SMTP_PASSWORD",
