@@ -226,8 +226,12 @@ flaky tests rather than one saturated pool. Things that keep it healthy:
   `tests/functional/testdata/fakesmses.sql.gz` holds 224 messages / 14016
   deliveries, and `View_persons__messages` plus `getPersonSmsHistory()` render
   every delivery of every message with **no `LIMIT`** — one status icon plus link
-  per recipient. So the Messages page is a ~6.4 MB response costing ~0.3s
-  (peak ~1.5s), loaded by several specs on every run. Measured: the suite passes
+  per recipient. So the Messages page is a ~3.5 MB response costing ~0.3s
+  (peak ~1.5s), loaded by several specs on every run. Its recipient loop
+  (`View_persons__messages::printView()`) emits one compact line per delivery:
+  the surrounding template indentation alone used to be ~2.8 MB of a ~6.3 MB
+  response (~28k whitespace-only text nodes), so keep new inline markup on the
+  same line as its PHP rather than re-indenting it. Measured: the suite passes
   with it and takes ~7% longer than with a thinned fixture (~145s vs ~135s), so
   it stays. It is a useful canary — if the pool or session-lock fixes above
   regress, these are the pages that will wedge first.

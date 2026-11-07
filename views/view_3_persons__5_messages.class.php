@@ -138,39 +138,42 @@ class View_persons__messages extends View
                         ?>
                     </td>
                     <td class="sms-history-recipients">
-                        <div class="sms-history-recipients-scroll">
-                        <?php
+                        <div class="sms-history-recipients-scroll"><?php
+                        // Emitted without template indentation: this is the page's
+                        // innermost loop (one block per recipient — 14k on the seed
+                        // data), and the surrounding whitespace was 2.8 MB of a
+                        // 6.3 MB response. Keep it on one line per recipient; the
+                        // structure is unchanged.
+                        $scheduledAt = $send['scheduled_send_at'] ?? null;
+                        $sentAt = $scheduledAt ?? ($send['created'] ?? null);
                         foreach ($sendDeliveries as $d) {
                             $name = $d['recipient_name'] ?: ('Person #' . ((int)$d['personid']));
-                            $status = $d['status'] ?? 'unknown';
                             $did = (int)($d['_id'] ?? 0);
                             $pid = (int)$d['personid'];
-                            $body = (string)($d['body'] ?? '');
-                            $dprovider = $d['provider'] ?? null;
                             if ($pid && $did) {
-                            echo \Jethro\Sms\renderSmsDeliveryStatusIcon(
-                                status: $status,
-                                scheduledAt: $send['scheduled_send_at'] ?? null,
-                                deliveryId: $did ?: null,
-                                providerKey: $dprovider,
-                                currentProviderKey: $currentProviderKey,
-                                batch: true,
-                                sentAt: $send['scheduled_send_at'] ?? $send['created'] ?? null,
-                            );
-                                ?>
-                                <a href="?view=persons&amp;personid=<?php echo $pid; ?>#message_<?php echo (int)$smsId; ?>"
-                                <?php if ($hasTokens && $body !== ''): ?> title="<?php echo ents($body); ?>"<?php endif; ?>>
-                                    <?php echo ents($name); ?>
-                                </a>
-                                <?php
+                                $body = (string)($d['body'] ?? '');
+                                echo \Jethro\Sms\renderSmsDeliveryStatusIcon(
+                                    status: $d['status'] ?? 'unknown',
+                                    scheduledAt: $scheduledAt,
+                                    deliveryId: $did,
+                                    providerKey: $d['provider'] ?? null,
+                                    currentProviderKey: $currentProviderKey,
+                                    batch: true,
+                                    sentAt: $sentAt,
+                                );
+                                // The leading space is the separator the template
+                                // used to supply as indentation; keep it so the
+                                // status icon and name stay distinct on screen.
+                                echo ' <a href="?view=persons&amp;personid=' . $pid
+                                    . '#message_' . (int)$smsId . '"'
+                                    . ($hasTokens && $body !== '' ? ' title="' . ents($body) . '"' : '')
+                                    . '>' . ents($name) . '</a>';
                             } else {
                                 echo ents($name);
                             }
-                            ?><br />
-                            <?php
+                            echo '<br />';
                         }
-                        ?>
-                        </div>
+                        ?></div>
                     </td>
                     <td>
                         <?php
