@@ -34,6 +34,7 @@ class Config_Manager {
 
 	public static function allowSettingInFile($symbol)
 	{
+		if (self::isFileOnlySetting($symbol)) return TRUE;
 		if (0 === strpos($symbol, 'SMS_')) return TRUE;
 		if (0 === strpos($symbol, '2FA_')) return TRUE;
 		if (0 === strpos($symbol, 'SMTP')) return TRUE;
@@ -43,15 +44,26 @@ class Config_Manager {
 	}
 
 	/**
+	 * Whether a setting may only be set in conf.php. The System Configuration
+	 * page displays these read-only and never saves them.
+	 */
+	public static function isFileOnlySetting(string $symbol): bool
+	{
+		return $symbol === 'SENDMAIL_COMMAND';
+	}
+
+	/**
 	 * Whether a setting symbol names a credential that should never be
 	 * displayed on the config page (e.g. API keys, passwords).
 	 *
 	 * Uses a naming convention rather than a hardcoded list. Any setting
 	 * containing APIKEY, API_KEY, PASSWORD, SECRET, or TOKEN in its name
-	 * is treated as sensitive.
+	 * is treated as sensitive. SENDMAIL_COMMAND is included because a wrapper
+	 * command can embed SMTP credentials.
 	 */
 	public static function isCredentialSetting(string $symbol): bool
 	{
+		if ($symbol === 'SENDMAIL_COMMAND') return TRUE;
 		$upper = strtoupper($symbol);
 		return str_contains($upper, 'APIKEY')
 			|| str_contains($upper, 'API_KEY')

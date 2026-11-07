@@ -35,7 +35,26 @@ printed when `devbox services up` starts. Replace either `_default_` entry with
 a literal port to pin it for that checkout. Read the configured value with
 `./devbox run -- printenv FUNCTEST_WEB_PORT` — the CI readiness poll takes this
 route, and Playwright receives the same environment, so nothing falls back to a
-fixed port.
+fixed port. `bin/review_loop workspace` writes these literal ports into a fresh
+review workspace's `devbox.json`.
+
+## MailPit socket directory
+
+Besides the ports, `devbox.json`'s `env` sets `MAILPIT_SOCKET_DIR` to
+`$DEVBOX_RUNTIME_DIR/mailpit`: the Unix-domain-socket directory of the `mailpit`
+process-compose service, the email sink for the dev and functest servers (see
+`DEVELOPMENT_FUNCTESTS.md`, "Email capture — MailPit"). It is a plain project-env
+path, not a `freeport` result: the per-project runtime namespace already separates
+concurrent checkouts, so there is nothing to derive. The `mailpit` service creates
+the directory itself, privately (`umask 077`).
+
+The value travels by environment, not derivation: the nginx template proxies
+`/emailmockserver/` to `unix:${MAILPIT_SOCKET_DIR}/http.sock`, php-fpm forwards it
+(`env[MAILPIT_SOCKET_DIR]` in `devbox.d/php/php-fpm.conf`) to the webroots' `conf.php`
+files, which read only that environment variable. Outside devbox,
+`tests/functional/email/mailpit-api.ts` asks
+`./devbox run --pure -- printenv MAILPIT_SOCKET_DIR` (`--pure` re-expands
+configuration even when a nested caller unset the variable).
 
 ## Guarantees and limits
 

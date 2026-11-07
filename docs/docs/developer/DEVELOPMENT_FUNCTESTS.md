@@ -27,9 +27,9 @@ it's addressed at.
 
 Starts one nginx (from `devbox.d/nginx/nginx.template`) + the normal shared
 PHP-FPM pool, rooted at `devbox.d/functest_jethro_server` instead of the
-regular dev webroot (`devbox.d/web`). `FUNCTEST_WEB_PORT` resolves `_default_`
-through the devbox.json init hook, or uses an explicit literal port override.
-See `reference/JETHRO_UTILS.md`. Depends on `functest_databases_setup`, which runs
+regular dev webroot (`devbox.d/web`). Listens on `FUNCTEST_WEB_PORT`. The init hook
+preserves a literal port or resolves `_default_` to a per-checkout port in 10000–29999.
+See `docs/docs/developer/reference/JETHRO_UTILS.md`. Depends on `functest_databases_setup`, which runs
 `jethro_load_demodata jethro_functest` — recreating the `jethro_functest`
 database and filling it with the demo data dump, the post-2.38 upgrade
 scripts and the fake SMS history (`tests/functional/testdata/fakesmses.sql.gz`)
@@ -148,6 +148,78 @@ database, `jethro_functest_smsmockserver`.
   `mockMeta(profile, endpoint)` helper in `tests/functional/sms/smsmock-url.ts`.
   `request.delete(mockMeta(...))` in a `beforeEach` is the standard way to
   reset captured state between tests.
+
+### 8. Email capture — MailPit (Unix domain sockets)
+
+Email isn't an HTTP API, so (unlike SMS) the ingest side can't be a repo PHP app in
+the nginx path: Jethro hands mail to an SMTP server. The sink is
+[MailPit](https://github.com/axllent/mailpit) — a Go binary installed via
+devbox (`mailpit@1.32.0` in `devbox.json`) and started by the `mailpit`
+process-compose service — listening on **Unix domain sockets** in the Devbox
+project runtime directory, so simultaneous checkouts never clash. The
+`devbox.json` env sets `MAILPIT_SOCKET_DIR` to `$DEVBOX_RUNTIME_DIR/mailpit`;
+Devbox namespaces that path by project and creates its runtime parent.
+The MailPit service creates the socket directory under `umask 077`, keeping
+its sockets and temporary SQLite store private without a custom path helper.
+The nginx template (envsubst), php-fpm (`env[MAILPIT_SOCKET_DIR]` in
+`devbox.d/php/php-fpm.conf`, read by both `conf.php` files) and the tests read
+`MAILPIT_SOCKET_DIR`; both `conf.php` files read only that environment variable
+(php-fpm always provides it), while `mailpit-api.ts` asks the checkout's
+`./devbox run --pure -- printenv MAILPIT_SOCKET_DIR` when running outside devbox.
+Captured mail is held in MailPit's temporary
+SQLite store, not in memory: the service sets `umask 077` and points `TMPDIR` at
+that socket directory, so its `mailpit-<id>.db{,-wal,-shm}` files are mode 0600
+in a 0700 directory and readable only by the checkout owner.
+
+Two sides:
+
+- **Send (Jethro → MailPit)** — the functest instance defines `SENDMAIL_COMMAND`
+  (`devbox.d/functest_jethro_server/conf.php`, paths derived from `JETHRO_ROOT`):
+  `Emailer` builds Symfony's `sendmail://` transport, which pipes each message into
+  MailPit's SMTP socket via `mailpit sendmail -S unix:... -bs` — an SMTP dialogue
+  over the pipe (proper envelope, Bcc handling, failure reporting). No
+  `sendmail_path` ini override is needed: the transport is chosen in PHP, so only
+  the command path and the socket path have to be right. The dev instance's conf
+  (`devbox.d/web/conf.php`) does the same, unguarded: there is no fallback to a
+  real sendmail, so mail fails if MailPit's socket is unavailable. Scope note:
+  functests target
+  what Jethro puts in the pipe — the rendered message and envelope handed to
+  `SENDMAIL_COMMAND` — rather than Symfony's SMTP client behaviour; the `smtp://`
+  TCP transport is deliberately not exercised. A scenario that needs it can define
+  `SMTP_SERVER` itself (scenario confs load before the functest conf's
+  email-capture define, and `Emailer` prefers `SMTP_SERVER` when defined).
+- **Query (specs → MailPit API)** — `tests/functional/email/mailpit-api.ts` — the
+  email analogue of `mockMeta()`: `waitForMessage({to, subject}, notBefore)` polls
+  and returns the full message (`.Text` / `.HTML` bodies included), plus
+  `searchMessages()`, `getMessage()`, `latestMessage()` and `deleteAllMessages()`.
+  It reaches the HTTP unix socket with node's `http.request({socketPath})`, because
+  `fetch()` cannot address a unix socket. Its consumers are the `member-rego`
+  project (`tests/functional/members/member-rego.spec.ts`, the member activation
+  round-trip) and the `password-reset` project
+  (`tests/functional/email/password-reset.spec.ts`, the staff forgot-password and
+  forgot-username flows).
+
+Notes:
+
+- MailPit keeps messages in its temporary SQLite store **across suite runs**
+  while the service stays up (bounded by `--max 500`; the store is deleted on a
+  clean shutdown and only a SIGKILL leaves it behind, still 0600), and all 8
+  workers share one instance — always scope queries by recipient and
+  subject, and pass a `notBefore` timestamp (taken just before the request that
+  triggers the email); `waitForMessage`/`latestMessage` return the newest match.
+- The web UI is at `http://localhost:<port>/emailmockserver/` on the process-compose
+  nginx (dev or functest port); `/emailmockserver/api/v1/messages` gives plain JSON.
+  MailPit runs with `--webroot /emailmockserver/`, so nginx proxies the prefix to the
+  HTTP socket unchanged, and API paths on the socket carry the prefix too. The location
+  is **loopback-only** (as `/fpm-status` is) and requires a loopback `Host`: captured mail
+  holds activation and password-reset links, so nginx returns 403 to other hosts, even on
+  this machine's own LAN address, and to DNS-rebinding requests. Without nginx:
+  `curl --unix-socket "$MAILPIT_SOCKET_DIR/http.sock" http://localhost/emailmockserver/api/v1/messages`
+  (inside `devbox shell`).
+- Every member-rego email assertion scopes by recipient and subject and passes a
+  `notBefore` timestamp; the unknown-email notification shares one mailbox and
+  subject across workers, so that assertion scans message bodies created after
+  `notBefore` for the address this run submitted.
 
 ## Running
 
