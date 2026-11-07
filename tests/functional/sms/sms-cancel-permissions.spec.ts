@@ -9,6 +9,10 @@ import { login, DEMO_USERNAME } from "../auth.js";
  */
 test.describe("SMS cancel permissions", () => {
   test("a non-sender cannot cancel someone else's scheduled send", async ({ page, context }) => {
+    // Renders the heavy global Messages page twice (seed data has ~14k
+    // deliveries) and waits on provider status polling, so under concurrent
+    // load this legitimately approaches the default 30s budget.
+    test.slow();
     await login(page, DEMO_USERNAME);
 
     const messageText = `Cancel permission test ${Date.now()}`;
