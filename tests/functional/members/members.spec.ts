@@ -1,3 +1,5 @@
+import { execFileSync } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import { test, expect } from "../fixtures.js";
 import { to } from "../timeouts.js";
 import { type Page } from "@playwright/test";
@@ -155,4 +157,109 @@ test.describe("Members login redirects after success", () => {
     await expect(loginBox).toBeVisible();
     await expect(loginBox.locator(".alert-error")).toHaveCount(0);
   });
+});
+
+test.describe("Staff recovery contacts are protected in the members area", () => {
+  function sql(statement: string): string {
+    return execFileSync("mariadb", ["jethro_functest", "-sNBe", statement], { encoding: "utf8" }).trim();
+  }
+
+  /** Own family and credentials: never modify shared personas or their contacts. */
+  function installFixture(active: boolean) {
+    const suffix = randomUUID();
+    const memberEmail = `contact-member-${suffix}@example.org`;
+    const staffEmail = `contact-staff-${suffix}@example.org`;
+    // Read outside the transaction: INSERT ... SELECT would lock shared staff rows.
+    const passwordHex = sql("SELECT HEX(password) FROM staff_member WHERE username = 'demo'");
+    const ids = sql(`
+      START TRANSACTION;
+      INSERT INTO family
+        (family_name, address_street, address_suburb, address_state, address_postcode, home_tel, status, history)
+        SELECT 'Contact Fixture', address_street, address_suburb, address_state, address_postcode, '', status, ''
+        FROM family WHERE id = (SELECT familyid FROM _person WHERE id = 9);
+      SET @family_id = LAST_INSERT_ID();
+      INSERT INTO _person
+        (familyid, first_name, last_name, gender, age_bracketid, email, mobile_tel, work_tel,
+         remarks, status, congregationid, history, member_password)
+        SELECT @family_id, 'Member', 'Contact Fixture', p.gender, p.age_bracketid,
+          '${memberEmail}', '0491570101', '', '', p.status, p.congregationid, '', UNHEX('${passwordHex}')
+        FROM _person p WHERE p.id = 4;
+      SET @member_id = LAST_INSERT_ID();
+      INSERT INTO _person
+        (familyid, first_name, last_name, gender, age_bracketid, email, mobile_tel, work_tel,
+         remarks, status, congregationid, history, member_password)
+        SELECT @family_id, 'Staff', 'Contact Fixture', p.gender, p.age_bracketid,
+          '${staffEmail}', '0491570102', '', '', p.status, p.congregationid, '', UNHEX('${passwordHex}')
+        FROM _person p WHERE p.id = 4;
+      SET @staff_id = LAST_INSERT_ID();
+      INSERT INTO staff_member (id, username, password, active, permissions)
+        VALUES (@staff_id, 'contact-${suffix}', UNHEX('${passwordHex}'), ${active ? 1 : 0}, 1);
+      SELECT @family_id, @member_id, @staff_id;
+      COMMIT;
+    `).split("\t").map(Number);
+    return { familyId: ids[0], memberId: ids[1], staffId: ids[2], memberEmail, staffEmail };
+  }
+
+  for (const active of [true, false]) {
+    for (const self of [false, true]) {
+      test(`${self ? "self" : "family"} edits with ${active ? "active" : "inactive"} staff account`, async ({ page }) => {
+        const fixture = installFixture(active);
+        try {
+          await memberLogin(page, self ? fixture.staffEmail : fixture.memberEmail);
+          await page.goto("./?view=_edit_me");
+          const memberPrefix = `person_${fixture.memberId}`;
+          const staffPrefix = `person_${fixture.staffId}`;
+          const updatedMemberEmail = `updated-${fixture.memberEmail}`;
+          await page.locator(`input[name="${memberPrefix}email"]`).fill(updatedMemberEmail);
+          await page.locator(`input[name="${memberPrefix}mobile_tel"]`).fill("0491570103");
+          // Non-recovery fields remain editable for staff without required 2FA.
+          await page.locator(`input[name="${staffPrefix}work_tel"]`).fill("0491570105");
+          // Forge protected contact values regardless of their read-only presentation.
+          await page.evaluate((prefix) => {
+            const form = document.querySelector<HTMLInputElement>('[name="family_details_submitted"]')!.form!;
+            for (const [field, value] of Object.entries({
+              email: "contact-attacker@example.org", mobile_tel: "0491570104",
+            })) {
+              for (const existing of form.querySelectorAll(`[name="${prefix}${field}"]`)) existing.remove();
+              const input = document.createElement("input");
+              input.type = "hidden";
+              input.name = `${prefix}${field}`;
+              input.value = value;
+              form.appendChild(input);
+            }
+          }, staffPrefix);
+          await page.getByRole("button", { name: "Save", exact: true }).click();
+          await expect(page.locator("#body")).toContainText("Details saved");
+          expect(sql(`SELECT email, REPLACE(mobile_tel, ' ', ''), REPLACE(work_tel, ' ', '')
+            FROM _person WHERE id = ${fixture.staffId}`).split("\t")).toEqual([
+            fixture.staffEmail, "0491570102", "0491570105",
+          ]);
+          expect(sql(`SELECT email, REPLACE(mobile_tel, ' ', '')
+            FROM _person WHERE id = ${fixture.memberId}`).split("\t")).toEqual([
+            updatedMemberEmail, "0491570103",
+          ]);
+          await page.goto("./?view=_edit_me");
+          // Read-only contacts are unnamed, so the browser never submits them.
+          const staffEmail = page.locator(`#${staffPrefix}email`);
+          const staffMobile = page.locator(`#${staffPrefix}mobile_tel`);
+          await expect(staffEmail).toHaveValue(fixture.staffEmail);
+          await expect(page.locator(`[name="${staffPrefix}email"], [name="${staffPrefix}mobile_tel"]`)).toHaveCount(0);
+          await expect(staffEmail).not.toBeEditable();
+          await expect(staffMobile).not.toBeEditable();
+          expect((await staffMobile.inputValue()).replace(/\D/g, "")).toBe("0491570102");
+          await expect(staffEmail).toHaveAttribute("title", /security/i);
+          await expect(staffMobile).toHaveAttribute("title", /security/i);
+          await expect(page.locator(`input[name="${staffPrefix}work_tel"]`)).toBeVisible();
+          await expect(page.locator(`input[name="${memberPrefix}email"]`)).toHaveValue(updatedMemberEmail);
+        } finally {
+          sql(`DELETE FROM db_object_lock WHERE
+              (object_type = 'person' AND objectid IN (${fixture.memberId}, ${fixture.staffId}))
+              OR (object_type = 'family' AND objectid = ${fixture.familyId});
+            DELETE FROM staff_member WHERE id = ${fixture.staffId};
+            DELETE FROM _person WHERE familyid = ${fixture.familyId};
+            DELETE FROM family WHERE id = ${fixture.familyId};`);
+        }
+      });
+    }
+  }
 });

@@ -1,0 +1,40 @@
+---
+sidebar_position: 10
+---
+
+# Staff contact protection in the members area
+
+People with a `staff_member` row cannot change their email address or mobile
+number through `/members`, nor can another family member change those contacts.
+This includes inactive staff accounts and accounts without mandatory 2FA.
+Control-centre contact editing is unchanged.
+
+`View__Edit_Me::editablePersonFields()` removes `email` and `mobile_tel` from the
+allowlist passed to `Person::processForm()`, so forged POST fields are ignored.
+The same allowlist selects editable form fields.
+`printReadOnlyStaffContacts()` separately displays stored contacts in unnamed
+read-only inputs (never submitted), with security tooltips and associated
+explanatory text. Read-only HTML is presentation, not the authorization
+boundary.
+
+The existing full edit prohibition for staff requiring 2FA is preserved.
+Ordinary members retain their existing editable fields. Family/self editing
+permissions and record visibility are unchanged.
+
+The restriction prevents future contact changes; it does not verify existing
+addresses or numbers. Review current staff contacts if member-area editing was
+previously allowed. Member-portal login and emailed activation/recovery links
+still grant a member session without an SMS challenge.
+
+## Verification
+
+`tests/functional/members/members.spec.ts` covers self/family edits against
+active/inactive staff accounts using isolated fixtures. It checks read-only
+contacts and security tooltips, forged email/mobile updates leaving database
+values unchanged, and permitted non-staff contact and staff work-phone edits.
+
+Run the standalone regressions with:
+
+```sh
+./devbox run functests --project=members --grep='Staff recovery contacts'
+```
