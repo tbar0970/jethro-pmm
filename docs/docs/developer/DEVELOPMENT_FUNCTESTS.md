@@ -27,8 +27,9 @@ it's addressed at.
 
 Starts one nginx (from `devbox.d/nginx/nginx.template`) + the normal shared
 PHP-FPM pool, rooted at `devbox.d/functest_jethro_server` instead of the
-regular dev webroot (`devbox.d/web`). Listens on `FUNCTEST_WEB_PORT` (default
-8089). Depends on `functest_databases_setup`, which runs
+regular dev webroot (`devbox.d/web`). `FUNCTEST_WEB_PORT` resolves `_default_`
+through the devbox.json init hook, or uses an explicit literal port override.
+See `reference/JETHRO_UTILS.md`. Depends on `functest_databases_setup`, which runs
 `jethro_load_demodata jethro_functest` — recreating the `jethro_functest`
 database and filling it with the demo data dump, the post-2.38 upgrade
 scripts and the fake SMS history (`tests/functional/testdata/fakesmses.sql.gz`)

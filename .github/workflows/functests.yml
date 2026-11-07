@@ -41,7 +41,8 @@ jobs:
 
       - name: Wait for functest server
         run: |
-          PORT="${FUNCTEST_WEB_PORT:-8089}"
+          # The launcher's environment does not leak into this step's shell.
+          PORT="$(./devbox run -- printenv FUNCTEST_WEB_PORT)"
           for i in $(seq 1 30); do
             if curl -sf -o /dev/null "http://127.0.0.1:${PORT}/"; then
               echo "Functest server ready on port ${PORT}"
