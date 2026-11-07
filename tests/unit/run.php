@@ -64,8 +64,7 @@ $root = realpath(__DIR__ . '/../..');
 
 $testFiles = [];
 $isolatedFiles = [];
-// Recursively scan tests/unit/ for test_*.php files, following symlinks
-// (e.g. tests/unit/sms -> ../../jethro-sms/tests/).
+// Recursively scan tests/unit/ for test_*.php files, following symlinks.
 $it = new \RecursiveIteratorIterator(
 	new \RecursiveDirectoryIterator(__DIR__, \FilesystemIterator::FOLLOW_SYMLINKS),
 );

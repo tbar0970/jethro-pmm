@@ -188,7 +188,7 @@ if ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE)) {
 		}
 	} else {
 		?>
-<?php include __DIR__ . '/note_filters.template.php'; ?>
+<?php $show_filters = true; include __DIR__ . '/note_filters.template.php'; ?>
 		<?php
 	}
 	include 'list_notes.template.php';

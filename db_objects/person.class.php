@@ -1,6 +1,7 @@
 <?php
 include_once 'include/db_object.class.php';
 include_once 'include/size_detector.class.php';
+include_once __DIR__ . '/../include/jethro_sms.php';
 class Person extends DB_Object
 {
 	protected $_save_permission_level = PERM_EDITPERSON;
@@ -293,43 +294,22 @@ class Person extends DB_Object
 				echo $person_name;
 				return;
 			case 'mobile_tel':
-				if (!strlen($value)) return;
-				$links = Array('<a href="tel:'.ents($value).'"><i class="icon-phone"></i> Call</a>');
-				if (SMS_Sender::canSend()) {
-					$msg = _('SMS via Jethro');
-					$links[] = '<a href="#send-sms-modal" data-toggle="sms-modal" data-personid="' . $this->id . '" data-name="' . $person_name . '"><i class="icon-envelope"></i> '.$msg.'</a>';
-					static $printedSmsModal = FALSE;
-					if (!$printedSmsModal) {
-						SMS_Sender::printModal();
-						$printedSmsModal = TRUE;
-					}
-				}
-				if (FALSE !== strpos(array_get($_SERVER, 'HTTP_USER_AGENT', ''), 'Macintosh')) {
-					// on mac we can use the messages app
-					$msg = _('SMS via iMessage');
-					$links[] = '<a href="imessage:'.ents($value).'"><i class="icon-envelope"></i> '.$msg.'</a>';
-				} else if (SizeDetector::isNarrow()) {
-					// Probably a phone - use SMS link
-					$msg = SMS_Sender::canSend() ? 'SMS via my device' : 'SMS';
-					$links[] = '<a href="sms:'.ents($value).'"><i class="icon-envelope"></i> '.$msg.'</a>';
-				}
-				$internationalNumber = preg_replace('/[^0-9]/', '', SMS_INTERNATIONAL_PREFIX).substr($value, strlen(SMS_LOCAL_PREFIX));
-				$links[] = '<a href="https://wa.me/'.$internationalNumber.'" target="_whatsapp"><i class="icon-comment"></i> Send WhatsApp</a>';
-				$links[] = '<a data-action="copy" data-target="#mobile-'.$this->id.'"><i class="icon-copy"></i> Copy number</a>';
+				if (!strlen((string) $value)) return;
 
-				?>
-				<span class="dropdown nowrap">
-					<a class="dropdown-toggle mobile-tel" id="mobile-<?php echo $this->id; ?>" data-toggle="dropdown" href="#"><?php echo ents($this->getFormattedValue('mobile_tel')); ?></a>
-					<ul class="dropdown-menu" role="menu" aria-labelledby="mobile-<?php echo $this->id; ?>" style="z-index:9999">
-					<?php
-					foreach ($links as $l) {
-						?>
-						<li><?php echo $l; ?></li>
-						<?php
-					}
-					?>
-					</ul>
-				</span>
+				$internationalNumber = preg_replace('/[^0-9]/', '', ifdef('SMS_INTERNATIONAL_PREFIX', '61')).substr((string) $value, strlen(ifdef('SMS_LOCAL_PREFIX', '0')));
+				// The mobile links ('Call', 'SMS via Jethro', 'Send Whatsapp', 'Copy number' are generated from these data-* attributes in Javascript (the a.mobile-tel click handler).
+				// data-optedout only matters to the 'SMS via Jethro' link, so viewers who
+				// can't send never trigger the provider's opt-out lookup.
+				$optedOut = \Jethro\Sms\canSendSms() && \Jethro\Sms\isPersonOptedOut($this);
+?>
+				<a href="javascript:void(0);" class="dropdown-toggle mobile-tel" id="mobile-<?php echo $this->id; ?>"
+				   data-mobilenumber="<?php echo ents($value); ?>"
+				   data-international="<?php echo ents($internationalNumber); ?>"
+				   data-personid="<?php echo $this->id; ?>"
+				   data-name="<?php echo $person_name; ?>"
+				   <?php if ($optedOut) echo 'data-optedout="1"'; ?>
+
+				><?php echo ents($this->getFormattedValue('mobile_tel')); ?></a>
 				<?php
 				return;
 			case 'email':
@@ -427,6 +407,36 @@ class Person extends DB_Object
 			$all_notes = array_reverse($all_notes, TRUE);
 		}
 		return $all_notes;
+	}
+
+	/**
+	 * Get SMS delivery history for this person.
+	 * Delegates to \Jethro\Sms\getPersonSmsHistory().
+	 *
+	 * @return array<int, array<string, mixed>>  Deliveries keyed by sms ID, ordered by created DESC
+	 */
+	function getSmsHistory(): array
+	{
+		require_once JETHRO_ROOT . '/include/jethro_sms.php';
+		return \Jethro\Sms\getPersonSmsHistory((int)$this->id);
+	}
+
+	/**
+	 * Get count of SMS messages sent only to this person (recipient_count = 1).
+	 *
+	 * @param array|null $history  An already-fetched getSmsHistory() result, to avoid re-querying
+	 * @return int  Number of direct (non-broadcast) SMS messages
+	 */
+	function getPersonalSmsCount(?array $history = null): int
+	{
+		$history = $history ?? $this->getSmsHistory();
+		$count = 0;
+		foreach ($history as $entry) {
+			if (($entry['recipient_count'] ?? 1) == 1) {
+				$count++;
+			}
+		}
+		return $count;
 	}
 
 	function validateFields()

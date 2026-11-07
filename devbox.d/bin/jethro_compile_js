@@ -6,7 +6,6 @@ warn() { echo "$*"; }
 warn_if_extra_js_files_found() {
   local version=$1
   local allowed=(
-    "jethro-sms-test.js"   # Get rid of this later
     "jquery.js"
     "jquery-ui.min.js"
     "bootstrap.js"
@@ -20,6 +19,7 @@ warn_if_extra_js_files_found() {
     "jquery.ui.touch-punch.min.js"
     "stupidtable.min.js"
     "treeview.js"
+    "datastar-1.0.4.min.js"
   )
 
   # Exclude generated bundles (jethro-<version>.js) plus the explicit allowlist below.

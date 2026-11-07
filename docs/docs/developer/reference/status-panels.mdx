@@ -54,6 +54,14 @@ banners, provider API error text, scripture fetched from api.bible — and leavi
 remember `ents()` produced both holes (unescaped banners) and double-escaping (`&amp;amp;`) in the
 same file. `tests/unit/test_statuspanel_summary.php` pins the behaviour.
 
+**Escape hatch:** a panel may override `detailsTable()` to embed links in its own rows — it then
+owns the escaping for those rows. The only current user is the SMS panel, which renders each
+sender number from structured state set by `getStatus()` (no re-parsing of the joined strings):
+linked to the matching person record when one has that mobile, plus a "(delete)" Datastar anchor
+per number when the provider has the `DELETE_SENDER_NUMBER` capability; the anchor `@get`s the
+`deleteSenderNumber` confirmation form into the operations container (morph by container ID works
+from anywhere on the page).
+
 ## Rendered layout
 
 ```

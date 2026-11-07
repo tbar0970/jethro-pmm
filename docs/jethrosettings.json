@@ -9,6 +9,38 @@
         "value": "1",
         "label": "Yes"
       }
+    ],
+    "unicode": [
+      {
+        "value": "when_free",
+        "label": "When it costs nothing extra"
+      },
+      {
+        "value": "true",
+        "label": "Permitted (may cost extra)"
+      },
+      {
+        "value": "false",
+        "label": "Not permitted"
+      }
+    ],
+    "provider": [
+      {
+        "value": "",
+        "label": "Auto-detect (based on settings)"
+      },
+      {
+        "value": "5centsmsv5",
+        "label": "5CentSMS v5"
+      },
+      {
+        "value": "cellcast",
+        "label": "Cellcast"
+      },
+      {
+        "value": "mobilemessage",
+        "label": "MobileMessage"
+      }
     ]
   },
   "settings": {
@@ -587,7 +619,7 @@
     "SMS_MAX_LENGTH": {
       "type": "number",
       "label": "Sms Max Length",
-      "description": "Character limit for SMS messages. 160 chars is usually a one-part SMS.",
+      "description": "Character limit for SMS messages sent from the web UI (scripts such as roster reminders are not limited). SMS is billed per 160 chars per person, so this is best set to 160 (1x), 306 (2x), 459 (3x), 612 (4x), 765 (5x) etc",
       "explanation": "SMSes are billed per 160 characters (or 70 if emojis / unicode are present), so setting SMS_MAX_LENGTH to 160 keeps costs down by enforcing brevity. To allow longer messages increase SMS_MAX_LENGTH to 306 (2x SMS segments), 459 (3x), 612 (4x), 765 (5x) etc.",
       "default": 160,
       "note": ""
@@ -623,7 +655,7 @@
       "type": "text",
       "label": "Sms Http Post Template",
       "description": "Template for the body of the HTTP POST request Jethro sends to the SMS gateway.",
-      "explanation": "Supports keywords: <code>_MESSAGE_</code>, <code>_RECIPIENTS_COMMAS_</code>, <code>_RECIPIENTS_NEWLINES_</code>, <code>_RECIPIENTS_ARRAY_</code>, <code>_RECIPIENTS_INTERNATIONAL_COMMAS_</code>, <code>_RECIPIENTS_INTERNATIONAL_NEWLINES_</code>, <code>_RECIPIENTS_INTERNATIONAL_ARRAY_</code>, <code>_USER_MOBILE_</code>, <code>_USER_EMAIL_</code>.<br><br>Example for SMSBroadcast: <code>username=MYUSER&password=MYPASS&to=_RECIPIENTS_COMMAS_&from=_USER_MOBILE_&message=_MESSAGE_</code><br>Example for 5CentSMS: <code>sender=_USER_MOBILE_&to=_RECIPIENTS_COMMAS_&message=_MESSAGE_</code>",
+      "explanation": "Supports keywords: <code>_MESSAGE_</code>, <code>_RECIPIENTS_COMMAS_</code>, <code>_RECIPIENTS_NEWLINES_</code>, <code>_RECIPIENTS_ARRAY_</code>, <code>_RECIPIENTS_INTERNATIONAL_COMMAS_</code>, <code>_RECIPIENTS_INTERNATIONAL_NEWLINES_</code>, <code>_RECIPIENTS_INTERNATIONAL_ARRAY_</code>, <code>_USER_MOBILE_</code>, <code>_USER_EMAIL_</code>.<br><br>Example: <code>username=MYUSER&password=MYPASS&to=_RECIPIENTS_COMMAS_&from=_USER_MOBILE_&message=_MESSAGE_</code><br>Example for 5CentSMS: <code>sender=_USER_MOBILE_&to=_RECIPIENTS_COMMAS_&message=_MESSAGE_</code>",
       "default": null,
       "fileOnly": true,
       "note": "Template for the body of a request to the SMS messaging service"
@@ -659,7 +691,7 @@
       "type": "text",
       "label": "Sms Local Prefix",
       "description": "Local prefix used in the mobile numbers stored in Jethro. Stripped before prepending the international prefix.",
-      "explanation": "Needed for SMS gateways that use international-format numbers. E.g. <code>0</code>.",
+      "explanation": "Only used by the deprecated template/5CentSMS v4 provider. 5CentSMS v5 and Cellcast send numbers as entered and let the provider normalise them. E.g. <code>0</code>.",
       "default": null,
       "fileOnly": true,
       "note": "Used for converting local to international numbers.  eg 0"
@@ -668,7 +700,7 @@
       "type": "text",
       "label": "Sms International Prefix",
       "description": "International prefix, which replaces the local prefix to form an international-format number.",
-      "explanation": "Needed for SMS gateways that use international-format numbers. E.g. <code>61</code> for Australia.",
+      "explanation": "Only used by the deprecated template/5CentSMS v4 provider. 5CentSMS v5 and Cellcast send numbers as entered and let the provider normalise them. E.g. <code>61</code> for Australia.",
       "default": null,
       "fileOnly": true,
       "note": "Used for converting local to international numbers. eg +61"
@@ -676,18 +708,10 @@
     "SMS_SEGMENT_COST": {
       "type": "text",
       "label": "Sms Segment Cost",
-      "description": "Cost per SMS segment in dollars (e.g. <code>0.05</code>). Overrides the provider's default rate for cost estimates in the compose UI and the Messages history. Use this if you have a bulk-purchase discount or non-standard pricing agreement.",
-      "explanation": "",
+      "description": "Your price per SMS segment in dollars, e.g. <code>0.029</code>. Providers such as Cellcast and 5CentSMS bill one credit per segment and charge less per credit the more you buy, so set this to what your bundle actually costs.",
+      "explanation": "Used for the cost estimate in the SMS compose dialog, and recorded against each new send (as <code>smsdelivery.per_segment_cost</code>) when the provider doesn't report its own price — Cellcast does, 5CentSMS doesn't. Changing it, or switching providers, does not reprice messages already sent. Blank = the provider's built-in default.",
       "default": null,
-      "note": "Cost per SMS segment in dollars (e.g. 0.05). Overrides the provider default."
-    },
-    "SMS_ENCODING": {
-      "type": "text",
-      "label": "Sms Encoding",
-      "description": "Typed text is stripped to be representable in this encoding before being sent. GSM0338 is the default and only valid value.",
-      "explanation": "",
-      "default": "GSM0338",
-      "note": "Sms text is forced into this encoding before sending."
+      "note": "Your price per SMS segment in dollars, e.g. 0.029. Used for the compose cost estimate, and recorded with each new send when the provider does not report its own price (Cellcast does). Blank = provider default."
     },
     "SMS_HTTP_RESPONSE_ID_REGEX": {
       "type": "text",
@@ -695,24 +719,6 @@
       "description": "Regex with a capture group to extract the remote message ID from the gateway response.",
       "explanation": "The first capture group is stored as the remote message ID.",
       "default": null,
-      "fileOnly": true,
-      "note": ""
-    },
-    "SMS_SEND_LOGFILE": {
-      "type": "text",
-      "label": "Sms Send Logfile",
-      "description": "Path to a JSONP log file for SMS send audit trail (optional).",
-      "explanation": "",
-      "default": null,
-      "fileOnly": true,
-      "note": ""
-    },
-    "SMS_SEGMENT_LENGTH": {
-      "type": "number",
-      "label": "Sms Segment Length",
-      "description": "Length of a single SMS segment for cost estimation purposes",
-      "explanation": "",
-      "default": 160,
       "fileOnly": true,
       "note": ""
     },
@@ -825,60 +831,6 @@
       "note": "Master kill-switch. Set to false to disable 2FA entirely.",
       "options": "boolean"
     },
-    "2FA_SMS_URL": {
-      "type": "text",
-      "label": "2fa Sms Url",
-      "description": "Dedicated SMS gateway URL for 2FA messages. If set, 2FA uses these 2FA_SMS_* settings instead of SMS_HTTP_*.",
-      "explanation": "2FA messages sent through this gateway are NOT logged in SMS_SEND_LOGFILE.",
-      "default": null,
-      "fileOnly": true,
-      "note": "Gateway URL for 2FA messages."
-    },
-    "2FA_SMS_POST_TEMPLATE": {
-      "type": "text",
-      "label": "2fa Sms Post Template",
-      "description": "POST body template for the dedicated 2FA SMS gateway.",
-      "explanation": "",
-      "default": null,
-      "fileOnly": true,
-      "note": "POST body template for 2FA messages."
-    },
-    "2FA_SMS_HEADER_TEMPLATE": {
-      "type": "text",
-      "label": "2fa Sms Header Template",
-      "description": "Extra HTTP headers for the dedicated 2FA SMS gateway.",
-      "explanation": "",
-      "default": null,
-      "fileOnly": true,
-      "note": "Extra HTTP headers for 2FA messages."
-    },
-    "2FA_SMS_RESPONSE_OK_REGEX": {
-      "type": "text",
-      "label": "2fa Sms Response Ok Regex",
-      "description": "Success detection regex for the dedicated 2FA SMS gateway. Omit slash delimiters.",
-      "explanation": "",
-      "default": null,
-      "fileOnly": true,
-      "note": "Success detection regex for 2FA messages."
-    },
-    "2FA_SMS_RESPONSE_ERROR_REGEX": {
-      "type": "text",
-      "label": "2fa Sms Response Error Regex",
-      "description": "Error detection regex for the dedicated 2FA SMS gateway. Omit slash delimiters.",
-      "explanation": "",
-      "default": null,
-      "fileOnly": true,
-      "note": "Error detection regex for 2FA messages."
-    },
-    "2FA_SMS_RESPONSE_ID_REGEX": {
-      "type": "text",
-      "label": "2fa Sms Response Id Regex",
-      "description": "Remote message ID regex for the dedicated 2FA SMS gateway.",
-      "explanation": "",
-      "default": null,
-      "fileOnly": true,
-      "note": "Remote message ID regex for 2FA messages."
-    },
     "SMS_2FA_LOGFILE": {
       "type": "text",
       "label": "Sms 2fa Logfile",
@@ -905,6 +857,205 @@
       "default": "false",
       "fileOnly": true,
       "note": "Dev-only: log intentions without sending.",
+      "options": "boolean"
+    },
+
+    "SMS_5CENTSMS_APIKEY": {
+      "type": "text",
+      "label": "Sms 5centsms Apikey",
+      "description": "API key secret from your 5CentSMS dashboard (required). See <a href=\"https://www.5centsms.com.au/dashboard/api\">5centsms.com.au/dashboard/api</a>.",
+      "explanation": "",
+      "default": null,
+      "note": "FiveCent SMS v5 API key secret"
+    },
+
+    "SMS_5CENTSMS_APIKEY_ID": {
+      "type": "text",
+      "label": "Sms 5centsms Apikey Id",
+      "description": "API key ID from your 5CentSMS dashboard (required). See <a href=\"https://www.5centsms.com.au/dashboard/api\">5centsms.com.au/dashboard/api</a>.",
+      "explanation": "",
+      "default": null,
+      "note": "FiveCent SMS v5 API key ID"
+    },
+
+    "SMS_5CENTSMS_URL": {
+      "type": "text",
+      "label": "Sms 5centsms Url",
+      "description": "API base URL (optional; defaults to <code>https://www.5centsms.com.au/api/v5</code>).",
+      "explanation": "",
+      "default": "https://www.5centsms.com.au/api/v5",
+      "note": ""
+    },
+
+    "SMS_BALANCE_LOW_NOTIFICANT_EMAIL": {
+      "type": "text",
+      "label": "Sms Balance Low Notificant Email",
+      "description": "Email address to notify when the SMS balance is low.",
+      "explanation": "",
+      "default": "",
+      "note": "Email address of the person to notify when SMS balance is low"
+    },
+
+    "SMS_BALANCE_LOW_THRESHOLD": {
+      "type": "number",
+      "label": "Sms Balance Low Threshold",
+      "description": "Trigger a low-balance alert below this credit count. <code>0</code> disables.",
+      "explanation": "",
+      "default": 0,
+      "note": "Notify a staff member when SMS account balance drops below this amount (0 = disabled)"
+    },
+
+    "SMS_CELLCAST_APIKEY": {
+      "type": "text",
+      "label": "Sms Cellcast Apikey",
+      "description": "Bearer token from your Cellcast dashboard (required).",
+      "explanation": "",
+      "default": null,
+      "note": "Cellcast API bearer token",
+      "fileOnly": true
+    },
+
+    "SMS_CELLCAST_URL": {
+      "type": "text",
+      "label": "Sms Cellcast Url",
+      "description": "API base URL (optional; defaults to <code>https://api.cellcast.com</code>).",
+      "explanation": "",
+      "default": "https://api.cellcast.com",
+      "note": ""
+    },
+
+    "SMS_HTTP_URL_BALANCE": {
+      "type": "text",
+      "label": "Sms Http Url Balance",
+      "description": "Balance endpoint URL for the SMS gateway (optional). Used by <code>TemplateSmsProvider</code> / legacy gateway.",
+      "explanation": "",
+      "default": null,
+      "note": "",
+      "fileOnly": true
+    },
+
+    "SMS_MOBILEMESSAGE_APIKEY_PASSWORD": {
+      "type": "text",
+      "label": "Sms Mobilemessage Apikey Password",
+      "description": "API password from your MobileMessage dashboard, Settings → API (required if using the MobileMessage provider).",
+      "explanation": "",
+      "default": null,
+      "note": "MobileMessage API password",
+      "fileOnly": true
+    },
+
+    "SMS_MOBILEMESSAGE_APIKEY_USERNAME": {
+      "type": "text",
+      "label": "Sms Mobilemessage Apikey Username",
+      "description": "API username from your MobileMessage dashboard, Settings → API (required if using the MobileMessage provider).",
+      "explanation": "",
+      "default": null,
+      "note": "MobileMessage API username",
+      "fileOnly": true
+    },
+
+    "SMS_MOBILEMESSAGE_URL": {
+      "type": "text",
+      "label": "Sms Mobilemessage Url",
+      "description": "API base URL (optional; defaults to <code>https://api.mobilemessage.com.au</code>).",
+      "explanation": "",
+      "default": "https://api.mobilemessage.com.au",
+      "note": "",
+      "fileOnly": true
+    },
+
+    "SMS_PROVIDER": {
+      "type": "select",
+      "label": "Sms Provider",
+      "description": "Which SMS provider to use for sending. Short key or fully-qualified class name. Short keys: <code>5centsmsv5</code>, <code>cellcast</code>, <code>mobilemessage</code>. When unset, Jethro auto-detects from whichever required provider constants are defined.",
+      "explanation": "",
+      "default": "",
+      "note": "Which SMS provider to use for sending",
+      "options": "provider"
+    },
+
+    "SMS_SAVE_TO_NOTE_BY_DEFAULT": {
+      "type": "select",
+      "label": "Sms Save To Note By Default",
+      "description": "Pre-tick the 'Save as Note' checkbox.",
+      "explanation": "",
+      "default": "0",
+      "note": "Whether to save each sent SMS as a person note by default",
+      "options": "boolean"
+    },
+
+    "SMS_SAVE_TO_NOTE_SUBJECT": {
+      "type": "text",
+      "label": "Sms Save To Note Subject",
+      "description": "Default subject for SMS-saved notes.",
+      "explanation": "",
+      "default": "SMS follow-up",
+      "note": ""
+    },
+
+    "SMS_SENDER": {
+      "type": "text",
+      "label": "Sms Sender",
+      "description": "Hardcoded sender ID or mobile number that SMSes will appear to come from. Use <code>_USER_MOBILE_</code> to use the current user's mobile number.",
+      "explanation": "",
+      "default": null,
+      "note": "Hardcoded sender ID or mobile number that SMSes will appear to come from"
+    },
+
+    "SMS_SENDER_DEFAULT": {
+      "type": "text",
+      "label": "Sms Sender Default",
+      "description": "Default selection in the sender dropdown (Sender ID or <code>_USER_MOBILE_</code>). Blank = first option in SMS_SENDER_OPTIONS.",
+      "explanation": "",
+      "default": null,
+      "note": "Default sender selected in the SMS sender dropdown."
+    },
+
+    "SMS_SENDER_OPTIONS": {
+      "type": "text",
+      "label": "Sms Sender Options",
+      "description": "Comma-separated sender options for the dropdown. Tokens <code>_SENDER_IDS_</code> (every ID the provider reports) and <code>_USER_MOBILE_</code> are supported alongside literal IDs. Defaults to <code>_USER_MOBILE_,_SENDER_IDS_</code>. Example: <code>StBarnabas,_USER_MOBILE_,_SENDER_IDS_</code>. Set to an empty string to disable all Sender ID lookup.",
+      "explanation": "",
+      "default": "_USER_MOBILE_,_SENDER_IDS_",
+      "note": "Sender options for the SMS dropdown. Tokens: _USER_MOBILE_ (user's mobile), _SENDER_IDS_ (upstream-registered IDs)."
+    },
+
+    "SMS_SEND_COOLOFF": {
+      "type": "number",
+      "label": "Sms Send Cooloff",
+      "description": "Delay in seconds applied to user-initiated immediate (non-deferred) sends. When unset, a 30-second cool-off is applied automatically — giving the user a window to cancel a mistaken send. Set to <code>0</code> to disable. Only takes effect with providers that support both scheduled send and cancellation (5CentSMS v5, Cellcast, MobileMessage); with other providers (5CentSMS v4, HTTP-template gateways), and for automatic messages (2FA codes, reminders), messages are sent immediately. MobileMessage only accepts schedules more than 60 seconds ahead, so its minimum effective cool-off is 90 seconds.",
+      "explanation": "",
+      "default": 30,
+      "note": "Delay before sending to allow cancellation"
+    },
+
+    "SMS_SHORTEN_URLS": {
+      "type": "select",
+      "label": "Sms Shorten Urls",
+      "description": "Whether the 'Shorten URLs' checkbox is checked by default when sending an SMS (to individuals or in bulk)",
+      "explanation": "",
+      "default": "0",
+      "note": "Whether the 'Shorten URLs' checkbox is checked by default when sending an SMS",
+      "options": "boolean"
+    },
+
+    "SMS_TESTMODE": {
+      "type": "select",
+      "label": "Sms Testmode",
+      "description": "Dry-run — no messages actually sent.",
+      "explanation": "",
+      "default": "0",
+      "note": "In Test Mode no SMSes are actually sent",
+      "options": "boolean"
+    },
+
+    "SMS_VERBOSE": {
+      "type": "select",
+      "label": "Sms Verbose",
+      "description": "Log HTTP requests/responses to the PHP error log.",
+      "explanation": "",
+      "default": "0",
+      "note": "Log HTTP requests to upstream SMS provider",
       "options": "boolean"
     },
     "OVERRIDE_EMAIL_FROM": {
@@ -1092,10 +1243,10 @@
     "2FA_SENDER_ID": {
       "type": "text",
       "label": "2fa Sender Id",
-      "description": "Sender ID for 2-factor auth messages. Mirrors SMS_SENDER.",
+      "description": "ACMA-registered sender ID for 2FA messages; blank = literal SMS_SENDER, else the first ACMA-approved sender ID at your provider.",
       "explanation": "",
-      "default": "Jethro",
-      "note": "Sender ID for 2-factor auth messages. Mirrors SMS_SENDER."
+      "default": "",
+      "note": "ACMA-registered sender ID for 2FA messages; blank = literal SMS_SENDER, else the first ACMA-approved sender ID at your provider."
     }
   },
   "groups": {
@@ -1239,18 +1390,71 @@
         "OVERRIDE_EMAIL_FROM"
       ]
     },
+
+    "sender": {
+      "heading": "Sender",
+      "intro": "Controls the \"From\" dropdown on the SMS send page.",
+      "settings": ["SMS_SENDER", "SMS_SENDER_OPTIONS", "SMS_SENDER_DEFAULT"]
+    },
+
+    "postSendBehaviour": {
+      "heading": "Post-send behaviour",
+      "intro": "Settings affecting the SMS Create Note… behaviour, and post-send 'cooloff'.",
+      "settings": ["SMS_SAVE_TO_NOTE_BY_DEFAULT", "SMS_SAVE_TO_NOTE_SUBJECT", "SMS_SEND_COOLOFF"]
+    },
+
+    "balance": {
+      "heading": "Balance",
+      "intro": "",
+      "settings": ["SMS_BALANCE_LOW_THRESHOLD", "SMS_BALANCE_LOW_NOTIFICANT_EMAIL"]
+    },
+
+    "providerSelection": {
+      "heading": "Provider selection",
+      "intro": "",
+      "settings": ["SMS_PROVIDER"]
+    },
+
+    "fiveCentSms": {
+      "heading": "5CentSMS v5",
+      "intro": "",
+      "settings": ["SMS_5CENTSMS_APIKEY_ID", "SMS_5CENTSMS_APIKEY", "SMS_5CENTSMS_URL"]
+    },
+
+    "cellcast": {
+      "heading": "Cellcast",
+      "intro": "",
+      "settings": ["SMS_CELLCAST_APIKEY", "SMS_CELLCAST_URL"]
+    },
+
+    "mobileMessage": {
+      "heading": "MobileMessage",
+      "intro": "API credentials come from the MobileMessage dashboard (Settings → API). Note: the send-undo cool-off is at least 90 seconds with this provider.",
+      "settings": ["SMS_MOBILEMESSAGE_APIKEY_USERNAME", "SMS_MOBILEMESSAGE_APIKEY_PASSWORD", "SMS_MOBILEMESSAGE_URL"]
+    },
+
     "messageBody": {
       "heading": "Message body",
       "intro": "Limits on what the user can type.",
       "settings": [
-        "SMS_MAX_LENGTH"
+        "SMS_MAX_LENGTH",
+        "SMS_UNICODE_PERMITTED"
       ]
     },
     "debugging": {
-      "heading": "Debugging &amp; cost display",
+      "heading": "Debugging",
+      "intro": "Troubleshooting only.",
       "settings": [
-        "SMS_SEND_LOGFILE",
-        "SMS_SEGMENT_LENGTH"
+        "SMS_VERBOSE",
+        "SMS_TESTMODE"
+      ]
+    },
+    "costAndUrls": {
+      "heading": "Cost and URL shortening",
+      "intro": "",
+      "settings": [
+        "SMS_SEGMENT_COST",
+        "SMS_SHORTEN_URLS"
       ]
     },
     "legacyGateway": {
@@ -1264,20 +1468,9 @@
         "SMS_HTTP_RESPONSE_OK_REGEX",
         "SMS_HTTP_RESPONSE_ERROR_REGEX",
         "SMS_HTTP_RESPONSE_ID_REGEX",
+        "SMS_HTTP_URL_BALANCE",
         "SMS_LOCAL_PREFIX",
         "SMS_INTERNATIONAL_PREFIX"
-      ]
-    },
-    "twoFactorSmsGateway": {
-      "heading": "2FA SMS gateway (file-only)",
-      "intro": "If you want 2FA to use a different SMS gateway than regular sends. When unset, 2FA falls back to the regular SMS constants.",
-      "settings": [
-        "2FA_SMS_URL",
-        "2FA_SMS_POST_TEMPLATE",
-        "2FA_SMS_HEADER_TEMPLATE",
-        "2FA_SMS_RESPONSE_OK_REGEX",
-        "2FA_SMS_RESPONSE_ERROR_REGEX",
-        "2FA_SMS_RESPONSE_ID_REGEX"
       ]
     },
     "twoFactorLogging": {
@@ -1348,6 +1541,13 @@
       "heading": "SMS",
       "intro": "SMS messaging configuration — message limits, gateway templates, and 2FA transport.",
       "groups": [
+        "sender",
+        "postSendBehaviour",
+        "balance",
+        "providerSelection",
+        "fiveCentSms",
+        "cellcast",
+        "mobileMessage",
         "messageBody",
         "debugging",
         "legacyGateway",
