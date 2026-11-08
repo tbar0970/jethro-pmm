@@ -168,4 +168,35 @@ processes:
       failure_threshold: 15
 
 
+  # SMTP + REST API sink capturing every email the functest and dev Jethro send.
+  # Listens on Unix domain sockets (no TCP ports, so concurrent checkouts never
+  # clash): Jethro's mail reaches the SMTP socket via the SENDMAIL_COMMAND conf
+  # define, and specs query the HTTP socket through
+  # tests/functional/email/mailpit-api.ts (node http socketPath). --webroot puts the
+  # UI and API under /emailmockserver/, which nginx proxies through unchanged. See
+  # DEVELOPMENT_FUNCTESTS.md, "8. Email capture — MailPit (Unix domain sockets)".
+  mailpit:
+    command: |
+      set -eu
+      # Captured mail is not held in memory: MailPit writes it to a temporary
+      # SQLite store, mailpit-<id>.db{,-wal,-shm}, which must stay private to the
+      # checkout owner. umask 077 keeps the store files 0600 and creates the socket
+      # directory private; TMPDIR keeps the store out of the shared /tmp.
+      umask 077
+      dir="$MAILPIT_SOCKET_DIR"
+      mkdir -p "$dir"
+      export TMPDIR="$dir"
+      exec mailpit --smtp "unix:$dir/smtp.sock:600" --listen "unix:$dir/http.sock:600" --webroot /emailmockserver/ --max 500 --quiet
+    availability:
+      restart: "always"
+    readiness_probe:
+      exec:
+        command: bash -c 'curl -sf --unix-socket "$MAILPIT_SOCKET_DIR/http.sock" http://localhost/emailmockserver/api/v1/messages'
+      # 1s delay, then ping every 1 second until up (try 15 times), and then every 20s
+      initial_delay_seconds: 1
+      startup_period_seconds: 1
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 15
+
   # FYI mariadb's service is provided by a devbox plugin, defined in .devbox/virtenv/mariadb/process-compose.yaml

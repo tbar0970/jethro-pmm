@@ -172,6 +172,16 @@ define('2FA_ENABLED', true);
 // SMTP server used to send registration emails (leave blank to use the local 'mail' command)
 // define('SMTP_SERVER', '');
 
+// Alternatively to SMTP_SERVER: send via a sendmail-compatible command instead.
+// This setting can only be set here; the System Configuration page shows the field
+// read-only but hides its value, since a wrapper command can embed credentials.
+// The message is piped to this command's stdin; use "-bs" to speak SMTP over that pipe
+// (recommended: proper envelope, Bcc handling and failure reporting). Note that
+// Symfony's sendmail transport never forwards "-t": recipients arrive as argv
+// arguments (or, with "-bs", in the SMTP dialogue), never from headers. E.g. a
+// wrapper binary, or an SMTP sink listening on a Unix domain socket.
+// define('SENDMAIL_COMMAND', '/usr/local/bin/my-sendmail-wrapper -bs');
+
 // Port to connect to the SMTP server. Usually 25, 465 if using SSL, or 587 if using TLS encryption.
 // define('SMTP_PORT', '');
 

@@ -12,11 +12,13 @@
     "php85Extensions.exif@latest",
     "mariadb@latest",
     "nginx@latest",
-    "bun@latest"
+    "bun@latest",
+    "mailpit@1.32.0"
   ],
   "env": {
     "FUNCTEST_WEB_PORT":      "_default_",
     "JETHRO_VERSION":         "2.40.0-DEV",
+    "MAILPIT_SOCKET_DIR":     "$DEVBOX_RUNTIME_DIR/mailpit",
     "NGINX_WEB_PORT":         "_default_",
     "PATH":                   "$DEVBOX_CONFIG_DIR/bin:$PATH"
   },

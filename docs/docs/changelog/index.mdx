@@ -86,6 +86,12 @@ member-area editing permissions are unchanged.
 
 ### Email
 
+- **Send via a sendmail-compatible command.** A new `SENDMAIL_COMMAND`
+  setting sends mail through an external command instead of `SMTP_SERVER`.
+  It can only be set in `conf.php`; the System Configuration page shows the
+  setting read-only and hides its value, since a wrapper command can embed
+  credentials.
+
 - **Absolute URLs in emails.** Links in outgoing emails now use absolute URLs
   so recipients can follow them regardless of their email client. Fixes [#1429](https://github.com/tbar0970/jethro-pmm/issues/1429).
 
