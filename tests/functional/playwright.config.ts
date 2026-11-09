@@ -30,6 +30,8 @@ export default defineConfig({
     { name: "lookaround", testMatch: ["lookaround/lookaround.spec.ts"] },
     // CSV person importer (#1577); reads the standard demo database at the root URL.
     { name: "import", testMatch: ["import/import.spec.ts"] },
+    // System-wide search page (#1571); reads the standard demo database at the root URL.
+    { name: "search", testMatch: ["search/mixed-search.spec.ts"] },
     {
       // Members-area regressions (#1173, #1433) and the post-login redirect.
       // The members area lives at /members/ under the shared functest webroot
