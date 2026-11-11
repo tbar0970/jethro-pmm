@@ -1213,7 +1213,12 @@ class Person extends DB_Object
 		}
 
 		if (!empty($row['status']) && !is_int($row['status'])) {
-			$row['status'] = Person_Status::getByLabel($row['status']);
+			$label = $row['status'];
+			$row['status'] = Person_Status::getByLabel($label);
+			if (!$row['status']) {
+				$labels = array_column(Person_Status::getActive(), 'label');
+				trigger_error('Unknown status label "'.$label.'"; use one of: '.implode(', ', $labels));
+			}
 		}
 
 		if (isset($row['age_bracket']) && strlen($row['age_bracket'])) {

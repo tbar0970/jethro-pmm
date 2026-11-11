@@ -17,6 +17,14 @@ accounts without mandatory two-factor authentication. Protected contacts remain
 visible as read-only inputs with a security explanation on hover. Other existing
 member-area editing permissions are unchanged.
 
+### Scheduled person imports from Google Forms / Spreadsheets
+
+- **Import persons from a Google Sheet or CSV file.**
+  `scripts/import_persons.php` fetches a Google Sheet (shared by link, or kept private with a
+  service-account key), or a local CSV, and imports families/persons in it (unless already
+  present), and puts them in a group. This can be used for e.g. signup forms that result in
+  Persons (new or existing) being added to a Jethro group.
+
 ### Service Planning
 
 - **Editable service dates.** Dates in the service schedule are now editable
