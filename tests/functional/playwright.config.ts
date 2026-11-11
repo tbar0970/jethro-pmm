@@ -36,8 +36,9 @@ export default defineConfig({
       testMatch: ["members/member-rego.spec.ts"],
       use: { baseURL: `${HOST}/members/` },
     },
-    // CSV person importer (#1577); reads the standard demo database at the root URL.
-    { name: "import", testMatch: ["import/import.spec.ts"] },
+    // CSV person importer (#1577) and the CLI `--file` importer; both read the
+    // standard demo database.
+    { name: "import", testMatch: ["import/import.spec.ts", "import/import-cli.spec.ts"] },
     {
       // Members-area regressions (#1173, #1433) and the post-login redirect.
       // The members area lives at /members/ under the shared functest webroot
