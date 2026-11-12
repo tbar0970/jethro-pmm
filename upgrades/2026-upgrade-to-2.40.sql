@@ -71,26 +71,123 @@ WHERE
   OR g.id IN (SELECT groupid FROM account_group_restriction gr WHERE gr.personid = getCurrentUserID()))
   );
 
+-- Members-area directory share consent (#792): one row per person+group,
+-- data_permissions holding bits from include/data_permissions.php
+-- (DATA_PERM_VIEWNAME = 1).  groupid 0 stores the person's DEFAULT consent,
+-- which applies to could-share groups where no explicit row exists.  Rows are
+-- independent of membership: they survive members leaving and rejoining a
+-- group.  See docs/docs/developer/reference/member-share-consent.md.
+-- Idempotent.  (No FK on groupid: the default row has no group to reference.)
+CREATE TABLE IF NOT EXISTS `_person_share_consent` (
+	`personid` INT NOT NULL,
+	`groupid` INT NOT NULL,
+	`data_permissions` INT UNSIGNED NOT NULL DEFAULT 0,
+	`inherit_mask` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+	`consented_on` DATETIME NOT NULL,
+	`granted_by` ENUM('user','staff','upgrade') NOT NULL,
+	PRIMARY KEY (`personid`, `groupid`),
+	CONSTRAINT `psc_personid` FOREIGN KEY (`personid`) REFERENCES `_person` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- Existing installs that already created the table without per-column
+-- inheritance (#792).  MySQL has no ADD COLUMN IF NOT EXISTS, so consult the
+-- information schema first; works on MySQL and MariaDB.  Idempotent.
+SET @psc_inherit_add = (
+	SELECT IF(COUNT(*) = 0,
+		'ALTER TABLE `_person_share_consent` ADD COLUMN `inherit_mask` TINYINT UNSIGNED NOT NULL DEFAULT 0',
+		'DO 0')
+	FROM information_schema.COLUMNS
+	WHERE TABLE_SCHEMA = DATABASE()
+	  AND TABLE_NAME = '_person_share_consent'
+	  AND COLUMN_NAME = 'inherit_mask');
+PREPARE psc_inherit_stmt FROM @psc_inherit_add;
+EXECUTE psc_inherit_stmt;
+DEALLOCATE PREPARE psc_inherit_stmt;
+
+-- Existing installs may have created granted_by without the 'upgrade' value.
+SET @psc_granted_by_enum = (
+	SELECT IF(COLUMN_TYPE NOT LIKE '%upgrade%',
+		'ALTER TABLE `_person_share_consent` MODIFY `granted_by` ENUM(''user'',''staff'',''upgrade'') NOT NULL',
+		'DO 0')
+	FROM information_schema.COLUMNS
+	WHERE TABLE_SCHEMA = DATABASE()
+	  AND TABLE_NAME = '_person_share_consent'
+	  AND COLUMN_NAME = 'granted_by');
+PREPARE psc_granted_by_stmt FROM @psc_granted_by_enum;
+EXECUTE psc_granted_by_stmt;
+DEALLOCATE PREPARE psc_granted_by_stmt;
+
+-- One-time marker so re-running this upgrade can never re-grant consent a
+-- member has since withdrawn (returning both columns to their default deletes
+-- the row, so INSERT IGNORE alone would silently re-grant it).  Hidden setting
+-- rows are not rendered or saved by the System Configuration page.
+INSERT IGNORE INTO setting (`rank`, heading, symbol, note, type, value)
+SELECT COALESCE(MAX(`rank`), 0) + 1, '', 'SHARE_CONSENT_BACKFILLED',
+	'Internal: legacy directory-consent backfill has run (#792)', 'hidden', '0'
+FROM setting;
+
+-- Members of share-enabled groups consented implicitly under the old
+-- group-wide model, so they keep sharing (805306369 = DATA_PERM_VIEWNAME |
+-- DATA_PERM_VIEWEMAIL | DATA_PERM_VIEWMOBILE), recorded as staff-set at
+-- upgrade time.  Runs at most once.
+INSERT IGNORE INTO _person_share_consent (personid, groupid, data_permissions, consented_on, granted_by)
+SELECT pgm.personid, pgm.groupid, 805306369, NOW(), 'upgrade'
+FROM person_group_membership pgm
+JOIN _person_group pg ON pg.id = pgm.groupid AND pg.share_member_details = 1
+WHERE (SELECT value FROM setting WHERE symbol = 'SHARE_CONSENT_BACKFILLED') = '0';
+
+UPDATE setting SET value = '1' WHERE symbol = 'SHARE_CONSENT_BACKFILLED';
+
+-- Consent semantics: co-members of a could-share group are listed where their
+-- effective Visible consent holds; each column falls back to the person's
+-- default row (groupid 0) when it inherits (inherit_mask bits 1/2).  Contact
+-- fields are blanked unless the effective contact bits are set.  The viewer's
+-- own family is always listed with full details.  Synced with
+-- include/installer.class.php (member view).
 CREATE OR REPLACE VIEW member AS
-SELECT mp.id, mp.first_name, mp.last_name, mp.gender, mp.age_bracketid, mp.congregationid,
-mp.email, mp.mobile_tel, mp.work_tel, mp.familyid,
-mf.family_name, mf.address_street, mf.address_suburb, mf.address_state, mf.address_postcode, mf.home_tel
+SELECT d.id, d.first_name, d.last_name, d.gender, d.age_bracketid, d.congregationid,
+CASE WHEN hasDataPerm(d.eff_mask, 'VIEWEMAIL') THEN d.email ELSE '' END AS email,
+CASE WHEN hasDataPerm(d.eff_mask, 'VIEWMOBILE') THEN d.mobile_tel ELSE '' END AS mobile_tel,
+CASE WHEN hasDataPerm(d.eff_mask, 'VIEWMOBILE') THEN d.work_tel ELSE '' END AS work_tel,
+d.familyid,
+d.family_name, d.address_street, d.address_suburb, d.address_state, d.address_postcode, d.home_tel
+FROM (
+SELECT mp.id,
+MAX(mp.first_name) AS first_name, MAX(mp.last_name) AS last_name,
+MAX(mp.gender) AS gender, MAX(mp.age_bracketid) AS age_bracketid,
+MAX(mp.congregationid) AS congregationid,
+MAX(mp.email) AS email, MAX(mp.mobile_tel) AS mobile_tel,
+MAX(mp.work_tel) AS work_tel, MAX(mp.familyid) AS familyid,
+MAX(mf.family_name) AS family_name, MAX(mf.address_street) AS address_street,
+MAX(mf.address_suburb) AS address_suburb, MAX(mf.address_state) AS address_state,
+MAX(mf.address_postcode) AS address_postcode, MAX(mf.home_tel) AS home_tel,
+MAX(((CASE WHEN psc.personid IS NULL OR (psc.inherit_mask & 1) <> 0
+       THEN COALESCE(pscd.data_permissions, 0) & 1
+       ELSE psc.data_permissions & 1 END)
+ | (CASE WHEN psc.personid IS NULL OR (psc.inherit_mask & 2) <> 0
+       THEN COALESCE(pscd.data_permissions, 0) & (dataPermBit('VIEWEMAIL') | dataPermBit('VIEWMOBILE'))
+       ELSE psc.data_permissions & (dataPermBit('VIEWEMAIL') | dataPermBit('VIEWMOBILE')) END))) AS eff_mask
 FROM _person mp
 JOIN person_status mps ON mps.id = mp.status
 JOIN family mf ON mf.id = mp.familyid
 JOIN person_group_membership pgm1 ON pgm1.personid = mp.id
-JOIN _person_group pg ON pg.id = pgm1.groupid AND pg.share_member_details = 1
+LEFT JOIN _person_share_consent psc ON psc.personid = pgm1.personid AND psc.groupid = pgm1.groupid
+LEFT JOIN _person_share_consent pscd ON pscd.personid = pgm1.personid AND pscd.groupid = 0
+JOIN _person_group pg ON pg.id = pgm1.groupid AND pg.share_member_details = 1 AND NOT pg.is_archived
 JOIN person_group_membership pgm2 ON pgm2.groupid = pg.id
 JOIN _person up ON up.id = pgm2.personid
 JOIN person_status ups ON ups.id = up.status
 WHERE up.id = getCurrentMemberID()
+   AND mp.familyid <> (SELECT familyid FROM _person WHERE id = getCurrentMemberID()) /* own family handled below */
    AND (NOT mps.is_archived)    /* dont show archived persons */
    AND mf.status <> "archived"  /* dont show archived families */
    AND (NOT ups.is_archived)	/* dont let persons who are themselves archived see anything */
-UNION
+GROUP BY mp.id
+UNION ALL
 SELECT mp.id, mp.first_name, mp.last_name, mp.gender, mp.age_bracketid, mp.congregationid,
 mp.email, mp.mobile_tel, mp.work_tel, mp.familyid,
-mf.family_name, mf.address_street, mf.address_suburb, mf.address_state, mf.address_postcode, mf.home_tel
+mf.family_name, mf.address_street, mf.address_suburb, mf.address_state, mf.address_postcode, mf.home_tel,
+(dataPermBit('VIEWNAME') | dataPermBit('VIEWEMAIL') | dataPermBit('VIEWMOBILE')) AS eff_mask
 FROM _person mp
 JOIN person_status mps ON mps.id = mp.status
 JOIN family mf ON mf.id = mp.familyid
@@ -101,6 +198,8 @@ WHERE
 	AND ((NOT mps.is_archived) OR (mp.id = self.id))
 	AND ((NOT selfs.is_archived) OR (mp.id = self.id))
 	/* archived persons can only see themselves, not any family members */
+) d
+WHERE hasDataPerm(d.eff_mask, 'VIEWNAME') /* consented, or own family */
 ;
 
 SET @rank = (SELECT `rank` FROM setting WHERE symbol = 'MEMBER_LOGIN_ENABLED');

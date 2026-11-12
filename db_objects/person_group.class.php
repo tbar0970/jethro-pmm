@@ -1,5 +1,6 @@
 <?php
 include_once 'include/db_object.class.php';
+require_once 'include/data_permissions.php';
 class Person_Group extends DB_Object
 {
 	protected $_save_permission_level = PERM_EDITGROUP;
@@ -50,8 +51,8 @@ class Person_Group extends DB_Object
 									'type' => 'select',
 									'options' => Array('No', 'Yes'),
 									'default' => 0,
-									'note' => 'Should members of this group be able to see each other\'s details in <a href="'.BASE_URL.'/members">member portal</a>?',
-									'label' => 'Share member details?',
+									'note' => 'If enabled, members can choose which contact info (name, email, mobile) they share with fellow members of this group via the <a href="'.BASE_URL.'/members">member portal</a>',
+									'label' => 'Members may share their contact info?',
 								),
 		);
 		// Check if attendance is enabled
@@ -119,6 +120,29 @@ class Person_Group extends DB_Object
 				  INDEX groupid (groupid),
 				  CONSTRAINT `membership_status_fk` FOREIGN KEY (membership_status) REFERENCES person_group_membership_status (id) ON DELETE RESTRICT,
 				  CONSTRAINT `pgm_personid` FOREIGN KEY (personid) REFERENCES _person(id) ON DELETE CASCADE
+				) ENGINE=InnoDB",
+
+				// Per-person share consent for the members-area directory (#792).
+				// data_permissions holds bits from include/data_permissions.php;
+				// inherit_mask bit 1 = Visible follows the person's default row,
+				// bit 2 = Share contact info follows it (a row with both bits set
+				// is equivalent to no row and is never stored).  consented_on/
+				// granted_by record when consent was given and whether the member or
+				// staff set it, or 'upgrade' for consent carried over from the old
+				// group-wide setting.  groupid 0 stores the person's DEFAULT
+				// consent, applying to could-share groups where no explicit row
+				// exists.  Rows are independent of membership: they survive members
+				// leaving and rejoining a group.  (No FK on groupid: the default row
+				// has no group to reference.)
+				"CREATE TABLE _person_share_consent (
+					personid INT NOT NULL,
+					groupid INT NOT NULL,
+					data_permissions INT UNSIGNED NOT NULL DEFAULT 0,
+					inherit_mask TINYINT UNSIGNED NOT NULL DEFAULT 0,
+					consented_on DATETIME NOT NULL,
+					granted_by ENUM('user','staff','upgrade') NOT NULL,
+					PRIMARY KEY (personid, groupid),
+					CONSTRAINT psc_personid FOREIGN KEY (personid) REFERENCES _person(id) ON DELETE CASCADE
 				) ENGINE=InnoDB",
 		);
 	}
@@ -257,15 +281,279 @@ class Person_Group extends DB_Object
 	static function getGroups($personid, $includeArchived=FALSE, $whichShareMemberDetails=NULL)
 	{
 		$db =& $GLOBALS['db'];
-		$sql = 'SELECT g.id, g.name, gm.created, g.is_archived, g.categoryid, pgms.label as membership_status
+		$sql = 'SELECT g.id, g.name, gm.created, g.is_archived, g.categoryid, g.share_member_details, pgms.label as membership_status, psc.data_permissions as share_data_permissions, psc.inherit_mask as share_inherit_mask, psc.consented_on as share_consented_on, psc.granted_by as share_granted_by, pscd.data_permissions as default_share_data_permissions, pscd.consented_on as default_consented_on, pscd.granted_by as default_granted_by
 				FROM person_group_membership gm
 				JOIN person_group g ON gm.groupid = g.id
 				LEFT JOIN person_group_membership_status pgms ON pgms.id = gm.membership_status
+				LEFT JOIN _person_share_consent psc ON psc.personid = gm.personid AND psc.groupid = gm.groupid
+				LEFT JOIN _person_share_consent pscd ON pscd.personid = gm.personid AND pscd.groupid = 0
 				WHERE gm.personid = '.$db->quote((int)$personid).'
 				'.($includeArchived ? '' : ' AND NOT g.is_archived').'
 				'.(is_null($whichShareMemberDetails) ? '' : ' AND g.share_member_details = '.(int)$whichShareMemberDetails).'
 				ORDER BY g.is_archived ASC, g.name';
 		$res = $db->queryAll($sql, null, null, true);
+		return $res;
+	}
+
+	/**
+	 * Record one person's directory-sharing consent for one group (#792).
+	 * $visible lists the person (their name shows in the members area);
+	 * $contact additionally shares their email/phone details.  Consent is
+	 * stored per person+group in _person_share_consent and survives membership
+	 * changes; the member view also requires current membership on both sides,
+	 * so a lapsed member drops out of the directory until they rejoin.
+	 *
+	 * Member sessions may only set their own consent, and only for
+	 * could-share groups they currently belong to (or their own default).
+	 * Staff sessions need PERM_EDITGROUP (e.g. recording verbal consent for
+	 * offline members).
+	 *
+	 * @param int  $personid
+	 * @param int  $groupid
+	 * @param bool $visible
+	 * @param bool $contact
+	 * @return bool
+	 */
+	static function setShareConsent($personid, $groupid, $visible, $contact)
+	{
+		$grantedBy = self::_consentWritePerm((int)$personid, (int)$groupid);
+		if ($grantedBy === FALSE) return FALSE;
+		$mask = ($visible ? DATA_PERM_VIEWNAME : 0)
+			| ($contact ? DATA_PERM_VIEWEMAIL | DATA_PERM_VIEWMOBILE : 0);
+		list($mask) = self::_contactImpliesName($mask, 0);
+		if ($mask) {
+			self::_writeShareConsentRow((int)$personid, (int)$groupid, $mask, 0, $grantedBy);
+		} else {
+			self::_deleteShareConsentRow((int)$personid, (int)$groupid);
+		}
+		return TRUE;
+	}
+
+	/**
+	 * Apply the sharing form's checkbox states.  Each group row carries two
+	 * independent columns - Share my Name (listed in the directory) and
+	 * Share my Contact Info (email/phone shown with the name) - and each column can
+	 * either hold an explicit choice or follow the person's default row.
+	 * Clicking a column's "Use default" link marks that column as
+	 * inheriting; a row with both columns inheriting is deleted, equivalent to
+	 * having no row at all.
+	 *
+	 * Used by the members-area Sharing page and the staff person Sharing tab.
+	 * Permissions are enforced per group by _consentWritePerm().
+	 *
+	 * @param int   $personid
+	 * @param array $groups         Rows from getGroups() for this person
+	 * @param array $visible        groupid => truthy (Visible checkbox submitted ticked)
+	 * @param array $contact        groupid => truthy (Share contact info submitted ticked)
+	 * @param array $inheritVisible groupid => truthy (Visible follows the default)
+	 * @param array $inheritContact groupid => truthy (Share contact info follows the default)
+	 * @param array $rendered       groupid => "mask:inherit_mask" as rendered; rows
+	 *                              absent from this map were not shown in the form and
+	 *                              are left untouched (e.g. a group joined between
+	 *                              rendering and submission); rows whose submitted
+	 *                              state is unchanged are also left alone, so a default
+	 *                              changed in the same POST is not mistaken for an
+	 *                              explicit per-group choice
+	 * @return void
+	 */
+	static function applyShareConsentCheckboxes($personid, $groups, $visible, $contact, $inheritVisible = Array(), $inheritContact = Array(), $rendered = Array())
+	{
+		foreach ($groups as $groupid => $details) {
+			if (empty($details['share_member_details'])) continue;
+			if (!isset($rendered[$groupid])) continue;
+			$grantedBy = self::_consentWritePerm((int)$personid, (int)$groupid);
+			if ($grantedBy === FALSE) continue;
+			$inh = (!empty($inheritVisible[$groupid]) ? 1 : 0)
+				| (!empty($inheritContact[$groupid]) ? 2 : 0);
+			$mask = (!empty($visible[$groupid]) ? 1 : 0)
+				| (!empty($contact[$groupid]) ? DATA_PERM_VIEWEMAIL | DATA_PERM_VIEWMOBILE : 0);
+			if (isset($rendered[$groupid]) && $mask.':'.$inh === (string)$rendered[$groupid]) continue;
+			if ($inh == 3) {
+				// Both columns follow the default: equivalent to no row.
+				if ($details['share_data_permissions'] !== NULL) {
+					self::_deleteShareConsentRow((int)$personid, (int)$groupid);
+				}
+				continue;
+			}
+			// Contact info implies the name is shared: apply that to the
+			// effective state (including contact inherited from the default).
+			list($mask, $inh) = self::_contactImpliesName($mask, $inh, (int)$details['default_share_data_permissions']);
+			// Inherited columns store no explicit bits; the view reads the default.
+			if ($inh & 1) $mask &= ~1;
+			if ($inh & 2) $mask &= ~(DATA_PERM_VIEWEMAIL | DATA_PERM_VIEWMOBILE);
+			self::_writeShareConsentRow((int)$personid, (int)$groupid, $mask, $inh, $grantedBy);
+		}
+	}
+
+	/**
+	 * Bulk equivalent for one group's member list (staff "Edit sharing
+	 * settings").  That list exposes only the Visible (Name) column: ticking it
+	 * keeps the member's effective contact consent and records the name grant,
+	 * while clearing it records an explicit refusal for both columns (contact
+	 * info cannot be shared without a name).  Contact consent is edited on the
+	 * person's Sharing tab or by the member.
+	 * @param int   $groupid
+	 * @param array $personids Members shown in the form
+	 * @param array $visible   personid => truthy (Visible checkbox submitted ticked)
+	 * @param array $rendered  personid => effective mask when the form was rendered
+	 * @return bool
+	 */
+	static function applyGroupShareConsentCheckboxes($groupid, $personids, $visible, $rendered = Array())
+	{
+		if (!$GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
+			trigger_error("You do not have permission to set sharing consent");
+			return FALSE;
+		}
+		// Only rows this form rendered, and only members this staff session can
+		// see: the person view applies group/congregation restrictions, so a
+		// forged share_consent_all[] id cannot grant consent for someone the
+		// user could not otherwise reach.
+		$personids = array_values(array_intersect(
+			array_map('intval', $personids),
+			array_map('intval', array_keys($rendered))
+		));
+		if (!$personids) return TRUE;
+		$allowed = $GLOBALS['db']->queryAll(
+			'SELECT id FROM person
+			 WHERE id IN ('.implode(',', $personids).')
+			   AND id IN (SELECT personid FROM person_group_membership WHERE groupid = '.(int)$groupid.')',
+			null, null, false
+		);
+		$allowed = array_map(function ($row) { return (int)$row['id']; }, $allowed);
+		$consents = self::getShareConsents($groupid, $allowed);
+		foreach ($allowed as $pid) {
+			$explicit = array_key_exists($pid, $consents['group']) ? $consents['group'][$pid] : NULL;
+			$default = array_key_exists($pid, $consents['default']) ? $consents['default'][$pid] : NULL;
+			$mask = $explicit ? (int)$explicit['data_permissions'] : 0;
+			$inh = $explicit ? (int)$explicit['inherit_mask'] : 3;
+			if (!empty($visible[$pid])) {
+				$targetMask = ($mask & (DATA_PERM_VIEWEMAIL | DATA_PERM_VIEWMOBILE)) | DATA_PERM_VIEWNAME;
+				// The name becomes an explicit choice; a new row keeps contact
+				// following the person's default.
+				$targetInh = ($inh & ~1) | ($explicit ? 0 : 2);
+			} else {
+				$targetMask = 0;
+				$targetInh = 0;
+			}
+			$defMask = $default ? (int)$default['data_permissions'] : 0;
+			$targetEff = (($targetInh & 1) ? $defMask : $targetMask) & 1
+				| ((($targetInh & 2) ? $defMask : $targetMask) & (DATA_PERM_VIEWEMAIL | DATA_PERM_VIEWMOBILE));
+			// The form renders the effective state; unchanged rows are left alone.
+			if ($targetEff == (int)$rendered[$pid]) continue;
+			self::_writeShareConsentRow($pid, (int)$groupid, $targetMask, $targetInh, 'staff');
+		}
+		return TRUE;
+	}
+
+
+	/**
+	 * @return string|FALSE 'user' or 'staff' if the current session may set
+	 * consent for this person+group, else FALSE
+	 */
+	private static function _consentWritePerm($personid, $groupid)
+	{
+		$user_system = $GLOBALS['user_system'];
+		// getCurrentMember() exists on both user systems (it returns NULL for
+		// staff sessions), so detect a members-area session by an actual
+		// logged-in member rather than by method existence.
+		$memberid = (int)$user_system->getCurrentMember('id');
+		if ($memberid) {
+			if ($memberid !== $personid) {
+				trigger_error("Members may only change their own sharing consent");
+				return FALSE;
+			}
+			if ($groupid != 0) {
+				// Groupid 0 is the person's default row: it needs no membership.
+				$groups = self::getGroups($memberid);
+				if (empty($groups[$groupid]) || empty($groups[$groupid]['share_member_details'])) {
+					trigger_error("Sharing consent can only be set for groups you belong to");
+					return FALSE;
+				}
+			}
+			return 'user';
+		}
+		if (!$user_system->havePerm(PERM_EDITGROUP)) {
+			trigger_error("You do not have permission to set sharing consent");
+			return FALSE;
+		}
+		return 'staff';
+	}
+
+	/**
+	 * Contact info implies the name is shared: normalise a consent mask and
+	 * inherit mask so a contact grant also lists the person, and a contact
+	 * grant inherited from the default cannot leave Name inheriting a
+	 * name-less value.
+	 * @param int $mask
+	 * @param int $inheritMask
+	 * @param int $defaultMask Default-row mask, read for inherited contact bits
+	 * @return array{0:int,1:int} [mask, inheritMask]
+	 */
+	private static function _contactImpliesName($mask, $inheritMask, $defaultMask = 0)
+	{
+		$contactBits = DATA_PERM_VIEWEMAIL | DATA_PERM_VIEWMOBILE;
+		$effectiveContact = (($inheritMask & 2) ? $defaultMask : $mask) & $contactBits;
+		if ($effectiveContact) {
+			$mask |= 1;
+			$inheritMask &= ~1;
+		}
+		return Array((int)$mask, (int)$inheritMask);
+	}
+
+	private static function _writeShareConsentRow($personid, $groupid, $mask, $inheritMask, $grantedBy)
+	{
+		$db =& $GLOBALS['db'];
+		$db->query('INSERT INTO _person_share_consent
+					(personid, groupid, data_permissions, inherit_mask, consented_on, granted_by)
+					VALUES ('.(int)$personid.', '.(int)$groupid.', '.(int)$mask.', '.(int)$inheritMask.', NOW(), '.$db->quote($grantedBy).')
+					ON DUPLICATE KEY UPDATE data_permissions = '.(int)$mask.',
+					inherit_mask = '.(int)$inheritMask.',
+					consented_on = NOW(), granted_by = '.$db->quote($grantedBy));
+	}
+
+	private static function _deleteShareConsentRow($personid, $groupid)
+	{
+		$GLOBALS['db']->query('DELETE FROM _person_share_consent
+								WHERE personid = '.(int)$personid.' AND groupid = '.(int)$groupid);
+	}
+
+	/**
+	 * Get one person's default consent row (groupid 0), if any.
+	 * @param int $personid
+	 * @return array|NULL Row with data_permissions, consented_on, granted_by
+	 */
+	static function getDefaultShareConsent($personid)
+	{
+		$rows = $GLOBALS['db']->queryAll('SELECT data_permissions, consented_on, granted_by
+										FROM _person_share_consent
+										WHERE personid = '.(int)$personid.' AND groupid = 0', null, null, false);
+		return empty($rows) ? NULL : $rows[0];
+	}
+
+	/**
+	 * Consent records for one group's members, plus each person's default row
+	 * (groupid 0) so callers can resolve effective consent: the group row where
+	 * one exists, otherwise the default.
+	 * @param int $groupid
+	 * @param array $personids Optional person ids to constrain the lookup
+	 * @return array{group: array<int,array>, default: array<int,array>} personid => row
+	 */
+	static function getShareConsents($groupid, $personids = NULL)
+	{
+		$personSql = '';
+		if ($personids) {
+			$personSql = ' AND personid IN ('.implode(',', array_map('intval', $personids)).')';
+		}
+		$res = Array('group' => Array(), 'default' => Array());
+		foreach ($GLOBALS['db']->queryAll('SELECT personid, groupid, data_permissions, inherit_mask, consented_on, granted_by
+										FROM _person_share_consent
+										WHERE (groupid = '.(int)$groupid.' OR groupid = 0)'.$personSql, null, null, false) as $row) {
+			if ($row['groupid'] == 0) {
+				$res['default'][(int)$row['personid']] = $row;
+			} else {
+				$res['group'][(int)$row['personid']] = $row;
+			}
+		}
 		return $res;
 	}
 
