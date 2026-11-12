@@ -87,6 +87,16 @@ if ($GLOBALS['user_system']->havePerm(PERM_SYSADMIN)) {
 	if ($person->hasMemberAccount()) $accountCount++;
 	$tabs['accounts'] = _('Accounts').' ('.$accountCount.')';
 }
+$shareGroups = Array();
+if ($GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
+	// Active could-share groups where this person's directory consent applies (#792)
+	foreach (Person_Group::getGroups($person->id) as $gid => $g) {
+		if (!empty($g['share_member_details'])) $shareGroups[$gid] = $g;
+	}
+	if ($shareGroups) {
+		$tabs['sharing'] = _('Sharing');
+	}
+}
 if (!$accordion
 	&& ($GLOBALS['user_system']->havePerm(PERM_VIEWNOTE) || !$GLOBALS['system']->featureEnabled('NOTES'))
 ) {
@@ -391,6 +401,38 @@ if (isset($tabs['accounts'])) {
 			<?php
 		}
 	}
+	echo $panel_footer;
+}
+
+/************************ SHARING TAB ********************/
+
+if (isset($tabs['sharing'])) {
+	printf($panel_header, 'sharing', _('Sharing'), '');
+	$canEditSharing = $GLOBALS['user_system']->havePerm(PERM_EDITGROUP);
+	?>
+	<p class="help-block">
+		Whether <?php echo ents($person->toString()); ?> currently
+		consents to share their contact info with fellow members of that group in the
+		members area.<br> Only groups with 'Members may share their contact info?' set to true
+		show here.
+	</p>
+	<?php if ($canEditSharing) { ?>
+		<form method="post" class="share-consent-form">
+		<input type="hidden" name="share_consent_submitted" value="1" />
+	<?php } ?>
+	<?php
+	$shareCanEdit = $canEditSharing;
+	$shareDefaultEditable = FALSE;
+	$shareGroupUrl = '?view=groups&groupid=%d';
+	$shareDefault = Person_Group::getDefaultShareConsent($person->id);
+	include dirname(__FILE__).'/share_consent.template.php';
+	?>
+	<?php if ($canEditSharing) { ?>
+		<button class="btn" type="submit"><?php echo _('Save sharing settings'); ?></button>
+		</form>
+		<p class="help-block"><i><?php echo _('Tick to share; untick to hide this person from the group even when their default is on. Click &quot;Use default&quot; to make the row follow the default again, or &quot;Set individually&quot; to override it for this group.'); ?></i></p>
+	<?php } ?>
+	<?php
 	echo $panel_footer;
 }
 

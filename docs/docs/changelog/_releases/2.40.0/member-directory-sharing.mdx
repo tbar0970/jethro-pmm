@@ -1,0 +1,30 @@
+---
+requires_db_upgrade: true
+---
+
+### Member directory: choose what you share
+
+Sharing your details with a group is now a per-person choice instead of an
+all-or-nothing group setting ([#792](https://github.com/tbar0970/jethro-pmm/issues/792)).
+A new **Sharing** page in the members area lists your groups, each with
+**Share my Name** (your name appears in the directory) and **Share my Contact
+Info** (your email and phone are shown alongside it) columns, plus a default row that
+applies to sharing-enabled groups where you haven't chosen individually.
+Each column either records your choice or follows your default: an inherited
+column is read-only and shows your default's current setting, updating as soon
+as you change the default. Sharing your contact info also shares your name.
+Each column shows "set directly | use default" (or "uses default" while
+inheriting): the **use default** link returns it to following your default, and
+**set directly** lets you override it for one group. Staff can record a member's consent on the group's member list
+("Edit sharing settings"), and each person record has a **Sharing** tab
+showing which sharing-enabled groups the person currently consents to, since
+when, and whether consent was recorded by the member or by staff - staff can
+edit it there directly, and members can opt out of individual groups even when
+their default is on.
+
+Groups keep their "Members may share their contact info?" switch, which now means
+*members may choose to share* rather than *everyone shares*. Existing groups
+keep working: on upgrade, every current member of a sharing-enabled group is
+counted as having consented, so directories don't change until individuals opt
+out; these carried-over grants show as "migrated from the old group setting". Archiving a group now also stops its directory sharing, and the group
+pages in the members area are visible only to group members.

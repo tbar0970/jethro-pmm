@@ -19,7 +19,7 @@ A request sets exactly one of them. Both NULL → the views return nothing.
 |---|---|---|
 | `person` | Account's congregation/group restrictions | All rows (staff restrictions never apply) |
 | `person_group` | Own + shared groups, limited by `account_group_restriction` | Shared groups (`owner IS NULL`) |
-| `member` | Nothing | Own family + co-members of `share_member_details` groups |
+| `member` | Nothing | Own family + consented co-members of could-share, non-archived groups the viewer belongs to (see [member-share-consent](./member-share-consent.md)) |
 | `abstract_note` | Own pending assignments, or all notes with `PERM_VIEWNOTE` | Nothing |
 
 ## Why

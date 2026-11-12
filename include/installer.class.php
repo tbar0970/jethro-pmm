@@ -254,27 +254,59 @@ class Installer
 			) ENGINE=InnoDB;",
 
 			'CREATE VIEW member AS
-			SELECT mp.id, mp.first_name, mp.last_name, mp.gender, mp.age_bracketid, mp.congregationid,
-			mp.email, mp.mobile_tel, mp.work_tel, mp.familyid,
-			mf.family_name, mf.address_street, mf.address_suburb, mf.address_state, mf.address_postcode, mf.home_tel
+			/* Members-area directory (#792): each person appears only if they have
+			   a consent row for a could-share group the viewer also belongs to.
+			   Synced with upgrades/2026-upgrade-to-2.40.sql (member view). */
+			SELECT d.id, d.first_name, d.last_name, d.gender, d.age_bracketid, d.congregationid,
+			CASE WHEN hasDataPerm(d.eff_mask, \'VIEWEMAIL\') THEN d.email ELSE \'\' END AS email,
+			CASE WHEN hasDataPerm(d.eff_mask, \'VIEWMOBILE\') THEN d.mobile_tel ELSE \'\' END AS mobile_tel,
+			CASE WHEN hasDataPerm(d.eff_mask, \'VIEWMOBILE\') THEN d.work_tel ELSE \'\' END AS work_tel,
+			d.familyid,
+			d.family_name, d.address_street, d.address_suburb, d.address_state, d.address_postcode, d.home_tel
+			FROM (
+			/* Co-members of a could-share group: effective consent is per column,
+			   falling back to the person default row where the column inherits.
+			   A person can share several groups with the viewer, so collapse to
+			   one row per person, unioning the effective consent of the groups. */
+			SELECT mp.id,
+			MAX(mp.first_name) AS first_name, MAX(mp.last_name) AS last_name,
+			MAX(mp.gender) AS gender, MAX(mp.age_bracketid) AS age_bracketid,
+			MAX(mp.congregationid) AS congregationid,
+			MAX(mp.email) AS email, MAX(mp.mobile_tel) AS mobile_tel,
+			MAX(mp.work_tel) AS work_tel, MAX(mp.familyid) AS familyid,
+			MAX(mf.family_name) AS family_name, MAX(mf.address_street) AS address_street,
+			MAX(mf.address_suburb) AS address_suburb, MAX(mf.address_state) AS address_state,
+			MAX(mf.address_postcode) AS address_postcode, MAX(mf.home_tel) AS home_tel,
+			MAX(((CASE WHEN psc.personid IS NULL OR (psc.inherit_mask & 1) <> 0
+			       THEN COALESCE(pscd.data_permissions, 0) & 1
+			       ELSE psc.data_permissions & 1 END)
+			 | (CASE WHEN psc.personid IS NULL OR (psc.inherit_mask & 2) <> 0
+			       THEN COALESCE(pscd.data_permissions, 0) & (dataPermBit(\'VIEWEMAIL\') | dataPermBit(\'VIEWMOBILE\'))
+			       ELSE psc.data_permissions & (dataPermBit(\'VIEWEMAIL\') | dataPermBit(\'VIEWMOBILE\')) END))) AS eff_mask
 			FROM _person mp
 			JOIN person_status mps ON mps.id = mp.status
 			JOIN family mf ON mf.id = mp.familyid
 			JOIN person_group_membership pgm1 ON pgm1.personid = mp.id
-			JOIN _person_group pg ON pg.id = pgm1.groupid AND pg.share_member_details = 1
+			LEFT JOIN _person_share_consent psc ON psc.personid = pgm1.personid AND psc.groupid = pgm1.groupid
+			LEFT JOIN _person_share_consent pscd ON pscd.personid = pgm1.personid AND pscd.groupid = 0 /* person default row */
+			JOIN _person_group pg ON pg.id = pgm1.groupid AND pg.share_member_details = 1 AND NOT pg.is_archived
 			JOIN person_group_membership pgm2 ON pgm2.groupid = pg.id
 			JOIN _person up ON up.id = pgm2.personid
 			JOIN person_status ups ON ups.id = up.status
 			WHERE up.id = getCurrentMemberID()
+			   AND mp.familyid <> (SELECT familyid FROM _person WHERE id = getCurrentMemberID()) /* own family handled below */
 			   AND (NOT mps.is_archived)    /* dont show archived persons */
 			   AND mf.status <> "archived"  /* dont show archived families */
 			   AND (NOT ups.is_archived)	/* dont let persons who are themselves archived see anything */
+			GROUP BY mp.id
 
-			UNION
+			UNION ALL
 
+			/* Own family: always listed with full contact details. */
 			SELECT mp.id, mp.first_name, mp.last_name, mp.gender, mp.age_bracketid, mp.congregationid,
 			mp.email, mp.mobile_tel, mp.work_tel, mp.familyid,
-			mf.family_name, mf.address_street, mf.address_suburb, mf.address_state, mf.address_postcode, mf.home_tel
+			mf.family_name, mf.address_street, mf.address_suburb, mf.address_state, mf.address_postcode, mf.home_tel,
+			(dataPermBit(\'VIEWNAME\') | dataPermBit(\'VIEWEMAIL\') | dataPermBit(\'VIEWMOBILE\')) AS eff_mask
 			FROM _person mp
 			JOIN person_status mps ON mps.id = mp.status
 			JOIN family mf ON mf.id = mp.familyid
@@ -285,7 +317,8 @@ class Installer
 				AND ((NOT mps.is_archived) OR (mp.id = self.id))
 				AND ((NOT selfs.is_archived) OR (mp.id = self.id))
 				/* archived persons can only see themselves, not any family members */
-			;',
+			) d
+			WHERE hasDataPerm(d.eff_mask, \'VIEWNAME\') /* consented, or own family */ ;',
 
 			"CREATE TABLE setting (
 				`rank`  int(11) unsigned,
