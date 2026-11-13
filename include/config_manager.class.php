@@ -40,6 +40,7 @@ class Config_Manager {
 		if (0 === strpos($symbol, 'SMTP')) return TRUE;
 		if (0 === strpos($symbol, 'MAILCHIMP_')) return TRUE;
 		if (0 === strpos($symbol, 'BIBLE_')) return TRUE;
+		if (0 === strpos($symbol, 'URLSHORTENER_')) return TRUE;
 		return FALSE;
 	}
 
@@ -182,7 +183,6 @@ class Config_Manager {
 				WHERE symbol = '.$db->quote($symbol);
 		$res = $db->exec($SQL);
 		return TRUE;
-
 	}
 
 	public static function deleteSetting($symbol)

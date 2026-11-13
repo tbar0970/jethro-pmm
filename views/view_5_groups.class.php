@@ -177,6 +177,15 @@ class View_Groups extends View
 					<a href="<?php echo build_url(Array('view' => NULL, 'call' => 'email', 'groupid' => $this->_group->id, 'print_modal' => 1)); ?>" target="_append"><i class="icon-email">@</i><?php echo _('Email members');?></a>
 				</div>
 				<?php
+				if (Jethro\Sms\canSendSms()) {
+					?>
+				<div class="sms-link">
+					<a href="#" onclick="var sa = document.querySelector('.select-all'); if (sa &amp;&amp; !sa.checked) sa.click(); document.querySelector('#bulk-action-chooser').value='smshttp'; document.querySelector('#bulk-action-chooser').dispatchEvent(new Event('change')); return false;"><i class="icon-sms"></i><?php echo _('SMS members');?></a>
+				</div>
+					<?php
+				}
+				?>
+				<?php
 				if ($GLOBALS['user_system']->havePerm(PERM_RUNREPORT)) {
 					?>
 					<div><a href="<?php echo build_url(Array('view' => 'persons__reports', 'queryid' => 0, 'configure' => 1)); ?>#showme"><i class="icon-list-alt"></i><?php echo _('Create report');?></a></div>

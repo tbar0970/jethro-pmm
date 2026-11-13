@@ -2,9 +2,150 @@
 sidebar_position: 1
 ---
 
+import PersonSendSmsVideo from '@site/static/img/sms/person_send_sms_view_messages_and_note.webm';
+import SmsOverviewVideo from '@site/static/img/sms/smsoverview_sendhistory.webm';
+
 # What's New
 
 This page tracks notable changes to Jethro.
+
+## 2.40.0 — SMS Modernisation (unreleased)
+
+This release modernises Jethro's SMS subsystem with per-person and system-wide message history, customisable SMS senders, SMS preview, token expansion and URL shortening, SMS scheduling (with cancel), opt-out, full 5CentSMS v5 API support, and support for https://www.cellcast.com/au.
+
+<video autoPlay loop muted playsInline width="800" height="600"><source src={PersonSendSmsVideo} type="video/webm" />Your browser does not support the video tag.</video>
+
+### New Send features
+
+ - The option to send SMSes from a church-wide Sender ID (e.g. `StBarnabas`) or from your personal mobile. See [SMS Sender](../user-manual/sms.mdx#sms-sender) and [Registering Sender IDs](../administration/config/sms.mdx#registering-sender-ids).
+ - [Scheduled send](../user-manual/sms.mdx#schedule-send): delay delivery of a SMS (including bulk)
+ - Messages send immediately: the SMS undo cool-off is **off by default**. An administrator can set an [undo window](../user-manual/sms.mdx#send-cool-off) where each web send is held, cancellable, before dispatch (MobileMessage: at least 90 seconds; its API sends anything 60 seconds or less ahead immediately).
+ - Token substitution: `Hi %firstname%', etc. When sending to 'the adults in the selected persons' families', `%selected.firstname%` names the selected people, e.g. the children their parents are being messaged about. See [Message Preview](../user-manual/sms.mdx#message-preview).
+ - URL shortening (optional). If you type a URL longer than 26 characters, a 'Shorten URL' checkbox will appear, offering to rewrite it (on send) in a shorter `https://jethro.au/s/......` form. <details><summary>URL shortening details</summary>URL shortening is free but requires you to register in the 'URL Shortening' section of the configuration page. ![Screenshot](/img/sms/jethro_admin_urlshortener.png)<br/>
+        The public URL shortener at https://jethro.au is free to use from any Jethro installation. Its source code is at https://github.com/jethro-chms/jethro-url-shortener (Apache-2.0), and Jethro installs its client with Composer as `jethro/jethro-url-shortener`. </details>
+ - [Message preview](../user-manual/sms.mdx#message-preview), in multi-person SMSes (to a report, group, family, roster, etc). See the exact recipients (particularly useful when sending to 'adults in the selected persons' families') and what URLs will be shortened to, and %tokens% will expand to. You can also click the pencil in any person's preview and customize the SMS just for them.
+ - Insufficient-balance guard: if the provider account does not have enough SMS credit for the message, the compose box shows `⚠ Insufficient balance: N segments needed, M available` and disables Send before anything is attempted.
+
+![Screenshot](/img/sms/group_sms_dialog_messagepreview.png)
+
+
+### New person Messages tab showing sent SMSes
+
+Every person now has a [**Messages** tab](../user-manual/sms.mdx#person-messages-tab) showing all SMSes sent to them via Jethro. Bulk (multi-recipient) SMSes are hidden by default.
+
+![Screenshot](/img/sms/person_messages_tab_with_filtering.png)
+
+When a SMS is sent, an associated Note (todo item) can be [created](../user-manual/sms.mdx#create-note). The Note and Message entry are bidirectionally linked.
+
+After upgrade, people's Messages tabs will be populated with what used to be 'SMS Sent' notes. Up to a year's worth of SMS history can also be fetched from your SMS provider via the **Synchronize History** action in Admin → System Configuration → SMS Gateway (see [Recovering history from your SMS provider](../administration/config/sms.mdx#recovering-history-from-your-sms-provider)).
+
+<details>
+    <summary>
+        "SMS Sent" migration details
+    </summary>
+
+    Jethro has always had a 'Save as Note' checkbox below the SMS form. The 'Save as Note' checkbox saved a copy of the outgoing SMS as a Note with subject "SMS Sent". Some staff always ticked 'Save as Note', just to keep a record of SMSes. Over time, the 'SMS Sent' notes would crowd out the actual pastoral notes.
+
+    In this release, Jethro gets a proper place for SMS records (a Messages tab), and we can clear up the fake 'SMS Sent' notes. On upgrade, the notes that became Messages entries are removed from Notes. A send is a run of notes with the same sender and the same text, no more than an hour apart, so a weekly reminder becomes one send per week. Notes saved under a custom `SMS_SAVE_TO_NOTE_SUBJECT` migrate too.
+
+    Any note that someone *did* interact with is kept in Notes as well as being moved, with a link to the corresponding entry in Messages, so you can still navigate from a pastoral interaction back to the original SMS. That includes notes that were edited, assigned, or had their status changed, and notes that have comments (which would otherwise be left orphaned).
+
+    The "SMS Sent" migration is done via `upgrades/2026-upgrade-to-2.40-sms.sql` file that must be sourced at upgrade time. It runs an integrity check first: if that check fails, the whole migration is rolled back and the upgrade stops with a message, instead of deleting anything.
+</details>
+
+### New Jethro-wide Messages page
+
+In addition to the per-person 'Messages' tab, a new [Persons → Messages](../user-manual/sms.mdx#messages-overview) SMS Overview page is added, showing a system-wide view of sent messages.
+
+<video autoPlay loop muted playsInline width="800"><source src={SmsOverviewVideo} type="video/webm" />Your browser does not support the video tag.</video>
+
+The SMS Overview lists every send with sender, recipients (with per-recipient delivery badges), body, and date. It can be filtered in real time by sender name, recipient name, body text, date range, and single-recipient sends only, and has an optional 'Cost' column with a running total. Sends with deliveries still pending — scheduled, or within the [send cool-off](../user-manual/sms.mdx#send-cool-off) window — have a Cancel (or 'Cancel all') link.
+
+### New Permission: **SMS - view all**
+
+As Jethro is now storing SMS communications it wasn't before, we need a new [permission](../administration/config/sms.mdx#permissions). **SMS - view all** determines whether you can see SMSes sent by _other_ staff. **SMS - view all** is also needed to access the system-wide SMS history at Persons → Messages.
+
+People lacking **SMS - view all** can only see SMSes they personally sent.
+
+<details>
+  <summary>Who gets **SMS - view all**</summary>
+
+  On upgrade, **SMS - view all** will be granted to staff who held both **SMS/Mailchimp - send** (i.e. could send SMSes) and **Notes - view all**. The logic is: who can view Notes could see 'SMS Sent' notes, the closest thing Jethro had to a historical SMS record, and so they probably ought to be able to view SMSes.
+
+  After upgrading, you can grant **SMS - view all** to other users individually or add it to the Default Permissions. See [Upgrading from an earlier Jethro version](../administration/config/sms.mdx#upgrading-from-an-earlier-jethro-version).
+</details>
+
+
+
+
+Provider configuration, balance, sender IDs and registered numbers are shown in the SMS Gateway status panel in Admin → System Configuration (see [Configuring a SMS Provider](../administration/config/sms.mdx#configuring-a-sms-provider)).
+
+The legacy `SMS_SEND_LOGFILE` log file is **not** imported. Recent sends that were never recorded as notes (e.g. roster reminders sent by cron) can be pulled from your SMS provider with the new **Synchronize History** action in Admin → System Configuration → SMS Gateway (5CentSMS v5, Cellcast and MobileMessage). See [Recovering history from your SMS provider](../administration/config/sms.mdx#recovering-history-from-your-sms-provider).
+
+### 5CentSMS v5 Support
+
+Jethro has historically used the 5CentSMS v4 API, which is so old its very existence has been scrubbed from the internet.
+
+Jethro now supports the **5CentSMS v5 JSON API** natively. Key capabilities unlocked with v5:
+
+- Per-message delivery status polling (Queued → Sent → Delivered/Failed)
+- Deferred (scheduled) sends with cancellation
+- Sender ID and sender number registration
+- Balance checks
+
+**Existing 5CentSMS users on v4 should upgrade.** This requires generating a new v5 API key, and configuring Jethro with it. See [Upgrading 5CentSMS from v4 to v5](../administration/config/sms.mdx#upgrading-5centsms-from-v4-to-v5) for step-by-step instructions. If you do not do this, Jethro SMS will still work, using the v4 API, but you will miss out on SMS schedule and cancel features and opt-outs.
+
+### Cellcast Support
+
+[Cellcast](https://cellcast.com.au) is now fully supported (see [Cellcast configuration](../administration/config/sms.mdx#cellcast)).
+
+### MobileMessage Support
+
+[MobileMessage](https://www.mobilemessage.com.au) is now supported (see [MobileMessage configuration](../administration/config/sms.mdx#mobilemessage)). MobileMessage supports scheduling, cancellation, delivery status polling, batch history sync, balance checks, own-number verification via a link, and opt-out listing **and removal**. Alphanumeric Sender IDs are registered through the MobileMessage dashboard (ACMA registration), not through Jethro.
+
+
+### SMS administration section.
+
+In the Configuration page, the 'SMS Gateway' section shows which SMS provider is configured, plus available credit, registered sender IDs and sender numbers. See [SMS Administration](../administration/config/sms.mdx).
+There are also links to actions:
+ - A 'Register Sender ID' link will kick off the [sender ID registration](../administration/config/sms.mdx#registering-sender-ids) process (it usually requires email follow-up).
+ - 'Synchronize History' will [fetch the last 12 months' SMS history](../administration/config/sms.mdx#recovering-history-from-your-sms-provider) from your provider.
+
+### Upgrade Notes
+
+#### System requirements: New PHP 8.2, curl and mbstring dependencies
+
+:::warning[Requires PHP 8.2, with curl and mbstring]
+Jethro 2.40 requires **PHP 8.2 or newer** (previously 8.1). The new SMS code uses PHP 8.2 language features, so on PHP 8.1 Jethro will fail with a parse error. Check your version with `php -v` (and your PHP-FPM version) before upgrading; [`status.php`](../reference/status-php.mdx#php_incompatible_version) reports `php_incompatible_version: true` if it is too old. Debian 12 has it, but Ubuntu 22.04 ships PHP 8.1, so there you would need [Ondřej Surý's PPA](https://launchpad.net/~ondrej/+archive/ubuntu/php).
+
+The **curl** and **mbstring** PHP extensions are now always required (previously curl was only needed for Mailchimp/api.bible). `status.php` lists missing extensions under [`php_extensions_installed`](../reference/status-php.mdx#php_extensions_installed).
+:::
+
+#### Registering a new SMS provider API
+
+As noted above, to take advantage of all SMS capabilities, you need to manually [upgrade 5CentSMS from v4 to v5](../administration/config/sms.mdx#upgrading-5centsms-from-v4-to-v5), or do the equivalent API registration with Cellcast.
+
+#### 2FA: one SMS gateway, and no silent skipping
+
+2FA codes now go through the same SMS gateway (and credentials) as ordinary messages. The separate 2FA gateway has been removed: if your `conf.php` sets `2FA_SMS_URL` or any other `2FA_SMS_*` constant, delete those lines — System Configuration and the login page will tell you they are no longer used. 2FA still takes its sender from `2FA_SENDER_ID`, which is required when `SMS_SENDER` is `_USER_MOBILE_`.
+
+2FA is also no longer skipped silently: if an account requires 2FA but no code can be sent (no gateway, a sender problem, or leftover `2FA_SMS_*` constants), the login is refused with an explanation and SysAdmins are emailed. Fix the SMS settings, or set `2FA_ENABLED` to false if 2FA should be off.
+
+:::warning
+`'Jethro'` was the old default for `2FA_SENDER_ID` and is cleared on upgrade: from 1 July 2026 the ACMA shows unregistered alphanumeric sender IDs as "Unverified". A blank `2FA_SENDER_ID` now means the literal `SMS_SENDER`, or else the first ACMA-approved sender ID your provider reports. If neither exists, 2FA logins are refused with a clear reason (and SysAdmins are emailed) until you set `2FA_SENDER_ID` to a sender ID registered with the ACMA.
+:::
+
+#### Register sender numbers used in roster reminders
+
+Sending a SMS now requires senders to perform a one-off [mobile number verification](../user-manual/sms.mdx#validating-your-own-mobile-number), to prove that you own the mobile number. You will be sent a link to click or a code to fill in.
+
+If you use the `roster_reminder.php` script to send reminders, if the `SMS_FROM` parameter specified a mobile number, **it now must be validated through the process above**, otherwise `roster_reminder.php` will fail with `Sender "......." is not permitted by SMS_SENDER_OPTIONS.`.
+
+#### Legacy Log File Removed
+
+Jethro no longer logs to the `SMS_SEND_LOGFILE` file, as a much fuller history is kept right in the Jethro database. That setting can be removed.
+
+The existing log file is not imported or deleted. **Synchronize History** can recover everything your SMS provider still holds (roughly the last 12 months for 5CentSMS), so keep or archive the file if you need older history. See [SMS send log file](../administration/config/sms.mdx#sms-send-log-file).
 
 ## Version 2.39 (unreleased)
 

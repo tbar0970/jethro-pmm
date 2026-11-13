@@ -596,7 +596,7 @@ class Roster_View extends DB_Object
 						echo ' <span class="label label-important" title="Planned absence: '.ents($asn['absence_comment']).'">!</i></span>';
 					}
 					if (('' === $asn['email'])) echo ' <img class="visible-desktop" src="'.BASE_URL.'/resources/img/no_email.png" title="No Email Address" />';
-					if (('' === $asn['mobile']) && SMS_Sender::canSend()) {
+					if (('' === $asn['mobile']) && Jethro\Sms\canSendSms()) {
 						echo ' <img class="visible-desktop" src="'.BASE_URL.'/resources/img/no_phone.png" title="No Mobile" />';
 					}
 					echo '</span>';
@@ -717,8 +717,6 @@ class Roster_View extends DB_Object
 			<?php
 		}
 		if (!$public) {
-			require_once 'include/sms_sender.class.php';
-			SMS_Sender::printModal();
 			?>
 			<div id="choose-assignee-modal" class="modal hide fade" role="dialog" aria-hidden="true">
 				<div class="modal-header">
@@ -779,7 +777,7 @@ class Roster_View extends DB_Object
 									}
 								}
 							}
-							if (!empty($emails) || (!empty($mobiles) && SMS_Sender::canSend())) {
+							if ($emails !== [] || ($mobiles !== [] && Jethro\Sms\canSendSms())) {
 								echo '<br />';
 							}
 							if (!empty($emails)) {
@@ -789,7 +787,7 @@ class Roster_View extends DB_Object
 				                </div>
 								<?php
 							}
-							if (!empty($mobiles) && SMS_Sender::canSend()) {
+							if ($mobiles !== [] && Jethro\Sms\canSendSms()) {
 								?>
 								<div class="smallprint no-print">
 								  <a class="soft" href="#send-sms-modal" data-personid="<?php echo implode(',', array_unique($personids)); ?>" data-toggle="sms-modal" data-name="People Rostered on <?php echo format_date($date);?>" onclick="$(this).parents('tr:first').addClass('tblib-hover')">SMS&nbsp;All</a>
@@ -840,7 +838,7 @@ class Roster_View extends DB_Object
 										$n .= ' <a href="'.$href.'#rosters" class="label label-important" title="Planned absence: '.ents($vs['absence_comment']).'">!</i></a>';
 									}
 									if (('' === $vs['email'])) $n .= ' <img class="visible-desktop" src="'.BASE_URL.'/resources/img/no_email.png" title="No Email Address" />';
-									if (('' === $vs['mobile']) && SMS_Sender::canSend()) {
+									if (('' === $vs['mobile']) && Jethro\Sms\canSendSms()) {
 										$n .= ' <img class="visible-desktop" src="'.BASE_URL.'/resources/img/no_phone.png" title="No Mobile" />';
 					                }
 									$n .= '</span>';

@@ -65,7 +65,7 @@ class View__Edit_Attendance extends View
 										'style' => 'colour-buttons',
 										'class' => 'vertical',
 									),
-									$map[$att['present']]
+									$map[$att['present'] ?? '']
 							); ?>
 						</td>
 						<?php
