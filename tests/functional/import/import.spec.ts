@@ -173,4 +173,73 @@ test.describe("CSV person import", () => {
     );
     await expect(page.locator("#body")).not.toContainText("Your import is ready to run");
   });
+
+  test("previews an update from a CSV without a status column", async ({ page }) => {
+    const family = uniqueTag();
+    const id = await importNewPerson(page, family, "Hana");
+
+    // A matched row with no status key must render (leaving the existing status unchanged),
+    // not raise "Undefined array key".
+    await uploadCsv(
+      page,
+      ["family_name,last_name,first_name,congregation,age_bracket", `${family},${family},Hana,,Adult`].join("\n"),
+      { groupName: `${family} update` },
+    );
+    await expect(page.locator("#body")).toContainText("Your import is ready to run");
+    await expect(summaryValue(page, "Existing persons to be updated")).toHaveText("1");
+    await expect(page.locator(`a[href="?view=persons&personid=${id}"]`)).toBeVisible();
+    await expect(page.locator("#body")).not.toContainText("Undefined array key");
+  });
+
+  test("offers a Google Spreadsheet source and rejects a non-Google link", async ({ page }) => {
+    await page.goto("./?view=admin__import");
+    await page.locator('input[name="data_source"][value="google"]').check();
+    const urlField = page.locator('input[name="google_url"]');
+    await expect(urlField).toBeVisible();
+    const details = page.locator('details summary', { hasText: 'Service account' });
+    await expect(details).toBeVisible();
+    await expect(page.locator('input[name="google_spreadsheet_tab"]')).toBeVisible();
+    await expect(page.locator('input[name="google_service_account"]')).toBeHidden();
+    await details.click();
+    await expect(page.locator('input[name="google_service_account"]')).toBeVisible();
+    await urlField.fill("https://example.com/not-a-sheet");
+    await page.locator('input[name="new_group_name"]').fill("Google source test");
+    await page.locator('input[type="submit"][value^="Continue"]').click();
+    await expect(page.locator(".alert-error, .alert-danger")).toContainText("Not a Google Sheets URL");
+    await expect(page.locator("#body")).not.toContainText("Your import is ready to run");
+  });
+
+  test("reports an invalid service-account key without fetching the sheet", async ({ page }) => {
+    await page.goto("./?view=admin__import");
+    await page.locator('input[name="data_source"][value="google"]').check();
+    await page.locator('input[name="google_url"]').fill("https://docs.google.com/spreadsheets/d/abc123/edit");
+    await page.locator('details summary', { hasText: 'Service account' }).click();
+    await page.locator('input[name="google_spreadsheet_tab"]').fill("import");
+    await page.locator('input[name="new_group_name"]').fill("Google key test");
+    await page.locator('input[name="google_service_account"]').setInputFiles({
+      name: "key.json",
+      mimeType: "application/json",
+      buffer: Buffer.from("{}"),
+    });
+    await page.locator('input[type="submit"][value^="Continue"]').click();
+    await expect(page.locator(".alert-error, .alert-danger")).toContainText(
+      "must contain client_email and private_key",
+    );
+    await expect(page.locator("#body")).not.toContainText("Your import is ready to run");
+  });
+
+  test("remembers the Google URL and sheet name in the session", async ({ page }) => {
+    await page.goto("./?view=admin__import");
+    await page.locator('input[name="data_source"][value="google"]').check();
+    await page.locator('input[name="google_url"]').fill("https://example.com/not-a-sheet");
+    await page.locator('input[name="google_spreadsheet_tab"]').fill("import");
+    await page.locator('input[name="new_group_name"]').fill("Google remember test");
+    await page.locator('input[type="submit"][value^="Continue"]').click();
+    await expect(page.locator(".alert-error, .alert-danger")).toContainText("Not a Google Sheets URL");
+
+    await page.goto("./?view=admin__import");
+    await page.locator('input[name="data_source"][value="google"]').check();
+    await expect(page.locator('input[name="google_url"]')).toHaveValue("https://example.com/not-a-sheet");
+    await expect(page.locator('input[name="google_spreadsheet_tab"]')).toHaveValue("import");
+  });
 });

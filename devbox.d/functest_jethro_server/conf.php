@@ -5,7 +5,7 @@
 // tests/functional/walkthrough.conf (or tests/functional/walkthrough/walkthrough.conf), which might load custom
 // settings or point to a custom database.
 
-$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$path = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
 
 // Strip trailing filename (e.g. index.php) so that both
 //   /tests/functional/sms/sms-2fa/
