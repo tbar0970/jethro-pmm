@@ -570,7 +570,54 @@ class Family extends DB_Object
 		return $res;
 	}
 
+	/**
+	 * Member rows for the printable contact list of a group: every non-archived
+	 * person in a family that has someone in the group, newest age bracket first.
+	 *
+	 * The optional congregation filter is applied inside the group-membership
+	 * subquery, so a family is listed when one of its members is in the group in
+	 * one of those congregations; the rows returned still cover all the family's
+	 * non-archived members.
+	 *
+	 * @param int $groupid
+	 * @param int[] $congregationids Congregations to restrict the group members to (empty = all)
+	 * @return array<int, array<int, array<string, mixed>>> family id => member rows ordered by family name, then age bracket rank
+	 */
+	public static function getContactListData(int $groupid, array $congregationids = Array()): array
+	{
+		if (empty($groupid)) return Array();
 
+		$db = $GLOBALS['db'];
+		$sql = '
+		select family.id as familyid, family.family_name, family.home_tel,
+			person.id, person.first_name, person.last_name, person.mobile_tel, person.email, person.age_bracketid,
+			congregation.long_name as congname,
+			address_street, address_suburb, address_state, address_postcode,
+			IF (fp.familyid IS NULL, 0, 1) as have_photo,
+			IF (signup.groupid IS NULL, 0, 1) as signed_up,
+			IF (pp.personid IS NULL, 0, 1) as have_person_photo
+		from family
+		join person on family.id = person.familyid
+		join person_status ps ON ps.id = person.status
+		join age_bracket ab ON ab.id = person.age_bracketid
+		left join congregation on person.congregationid = congregation.id
+		left join family_photo fp ON fp.familyid = family.id
+		left join person_group_membership signup ON signup.personid = person.id AND signup.groupid = '.(int)$groupid.'
+		left join person_photo pp ON pp.personid = person.id
+		where (NOT ps.is_archived)
+		and family.id in
+		(select familyid
+		from person join person_group_membership pgm on person.id = pgm.personid
+		where pgm.groupid = '.(int)$groupid;
+		if (!empty($congregationids)) {
+			$sql .= '
+				AND person.congregationid in ('.implode(',', array_map(Array($db, 'quote'), $congregationids)).')';
+		}
+		$sql .= ')
+		order by family_name asc, familyid, ab.`rank` asc, IF(ab.is_adult, gender, "") desc, first_name asc
+		';
+		return $db->queryAll($sql, NULL, NULL, TRUE, TRUE, TRUE);
+	}
 
 	public static function printSingleFinder($name, $currentval=NULL)
 	{
