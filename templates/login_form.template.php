@@ -43,7 +43,7 @@
 			<div class="control-group">
 				<div class="controls">
 					<input type="submit" value="Log In" class="btn" />
-					<input type="hidden" name="login_key" value="<?php echo $login_key; ?>" /><br />
+					<br />
 				</div>
 			</div>
 		<?php
