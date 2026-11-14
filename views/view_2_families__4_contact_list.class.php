@@ -217,42 +217,12 @@ class View_Families__Contact_List extends View
 		$dummy_person = new Person();
 		$dummy_family = new Family();
 
-		$db = $GLOBALS['db'];
 		$groupid = (int)$_REQUEST['groupid'];
 		$all_member_details = array_get($_REQUEST, 'all_member_details', 0);
 
 		if (empty($groupid)) return;
 
-		$sql = '
-		select family.id as familyid, family.family_name, family.home_tel,
-			person.id, person.first_name, person.last_name, person.mobile_tel, person.email, person.age_bracketid,
-			congregation.long_name as congname,
-			address_street, address_suburb, address_state, address_postcode,
-			IF (fp.familyid IS NULL, 0, 1) as have_photo,
-			IF (signup.groupid IS NULL, 0, 1) as signed_up,
-			IF (pp.personid IS NULL, 0, 1) as have_person_photo
-		from family
-		join person on family.id = person.familyid
-		join person_status ps ON ps.id = person.status
-		join age_bracket ab ON ab.id = person.age_bracketid
-		left join congregation on person.congregationid = congregation.id
-		left join family_photo fp ON fp.familyid = family.id
-		left join person_group_membership signup ON signup.personid = person.id AND signup.groupid = '.(int)$groupid.'
-		left join person_photo pp ON pp.personid = person.id
-		where (NOT ps.is_archived)
-		and family.id in
-		(select familyid
-		from person join person_group_membership pgm on person.id = pgm.personid
-		where pgm.groupid = '.(int)$groupid;
-
-		if (!empty($_REQUEST['congregationid'])) {
-			$sql .= '
-				AND person.congregationid in ('.implode(',', array_map(Array($db, 'quote'), $_REQUEST['congregationid'])).')';
-		}
-		$sql .= ')
-		order by family_name asc, familyid, ab.`rank` asc, IF(ab.is_adult, gender, "") desc, first_name asc
-		';
-		$res = $db->queryAll($sql, null, null, true, true, true);
+		$res = Family::getContactListData($groupid, (array)array_get($_REQUEST, 'congregationid', Array()));
 
 		if (empty($res)) {
 			?><p><i><?php echo _('No families to show');?></i></p><?php

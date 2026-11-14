@@ -33,7 +33,7 @@ class View_Persons__List_All extends View
 				$params['!(status'] = Person_Status::getArchivedIDs();
 			}
 			if (empty($_SESSION['total_persons'])) {
-				$_SESSION['total_persons'] = $GLOBALS['db']->queryOne('SELECT count(*) from person');
+				$_SESSION['total_persons'] = Person::getCount();
 			}
 			if (!empty($_REQUEST['slice_size'])) {
 				$this->_paginator = new Paginator((float)$_REQUEST['slice_size'], (int)$_REQUEST['slice_num']);

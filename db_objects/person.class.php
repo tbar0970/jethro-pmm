@@ -954,6 +954,17 @@ class Person extends DB_Object
 	}
 
 	/**
+	 * Number of persons the current user may see. Used to size the pages of the
+	 * person list; the count basis must match what that list displays.
+	 *
+	 * @return int
+	 */
+	public static function getCount(): int
+	{
+		return (int)$GLOBALS['db']->queryOne('SELECT COUNT(*) FROM person');
+	}
+
+	/**
 	 * Get formatted custom field data indexed by personid and fieldname
 	 * @param type $personids
 	 * @return array

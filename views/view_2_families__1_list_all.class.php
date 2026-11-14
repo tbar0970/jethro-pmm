@@ -46,7 +46,7 @@ class View_Families__List_All extends View
 				$params['!status'] = 'archived';
 			}
 			if (empty($_SESSION['total_families'])) {
-				$_SESSION['total_families'] = $GLOBALS['db']->queryOne('SELECT count(familyid) from family f join person p on p.familyid = f.id');
+				$_SESSION['total_families'] = Family::getCount();
 			}
 			if (!empty($_REQUEST['slice_size'])) {
 				$this->_paginator = new Paginator((float)$_REQUEST['slice_size'], (int)$_REQUEST['slice_num']);

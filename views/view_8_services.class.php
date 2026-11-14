@@ -106,6 +106,7 @@ class View_services extends View
 				if (!empty($_REQUEST['action']) && strncmp($_REQUEST['action'], 'nav_', 4) === 0) {
 					$action = $_REQUEST['action'];
 					if ($this->editing) $this->service->releaseLock('items');
+					$serviceDate = $this->service->getValue('date');
 					switch ($action) {
 						case "nav_allservices":
 							// 'All services' nav link clicked in edit mode. Release lock and redirect
@@ -114,25 +115,25 @@ class View_services extends View
 						case "nav_prevdate":
 							// 'Prev' link clicked in edit mode. Release lock, redirect to previous week, retaining
 							// other params.
-							$prevDate = $this->getPrevServiceDate();
+							$prevDate = Service::getAdjacentDate($this->congregationid, $serviceDate, 'prev');
 							redirect("services", Array("action" => null, "date" => $prevDate));  // Redirecting clears &editing=1
 							break;
 						case "nav_nextdate":
 							// 'Next' link clicked in edit mode. Release lock, redirect to next week, retaining
 							// other params.
-							$nextDate = $this->getNextServiceDate();
+							$nextDate = Service::getAdjacentDate($this->congregationid, $serviceDate, 'next');
 							redirect("services", Array("action" => null, "date" => $nextDate));  // Redirecting clears &editing=1
 							break;
 						case "nav_prevservice":
 							// 'Prev' link clicked in edit mode. Release lock, redirect to previous week, retaining
 							// other params.
-							$prevCong = $this->getEarlierServiceCong();
+							$prevCong = Service::getAdjacentCongregationWithServiceOnDate($this->congregationid, $serviceDate, 'prev');
 							redirect("services", Array("action" => null, "congregationid" => $prevCong["id"]));  // Redirecting clears &editing=1
 							break;
 						case "nav_nextservice":
 							// 'Next' link clicked in edit mode. Release lock, redirect to next week, retaining
 							// other params.
-							$nextCong = $this->getLaterServiceCong();
+							$nextCong = Service::getAdjacentCongregationWithServiceOnDate($this->congregationid, $serviceDate, 'next');
 							redirect("services", Array("action" => null, "congregationid" => $nextCong["id"]));  // Redirecting clears &editing=1
 							break;
 					}
@@ -677,6 +678,7 @@ class View_services extends View
 	 */
 	private function printNav()
 	{
+		$serviceDate = $this->service->getValue('date');
 ?>
 		<table class="table table-condensed no-autofocus">
 			<tr>
@@ -689,7 +691,7 @@ class View_services extends View
 				<td style="border-left: 0px; padding-right: 1em">
 				</td>
 				<td>
-					<?php if ($prevCong = $this->getEarlierServiceCong()) { ?>
+					<?php if ($prevCong = Service::getAdjacentCongregationWithServiceOnDate($this->congregationid, $serviceDate, 'prev')) { ?>
 						<a href="<?php echo build_url(Array('action' => 'nav_prevservice')); ?>">
 							<i class="icon-chevron-left"
 							   title="Earlier congregation: <?php echo ents($prevCong["name"]); ?>"></i>
@@ -703,7 +705,7 @@ class View_services extends View
 					<?php } ?>
 				</td>
 				<td>
-					<?php if ($prevDate = $this->getPrevServiceDate()) { ?>
+					<?php if ($prevDate = Service::getAdjacentDate($this->congregationid, $serviceDate, 'prev')) { ?>
 						<a href="<?php echo build_url(Array('action' => 'nav_prevdate')); ?>">
 							<i class="icon-chevron-up"
 							   title="Previous week: <?php echo $prevDate; ?>"></i>
@@ -714,7 +716,7 @@ class View_services extends View
 					<?php } ?>
 				</td>
 				<td>
-					<?php if ($nextDate = $this->getNextServiceDate()) { ?>
+					<?php if ($nextDate = Service::getAdjacentDate($this->congregationid, $serviceDate, 'next')) { ?>
 						<a href="<?php echo build_url(Array('action' => 'nav_nextdate')); ?>">
 							<i class="icon-chevron-down"
 							   title="Next week: <?php echo $nextDate; ?>"></i>
@@ -728,7 +730,7 @@ class View_services extends View
 					<?php } ?>
 				</td>
 				<td>
-					<?php if ($nextCong = $this->getLaterServiceCong()) { ?>
+					<?php if ($nextCong = Service::getAdjacentCongregationWithServiceOnDate($this->congregationid, $serviceDate, 'next')) { ?>
 						<a href="<?php echo build_url(Array('action' => 'nav_nextservice')); ?>">
 							<i class="icon-chevron-right"
 							   title="Later congregation: <?php echo ents($nextCong["name"]) ?>"></i>
@@ -744,44 +746,5 @@ class View_services extends View
 			</tr>
 		</table>
 <?php
-	}
-
-	/**
-	 * Get previous congregation (order by meeting time) info. Used for nav links.
-	 * @return mixed Either ["id" => .., "name" => ..] or null.
-	 */
-	private function getEarlierServiceCong()
-	{
-        // Find the first congregation whose meeting time is earlier than ours, that has a service on the same date as ours.
-		return $GLOBALS['db']->queryRow("select id, name from congregation where coalesce(meeting_time, '') != '' and meeting_time < (select meeting_time from congregation where id=".(int)$this->congregationid.") and exists (select 1 from service where congregationid=congregation.id and date='".$this->service->getValue("date")."') order by meeting_time desc limit 1;");
-    }
-
-	/**
-	 * Get next congregation (order by meeting time) info. Used for nav links
-	 * @return mixed Either ["id" => .., "name" => ..] or null.
-	 */
-	private function getLaterServiceCong()
-	{
-		// Find the first congregation whose meeting time is later than ours, that has a service on the same date as ours.
-		return $GLOBALS['db']->queryRow("select id, name from congregation where coalesce(meeting_time, '') != '' and meeting_time > (select meeting_time from congregation where id=".(int)$this->congregationid.") and exists (select 1 from service where congregationid=congregation.id and date='".$this->service->getValue("date")."') order by meeting_time asc limit 1;");
-	}
-
-	/**
-	 * Get the date of the nearest chronologically earlier (usually -7d) service in the same congregation. Used for nav links
-	 * @return ?string Date string in yyyy-mm-dd format
-	 */
-	private function getPrevServiceDate()
-	{
-		return $GLOBALS['db']->queryOne("select date from service where congregationid=".(int)$this->congregationid." and date < '".$this->service->getValue("date")."'  order by date desc limit 1;");
-	}
-
-	/**
-	 * Get the date of the nearest chronologically later (usually +7d) service in the same congregation. Used for nav links
-	 * @return ?string Date string in yyyy-mm-dd format
-	 */
-	private function getNextServiceDate()
-	{
-		return $GLOBALS['db']->queryOne("select date from service where congregationid=".(int)$this->congregationid." and date > '".$this->service->getValue("date")."'  order by date asc limit 1;");
-
 	}
 }

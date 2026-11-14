@@ -14,7 +14,8 @@ class View__Manage_Service_Component_Tags extends View
 	function processView()
 	{
 		if (!empty($_POST['tagname'])) {
-			$to_add = $to_delete = $to_update = Array();
+			$GLOBALS['system']->includeDBClass('service_component_tag');
+			$to_add = $to_update = Array();
 			foreach ($_POST['tagname'] as $id => $name) {
 				if ($id == '_new_') {
 					foreach ($name as $n) {
@@ -24,23 +25,7 @@ class View__Manage_Service_Component_Tags extends View
 					$to_update[$id] = $name;
 				}
 			}
-			foreach ($to_update as $id => $name) {
-				$SQL = 'UPDATE service_component_tag
-						SET tag = '.$GLOBALS['db']->quote($name).'
-						WHERE id = '.(int)$id;
-				$res = $GLOBALS['db']->query($SQL);
-			}
-			if ($to_update) {
-				$delwhere = 'id NOT IN ('.implode(',', array_merge(array_keys($to_update))).')';
-			} else {
-				$delwhere = 1;
-			}
-			$res = $GLOBALS['db']->query('DELETE FROM service_component_tag WHERE '.$delwhere);
-			foreach ($to_add as $name) {
-				$SQL = 'INSERT INTO service_component_tag (tag)
-						VALUES ('.$GLOBALS['db']->quote($name).')';
-				$res = $GLOBALS['db']->query($SQL);
-			}
+			Service_Component_Tag::replaceAll($to_update, $to_add);
 			add_message("Tags updated");
 		}
 	}
