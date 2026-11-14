@@ -61,7 +61,7 @@ class View_Home extends View
 											echo $alloc['cong'].' '.$alloc['title'];
 										?></div><?php
 										if (MEMBER_SWAP_ENABLED) {
-											?><a href="javascript:void(0);">Swap</a><?php
+											?><a href="javascript:void(0);">Request swap</a><?php
 										}
 									?></div><?php
 									if (MEMBER_SWAP_ENABLED) {
