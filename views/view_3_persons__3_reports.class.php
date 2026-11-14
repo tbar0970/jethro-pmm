@@ -255,7 +255,7 @@ class View_Persons__Reports extends View
 
 	private function _listCustomReports()
 	{
-		$files = $this->_getCustomReports();
+		$files = Custom_Report::getAll();
 		if (empty($files)) return;
 		
 		?>
@@ -272,33 +272,14 @@ class View_Persons__Reports extends View
 
 	private function _executeCustomReport($file)
 	{
-		$reports = $this->_getCustomReports();
+		$reports = Custom_Report::getAll();
 		if (!isset($reports[$file])) {
 			trigger_error("Invalid custom report filename");
 			return;
 		}
-		$fn = $this->_getCustomReportsDir().'/'.$file;
-		if (!is_readable($fn)) {
-				trigger_error("Custom report SQL file is not readable");
-				return;
-		}
 
 		echo '<h2>'.ents($reports[$file]).'</h2>';
-		$fp = fopen($fn, 'r');
-		if (!$fp) {
-				trigger_error("Could not open custom report SQL file");
-				return;
-		}
-		$sql = fread($fp, 99999);
-		fclose($fp);
-
-		$sql = trim($sql);
-		if (0 !== strpos(strtoupper($sql), 'SELECT')) {
-			trigger_error("Custom report does not seem to start with SELECT; aborting");
-			return;
-		}
-
-		$res = $GLOBALS['db']->queryAll($sql);
+		$res = Custom_Report::run($file);
 		if (empty($res)) return;
 
 		?>
@@ -371,29 +352,6 @@ class View_Persons__Reports extends View
 		?>
 		</form>
 		<?php
-	}
-
-
-	private function _getCustomReports()
-	{
-		$dir = $this->_getCustomReportsDir();
-		if (!is_dir($dir)) return Array();
-
-		$files = glob($dir.'/*.sql');
-		if (empty($files)) return Array();
-
-		foreach ($files as $f) {
-			$f = basename($f);
-			$title = substr(ucwords(str_replace('_', ' ', $f)), 0, -4);
-			$res[$f] = $title;
-		}
-		return $res;
-
-	}
-
-	private function _getCustomReportsDir()
-	{
-		return ifdef('CUSTOM_REPORTS_DIR', JETHRO_ROOT.'/custom_reports');
 	}
 
 }
