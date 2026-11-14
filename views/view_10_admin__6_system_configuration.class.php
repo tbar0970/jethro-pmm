@@ -507,8 +507,8 @@ class View_Admin__System_Configuration extends View {
 
 	private function processGroupMembershipStatusOptions()
 	{
-		$db = $GLOBALS['db'];
 		if (!empty($_POST['group_membership_statuses_submitted'])) {
+			$GLOBALS['system']->includeDBClass('person_group_membership_status');
 			$i = 0;
 			$saved_default = false;
 			$rankMap = $_REQUEST['membership_status_ranking'];
@@ -516,56 +516,59 @@ class View_Admin__System_Configuration extends View {
 				if ($v == '') $rankMap[$k] = max($rankMap)+1;
 			}
 			$ranks = array_flip($rankMap);
+			$to_delete = Array();
+			foreach (array_get($_POST, 'membership_status_delete', Array()) as $id) {
+				if (!empty($id)) $to_delete[] = (int)$id;
+			}
 
 			while (isset($_POST['membership_status_'.$i.'_label'])) {
-				$sql = null;
+				$status = new Person_Group_Membership_Status();
+				if (!empty($_POST['membership_status_'.$i.'_id'])) {
+					$status->load((int)$_POST['membership_status_'.$i.'_id']);
+					$status->acquireLock();
+				}
+				$label = $_POST['membership_status_'.$i.'_label'];
 				$is_default = (int)($_POST['membership_status_default_rank'] == $i);
-				if (empty($_POST['membership_status_'.$i.'_id'])) {
-					if (!empty($_POST['membership_status_'.$i.'_label'])) {
-						$label = $_POST['membership_status_'.$i.'_label'];
-						$dupes = $db->queryRow('SELECT 1 FROM person_group_membership_status WHERE label = '.$db->quote($label));
+				$status->setValue('is_default', $is_default);
+				$status->setValue('rank', $ranks[$i]);
+				if ($status->id) {
+					if (!in_array($status->id, $to_delete) && $label !== '') {
+						$status->setValue('label', $label);
+						$dupes = $GLOBALS['system']->getDBObjectData(
+							'person_group_membership_status',
+							Array('label' => $label, '!id' => $status->id),
+							'AND',
+							'',
+							TRUE
+						);
 						if ($dupes) {
-							add_message("Did not save new group membership status option '".$label."' because there is already a group membership status option with that name", "warning");
-						} else {
-							$sql = 'INSERT INTO person_group_membership_status (label, `rank`, is_default)
-									VALUES ('.$db->quote($label).', '.(int)$ranks[$i].','.$is_default.')';
+							add_message("Did not update group membership status option '".$label."' because there is already another group membership status option with that name", "warning");
+						} else if ($status->save() && $is_default) {
+							$saved_default = true;
 						}
 					}
-				} else if (!in_array($_POST['membership_status_'.$i.'_id'], array_get($_POST, 'membership_status_delete', Array()))) {
-					$label = $_POST['membership_status_'.$i.'_label'];
-					$id = (int)$_POST['membership_status_'.$i.'_id'];
-					$dupes = $db->queryRow('SELECT 1 FROM person_group_membership_status WHERE label = '.$db->quote($label).' AND id != '.$id);
+					$status->releaseLock();
+				} else if ($label !== '') {
+					$dupes = $GLOBALS['system']->getDBObjectData(
+						'person_group_membership_status',
+						Array('label' => $label),
+						'AND',
+						'',
+						TRUE
+					);
 					if ($dupes) {
-						add_message("Did not update group membership status option '".$label."' because there is already another group membership status option with that name", "warning");
+						add_message("Did not save new group membership status option '".$label."' because there is already a group membership status option with that name", "warning");
 					} else {
-						$sql = 'UPDATE person_group_membership_status
-								SET label = '.$db->quote($label).',
-								is_default = '.$is_default.',
-								`rank` = '.(int)$ranks[$i].'
-								WHERE id = '.$id;
+						$status->setValue('label', $label);
+						if ($status->create() && $is_default) $saved_default = true;
 					}
-				}
-				if ($sql) {
-					$res = $db->query($sql);
-					if ($is_default) $saved_default = true;
 				}
 				$i++;
 			}
 			if (!$saved_default) {
-				$db->query('UPDATE person_group_membership_status SET is_default = 1 ORDER BY label LIMIT 1');
+				Person_Group_Membership_Status::ensureDefault();
 			}
-			if (!empty($_POST['membership_status_delete'])) {
-				$idSet = implode(',', array_map(Array($db, 'quote'), $_POST['membership_status_delete']));
-				// Reset any records using this status to the default status
-				$sql = 'UPDATE person_group_membership
-						SET membership_status = (SELECT id FROM person_group_membership_status WHERE is_default = 1 AND id NOT IN ('.$idSet.'))
-						WHERE membership_status IN ('.$idSet.')';
-				$res = $db->query($sql);
-				
-				$sql = 'DELETE FROM person_group_membership_status
-						WHERE id IN ('.$idSet.')';
-				$res = $db->query($sql);
-			}
+			Person_Group_Membership_Status::deleteAndReassign($to_delete);
 		}
 	}
 	
@@ -634,7 +637,6 @@ class View_Admin__System_Configuration extends View {
 
 	private function processAgeBracketOptions()
 	{
-		$db = $GLOBALS['db'];
 		if (!empty($_POST['age_brackets_submitted'])) {
 
 			$i = 0;
@@ -645,7 +647,6 @@ class View_Admin__System_Configuration extends View {
 			}
 			$ranks = array_flip($rankMap);
 			while (isset($_POST['age_bracket_'.$i.'_label'])) {
-				$sql = null;
 				$ab = new Age_Bracket();
 				if (!empty($_POST['age_bracket_'.$i.'_id'])) {
 					$ab->load((int)$_POST['age_bracket_'.$i.'_id']);
@@ -671,19 +672,9 @@ class View_Admin__System_Configuration extends View {
 				$i++;
 			}
 			if (!$saved_default) {
-				$db->query('UPDATE age_bracket SET is_default = 1 ORDER BY `rank` LIMIT 1');
+				Age_Bracket::ensureDefault();
 			}
-			if (!empty($_POST['age_bracket_delete'])) {
-				$idSet = implode(',', array_map(Array($db, 'quote'), $_POST['age_bracket_delete']));
-				// Reset any persons using this age bracket to the default status
-				$sql = 'UPDATE person
-						SET age_bracketid = (SELECT id FROM age_bracket WHERE is_default = 1 AND id NOT IN ('.$idSet.'))
-						WHERE age_bracketid IN ('.$idSet.')';
-				$res = $db->query($sql);
-				$sql = 'DELETE FROM age_bracket
-						WHERE id IN ('.$idSet.')';
-				$res = $db->query($sql);
-			}
+			Age_Bracket::deleteAndReassign(array_get($_POST, 'age_bracket_delete', Array()));
 		}
 
 	}
@@ -770,7 +761,6 @@ class View_Admin__System_Configuration extends View {
 
 	private function processPersonStatusOptions()
 	{
-		$db = $GLOBALS['db'];
 		if (!empty($_POST['person_status_submitted'])) {
 
 			$i = 0;
@@ -790,7 +780,6 @@ class View_Admin__System_Configuration extends View {
 			}
 
 			while (isset($_POST['pstatus_'.$i.'_label'])) {
-				$sql = null;
 				$ab = new Person_Status();
 				if (!empty($_POST['pstatus_'.$i.'_id'])) {
 					$ab->load((int)$_POST['pstatus_'.$i.'_id']);
@@ -820,7 +809,7 @@ class View_Admin__System_Configuration extends View {
 				$i++;
 			}
 			if (!$saved_default) {
-				$db->query('UPDATE person_status SET is_default = 1 ORDER BY `rank` LIMIT 1');
+				Person_Status::ensureDefault();
 			}
 			foreach ($to_delete as $id) {
 				// The interface should have prevented attempts to delete an in-use status.
