@@ -80,4 +80,43 @@ class Age_Bracket extends DB_Object
 		return parent::getInstancesQueryComps($params, $logic, $order);
 	}
 
+	/**
+	 * Make the first age bracket (by rank) the default. Used when the submitted
+	 * form marked no row as default — there must always be one for new persons.
+	 *
+	 * @return void
+	 */
+	public static function ensureDefault(): void
+	{
+		$GLOBALS['db']->query('UPDATE age_bracket SET is_default = 1 ORDER BY `rank` LIMIT 1');
+	}
+
+	/**
+	 * Delete age brackets, repointing persons that use them to the default age
+	 * bracket. Both statements run in one transaction.
+	 *
+	 * @param int[] $ids Age bracket ids to delete
+	 * @return void
+	 */
+	public static function deleteAndReassign(array $ids): void
+	{
+		$keep = array_filter(array_map('intval', $ids));
+		if (empty($keep)) return;
+		$idSet = implode(',', $keep);
+		$db = $GLOBALS['db'];
+		$system = $GLOBALS['system'];
+		$system->doTransaction('BEGIN');
+		try {
+			$db->query('UPDATE person
+					SET age_bracketid = (SELECT id FROM age_bracket WHERE is_default = 1 AND id NOT IN ('.$idSet.'))
+					WHERE age_bracketid IN ('.$idSet.')');
+			$db->query('DELETE FROM age_bracket
+					WHERE id IN ('.$idSet.')');
+			$system->doTransaction('COMMIT');
+		} catch (Throwable $e) {
+			$system->doTransaction('ROLLBACK');
+			throw $e;
+		}
+	}
+
 }
