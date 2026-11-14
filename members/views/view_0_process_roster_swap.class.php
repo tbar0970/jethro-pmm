@@ -64,6 +64,8 @@ class View__Process_Roster_Swap extends View
 			// Verify that the role is currently assigned to the original person on that date
 			if (Roster_Role_Assignment::swapToCurrentUser($_GET['accept'], $_GET['on'], $_GET['from'])) {
 				add_message('Swap accepted', 'success');
+			} else {
+				add_message('That role has been assigned to someone else.', 'error');
 			}
 		}
 	}

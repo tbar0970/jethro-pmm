@@ -98,14 +98,20 @@ class Roster_Role_Assignment extends DB_Object
      */
 	static function swapToCurrentUser($roleid, $date, $originalAssigneeID) {
 		$currentUserId = $GLOBALS['user_system']->getCurrentPerson('id');
-		$where = 'WHERE rra.`roster_role_id` = '.(int)$roleid.' AND rra.`assignment_date` = '.$GLOBALS['db']->quote($date).' AND rra.`personid` = '.(int)$originalAssigneeID.' AND rra.`pending_personid` = '.$currentUserId;
-		$SQL = 'SELECT 1 FROM roster_role_assignment rra '.$where;
-		if ($GLOBALS['db']->queryRow($SQL)) {
-			$SQL = 'UPDATE roster_role_assignment rra
-					SET rra.`personid` = '.$currentUserId.',
-						rra.`pending_personid` = NULL '.$where;
-			$GLOBALS['db']->query($SQL);
-			return true;
+		$where = 'WHERE rra.`roster_role_id` = '.(int)$roleid.' AND rra.`assignment_date` = '.$GLOBALS['db']->quote($date);
+		$SQL = 'SELECT rra.`personid`, rra.`pending_personid` FROM roster_role_assignment rra '.$where;
+		$row = $GLOBALS['db']->queryRow($SQL);
+		if ($row) {
+			if ($row['personid'] == $currentUserId) {
+				// Swap already accepted
+				return true;
+			} else if ($row['personid'] == $originalAssigneeID && $row['pending_personid'] == $currentUserId) {
+				$SQL = 'UPDATE roster_role_assignment rra
+						SET rra.`personid` = '.$currentUserId.',
+							rra.`pending_personid` = NULL '.$where;
+				$GLOBALS['db']->query($SQL);
+				return true;
+			}
 		}
 	}
 
