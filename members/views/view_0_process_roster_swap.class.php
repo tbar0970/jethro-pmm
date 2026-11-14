@@ -9,6 +9,7 @@ class View__Process_Roster_Swap extends View
 
 		self::processAsk();
 		self::processAccept();
+		redirect('home');
 	}
 
 	protected static function processAsk() {
