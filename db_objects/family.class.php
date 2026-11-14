@@ -638,4 +638,15 @@ class Family extends DB_Object
 		Abstract_Note::cleanupInstances();
 		return TRUE;
 	}
+
+	/**
+	 * Number of families the current user may see. Used to size the pages of the
+	 * family list; the count basis must match what that list displays.
+	 *
+	 * @return int
+	 */
+	public static function getCount(): int
+	{
+		return (int)$GLOBALS['db']->queryOne('SELECT COUNT(*) FROM family');
+	}
 }
