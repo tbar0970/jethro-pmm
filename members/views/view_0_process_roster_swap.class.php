@@ -50,8 +50,8 @@ class View__Process_Roster_Swap extends View
 									  ->setSubject('Cover '.$roleTitle)
 									  ->setFrom(array(MEMBER_REGO_EMAIL_FROM_ADDRESS => SYSTEM_NAME.' Jethro System'))
 									  ->setTo([$personEmail => $person->getValue('first_name').' '.$person->getValue('last_name')])
-									  ->setBody($text)
-									  ->addPart($html, 'text/html');
+									  ->text($text)
+									  ->html($html);
 					Emailer::send($message);
 
 					add_message('Swap requested', 'info');
