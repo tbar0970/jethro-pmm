@@ -3,13 +3,17 @@ import { defineConfig } from "@playwright/test";
 /**
  * Playwright functional tests for Jethro.
  *
- * The functest Jethro server runs on http://127.0.0.1:${FUNCTEST_WEB_PORT:-8089}
- * (see process-compose.yml); port is read from FUNCTEST_WEB_PORT or defaults to 8089.
+ * The functest server uses FUNCTEST_WEB_PORT, resolved from _default_ by
+ * devbox.json's init hook unless explicitly overridden. Run tests via ./devbox.
+ * See docs/docs/developer/reference/JETHRO_UTILS.md.
  * Tests assume the database has been loaded with demo data by functest_databases_setup.
  */
 
-const PORT = process.env.FUNCTEST_WEB_PORT || "8089";
 const FUNCTEST_HOST = process.env.FUNCTEST_WEB_HOST || "127.0.0.1";
+const PORT = process.env.FUNCTEST_WEB_PORT;
+if (!PORT) {
+  throw new Error("FUNCTEST_WEB_PORT is not set: run via ./devbox (e.g. `./devbox run functests`)");
+}
 const HOST = `http://${FUNCTEST_HOST}:${PORT}`;
 
 export default defineConfig({
@@ -24,6 +28,14 @@ export default defineConfig({
   use: { browserName: "chromium", baseURL: `${HOST}/`, screenshot: "only-on-failure" },
   projects: [
     { name: "lookaround", testMatch: ["lookaround/lookaround.spec.ts"] },
+    {
+      // Member self-registration: emailed activation link -> set password ->
+      // logged in. Uses the MailPit capture (email/mailpit-api.ts) and reads the
+      // standard demo database, whose settings table supplies the MEMBER_REGO_* values.
+      name: "member-rego",
+      testMatch: ["members/member-rego.spec.ts"],
+      use: { baseURL: `${HOST}/members/` },
+    },
     // CSV person importer (#1577); reads the standard demo database at the root URL.
     { name: "import", testMatch: ["import/import.spec.ts"] },
     {

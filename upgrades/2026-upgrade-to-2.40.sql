@@ -92,3 +92,13 @@ VALUES (@rank+1, 'MEMBER_SWAP_ENABLED', 'bool', "0", "Should church members be a
 ALTER TABLE roster_role_assignment
 ADD COLUMN pending_personid INT(11) DEFAULT NULL,
 ADD CONSTRAINT `rra_pending_personid` FOREIGN KEY (pending_personid) REFERENCES _person(id) ON DELETE SET NULL;
+
+-- Expose the sendmail transport alternative on the System Configuration page.
+-- Synced with include/installer.class.php and include/config_manager.class.php
+-- (isFileOnlySetting). Idempotent.
+INSERT IGNORE INTO setting (`rank`, heading, symbol, note, type, value)
+SELECT `rank` + 1, '', 'SENDMAIL_COMMAND',
+    'Send mail via this sendmail-compatible command instead of SMTP_SERVER. Include -bs to speak SMTP over the pipe.',
+    'text', ''
+FROM setting
+WHERE symbol = 'SMTP_SERVER';

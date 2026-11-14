@@ -65,6 +65,12 @@ class View__Edit_User_Account extends View
 			?>
 			<form method="post" id="person_form" class="form-horizontal" data-lock-length="<?php echo DB_Object::getLockLength() ?>">
 				<input type="hidden" name="edit_staff_submitted" value="1" />
+				<div class="control-group">
+					<label class="control-label">Person Record</label>
+					<div class="controls controls-text">
+						<a href="?view=persons&personid=<?php echo $this->_staff_member->id; ?>"><?php echo ents($this->_staff_member->toString().' (#'.$this->_staff_member->id.')'); ?></a>
+					</div>
+				</div>
 				<?php $this->_staff_member->printForm(); ?>
 				<div class="controls">
 					<button type="submit"  class="btn"><?php echo _('Update Account')?></button>

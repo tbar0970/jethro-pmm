@@ -9,6 +9,9 @@
 #
 version: "0.5"
 
+#on_ready:
+  #command: printf 'Selected Jethro services have finished startup checks.\n'
+
 processes:
 
   jethro:
@@ -31,6 +34,13 @@ processes:
     # Non-destructive: keeps whatever is already in the database.
     # To wipe and start over: devbox run initdb
     command: devbox.d/bin/mariadb_ensure_db jethro
+    on_exit:
+      command: |
+        if [ "$PC_EXIT_CODE" = 0 ]; then
+          : #printf 'Jethro database ready; existing data preserved.\n'
+        elif [ "$PC_STOP_REASON" = none ]; then
+          printf 'Jethro database setup failed (exit %s); application startup is blocked.\n' "$PC_EXIT_CODE" >&2
+        fi
     readiness_probe:
       exec:
         command: mariadb jethro -sNBe "select database();"
@@ -47,12 +57,30 @@ processes:
     # fresh checkout it populates vendor/ from composer.lock. Composer is
     # provided by the php package in the devbox nix environment.
     command: composer install --no-interaction --no-progress
+    on_exit:
+      command: |
+        if [ "$PC_STOP_REASON" = none ] && [ "$PC_EXIT_CODE" != 0 ]; then
+          printf 'PHP dependency installation failed (exit %s); application startup is blocked.\n' "$PC_EXIT_CODE" >&2
+        fi
     availability:
       restart: "no"
 
   # Nginx's service is defined by a devbox plugin, in .devbox/virtenv/nginx/process-compose.yaml
   # We extend it a bit here to make "successful startup" depend on php-fpm and the access/error log watchers being started
   nginx:
+    on_ready:
+      command: |
+        if [ -z "$PC_TCP_PORTS" ]; then
+          printf 'Jethro nginx passed readiness checks, but no TCP port was discovered (discovery: %s).\n' "$PC_PORTS_STATUS"
+        fi
+        for port in $PC_TCP_PORTS; do
+          printf '%-57s%s\n' 'Jethro nginx ready:' "http://localhost:$port/"
+        done
+    on_exit:
+      command: |
+        if [ "$PC_STOP_REASON" = none ]; then
+          printf 'Jethro nginx exited unexpectedly (exit %s); check the nginx service log.\n' "$PC_EXIT_CODE" >&2
+        fi
     depends_on: 
       nginx-error:
         condition: process_started
@@ -64,6 +92,19 @@ processes:
 
   functest_jethro_server:
     description: A Jethro instance just for functional tests
+    on_ready:
+      command: |
+        if [ -z "$PC_TCP_PORTS" ]; then
+          printf 'Functional-test server passed readiness checks, but no TCP port was discovered (discovery: %s).\n' "$PC_PORTS_STATUS"
+        fi
+        for port in $PC_TCP_PORTS; do
+          printf '%-57s%s\n' 'Functional-test server ready:' "http://localhost:$port/"
+        done
+    on_exit:
+      command: |
+        if [ "$PC_STOP_REASON" = none ]; then
+          printf 'Functional-test server exited unexpectedly (exit %s); check its service log.\n' "$PC_EXIT_CODE" >&2
+        fi
     command: |
       set -eu
       export NGINX_WEB_ROOT="${NGINX_WEB_ROOT/web/functest_jethro_server}"
@@ -109,6 +150,13 @@ processes:
       set -eu
       devbox.d/bin/jethro_load_demodata jethro_functest
       devbox.d/bin/mariadb_recreate_db jethro_functest_walkthrough jethro_functest_smsmockserver
+    on_exit:
+      command: |
+        if [ "$PC_EXIT_CODE" = 0 ]; then
+          : #printf 'Functional-test databases initialized; sample data reset.\n'
+        elif [ "$PC_STOP_REASON" = none ]; then
+          printf 'Functional-test database setup failed (exit %s); test-server startup is blocked.\n' "$PC_EXIT_CODE" >&2
+        fi
     readiness_probe:
       exec:
         command: mariadb jethro_functest -sNBe "select count(*) from _person;"
@@ -119,5 +167,36 @@ processes:
       timeout_seconds: 5
       failure_threshold: 15
 
+
+  # SMTP + REST API sink capturing every email the functest and dev Jethro send.
+  # Listens on Unix domain sockets (no TCP ports, so concurrent checkouts never
+  # clash): Jethro's mail reaches the SMTP socket via the SENDMAIL_COMMAND conf
+  # define, and specs query the HTTP socket through
+  # tests/functional/email/mailpit-api.ts (node http socketPath). --webroot puts the
+  # UI and API under /emailmockserver/, which nginx proxies through unchanged. See
+  # DEVELOPMENT_FUNCTESTS.md, "8. Email capture — MailPit (Unix domain sockets)".
+  mailpit:
+    command: |
+      set -eu
+      # Captured mail is not held in memory: MailPit writes it to a temporary
+      # SQLite store, mailpit-<id>.db{,-wal,-shm}, which must stay private to the
+      # checkout owner. umask 077 keeps the store files 0600 and creates the socket
+      # directory private; TMPDIR keeps the store out of the shared /tmp.
+      umask 077
+      dir="$MAILPIT_SOCKET_DIR"
+      mkdir -p "$dir"
+      export TMPDIR="$dir"
+      exec mailpit --smtp "unix:$dir/smtp.sock:600" --listen "unix:$dir/http.sock:600" --webroot /emailmockserver/ --max 500 --quiet
+    availability:
+      restart: "always"
+    readiness_probe:
+      exec:
+        command: bash -c 'curl -sf --unix-socket "$MAILPIT_SOCKET_DIR/http.sock" http://localhost/emailmockserver/api/v1/messages'
+      # 1s delay, then ping every 1 second until up (try 15 times), and then every 20s
+      initial_delay_seconds: 1
+      startup_period_seconds: 1
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 15
 
   # FYI mariadb's service is provided by a devbox plugin, defined in .devbox/virtenv/mariadb/process-compose.yaml

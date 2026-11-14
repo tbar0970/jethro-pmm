@@ -9,13 +9,16 @@ const PROJECT_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../..",
 );
-// Mirrors HOST in playwright.config.ts, which reads the same env vars.
+// Mirrors HOST in playwright.config.ts, which reads the same env vars (and
+// already refuses to load without FUNCTEST_WEB_PORT).
 const FUNCTEST_HOST = process.env.FUNCTEST_WEB_HOST || "127.0.0.1";
-const FUNCTEST_PORT = process.env.FUNCTEST_WEB_PORT || "8089";
+const FUNCTEST_PORT = process.env.FUNCTEST_WEB_PORT;
+if (!FUNCTEST_PORT) throw new Error("FUNCTEST_WEB_PORT is not set: run inside devbox");
 const FUNCTEST_BASE_URL = `http://${FUNCTEST_HOST}:${FUNCTEST_PORT}`;
 
 /**
- * Every checkout of this repo shares one FUNCTEST_WEB_PORT, so a stale
+ * FUNCTEST_WEB_PORT is derived from the checkout's path (`jethro_utils
+ * freeport functests`), which does not guarantee uniqueness, so a
  * functest_jethro_server from another checkout can silently own the port.
  * This checkout's own functest nginx then fails to bind and gives up
  * (process-compose restart cap), and the suite would run against the wrong

@@ -365,6 +365,7 @@ class Installer
 			(@rank:=@rank+5, 'Mailchimp Sync',           'MAILCHIMP_API_KEY', 'API Key for Mailchimp integration. NB the mailchimp sync script must also be called regularly by cron.', 'text', ''),
 
 			(@rank:=@rank+5, 'SMTP Email Server',        'SMTP_SERVER','SMTP server for sending emails','text',''),
+			(@rank:=@rank+5, '',                         'SENDMAIL_COMMAND','Send mail via this sendmail-compatible command instead of SMTP_SERVER. Include -bs to speak SMTP over the pipe.','text',''),
 			(@rank:=@rank+5, '',                         'SMTP_ENCRYPTION','Encryption method for SMTP server','select{\"ssl\":\"SSL\",\"tls\":\"TLS\",\"\":\"(None)\"}',''),
 			(@rank:=@rank+5, '',                         'SMTP_USERNAME','Username for SMTP server','text',''),
 			(@rank:=@rank+5, '',                         'SMTP_PASSWORD','Password for SMTP server','text',''),
