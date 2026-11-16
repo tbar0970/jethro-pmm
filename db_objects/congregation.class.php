@@ -61,7 +61,7 @@ class Congregation extends DB_Object
 	{
 		switch ($name) {
 			case 'holds_persons':
-				$params = Array('type' => 'checkbox', 'attrs' => Array('data-toggle' => 'visible'));
+				$params = Array('type' => 'checkbox');
 				?>
 				<label class="checkbox">
 					<?php
