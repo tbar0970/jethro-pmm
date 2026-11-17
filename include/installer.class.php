@@ -212,6 +212,23 @@ class Installer
 			-- (see docs/docs/developer/reference/db-session-identity.md)
 			CREATE FUNCTION getCurrentMemberID() RETURNS INTEGER NO SQL RETURN @current_member_id;",
 
+			"-- Shared data-permission vocabulary (include/data_permissions.php).
+			-- Synced with upgrades/2026-upgrade-to-2.40.sql.
+			CREATE FUNCTION dataPermBit(symbol VARCHAR(32)) RETURNS INTEGER NO SQL
+			 RETURN CASE symbol
+			   WHEN 'VIEWNAME' THEN 1
+			   WHEN 'VIEWADDRESS' THEN 134217728
+			   WHEN 'VIEWEMAIL' THEN 536870912
+			   WHEN 'VIEWMOBILE' THEN 268435456
+			   WHEN 'VIEWREMARKS' THEN 33554432
+			   WHEN 'VIEWCUSTOMFIELDS' THEN 67108864
+			   WHEN 'VIEWSENSITIVE' THEN 16777216
+			   ELSE 0
+			 END;",
+
+			"CREATE FUNCTION hasDataPerm(mask BIGINT, symbol VARCHAR(32)) RETURNS TINYINT NO SQL
+			 RETURN (mask & dataPermBit(symbol)) <> 0;",
+
 			"CREATE TABLE account_group_restriction (
 			   personid INTEGER NOT NULL,
 			   groupid INTEGER NOT NULL,

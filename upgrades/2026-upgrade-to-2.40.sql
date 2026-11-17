@@ -16,6 +16,26 @@ VALUES ('NEEDS_UTF8MB4_UPGRADE', 'hidden', "1", "Whether the database charset up
 DROP FUNCTION IF EXISTS getCurrentMemberID;
 CREATE FUNCTION getCurrentMemberID() RETURNS INTEGER NO SQL RETURN @current_member_id;
 
+-- Shared data-permission vocabulary (include/data_permissions.php).  The
+-- viewer-level staff check (currentUserHasDataPerm on the #1609 line) can be
+-- built on hasDataPerm(); members-area consent tests the consent mask itself.
+DROP FUNCTION IF EXISTS dataPermBit;
+CREATE FUNCTION dataPermBit(symbol VARCHAR(32)) RETURNS INTEGER NO SQL
+RETURN CASE symbol
+         WHEN 'VIEWNAME' THEN 1
+         WHEN 'VIEWADDRESS' THEN 134217728
+         WHEN 'VIEWEMAIL' THEN 536870912
+         WHEN 'VIEWMOBILE' THEN 268435456
+         WHEN 'VIEWREMARKS' THEN 33554432
+         WHEN 'VIEWCUSTOMFIELDS' THEN 67108864
+         WHEN 'VIEWSENSITIVE' THEN 16777216
+         ELSE 0
+       END;
+
+DROP FUNCTION IF EXISTS hasDataPerm;
+CREATE FUNCTION hasDataPerm(mask BIGINT, symbol VARCHAR(32)) RETURNS TINYINT NO SQL
+RETURN (mask & dataPermBit(symbol)) <> 0;
+
 CREATE OR REPLACE VIEW person AS
 SELECT * from _person p
 WHERE
