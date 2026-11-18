@@ -47,12 +47,17 @@ class View_Admin__Upgrade extends View
 			$.ajax('https://api.github.com/repos/tbar0970/jethro-pmm/releases/latest', {
 				dataType: 'json'
 			}).done(function (data) {
-				if (data.tag_name.replace('v', '') == '<?php echo JETHRO_VERSION; ?>') {
+				var running = <?php echo json_encode(JETHRO_VERSION); ?>;
+				var releasesLink = '<a href="https://github.com/tbar0970/jethro-pmm/releases" target="_blank">'+data.tag_name + '</a>';
+				var cmp = compareJethroVersions(running, data.tag_name);
+				if (cmp === null) {
+					$('#message').html('<i class="icon-ok"></i> Your system is running Jethro in DEV mode.  The latest release is ' + releasesLink);
+				} else if (cmp === 0) {
 					$('#message').html('<i class="icon-ok"></i> Your system is up to date on version '+data.tag_name);
-				} else if ('<?php echo JETHRO_VERSION; ?>' == 'DEV') {
-					$('#message').html('<i class="icon-ok"></i> Your system is running Jethro in DEV mode.  The latest release is <a href="https://github.com/tbar0970/jethro-pmm/releases" target="_blank">'+data.tag_name + '</a>');
+				} else if (cmp > 0) {
+					$('#message').html('<i class="icon-ok"></i> Your system is running <?php echo ents(JETHRO_VERSION); ?>');
 				} else {
-					$('#message').html('<i class="icon-warning-sign"></i>Your system is running <?php echo JETHRO_VERSION; ?> but <a href="https://github.com/tbar0970/jethro-pmm/releases" target="_blank">'+data.tag_name + '</a> is available');
+					$('#message').html('<i class="icon-warning-sign"></i>Your system is running <?php echo ents(JETHRO_VERSION); ?> but ' + releasesLink + ' is available');
 				}
 			});
 		</script>
