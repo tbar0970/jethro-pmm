@@ -333,7 +333,6 @@ class View_Families__Contact_List extends View
 	public function printDOCX()
 	{
 		require_once 'include/odf_tools.class.php';
-		require_once 'vendor/autoload.php';
 		\PhpOffice\PhpWord\Settings::setTempDir(sys_get_temp_dir());
 		\PhpOffice\PhpWord\Settings::setOutputEscapingEnabled(TRUE);
 

@@ -21,6 +21,11 @@ spl_autoload_register(function ($class_name) {
 	error_reporting($old_er);
 });
 
+// Composer dependencies (vendor/), located relative to this file's real path - the checkout - rather than
+// JETHRO_ROOT, so a symlink webroot such as dist/webroot/ need not expose vendor/ to the web.
+// See docs/docs/developer/reference/dist-webroot.md
+require_once dirname(__DIR__).'/vendor/autoload.php';
+
 // set error level such that we cope with PHP versions before and after 5.3 when E_DEPRECATED was introduced.
 $error_level = defined('E_DEPRECATED') ? (E_ALL & ~constant('E_DEPRECATED') /*& ~constant('E_STRICT')*/) : E_ALL;
 error_reporting($error_level);

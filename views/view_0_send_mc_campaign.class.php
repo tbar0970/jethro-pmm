@@ -1,6 +1,5 @@
 <?php
 use \DrewM\MailChimp\MailChimp;
-require_once 'vendor/autoload.php';
 
 class View__Send_MC_Campaign extends View
 {

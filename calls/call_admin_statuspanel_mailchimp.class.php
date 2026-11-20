@@ -28,8 +28,6 @@ class Call_Admin_Statuspanel_Mailchimp extends Call_Admin_Statuspanel
 
     protected function getStatus(): array
     {
-        require_once JETHRO_ROOT . '/vendor/drewm/mailchimp-api/src/MailChimp.php';
-
         $apiKey = ifdef('MAILCHIMP_API_KEY', '');
 
         try {

@@ -436,12 +436,7 @@ class Call_Document_Merge extends Call
 
 	function mergeLegacyDOCX($source_file, $merged_file)
 	{
-		// Important: we get the merge data first, because the phpWord
-		// autoloader included below stuffs up the Jethro autoloader
-		// and causes errors.
 		$data = array_values($this->getMergeData());
-
-		require_once 'vendor/autoload.php';
 		\PhpOffice\PhpWord\Settings::setTempDir(sys_get_temp_dir());
 		\PhpOffice\PhpWord\Settings::setOutputEscapingEnabled(TRUE);
 		$templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor($source_file);
