@@ -187,7 +187,7 @@ http {
             #add_header X-Debug-fastcgi_script_name "$fastcgi_script_name" always;
 
             include fastcgi.conf;
-            # Note: document_root resolves to "{base}/.devbox/virtenv/nginx/../../../devbox.d/web/index.php" whereas realpath_root (new in nginx 1.26) gives {base}/devbox.d/web/index.php". php-fpm does not resolve ".."'s so we need realpath
+            # Note: document_root resolves to "{base}/.devbox/virtenv/nginx/../../../devbox.d/demo/index.php" whereas realpath_root (new in nginx 1.26) gives {base}/devbox.d/demo/index.php". php-fpm does not resolve ".."'s so we need realpath
             fastcgi_param SCRIPT_FILENAME $realpath_root/$script;
             fastcgi_param SCRIPT_NAME $fastcgi_script_name;
             # For debugging:

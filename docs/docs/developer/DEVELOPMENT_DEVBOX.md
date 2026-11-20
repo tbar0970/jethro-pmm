@@ -102,7 +102,7 @@ will be recreated on next `devbox` command. Of interest is:
 
 #### How devbox services run Jethro
 
-As `devbox info nginx` explains, Devbox's Nginx points to web root `devbox.d/web/`. This contains `../..` symlinks to Jethro PHP files, except for `devbox.d/web/conf.php` which configures Jethro to connect to the `jethro` MariaDB database on 127.0.0.1:3307.
+Devbox's Nginx plugin defaults its web root to `devbox.d/web/`; `devbox.json` overrides `NGINX_WEB_ROOT` to point at `devbox.d/demo/` instead (the plugin still recreates an unused, gitignored `devbox.d/web/index.html`). `devbox.d/demo/` contains `../..` symlinks to Jethro PHP files, except for `devbox.d/demo/conf.php` which configures Jethro to connect to the `jethro` MariaDB database on 127.0.0.1:3307.
 
 We could actually just rely on Devbox's built-in `.devbox/virtenv/*/process-compose.yaml` services to bring up Jethro.
 The `./process-compose.yml` adds usability tweaks, notably a `jethro_database_setup` "service" which creates the
