@@ -115,6 +115,8 @@ that directory is added to your `$PATH` in a devbox shell:
  - `jethro_load_demodata DB [SYSTEM_NAME]` — recreate `DB` and fill it with the demo/functional-test data
  - `mariadb_dump_db DB [AS_NAME]` — dump a database to stdout, normalized for reloading elsewhere
  - `mariadb_as_root` — a `mariadb` client connected as root over the unix socket
+ - `jethro_compile [--nouse] [VERSION]` — compile the CSS/JS bundles and `include/version.txt` in the checkout
+ - `jethro_build [--with-dev] [VERSION]` — `jethro_compile`, `composer install` into `vendor/` (`--no-dev` unless `--with-dev`), and (re)create the [`dist/webroot/`](reference/dist-webroot.md) symlink webroot: a production-ready checkout and `dist/webroot/`
 
 Every devbox database is reachable as user `jethro`, password `jethro`, and `devbox.d/mariadb/my.cnf` makes that the
 client default — so `mariadb jethro_functest -e 'select 1'` (no `-u`/`-p`) just works, in scripts and tests alike.

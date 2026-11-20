@@ -1,0 +1,104 @@
+#!/bin/bash -eu
+
+# Builds a deployable checkout: compiles the css/js bundles and include/version.txt
+# (jethro_compile), installs vendor/ with Composer (production packages only, or
+# including require-dev with --with-dev), then (re)creates dist/webroot/: a webroot of
+# relative symlinks into the checkout that exposes only web-reachable files. Every file
+# lives in the checkout; dist/webroot/ holds only symlinks to it, so either the checkout
+# root or dist/webroot/ can be the nginx root. That includes conf.php: the admin creates
+# ./conf.php and dist/webroot/conf.php links to it (the link dangles until it exists).
+# dist/webroot/ has no vendor/: include/init.php loads it from the checkout.
+#
+# See docs/docs/developer/reference/dist-webroot.md
+
+fail() { echo >&2 "$*"; exit 1; }
+
+readonly WEBROOT=dist/webroot
+
+# Top-level checkout entries exposed in the webroot as symlinks. vendor/ is deliberately absent: include/init.php
+# loads it from the checkout, so it is never web-reachable.
+readonly TOP_LINKS=(calls conf.php.sample db_objects favicon.ico hooks include index.php locale members public
+                    resources status.php templates views)
+# upgrades/ entries reachable from the web (the upgrade SQL/scripts themselves are not).
+readonly UPGRADE_LINKS=(upgradefixes upgradelibs)
+
+usage() {
+  echo "Usage: $0 [--with-dev] [version]"
+  echo "  version     version string (default: \$JETHRO_VERSION)"
+  echo "  --with-dev  also install require-dev Composer packages (smsmockserver)"
+  exit 0
+}
+
+# link_entries <dir> <entry>... — (re)creates $WEBROOT/<dir>/<entry> as a relative
+# symlink to <dir>/<entry> in the checkout. <dir> is '.' for the webroot itself.
+link_entries() {
+  local dir=$1; shift
+  local src=../..
+  [[ $dir = . ]] || src=../../../$dir
+  local entry
+  for entry in "$@"; do
+    [[ -e "$dir/$entry" ]] || fail "Missing $dir/$entry"
+    ln -sfn "$src/$entry" "$WEBROOT/$dir/$entry"
+  done
+}
+
+populate_webroot() {
+  mkdir -p "$WEBROOT/upgrades"
+  # Fixed lists; replace any stale links.
+  find "$WEBROOT" "$WEBROOT/upgrades" -mindepth 1 -maxdepth 1 -type l -delete
+  link_entries . "${TOP_LINKS[@]}"
+  link_entries upgrades "${UPGRADE_LINKS[@]}"
+  # Linked even when absent, so creating ./conf.php later needs no rebuild.
+  ln -sfn ../../conf.php "$WEBROOT/conf.php"
+  [[ -e conf.php ]] || echo "Note: no ./conf.php yet; create it from conf.php.sample ($WEBROOT/conf.php links to it)"
+  echo "Populated: $WEBROOT/"
+}
+
+main() {
+  [[ -f composer.json ]] || fail "Must be invoked in the project root"
+  # Checked up front, not after the slow compile/composer steps: a regular file would be silently replaced by the
+  # conf.php link populate_webroot creates. conf.php belongs in the checkout root.
+  if [[ -f $WEBROOT/conf.php && ! -L $WEBROOT/conf.php ]]; then
+    fail "$WEBROOT/conf.php is a regular file; move it to ./conf.php (dist/webroot/ holds only symlinks)"
+  fi
+
+  local with_dev=false
+  local compile_args=()
+
+  while (($#)); do
+    case "$1" in
+      --with-dev)
+        with_dev=true
+        ;;
+      -h|--help)
+        usage
+        ;;
+      -*)
+        fail "Unknown option: $1"
+        ;;
+      *)
+        compile_args+=("$1")
+        ;;
+    esac
+    shift
+  done
+
+  local script_dir
+  script_dir=$(cd "$(dirname "$0")" && pwd)
+
+  "$script_dir/jethro_compile" "${compile_args[@]}"
+
+  # As root, Composer warns and (non-interactively) disables plugins, which silently skips the
+  # cweagans/composer-patches patches in composer.json's extra.patches. allow-plugins in composer.json
+  # already limits plugins to composer-patches, so let it run as root too.
+  export COMPOSER_ALLOW_SUPERUSER=1
+  if $with_dev; then
+    composer install --optimize-autoloader --no-interaction --no-progress
+  else
+    composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+  fi
+
+  populate_webroot
+}
+
+main "$@"

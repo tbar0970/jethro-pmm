@@ -16,13 +16,13 @@
 # Steps:
 #   1. refuse a DEV version, and require the commit to be a tag matching the
 #      version (unless --allow-untagged)
-#   2. compile the JS/CSS bundles and stamp include/version.txt (jethro_compile)
-#   3. install the dependencies (vendor/) with Composer: production only, or
-#      including require-dev with --with-dev
-#   4. assemble the archive from the tracked commit (which honours
+#   2. build (jethro_build): compile the JS/CSS bundles, stamp
+#      include/version.txt, and install the dependencies (vendor/) with
+#      Composer: production only, or including require-dev with --with-dev
+#   3. assemble the archive from the tracked commit (which honours
 #      .gitattributes export-ignore), then overlay the freshly built vendor/
 #      and compiled assets
-#   5. write jethro-$version.zip plus a sha256 checksum
+#   4. write jethro-$version.zip plus a sha256 checksum
 #
 # `devbox.d/bin/jethro_docker build` passes --allow-untagged --with-dev: the
 # image is built from the distribution and serves the dev-only SMS mock server
@@ -109,14 +109,12 @@ if ! $allow_untagged; then
 	fi
 fi
 
-# 1. Compile the JS/CSS bundles and stamp include/version.txt.
-"$script_dir/jethro_compile" "$version"
-
-# 2. Dependencies. vendor/ is gitignored, so install it fresh.
+# 2. Build: compiled JS/CSS bundles, include/version.txt, and vendor/ (all
+#    gitignored, so generated fresh).
 if $with_dev; then
-	composer install --optimize-autoloader --no-interaction --no-progress
+	"$script_dir/jethro_build" --with-dev "$version"
 else
-	composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+	"$script_dir/jethro_build" "$version"
 fi
 
 # 3. Assemble a clean tree from the tracked source, then overlay the build
@@ -128,12 +126,8 @@ git_cmd archive --format=tar "$commit" | tar -x -C "$tmp"
 
 cp -a vendor "$tmp/vendor"
 cp include/version.txt "$tmp/include/version.txt"
-if [[ -f "resources/css/jethro-$version.css" ]]; then
-	cp "resources/css/jethro-$version.css" "$tmp/resources/css/"
-fi
-if [[ -f "resources/js/jethro-$version.js" ]]; then
-	cp "resources/js/jethro-$version.js" "$tmp/resources/js/"
-fi
+cp "resources/css/jethro-$version.css" "$tmp/resources/css/"
+cp "resources/js/jethro-$version.js" "$tmp/resources/js/"
 
 # 4. Archive and checksum.
 archive="jethro-$version.zip"
