@@ -998,7 +998,10 @@ class DB_Object
 		$this->_held_locks[$type] = TRUE;
 		$this->_acquirable_locks[$type] = TRUE;
 
-		if (rand(10, 100) == 100) {
+		// Occasional housekeeping, skipped inside a transaction: there a table-wide DELETE can fail with
+		// "Record has changed since last read" (MariaDB innodb_snapshot_isolation).
+		// See docs/docs/developer/reference/object-locks.md
+		if (!$db->inTransaction() && (rand(10, 100) == 100)) {
 			$sql = 'DELETE FROM db_object_lock
 					WHERE expires < NOW()';
 			$res = $db->query($sql);
