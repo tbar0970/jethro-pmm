@@ -1,0 +1,37 @@
+---
+requires_db_upgrade: true
+---
+
+#### System requirements: New PHP 8.2, curl and mbstring dependencies
+
+:::warning[Requires PHP 8.2, with curl and mbstring]
+Jethro 2.40 requires **PHP 8.2 or newer** (previously 8.1). The new SMS code uses PHP 8.2 language features, so on PHP 8.1 Jethro will fail with a parse error. Check your version with `php -v` (and your PHP-FPM version) before upgrading; [`status.php`](../reference/status-php.mdx#php_incompatible_version) reports `php_incompatible_version: true` if it is too old. Debian 12 has it, but Ubuntu 22.04 ships PHP 8.1, so there you would need [Ondřej Surý's PPA](https://launchpad.net/~ondrej/+archive/ubuntu/php).
+
+The **curl** and **mbstring** PHP extensions are now always required (previously curl was only needed for Mailchimp/api.bible). `status.php` lists missing extensions under [`php_extensions_installed`](../reference/status-php.mdx#php_extensions_installed).
+:::
+
+#### Registering a new SMS provider API
+
+As noted above, to take advantage of all SMS capabilities, you need to manually [upgrade 5CentSMS from v4 to v5](../administration/config/sms.mdx#upgrading-5centsms-from-v4-to-v5), or do the equivalent API registration with Cellcast.
+
+#### 2FA: one SMS gateway, and no silent skipping
+
+2FA codes now go through the same SMS gateway (and credentials) as ordinary messages. The separate 2FA gateway has been removed: if your `conf.php` sets `2FA_SMS_URL` or any other `2FA_SMS_*` constant, delete those lines — System Configuration and the login page will tell you they are no longer used. 2FA still takes its sender from `2FA_SENDER_ID`, which is required when `SMS_SENDER` is `_USER_MOBILE_`.
+
+2FA is also no longer skipped silently: if an account requires 2FA but no code can be sent (no gateway, a sender problem, or leftover `2FA_SMS_*` constants), the login is refused with an explanation and SysAdmins are emailed. Fix the SMS settings, or set `2FA_ENABLED` to false if 2FA should be off.
+
+:::warning
+`'Jethro'` was the old default for `2FA_SENDER_ID` and is cleared on upgrade: from 1 July 2026 the ACMA shows unregistered alphanumeric sender IDs as "Unverified". A blank `2FA_SENDER_ID` now means the literal `SMS_SENDER`, or else the first ACMA-approved sender ID your provider reports. If neither exists, 2FA logins are refused with a clear reason (and SysAdmins are emailed) until you set `2FA_SENDER_ID` to a sender ID registered with the ACMA.
+:::
+
+#### Register sender numbers used in roster reminders
+
+Sending a SMS now requires senders to perform a one-off [mobile number verification](../user-manual/sms.mdx#validating-your-own-mobile-number), to prove that you own the mobile number. You will be sent a link to click or a code to fill in.
+
+If you use the `roster_reminder.php` script to send reminders, if the `SMS_FROM` parameter specified a mobile number, **it now must be validated through the process above**, otherwise `roster_reminder.php` will fail with `Sender "......." is not permitted by SMS_SENDER_OPTIONS.`.
+
+#### Legacy Log File Removed
+
+Jethro no longer logs to the `SMS_SEND_LOGFILE` file, as a much fuller history is kept right in the Jethro database. That setting can be removed.
+
+The existing log file is not imported or deleted. **Synchronize History** can recover everything your SMS provider still holds (roughly the last 12 months for 5CentSMS), so keep or archive the file if you need older history. See [SMS send log file](../administration/config/sms.mdx#sms-send-log-file).

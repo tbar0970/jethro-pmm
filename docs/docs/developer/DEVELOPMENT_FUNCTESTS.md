@@ -37,7 +37,7 @@ scripts and the fake SMS history (`tests/functional/testdata/fakesmses.sql.gz`)
 specs must scope assertions to data unique to their own run (e.g. a
 timestamped message body — see `sms-send-single.spec.ts`) rather than
 asserting "the most recent X", since other scenarios' tests may run
-concurrently (`fullyParallel: true`, 4 workers).
+concurrently (`fullyParallel: true`, 8 workers).
 
 The same service recreates two more empty databases:
 `jethro_functest_walkthrough` (the setup-wizard test starts from nothing) and
@@ -60,7 +60,7 @@ restart reuses the configuration process-compose loaded at startup.
 A directory of symlinks back into the real source tree (`include`, `views`,
 `db_objects`, `calls`, `index.php`, etc.) plus **its own standalone
 `conf.php`** — this is a different `conf.php` from the multi-tenant
-EasyJethro one at the repo root (which does per-account lookup under
+hosting one at the repo root (which does per-account lookup under
 `/home/jethro/accounts/`). The functest one is single-tenant and contains the
 scenario-routing logic described next.
 
@@ -128,18 +128,45 @@ project whose `baseURL` is `${HOST}/tests/functional/sms/{name}/` and whose
 `.spec.ts` file must all agree on the same name** — there's no dynamic
 discovery. Adding a new SMS scenario means adding to all three.
 
-### 7. Mock SMS server — `smsmockserver/`
+**Provider matrix.** The scenarios in `PROVIDER_MATRIX` — the ones where
+provider differences reach the UI (schedule/cancel, cool-off, status
+lifecycle, send failure, opt-outs, sender registration, history) — run once
+per provider: on Cellcast as `<name>`, and once per `MATRIX_PROVIDERS` entry
+(`v5` for 5CentSMS v5, `mobilemessage` for MobileMessage) as a
+`<name>-<suffix>` project that runs the **same** `.spec.ts` under
+`/tests/functional/sms/<name>-<suffix>/`, so it loads `<name>-<suffix>.conf`
+and the `<name>-<suffix>` mock profile. Every matrix project sets
+`metadata.smsProvider`, and the specs stay provider-neutral through
+`tests/functional/sms/scenario.ts`: `mockProfile(test.info())` for
+`mockMeta()`, and `sentSms(test.info(), body)`, which parses the captured
+send request (Cellcast `contacts`/`scheduleAt`, v5 `to`/`schedule`,
+MobileMessage `messages[].to`/`scheduled_for`) into recipients in local form
+and a send time in epoch ms. Branch on `scenarioProvider()` only where the
+providers genuinely differ: e.g. Cellcast's OTP sender registration vs the
+others' verification link, or MobileMessage stretching a short cool-off to
+its 90-second scheduling minimum.
 
-A small standalone PHP app (its own `composer.json`, autoloaded under
-`SmsMockServer\...` namespace) that fakes the real SMS provider HTTP
-APIs (Cellcast, 5CentSMS) so tests never hit the real internet.
-It's served through the **same** nginx/php-fpm as the rest of Jethro — see the
-regex location in `nginx.template` that matches `/tests/functional/sms/{profile}/(api|meta)/...` — with its own
-database, `jethro_functest_smsmockserver`.
+### 7. Mock SMS server — `smsmockserver/` (separate project)
 
-- Scenario `.conf` files point `SMS_CELLCAST_URL` / `SMS_5CENTSMS_URL` at
-  `/tests/functional/sms/{profile}` (Jethro-root-relative), e.g.
-  `/tests/functional/sms/sms-bulk`.
+A standalone PHP app (its own repo, https://github.com/jethro-chms/smsmockserver,
+autoloaded under `SmsMockServer\...` namespace) that fakes the
+real SMS provider HTTP APIs (Cellcast, 5CentSMS, MobileMessage) so tests never
+hit the real internet. Composer installs it as a dev dependency
+(`jethro/smsmockserver` in `require-dev`), and the `smsmockserver/` symlink
+points at `vendor/jethro/smsmockserver`. It's served through the **same** nginx/php-fpm as the rest of
+Jethro — see the regex location in `devbox.d/nginx/nginx.template` that matches
+`/smsmockserver(/.*)?` — with its own database, `jethro_functest_smsmockserver`.
+It refuses to run unless `SMSMOCK_ENABLED=1` is in php-fpm's environment (devbox
+sets it), and its own bundled `profiles/` are always loaded; Jethro's per-scenario
+`.smsmock.php` files are added via `SMSMOCK_PROFILES` (`devbox.d/php/php-fpm.conf`).
+The normal dev webroot uses the bundled default accounts (`cellcast`, `5centsms`,
+`mobilemessage`) with `StDemos` already registered; their provider URLs and
+`2FA_SENDER_ID` are set in `devbox.d/web/conf.php`. Functional scenarios keep
+their own profiles.
+
+- Scenario `.conf` files point `SMS_CELLCAST_URL` / `SMS_5CENTSMS_URL` /
+  `SMS_MOBILEMESSAGE_URL` at `/smsmockserver/tests/functional/sms/{profile}`
+  (Jethro-root-relative), e.g. `/smsmockserver/tests/functional/sms/sms-bulk`.
 - `tests/functional/sms/{profile}.smsmock.php` files define per-scenario behavior
   (forced failures, cooloff simulation, OTP requirements, sender-ID
   rejection, etc.) — see `src/Provider/*` and `src/Profile.php`.
@@ -148,6 +175,11 @@ database, `jethro_functest_smsmockserver`.
   `mockMeta(profile, endpoint)` helper in `tests/functional/sms/smsmock-url.ts`.
   `request.delete(mockMeta(...))` in a `beforeEach` is the standard way to
   reset captured state between tests.
+- The `smsmock-recordings` project checks the mock against recordings of
+  the live APIs (`smsmockserver/recordings/<provider>/actual/`): it runs
+  `smsmockserver/bin/check`, which records each provider against the mock
+  and diffs the result. See `smsmockserver/README.md` for re-recording
+  after a provider changes its API.
 
 ### 8. Email capture — MailPit (Unix domain sockets)
 
@@ -255,12 +287,23 @@ flaky tests rather than one saturated pool. Things that keep it healthy:
   flock for the whole request, so without that every poll for one browser session
   queues behind the previous one — a convoy that pins children for 30s each.
   Any new long-running or HTTP-calling handler must do the same.
+- **`functest_databases_setup` cancels `scheduled` deliveries.** Each scheduled
+  batch (like any delivery not yet final, 'sent' included) renders a polling
+  span that fires `?call=sms_info` with a backoff interval from every 2 seconds,
+  for up to 24h past its send time (`smsDeliveryPollIntervalSecs()`), so leftovers from specs that schedule
+  sends would otherwise grow the polling load with every run. Since the job
+  reloads the demo data (which has none) before every suite, this is a guard,
+  not normally needed.
 - **The fake SMS history is big on purpose, and that is the load test.**
   `tests/functional/testdata/fakesmses.sql.gz` holds 224 messages / 14016
   deliveries, and `View_persons__messages` plus `getPersonSmsHistory()` render
   every delivery of every message with **no `LIMIT`** — one status icon plus link
-  per recipient. So the Messages page is a ~6.4 MB response costing ~0.3s
-  (peak ~1.5s), loaded by several specs on every run. Measured: the suite passes
+  per recipient. So the Messages page is a ~3.5 MB response costing ~0.3s
+  (peak ~1.5s), loaded by several specs on every run. Its recipient loop
+  (`View_persons__messages::printView()`) emits one compact line per delivery:
+  the surrounding template indentation alone used to be ~2.8 MB of a ~6.3 MB
+  response (~28k whitespace-only text nodes), so keep new inline markup on the
+  same line as its PHP rather than re-indenting it. Measured: the suite passes
   with it and takes ~7% longer than with a thinned fixture (~145s vs ~135s), so
   it stays. It is a useful canary — if the pool or session-lock fixes above
   regress, these are the pages that will wedge first.
@@ -286,6 +329,15 @@ grep -oE 'rt=[0-9.]+' .devbox/virtenv/nginx/access.log | sort -t= -k2 -rn | head
 3. Create `tests/functional/sms/<name>.spec.ts`.
 4. If it needs custom mock-provider behavior, create
    `tests/functional/sms/<name>.smsmock.php`.
+5. If provider differences can change what it observes, also add it to
+   `PROVIDER_MATRIX` and create a `<name>-<suffix>.conf` and
+   `<name>-<suffix>.smsmock.php` per `MATRIX_PROVIDERS` entry, registering
+   the profile with the provider's wrapper (`FiveCentSmsProfile` /
+   `MobileMessageProfile`). Point `SMS_5CENTSMS_URL` at
+   `/smsmockserver/tests/functional/sms/<name>-v5` with no `/api/v1` suffix
+   (which would hit the mock's v4 routes), and `SMS_MOBILEMESSAGE_URL` at
+   `/smsmockserver/tests/functional/sms/<name>-mobilemessage`. Keep the spec
+   provider-neutral via `scenario.ts`.
 
 ## Role-based permission checks
 

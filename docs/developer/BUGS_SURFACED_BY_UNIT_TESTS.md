@@ -2,11 +2,11 @@
 
 The 96 new unit tests (plus the existing 84 Bible_Ref tests = 180 total) exercise
 previously-untested code in `include/general.php`, `db_objects/person.class.php`,
-and `include/sms_sender.class.php`.  Below is each bug the tests reveal, how to
+and the former `include/sms_sender.class.php`.  Below is each bug the tests reveal, how to
 reproduce it, and its effect in the running Jethro web application.
 
-Tests at: `tests/unit/test_general.php`, `tests/unit/test_person.php`,
-`tests/unit/test_sms_sender.php`.
+Tests at: `tests/unit/test_general.php`, `tests/unit/test_person.php`.
+(`tests/unit/test_sms_sender.php` was removed with `SMS_Sender`; see #23–#24.)
 
 ---
 
@@ -699,65 +699,22 @@ distinguish "false" from "not set" — a subtle data fidelity issue.
 
 ## 23. `sms_sender.class.php`: `ifdef(self::_getSetting('RESPONSE_ERROR_REGEX'))` — double-ifdef
 
-**File / line:** `include/sms_sender.class.php:202`
+**Resolved:** `include/sms_sender.class.php` (`SMS_Sender`) was removed when SMS
+moved to the `jethro-sms` package (`include/jethro_sms.php` bridge).
 
-**Test:**
-Not directly testable without SMS gateway.  The bug is structural: a double
-`ifdef()` wrapping.
-
-**Source:**
-```php
-if ($errorReg = ifdef(self::_getSetting('RESPONSE_ERROR_REGEX'))) {
-```
-
-`self::_getSetting('RESPONSE_ERROR_REGEX')` already calls `ifdef()` internally,
-returning the config value (e.g. `'/error/'`).  The outer `ifdef('/error/')`
-checks whether a PHP constant literally named `/error/` is defined — which it
-never is.  Result: the error regex check NEVER executes.  Compare with line 211
-which correctly omits the outer `ifdef`:
-```php
-if ($okReg = self::_getSetting('RESPONSE_OK_REGEX')) {  // correct
-```
-
-**Webapp impact:**
-SMS gateway error responses are silently treated as successes.  If the SMS
-provider returns an error message matching the configured `RESPONSE_ERROR_REGEX`,
-Jethro ignores it, counts the send as successful, saves success notes against
-the recipients, and logs a success entry.  Admins have no indication the
-messages were never delivered.  Combined with the error-handler leak (bug #24),
-the failure can cascade silently.
+The old code wrapped the already-resolved setting in a second `ifdef()`, so the
+configured `RESPONSE_ERROR_REGEX` was never checked and gateway errors were
+treated as successes.
 
 ---
 
 ## 24. `sms_sender.class.php`: error handler leaked on early return
 
-**File / line:** `include/sms_sender.class.php:179-199`
+**Resolved:** removed along with `SMS_Sender` (see #23).
 
-**Test:**
-Not directly testable without SMS gateway.
-
-**Source:**
-```php
-set_error_handler(function(...) { throw new ErrorException(...); });
-try {
-    $fp = fopen(...);
-    if (!$fp) {
-        return array(...);  // BUG: return BEFORE restore_error_handler() on line 199
-    }
-} catch (Exception $e) {
-    return array(...);      // BUG: return BEFORE restore_error_handler()
-}
-restore_error_handler();    // only reached on success path
-```
-
-**Webapp impact:**
-When an SMS send fails to connect to the gateway, the custom error-to-exception
-handler is never restored.  Every subsequent PHP notice, warning, or deprecation
-in the same request is promoted to an `ErrorException`.  This can cause:
-- Legitimate `E_NOTICE` level issues (undefined variables, array offset access)
-  to become fatal errors.
-- Subsequent SMS sends or email sends to fail inexplicably.
-- The admin status panel to crash when checking SMS/email status.
+The old send path returned before `restore_error_handler()` when the gateway
+connection failed, so every later notice in the request became an
+`ErrorException`.
 
 ---
 
@@ -892,8 +849,8 @@ environments.
 | 20 | Multiple decimal points in `parse_size` | general.php:1122 | Low | ✅ |
 | 21 | Booleans silently coerced in `ents()` | general.php:121 | Low | ✅ |
 | 22 | `false` indistinguishable from `null` in `print_csv` | general.php:1081 | Low | ✅ |
-| 23 | Double-`ifdef` dead error regex | sms_sender.class.php:202 | High | — |
-| 24 | Error handler leak | sms_sender.class.php:179 | High | — |
+| 23 | Double-`ifdef` dead error regex | sms_sender.class.php (removed) | High | resolved |
+| 24 | Error handler leak | sms_sender.class.php (removed) | High | resolved |
 | 25 | No vCard field escaping | call_vcf.class.php:20 | Medium | — |
 | 26 | `_2falog` typo | user_system.class.php:443 | High | — |
 | 27 | Missing quotes on `ifdef` | user_system.class.php:540 | Medium | — |
