@@ -10,7 +10,7 @@ class Roster_Role_Assignment extends DB_Object
 					assignment_date		date not null,
 					roster_role_id		int(11) not null,
 					personid			int(11) not null,
-					pending_personid	int(11) not null,
+					pending_personid	int(11) default NULL,
 					`rank`				int unsigned not null default 0,
 					assigner			int(11) not null,
 					assignedon			timestamp NOT NULL default CURRENT_TIMESTAMP,
