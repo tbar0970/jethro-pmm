@@ -85,13 +85,29 @@ WHERE
 
 SET @rank = (SELECT `rank` FROM setting WHERE symbol = 'MEMBER_LOGIN_ENABLED');
 
-INSERT INTO setting
+INSERT IGNORE INTO setting
 (`rank`, symbol, type, value, note)
-VALUES (@rank+1, 'MEMBER_SWAP_ENABLED', 'bool', "0", "Should church members be able swap roster assignments themselves?");
+VALUES (@rank+1, 'MEMBER_SWAP_ENABLED', 'bool', "0", "Should church members be able to swap roster assignments themselves?");
 
-ALTER TABLE roster_role_assignment
-ADD COLUMN pending_personid INT(11) DEFAULT NULL,
-ADD CONSTRAINT `rra_pending_personid` FOREIGN KEY (pending_personid) REFERENCES _person(id) ON DELETE SET NULL;
+-- Idempotent column/FK additions via information_schema + PREPARE:
+-- Unfortunately MySQL 8.0 lacks support for: ADD CONSTRAINT `rra_pending_personid` FOREIGN KEY IF NOT EXISTS (pending_personid)
+SET @sql = IF(
+	(SELECT COUNT(*) FROM information_schema.COLUMNS
+	 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'roster_role_assignment' AND COLUMN_NAME = 'pending_personid') = 0,
+	'ALTER TABLE roster_role_assignment ADD COLUMN pending_personid INT(11) DEFAULT NULL',
+	'DO 0');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql = IF(
+	(SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
+	 WHERE CONSTRAINT_SCHEMA = DATABASE() AND TABLE_NAME = 'roster_role_assignment' AND CONSTRAINT_NAME = 'rra_pending_personid') = 0,
+	'ALTER TABLE roster_role_assignment ADD CONSTRAINT `rra_pending_personid` FOREIGN KEY (pending_personid) REFERENCES _person(id) ON DELETE SET NULL',
+	'DO 0');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
 -- Expose the sendmail transport alternative on the System Configuration page.
 -- Synced with include/installer.class.php and include/config_manager.class.php
