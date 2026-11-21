@@ -20,6 +20,7 @@ warn_if_extra_js_files_found() {
     "jquery.ui.touch-punch.min.js"
     "stupidtable.min.js"
     "treeview.js"
+    "datastar-1.0.4.min.js"
   )
 
   # Exclude generated bundles (jethro-<version>.js) plus the explicit allowlist below.

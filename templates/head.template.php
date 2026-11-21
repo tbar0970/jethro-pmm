@@ -52,6 +52,15 @@ if (file_exists(JETHRO_ROOT.'/'.$customCSSFile)) {
 
 // ---- JAVASCRIPT ------ //
 
+// Datastar is loaded on every page unless the page opts out by setting $GLOBALS['datastarNeeded'] = FALSE
+// (e.g. in a view's processView()). It is an ES module, so deferred: its position among these scripts
+// doesn't matter. See docs/docs/developer/reference/datastar.md
+if ($GLOBALS['datastarNeeded'] ?? TRUE) {
+	?>
+	<script type="module" src="<?php echo BASE_URL; ?>/resources/js/datastar-1.0.4.min.js"></script>
+	<?php
+}
+
 if (JETHRO_VERSION == 'DEV') {
 	?>
 	<script type="text/javascript" src="<?php echo BASE_URL; ?>/resources/js/jquery.js?t=<?php echo time(); ?>"></script>

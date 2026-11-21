@@ -740,6 +740,66 @@ tr:last-child > td > .move-row-down {
 #body table.no-borders, #body table.no-borders td, #body table.no-borders th {
 	border-width: 0px !important;
 }
+/* The share-consent table keeps no-borders row styling but needs a visible outline. */
+#body table.no-borders.share-consent-table {
+	border: 1px solid @grayMid !important;
+	margin-top: 12px;
+	/* Half of the generic .indent-left (40px), so the table still reads as
+	   inset from the explanatory text without the old deep gutter. */
+	margin-left: 20px;
+}
+@media (max-width: 480px) {
+	#body table.no-borders.share-consent-table {
+		margin-left: 8px;
+	}
+}
+/* Each consent cell has one effective checkbox followed by mode text. */
+/* Mode text and action links share one size so toggling state never changes
+   the row width. */
+#body .share-consent-table .share-set-individually,
+#body .share-consent-table .share-uses-default,
+#body .share-consent-table .share-mode-separator {
+	font-size: 11px;
+}
+/* Reserve room for the widest mode line ("set directly | uses default"), so
+   switching between "use default" and "uses default" cannot resize the table
+   column. */
+#body .share-consent-table th.share-consent-column {
+	min-width: 160px;
+}
+/* Read-only consent checkboxes render as native controls (so the native blue
+   tick is used) but cannot be interacted with or submitted. */
+#body .share-consent-table input.share-readonly-box {
+	pointer-events: none;
+	cursor: default;
+}
+/* Visually hidden but available to assistive technology. */
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	border: 0;
+}
+/* Consent actions are secondary to the current state text. */
+#body .share-consent-table a.share-use-default-link,
+#body .share-consent-table a.share-set-individually-link {
+	color: @grayLight;
+	font-size: 11px;
+	text-decoration: underline;
+}
+#body .share-consent-table a.share-use-default-link:hover,
+#body .share-consent-table a.share-set-individually-link:hover {
+	color: @jethroLinkColor;
+	text-decoration: underline;
+}
+/* Breathing room between the effective checkbox and the mode text. */
+#body .share-consent-table input.share-consent-box {
+	margin-right: 4px;
+}
 #body .no-padding td, #body .no-padding th {
 	padding: 0px !important;
 }

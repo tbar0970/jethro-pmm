@@ -652,10 +652,14 @@ $(document).ready(function() {
 	// Interface for editing congregation details
 	var congForm = $('form#add-congregation, form#congregation_form');
 	if (congForm.length) {
-		if (!$('input[name=holds_attendance]').attr('checked')) $('#field-attendance_recording_days').hide();
-		if (!$('input[name=holds_services]').attr('checked')) $('#field-meeting_time').hide();
+		function toggleCongregationFields() {
+			$('#field-attendance_recording_days').toggle($('input[name=holds_attendance]').prop('checked'));
+			$('#field-meeting_time').toggle($('input[name=holds_services]').prop('checked'));
+		}
+		toggleCongregationFields();
+		$('input[name=holds_attendance], input[name=holds_services]').change(toggleCongregationFields);
 		congForm.submit(function() {
-			if ($('input[name=holds_attendance]').attr('checked')) {
+			if ($('input[name=holds_attendance]').prop('checked')) {
 				var gotChecked = false;
 				$('#field-attendance_recording_days input[type=checkbox]').each(function() {
 					if (this.checked) gotChecked = true;
@@ -669,7 +673,7 @@ $(document).ready(function() {
 					this.checked = false;
 				});
 			}
-			if ($('input[name=holds_services]').attr('checked')) {
+			if ($('input[name=holds_services]').prop('checked')) {
 				if ($('input[name=meeting_time]').val() == '') {
 					$('input[name=meeting_time]').focus();
 					alert('If services are enabled, you must enter a time code');
@@ -2749,4 +2753,4 @@ $(document).ready(function() {
 			assignment.classList.remove('swapping')
 		})
 	})
-})
+});

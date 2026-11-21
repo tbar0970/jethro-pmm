@@ -30,6 +30,14 @@ class View_Groups extends View
 				add_message('Membership statuses updated', 'success');
 			}
 		}
+
+		if (!empty($_POST['share_consent_submitted'])) {
+			$personids = array_map('intval', (array)array_get($_POST, 'share_consent_all', Array()));
+			$visible = (array)array_get($_POST, 'share_visible', Array());
+			if (Person_Group::applyGroupShareConsentCheckboxes((int)$this->_group->id, $personids, $visible, (array)array_get($_POST, 'share_rendered', Array()))) {
+				add_message('Sharing settings updated', 'success');
+			}
+		}
 	}
 
 	function printView()
@@ -62,7 +70,7 @@ class View_Groups extends View
 				<tr>
 					<th class="narrow"><?php echo _('Status');?></th>
 					<td><?php $this->_group->printFieldValue('is_archived'); ?></td>
-					<th class="narrow hidden-phone"><?php echo _('Share Member Details?');?></th>
+					<th class="narrow hidden-phone"><?php echo _('Members may share their contact info?');?></th>
 					<td class="hidden-phone"><?php $this->_group->printFieldValue('share_member_details'); ?></td>
 					<td class="align-right">
 					<?php
@@ -144,6 +152,9 @@ class View_Groups extends View
 			$mParams['!(status'] = Person_Status::getArchivedIDs();
 		}
 		$persons = $this->_group->getMembers($mParams);
+		$consents = $this->_group->getValue('share_member_details')
+			? Person_Group::getShareConsents($this->_group->id, array_keys($persons))
+			: Array('group' => Array(), 'default' => Array());
 		list ($status_options, $default_status) = Person_Group::getMembershipStatusOptionsAndDefault();
 		?>
 		<h3><?php echo _('Group Members');?> (<?php echo count($persons); ?>)</h3>
@@ -192,6 +203,13 @@ class View_Groups extends View
 					</div>
 					<?php
 				}
+				if ($this->_group->getValue('share_member_details')) {
+					?>
+					<div class="edit-consents-link">
+						<a href="<?php echo build_url(Array('edit_consents' => 1)); ?>"><i class="icon-wrench"></i><?php echo _('Edit sharing settings');?></a>
+					</div>
+					<?php
+				}
 			}
 			if ($GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
 				?>
@@ -216,6 +234,11 @@ class View_Groups extends View
 			if (!empty($_REQUEST['edit_statuses'])) {
 				?>
 				<form method="post" action="<?php echo build_url(Array('edit_statuses' => NULL)); ?>">
+				<?php
+			} else if (!empty($_REQUEST['edit_consents']) && $GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
+				?>
+				<form method="post" action="<?php echo build_url(Array('edit_consents' => NULL)); ?>">
+				<input type="hidden" name="share_consent_submitted" value="1" />
 				<?php
 			} else {
 				?>
@@ -249,6 +272,11 @@ class View_Groups extends View
 					if (!SizeDetector::isNarrow()) {
 						?>
 						<th><?php echo _('Joined Group'); ?></th>
+						<?php
+					}
+					if ($this->_group->getValue('share_member_details')) {
+						?>
+						<th><?php echo _('Visible'); ?></th>
 						<?php
 					}
 					?>
@@ -293,6 +321,28 @@ class View_Groups extends View
 					<td><?php echo format_date($details['joined_group']); ?></td>
 					<?php
 				}
+				if ($this->_group->getValue('share_member_details')) {
+					$explicit = array_get($consents['group'], $id);
+					$default = array_get($consents['default'], $id);
+					$inh = $explicit ? (int)$explicit['inherit_mask'] : 3;
+					$expMask = $explicit ? (int)$explicit['data_permissions'] : 0;
+					$defMask = $default ? (int)$default['data_permissions'] : 0;
+					$effMask = (($inh & 1) ? $defMask : $expMask) & 1
+						| ((($inh & 2) ? $defMask : $expMask) & (DATA_PERM_VIEWEMAIL | DATA_PERM_VIEWMOBILE));
+					if (!empty($_REQUEST['edit_consents']) && $GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
+						?>
+						<td class="nowrap">
+						<input type="hidden" name="share_consent_all[]" value="<?php echo (int)$id; ?>" />
+						<input type="hidden" name="share_rendered[<?php echo (int)$id; ?>]" value="<?php echo (int)$effMask; ?>" />
+						<label class="checkbox"><input type="checkbox" name="share_visible[<?php echo (int)$id; ?>]" value="1" <?php if ($effMask & 1) echo 'checked="checked" '; ?>/><?php echo _('Visible');?></label>
+						</td>
+						<?php
+					} else {
+						?>
+						<td><?php echo ($effMask & 1) ? _('Yes') : _('No'); ?></td>
+						<?php
+					}
+				}
 				?>
 					<td class="narrow"><a href="?view=persons&personid=<?php echo $id; ?>"><i class="icon-user"></i><?php echo _('View'); ?></td>
 					<td class="selector narrow"><input name="personid[]" type="checkbox" value="<?php echo $id; ?>" /></td>
@@ -310,6 +360,13 @@ class View_Groups extends View
 				<div class="align-right">
 					<input type="submit" class="btn" value="<?php echo _('Save membership statuses');?>" />
 					<a class="btn" href="<?php echo build_url(Array('edit_statuses' => NULL)); ?>"><?php echo _('Cancel');?></a>
+				</div>
+				<?php
+			} else if (!empty($_REQUEST['edit_consents']) && $GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
+				?>
+				<div class="align-right">
+					<input type="submit" class="btn" value="<?php echo _('Save sharing settings');?>" />
+					<a class="btn" href="<?php echo build_url(Array('edit_consents' => NULL)); ?>"><?php echo _('Cancel');?></a>
 				</div>
 				<?php
 			} else {

@@ -30,6 +30,11 @@ Assuming you are releasing version `$VER` (e.g. `2.40.0`):
 4. Review the draft on the repository's Releases page, edit the notes, and
    click **Publish release**.
 
+5. On `master`, bump `JETHRO_VERSION` in `devbox.json` to the next development
+   version (e.g. `2.41.0-DEV`). Until then the docs site still labels `$VER`
+   as unreleased, both in the version dropdown and on the What's New page (see
+   [Changelog release fragments](reference/changelog-releases.md#releasing)).
+
 ## Building locally
 
 The same build can be run from a checkout of the tagged commit, without GitHub:
