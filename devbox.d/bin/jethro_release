@@ -11,18 +11,30 @@
 #   devbox.d/bin/jethro_release --allow-untagged              test build from an untagged commit
 #   devbox.d/bin/jethro_release 2.40-$(date +%Y%m%d) \
 #     --allow-untagged                                        test build with a dated version
+#   devbox.d/bin/jethro_release --with-dev                    include require-dev packages (smsmockserver)
 #
 # Steps:
-#   1. refuse a DEV version, and require HEAD to be a tag matching the version
-#   2. compile the JS/CSS bundles and stamp include/version.txt (jethro_compile)
-#   3. install the production dependencies (vendor/) with Composer
-#   4. assemble the archive from `git archive` (which honours .gitattributes
-#      export-ignore), then overlay the freshly built vendor/ and compiled assets
-#   5. write jethro-$version.zip plus a sha256 checksum
+#   1. refuse a DEV version, and require the commit to be a tag matching the
+#      version (unless --allow-untagged)
+#   2. build (jethro_build): compile the JS/CSS bundles, stamp
+#      include/version.txt, and install the dependencies (vendor/) with
+#      Composer: production only, or including require-dev with --with-dev
+#   3. assemble the archive from the tracked commit (which honours
+#      .gitattributes export-ignore), then overlay the freshly built vendor/
+#      and compiled assets
+#   4. write jethro-$version.zip plus a sha256 checksum
+#
+# `devbox.d/bin/jethro_docker build` passes --allow-untagged --with-dev: the
+# image is built from the distribution and serves the dev-only SMS mock server
+# (jethro/smsmockserver) at /smsmockserver.
+#
+# Works from a plain Git checkout and from a jj workspace/colocated repo; in
+# the latter the released tree is the working-copy commit @.
 
 version="${JETHRO_VERSION:-}"
 version="${version%-DEV}"
 allow_untagged=false
+with_dev=false
 
 # First positional argument overrides $JETHRO_VERSION.
 if [[ $# -gt 0 && "$1" != -* ]]; then
@@ -34,6 +46,9 @@ while (($#)); do
 	case "$1" in
 		--allow-untagged)
 			allow_untagged=true
+			;;
+		--with-dev)
+			with_dev=true
 			;;
 		-*)
 			echo >&2 "Unknown option: $1"
@@ -60,12 +75,31 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$repo_root"
 
+# Locate the Git object store and the commit whose tree is released.
+# A jj workspace (and a colocated jj repo) keeps the working-copy commit as @,
+# which is not necessarily Git's HEAD, so resolve both through jj there.
+git_dir=''
+commit=''
+if [[ -d .jj ]]; then
+	command -v jj >/dev/null || { echo >&2 "jj is not on PATH"; exit 1; }
+	# Make the working-copy commit's objects and refs visible to git.
+	jj git export >/dev/null
+	repo_dir="$(cd .jj && realpath "$(cat repo)")"
+	git_dir="$(cd "$repo_dir/store" && realpath "$(cat git_target)")"
+	commit="$(jj log -r @ --no-graph -T 'commit_id')"
+else
+	git_dir="$(git rev-parse --git-dir)" \
+		|| { echo >&2 "Not a Git checkout or jj workspace"; exit 1; }
+	commit=HEAD
+fi
+git_cmd() { git --git-dir="$git_dir" "$@"; }
+
 # Release builds must run from a git tag matching the version; test builds
 # (--allow-untagged) skip this.
 if ! $allow_untagged; then
-	tag="$(git describe --exact-match --tags HEAD 2>/dev/null || true)"
+	tag="$(git_cmd describe --exact-match --tags "$commit" 2>/dev/null || true)"
 	if [[ -z "$tag" ]]; then
-		echo >&2 "HEAD is not a tagged commit; release builds must run from a git tag"
+		echo >&2 "Commit $commit is not tagged; release builds must run from a git tag"
 		echo >&2 "(pass --allow-untagged to build a test archive without a tag)"
 		exit 1
 	fi
@@ -75,27 +109,25 @@ if ! $allow_untagged; then
 	fi
 fi
 
-# 1. Compile the JS/CSS bundles and stamp include/version.txt.
-"$script_dir/jethro_compile" "$version"
-
-# 2. Production dependencies. vendor/ is gitignored, so install it fresh.
-composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+# 2. Build: compiled JS/CSS bundles, include/version.txt, and vendor/ (all
+#    gitignored, so generated fresh).
+if $with_dev; then
+	"$script_dir/jethro_build" --with-dev "$version"
+else
+	"$script_dir/jethro_build" "$version"
+fi
 
 # 3. Assemble a clean tree from the tracked source, then overlay the build
 #    output (vendor/ and the compiled assets) that git archive cannot see.
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
-git archive --format=tar HEAD | tar -x -C "$tmp"
+git_cmd archive --format=tar "$commit" | tar -x -C "$tmp"
 
 cp -a vendor "$tmp/vendor"
 cp include/version.txt "$tmp/include/version.txt"
-if [[ -f "resources/css/jethro-$version.css" ]]; then
-	cp "resources/css/jethro-$version.css" "$tmp/resources/css/"
-fi
-if [[ -f "resources/js/jethro-$version.js" ]]; then
-	cp "resources/js/jethro-$version.js" "$tmp/resources/js/"
-fi
+cp "resources/css/jethro-$version.css" "$tmp/resources/css/"
+cp "resources/js/jethro-$version.js" "$tmp/resources/js/"
 
 # 4. Archive and checksum.
 archive="jethro-$version.zip"

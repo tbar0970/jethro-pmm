@@ -1,6 +1,4 @@
 <?php
-require_once 'vendor/autoload.php';
-
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\Transport;
 use Symfony\Component\Mime\Address;

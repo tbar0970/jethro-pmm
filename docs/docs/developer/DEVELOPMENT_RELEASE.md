@@ -54,13 +54,13 @@ suitable for release.
 1. refuses to run unless `HEAD` is a git tag matching the version (a leading
    `v` is allowed) and the version does not contain `DEV` — unless
    `--allow-untagged` is passed, which skips the tag check for test builds;
-2. compiles the JS/CSS bundles and stamps `include/version.txt`
-   (`devbox.d/bin/jethro_compile`);
-3. runs `composer install --no-dev --optimize-autoloader` to fetch `vendor/`;
-4. assembles the archive from `git archive` (which honours `.gitattributes`
+2. builds with `devbox.d/bin/jethro_build`: compiles the JS/CSS bundles, stamps
+   `include/version.txt`, and runs `composer install --no-dev --optimize-autoloader`
+   to fetch `vendor/` (see [dist/webroot](reference/dist-webroot.md));
+3. assembles the archive from `git archive` (which honours `.gitattributes`
    `export-ignore`, so dev-only files are left out) and overlays the
-   freshly-built `vendor/` and compiled assets;
-5. writes `jethro-$VER.zip` and a `sha256` checksum.
+   freshly-built `vendor/`, compiled assets and `include/version.txt`;
+4. writes `jethro-$VER.zip` and a `sha256` checksum.
 
 ## Notes
 

@@ -27,7 +27,7 @@ it's addressed at.
 
 Starts one nginx (from `devbox.d/nginx/nginx.template`) + the normal shared
 PHP-FPM pool, rooted at `devbox.d/functest_jethro_server` instead of the
-regular dev webroot (`devbox.d/web`). Listens on `FUNCTEST_WEB_PORT`. The init hook
+regular dev webroot (`devbox.d/demo`). Listens on `FUNCTEST_WEB_PORT`. The init hook
 preserves a literal port or resolves `_default_` to a per-checkout port in 10000–29999.
 See `docs/docs/developer/reference/JETHRO_UTILS.md`. Depends on `functest_databases_setup`, which runs
 `jethro_load_demodata jethro_functest` — recreating the `jethro_functest`
@@ -180,7 +180,7 @@ Two sides:
   over the pipe (proper envelope, Bcc handling, failure reporting). No
   `sendmail_path` ini override is needed: the transport is chosen in PHP, so only
   the command path and the socket path have to be right. The dev instance's conf
-  (`devbox.d/web/conf.php`) does the same, unguarded: there is no fallback to a
+  (`devbox.d/demo/conf.php`) does the same, unguarded: there is no fallback to a
   real sendmail, so mail fails if MailPit's socket is unavailable. Scope note:
   functests target
   what Jethro puts in the pipe — the rendered message and envelope handed to

@@ -71,7 +71,6 @@ if (empty($api_key)) {
         throw new \RuntimeException("API key not specified" );
 }
 
-require_once 'vendor/autoload.php';
 use \DrewM\MailChimp\MailChimp;
 $mc = new MailChimp($api_key);
 $mc->verify_ssl = $VERIFY_SSL;

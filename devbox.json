@@ -20,6 +20,7 @@
     "JETHRO_VERSION":         "2.40.0-DEV",
     "MAILPIT_SOCKET_DIR":     "$DEVBOX_RUNTIME_DIR/mailpit",
     "NGINX_WEB_PORT":         "_default_",
+    "NGINX_WEB_ROOT":         "../../../devbox.d/demo",
     "PATH":                   "$DEVBOX_CONFIG_DIR/bin:$PATH"
   },
   "shell": {
@@ -28,7 +29,8 @@
       "_jethro_env=$(\"$DEVBOX_CONFIG_DIR/bin/jethro_utils\" env) || exit 1; eval \"$_jethro_env\" || exit 1; unset _jethro_env"
     ],
     "scripts": {
-      "compile":              "devbox.d/bin/jethro_compile",
+      "build":                "devbox.d/bin/jethro_build \"$@\"",
+      "compile":              "devbox.d/bin/jethro_compile \"$@\"",
       "demodata":             "devbox.d/bin/jethro_load_demodata jethro \"St Bob's\"",
       "docs":                 "cd docs && bun install && bun run start",
       "docs-html":            "cd docs && bun install && bun run build",

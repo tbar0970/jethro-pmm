@@ -107,7 +107,7 @@ processes:
         fi
     command: |
       set -eu
-      export NGINX_WEB_ROOT="${NGINX_WEB_ROOT/web/functest_jethro_server}"
+      export NGINX_WEB_ROOT="${NGINX_WEB_ROOT%/*}/functest_jethro_server"
       export NGINX_WEB_PORT=${FUNCTEST_WEB_PORT}
       envsubst $(awk 'BEGIN {for (k in ENVIRON) {printf "$"k","}}') < $NGINX_CONFDIR/nginx.template > $NGINX_CONFDIR/nginx-functest.conf
       # Own pid file: the devbox nginx plugin's instance uses the same -p prefix
