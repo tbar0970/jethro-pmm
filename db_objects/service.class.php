@@ -670,6 +670,59 @@ class Service extends DB_Object
 	}
 
 	/**
+	 * Date of the nearest service before or after $date in the same congregation.
+	 *
+	 * @param int $congregationid
+	 * @param string $date Service date, YYYY-MM-DD
+	 * @param string $direction 'prev' or 'next'
+	 * @return string|null Date in YYYY-MM-DD form, or null if there is no service on that side
+	 */
+	public static function getAdjacentDate(int $congregationid, string $date, string $direction): ?string
+	{
+		$isPrev = self::_assertDirection($direction) === 'prev';
+		$sql = 'SELECT date FROM service
+				WHERE congregationid = '.(int)$congregationid.'
+				  AND date '.($isPrev ? '<' : '>').' '.$GLOBALS['db']->quote($date).'
+				ORDER BY date '.($isPrev ? 'DESC' : 'ASC').'
+				LIMIT 1';
+		return $GLOBALS['db']->queryOne($sql) ?: null;
+	}
+
+	/**
+	 * Nearest congregation, by meeting time, that has a service on $date. Used for
+	 * the service view's prev/next-congregation navigation.
+	 *
+	 * @param int $congregationid The congregation being viewed
+	 * @param string $date Service date, YYYY-MM-DD
+	 * @param string $direction 'prev' or 'next'
+	 * @return array{id: int, name: string}|null
+	 */
+	public static function getAdjacentCongregationWithServiceOnDate(int $congregationid, string $date, string $direction): ?array
+	{
+		$isPrev = self::_assertDirection($direction) === 'prev';
+		$sql = 'SELECT c.id, c.name
+				FROM congregation c
+				WHERE COALESCE(c.meeting_time, \'\') != \'\'
+				  AND c.meeting_time '.($isPrev ? '<' : '>').' (SELECT meeting_time FROM congregation WHERE id = '.(int)$congregationid.')
+				  AND EXISTS (SELECT 1 FROM service s WHERE s.congregationid = c.id AND s.date = '.$GLOBALS['db']->quote($date).')
+				ORDER BY c.meeting_time '.($isPrev ? 'DESC' : 'ASC').'
+				LIMIT 1';
+		return $GLOBALS['db']->queryRow($sql) ?: null;
+	}
+
+	/**
+	 * @param string $direction
+	 * @return string The direction, unchanged
+	 */
+	private static function _assertDirection(string $direction): string
+	{
+		if ($direction !== 'prev' && $direction !== 'next') {
+			throw new InvalidArgumentException("Direction must be 'prev' or 'next'");
+		}
+		return $direction;
+	}
+
+	/**
 	 * Atomically replaces all items for this service.
 	 *
 	 * For component items, personnel that matches the component's default is

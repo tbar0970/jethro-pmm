@@ -121,4 +121,15 @@ class Person_Status extends DB_Object
 		return parent::getInstancesQueryComps($params, $logic, $order);
 	}
 
+	/**
+	 * Make the first status (by rank) the default. Used when the submitted form
+	 * marked no row as default — there must always be one for new persons.
+	 *
+	 * @return void
+	 */
+	public static function ensureDefault(): void
+	{
+		$GLOBALS['db']->query('UPDATE person_status SET is_default = 1 ORDER BY `rank` LIMIT 1');
+	}
+
 }
