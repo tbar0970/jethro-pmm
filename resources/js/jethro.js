@@ -2749,4 +2749,4 @@ $(document).ready(function() {
 			assignment.classList.remove('swapping')
 		})
 	})
-})
+});
