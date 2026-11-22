@@ -25,6 +25,33 @@ JethroDateRangePicker.updateDisplayValue = function(selectElt, valueType)
 	}
 }
 
+/**
+ * Compare two Jethro version strings of the form [v]X.Y.Z[-suffix], e.g. "2.39.0", "v2.39.0",
+ * "2.40.0-20261118", "2.40.0-DEV". The numeric X.Y.Z parts are compared first; when they are
+ * equal, a suffixed version is a pre-release of the plain one (as in semver), so
+ * 2.40.0-DEV < 2.40.0. Two different suffixes on the same X.Y.Z compare as strings.
+ * Used by the Admin > Upgrade page (views/view_10_admin__8_upgrade.class.php).
+ * Tested in tests/unit/js/compare_jethro_versions.test.js.
+ *
+ * @param {string} a
+ * @param {string} b
+ * @returns {?number} <0, 0 or >0 as a is older than, equal to or newer than b;
+ *   null if either string is not a version (e.g. "DEV")
+ */
+function compareJethroVersions(a, b) {
+	var re = /^v?(\d+)\.(\d+)\.(\d+)(?:-(.+))?$/;
+	var ma = re.exec(a), mb = re.exec(b);
+	if (!ma || !mb) return null;
+	for (var i = 1; i <= 3; i++) {
+		var diff = parseInt(ma[i], 10) - parseInt(mb[i], 10);
+		if (diff) return diff;
+	}
+	if (ma[4] === mb[4]) return 0;
+	if (!ma[4]) return 1;
+	if (!mb[4]) return -1;
+	return ma[4] < mb[4] ? -1 : 1;
+}
+
 $(document).ready(function() {
 
 	if ($('.stop-js').length) return; /* Classname flag for big pages that don't want JS to run */
@@ -2749,4 +2776,4 @@ $(document).ready(function() {
 			assignment.classList.remove('swapping')
 		})
 	})
-})
+});

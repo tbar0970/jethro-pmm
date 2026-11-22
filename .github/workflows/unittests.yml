@@ -44,3 +44,16 @@ jobs:
 
       - name: Run unit tests
         run: php tests/unit/run.php
+
+  js:
+    runs-on: ubuntu-latest
+    if: github.repository == 'tbar0970/jethro-pmm' || github.repository == 'jefft/jethro-pmm'
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v6
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Run JS unit tests
+        run: bun test --pass-with-no-tests ./tests/unit/js
