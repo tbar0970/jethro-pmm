@@ -22,6 +22,13 @@ statuses and age brackets.
   Sheets.
 - **Paste text** expects tab-separated values, which is what you get when you copy cells straight
   from a spreadsheet.
+- **From Google Spreadsheet** fetches a sheet directly: paste its share link, optionally name the
+  tab, and optionally upload a service-account JSON key. Without a key the sheet must be readable
+  by anyone with the link; with a key, share the sheet with the key's service account (Viewer).
+  The key is used for that import only and is not stored. The sheet URL and name are remembered
+  for your session, so the next import starts from the same sheet; the key itself is not
+  remembered. For recurring imports, use the scheduled importer with a key kept on the server:
+  see [Private Google Sheets access](./google-sheets-service-account.mdx).
 - The first row must hold the column headers. Column order doesn't matter, and headers are not
   case-sensitive: `First Name` and `first_name` are the same column.
 - Jethro warns about, and ignores, any column it doesn't recognise.
@@ -32,25 +39,112 @@ Every file must contain these columns:
 
 | Column | Value |
 |---|---|
-| `family_name` | Name of the person's family |
 | `last_name` | |
 | `first_name` | |
-| `congregation` | Congregation name (short or long), e.g. `6pm` |
-| `status` | Person status label, e.g. `Core`, `Crowd`, `Newcomer` |
 | `age_bracket` | Age bracket label, e.g. `Adult` |
 
 ### Optional columns
 
 | Column | Value |
 |---|---|
+| `family_name` | Name of the person's family. If the column is omitted, the row's `last_name` is used; a blank cell continues the family above |
+| `congregation` | Congregation name (short or long), e.g. `6pm`. May be blank unless the person's status requires a congregation |
+| `status` | Person status label, e.g. `Core`, `Crowd`, `Newcomer`. It must match a label configured in your Jethro instance. Blank means the default status for new persons, and no change when updating |
 | `personid` (or `ID`) | Jethro person ID of an existing person to update. See [Updating existing persons](#updating-existing-persons) |
 | `gender` | `male`, `female` or `unknown` |
-| `email`, `mobile_tel`, `work_tel` | Person contact details |
+| `email`, `mobile_tel` (or `mobile`), `work_tel` | Person contact details |
 | `home_tel`, `address_street`, `address_suburb`, `address_state`, `address_postcode` | Family contact details |
 | *custom field name* | A value for that custom field. Spaces in the field name may be written as `_` |
-| `note` | Text of a note to add to the person, with the subject "Import note" |
+| `note` (or `notes`) | Text of a note to add to the person, with the subject "Import note" |
 | `group` | Name of a group to add the person to. Repeat the column to add several groups |
 | `groupif[...]` | Conditional group membership; see [Groups](#groups) |
+
+## Generating the file from a Google Form
+
+A form-linked spreadsheet is a convenient source: collect the answers once, and let a second tab
+rearrange them into the columns `Admin → Import` expects. No copying is needed as responses
+arrive.
+
+### 1. Build the form
+
+![Google Form with person type, first name and last name questions](/img/admin-import/import-google-form.png)
+
+Ask at least **First name**, **Last name** and **Age bracket**. Useful extras are **Person type**
+(Adult/Child), **Email**, **Mobile** and **Notes**. The formulas below look questions up by their
+exact titles, so keep the titles as written here (or change the formulas to match).
+
+- Rows with the same family name are grouped into one family while they remain consecutive; a
+  single submission per family is the simplest way to guarantee that.
+- Ask for an age bracket using one of your Jethro age-bracket labels, e.g. `Adult`,
+  `Primary School (Yr 3-6)`.
+- Ask for mobile numbers in a format Jethro accepts: local with the leading zero
+  (`0491 570 159`) or international (`61491570159`).
+- A question titled `Notes` is optional; its answer becomes a person note.
+
+### 2. Link the responses to a spreadsheet
+
+In the form, choose **Responses → Link to Sheets**. Google adds a `Form Responses` tab:
+
+![Form Responses tab with timestamp, person type, names, email, mobile and age bracket](/img/admin-import/import-form-responses.png)
+
+The `Timestamp` and `Person type` columns are form metadata and are not imported directly.
+
+### 3. Add an `import` tab
+
+Create a second tab named `import` with exactly these headers in row 1:
+
+| Cell | Header |
+|---|---|
+| A1 | `family_name` |
+| B1 | `last_name` |
+| C1 | `first_name` |
+| D1 | `congregation` |
+| E1 | `status` |
+| F1 | `age_bracket` |
+| G1 | `email` |
+| H1 | `mobile_tel` |
+| I1 | `note` |
+
+Then paste these nine formulas into **row 2** (A2:I2). The `ARRAYFORMULA` fills every response
+row below, and `MATCH` finds each answer by its question title, so the order of columns in
+`Form Responses` does not matter:
+
+```text
+A2  =ARRAYFORMULA(IF('Form Responses'!A2:A="","",INDEX('Form Responses'!A2:K,0,MATCH("Last name",'Form Responses'!A1:K$1,0))))
+B2  =ARRAYFORMULA(IF('Form Responses'!A2:A="","",INDEX('Form Responses'!A2:K,0,MATCH("Last name",'Form Responses'!A1:K$1,0))))
+C2  =ARRAYFORMULA(IF('Form Responses'!A2:A="","",INDEX('Form Responses'!A2:K,0,MATCH("First name",'Form Responses'!A1:K$1,0))))
+D2  =ARRAYFORMULA(IF('Form Responses'!A2:A="","","4pm Kids"))
+E2  =ARRAYFORMULA(IF('Form Responses'!A2:A="","","Current"))
+F2  =ARRAYFORMULA(IF('Form Responses'!A2:A="","",INDEX('Form Responses'!A2:K,0,MATCH("Age bracket",'Form Responses'!A1:K$1,0))))
+G2  =ARRAYFORMULA(IF('Form Responses'!A2:A="","",INDEX('Form Responses'!A2:K,0,MATCH("Email",'Form Responses'!A1:K$1,0))))
+H2  =ARRAYFORMULA(IF('Form Responses'!A2:A="","",INDEX('Form Responses'!A2:K,0,MATCH("Mobile",'Form Responses'!A1:K$1,0))))
+I2  =ARRAYFORMULA(IF('Form Responses'!A2:A="","",INDEX('Form Responses'!A2:K,0,MATCH("Notes",'Form Responses'!A1:K$1,0))))
+```
+
+![import tab with one row per form response, ready for CSV download](/img/admin-import/import-form-import-tab.png)
+
+Adapt these parts to your instance:
+
+- **A and B both use “Last name”.** `family_name` is filled from the surname so the family is
+  grouped correctly; the person's `last_name` gets the same value.
+- **`"4pm Kids"` (D) and `"Current"` (E)** are fixed values. Replace them with a congregation
+  name and a person status label that exist in your Jethro instance. A label that does not exist
+  is a row error and the import is rejected.
+- **`Form Responses`** must match the tab name Google created, and every title in `MATCH(...)`
+  must exist in its header row. If you do not collect Notes, replace I2 with a blank cell or
+  remove the column.
+- If you add questions beyond column K, widen `A2:K` and `A1:K$1` in the formulas.
+
+### 4. Import the sheet
+
+Open the `import` tab and choose **File → Download → Comma-separated values (.csv)**, then upload
+that file at **Admin → Import**. Tick **Update existing persons if they match** so repeat
+submissions update people instead of creating duplicates. For an unattended import, the same tab
+can be fetched by `scripts/import_persons.php --google-spreadsheet`, which uses the spreadsheet's
+**last tab** by default or the tab named by `--google-spreadsheet-tab`; see the
+[developer reference](../developer/reference/import.md). To keep the sheet private, share it with
+a Google service account and pass its key with `--google-service-account`; the setup steps are in
+[Private Google Sheets access](./google-sheets-service-account.mdx).
 
 ## Families
 
@@ -59,7 +153,9 @@ Jethro reads consecutive rows as members of the same family. A row starts a new 
 - it has a different `family_name`, street, suburb, state or home phone from the rows above, or
 - there is a blank row above it.
 
-Family details can be on any row of the family, not only the first.
+Family details can be on any row of the family, not only the first. If the file has no
+`family_name` column, each row's `last_name` stands in for it, so consecutive rows with the same
+surname form a family.
 
 ## Groups
 

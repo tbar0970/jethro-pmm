@@ -29,6 +29,7 @@ const sidebars: SidebarsConfig = {
         'administration/action-plans',
         'administration/config/index',
         'administration/import',
+        'administration/google-sheets-service-account',
       ],
     },
   ],
