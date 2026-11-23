@@ -31,7 +31,7 @@ regular dev webroot (`devbox.d/web`). Listens on `FUNCTEST_WEB_PORT`. The init h
 preserves a literal port or resolves `_default_` to a per-checkout port in 10000–29999.
 See `docs/docs/developer/reference/JETHRO_UTILS.md`. Depends on `functest_databases_setup`, which runs
 `jethro_load_demodata jethro_functest` — recreating the `jethro_functest`
-database and filling it with the demo data dump, the post-2.38 upgrade
+database and filling it with the demo data dump, the 2.40+ upgrade
 scripts and the fake SMS history (`tests/functional/testdata/fakesmses.sql.gz`)
 — **all scenarios share this one database**, so
 specs must scope assertions to data unique to their own run (e.g. a

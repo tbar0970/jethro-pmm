@@ -11,8 +11,30 @@ class View_Persons extends View
 			$this->_person = $GLOBALS['system']->getDBObject('person', (int)$_REQUEST['personid']);
 			if ($this->_person) {
 				$this->_family = $this->_person->getFamily();
+				$this->_processShareConsent();
 			}
 		}
+	}
+
+	/**
+	 * Staff consent edits from the person record's Sharing tab (#792).
+	 */
+	private function _processShareConsent()
+	{
+		if (!array_get($_POST, 'share_consent_submitted') || !$GLOBALS['user_system']->havePerm(PERM_EDITGROUP)) {
+			return;
+		}
+		$GLOBALS['system']->includeDBClass('person_group');
+		Person_Group::applyShareConsentCheckboxes(
+			(int)$this->_person->id,
+			Person_Group::getGroups((int)$this->_person->id),
+			(array)array_get($_POST, 'share_visible', Array()),
+			(array)array_get($_POST, 'share_contact', Array()),
+			(array)array_get($_POST, 'share_inherit_visible', Array()),
+			(array)array_get($_POST, 'share_inherit_contact', Array()),
+			(array)array_get($_POST, 'share_rendered', Array())
+		);
+		add_message('Sharing settings updated', 'success');
 	}
 
 

@@ -1,7 +1,7 @@
 #!/bin/bash -eu
 # Usage: jethro_load_demodata DB [SYSTEM_NAME]
-# Recreate DB and fill it with the demo/functional-test data: the SQL dump, the
-# upgrade scripts released after 2.38.
+# Recreate DB and fill it with the demo/functional-test data: the SQL dump (a
+# 2.39.1 export of the demo instance), then the upgrade scripts from 2.40 on.
 # SYSTEM_NAME optionally overrides the SYSTEM_NAME setting of the loaded data.
 # Everything but the recreate step runs as the plain 'jethro' user.
 
@@ -24,10 +24,21 @@ echo "Loading $dump into '$db'..."
 # 'jethro' user, so the dump loads without root privileges.
 zcat "$dump" | mariadb_rename --database "$db" | mariadb "$db"
 
-echo "Applying upgrade scripts released after 2.38..."
-ls upgrades/*.sql | sort --version-sort | sed '0,/2\.38\.sql/ d' | while read -r sql; do
+echo "Applying upgrade scripts from 2.40 on..."
+# The dump already includes everything up to 2026-upgrade-to-2.39.sql, which is not
+# safe to re-run (it shifts setting ranks on every run).
+ls upgrades/*.sql | sort --version-sort | sed '0,/2\.39\.sql/ d' | while read -r sql; do
 	echo "  $sql"
 	mariadb "$db" < "$sql"
+done
+
+# PHP upgrade steps are part of the upgrade sequence too (2.40 ships the
+# latin1-to-utf8mb4 charset fixer), but they need a conf.php targeting $db,
+# which utf8mb4_convert_db provides.
+echo "Applying post-upgrade PHP scripts from 2.40 on..."
+ls upgrades/*.php | sort --version-sort | sed '0,/2\.40/ d' | while read -r php; do
+	echo "  $php"
+	devbox.d/bin/utf8mb4_convert_db "$db" "$PWD/$php"
 done
 
 if [[ -n "$system_name" ]]; then

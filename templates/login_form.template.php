@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<?php include 'head.template.php' ?>
+	<?php
+	$GLOBALS['datastarNeeded'] = FALSE; // High-traffic page with no Datastar markup; see docs/docs/developer/reference/datastar.md
+	include 'head.template.php';
+	?>
 </head>
 <body id="login">
 	<form method="post" id="login-box" class="well">
