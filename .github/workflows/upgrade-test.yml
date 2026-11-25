@@ -1,0 +1,65 @@
+name: Upgrade Test
+
+on:
+  push:
+    branches:
+      - master
+      - 'push-*'
+  pull_request:
+    branches:
+      - master
+      - 'push-*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+# The 2.40 SMS upgrade is the riskiest SQL in the release: it creates tables,
+# rewrites settings and migrates a decade of 'SMS Sent' notes into
+# sms/_smsdelivery/sms_note. This loads the 2.39 functional-test data into a real
+# MariaDB and a real MySQL 8, runs the upgrade scripts and asserts the result on
+# both. The same script runs locally: tests/upgrade/run-upgrade-test.sh.
+jobs:
+  upgrade:
+    name: Upgrade Test (${{ matrix.engine }})
+    runs-on: ubuntu-latest
+    if: github.repository == 'tbar0970/jethro-pmm' || github.repository == 'jefft/jethro-pmm'
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - engine: MariaDB 11.4
+            image: mariadb:11.4
+            ping: mariadb-admin ping -h127.0.0.1 -uroot -proot
+            client: mariadb
+          - engine: MySQL 8.0
+            image: mysql:8.0
+            ping: mysqladmin ping -h127.0.0.1 -uroot -proot
+            client: mysql
+    services:
+      db:
+        image: ${{ matrix.image }}
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: jethro_upgrade
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="${{ matrix.ping }}"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=60
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run the upgrade test
+        # The container's own client is used, so each engine is tested with the
+        # client shipped with it (and no client install is needed on the runner).
+        env:
+          DB_CLIENT: docker exec -i ${{ job.services.db.id }} ${{ matrix.client }} -uroot -proot
+          DB_NAME: jethro_upgrade_test
+        run: tests/upgrade/run-upgrade-test.sh

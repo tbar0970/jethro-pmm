@@ -9,6 +9,24 @@
       "feature": null,
       "includes": []
     },
+    "SENDSMS": {
+      "bitmask": 2,
+      "label": "SMS/Mailchimp - send",
+      "category": "SMS",
+      "description": "Send SMS messages to individuals or groups. Check SMS balance. Cancel pending sends.",
+      "default": true,
+      "feature": null,
+      "includes": []
+    },
+    "VIEWSMS": {
+      "bitmask": 524288,
+      "label": "SMS - view all",
+      "category": "SMS",
+      "description": "View the Persons → Messages page. See **all** SMS history across all users. Without this permission, users can still send SMS (with SENDSMS) and see the status of their own sends, but cannot browse the full SMS log.",
+      "default": true,
+      "feature": null,
+      "includes": []
+    },
     "RUNREPORT": {
       "bitmask": 4,
       "label": "Reports - run reports & view stats",

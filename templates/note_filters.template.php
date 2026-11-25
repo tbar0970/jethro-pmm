@@ -4,13 +4,16 @@
  *
  * Expected variables:
  * @var string|null $add_note_html  HTML for the "Add Note" link, or null
+ * @var bool        $show_filters   Whether to show the filter checkboxes
  */
 $GLOBALS['system']->includeDBClass('abstract_note');
 $statusDummy = new Abstract_Note();
 $statusOptions = $statusDummy->fields['status']['options'];
+$show_filters = $show_filters ?? false;
 ?>
 <div class="panel-sidebar pull-right">
-	<i><?php if (!empty($add_note_html)) echo "<i>".$add_note_html."</i>"; ?></i>
+	<?php if (!empty($add_note_html)) echo "<i>".$add_note_html."</i>"; ?>
+	<?php if ($show_filters): ?>
 	<fieldset class="hidden-phone">
 		<legend><?php echo _('Status:'); ?></legend>
 		<?php foreach ($statusOptions as $value => $label): ?>
@@ -25,4 +28,5 @@ $statusOptions = $statusDummy->fields['status']['options'];
 			<?php echo _('Assigned to me'); ?></i>
 		</label>
 	</fieldset>
+	<?php endif; ?>
 </div>

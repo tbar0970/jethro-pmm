@@ -1,0 +1,76 @@
+---
+sidebar_position: 9
+---
+
+# SMS Delivery Tracking
+
+Delivery status polling tracks whether sent messages actually reached the recipient's handset.
+
+## How It Works
+
+1. The status renderers emit a Datastar polling span for every delivery that is not final (`SmsStatus::isFinal()`, so 'sent' too), while its provider is the configured one and it is under 24h (`STATUS_POLL_WINDOW_SECS`) past its send time (`scheduled_send_at`, else `sms.created`)
+2. Each span GETs `?call=sms_info&id=N` on a backoff interval (`smsDeliveryPollIntervalSecs()`), and once on render when past its send time
+3. On Persons → Messages (`&batch=1`) only the lowest-ID non-final delivery of each send asks the provider and morphs its siblings; a delivery already final in the DB renders its stored status
+
+## Call_SMS_Info
+
+The server-side handler:
+
+1. Loads the `smsdelivery` row by ID; a row already final in the DB renders its stored status without a provider call
+2. Checks the current provider matches the delivery's provider (skips if providers differ)
+3. Asks the provider for its recent deliveries (`listRecentDeliveries()` over the polling window, persisted by `DbLoggingSmsProvider`) and resolves the polled delivery and its siblings from that
+4. Providers without `BATCH_DELIVERY_QUERY` fall back to `updateDelivery()` per delivery, through `DbLoggingSmsProvider` (which skips the upstream call for a final DB status and writes the result back to `smsdelivery`)
+5. Returns HTML — ✓✓ (delivered), ✓ (sent, still polling), or a status label (with an optional cancel link for scheduled messages)
+
+## Provider Support
+
+| Provider | Status Polling |
+|---|---|
+| FiveCentSms v5 | ✓ (GET /v5/sms/\{id\}) |
+| MobileMessage | ✓ (GET /v1/messages?message_id=\{uuid\}) |
+| Cellcast | ✓ (GET /api/v2/report/message/\{id\}) |
+| FiveCentSms v4 | ✗ |
+| Template | ✗ |
+
+## Caching
+
+`DbLoggingSmsProvider` caches the upstream response in `smsdelivery.raw_response` and `smsdelivery.status`. When a final status is found in the database, subsequent polls skip the API call entirely.
+
+## Final Statuses
+
+Once a delivery reaches a final status (per `SmsStatus::isFinal()` —
+`jethro-sms/src/SmsStatus.php`), polling stops and subsequent polls
+skip the API call entirely:
+
+- `DELIVERED` — confirmed on handset
+- `FAILED` — permanent delivery failure
+- `CANCELLED` — scheduled send was cancelled
+- `TEST_MESSAGE` — test mode (terminal)
+
+Non-final statuses (`QUEUED`, `SENT`, `SCHEDULED`, `SENDING`,
+`DELIVERY_IN_PROGRESS`, `UNKNOWN`) continue to poll — the delivery may
+still transition.
+
+## Cancel Link
+
+For scheduled messages (`SCHEDULED`), the info response includes a Cancel link. This only appears when:
+- The user has `PERM_SENDSMS`
+- The delivery status is `SCHEDULED`
+- The provider has `DEFERRED_SEND_CANCEL` capability
+
+Clicking Cancel fires `POST ?call=sms_cancel&sms_id=<sms_id>` — the cancel span carries `data-sms-id` and `data-scheduled-count` attributes. The JS handler shows a confirm dialog (count from `data-scheduled-count`) then posts to `Call_SMS_Cancel`.
+
+## Cancel Flow
+
+`Call_SMS_Cancel` accepts only `sms_id` (POST). It calls `loadSmsBatch($smsId)` to hydrate the batch from DB (no inline SQL in the handler), checks ownership via `$batch->senderPersonId`, filters to `SCHEDULED` deliveries, and calls `cancelSms(batch)` which delegates to `SmsProvider::cancel(SmsDeliveryBatch)`.
+
+Providers loop over deliveries internally; per-delivery gateway failures leave that delivery unchanged. The response counts CANCELLED vs unchanged deliveries.
+
+## Page Limit
+
+To prevent excessive API calls, only the first 20 non-final deliveries on a page are polled.
+
+## See Also
+
+- [Status Codes](./engine/status-codes)
+- [Database Tables](./database)

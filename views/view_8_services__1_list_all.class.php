@@ -616,7 +616,7 @@ class View_Services__List_All extends View
 							<?php print_widget('row_date['.$date.']', Array('type' => 'date', 'month_format' => 'M'), $date); ?>
 						</span>
 						<!-- Pencil icon (✎); clicking toggles between display and edit mode (see jethro.js) -->
-						<button type="button" class="service-date-edit-toggle" title="Edit date">&#9998;</button>
+						<button type="button" class="editbutton service-date-edit-toggle" title="Edit date">&#9998;</button>
 						<br />
 						<button type="button" name="delete_all_date" value="<?php echo $date; ?>" class="confirm-shift" title="Delete all services on this date">
 							<img src="<?php echo BASE_URL; ?>/resources/img/cross_red.png" />

@@ -1,0 +1,66 @@
+---
+sidebar_position: 8
+---
+
+# Add Note modal
+
+The shared "Add Note" dialog creates a `Person_Note` without leaving the current page. It is used
+from person lists, the person page, family view and the attendance views.
+
+| Piece | File |
+|---|---|
+| Modal markup | `templates/note_modal.template.php` |
+| Printer | `print_note_modal_once()` in `include/general.php` |
+| Client behaviour | `NoteCallHandler`, the `[data-toggle="note-modal"]` handler and the `#add-note-modal .note-submit` handler in `resources/js/jethro.js` |
+| Server endpoint | `calls/call_add_note.class.php` (`?call=add_note`) |
+| Styling | `.note-modal` and `tr.note-success` in `resources/less/jethro.less.php` |
+
+## Printing the modal
+
+A view or template calls `print_note_modal_once()` when it renders a trigger, after the enclosing
+form/table has closed. The modal has a single fixed id (`#add-note-modal`), so at most one copy may
+exist per request; the static guard inside `print_note_modal_once()` makes repeat calls no-ops.
+
+## Triggers
+
+Any element with `data-toggle="note-modal"` opens the dialog:
+
+| Attribute | Meaning |
+|---|---|
+| `href` | Non-JS fallback: the dedicated add-note page (`?view=_add_note_to_person&personid=…`) |
+| `data-personid` | Person the note is attached to (required) |
+| `data-name` | Name shown in the dialog heading; inserted with `.text()`, not `.html()` |
+| `data-refresh="1"` | Reload the whole page after saving (used by reports that show a Notes column) |
+
+Only plain primary-button clicks are hijacked; modified clicks (ctrl/cmd/shift/alt) and
+middle-click are left to the browser, so the `href` page opens in a new tab.
+
+## Submit flow
+
+1. The click handler on `.note-submit` POSTs `personid`, `subject`, `details`, `status` and `ajax=1`
+   to `?call=add_note`.
+2. `Call_Add_Note` requires `PERM_EDITNOTE` and creates one note per request. Response contract:
+   - success — `{"sent": {"note_id": <int>}}`
+   - failure — `{"error": "<message>"}`
+3. `NoteCallHandler.handleResponse()` renders the failure into `#call-failures` inside the modal
+   footer and returns `TRUE`, which re-enables the Save button.
+4. On success the row `tr[data-personid=…]` gets `.note-success`, the button shows "Saved", and after
+   one second the page reloads — unconditionally when `data-refresh` was set, otherwise only when a
+   `.notes-history-container` is on the page (the Notes tab is visible). In the latter case
+   `location.hash` is set to `note_<id>` first, so the new note is located and highlighted after the
+   reload; the `a[href^="#note_"], a[href^="#message_"]` handler switches to the Notes or Messages tab
+   and adds `.highlight` to the target.
+
+SMS does not use this endpoint. When "Create Note" is ticked on an SMS send, `Call_SMS` creates the
+notes server-side (and links person notes through `sms_note`) so a second AJAX round-trip cannot lose
+them; see `calls/call_sms.class.php`.
+
+## Call sites
+
+`print_note_modal_once()` — `db_objects/person_query.class.php` (reports with an Add Note column),
+`templates/person_list.template.php`, `templates/view_person.template.php`,
+`templates/view_family.template.php`, `views/view_6_attendance__1_record.class.php`,
+`views/view_6_attendance__2_display.class.php`.
+
+Triggers are rendered in those same files, plus `db_objects/attendance_record_set.class.php`, whose
+rows are printed by the two attendance views.

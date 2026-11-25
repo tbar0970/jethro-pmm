@@ -190,7 +190,7 @@ class JethroDB extends PDO
 				$shift_array = (!$force_array && $colnum == 2);
 			}
 			do {
-				$key = reset($row);
+				$key = reset($row) ?? '';	// NULL key column → '' (what PHP always did; null offsets are deprecated)
 				unset($row[key($row)]);
 				if ($shift_array) {
 					$row = array_shift($row);

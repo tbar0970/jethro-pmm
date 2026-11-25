@@ -1,0 +1,40 @@
+#!/bin/bash -eu
+# Usage: utf8mb4_convert_db DB [UPGRADE_PHP]
+# Run a PHP upgrade script that expects Jethro's conf.php, include/ and
+# upgrades/ at Jethro's root (default: upgrades/2026-upgrade-to-2.40-utf8mb4.php)
+# against DB.
+#
+# Such scripts resolve JETHRO_ROOT from their own path and expect to run from
+# Jethro's root, where conf.php, include/ and upgrades/ live together. In a
+# devbox checkout those live in devbox.d/<webroot> and the repo root
+# respectively, so write a temporary conf.php at the repo root for the run,
+# targeting DB over the devbox unix socket, then restore.
+DB=${1:?database}
+ROOT="${DEVBOX_PROJECT_ROOT:?not in a devbox environment - run via 'devbox run' or 'devbox shell'}"
+: "${MYSQL_UNIX_PORT:?not in a devbox environment - run via 'devbox run' or 'devbox shell'}"
+PHP_UPGRADE=${2:-$ROOT/upgrades/2026-upgrade-to-2.40-utf8mb4.php}
+
+CONF="$ROOT/conf.php"
+CONF_BAK="$ROOT/conf.php.functest_bak"
+if [ -f "$CONF" ]; then
+	cp "$CONF" "$CONF_BAK"
+fi
+restore_conf() {
+	if [ -f "$CONF_BAK" ]; then
+		mv "$CONF_BAK" "$CONF"
+	else
+		rm -f "$CONF"
+	fi
+}
+trap restore_conf EXIT
+
+cat > "$CONF" <<-PHP
+<?php
+define('DB_DSN', 'mysql:unix_socket=' . getenv('MYSQL_UNIX_PORT') . ';dbname=$DB');
+define('DB_DATABASE', '$DB');
+define('DB_USERNAME', 'jethro');
+define('DB_PASSWORD', 'jethro');
+PHP
+
+cd "$ROOT"
+php "$PHP_UPGRADE"

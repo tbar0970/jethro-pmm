@@ -4,7 +4,7 @@ import { to } from "./timeouts.js";
 // Credentials for the local test instance.  `demo` is the full-permission
 // account; the restricted staff_member personas (6pmonly, rostersetter,
 // smallgroupleader, bandleader, kidscare, noperms) share the same password —
-// see tests/functional/testdata/test_personas.sql.
+// see docs/docs/developer/reference/functest-personas.mdx.
 export const DEMO_USERNAME = "demo";
 export const PERSONA_PASSWORD = "qfntt7eYuwHs123";
 

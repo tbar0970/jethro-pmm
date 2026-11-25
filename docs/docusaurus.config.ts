@@ -6,6 +6,12 @@ import type {Config} from '@docusaurus/types';
 // internal doc links into nonexistent paths (broken-link build failure).
 const BASE_URL = '/docs/';
 
+// JETHRO_VERSION from devbox.json, e.g. 2.40.0-DEV; also decides which
+// changelog releases are shown as "(unreleased)".
+const JETHRO_VERSION = require('./plugins/changelog-releases').jethroVersion();
+// Docs version label and URL segment of every docs page, e.g. 2.40.0-dev.
+const DOCS_VERSION = JETHRO_VERSION.isDev ? `${JETHRO_VERSION.version}-dev` : JETHRO_VERSION.version;
+
 const config: Config = {
   title: 'Jethro ChMS',
   tagline: 'Pastoral Ministry Manager — Church Management Software',
@@ -30,11 +36,17 @@ const config: Config = {
     locales: ['en'],
   },
 
+  // Assembles changelog/index.mdx's release sections from
+  // changelog/_releases/<version>/*.mdx fragments.
+  markdown: {
+    preprocessor: require('./plugins/changelog-releases').expandChangelogReleases,
+  },
+
   // Mermaid (@docusaurus/theme-mermaid) was removed because webpack/Rspack
   // cannot resolve `export *` re-export chains through d3's ESM source tree,
   // causing "curveBumpX/curveBumpY not exported from d3" and "blur2 not
   // exported from d3-array" at build time (mermaid 11.16 + d3 7.9).
-  // The single ER diagram in jethro-sms/docs/reference/database.mdx was
+  // The single ER diagram in docs/docs/developer/sms/database.mdx was
   // replaced with ASCII art. To re-enable mermaid in future, test that
   // `bun run build` succeeds after re-adding the theme, the `markdown.mermaid`
   // config, and `@docusaurus/theme-mermaid` to dependencies.
@@ -54,15 +66,17 @@ const config: Config = {
           sidebarPath: './sidebars.ts',
           editUrl: 'https://github.com/jethro-chms/jethro/edit/main/docs/',
           lastVersion: 'current',
-          exclude: ['**/jethrosettings.json'],
+          // Changelog fragments are assembled into changelog/index.mdx by the
+          // markdown preprocessor above, not published as pages.
+          exclude: ['**/jethrosettings.json', '**/changelog/_releases/**'],
           rehypePlugins: [
             [require('./plugins/fix-root-relative-paths'), { baseUrl: BASE_URL }],
           ],
           versions: {
             current: {
-              label: '2.39.0-dev',
-              path: '2.39.0-dev',
-              banner: 'unreleased',
+              label: DOCS_VERSION,
+              path: DOCS_VERSION,
+              banner: JETHRO_VERSION.isDev ? 'unreleased' : 'none',
             },
           },
         },

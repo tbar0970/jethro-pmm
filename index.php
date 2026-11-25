@@ -48,6 +48,7 @@ require_once JETHRO_ROOT.'/include/init.php';
 
 // Set up the user system
 require_once JETHRO_ROOT.'/include/user_system.class.php';
+
 require_once JETHRO_ROOT.'/include/system_controller.class.php';
 $GLOBALS['user_system'] = new User_System();
 

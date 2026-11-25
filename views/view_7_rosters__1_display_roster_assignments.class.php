@@ -109,7 +109,9 @@ class View_Rosters__Display_Roster_Assignments extends View
 					echo '<a target="print-roster" class="med-newwin nowrap" href="?call=display_roster&viewid='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'"><i class="icon-print"></i>Show printable version</a> &nbsp; ';
 					echo '<a href="?call=email&print_modal=1&roster_view='.$viewid.'&start_date='.$this->_start_date.'&end_date='.$this->_end_date.'" target="_append" class="nowrap"><i class="icon-email">@</i>Email all assignees</a> &nbsp; ';
 
-					if (SMS_Sender::canSend()) {
+					require_once 'include/jethro_sms.php';
+
+					if (Jethro\Sms\canSendSms()) {
 						$assignees = $this->_view->getAssignees($this->_start_date, $this->_end_date);
 						echo '<a  class="nowrap" href="#send-sms-modal" data-personid="'.implode(',', array_keys($assignees)).'" data-toggle="sms-modal" data-name="'.count($assignees).' assignees in '.ents($this->_view->getValue('name')).'"><i class="icon-envelope"></i>SMS all assignees</a> &nbsp; ' ;
 

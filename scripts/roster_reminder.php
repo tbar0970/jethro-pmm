@@ -85,7 +85,7 @@ if ($sendemail) {
 	$phpMail=getvar('PHP_MAIL', 0);
 }
 if ($sendsms) {
-	$roster_coordinator_id=getvar('ROSTER_COORDINATOR_ID');
+	$roster_coordinator_id = getvar('ROSTER_COORDINATOR_ID', '');  // optional: '' means no summary SMS
 	$smsfrom = getvar('SMS_FROM');
 }
 $include_roster_content=getvar('INCLUDE_ROSTER_CONTENT', 1);
@@ -143,10 +143,10 @@ if (count($roster_array) > 2) {
 	if ($rds) $roster_date = ' ('.implode(', ', $rds).')';
 }
 
-// Template substitution for PRE_MESSAGE / POST_MESSAGE.  Three tokens are available:
-//   {roster_date}       - e.g. "Sunday, 29 April" or "Sunday, 29 April, Friday, 3 April"
-//   {roster_date_short} - e.g. "29 Apr" (no year or day name; keeps SMS messages short)
-//   {roster_day_of_week}       - e.g. "Sunday" or "Sunday, Friday"
+// Template substitution for PRE_MESSAGE / POST_MESSAGE / EMAIL_SUBJECT.  Three tokens are available:
+//   {roster_date}         - e.g. "Sunday, 29 April" or "Friday, 3 April or Sunday, 5 April"
+//   {roster_date_short}   - e.g. "29 Apr" or "3 Apr/5 Apr" (no year or day name; keeps SMS messages short)
+//   {roster_day_of_week}  - e.g. "Sunday" or "Friday or Sunday"
 // See roster_reminder_sample.ini for examples.
 $roster_date_full  = implode(' or ', array_map(fn($d) => date('l, j F', strtotime($d)), $rds));
 $roster_date_short = implode('/', array_map(fn($d) => date('j M',    strtotime($d)), $rds));
@@ -157,18 +157,42 @@ $pre_message  = str_replace($tokens, $replacements, $pre_message);
 $post_message = str_replace($tokens, $replacements, $post_message);
 if ($sendemail) $email_subject = str_replace($tokens, $replacements, $email_subject);
 
+$smsReminderFailed = false;  // true if the SMS reminder reached nobody; makes the script exit 1 at the end
 $assignees=$view->getAssignees($start_date, $end_date);
 
+// Work out the sender before the SMS block. A sender problem disables only the
+// SMS part: the email reminders below must still go out.
+if ($sendsms) {
+	require_once JETHRO_ROOT.'/include/jethro_sms.php';
+	// SMS_FROM may be a phone number or an alphanumeric Sender ID (e.g. "StBarnabas").
+	$smsSenderNumber = \Sms\senderFromString((string) $smsfrom);
+	$smsSender = $smsSenderNumber ?? Jethro\Sms\getSenderFromRequest();
+	if ($smsSender === null) {
+		fwrite(STDERR, "No sender configured. Set SMS_FROM in the ini file, or set SMS_SENDER_OPTIONS/SMS_SENDER in conf.php. No SMS reminders will be sent.\n");
+		$smsReminderFailed = true;
+		$sendsms = false;
+	}
+}
+
 if ($sendsms) { // make the sms message!
-	define('OVERRIDE_USER_MOBILE', $smsfrom);
 	$sms_notification = "No SMS Notification was sent for " . $roster_name . ". There were no people assigned.\n";
 
-	if (!ctype_digit($roster_coordinator_id)) {
-		throw new \RuntimeException("ROSTER_COORDINATOR_ID must be an integer ID referencing a _person record");
+	$coordinator = [];  // keyed by person ID, as getRecipientsFromPersonRecords() expects
+	if ($roster_coordinator_id !== '') {
+		if (!ctype_digit($roster_coordinator_id)) {
+			throw new \RuntimeException("ROSTER_COORDINATOR_ID must be an integer ID referencing a _person record");
+		}
+		$sql = 'SELECT person.* FROM person WHERE person.id='.(int)$roster_coordinator_id;
+		$coordinator = array_column($GLOBALS['db']->queryAll($sql), null, 'id');
+		if ($coordinator === []) {
+			throw new \RuntimeException("No person found with ROSTER_COORDINATOR_ID {$roster_coordinator_id} (deleted, or not visible to this account)");
+		}
 	}
-	$coordinator=new Person($roster_coordinator_id);
-	$sql = 'SELECT person.* FROM person WHERE person.id='.(int)$roster_coordinator_id;
-	$coordinator = $GLOBALS['db']->queryAll($sql);
+
+	$nameLookup = [];        // person ID => name, for formatSendSummary()
+	foreach ($coordinator as $pid => $person) {
+		$nameLookup[(int)$pid] = $person['first_name'] . ' ' . $person['last_name'];
+	}
 
 	if (count($assignees) > 0) {
 
@@ -194,8 +218,6 @@ if ($sendsms) { // make the sms message!
 			$smsroster .= "\n";
 		}
 
-		$assignees = array_merge($assignees, $coordinator);
-
 		$sms_message = $pre_message . $smsroster . "\n" .  $post_message;
 		$sms_message = str_replace('<br>', "\n", $sms_message);
 		$sms_message = str_replace('<BR>', "\n", $sms_message);
@@ -210,52 +232,58 @@ if ($sendsms) { // make the sms message!
 			bam("Recipients: " . implode(', ', $recipientNames));
 			exit;
 		}
-		if (strlen($sms_message) > SMS_MAX_LENGTH) {
-			$assignees = $coordinator;
-			$sms_message = 'Roster email is too long for SMS. Increase SMS size limit.';
+		// SMS_MAX_LENGTH limits what staff type in the web UI; it does not apply
+		// here, so the whole roster is sent however long it is.
+		// Build a name lookup from person records (keyed by person ID)
+		foreach ($assignees as $pid => $person) {
+			$pid = (int)$pid;
+			if ($pid) {
+				$nameLookup[$pid] = ($person['first_name'] ?? '') . ' ' . ($person['last_name'] ?? '');
+			}
 		}
+
 		// now, actually send the messages!
-		require_once JETHRO_ROOT.'/include/sms_sender.class.php';
-		$notification_sms = '';
-		if (!empty($assignees))  {
-			$sendResponse = SMS_Sender::sendMessage($sms_message, $assignees, FALSE);
-			$successes = $failures = $rawresponse = Array();
-			$executed = $sendResponse['executed'];
-			$successes = array_values($sendResponse['successes']);
-			$failures = array_values($sendResponse['failures']);
-			$rawresponse = $sendResponse['rawresponse'];
-			$error = $sendResponse['error'];
-			if (!$executed) {
-				$sms_notification = "Unable to send SMS\n\n$error\n";
+		$smsRecipients = Jethro\Sms\getRecipientsFromPersonRecords($assignees);
+		if ($smsRecipients === []) {
+			// Everyone rostered lacks a mobile number, so there is nobody to send to.
+			$sms_notification = "No SMS Notification was sent for " . $roster_name . ". Nobody rostered has a mobile number.\n";
+			fwrite(STDERR, $sms_notification);
+			$smsReminderFailed = true;
+		} else {
+			$sendWrapper = Jethro\Sms\sendSms($sms_message, $smsRecipients, $smsSender);
+			if ($sendWrapper->isFailure()) {
+				$sms_notification = "Unable to send {$roster_name}\n\n" . $sendWrapper->getError() . "\n";
+				fwrite(STDERR, $sms_notification);
+				$smsReminderFailed = true;
 			} else {
-				if ((count($successes) <= 0) && (count($failures) <= 0)) {
-					$sms_notification = "SMS for $roster_name sent, but sending cannot be confirmed.\n";
-				}
-				if (count($successes) > 0 ) {
-					$sms_notification = "Sent roster successfully to:\n";
-					for ($i=0; $i < count($successes); $i++) {
-						$sms_notification .= $successes[$i]['first_name'] . ' ' . $successes[$i]['last_name'];
-						if ($i < (count($successes) - 1)) { $sms_notification .= ', '; } else { $sms_notification .= ".\n\n";}
-					}
-				}
-				if (count($failures) > 0 ) {
-					$sms_notification .= "Failed to send roster to:\n";
-					for ($i=0; $i < count($failures); $i++) {
-						$sms_notification .= $failures[$i]['first_name'] . ' ' . $failures[$i]['last_name'];
-						if ($i < (count($failures) - 1)) { $sms_notification .= ', '; } else { $sms_notification .= ".\n\n";}
-					}
+				$batch = $sendWrapper->getValue();
+				$summary = \Sms\sendSummary($batch->deliveries, $smsRecipients);
+				$sms_notification = Jethro\Sms\formatSendSummary($summary, $nameLookup, $roster_name);
+				// Partial failures (e.g. a bad mobile number) are reported in the summary but aren't script errors.
+				if ($summary instanceof \Sms\Failed) {
+					fwrite(STDERR, $sms_notification);
+					$smsReminderFailed = true;
 				}
 			}
 		}
 	}
 	// Notify about sending the notifications!
-	$sendResponse = SMS_Sender::sendMessage($sms_notification, $coordinator, FALSE);
-	if (!empty($verbose)) {
-		echo "$sms_notification\n";
-		if (!$sendResponse['executed'] || empty($sendResponse['successes'])) {
-			echo "Unable to send Notification SMS:\n\n" . $sendResponse['error'] . "\n";
+	if (!empty($coordinator)) {
+		$sendWrapper = Jethro\Sms\sendSms($sms_notification, Jethro\Sms\getRecipientsFromPersonRecords($coordinator), $smsSender);
+		if ($sendWrapper->isFailure()) {
+			fwrite(STDERR, $sendWrapper->getError() . "\n");
+			$smsReminderFailed = true;
+		} else {
+			$batch = $sendWrapper->getValue();
+			$summary = \Sms\sendSummary($batch->deliveries, Jethro\Sms\getRecipientsFromPersonRecords($coordinator));
+			if ($summary instanceof \Sms\Failed) {
+				fwrite(STDERR, Jethro\Sms\formatSendSummary($summary, $nameLookup, 'notification'));
+				$smsReminderFailed = true;
+			} elseif (!empty($verbose)) {
+				echo "$sms_notification\n";
+				echo Jethro\Sms\formatSendSummary($summary, $nameLookup, 'notification') . "\n";
+			}
 		}
-		echo "\nFull Server Response:\n\n" . $sendResponse['rawresponse'] . "\n";
 	}
 }
 
@@ -443,7 +471,12 @@ function roster_raw_mail_from(string $from_address, string $from_name): array
 			}
 		} else {
 			echo "Failed to send roster ($roster_name) reminder notification to coordinator\n";
-			exit;
+			exit(1);
 		}
 	}
+}
+
+// Exit nonzero (after notifying the coordinator) if the SMS reminder failed to send to anyone.
+if ($smsReminderFailed) {
+	exit(1);
 }

@@ -52,7 +52,9 @@ require_once JETHRO_ROOT.'/include/init.php';
 require_once JETHRO_ROOT.'/upgrades/upgradefixes/2.40.0_fix_db_charset/dbcharsetutils.php';
 /** @var JethroDB $db */
 $db = $GLOBALS['db'];
-echo "Converting tables in database ".ifdef('DB_DATABASE', 'unknown')." to utf8mb4_unicode_ci...\n";
+// Ask the server: DB_DATABASE is undefined when conf.php sets DB_DSN instead.
+$dbname = $db->queryOne('SELECT DATABASE()');
+echo "Converting tables in database ".($dbname ?: 'unknown')." to utf8mb4_unicode_ci...\n";
 
 try {
 	$result = DB_Charset_Utils::fix();
@@ -82,7 +84,7 @@ if (!empty($result['errors'])) {
 
 // Align the database default charset as well, so tables created without an explicit
 // charset clause in the future (eg from later upgrades) also inherit utf8mb4.
-$dbname = $db->queryOne('SELECT DATABASE()');
+// $dbname: queried above.
 if (!empty($dbname)) {
 	// MySQL requires the SUPER privilege for ALTER DATABASE, which the
 	// application user typically lacks. On MySQL we check whether the
