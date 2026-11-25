@@ -1,0 +1,9 @@
+---
+requires_db_upgrade: false
+---
+
+### Search treats `%` and `_` as ordinary characters
+
+In the system-wide search, the Persons list search and the person picker, a `%` or `_` in the
+search text now matches that character. Previously they acted as wildcards, so searching for `%`
+in contact remarks listed everyone who had any.

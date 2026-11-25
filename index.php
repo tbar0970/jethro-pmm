@@ -53,7 +53,11 @@ $GLOBALS['user_system'] = new User_System();
 
 if ($GLOBALS['user_system']->getCurrentUser() == NULL) {
 	// Nobody is logged in, so show login screen or installer
-	if (!$GLOBALS['db']->hasTables()) {
+	if (!is_null(View::requestedFragment())) {
+		// A view fragment (fetched by Datastar) must not be handed the login page, which is
+		// HTML it would treat as a patch. See docs/docs/developer/reference/view-fragments.md
+		http_response_code(401);
+	} else if (!$GLOBALS['db']->hasTables()) {
 		require_once JETHRO_ROOT.'/include/installer.class.php';
 		$installer = new Installer();
 		$installer->run();

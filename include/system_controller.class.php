@@ -138,6 +138,7 @@ class System_Controller
 				$view_classname = 'View_'.$bits[0];
 			}
 
+			$fragment = View::requestedFragment();
 			if (!is_null($view_filename)) {
 				require_once $this->_base_dir.'/views/'.$view_filename;
 				$view_perm = call_user_func(Array($view_classname, 'getMenuPermissionLevel'));
@@ -147,7 +148,15 @@ class System_Controller
 				$this->_view = new $view_classname();
 				$this->_view->processView();
 			}
-			require $this->_base_dir.'/templates/main.template.php';
+			if (is_null($fragment)) {
+				require $this->_base_dir.'/templates/main.template.php';
+			} else if (is_null($this->_view)) {
+				http_response_code(404);
+				echo 'Undefined view';
+			} else {
+				// One region of the view, without page chrome. See docs/docs/developer/reference/view-fragments.md
+				$this->_view->printFragment($fragment);
+			}
 			restore_error_handler();
 		}
 	}
